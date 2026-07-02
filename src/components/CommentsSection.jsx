@@ -42,6 +42,18 @@ const REACTION_ASSETS = [
 ];
 const FALLBACK_REACTIONS = REACTION_ASSETS.map((reaction) => reaction.id);
 const REACTION_ASSET_MAP = Object.fromEntries(REACTION_ASSETS.map((reaction) => [reaction.id, reaction]));
+const MARKDOWN_HELP_LINES = [
+  "**bold**",
+  "*italic*",
+  "~~strike~~",
+  "`inline code`",
+  "==highlight==",
+  "^^glow text^^",
+  "||spoiler||",
+  "> quote",
+  "- list item",
+  "[link](https://example.com)"
+];
 let gifScrollUnlockTimer = null;
 let gifScrollGuardCleanup = null;
 
@@ -146,6 +158,132 @@ function UserAvatar({ user }) {
   );
 }
 
+function safeMarkdownUrl(value) {
+  try {
+    const url = new URL(String(value || "").trim());
+    return ["http:", "https:", "mailto:"].includes(url.protocol) ? url.toString() : "";
+  } catch {
+    return "";
+  }
+}
+
+function parseMarkdownInline(text, keyPrefix = "md") {
+  const source = String(text || "");
+  const tokenPattern = /(\[([^\]]{1,90})\]\(([^)\s]+)\)|`([^`]+)`|\*\*([^*]+)\*\*|__([^_]+)__|\*([^*]+)\*|_([^_]+)_|~~([^~]+)~~|==([^=]+)==|\^\^([^^]+)\^\^|\|\|([^|]+)\|\||https?:\/\/[^\s<]+)/g;
+  const nodes = [];
+  let lastIndex = 0;
+  let match;
+
+  while ((match = tokenPattern.exec(source))) {
+    if (match.index > lastIndex) nodes.push(source.slice(lastIndex, match.index));
+    const key = `${keyPrefix}-${match.index}`;
+    const [raw, , linkLabel, linkUrl, code, boldA, boldB, italicA, italicB, strike, mark, glow, spoiler] = match;
+
+    if (linkLabel && linkUrl) {
+      const href = safeMarkdownUrl(linkUrl);
+      nodes.push(href ? <a href={href} key={key} rel="nofollow noreferrer noopener" target="_blank">{linkLabel}</a> : raw);
+    } else if (code) {
+      nodes.push(<code key={key}>{code}</code>);
+    } else if (boldA || boldB) {
+      nodes.push(<strong key={key}>{boldA || boldB}</strong>);
+    } else if (italicA || italicB) {
+      nodes.push(<em key={key}>{italicA || italicB}</em>);
+    } else if (strike) {
+      nodes.push(<s key={key}>{strike}</s>);
+    } else if (mark) {
+      nodes.push(<mark key={key}>{mark}</mark>);
+    } else if (glow) {
+      nodes.push(<span className="comment-md-glow" key={key}>{glow}</span>);
+    } else if (spoiler) {
+      nodes.push(<span className="comment-md-spoiler" key={key} tabIndex="0">{spoiler}</span>);
+    } else {
+      const href = safeMarkdownUrl(raw);
+      nodes.push(href ? <a href={href} key={key} rel="nofollow noreferrer noopener" target="_blank">{raw}</a> : raw);
+    }
+
+    lastIndex = match.index + raw.length;
+  }
+
+  if (lastIndex < source.length) nodes.push(source.slice(lastIndex));
+  return nodes;
+}
+
+function MarkdownText({ text, compact = false }) {
+  const lines = String(text || "").replace(/\r\n/g, "\n").split("\n");
+  const blocks = [];
+  let paragraph = [];
+
+  function flushParagraph() {
+    if (!paragraph.length) return;
+    const value = paragraph.join("\n");
+    blocks.push(
+      <p key={`p-${blocks.length}`}>
+        {parseMarkdownInline(value, `p-${blocks.length}`)}
+      </p>
+    );
+    paragraph = [];
+  }
+
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      flushParagraph();
+      continue;
+    }
+
+    if (trimmed.startsWith("```")) {
+      flushParagraph();
+      const codeLines = [];
+      index += 1;
+      while (index < lines.length && !lines[index].trim().startsWith("```")) {
+        codeLines.push(lines[index]);
+        index += 1;
+      }
+      blocks.push(<pre key={`code-${blocks.length}`}><code>{codeLines.join("\n")}</code></pre>);
+      continue;
+    }
+
+    if (trimmed.startsWith(">")) {
+      flushParagraph();
+      const quoteLines = [trimmed.replace(/^>\s?/, "")];
+      while (index + 1 < lines.length && lines[index + 1].trim().startsWith(">")) {
+        index += 1;
+        quoteLines.push(lines[index].trim().replace(/^>\s?/, ""));
+      }
+      blocks.push(
+        <blockquote key={`quote-${blocks.length}`}>
+          {parseMarkdownInline(quoteLines.join(" "), `quote-${blocks.length}`)}
+        </blockquote>
+      );
+      continue;
+    }
+
+    if (/^[-*]\s+/.test(trimmed)) {
+      flushParagraph();
+      const items = [trimmed.replace(/^[-*]\s+/, "")];
+      while (index + 1 < lines.length && /^[-*]\s+/.test(lines[index + 1].trim())) {
+        index += 1;
+        items.push(lines[index].trim().replace(/^[-*]\s+/, ""));
+      }
+      blocks.push(
+        <ul key={`list-${blocks.length}`}>
+          {items.map((item, itemIndex) => (
+            <li key={itemIndex}>{parseMarkdownInline(item, `list-${blocks.length}-${itemIndex}`)}</li>
+          ))}
+        </ul>
+      );
+      continue;
+    }
+
+    paragraph.push(line);
+  }
+
+  flushParagraph();
+  return <div className={`comment-markdown ${compact ? "is-compact" : ""}`}>{blocks}</div>;
+}
+
 function hasContent(text, gifUrl) {
   return text.trim().length > 0 || !!gifUrl;
 }
@@ -211,6 +349,7 @@ export function CommentsSection() {
   const [reactionBusyId, setReactionBusyId] = useState("");
   const [page, setPage] = useState(1);
   const [deleteDialog, setDeleteDialog] = useState(null);
+  const [markdownHelpOpen, setMarkdownHelpOpen] = useState(false);
 
   const pinnedCount = useMemo(() => comments.filter((comment) => comment.pinned).length, [comments]);
   const pinnedComments = useMemo(() => comments.filter((comment) => comment.pinned), [comments]);
@@ -691,7 +830,30 @@ export function CommentsSection() {
         <form className="comments-composer" onSubmit={submitComment}>
           <div className="comments-composer-top">
             <span>$ comment --discord-auth</span>
-            <span>{status}</span>
+            <div className="comments-composer-tools">
+              <div className="comments-markdown-help-wrap">
+                <button
+                  className="comments-markdown-help-btn"
+                  type="button"
+                  aria-expanded={markdownHelpOpen}
+                  aria-controls="comments-markdown-help"
+                  onClick={() => setMarkdownHelpOpen((current) => !current)}
+                  onBlur={(event) => {
+                    if (!event.currentTarget.parentElement?.contains(event.relatedTarget)) setMarkdownHelpOpen(false);
+                  }}
+                >
+                  markdown
+                </button>
+                {markdownHelpOpen ? (
+                  <div className="comments-markdown-help" id="comments-markdown-help" role="tooltip" tabIndex="-1">
+                    {MARKDOWN_HELP_LINES.map((line) => (
+                      <code key={line}>{line}</code>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+              <span>{status}</span>
+            </div>
           </div>
           <label className="comments-input-frame">
             <span aria-hidden="true">&gt;</span>
@@ -767,7 +929,7 @@ export function CommentsSection() {
                       ) : null}
                     </div>
                   </header>
-                  {comment.text ? <p>{comment.text}</p> : null}
+                  {comment.text ? <MarkdownText text={comment.text} /> : null}
                   <CommentMedia gifUrl={comment.gifUrl} />
 
                   <div className="comment-reactions">
@@ -856,7 +1018,7 @@ export function CommentsSection() {
                                   </button>
                                 ) : null}
                               </header>
-                              {reply.text ? <p>{reply.text}</p> : null}
+                              {reply.text ? <MarkdownText compact text={reply.text} /> : null}
                               <CommentMedia gifUrl={reply.gifUrl} />
                             </div>
                           </div>
