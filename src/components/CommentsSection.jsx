@@ -161,6 +161,10 @@ function getReactionPickerStyle(button) {
   };
 }
 
+function isMobileViewport() {
+  return typeof window !== "undefined" && window.matchMedia("(max-width: 760px)").matches;
+}
+
 function CommentMedia({ gifUrl }) {
   if (!gifUrl) return null;
   return (
@@ -567,6 +571,8 @@ export function CommentsSection() {
       )
     : null;
 
+  const shouldPortalReactionPicker = isMobileViewport();
+
   return (
     <section className="py-16 md:py-24" id="contact">
       <div className="comments-section-heading">
@@ -729,7 +735,7 @@ export function CommentsSection() {
                             setStatus(auth.configured ? "connect Discord to react" : "Discord OAuth needs env keys");
                             return;
                           }
-                          const nextStyle = getReactionPickerStyle(event.currentTarget);
+                          const nextStyle = isMobileViewport() ? getReactionPickerStyle(event.currentTarget) : undefined;
                           setReactionPickerId((current) => {
                             if (current === comment.id) {
                               setReactionPickerStyle(undefined);
@@ -745,28 +751,30 @@ export function CommentsSection() {
                         <span aria-hidden="true">+</span>
                         <SmilePlus size={14} aria-hidden="true" />
                       </button>
-                      {reactionPickerId === comment.id && typeof document !== "undefined" ? createPortal(
-                        <div className="reaction-picker" role="menu" aria-label="Choose reaction" style={reactionPickerStyle}>
-                          {reactions.map((reactionId) => {
-                            const reaction = getReactionAsset(reactionId);
-                            const active = !!auth.user && (reactionMap[reactionId] || []).includes(auth.user.id);
-                            const reactionKey = `${comment.id}:${reactionId}`;
-                            return (
-                              <button
-                                className={`reaction-picker-item ${active ? "is-active" : ""}`}
-                                type="button"
-                                key={reactionId}
-                                onClick={() => chooseReaction(comment.id, reactionId)}
-                                aria-label={`React with ${reaction.label}`}
-                                disabled={!!reactionBusyId && reactionBusyId !== reactionKey}
-                              >
-                                {reaction.src ? <img className="reaction-emoji" src={reaction.src} alt="" aria-hidden="true" /> : reaction.label}
-                              </button>
-                            );
-                          })}
-                        </div>,
-                        document.body
-                      ) : null}
+                      {reactionPickerId === comment.id ? (() => {
+                        const picker = (
+                          <div className="reaction-picker" role="menu" aria-label="Choose reaction" style={shouldPortalReactionPicker ? reactionPickerStyle : undefined}>
+                            {reactions.map((reactionId) => {
+                              const reaction = getReactionAsset(reactionId);
+                              const active = !!auth.user && (reactionMap[reactionId] || []).includes(auth.user.id);
+                              const reactionKey = `${comment.id}:${reactionId}`;
+                              return (
+                                <button
+                                  className={`reaction-picker-item ${active ? "is-active" : ""}`}
+                                  type="button"
+                                  key={reactionId}
+                                  onClick={() => chooseReaction(comment.id, reactionId)}
+                                  aria-label={`React with ${reaction.label}`}
+                                  disabled={!!reactionBusyId && reactionBusyId !== reactionKey}
+                                >
+                                  {reaction.src ? <img className="reaction-emoji" src={reaction.src} alt="" aria-hidden="true" /> : reaction.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        );
+                        return shouldPortalReactionPicker && typeof document !== "undefined" ? createPortal(picker, document.body) : picker;
+                      })() : null}
                     </div>
                   </div>
 

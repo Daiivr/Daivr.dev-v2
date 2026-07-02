@@ -31,6 +31,43 @@ export default function App() {
   const time = useClock();
   useRandomGlitchWords(theme === "glitch");
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadThemePreference() {
+      try {
+        const response = await fetch("/api/comments/preferences", { credentials: "include" });
+        if (!response.ok) return;
+        const payload = await response.json();
+        if (!cancelled && ["crt", "glitch"].includes(payload.theme)) {
+          setTheme(payload.theme);
+        }
+      } catch {
+        // Theme preferences are a convenience; keep the local default if the API is unavailable.
+      }
+    }
+
+    loadThemePreference();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  function updateThemePreference(nextTheme) {
+    if (!["crt", "glitch"].includes(nextTheme)) return;
+    setTheme(nextTheme);
+
+    fetch("/api/comments/preferences", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ theme: nextTheme })
+    }).catch(() => {
+      // Guests can still preview themes; logged-in users get persistence when the API accepts it.
+    });
+  }
+
   function showAchievement(message, duration = 3200) {
     window.clearTimeout(achievementTimerRef.current);
     setAchievement(message);
@@ -158,7 +195,7 @@ export default function App() {
     if (!name) return;
 
     if (name === "theme") {
-      setTheme((value) => (value === "crt" ? "glitch" : "crt"));
+      updateThemePreference(theme === "crt" ? "glitch" : "crt");
       appendTerminal(input, "Theme toggled. Glitch layer recalibrated.");
       return;
     }
@@ -200,7 +237,7 @@ export default function App() {
       </a>
 
       <div className="relative z-10 grid min-h-screen lg:grid-cols-[292px_minmax(0,1fr)]">
-        <Sidebar activeSection={activeSection} theme={theme} onThemeChange={setTheme} />
+        <Sidebar activeSection={activeSection} theme={theme} onThemeChange={updateThemePreference} />
 
         <div className="min-w-0">
           <header className="sticky top-0 z-40 flex min-h-[68px] flex-col gap-3 border-b border-phosphor/20 bg-ink-950/85 px-4 py-3 backdrop-blur md:flex-row md:items-center md:justify-between lg:px-10">

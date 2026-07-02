@@ -10,6 +10,7 @@ import { handleVisitsRequest } from "./server/visits.mjs";
 
 const port = Number(process.env.PORT || 4173);
 const root = process.cwd();
+const staticRoot = join(root, "dist");
 loadLocalEnv(root);
 const steamGridApiKey = process.env.STEAMGRID_API_KEY || "";
 const steamGridCache = new Map();
@@ -31,7 +32,7 @@ function resolvePath(url) {
   const pathname = new URL(url, `http://localhost:${port}`).pathname;
   const relativePath = pathname === "/" ? "index.html" : pathname.replace(/^[/\\]+/, "");
   const cleanPath = normalize(decodeURIComponent(relativePath)).replace(/^(\.\.[/\\])+/, "");
-  return join(root, cleanPath);
+  return join(staticRoot, cleanPath);
 }
 
 async function getGameImageFromSteamGrid(gameName) {
@@ -126,9 +127,22 @@ createServer(async (request, response) => {
     }
 
     const filePath = resolvePath(request.url || "/");
-    const data = await readFile(filePath);
+    let data;
+    let contentType = types[extname(filePath)] || "application/octet-stream";
+
+    try {
+      data = await readFile(filePath);
+    } catch (error) {
+      if (extname(requestUrl.pathname)) {
+        throw error;
+      }
+
+      data = await readFile(join(staticRoot, "index.html"));
+      contentType = types[".html"];
+    }
+
     response.writeHead(200, {
-      "Content-Type": types[extname(filePath)] || "application/octet-stream",
+      "Content-Type": contentType,
       "Cache-Control": "no-store"
     });
     response.end(data);

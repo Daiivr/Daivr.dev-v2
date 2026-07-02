@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
 const COMMENTS_FILE = join(process.cwd(), "data", "comments.json");
+const PREFERENCES_FILE = join(process.cwd(), "data", "preferences.json");
 const SESSION_COOKIE = "daivr_comment_session";
 const STATE_COOKIE = "daivr_comment_state";
 const DISCORD_AUTH_URL = "https://discord.com/oauth2/authorize";
@@ -46,6 +47,7 @@ const LEGACY_REACTION_ALIASES = {
 const KLIPY_LIMIT = 24;
 const KLIPY_RATING = "pg-13";
 const KLIPY_LOCALE = "us_US";
+const THEME_VALUES = new Set(["crt", "glitch"]);
 
 function sendJson(response, status, payload) {
   response.writeHead(status, {
@@ -148,6 +150,37 @@ function writeComments(comments) {
   writeFileSync(COMMENTS_FILE, JSON.stringify(comments, null, 2), "utf8");
 }
 
+function ensurePreferencesFile() {
+  const dir = dirname(PREFERENCES_FILE);
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+  if (!existsSync(PREFERENCES_FILE)) writeFileSync(PREFERENCES_FILE, "{}", "utf8");
+}
+
+function readPreferences() {
+  ensurePreferencesFile();
+  try {
+    const data = JSON.parse(readFileSync(PREFERENCES_FILE, "utf8"));
+    return data && typeof data === "object" && !Array.isArray(data) ? data : {};
+  } catch (error) {
+    console.error("Preferences read error", error.message || error);
+    return {};
+  }
+}
+
+function writePreferences(preferences) {
+  ensurePreferencesFile();
+  writeFileSync(PREFERENCES_FILE, JSON.stringify(preferences, null, 2), "utf8");
+}
+
+function getUserPreferences(user) {
+  if (!user) return { theme: "" };
+  const preferences = readPreferences();
+  const entry = preferences[String(user.id)] || {};
+  return {
+    theme: THEME_VALUES.has(entry.theme) ? entry.theme : ""
+  };
+}
+
 function sortComments(comments) {
   return [...comments].sort((a, b) => {
     if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
@@ -219,6 +252,10 @@ function serializeCookie(name, value, options = {}) {
   return parts.join("; ");
 }
 
+function firstHeaderValue(value) {
+  return String(value || "").split(",")[0].trim();
+}
+
 function getSecret() {
   return process.env.COMMENTS_SESSION_SECRET || process.env.JWT_SECRET || "daivr-dev-comment-secret";
 }
@@ -263,13 +300,18 @@ function getUser(request) {
 }
 
 function getBaseUrl(request) {
-  const host = request.headers?.host || "127.0.0.1:5173";
-  const protocol = host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https";
+  const host = firstHeaderValue(request.headers?.["x-forwarded-host"]) || request.headers?.host || "127.0.0.1:5173";
+  const forwardedProto = firstHeaderValue(request.headers?.["x-forwarded-proto"]);
+  const protocol = forwardedProto || (host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https");
   return process.env.SITE_URL || process.env.FRONTEND_URL || `${protocol}://${host}`;
 }
 
 function getRedirectUri(request) {
   return process.env.DISCORD_REDIRECT_URI || `${getBaseUrl(request)}/api/comments/auth/callback`;
+}
+
+function isSecureRequest(request) {
+  return getBaseUrl(request).startsWith("https://");
 }
 
 function getAuthStatus(request) {
@@ -339,7 +381,7 @@ async function handleDiscordStart(request, response) {
   url.searchParams.set("prompt", "consent");
 
   redirect(response, url.toString(), {
-    "Set-Cookie": serializeCookie(STATE_COOKIE, state, { maxAge: 10 * 60 })
+    "Set-Cookie": serializeCookie(STATE_COOKIE, state, { maxAge: 10 * 60, secure: isSecureRequest(request) })
   });
 }
 
@@ -388,8 +430,8 @@ async function handleDiscordCallback(request, response) {
 
     redirect(response, `${getBaseUrl(request)}/#contact`, {
       "Set-Cookie": [
-        serializeCookie(SESSION_COOKIE, session, { maxAge: 7 * 24 * 60 * 60 }),
-        serializeCookie(STATE_COOKIE, "", { maxAge: 0 })
+        serializeCookie(SESSION_COOKIE, session, { maxAge: 7 * 24 * 60 * 60, secure: isSecureRequest(request) }),
+        serializeCookie(STATE_COOKIE, "", { maxAge: 0, secure: isSecureRequest(request) })
       ]
     });
   } catch (error) {
@@ -690,6 +732,41 @@ async function handleGifSearch(request, response, requestUrl) {
   }
 }
 
+async function handlePreferences(request, response) {
+  const user = getUser(request);
+
+  if (request.method === "GET") {
+    sendJson(response, 200, getUserPreferences(user));
+    return;
+  }
+
+  if (request.method !== "POST") {
+    sendJson(response, 405, { error: "Preferences method not allowed." });
+    return;
+  }
+
+  if (!user) {
+    sendJson(response, 401, { error: "Connect Discord before saving preferences." });
+    return;
+  }
+
+  const body = await readBody(request);
+  const theme = String(body.theme || "").trim().toLowerCase();
+  if (!THEME_VALUES.has(theme)) {
+    sendJson(response, 400, { error: "Theme preference is not valid." });
+    return;
+  }
+
+  const preferences = readPreferences();
+  preferences[String(user.id)] = {
+    ...(preferences[String(user.id)] || {}),
+    theme,
+    updatedAt: new Date().toISOString()
+  };
+  writePreferences(preferences);
+  sendJson(response, 200, { theme });
+}
+
 export async function handleCommentsRequest(request, response) {
   const requestUrl = new URL(request.url || "/api/comments", getBaseUrl(request));
   const pathname = requestUrl.pathname.replace(/^\/api\/comments\/?/, "");
@@ -707,7 +784,7 @@ export async function handleCommentsRequest(request, response) {
 
   if (request.method === "GET" && parts[0] === "auth" && parts[1] === "logout") {
     redirect(response, `${getBaseUrl(request)}/#contact`, {
-      "Set-Cookie": serializeCookie(SESSION_COOKIE, "", { maxAge: 0 })
+      "Set-Cookie": serializeCookie(SESSION_COOKIE, "", { maxAge: 0, secure: isSecureRequest(request) })
     });
     return;
   }
@@ -719,6 +796,11 @@ export async function handleCommentsRequest(request, response) {
 
   if (request.method === "GET" && parts[0] === "gifs") {
     await handleGifSearch(request, response, requestUrl);
+    return;
+  }
+
+  if (parts[0] === "preferences") {
+    await handlePreferences(request, response);
     return;
   }
 
