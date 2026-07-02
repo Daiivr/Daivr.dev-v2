@@ -1761,10 +1761,8 @@
       linear-gradient(rgba(255, 255, 255, 0.045) 50%, transparent 50%),
       radial-gradient(circle at 16% 12%, color-mix(in srgb, var(--color-cyan-arcade) 12%, transparent), transparent 30%),
       radial-gradient(circle at 82% 28%, color-mix(in srgb, var(--color-glitch) 12%, transparent), transparent 34%),
-      rgba(2, 6, 4, 0.84);
+      #020604;
     background-size: 100% 4px, auto, auto, auto;
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
     padding: clamp(1rem, 4vw, 2rem);
   }
 
@@ -2011,8 +2009,9 @@
       linear-gradient(rgba(255, 255, 255, 0.04) 50%, transparent 50%),
       radial-gradient(circle at 12% 18%, color-mix(in srgb, var(--color-cyan-arcade) 18%, transparent), transparent 26%),
       radial-gradient(circle at 88% 64%, color-mix(in srgb, var(--color-glitch) 14%, transparent), transparent 28%),
-      linear-gradient(135deg, rgba(2, 6, 4, 0.9), rgba(2, 6, 4, 0.76));
-    background-size: 100% 4px, auto, auto, auto;
+      linear-gradient(135deg, rgba(2, 6, 4, 0.98), rgba(2, 6, 4, 0.96)),
+      #020604;
+    background-size: 100% 4px, auto, auto, auto, auto;
   }
 
   .entry-splash::after {

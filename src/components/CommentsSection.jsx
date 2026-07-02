@@ -215,7 +215,7 @@ export function CommentsSection() {
 
   async function loadComments() {
     try {
-      const response = await fetch(COMMENTS_ENDPOINT);
+      const response = await fetch(COMMENTS_ENDPOINT, { credentials: "include" });
       if (!response.ok) throw new Error(`Comments returned ${response.status}`);
       const payload = await response.json();
       applyPayload(payload);
@@ -285,6 +285,7 @@ export function CommentsSection() {
     try {
       const response = await fetch(COMMENTS_ENDPOINT, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: draft, gifUrl: draftGif })
       });
@@ -315,6 +316,7 @@ export function CommentsSection() {
     try {
       const response = await fetch(`${COMMENTS_ENDPOINT}/${commentId}/replies`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text: replyDraft, gifUrl: replyGif })
       });
@@ -337,7 +339,7 @@ export function CommentsSection() {
 
     setBusy(true);
     try {
-      const response = await fetch(`${COMMENTS_ENDPOINT}/${commentId}`, { method: "DELETE" });
+      const response = await fetch(`${COMMENTS_ENDPOINT}/${commentId}`, { method: "DELETE", credentials: "include" });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "Delete failed");
       applyPayload(payload);
@@ -355,7 +357,7 @@ export function CommentsSection() {
 
     setBusy(true);
     try {
-      const response = await fetch(`${COMMENTS_ENDPOINT}/${commentId}/replies/${replyId}`, { method: "DELETE" });
+      const response = await fetch(`${COMMENTS_ENDPOINT}/${commentId}/replies/${replyId}`, { method: "DELETE", credentials: "include" });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "Delete failed");
       applyPayload(payload);
@@ -380,6 +382,7 @@ export function CommentsSection() {
     try {
       const response = await fetch(`${COMMENTS_ENDPOINT}/${commentId}/reactions`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ emoji })
       });
@@ -404,7 +407,7 @@ export function CommentsSection() {
 
     setBusy(true);
     try {
-      const response = await fetch(`${COMMENTS_ENDPOINT}/${commentId}/pin`, { method: "POST" });
+      const response = await fetch(`${COMMENTS_ENDPOINT}/${commentId}/pin`, { method: "POST", credentials: "include" });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "Pin failed");
       applyPayload(payload);
@@ -458,7 +461,7 @@ export function CommentsSection() {
     setGifBusy(true);
     setStatus("searching GIF signal...");
     try {
-      const response = await fetch(`${COMMENTS_ENDPOINT}/gifs?q=${encodeURIComponent(cleanQuery)}`);
+      const response = await fetch(`${COMMENTS_ENDPOINT}/gifs?q=${encodeURIComponent(cleanQuery)}`, { credentials: "include" });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "GIF search failed");
       setGifResults(Array.isArray(payload.gifs) ? payload.gifs : []);

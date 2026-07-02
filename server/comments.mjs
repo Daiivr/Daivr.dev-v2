@@ -310,10 +310,6 @@ function getRedirectUri(request) {
   return process.env.DISCORD_REDIRECT_URI || `${getBaseUrl(request)}/api/comments/auth/callback`;
 }
 
-function isSecureRequest(request) {
-  return getBaseUrl(request).startsWith("https://");
-}
-
 function getAuthStatus(request) {
   const clientId = process.env.DISCORD_CLIENT_ID || "";
   const clientSecret = process.env.DISCORD_CLIENT_SECRET || "";
@@ -381,7 +377,7 @@ async function handleDiscordStart(request, response) {
   url.searchParams.set("prompt", "consent");
 
   redirect(response, url.toString(), {
-    "Set-Cookie": serializeCookie(STATE_COOKIE, state, { maxAge: 10 * 60, secure: isSecureRequest(request) })
+    "Set-Cookie": serializeCookie(STATE_COOKIE, state, { maxAge: 10 * 60 })
   });
 }
 
@@ -430,8 +426,8 @@ async function handleDiscordCallback(request, response) {
 
     redirect(response, `${getBaseUrl(request)}/#contact`, {
       "Set-Cookie": [
-        serializeCookie(SESSION_COOKIE, session, { maxAge: 7 * 24 * 60 * 60, secure: isSecureRequest(request) }),
-        serializeCookie(STATE_COOKIE, "", { maxAge: 0, secure: isSecureRequest(request) })
+        serializeCookie(SESSION_COOKIE, session, { maxAge: 7 * 24 * 60 * 60 }),
+        serializeCookie(STATE_COOKIE, "", { maxAge: 0 })
       ]
     });
   } catch (error) {
@@ -784,7 +780,7 @@ export async function handleCommentsRequest(request, response) {
 
   if (request.method === "GET" && parts[0] === "auth" && parts[1] === "logout") {
     redirect(response, `${getBaseUrl(request)}/#contact`, {
-      "Set-Cookie": serializeCookie(SESSION_COOKIE, "", { maxAge: 0, secure: isSecureRequest(request) })
+      "Set-Cookie": serializeCookie(SESSION_COOKIE, "", { maxAge: 0 })
     });
     return;
   }
