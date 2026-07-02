@@ -747,7 +747,7 @@ export function CommentsSection() {
                 <div className="comment-body">
                   <header className="comment-card-head">
                     <strong>{comment.author?.username || "Unknown signal"}</strong>
-                    {comment.author?.isAdmin ? <em>admin</em> : null}
+                    {comment.author?.isAdmin ? <em className="comment-admin-badge"><ShieldCheck size={11} aria-hidden="true" /> admin</em> : null}
                     <span className="comment-time has-tooltip" data-tooltip={formatFullTimestamp(comment.createdAt)} tabIndex="0">{formatTimestamp(comment.createdAt)}</span>
                     <div className="comment-actions">
                       {canReplyComment ? (
@@ -848,7 +848,7 @@ export function CommentsSection() {
                             <div>
                               <header>
                                 <strong>{reply.author?.username || "Unknown signal"}</strong>
-                                {reply.author?.isAdmin ? <em>admin</em> : null}
+                                {reply.author?.isAdmin ? <em className="comment-admin-badge"><ShieldCheck size={10} aria-hidden="true" /> admin</em> : null}
                                 <span className="comment-time has-tooltip" data-tooltip={formatFullTimestamp(reply.createdAt)} tabIndex="0">{formatTimestamp(reply.createdAt)}</span>
                                 {canDeleteReply ? (
                                   <button className="has-tooltip" data-tooltip={reply.mine ? "Delete your reply." : "Admin delete reply."} type="button" onClick={() => openDeleteReply(comment, reply)} aria-label="Delete reply">

@@ -917,10 +917,21 @@
     text-transform: uppercase;
   }
 
-  .comment-card-head em {
+  .comment-card-head em,
+  .comment-reply header .comment-admin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.18rem;
     border: 1px solid color-mix(in srgb, var(--color-phosphor) 34%, transparent);
+    background: color-mix(in srgb, var(--color-phosphor) 9%, rgba(2, 6, 4, 0.72));
     color: var(--color-phosphor);
     padding: 0.15rem 0.35rem;
+  }
+
+  .comment-card-head em svg,
+  .comment-reply header .comment-admin-badge svg {
+    flex: 0 0 auto;
+    filter: drop-shadow(0 0 4px color-mix(in srgb, var(--color-phosphor) 38%, transparent));
   }
 
   .comment-card p {
@@ -1191,6 +1202,14 @@
     font-style: normal;
     font-weight: 900;
     text-transform: uppercase;
+  }
+
+  .comment-reply header .comment-admin-badge {
+    border-color: color-mix(in srgb, var(--color-phosphor) 48%, transparent);
+    color: var(--color-phosphor);
+    font-size: 0.56rem;
+    line-height: 1;
+    padding: 0.16rem 0.34rem;
   }
 
   .comment-reply header button {

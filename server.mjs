@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
 import { extname, join, normalize } from "node:path";
 import { readFile } from "node:fs/promises";
+import { handleArcadeXpRequest } from "./server/arcade-xp.mjs";
 import { handleCommentsRequest } from "./server/comments.mjs";
 import { handleDiscordStreakRequest } from "./server/discord-streak.mjs";
 import { loadLocalEnv } from "./server/env.mjs";
@@ -123,6 +124,11 @@ const appServer = createServer(async (request, response) => {
 
     if (requestUrl.pathname === "/api/visits" || requestUrl.pathname.startsWith("/api/visits/")) {
       await handleVisitsRequest(request, response);
+      return;
+    }
+
+    if (requestUrl.pathname === "/api/arcade-xp") {
+      await handleArcadeXpRequest(request, response);
       return;
     }
 

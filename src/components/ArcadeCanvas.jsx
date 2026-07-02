@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 const glyphs = ["01", "{}", "fn", "=>", "dx", "AI", "VR", "++", "$", "</>"];
 const colors = ["#3fff97", "#45d8ff", "#ff3d9d", "#ffd166"];
 const XP_STORAGE_KEY = "daivr.arcadeCanvasXp.v1";
+const XP_ENDPOINT = "/api/arcade-xp";
 const NODE_COUNT = 6;
 const BOOT_PHASE_COUNT = 6;
 
@@ -59,27 +60,52 @@ function formatCoreNumber(value) {
   return String(Math.round(value));
 }
 
-function loadXpState() {
+function normalizeXpState(value = {}) {
+  return {
+    level: Math.max(1, Math.floor(Number(value.level) || 1)),
+    xp: Math.max(0, Math.floor(Number(value.xp) || 0)),
+    total: Math.max(0, Math.floor(Number(value.total) || 0))
+  };
+}
+
+function loadLocalXpState() {
   try {
     const saved = window.localStorage.getItem(XP_STORAGE_KEY);
     if (!saved) return { level: 1, xp: 0, total: 0 };
-    const parsed = JSON.parse(saved);
-    return {
-      level: Math.max(1, Number(parsed.level) || 1),
-      xp: Math.max(0, Number(parsed.xp) || 0),
-      total: Math.max(0, Number(parsed.total) || 0)
-    };
+    return normalizeXpState(JSON.parse(saved));
   } catch {
     return { level: 1, xp: 0, total: 0 };
   }
 }
 
-function saveXpState(state) {
+function saveLocalXpState(state) {
   try {
     window.localStorage.setItem(XP_STORAGE_KEY, JSON.stringify(state));
   } catch {
     // Local storage can be unavailable in private or restricted browsing modes.
   }
+}
+
+async function fetchServerXpState(signal) {
+  const response = await fetch(XP_ENDPOINT, {
+    cache: "no-store",
+    credentials: "include",
+    signal
+  });
+  if (!response.ok) throw new Error(`Arcade XP returned ${response.status}`);
+  return normalizeXpState(await response.json());
+}
+
+async function saveServerXpState(state, signal) {
+  const response = await fetch(XP_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    signal,
+    body: JSON.stringify(normalizeXpState(state))
+  });
+  if (!response.ok) throw new Error(`Arcade XP save returned ${response.status}`);
+  return normalizeXpState(await response.json());
 }
 
 export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase = 0 }) {
@@ -105,12 +131,38 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
     let packets = [];
     let bursts = [];
     let ambientBits = [];
-    let xpState = loadXpState();
+    let xpState = loadLocalXpState();
     let pointer = { active: false, ttl: 0, x: 0, y: 0 };
     let isVisible = true;
     let isScrolling = false;
     let lastFrameAt = 0;
     let scrollTimer = 0;
+    let saveTimer = 0;
+    let pendingSaveController = null;
+    const loadController = new AbortController();
+
+    function applyXpState(state) {
+      xpState = normalizeXpState(state);
+      saveLocalXpState(xpState);
+      sources = makeSources();
+      layoutSources();
+      scheduleDraw();
+    }
+
+    function queueSaveXpState(state) {
+      saveLocalXpState(state);
+      window.clearTimeout(saveTimer);
+      saveTimer = window.setTimeout(async () => {
+        pendingSaveController?.abort();
+        pendingSaveController = new AbortController();
+        try {
+          const serverState = await saveServerXpState(state, pendingSaveController.signal);
+          if (serverState.total > xpState.total) applyXpState(serverState);
+        } catch {
+          // Keep local progress when the server is temporarily unavailable.
+        }
+      }, 450);
+    }
 
     function getRuntime() {
       return runtimeRef.current;
@@ -158,7 +210,7 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
         xpState.level += 1;
       }
 
-      saveXpState(xpState);
+      queueSaveXpState(xpState);
     }
 
     function core() {
@@ -721,6 +773,19 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
 
     resize();
 
+    fetchServerXpState(loadController.signal)
+      .then((serverState) => {
+        if (serverState.total >= xpState.total) {
+          applyXpState(serverState);
+          return;
+        }
+
+        queueSaveXpState(xpState);
+      })
+      .catch(() => {
+        // Local XP is still used while offline or during a failed deploy.
+      });
+
     let observer = null;
     if ("IntersectionObserver" in window) {
       observer = new IntersectionObserver(
@@ -754,7 +819,10 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
       window.removeEventListener("scroll", handleScroll, { capture: true });
       window.removeEventListener("resize", resize);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
+      loadController.abort();
+      pendingSaveController?.abort();
       window.clearTimeout(scrollTimer);
+      window.clearTimeout(saveTimer);
       cancelAnimationFrame(animationId);
     };
   }, []);
