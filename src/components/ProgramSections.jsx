@@ -404,14 +404,14 @@ function ProjectCardContent({ project, scanData }) {
         <span className="project-card-release">{releaseBadge}</span>
 
         {project.image ? (
-          <img className="project-card-logo" src={project.image} alt={`${project.title} preview`} loading="lazy" />
+          <img className="project-card-logo" src={project.image} alt={`${project.title} preview`} loading="eager" decoding="async" fetchPriority="high" />
         ) : (
           <div className="project-card-placeholder">
             <Cpu size={48} aria-hidden="true" />
           </div>
         )}
 
-        {project.icon ? <img className="project-card-emblem" src={project.icon} alt="" loading="lazy" aria-hidden="true" /> : null}
+        {project.icon ? <img className="project-card-emblem" src={project.icon} alt="" loading="eager" decoding="async" fetchPriority="high" aria-hidden="true" /> : null}
 
         <dl className="project-card-stats" aria-label={`${project.title} GitHub stats`}>
           {project.stats.map(([label, value]) => {
@@ -694,7 +694,7 @@ function LiveSitePanel({ project }) {
       <div className="project-site-grid">
         <div className="project-site-preview">
           <span className="project-card-grid" aria-hidden="true" />
-          <img src={project.image} alt="" loading="lazy" />
+          <img src={project.image} alt="" loading="eager" decoding="async" fetchPriority="high" />
           {project.icon ? <img className="project-site-emblem" src={project.icon} alt="" aria-hidden="true" /> : null}
         </div>
         <div className="project-site-copy">

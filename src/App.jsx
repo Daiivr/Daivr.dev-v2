@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { commands } from "./data/site";
+import { commands, discord, games, profile, projects } from "./data/site";
+import { preloadImages } from "./lib/preloadImages";
 import { useClock } from "./hooks/useClock";
 import { useRandomGlitchWords } from "./hooks/useRandomGlitchWords";
 import { ArcadeBackground } from "./components/ArcadeBackground";
@@ -30,6 +31,15 @@ export default function App() {
   const shellRef = useRef(null);
   const time = useClock();
   useRandomGlitchWords(theme === "glitch");
+
+  useEffect(() => {
+    preloadImages([
+      profile.avatar,
+      discord.fallbackAvatar,
+      ...games.flatMap((game) => [game.image, game.logo, game.character]),
+      ...projects.flatMap((project) => [project.image, project.icon])
+    ]);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;

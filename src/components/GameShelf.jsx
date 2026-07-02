@@ -227,7 +227,7 @@ export function GameShelf() {
                           aria-pressed={isFlipped}
                           onClick={() => toggleCardFlip(game.title)}
                         >
-                          <img className="game-card-cover" src={game.image} alt={`Cover art for ${game.title}`} loading="lazy" />
+                          <img className="game-card-cover" src={game.image} alt={`Cover art for ${game.title}`} loading="eager" decoding="async" fetchPriority="high" />
                         </button>
                       </div>
                     </div>
@@ -248,7 +248,7 @@ export function GameShelf() {
                     </div>
                     <img className="game-card-character" src={game.character} alt="" loading="eager" decoding="async" fetchPriority="high" aria-hidden="true" />
                     <div className="game-card-logo-wrap" aria-hidden="true">
-                      <img className="game-card-logo" src={game.logo} alt="" loading="lazy" />
+                      <img className="game-card-logo" src={game.logo} alt="" loading="eager" decoding="async" fetchPriority="high" />
                     </div>
                     <span className="game-card-bay">{game.bay}</span>
                   </div>

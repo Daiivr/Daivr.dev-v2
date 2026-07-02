@@ -6,6 +6,7 @@ const COMMENTS_FILE = join(process.cwd(), "data", "comments.json");
 const PREFERENCES_FILE = join(process.cwd(), "data", "preferences.json");
 const SESSION_COOKIE = "daivr_comment_session";
 const STATE_COOKIE = "daivr_comment_state";
+const DISCORD_CALLBACK_PATH = "/api/comments/auth/callback";
 const DISCORD_AUTH_URL = "https://discord.com/oauth2/authorize";
 const DISCORD_TOKEN_URL = "https://discord.com/api/oauth2/token";
 const DISCORD_ME_URL = "https://discord.com/api/users/@me";
@@ -303,11 +304,24 @@ function getBaseUrl(request) {
   const host = firstHeaderValue(request.headers?.["x-forwarded-host"]) || request.headers?.host || "127.0.0.1:5173";
   const forwardedProto = firstHeaderValue(request.headers?.["x-forwarded-proto"]);
   const protocol = forwardedProto || (host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https");
-  return process.env.SITE_URL || process.env.FRONTEND_URL || `${protocol}://${host}`;
+  return (process.env.SITE_URL || process.env.FRONTEND_URL || `${protocol}://${host}`).replace(/\/+$/, "");
 }
 
 function getRedirectUri(request) {
-  return process.env.DISCORD_REDIRECT_URI || `${getBaseUrl(request)}/api/comments/auth/callback`;
+  const fallback = `${getBaseUrl(request)}${DISCORD_CALLBACK_PATH}`;
+  const configured = String(process.env.DISCORD_REDIRECT_URI || "").trim();
+  if (!configured) return fallback;
+
+  try {
+    const url = new URL(configured, getBaseUrl(request));
+    if (url.pathname === DISCORD_CALLBACK_PATH) return url.toString();
+
+    console.warn(`[comments-auth] Ignoring DISCORD_REDIRECT_URI path "${url.pathname}". Expected "${DISCORD_CALLBACK_PATH}".`);
+    return fallback;
+  } catch (error) {
+    console.warn(`[comments-auth] Ignoring invalid DISCORD_REDIRECT_URI: ${error.message || error}`);
+    return fallback;
+  }
 }
 
 function getAuthStatus(request) {
@@ -375,6 +389,8 @@ async function handleDiscordStart(request, response) {
   url.searchParams.set("scope", "identify");
   url.searchParams.set("state", state);
   url.searchParams.set("prompt", "consent");
+
+  console.info(`[comments-auth] start host=${request.headers?.host || "unknown"} redirect=${new URL(getRedirectUri(request)).pathname}`);
 
   redirect(response, url.toString(), {
     "Set-Cookie": serializeCookie(STATE_COOKIE, state, { maxAge: 10 * 60 })

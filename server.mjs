@@ -8,6 +8,14 @@ import { handleSteamPlaytimeRequest } from "./server/steam-playtime.mjs";
 import { handleTradeDexVirusTotalRequest } from "./server/virustotal.mjs";
 import { handleVisitsRequest } from "./server/visits.mjs";
 
+process.on("uncaughtException", (error) => {
+  console.error("[server] uncaught exception", error?.stack || error);
+});
+
+process.on("unhandledRejection", (error) => {
+  console.error("[server] unhandled rejection", error?.stack || error);
+});
+
 const port = Number(process.env.PORT || 4173);
 const root = process.cwd();
 const staticRoot = join(root, "dist");
@@ -146,10 +154,28 @@ createServer(async (request, response) => {
       "Cache-Control": "no-store"
     });
     response.end(data);
-  } catch {
-    response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+  } catch (error) {
+    const requestUrl = new URL(request.url || "/", `http://localhost:${port}`);
+    const traceId = randomTraceId();
+    console.error(`[server] ${traceId} ${request.method} ${request.url}`, error?.stack || error);
+
+    if (requestUrl.pathname.startsWith("/api/")) {
+      response.writeHead(500, {
+        "Content-Type": "application/json; charset=utf-8",
+        "Cache-Control": "no-store",
+        "X-Daivr-Trace": traceId
+      });
+      response.end(JSON.stringify({ error: "Server route failed.", traceId }));
+      return;
+    }
+
+    response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8", "X-Daivr-Trace": traceId });
     response.end("Not found");
   }
 }).listen(port, () => {
   console.log(`daivr.dev preview running at http://localhost:${port}`);
 });
+
+function randomTraceId() {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+}
