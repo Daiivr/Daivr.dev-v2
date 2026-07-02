@@ -12,9 +12,11 @@ function getRenderDataDir() {
   }
 }
 
-export function getDataDir() {
+export function getDataDir(envNames = []) {
+  const envOverride = envNames.map((name) => process.env[name]).find(Boolean);
+
   return (
-    process.env.COMMENTS_DATA_DIR ||
+    envOverride ||
     process.env.DATA_DIR ||
     process.env.RENDER_DATA_DIR ||
     getRenderDataDir() ||
@@ -22,12 +24,12 @@ export function getDataDir() {
   );
 }
 
-export function getDataFile(filename) {
-  return join(getDataDir(), filename);
+export function getDataFile(filename, envNames = []) {
+  return join(getDataDir(envNames), filename);
 }
 
-export function ensureDataFile(filename, defaultValue) {
-  const file = getDataFile(filename);
+export function ensureDataFile(filename, defaultValue, envNames = []) {
+  const file = getDataFile(filename, envNames);
   const legacyFile = join(LOCAL_DATA_DIR, filename);
   const dir = dirname(file);
 

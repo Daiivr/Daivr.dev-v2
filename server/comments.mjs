@@ -1,16 +1,18 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { readFileSync, writeFileSync } from "node:fs";
+import { DEFAULT_AVATAR_URL, getDiscordUserProfile } from "./discord-avatar.mjs";
 import { ensureDataFile, getDataFile } from "./storage.mjs";
 
 const COMMENTS_FILENAME = "comments.json";
 const PREFERENCES_FILENAME = "preferences.json";
+const COMMENTS_DATA_ENVS = ["COMMENTS_DATA_DIR"];
 const SESSION_COOKIE = "daivr_comment_session";
 const STATE_COOKIE = "daivr_comment_state";
 const DISCORD_CALLBACK_PATH = "/api/comments/auth/callback";
 const DISCORD_AUTH_URL = "https://discord.com/oauth2/authorize";
 const DISCORD_TOKEN_URL = "https://discord.com/api/oauth2/token";
 const DISCORD_ME_URL = "https://discord.com/api/users/@me";
-const DEFAULT_AVATAR = "https://cdn.discordapp.com/embed/avatars/0.png";
+const DEFAULT_AVATAR = DEFAULT_AVATAR_URL;
 const DEFAULT_REACTIONS = [
   "smile",
   "laugh-tears",
@@ -102,13 +104,13 @@ function ensureCommentsFile() {
         "sparkles": ["system"]
       }
     }
-  ]);
+  ], COMMENTS_DATA_ENVS);
 }
 
 function readComments() {
   ensureCommentsFile();
   try {
-    const data = JSON.parse(readFileSync(getDataFile(COMMENTS_FILENAME), "utf8"));
+    const data = JSON.parse(readFileSync(getDataFile(COMMENTS_FILENAME, COMMENTS_DATA_ENVS), "utf8"));
     if (!Array.isArray(data)) return [];
     return data.map((comment) => ({
       ...comment,
@@ -142,17 +144,17 @@ function readComments() {
 
 function writeComments(comments) {
   ensureCommentsFile();
-  writeFileSync(getDataFile(COMMENTS_FILENAME), JSON.stringify(comments, null, 2), "utf8");
+  writeFileSync(getDataFile(COMMENTS_FILENAME, COMMENTS_DATA_ENVS), JSON.stringify(comments, null, 2), "utf8");
 }
 
 function ensurePreferencesFile() {
-  return ensureDataFile(PREFERENCES_FILENAME, {});
+  return ensureDataFile(PREFERENCES_FILENAME, {}, COMMENTS_DATA_ENVS);
 }
 
 function readPreferences() {
   ensurePreferencesFile();
   try {
-    const data = JSON.parse(readFileSync(getDataFile(PREFERENCES_FILENAME), "utf8"));
+    const data = JSON.parse(readFileSync(getDataFile(PREFERENCES_FILENAME, COMMENTS_DATA_ENVS), "utf8"));
     return data && typeof data === "object" && !Array.isArray(data) ? data : {};
   } catch (error) {
     console.error("Preferences read error", error.message || error);
@@ -162,7 +164,7 @@ function readPreferences() {
 
 function writePreferences(preferences) {
   ensurePreferencesFile();
-  writeFileSync(getDataFile(PREFERENCES_FILENAME), JSON.stringify(preferences, null, 2), "utf8");
+  writeFileSync(getDataFile(PREFERENCES_FILENAME, COMMENTS_DATA_ENVS), JSON.stringify(preferences, null, 2), "utf8");
 }
 
 function getUserPreferences(user) {
@@ -347,45 +349,85 @@ function getAvatarUrl(user) {
   return DEFAULT_AVATAR;
 }
 
-function publicComments(request) {
-  const user = getUser(request);
-  return sortComments(readComments()).map((comment) => ({
-    ...comment,
-    mine: !!user && String(comment.author?.id) === String(user.id),
-    replies: (comment.replies || []).map((reply) => ({
-      ...reply,
-      mine: !!user && String(reply.author?.id) === String(user.id),
-      author: {
-        ...reply.author,
-        isAdmin: !!reply.author?.isAdmin || getAdminIds().has(String(reply.author?.id))
-      }
-    })),
-    author: {
-      ...comment.author,
-      isAdmin: !!comment.author?.isAdmin || getAdminIds().has(String(comment.author?.id))
-    }
-  }));
+function shouldRefreshDiscordAvatar(author) {
+  const id = String(author?.id || "");
+  if (!id || id === "system" || id === "terminal") return false;
+  if (String(author?.avatarUrl || "").startsWith("/")) return false;
+  return true;
 }
 
-function getCommentsPayload(request) {
+async function hydrateAuthor(author) {
+  const fallback = {
+    displayName: author?.username || null,
+    avatarUrl: author?.avatarUrl || DEFAULT_AVATAR
+  };
+
+  if (!shouldRefreshDiscordAvatar(author)) {
+    return {
+      ...author,
+      avatarUrl: author?.avatarUrl || DEFAULT_AVATAR
+    };
+  }
+
+  const profile = await getDiscordUserProfile(author.id, 64, fallback);
   return {
-    comments: publicComments(request),
+    ...author,
+    username: profile.displayName || author?.username || "Discord user",
+    avatarUrl: profile.avatarUrl || author?.avatarUrl || DEFAULT_AVATAR
+  };
+}
+
+async function publicComments(request) {
+  const user = getUser(request);
+  const adminIds = getAdminIds();
+
+  return Promise.all(
+    sortComments(readComments()).map(async (comment) => {
+      const author = await hydrateAuthor({
+        ...comment.author,
+        isAdmin: !!comment.author?.isAdmin || adminIds.has(String(comment.author?.id))
+      });
+
+      const replies = await Promise.all(
+        (comment.replies || []).map(async (reply) => ({
+          ...reply,
+          mine: !!user && String(reply.author?.id) === String(user.id),
+          author: await hydrateAuthor({
+            ...reply.author,
+            isAdmin: !!reply.author?.isAdmin || adminIds.has(String(reply.author?.id))
+          })
+        }))
+      );
+
+      return {
+        ...comment,
+        mine: !!user && String(comment.author?.id) === String(user.id),
+        replies,
+        author
+      };
+    })
+  );
+}
+
+async function getCommentsPayload(request) {
+  return {
+    comments: await publicComments(request),
     reactions: DEFAULT_REACTIONS,
     auth: getAuthStatus(request)
   };
 }
 
-function broadcastComments(event = "comments:update") {
+async function broadcastComments(event = "comments:update") {
   for (const client of streamClients) {
     try {
-      sendEvent(client.response, event, getCommentsPayload(client.request));
+      sendEvent(client.response, event, await getCommentsPayload(client.request));
     } catch {
       streamClients.delete(client);
     }
   }
 }
 
-function handleCommentsStream(request, response) {
+async function handleCommentsStream(request, response) {
   response.writeHead(200, {
     "Content-Type": "text/event-stream; charset=utf-8",
     "Cache-Control": "no-store",
@@ -393,7 +435,7 @@ function handleCommentsStream(request, response) {
     "X-Accel-Buffering": "no"
   });
   response.write(": connected\n\n");
-  sendEvent(response, "comments:init", getCommentsPayload(request));
+  sendEvent(response, "comments:init", await getCommentsPayload(request));
 
   const client = { request, response };
   streamClients.add(client);
@@ -517,8 +559,8 @@ async function handleCreateComment(request, response) {
   };
   comments.push(comment);
   writeComments(comments);
-  broadcastComments("comments:create");
-  sendJson(response, 201, { comment, ...getCommentsPayload(request) });
+  await broadcastComments("comments:create");
+  sendJson(response, 201, { comment, ...(await getCommentsPayload(request)) });
 }
 
 async function handleReply(request, response, id) {
@@ -558,8 +600,8 @@ async function handleReply(request, response, id) {
 
   comment.replies = Array.isArray(comment.replies) ? [...comment.replies, reply] : [reply];
   writeComments(comments);
-  broadcastComments("comments:reply");
-  sendJson(response, 201, { reply, ...getCommentsPayload(request) });
+  await broadcastComments("comments:reply");
+  sendJson(response, 201, { reply, ...(await getCommentsPayload(request)) });
 }
 
 async function handleDeleteComment(request, response, id) {
@@ -583,8 +625,8 @@ async function handleDeleteComment(request, response, id) {
   }
 
   writeComments(comments.filter((entry) => String(entry.id) !== String(id)));
-  broadcastComments("comments:delete");
-  sendJson(response, 200, { success: true, ...getCommentsPayload(request) });
+  await broadcastComments("comments:delete");
+  sendJson(response, 200, { success: true, ...(await getCommentsPayload(request)) });
 }
 
 async function handleDeleteReply(request, response, commentId, replyId) {
@@ -615,8 +657,8 @@ async function handleDeleteReply(request, response, commentId, replyId) {
 
   comment.replies = (comment.replies || []).filter((entry) => String(entry.id) !== String(replyId));
   writeComments(comments);
-  broadcastComments("comments:delete");
-  sendJson(response, 200, { success: true, ...getCommentsPayload(request) });
+  await broadcastComments("comments:delete");
+  sendJson(response, 200, { success: true, ...(await getCommentsPayload(request)) });
 }
 
 async function handleReaction(request, response, id) {
@@ -649,8 +691,8 @@ async function handleReaction(request, response, id) {
   else delete reactions[reaction];
   comment.reactions = reactions;
   writeComments(comments);
-  broadcastComments("comments:reaction");
-  sendJson(response, 200, { comment, ...getCommentsPayload(request) });
+  await broadcastComments("comments:reaction");
+  sendJson(response, 200, { comment, ...(await getCommentsPayload(request)) });
 }
 
 async function handlePin(request, response, id) {
@@ -674,8 +716,8 @@ async function handlePin(request, response, id) {
 
   comment.pinned = !comment.pinned;
   writeComments(comments);
-  broadcastComments("comments:pin");
-  sendJson(response, 200, { comment, ...getCommentsPayload(request) });
+  await broadcastComments("comments:pin");
+  sendJson(response, 200, { comment, ...(await getCommentsPayload(request)) });
 }
 
 function pickGifRendition(images) {
@@ -850,7 +892,7 @@ export async function handleCommentsRequest(request, response) {
   }
 
   if (request.method === "GET" && parts[0] === "stream") {
-    handleCommentsStream(request, response);
+    await handleCommentsStream(request, response);
     return;
   }
 
@@ -865,7 +907,7 @@ export async function handleCommentsRequest(request, response) {
   }
 
   if (request.method === "GET" && parts.length === 0) {
-    sendJson(response, 200, getCommentsPayload(request));
+    sendJson(response, 200, await getCommentsPayload(request));
     return;
   }
 

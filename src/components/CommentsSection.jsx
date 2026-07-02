@@ -130,6 +130,22 @@ function getInitials(name = "?") {
     .toUpperCase();
 }
 
+function UserAvatar({ user }) {
+  const [failed, setFailed] = useState(false);
+  const avatarUrl = failed ? "" : user?.avatarUrl;
+
+  return avatarUrl ? (
+    <img
+      src={avatarUrl}
+      alt=""
+      referrerPolicy="no-referrer"
+      onError={() => setFailed(true)}
+    />
+  ) : (
+    <span>{getInitials(user?.username)}</span>
+  );
+}
+
 function hasContent(text, gifUrl) {
   return text.trim().length > 0 || !!gifUrl;
 }
@@ -651,7 +667,7 @@ export function CommentsSection() {
             {auth.user ? (
               <>
                 <div className="comments-user-chip">
-                  {auth.user.avatarUrl ? <img src={auth.user.avatarUrl} alt="" /> : <span>{getInitials(auth.user.username)}</span>}
+                  <UserAvatar user={auth.user} />
                   <strong>{auth.user.username}</strong>
                   {auth.user.isAdmin ? <em><ShieldCheck size={12} aria-hidden="true" /> admin</em> : null}
                 </div>
@@ -726,7 +742,7 @@ export function CommentsSection() {
               <article className={`comment-card ${comment.pinned ? "is-pinned" : ""}`} key={comment.id}>
                 {comment.pinned ? <span className="comment-pinned-badge"><Pin size={12} aria-hidden="true" /> pinned</span> : null}
                 <div className="comment-avatar">
-                  {comment.author?.avatarUrl ? <img src={comment.author.avatarUrl} alt="" /> : <span>{getInitials(comment.author?.username)}</span>}
+                  <UserAvatar user={comment.author} />
                 </div>
                 <div className="comment-body">
                   <header className="comment-card-head">
@@ -827,7 +843,7 @@ export function CommentsSection() {
                         return (
                           <div className="comment-reply" key={reply.id}>
                             <div className="comment-reply-avatar">
-                              {reply.author?.avatarUrl ? <img src={reply.author.avatarUrl} alt="" /> : <span>{getInitials(reply.author?.username)}</span>}
+                              <UserAvatar user={reply.author} />
                             </div>
                             <div>
                               <header>
