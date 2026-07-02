@@ -2,13 +2,14 @@ import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
+import { getDataFile } from "./storage.mjs";
 
 const VT_BASE = "https://www.virustotal.com/api/v3";
 const VT_DIRECT_UPLOAD_LIMIT = 32 * 1024 * 1024;
 const VT_LARGE_UPLOAD_LIMIT = 650 * 1024 * 1024;
 const GITHUB_REPO = process.env.TRADEDEX_REPO || "Daiivr/TradeDex";
 const GITHUB_RELEASE_API = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
-const CACHE_FILE = join(process.cwd(), "data", "tradedex-scan.json");
+const CACHE_FILENAME = "tradedex-scan.json";
 const RELEASE_CACHE_TTL_MS = 5 * 60 * 1000;
 const DONE_STATE_TTL_MS = 10 * 60 * 1000;
 const ERROR_STATE_TTL_MS = 15 * 1000;
@@ -85,6 +86,7 @@ async function fetchJsonAllowing(url, okStatuses, options = {}) {
 }
 
 async function ensureCache() {
+  const CACHE_FILE = getDataFile(CACHE_FILENAME);
   await mkdir(dirname(CACHE_FILE), { recursive: true });
   if (!existsSync(CACHE_FILE)) {
     await writeFile(CACHE_FILE, JSON.stringify({ scans: {} }, null, 2), "utf8");
@@ -94,7 +96,7 @@ async function ensureCache() {
 async function readCache() {
   try {
     await ensureCache();
-    const raw = await readFile(CACHE_FILE, "utf8");
+    const raw = await readFile(getDataFile(CACHE_FILENAME), "utf8");
     const data = raw ? JSON.parse(raw) : null;
     return data?.scans ? data : { scans: {} };
   } catch (error) {
@@ -106,7 +108,7 @@ async function readCache() {
 async function writeCache(cache) {
   try {
     await ensureCache();
-    await writeFile(CACHE_FILE, JSON.stringify(cache, null, 2), "utf8");
+    await writeFile(getDataFile(CACHE_FILENAME), JSON.stringify(cache, null, 2), "utf8");
   } catch (error) {
     console.error("[tradedex] cache write failed", error.message || error);
   }

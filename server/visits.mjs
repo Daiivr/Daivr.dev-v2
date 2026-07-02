@@ -1,7 +1,7 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { readFileSync, writeFileSync } from "node:fs";
+import { ensureDataFile, getDataFile } from "./storage.mjs";
 
-const VISITS_FILE = join(process.cwd(), "data", "visits.json");
+const VISITS_FILENAME = "visits.json";
 
 function sendJson(response, status, payload) {
   response.writeHead(status, {
@@ -12,15 +12,13 @@ function sendJson(response, status, payload) {
 }
 
 function ensureVisitsFile() {
-  const dir = dirname(VISITS_FILE);
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-  if (!existsSync(VISITS_FILE)) writeFileSync(VISITS_FILE, JSON.stringify({ count: 0 }, null, 2), "utf8");
+  return ensureDataFile(VISITS_FILENAME, { count: 0 });
 }
 
 function readVisits() {
   ensureVisitsFile();
   try {
-    const data = JSON.parse(readFileSync(VISITS_FILE, "utf8"));
+    const data = JSON.parse(readFileSync(getDataFile(VISITS_FILENAME), "utf8"));
     if (typeof data.count !== "number" || data.count < 0) return { count: 0 };
     return data;
   } catch (error) {
@@ -32,7 +30,7 @@ function readVisits() {
 function writeVisits(data) {
   ensureVisitsFile();
   try {
-    writeFileSync(VISITS_FILE, JSON.stringify(data, null, 2), "utf8");
+    writeFileSync(getDataFile(VISITS_FILENAME), JSON.stringify(data, null, 2), "utf8");
   } catch (error) {
     console.error("Visits write error", error.message || error);
   }

@@ -1,9 +1,9 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { readFileSync, writeFileSync } from "node:fs";
+import { ensureDataFile, getDataFile } from "./storage.mjs";
 
-const COMMENTS_FILE = join(process.cwd(), "data", "comments.json");
-const PREFERENCES_FILE = join(process.cwd(), "data", "preferences.json");
+const COMMENTS_FILENAME = "comments.json";
+const PREFERENCES_FILENAME = "preferences.json";
 const SESSION_COOKIE = "daivr_comment_session";
 const STATE_COOKIE = "daivr_comment_state";
 const DISCORD_CALLBACK_PATH = "/api/comments/auth/callback";
@@ -70,57 +70,45 @@ function sendEvent(response, event, payload) {
 }
 
 function ensureCommentsFile() {
-  const dir = dirname(COMMENTS_FILE);
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-  if (existsSync(COMMENTS_FILE)) return;
-
-  writeFileSync(
-    COMMENTS_FILE,
-    JSON.stringify(
-      [
-        {
-          id: "seed-01",
-          text: "First signal on the new cabinet. Drop build ideas, game-night tools, and weird web panels here.",
-          createdAt: "2026-07-01T22:10:00.000Z",
-          pinned: true,
-          author: {
-            id: "system",
-            username: "Dai",
-            avatarUrl: "/assets/reference/dai-peach-card.png",
-            isAdmin: true
-          },
-          reactions: {
-            "sparkle-heart": ["system"],
-            "sparkles": ["system"]
-          }
-        },
-        {
-          id: "seed-02",
-          text: "Guestbook stream online. Discord-auth messages will show up here once the gate is wired.",
-          createdAt: "2026-07-01T22:22:00.000Z",
-          pinned: false,
-          author: {
-            id: "terminal",
-            username: "cabinet.node",
-            avatarUrl: "",
-            isAdmin: false
-          },
-          reactions: {
-            "sparkles": ["system"]
-          }
-        }
-      ],
-      null,
-      2
-    ),
-    "utf8"
-  );
+  return ensureDataFile(COMMENTS_FILENAME, [
+    {
+      id: "seed-01",
+      text: "First signal on the new cabinet. Drop build ideas, game-night tools, and weird web panels here.",
+      createdAt: "2026-07-01T22:10:00.000Z",
+      pinned: true,
+      author: {
+        id: "system",
+        username: "Dai",
+        avatarUrl: "/assets/reference/dai-peach-card.png",
+        isAdmin: true
+      },
+      reactions: {
+        "sparkle-heart": ["system"],
+        "sparkles": ["system"]
+      }
+    },
+    {
+      id: "seed-02",
+      text: "Guestbook stream online. Discord-auth messages will show up here once the gate is wired.",
+      createdAt: "2026-07-01T22:22:00.000Z",
+      pinned: false,
+      author: {
+        id: "terminal",
+        username: "cabinet.node",
+        avatarUrl: "",
+        isAdmin: false
+      },
+      reactions: {
+        "sparkles": ["system"]
+      }
+    }
+  ]);
 }
 
 function readComments() {
   ensureCommentsFile();
   try {
-    const data = JSON.parse(readFileSync(COMMENTS_FILE, "utf8"));
+    const data = JSON.parse(readFileSync(getDataFile(COMMENTS_FILENAME), "utf8"));
     if (!Array.isArray(data)) return [];
     return data.map((comment) => ({
       ...comment,
@@ -154,19 +142,17 @@ function readComments() {
 
 function writeComments(comments) {
   ensureCommentsFile();
-  writeFileSync(COMMENTS_FILE, JSON.stringify(comments, null, 2), "utf8");
+  writeFileSync(getDataFile(COMMENTS_FILENAME), JSON.stringify(comments, null, 2), "utf8");
 }
 
 function ensurePreferencesFile() {
-  const dir = dirname(PREFERENCES_FILE);
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-  if (!existsSync(PREFERENCES_FILE)) writeFileSync(PREFERENCES_FILE, "{}", "utf8");
+  return ensureDataFile(PREFERENCES_FILENAME, {});
 }
 
 function readPreferences() {
   ensurePreferencesFile();
   try {
-    const data = JSON.parse(readFileSync(PREFERENCES_FILE, "utf8"));
+    const data = JSON.parse(readFileSync(getDataFile(PREFERENCES_FILENAME), "utf8"));
     return data && typeof data === "object" && !Array.isArray(data) ? data : {};
   } catch (error) {
     console.error("Preferences read error", error.message || error);
@@ -176,7 +162,7 @@ function readPreferences() {
 
 function writePreferences(preferences) {
   ensurePreferencesFile();
-  writeFileSync(PREFERENCES_FILE, JSON.stringify(preferences, null, 2), "utf8");
+  writeFileSync(getDataFile(PREFERENCES_FILENAME), JSON.stringify(preferences, null, 2), "utf8");
 }
 
 function getUserPreferences(user) {
