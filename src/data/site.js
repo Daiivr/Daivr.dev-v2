@@ -113,9 +113,9 @@ export const games = [
     genre: "action RPG",
     hours: "988h played",
     serial: "SN//0524220",
-    image: "/games/nier-automata-cover.png",
+    image: "/games/nier-automata-cover-card.webp",
     logo: "/games/nier-automata-logo.webp",
-    character: "/games/nier-2b.png",
+    character: "/games/nier-2b-card.webp",
     review: `After more than 500 hours of play AND having finished the 4 or 5 main endings (A, B, C and D, E) I can directly say that it is a great game, both in gameplay and in history, both factors are connected in a very exquisite way fitting into the universe of Nier AND Drakengard.
 
 The topics it deals with and the way it presents them to you are beautiful, this factor being very well conjectured throughout history, delivering extremely epic and sentimental moments. This installment finally manages to capture what was overshadowed in the previous installments of Yoko Taro, being a renewed and fresh experience for today's standards. The story from its synopsis feels captivating and the mechanics of both combat and main missions throughout the beginning of the story gradually immerse you without considering the unique atmosphere that each location on the map gives you, accompanied by a soundtrack exquisite in composition for each moment, delivering a feeling to each one, which fragments each episode of the game into unique gaming experiences.
@@ -132,9 +132,9 @@ A game worth spending your whole life exploring every corner of the map and comp
     genre: "online RPG",
     hours: "3,863h played",
     serial: "SN//1151340",
-    image: "/games/fallout-76-poster.png",
+    image: "/games/fallout-76-poster-card.webp",
     logo: "/games/fallout-76-logo.png",
-    character: "/games/fallout-76-power-armor.png",
+    character: "/games/fallout-76-power-armor-card.webp",
     review: `As someone who has spent more than 1,800 hours in Fallout 76, I can confidently say that it is a game that has improved significantly since its initial launch.
 
 At first, there were many bugs and performance issues that made the game difficult to enjoy. But as Bethesda has released updates and patches, the game has become much more stable and has added exciting new features and content.
@@ -157,9 +157,9 @@ Overall, if you are a fan of open-world games and post-apocalyptic settings, I w
     genre: "western adventure",
     hours: "2,399h played",
     serial: "SN//1174180",
-    image: "/games/rdr2-cover.png",
+    image: "/games/rdr2-cover-card.webp",
     logo: "/games/rdr2-logo.png",
-    character: "/games/rdr2-arthur.png",
+    character: "/games/rdr2-arthur-card.webp",
     review: `The best game in the history of the sector regardless of the genre we are talking about, it is a masterpiece from beginning to end.
 When you play it you know and notice perfectly the 8 years of development, because this work simply has no rival at all levels it covers.
 A game set in the western, in the year 1899 in the interior of America, is the time of the decline of the old west, and I love this. Technical design, graphics, physics, masterful soundtrack, setting, narrative, characters from the entire campaign with their own character and a wonderful independent charisma, very top artificial intelligence, a crazy fauna, a world totally alive and with limitless exploration, it does not lack mystery, gameplay and outstanding entertainment.
@@ -175,7 +175,7 @@ export const projects = [
     title: "TradeDex",
     kicker: "01",
     visual: "tradedex",
-    image: "/projects/tradedex.png",
+    image: "/projects/tradedex-card.webp",
     href: "https://github.com/Daiivr/TradeDex/releases/latest",
     repoHref: "https://github.com/Daiivr/TradeDex",
     badge: "v1.9.1",
@@ -222,7 +222,7 @@ export const projects = [
     title: "Fallout Terminal",
     kicker: "02",
     visual: "fallout",
-    image: "/projects/fallout-terminal-frame.png",
+    image: "/projects/fallout-terminal-frame-card.webp",
     icon: "/projects/vault-tec-terminal-symbol.svg",
     href: "https://pip-boy.net/",
     repoHref: "https://github.com/Daiivr/Fallout-terminal",

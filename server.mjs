@@ -36,6 +36,15 @@ const types = {
   ".svg": "image/svg+xml; charset=utf-8"
 };
 
+function getCacheControl(filePath) {
+  const extension = extname(filePath);
+  if (extension === ".html") return "no-store";
+  if ([".css", ".js", ".png", ".jpg", ".jpeg", ".webp", ".ico", ".svg"].includes(extension)) {
+    return "public, max-age=31536000, immutable";
+  }
+  return "no-store";
+}
+
 function resolvePath(url) {
   const pathname = new URL(url, `http://localhost:${port}`).pathname;
   const relativePath = pathname === "/" ? "index.html" : pathname.replace(/^[/\\]+/, "");
@@ -151,7 +160,7 @@ createServer(async (request, response) => {
 
     response.writeHead(200, {
       "Content-Type": contentType,
-      "Cache-Control": "no-store"
+      "Cache-Control": getCacheControl(filePath)
     });
     response.end(data);
   } catch (error) {

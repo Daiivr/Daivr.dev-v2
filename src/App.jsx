@@ -36,7 +36,7 @@ export default function App() {
     preloadImages([
       profile.avatar,
       discord.fallbackAvatar,
-      ...games.flatMap((game) => [game.image, game.logo, game.character]),
+      ...games.flatMap((game) => [game.image, game.logo]),
       ...projects.flatMap((project) => [project.image, project.icon])
     ]);
   }, []);
