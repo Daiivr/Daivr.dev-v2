@@ -49,6 +49,7 @@ const KLIPY_LIMIT = 24;
 const KLIPY_RATING = "pg-13";
 const KLIPY_LOCALE = "us_US";
 const THEME_VALUES = new Set(["crt", "glitch"]);
+const streamClients = new Set();
 
 function sendJson(response, status, payload) {
   response.writeHead(status, {
@@ -61,6 +62,11 @@ function sendJson(response, status, payload) {
 function redirect(response, location, headers = {}) {
   response.writeHead(302, { Location: location, ...headers });
   response.end();
+}
+
+function sendEvent(response, event, payload) {
+  response.write(`event: ${event}\n`);
+  response.write(`data: ${JSON.stringify(payload)}\n\n`);
 }
 
 function ensureCommentsFile() {
@@ -375,6 +381,51 @@ function publicComments(request) {
   }));
 }
 
+function getCommentsPayload(request) {
+  return {
+    comments: publicComments(request),
+    reactions: DEFAULT_REACTIONS,
+    auth: getAuthStatus(request)
+  };
+}
+
+function broadcastComments(event = "comments:update") {
+  for (const client of streamClients) {
+    try {
+      sendEvent(client.response, event, getCommentsPayload(client.request));
+    } catch {
+      streamClients.delete(client);
+    }
+  }
+}
+
+function handleCommentsStream(request, response) {
+  response.writeHead(200, {
+    "Content-Type": "text/event-stream; charset=utf-8",
+    "Cache-Control": "no-store",
+    Connection: "keep-alive",
+    "X-Accel-Buffering": "no"
+  });
+  response.write(": connected\n\n");
+  sendEvent(response, "comments:init", getCommentsPayload(request));
+
+  const client = { request, response };
+  streamClients.add(client);
+  const keepAlive = setInterval(() => {
+    try {
+      response.write(": keep-alive\n\n");
+    } catch {
+      clearInterval(keepAlive);
+      streamClients.delete(client);
+    }
+  }, 25_000);
+
+  request.on("close", () => {
+    clearInterval(keepAlive);
+    streamClients.delete(client);
+  });
+}
+
 async function handleDiscordStart(request, response) {
   if (!process.env.DISCORD_CLIENT_ID || !process.env.DISCORD_CLIENT_SECRET) {
     sendJson(response, 501, { error: "Discord OAuth is not configured yet." });
@@ -480,7 +531,8 @@ async function handleCreateComment(request, response) {
   };
   comments.push(comment);
   writeComments(comments);
-  sendJson(response, 201, { comment, comments: publicComments(request) });
+  broadcastComments("comments:create");
+  sendJson(response, 201, { comment, ...getCommentsPayload(request) });
 }
 
 async function handleReply(request, response, id) {
@@ -520,7 +572,8 @@ async function handleReply(request, response, id) {
 
   comment.replies = Array.isArray(comment.replies) ? [...comment.replies, reply] : [reply];
   writeComments(comments);
-  sendJson(response, 201, { reply, comments: publicComments(request) });
+  broadcastComments("comments:reply");
+  sendJson(response, 201, { reply, ...getCommentsPayload(request) });
 }
 
 async function handleDeleteComment(request, response, id) {
@@ -544,7 +597,8 @@ async function handleDeleteComment(request, response, id) {
   }
 
   writeComments(comments.filter((entry) => String(entry.id) !== String(id)));
-  sendJson(response, 200, { success: true, comments: publicComments(request) });
+  broadcastComments("comments:delete");
+  sendJson(response, 200, { success: true, ...getCommentsPayload(request) });
 }
 
 async function handleDeleteReply(request, response, commentId, replyId) {
@@ -575,7 +629,8 @@ async function handleDeleteReply(request, response, commentId, replyId) {
 
   comment.replies = (comment.replies || []).filter((entry) => String(entry.id) !== String(replyId));
   writeComments(comments);
-  sendJson(response, 200, { success: true, comments: publicComments(request) });
+  broadcastComments("comments:delete");
+  sendJson(response, 200, { success: true, ...getCommentsPayload(request) });
 }
 
 async function handleReaction(request, response, id) {
@@ -608,7 +663,8 @@ async function handleReaction(request, response, id) {
   else delete reactions[reaction];
   comment.reactions = reactions;
   writeComments(comments);
-  sendJson(response, 200, { comment, comments: publicComments(request) });
+  broadcastComments("comments:reaction");
+  sendJson(response, 200, { comment, ...getCommentsPayload(request) });
 }
 
 async function handlePin(request, response, id) {
@@ -632,7 +688,8 @@ async function handlePin(request, response, id) {
 
   comment.pinned = !comment.pinned;
   writeComments(comments);
-  sendJson(response, 200, { comment, comments: publicComments(request) });
+  broadcastComments("comments:pin");
+  sendJson(response, 200, { comment, ...getCommentsPayload(request) });
 }
 
 function pickGifRendition(images) {
@@ -806,6 +863,11 @@ export async function handleCommentsRequest(request, response) {
     return;
   }
 
+  if (request.method === "GET" && parts[0] === "stream") {
+    handleCommentsStream(request, response);
+    return;
+  }
+
   if (request.method === "GET" && parts[0] === "gifs") {
     await handleGifSearch(request, response, requestUrl);
     return;
@@ -817,11 +879,7 @@ export async function handleCommentsRequest(request, response) {
   }
 
   if (request.method === "GET" && parts.length === 0) {
-    sendJson(response, 200, {
-      comments: publicComments(request),
-      reactions: DEFAULT_REACTIONS,
-      auth: getAuthStatus(request)
-    });
+    sendJson(response, 200, getCommentsPayload(request));
     return;
   }
 

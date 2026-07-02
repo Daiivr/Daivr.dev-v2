@@ -97,7 +97,7 @@ async function getGameImageFromSteamGrid(gameName) {
   }
 }
 
-createServer(async (request, response) => {
+const appServer = createServer(async (request, response) => {
   try {
     const requestUrl = new URL(request.url || "/", `http://localhost:${port}`);
 
@@ -181,7 +181,13 @@ createServer(async (request, response) => {
     response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8", "X-Daivr-Trace": traceId });
     response.end("Not found");
   }
-}).listen(port, () => {
+});
+
+appServer.requestTimeout = 0;
+appServer.headersTimeout = 65_000;
+appServer.keepAliveTimeout = 65_000;
+
+appServer.listen(port, () => {
   console.log(`daivr.dev preview running at http://localhost:${port}`);
 });
 

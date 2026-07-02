@@ -19,6 +19,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
 const COMMENTS_ENDPOINT = "/api/comments";
+const COMMENTS_STREAM_ENDPOINT = "/api/comments/stream";
 const MAX_COMMENT_LENGTH = 700;
 const COMMENTS_PER_PAGE = 5;
 const REACTION_ASSETS = [
@@ -227,6 +228,44 @@ export function CommentsSection() {
 
   useEffect(() => {
     loadComments();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof EventSource === "undefined") return undefined;
+
+    const stream = new EventSource(COMMENTS_STREAM_ENDPOINT, { withCredentials: true });
+
+    function handleStreamMessage(event) {
+      try {
+        const payload = JSON.parse(event.data);
+        applyPayload(payload);
+        setStatus("guestbook stream live");
+      } catch {
+        setStatus("live stream payload error");
+      }
+    }
+
+    function handleStreamOpen() {
+      setStatus("guestbook stream live");
+    }
+
+    function handleStreamError() {
+      setStatus("live stream reconnecting...");
+    }
+
+    stream.addEventListener("comments:init", handleStreamMessage);
+    stream.addEventListener("comments:update", handleStreamMessage);
+    stream.addEventListener("comments:create", handleStreamMessage);
+    stream.addEventListener("comments:reply", handleStreamMessage);
+    stream.addEventListener("comments:delete", handleStreamMessage);
+    stream.addEventListener("comments:reaction", handleStreamMessage);
+    stream.addEventListener("comments:pin", handleStreamMessage);
+    stream.addEventListener("open", handleStreamOpen);
+    stream.addEventListener("error", handleStreamError);
+
+    return () => {
+      stream.close();
+    };
   }, []);
 
   useEffect(() => {
