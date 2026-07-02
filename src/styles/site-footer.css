@@ -1,0 +1,295 @@
+@layer components {
+  .app-footer {
+    position: relative;
+    overflow: hidden;
+    border-top: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 24%, transparent);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--color-cyan-arcade) 4%, transparent) 0%, transparent 30%),
+      rgba(2, 6, 4, 0.9);
+    color: color-mix(in srgb, var(--color-phosphor-soft) 68%, transparent);
+  }
+
+  .app-footer::before,
+  .app-footer::after {
+    position: absolute;
+    pointer-events: none;
+    content: "";
+  }
+
+  .app-footer::before {
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-cyan-arcade) 6%, transparent) 0,
+      color-mix(in srgb, var(--color-cyan-arcade) 6%, transparent) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    opacity: 0.45;
+    mix-blend-mode: screen;
+  }
+
+  .app-footer::after {
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--color-cyan-arcade), var(--color-glitch), var(--color-cabinet), transparent);
+    box-shadow:
+      0 0 8px color-mix(in srgb, var(--color-cyan-arcade) 42%, transparent),
+      0 0 18px color-mix(in srgb, var(--color-glitch) 22%, transparent);
+    opacity: 0.68;
+  }
+
+  .footer-shell {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    width: min(1180px, calc(100% - clamp(28px, 6vw, 76px)));
+    margin-inline: auto;
+    padding: 1.1rem 0 1rem;
+  }
+
+  .footer-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.85rem;
+    align-items: center;
+  }
+
+  .footer-build {
+    color: color-mix(in srgb, var(--color-phosphor-soft) 86%, white);
+    font-size: 0.74rem;
+    font-weight: 800;
+    line-height: 1.55;
+    text-align: center;
+  }
+
+  .footer-tok-comment {
+    color: color-mix(in srgb, var(--color-phosphor-soft) 54%, transparent);
+  }
+
+  .footer-tok-op {
+    color: var(--color-cabinet);
+    text-shadow: 0 0 8px color-mix(in srgb, var(--color-cabinet) 34%, transparent);
+  }
+
+  .footer-tok-fn {
+    color: var(--color-cyan-arcade);
+    text-shadow: 0 0 8px color-mix(in srgb, var(--color-cyan-arcade) 28%, transparent);
+  }
+
+  .footer-tok-punct {
+    color: color-mix(in srgb, white 68%, transparent);
+  }
+
+  .footer-tok-str,
+  .footer-heart {
+    color: var(--color-glitch);
+    text-shadow: 0 0 8px color-mix(in srgb, var(--color-glitch) 34%, transparent);
+  }
+
+  .footer-heart {
+    display: inline-block;
+    font-weight: 900;
+    animation: footer-heart-beat 1.4s ease-in-out infinite;
+  }
+
+  .footer-status-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  .footer-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 18%, transparent);
+    background: rgba(2, 6, 4, 0.72);
+    box-shadow:
+      inset 0 0 12px color-mix(in srgb, var(--color-cyan-arcade) 6%, transparent),
+      0 6px 18px rgba(0, 0, 0, 0.38);
+    color: color-mix(in srgb, var(--color-phosphor-soft) 86%, white);
+    font-size: 0.66rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    padding: 0.35rem 0.7rem 0.35rem 0.55rem;
+    text-transform: uppercase;
+  }
+
+  .footer-pill-label {
+    color: color-mix(in srgb, var(--color-phosphor-soft) 56%, transparent);
+    font-size: 0.58rem;
+  }
+
+  .footer-pill-value {
+    color: #fff;
+  }
+
+  .footer-pill-status .footer-pill-value {
+    color: var(--color-cyan-arcade);
+    text-shadow: 0 0 8px color-mix(in srgb, var(--color-cyan-arcade) 36%, transparent);
+  }
+
+  .footer-pill-players .footer-pill-value {
+    color: var(--color-phosphor);
+    text-shadow: 0 0 8px color-mix(in srgb, var(--color-phosphor) 36%, transparent);
+  }
+
+  .footer-pill-led {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 10px;
+    height: 10px;
+    flex: 0 0 auto;
+  }
+
+  .footer-pill-led-core {
+    position: relative;
+    z-index: 1;
+    width: 7px;
+    height: 7px;
+    background: var(--color-cyan-arcade);
+  }
+
+  .footer-pill-led-ping {
+    position: absolute;
+    inset: 0;
+    background: color-mix(in srgb, var(--color-cyan-arcade) 46%, transparent);
+    animation: footer-led-ping 2s ease-out infinite;
+  }
+
+  .footer-pill-led-green .footer-pill-led-core {
+    background: var(--color-phosphor);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--color-phosphor) 48%, transparent);
+  }
+
+  .footer-pill-led-green .footer-pill-led-ping {
+    background: color-mix(in srgb, var(--color-phosphor) 46%, transparent);
+  }
+
+  .footer-prompt {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+    border-top: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 10%, transparent);
+    color: color-mix(in srgb, var(--color-phosphor-soft) 72%, transparent);
+    font-size: 0.68rem;
+    font-weight: 800;
+    padding-top: 0.45rem;
+  }
+
+  .footer-prompt-user {
+    color: var(--color-phosphor);
+    text-shadow: 0 0 8px color-mix(in srgb, var(--color-phosphor) 34%, transparent);
+  }
+
+  .footer-prompt-at,
+  .footer-prompt-colon {
+    color: color-mix(in srgb, var(--color-phosphor-soft) 48%, transparent);
+  }
+
+  .footer-prompt-host {
+    color: var(--color-glitch);
+    text-shadow: 0 0 8px color-mix(in srgb, var(--color-glitch) 28%, transparent);
+  }
+
+  .footer-prompt-path {
+    margin-right: 0.25rem;
+    color: var(--color-cyan-arcade);
+    text-shadow: 0 0 8px color-mix(in srgb, var(--color-cyan-arcade) 34%, transparent);
+  }
+
+  .footer-prompt-cmd {
+    color: color-mix(in srgb, var(--color-phosphor-soft) 82%, white);
+  }
+
+  .footer-prompt-caret {
+    display: inline-block;
+    width: 8px;
+    height: 13px;
+    margin-left: 0.25rem;
+    background: var(--color-cyan-arcade);
+    box-shadow: 0 0 8px color-mix(in srgb, var(--color-cyan-arcade) 42%, transparent);
+    animation: footer-caret-blink 1s steps(1, end) infinite;
+  }
+
+  .theme-glitch .app-footer {
+    border-top-color: color-mix(in srgb, var(--color-glitch) 38%, transparent);
+  }
+
+  .theme-glitch .footer-pill {
+    border-color: color-mix(in srgb, var(--color-glitch) 22%, var(--color-cyan-arcade) 12%);
+  }
+
+  @media (min-width: 768px) {
+    .footer-grid {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 1.1rem;
+    }
+
+    .footer-build {
+      text-align: left;
+    }
+
+    .footer-status-stack {
+      justify-content: flex-end;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .footer-heart,
+    .footer-pill-led-ping,
+    .footer-prompt-caret {
+      animation: none;
+    }
+  }
+}
+
+@keyframes footer-heart-beat {
+  0%,
+  28%,
+  70%,
+  100% {
+    transform: scale(1);
+  }
+
+  14% {
+    transform: scale(1.2);
+  }
+
+  42% {
+    transform: scale(1.08);
+  }
+}
+
+@keyframes footer-led-ping {
+  0% {
+    opacity: 0.65;
+    transform: scale(1);
+  }
+
+  80%,
+  100% {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+
+@keyframes footer-caret-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
+}

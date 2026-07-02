@@ -1,0 +1,14 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <title>Vault-Tec terminal-style fan symbol</title>
+  <g fill="none" stroke="#7AFF7A" stroke-width="46" stroke-linecap="square" stroke-linejoin="round">
+    <line x1="124" y1="367" x2="367" y2="367"/>
+    <line x1="657" y1="367" x2="900" y2="367"/>
+    <line x1="80" y1="430" x2="367" y2="430"/>
+    <line x1="657" y1="430" x2="944" y2="430"/>
+    <line x1="124" y1="493" x2="367" y2="493"/>
+    <line x1="657" y1="493" x2="900" y2="493"/>
+    <circle cx="512" cy="430" r="148"/>
+  </g>
+  <circle cx="512" cy="430" r="77" fill="#7AFF7A"/>
+  <text x="512" y="750" text-anchor="middle" font-family="DejaVu Sans Mono, Consolas, monospace" font-size="116" font-weight="700" fill="#7AFF7A" letter-spacing="4">VAULT-TEC</text>
+</svg>

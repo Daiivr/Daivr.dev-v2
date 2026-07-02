@@ -1,0 +1,914 @@
+@media (max-width: 760px) {
+  html,
+  body,
+  #root,
+  .app-shell {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .app-shell {
+    --mobile-page-gutter: clamp(0.8rem, 4vw, 1rem);
+    scrollbar-gutter: auto;
+  }
+
+  .app-shell *,
+  .app-shell *::before,
+  .app-shell *::after {
+    min-width: 0;
+  }
+
+  .app-shell img,
+  .app-shell video,
+  .app-shell canvas,
+  .app-shell svg {
+    max-width: 100%;
+  }
+
+  .app-shell pre,
+  .app-shell code {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  .app-shell > .relative.z-10 {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .app-shell main#main {
+    width: calc(100vw - (var(--mobile-page-gutter) * 2)) !important;
+    max-width: calc(100vw - (var(--mobile-page-gutter) * 2));
+    overflow: visible;
+  }
+
+  .app-shell main#main > section,
+  .app-shell .panel,
+  .app-shell .panel-strong,
+  .app-shell .interactive-card {
+    max-width: 100%;
+  }
+
+  .app-shell header.sticky {
+    width: 100%;
+    max-width: 100vw;
+    padding-inline: var(--mobile-page-gutter) !important;
+  }
+
+  .app-shell header.sticky > div:first-child {
+    width: 100%;
+  }
+
+  .app-shell header.sticky > div:last-child {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .app-shell header.sticky > div:last-child span {
+    display: flex;
+    gap: 0.35rem;
+    align-items: center;
+    justify-content: center;
+    padding-inline: 0.45rem;
+    text-align: center;
+  }
+
+  .app-shell > .relative.z-10 > aside {
+    width: 100%;
+    max-width: 100vw;
+    padding: 0.85rem !important;
+    overflow: hidden;
+  }
+
+  .brand-lockup {
+    margin-bottom: 0.85rem;
+  }
+
+  .brand-mark {
+    width: 2.65rem;
+  }
+
+  .brand-lockup strong {
+    font-size: 1rem;
+  }
+
+  nav[aria-label="Primary navigation"] {
+    grid-auto-flow: row !important;
+    grid-auto-columns: initial !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    max-width: 100%;
+    overflow: visible !important;
+  }
+
+  .hero-station {
+    min-height: auto !important;
+    gap: 1.35rem !important;
+    padding-block: 2rem !important;
+  }
+
+  .hero-copy {
+    max-width: 100%;
+  }
+
+  .hero-copy h1 {
+    max-width: 100% !important;
+    font-size: clamp(2.35rem, 13vw, 3.4rem) !important;
+    line-height: 0.94 !important;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+
+  .hero-copy p,
+  .interactive-card p,
+  .now-card-copy > p:last-child,
+  .comments-console-summary p,
+  .comment-card p,
+  .project-card p,
+  .discord-presence-shell p,
+  .game-shelf-toolbar > p {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+
+  .hero-console {
+    width: 100% !important;
+    max-width: 100%;
+    transform: none !important;
+  }
+
+  .hero-console-handle {
+    align-items: flex-start;
+    gap: 0.75rem;
+  }
+
+  .hero-console-handle > div:last-child {
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero-console-handle > div:last-child span {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .hero-console-content {
+    grid-template-columns: 1fr !important;
+  }
+
+  .hero-code-panel,
+  .hero-output-panel {
+    overflow: hidden;
+  }
+
+  .hero-canvas-stage {
+    min-height: 300px !important;
+  }
+
+  .canvas-node-badge {
+    right: 0.75rem;
+    bottom: 0.75rem;
+    max-width: calc(100% - 1.5rem);
+  }
+
+  .app-shell main#main section h2,
+  .comments-section-heading h2 {
+    max-width: 100% !important;
+    font-size: clamp(1.95rem, 10vw, 2.75rem) !important;
+    line-height: 0.98 !important;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+
+  .app-shell main#main section h3 {
+    overflow-wrap: anywhere;
+  }
+
+  .now-card {
+    grid-template-columns: 1fr !important;
+    gap: 0.9rem;
+    padding: 1rem !important;
+  }
+
+  .now-card-index {
+    justify-self: start;
+  }
+
+  .now-card-copy h3 {
+    white-space: normal;
+    font-size: clamp(1.35rem, 7vw, 1.8rem) !important;
+    line-height: 1.12;
+    overflow-wrap: anywhere;
+  }
+
+  .now-card-copy > p:last-child {
+    font-size: 0.98rem;
+    line-height: 1.55;
+  }
+
+  .link-console {
+    max-width: 100%;
+    padding: 0.85rem;
+    overflow: hidden;
+  }
+
+  .link-console-titlebar,
+  .link-console-grid {
+    padding-inline: 0;
+  }
+
+  .link-console-titlebar {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+
+  .link-console-flags {
+    display: none;
+  }
+
+  .link-console-card {
+    grid-template-columns: 1.55rem 2.55rem minmax(0, 1fr) !important;
+    gap: 0.85rem;
+    padding: 0.85rem !important;
+  }
+
+  .link-console-copy strong,
+  .link-console-copy small {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .project-console,
+  .project-console-grid,
+  .project-card,
+  .project-card-shell {
+    max-width: 100% !important;
+    overflow: hidden;
+  }
+
+  .project-console {
+    padding: 1rem !important;
+  }
+
+  .project-console-header,
+  .project-console-grid,
+  .project-card-title-row,
+  .project-card-meta,
+  .project-card-footer {
+    grid-template-columns: 1fr !important;
+  }
+
+  .project-card-media {
+    min-height: 230px !important;
+  }
+
+  .project-card h3 {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .project-modal-overlay {
+    z-index: 170;
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.025) 50%, transparent 50%),
+      rgba(0, 0, 0, 0.7);
+    background-size: 100% 4px, auto;
+    backdrop-filter: blur(8px);
+  }
+
+  .project-modal {
+    inset: max(0.55rem, env(safe-area-inset-top)) 0.55rem max(0.55rem, env(safe-area-inset-bottom)) 0.55rem !important;
+    z-index: 180;
+    display: block;
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .project-modal::before,
+  .project-modal::after {
+    position: fixed;
+    inset: max(0.55rem, env(safe-area-inset-top)) 0.55rem max(0.55rem, env(safe-area-inset-bottom)) 0.55rem;
+  }
+
+  .project-modal-windowbar {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    grid-template-columns: auto minmax(0, 1fr) auto !important;
+    gap: 0.65rem;
+    min-height: 44px;
+    padding-inline: 0.7rem;
+  }
+
+  .project-modal-windowbar > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .project-modal-hero {
+    padding: 0.95rem;
+  }
+
+  .project-modal-hero h2 {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    font-size: clamp(1.05rem, 7vw, 1.55rem) !important;
+    line-height: 1.05;
+    overflow-wrap: anywhere;
+  }
+
+  .project-modal-hero h2 span {
+    grid-column: 1 / -1;
+    padding-left: 1.1rem;
+  }
+
+  .project-modal-hero p {
+    font-size: 0.78rem;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+  }
+
+  .project-verdict-grid,
+  .project-site-grid,
+  .project-modal-actions {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem;
+  }
+
+  .project-verdict-grid,
+  .project-site-grid,
+  .project-modal-actions,
+  .project-scan-progress,
+  .project-terminal-log {
+    margin-inline: 0.75rem !important;
+  }
+
+  .project-verdict-card {
+    min-height: 0;
+    padding: 0.85rem;
+  }
+
+  .project-verdict-card strong {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    overflow-wrap: anywhere;
+  }
+
+  .project-verdict-primary strong {
+    font-size: clamp(1.35rem, 10vw, 2.15rem) !important;
+  }
+
+  .project-scan-progress {
+    padding: 0.75rem;
+  }
+
+  .project-scan-progress div {
+    gap: 0.75rem;
+  }
+
+  .project-scan-progress ol {
+    gap: 0.45rem;
+  }
+
+  .project-terminal-log {
+    display: grid;
+    gap: 0.42rem;
+    overflow: hidden;
+    padding: 0.72rem;
+  }
+
+  .project-terminal-log p {
+    display: grid !important;
+    grid-template-columns: 1.75rem minmax(0, 1fr) auto !important;
+    align-items: start;
+    gap: 0.22rem 0.5rem;
+    min-height: 0;
+    padding-block: 0.15rem;
+  }
+
+  .project-terminal-log p > span:first-child {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: start;
+  }
+
+  .project-terminal-log p strong,
+  .project-terminal-log p small {
+    grid-column: 2 !important;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .project-terminal-log p b {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+    align-self: start;
+    margin-top: 0;
+  }
+
+  .project-terminal-log p small {
+    padding-left: 0;
+  }
+
+  .project-terminal-log p.project-terminal-blank {
+    display: none !important;
+  }
+
+  .project-terminal-verdict {
+    grid-column: 1 / -1 !important;
+    width: 100%;
+    padding: 0.6rem 0.72rem;
+  }
+
+  .project-site-preview {
+    min-height: 220px;
+  }
+
+  .project-site-copy dl div {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
+  }
+
+  .project-modal-actions {
+    padding: 0.75rem 0 0.9rem;
+  }
+
+  .project-modal-actions a,
+  .project-modal-locked {
+    min-height: 3.2rem;
+    width: 100%;
+  }
+
+  .project-modal-status {
+    margin-top: 0.25rem;
+    padding: 0.75rem;
+  }
+
+  .discord-presence-shell {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .discord-presence-grid,
+  .discord-presence-activity-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .discord-presence-profile,
+  .discord-presence-activity,
+  .discord-presence-card,
+  .discord-activity-card {
+    max-width: 100%;
+  }
+
+  .discord-presence-profile {
+    align-items: flex-start;
+  }
+
+  .discord-presence-avatar {
+    width: min(38vw, 8rem);
+  }
+
+  .discord-presence-activity-head,
+  .discord-presence-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .discord-activity-card {
+    grid-template-columns: 64px minmax(0, 1fr) !important;
+    align-items: start;
+    padding-right: 3.1rem;
+  }
+
+  .discord-activity-art {
+    width: 64px !important;
+  }
+
+  .discord-activity-card em {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 2;
+    max-width: 2.6rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 32%, transparent);
+    background: rgba(2, 6, 4, 0.82);
+    padding: 0.22rem 0.34rem;
+    color: var(--color-cyan-arcade);
+    line-height: 1;
+    text-align: center;
+  }
+
+  .discord-activity-card strong,
+  .discord-activity-card p,
+  .discord-activity-card small {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .discord-presence-custom,
+  .discord-presence-status {
+    width: 100%;
+  }
+
+  .game-shelf {
+    max-width: 100%;
+    padding: 0.85rem !important;
+    overflow: hidden !important;
+  }
+
+  .game-shelf-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .game-shelf-stats {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+
+  .game-shelf-stats span {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .game-shelf-stage {
+    padding: 0.8rem !important;
+    overflow: hidden;
+  }
+
+  .game-shelf-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.15rem;
+  }
+
+  .game-card-scene {
+    min-height: min(92vw, 360px) !important;
+    overflow: hidden;
+  }
+
+  .game-card-cover {
+    filter: brightness(0.72) saturate(1.08) blur(1.1px);
+  }
+
+  .game-card-logo-wrap {
+    bottom: 0.75rem;
+    opacity: 0.95;
+  }
+
+  .game-card.is-flipped .game-card-character,
+  .game-card.is-flipped .game-card-logo-wrap,
+  .game-card.is-flipped .game-card-bay,
+  .game-card.is-review-closing .game-card-character,
+  .game-card.is-review-closing .game-card-logo-wrap,
+  .game-card.is-review-closing .game-card-bay {
+    opacity: 0 !important;
+    pointer-events: none;
+    visibility: hidden;
+  }
+
+  .game-card-character {
+    left: 50%;
+    bottom: -3%;
+    max-width: 110%;
+    max-height: 112%;
+    opacity: 1;
+    filter: blur(0) saturate(1.04) brightness(0.96);
+    transform: translate3d(-50%, -2%, 70px) scale(0.82);
+  }
+
+  .game-card-meta strong {
+    white-space: normal;
+    font-size: clamp(1.25rem, 7vw, 1.75rem);
+    overflow-wrap: anywhere;
+  }
+
+  .game-card-review-action {
+    justify-self: center;
+    width: fit-content;
+    min-width: min(13rem, 100%);
+    margin-inline: auto;
+    padding-inline: 0.9rem;
+  }
+
+  .game-shelf-readout {
+    display: grid !important;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 0.75rem;
+    text-align: center;
+  }
+
+  .game-shelf-readout span {
+    justify-content: center;
+  }
+
+  .game-shelf-dots {
+    width: 100%;
+    flex: none;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .comments-console {
+    --comments-console-cut: 10px;
+    max-width: 100%;
+    overflow: visible;
+  }
+
+  .comments-console-titlebar {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.65rem;
+    padding-inline: 0.8rem;
+  }
+
+  .comments-titlebar-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+    overflow: visible;
+  }
+
+  .comments-titlebar-actions .has-tooltip::before {
+    right: auto;
+    left: 0;
+    width: min(15.5rem, calc(100vw - 2rem));
+    max-width: min(15.5rem, calc(100vw - 2rem));
+    white-space: normal;
+    transform: translate(0, -6px);
+  }
+
+  .comments-titlebar-actions .has-tooltip::after {
+    right: auto;
+    left: 1.1rem;
+  }
+
+  .comments-titlebar-actions .has-tooltip:hover::before,
+  .comments-titlebar-actions .has-tooltip:focus-visible::before {
+    transform: translate(0, 0);
+  }
+
+  .comments-console-head {
+    padding-inline: 0.85rem;
+  }
+
+  .comments-console-meta {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+
+  .comments-console-meta span,
+  .comments-auth-btn,
+  .comments-user-chip {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .comments-auth-panel {
+    width: 100%;
+    justify-items: stretch;
+  }
+
+  .comments-composer {
+    margin-inline: 0.85rem;
+  }
+
+  .comments-input-frame textarea {
+    min-height: 9rem;
+    font-size: 0.92rem;
+  }
+
+  .comments-composer-footer {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
+  }
+
+  .comments-length-meter,
+  .comments-count-readout {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .comments-composer-footer button {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .comments-gif-dialog {
+    width: min(calc(100vw - 1.5rem), 32rem);
+    max-height: min(82vh, 40rem);
+    overflow-y: auto;
+  }
+
+  .comments-gif-search {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .comments-gif-search button {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .comments-gif-search input {
+    font-size: 16px !important;
+  }
+
+  .comment-card {
+    position: relative;
+    grid-template-columns: 30px minmax(0, 1fr) !important;
+    column-gap: 0.72rem;
+    overflow: visible;
+    padding: 0.95rem !important;
+  }
+
+  .comment-card.is-pinned {
+    margin-top: 1rem;
+  }
+
+  .comment-pinned-badge {
+    z-index: 4;
+  }
+
+  .comment-avatar {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    position: relative;
+    z-index: 3;
+  }
+
+  .comment-avatar img,
+  .comment-avatar span {
+    display: grid;
+    width: 30px;
+    height: 30px;
+    place-items: center;
+  }
+
+  .comment-body {
+    grid-column: 2 !important;
+    grid-row: 1 !important;
+    z-index: 5;
+  }
+
+  .comment-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .comment-card-head strong {
+    max-width: calc(100% - 0.5rem);
+    overflow-wrap: anywhere;
+  }
+
+  .comment-time.has-tooltip {
+    z-index: 12;
+  }
+
+  .comment-time.has-tooltip:hover,
+  .comment-time.has-tooltip:focus-visible {
+    z-index: 150;
+  }
+
+  .comment-time.has-tooltip::before {
+    left: 0;
+    max-width: min(250px, calc(100vw - 3rem));
+    transform: translate(0, 6px);
+  }
+
+  .comment-time.has-tooltip::after {
+    left: 1rem;
+    transform: translate(0, 6px) rotate(45deg);
+  }
+
+  .comment-time.has-tooltip:hover::before,
+  .comment-time.has-tooltip:focus-visible::before {
+    transform: translate(0, 0);
+  }
+
+  .comment-time.has-tooltip:hover::after,
+  .comment-time.has-tooltip:focus-visible::after {
+    transform: translate(0, 0) rotate(45deg);
+  }
+
+  .comment-actions {
+    justify-content: flex-start;
+    width: 100%;
+  }
+
+  .comment-body,
+  .comment-body p {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .reaction-row {
+    flex-wrap: wrap;
+  }
+
+  .reaction-picker-wrapper {
+    position: relative !important;
+  }
+
+  .reaction-picker {
+    position: fixed !important;
+    right: auto !important;
+    bottom: var(--reaction-picker-button-top, 10rem) !important;
+    left: var(--reaction-picker-card-center, 50vw) !important;
+    top: auto !important;
+    z-index: 180;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    width: min(13.25rem, calc(100vw - 1.5rem)) !important;
+    max-height: none;
+    overflow: visible;
+    gap: 0.24rem;
+    padding: 0.32rem;
+    transform: translateX(-50%);
+  }
+
+  .reaction-picker::after {
+    display: none;
+  }
+
+  .reaction-picker-item {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    min-height: 0;
+    padding: 0.1rem;
+  }
+
+  .reaction-add-btn.has-tooltip::before {
+    width: max-content;
+    max-width: min(10rem, calc(100vw - 3rem));
+    font-size: 0.56rem;
+    white-space: normal;
+  }
+
+  .comments-pagination {
+    align-items: stretch;
+  }
+
+  .comments-pagination div,
+  .comments-pagination button {
+    width: 100%;
+  }
+
+  .footer-shell {
+    width: calc(100vw - (var(--mobile-page-gutter) * 2));
+    max-width: calc(100vw - (var(--mobile-page-gutter) * 2));
+  }
+
+  .site-footer,
+  .footer-shell,
+  .footer-grid,
+  .footer-prompt,
+  .footer-status-stack {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-copy h1 {
+    font-size: clamp(2.1rem, 12vw, 2.8rem) !important;
+  }
+
+  .app-shell main#main section h2,
+  .comments-section-heading h2 {
+    font-size: clamp(1.7rem, 9vw, 2.25rem) !important;
+  }
+
+  .hero-console-handle > div:last-child,
+  .comments-composer-footer {
+    grid-template-columns: 1fr;
+  }
+
+  .link-console-card {
+    grid-template-columns: 1.35rem minmax(0, 1fr) !important;
+  }
+
+  .link-console-icon {
+    display: none;
+  }
+}

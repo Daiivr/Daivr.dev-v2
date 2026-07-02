@@ -1,0 +1,793 @@
+@layer components {
+  .discord-player-card {
+    position: relative;
+    --card-edge-hot: var(--color-cyan-arcade);
+    --card-edge-cool: var(--color-phosphor);
+    background:
+      linear-gradient(115deg, rgba(69, 216, 255, 0.08), transparent 38%),
+      linear-gradient(rgba(63, 255, 151, 0.045) 1px, transparent 1px),
+      #020604;
+    background-size: auto, 100% 5px, auto;
+  }
+
+  .discord-player-card::before {
+    position: absolute;
+    inset: 0;
+    content: "";
+    pointer-events: none;
+    border-left: 2px solid color-mix(in srgb, var(--color-cyan-arcade) 68%, transparent);
+    opacity: 0.78;
+  }
+
+  .discord-player-card::after {
+    position: absolute;
+    inset: 0 auto 0 -30%;
+    width: 30%;
+    content: "";
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(69, 216, 255, 0.16), transparent);
+    animation: player-card-scan 4.2s ease-in-out infinite;
+  }
+
+  .discord-avatar-decoration {
+    position: absolute;
+    z-index: 20;
+    inset: -8px;
+    width: calc(100% + 16px);
+    height: calc(100% + 16px);
+    max-width: none;
+    object-fit: contain;
+    pointer-events: none;
+    transform: translateY(-2px);
+    filter: drop-shadow(0 0 14px rgba(69, 216, 255, 0.32));
+  }
+
+  .discord-presence-shell {
+    position: relative;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--color-cyan-arcade) 14%, transparent), transparent 30%),
+      radial-gradient(circle at 82% 0%, color-mix(in srgb, var(--color-glitch) 12%, transparent), transparent 28%),
+      linear-gradient(rgba(63, 255, 151, 0.045) 1px, transparent 1px),
+      rgba(2, 6, 4, 0.92);
+    background-size: auto, auto, 100% 5px, auto;
+  }
+
+  .discord-presence-shell::before,
+  .discord-presence-shell::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+    pointer-events: none;
+  }
+
+  .discord-presence-shell::before {
+    background:
+      linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-cyan-arcade) 20%, transparent), transparent),
+      linear-gradient(rgba(255, 255, 255, 0.035) 50%, transparent 50%);
+    background-size: auto, 100% 4px;
+    opacity: 0.26;
+    mix-blend-mode: screen;
+  }
+
+  .discord-presence-shell::after {
+    z-index: 20;
+    background:
+      linear-gradient(180deg, var(--color-cyan-arcade), var(--color-phosphor)) 0 0 / 3px 100% no-repeat,
+      linear-gradient(90deg, var(--color-cyan-arcade), color-mix(in srgb, var(--color-phosphor) 72%, transparent)) 0 0 / 100% 1px no-repeat,
+      linear-gradient(180deg, color-mix(in srgb, var(--color-cyan-arcade) 50%, transparent), color-mix(in srgb, var(--color-phosphor) 28%, transparent)) 100% 0 / 1px calc(100% - 14px) no-repeat,
+      linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 44%, transparent), transparent) 0 100% / calc(100% - 14px) 1px no-repeat,
+      linear-gradient(0deg, color-mix(in srgb, var(--color-phosphor) 10%, transparent), transparent) 0 100% / 100% 36% no-repeat;
+    filter: drop-shadow(0 0 12px color-mix(in srgb, var(--color-cyan-arcade) 30%, transparent));
+  }
+
+  .discord-presence-titlebar {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    min-height: 42px;
+    align-items: center;
+    gap: 0.55rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-phosphor) 20%, transparent);
+    background: rgba(2, 6, 4, 0.76);
+    padding-inline: 1rem;
+  }
+
+  .theme-glitch .discord-presence-shell::after {
+    background:
+      linear-gradient(180deg, var(--color-phosphor), var(--color-cyan-arcade)) 0 0 / 3px 100% no-repeat,
+      linear-gradient(90deg, var(--color-phosphor), color-mix(in srgb, var(--color-cyan-arcade) 72%, transparent)) 0 0 / 100% 1px no-repeat,
+      linear-gradient(180deg, color-mix(in srgb, var(--color-phosphor) 50%, transparent), color-mix(in srgb, var(--color-cyan-arcade) 28%, transparent)) 100% 0 / 1px calc(100% - 14px) no-repeat,
+      linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 44%, transparent), transparent) 0 100% / calc(100% - 14px) 1px no-repeat,
+      linear-gradient(0deg, color-mix(in srgb, var(--color-phosphor) 10%, transparent), transparent) 0 100% / 100% 36% no-repeat;
+    filter: drop-shadow(0 0 12px color-mix(in srgb, var(--color-phosphor) 34%, transparent));
+  }
+
+  .discord-presence-titlebar span {
+    width: 6px;
+    height: 6px;
+    background: var(--color-cabinet);
+  }
+
+  .discord-presence-titlebar span:first-child {
+    background: var(--color-danger-arcade);
+  }
+
+  .discord-presence-titlebar span:last-of-type {
+    background: var(--color-phosphor);
+  }
+
+  .discord-presence-titlebar code {
+    margin-left: 0.5rem;
+    color: var(--color-phosphor-soft);
+    font-size: 0.7rem;
+    font-weight: 900;
+  }
+
+  .discord-presence-grid {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    gap: clamp(1rem, 2.4vw, 1.4rem);
+    padding: clamp(1rem, 2.4vw, 1.45rem);
+  }
+
+  .discord-presence-profile,
+  .discord-presence-activity {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 24%, transparent);
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent), transparent 42%),
+      rgba(2, 6, 4, 0.64);
+    box-shadow: inset 0 0 38px rgba(0, 0, 0, 0.35);
+  }
+
+  .discord-presence-profile::before,
+  .discord-presence-activity::before {
+    position: absolute;
+    inset: 0;
+    content: "";
+    pointer-events: none;
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.032) 50%, transparent 50%),
+      linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 7%, transparent) 1px, transparent 1px);
+    background-size: 100% 4px, 28px 100%;
+    opacity: 0.38;
+  }
+
+  .discord-presence-profile {
+    display: grid;
+    align-content: start;
+    gap: 1rem;
+    padding: clamp(1rem, 2.5vw, 1.35rem);
+  }
+
+  .discord-presence-led {
+    width: 9px;
+    height: 9px;
+    box-shadow: 0 0 16px currentColor;
+  }
+
+  .discord-presence-avatar {
+    position: relative;
+    justify-self: center;
+    width: min(168px, 62vw);
+    aspect-ratio: 1;
+    margin-top: 0.5rem;
+    isolation: isolate;
+  }
+
+  .discord-presence-avatar::before,
+  .discord-presence-avatar::after {
+    position: absolute;
+    inset: -8px;
+    z-index: 0;
+    content: "";
+    pointer-events: none;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 50%, transparent);
+  }
+
+  .discord-presence-avatar::before {
+    transform: rotate(4deg);
+  }
+
+  .discord-presence-avatar::after {
+    border-color: color-mix(in srgb, var(--color-glitch) 45%, transparent);
+    transform: rotate(-4deg);
+  }
+
+  .discord-presence-avatar > img:first-child {
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    border: 2px solid color-mix(in srgb, var(--color-phosphor) 42%, transparent);
+    object-fit: cover;
+    box-shadow:
+      0 0 0 4px rgba(2, 6, 4, 0.76),
+      0 0 42px color-mix(in srgb, var(--color-cyan-arcade) 24%, transparent);
+  }
+
+  .discord-presence-decoration {
+    position: absolute;
+    inset: -18px;
+    z-index: 4;
+    width: calc(100% + 36px);
+    height: calc(100% + 36px);
+    max-width: none;
+    object-fit: contain;
+    pointer-events: none;
+    transform: translateY(-5px) scale(0.92);
+  }
+
+  .discord-presence-avatar i {
+    position: absolute;
+    right: -6px;
+    bottom: -6px;
+    z-index: 5;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #020604;
+    box-shadow: 0 0 18px currentColor;
+  }
+
+  .discord-presence-profile strong {
+    display: block;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 1.35rem;
+    font-weight: 900;
+  }
+
+  .discord-presence-profile small {
+    color: var(--color-phosphor-soft);
+    font-size: 0.8rem;
+    opacity: 0.52;
+  }
+
+  .discord-presence-status,
+  .discord-presence-custom {
+    position: relative;
+    z-index: 1;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 20%, transparent);
+    background: rgba(2, 6, 4, 0.52);
+  }
+
+  .discord-presence-status {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.75rem 0.85rem;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .discord-presence-custom {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.8rem 0.85rem;
+    color: var(--color-phosphor-soft);
+    font-size: 0.82rem;
+    font-weight: 900;
+  }
+
+  .discord-presence-custom img {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 auto;
+  }
+
+  .discord-presence-custom span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .discord-presence-badges {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.48rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 24%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent), transparent 70%),
+      rgba(2, 6, 4, 0.58);
+    padding: 0.7rem;
+  }
+
+  .discord-presence-badge {
+    position: relative;
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 18%, transparent);
+    background: rgba(2, 6, 4, 0.64);
+    box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.42);
+    transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .discord-presence-badge::after {
+    position: absolute;
+    inset: -1px;
+    content: "";
+    pointer-events: none;
+    background: linear-gradient(135deg, color-mix(in srgb, var(--color-cyan-arcade) 20%, transparent), transparent 48%);
+    opacity: 0;
+    transition: opacity 160ms ease;
+  }
+
+  .discord-presence-badge:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, var(--color-cyan-arcade) 58%, transparent);
+    box-shadow:
+      inset 0 0 14px rgba(0, 0, 0, 0.42),
+      0 0 18px color-mix(in srgb, var(--color-cyan-arcade) 20%, transparent);
+  }
+
+  .discord-presence-badge:hover::after {
+    opacity: 1;
+  }
+
+  .discord-presence-badge img {
+    position: relative;
+    z-index: 1;
+    max-width: 20px;
+    max-height: 20px;
+    object-fit: contain;
+  }
+
+  .discord-floating-tooltip {
+    position: fixed;
+    z-index: 100;
+    display: grid;
+    justify-items: center;
+    gap: 0.28rem;
+    padding: 0.72rem 0.8rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 42%, transparent);
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.035) 50%, transparent 50%),
+      radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--color-cyan-arcade) 18%, transparent), transparent 58%),
+      rgba(2, 6, 4, 0.96);
+    background-size: 100% 4px, auto, auto;
+    box-shadow:
+      0 18px 48px rgba(0, 0, 0, 0.55),
+      0 0 28px color-mix(in srgb, var(--color-cyan-arcade) 18%, transparent);
+    color: #fff;
+    pointer-events: none;
+    text-align: center;
+    transform: translate(-50%, -100%);
+  }
+
+  .discord-floating-tooltip::after {
+    position: absolute;
+    left: calc(50% + var(--tooltip-arrow-offset, 0px));
+    bottom: -6px;
+    width: 10px;
+    height: 10px;
+    content: "";
+    border-right: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 42%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 42%, transparent);
+    background: rgba(2, 6, 4, 0.96);
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  .discord-floating-tooltip img {
+    max-width: 34px;
+    max-height: 34px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 10px color-mix(in srgb, var(--color-cyan-arcade) 24%, transparent));
+  }
+
+  .discord-badge-tooltip-label,
+  .discord-badge-tooltip-sublabel {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .discord-badge-tooltip-label {
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .discord-badge-tooltip-sublabel {
+    color: var(--color-phosphor-soft);
+    font-size: 0.64rem;
+    font-weight: 900;
+    opacity: 0.66;
+  }
+
+  .discord-presence-activity {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    min-height: 420px;
+    padding: clamp(1rem, 2.5vw, 1.35rem);
+  }
+
+  .discord-presence-activity-head {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  .discord-presence-activity h3 {
+    margin-top: 0.35rem;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: clamp(1.35rem, 2.2vw, 2rem);
+    font-weight: 900;
+  }
+
+  .discord-presence-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 32%, transparent);
+    background: color-mix(in srgb, var(--color-cyan-arcade) 10%, transparent);
+    padding: 0.55rem 0.7rem;
+    color: var(--color-cyan-arcade);
+    font-size: 0.68rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .discord-presence-feed {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    align-content: start;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+
+  .discord-activity-card {
+    position: relative;
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr) auto;
+    gap: 1rem;
+    align-items: center;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 18%, transparent);
+    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 9%, transparent), transparent 72%),
+      rgba(2, 6, 4, 0.62);
+    padding: 0.75rem;
+    box-shadow:
+      inset 3px 0 0 color-mix(in srgb, var(--color-phosphor) 58%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--color-cyan-arcade) 18%, transparent);
+  }
+
+  .discord-activity-card::before {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 2px;
+    content: "";
+    background: var(--color-phosphor);
+    box-shadow: 0 0 18px var(--color-phosphor);
+  }
+
+  .theme-glitch .discord-player-card {
+    --card-edge-hot: var(--color-phosphor);
+    --card-edge-cool: var(--color-cyan-arcade);
+  }
+
+  .theme-glitch .discord-player-card::before {
+    border-left-color: color-mix(in srgb, var(--color-phosphor) 78%, transparent);
+  }
+
+  .theme-glitch .discord-activity-card {
+    border-color: color-mix(in srgb, var(--color-phosphor) 34%, transparent);
+    box-shadow:
+      inset 3px 0 0 color-mix(in srgb, var(--color-phosphor) 64%, transparent),
+      inset -1px 0 0 color-mix(in srgb, var(--color-cyan-arcade) 30%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--color-cyan-arcade) 20%, transparent);
+  }
+
+  .theme-glitch .discord-activity-card::before {
+    background: var(--color-phosphor);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--color-phosphor) 72%, transparent);
+  }
+
+  .discord-activity-art {
+    position: relative;
+    display: grid;
+    width: 88px;
+    aspect-ratio: 1;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 30%, transparent);
+    background: rgba(69, 216, 255, 0.08);
+    color: var(--color-cyan-arcade);
+    overflow: visible;
+  }
+
+  .discord-activity-main-art {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .discord-activity-app-icon {
+    position: absolute;
+    right: -0.45rem;
+    bottom: -0.45rem;
+    display: inline-grid;
+    width: 30px;
+    aspect-ratio: 1;
+    place-items: center;
+    border: 2px solid rgba(2, 6, 4, 0.96);
+    border-radius: 999px;
+    background:
+      radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.18), transparent 34%),
+      rgba(3, 9, 7, 0.98);
+    box-shadow:
+      0 0 0 1px color-mix(in srgb, var(--color-cyan-arcade) 44%, transparent),
+      0 0 14px color-mix(in srgb, var(--color-cyan-arcade) 28%, transparent),
+      0 8px 18px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+  }
+
+  .discord-activity-app-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .discord-activity-card span,
+  .discord-activity-card em,
+  .discord-presence-footer {
+    font-size: 0.62rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .discord-activity-card span {
+    color: var(--color-cabinet);
+  }
+
+  .discord-activity-card strong {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .discord-activity-card p,
+  .discord-activity-card small {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--color-phosphor-soft);
+    font-size: 0.8rem;
+    opacity: 0.72;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .discord-activity-card small {
+    opacity: 0.48;
+  }
+
+  .discord-activity-card em {
+    align-self: start;
+    color: var(--color-cyan-arcade);
+    font-style: normal;
+    opacity: 0.62;
+  }
+
+  .discord-activity-session {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.48rem;
+    margin-top: 0.62rem;
+  }
+
+  .discord-activity-card .discord-session-chip,
+  .discord-activity-card .discord-streak-chip {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+    color: var(--color-phosphor);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .discord-session-chip {
+    gap: 0.42rem;
+    text-shadow: 0 0 8px color-mix(in srgb, var(--color-phosphor) 34%, transparent);
+  }
+
+  .discord-session-chip i {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    flex: 0 0 auto;
+    background: var(--color-phosphor);
+    box-shadow:
+      0 0 9px var(--color-phosphor),
+      0 0 18px color-mix(in srgb, var(--color-phosphor) 45%, transparent);
+    animation: discord-session-pulse 1.6s ease-in-out infinite;
+  }
+
+  .discord-activity-card .discord-streak-chip {
+    gap: 0.34rem;
+    border: 1px solid color-mix(in srgb, var(--color-cabinet) 52%, transparent);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--color-cabinet) 18%, transparent), color-mix(in srgb, #ff6f00 10%, transparent)),
+      rgba(2, 6, 4, 0.76);
+    padding: 0.28rem 0.5rem;
+    color: color-mix(in srgb, var(--color-cabinet) 86%, #fff);
+    text-shadow: 0 0 8px color-mix(in srgb, var(--color-cabinet) 46%, transparent);
+    box-shadow:
+      inset 0 0 0 1px rgba(0, 0, 0, 0.38),
+      0 0 14px color-mix(in srgb, var(--color-cabinet) 20%, transparent);
+  }
+
+  .discord-streak-chip svg {
+    flex: 0 0 auto;
+    filter: drop-shadow(0 0 5px color-mix(in srgb, var(--color-cabinet) 68%, transparent));
+    animation: discord-streak-flicker 2.2s ease-in-out infinite;
+  }
+
+  .discord-spotify-progress {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.65rem;
+  }
+
+  .discord-spotify-progress-track {
+    height: 7px;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 28%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 8%, transparent) 1px, transparent 1px),
+      rgba(2, 6, 4, 0.76);
+    background-size: 16px 100%, auto;
+    padding: 1px;
+  }
+
+  .discord-spotify-progress-track i {
+    display: block;
+    height: 100%;
+    min-width: 2px;
+    background: linear-gradient(90deg, var(--color-phosphor), var(--color-cyan-arcade), var(--color-glitch));
+    box-shadow: 0 0 14px color-mix(in srgb, var(--color-phosphor) 34%, transparent);
+    transition: width 1s linear;
+  }
+
+  .discord-spotify-progress-time {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--color-phosphor-soft);
+    font-size: 0.62rem;
+    font-weight: 900;
+    opacity: 0.56;
+  }
+
+  .discord-presence-empty {
+    border: 1px dashed color-mix(in srgb, var(--color-phosphor) 20%, transparent);
+    background: rgba(2, 6, 4, 0.46);
+    padding: clamp(1rem, 3vw, 1.5rem);
+  }
+
+  .discord-presence-empty span {
+    color: var(--color-cabinet);
+    font-size: 0.68rem;
+    font-weight: 900;
+  }
+
+  .discord-presence-empty p {
+    margin-top: 0.7rem;
+    color: var(--color-phosphor-soft);
+    opacity: 0.62;
+  }
+
+  .discord-presence-footer {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 1rem;
+    border-top: 1px solid color-mix(in srgb, var(--color-phosphor) 14%, transparent);
+    padding-top: 0.9rem;
+    color: var(--color-phosphor-soft);
+    opacity: 0.55;
+  }
+}
+
+@keyframes discord-session-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.55;
+    transform: scale(0.82);
+  }
+}
+
+@keyframes discord-streak-flicker {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  45% {
+    opacity: 0.62;
+    transform: scale(0.92);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+
+  55% {
+    opacity: 0.82;
+    transform: scale(0.96);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .discord-session-chip i,
+  .discord-streak-chip svg {
+    animation: none;
+  }
+}
+
+@media (max-width: 980px) {
+  .discord-presence-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (min-width: 981px) {
+  .discord-presence-grid {
+    grid-template-columns: minmax(260px, 0.62fr) minmax(0, 1.38fr);
+  }
+}
+@media (max-width: 640px) {
+  .discord-presence-activity-head,
+  .discord-presence-footer {
+    flex-direction: column;
+  }
+
+  .discord-activity-card {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  .discord-activity-art {
+    width: 72px;
+  }
+
+  .discord-activity-card em {
+    grid-column: 2;
+  }
+}

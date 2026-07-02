@@ -1,0 +1,7 @@
+node_modules/
+dist/
+data/tradedex-scan.json
+data/discord-streak.json
+.env
+.env.local
+.env.*.local
