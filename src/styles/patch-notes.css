@@ -1,0 +1,287 @@
+@layer components {
+  .patch-console {
+    position: relative;
+    display: grid;
+    gap: clamp(0.9rem, 2vw, 1.1rem);
+    overflow: hidden;
+    padding: clamp(1rem, 2.4vw, 1.45rem);
+  }
+
+  .patch-console-titlebar {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.85rem;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 18%, transparent);
+    background: rgba(2, 6, 4, 0.58);
+    padding: 0.85rem 1rem;
+  }
+
+  .patch-console-dots {
+    display: flex;
+    gap: 0.35rem;
+  }
+
+  .patch-console-dots i {
+    width: 0.5rem;
+    aspect-ratio: 1;
+    background: var(--color-danger-arcade);
+    box-shadow: 0 0 12px currentColor;
+  }
+
+  .patch-console-dots i:nth-child(2) {
+    background: var(--color-cabinet);
+  }
+
+  .patch-console-dots i:nth-child(3) {
+    background: var(--color-phosphor);
+  }
+
+  .patch-console-titlebar > span {
+    overflow: hidden;
+    min-width: 0;
+    flex: 1;
+    color: var(--color-phosphor-soft);
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0.65;
+  }
+
+  .patch-console-titlebar strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 30%, transparent);
+    background: color-mix(in srgb, var(--color-phosphor) 7%, transparent);
+    padding: 0.45rem 0.6rem;
+    color: var(--color-phosphor);
+    font-size: 0.6rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .patch-console-titlebar strong span {
+    width: 0.42rem;
+    aspect-ratio: 1;
+    border-radius: 999px;
+    background: currentColor;
+    box-shadow: 0 0 10px currentColor;
+    animation: status-meter-pulse 2.4s ease-in-out infinite;
+  }
+
+  /* Timeline: riel vertical a la izquierda con nodos por version */
+  .patch-console-list {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: clamp(0.9rem, 2vw, 1.15rem);
+    padding-left: clamp(1.15rem, 2.6vw, 1.5rem);
+  }
+
+  .patch-console-list::before {
+    position: absolute;
+    inset: 0.4rem auto 0.4rem calc(clamp(1.15rem, 2.6vw, 1.5rem) / 2 - 1px);
+    width: 2px;
+    content: "";
+    background: linear-gradient(
+      var(--color-phosphor),
+      color-mix(in srgb, var(--color-cyan-arcade) 60%, transparent) 55%,
+      color-mix(in srgb, var(--color-phosphor) 14%, transparent)
+    );
+    opacity: 0.4;
+  }
+
+  .patch-entry {
+    position: relative;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 16%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 5%, transparent), transparent 42%),
+      rgba(2, 6, 4, 0.62);
+    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+    padding: clamp(0.85rem, 2vw, 1.1rem);
+    box-shadow: inset 3px 0 0 color-mix(in srgb, var(--color-phosphor) 34%, transparent);
+  }
+
+  .patch-entry-node {
+    position: absolute;
+    top: 1.25rem;
+    left: calc(clamp(1.15rem, 2.6vw, 1.5rem) * -1 + clamp(1.15rem, 2.6vw, 1.5rem) / 2 - 4px);
+    width: 8px;
+    aspect-ratio: 1;
+    background: var(--color-phosphor);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--color-phosphor) 70%, transparent);
+  }
+
+  .patch-entry.is-latest {
+    border-color: color-mix(in srgb, var(--color-phosphor) 38%, transparent);
+    box-shadow:
+      inset 3px 0 0 color-mix(in srgb, var(--color-phosphor) 70%, transparent),
+      0 0 30px color-mix(in srgb, var(--color-phosphor) 9%, transparent);
+  }
+
+  .patch-entry.is-latest .patch-entry-node {
+    animation: status-meter-pulse 2.4s ease-in-out infinite;
+  }
+
+  .patch-entry-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+
+  .patch-entry-version {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.55rem;
+  }
+
+  .patch-entry-version strong {
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: clamp(1.05rem, 1.8vw, 1.35rem);
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .patch-entry-version span {
+    color: var(--color-cyan-arcade);
+    font-size: 0.66rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+
+  .patch-entry-badge {
+    border: 1px solid color-mix(in srgb, var(--color-cabinet) 42%, transparent);
+    background: color-mix(in srgb, var(--color-cabinet) 10%, transparent);
+    padding: 0.28rem 0.45rem;
+    color: var(--color-cabinet);
+    font-size: 0.56rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    animation: status-meter-pulse 2.4s ease-in-out infinite;
+  }
+
+  .patch-entry-head time {
+    margin-left: auto;
+    color: var(--color-phosphor-soft);
+    font-size: 0.64rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    opacity: 0.55;
+  }
+
+  .patch-entry-summary {
+    margin-top: 0.5rem;
+    color: var(--color-phosphor-soft);
+    font-size: 0.82rem;
+    line-height: 1.6;
+    opacity: 0.85;
+  }
+
+  .patch-entry-changes {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 0.75rem;
+  }
+
+  .patch-entry-changes li {
+    display: grid;
+    grid-template-columns: 3.4rem minmax(0, 1fr);
+    align-items: start;
+    gap: 0.6rem;
+  }
+
+  .patch-entry-changes p {
+    color: var(--color-phosphor-soft);
+    font-size: 0.8rem;
+    line-height: 1.65;
+  }
+
+  .patch-chip {
+    --patch-accent: var(--color-phosphor);
+    display: inline-grid;
+    place-items: center;
+    margin-top: 0.1rem;
+    border: 1px solid color-mix(in srgb, var(--patch-accent) 44%, transparent);
+    background: color-mix(in srgb, var(--patch-accent) 9%, transparent);
+    padding: 0.24rem 0;
+    color: var(--patch-accent);
+    font-size: 0.56rem;
+    font-weight: 900;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .patch-chip.is-buff {
+    --patch-accent: var(--color-cyan-arcade);
+  }
+
+  .patch-chip.is-fix {
+    --patch-accent: var(--color-cabinet);
+  }
+
+  .patch-chip.is-nerf {
+    --patch-accent: var(--color-glitch);
+  }
+
+  .patch-console-readout {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 14%, transparent);
+    background: rgba(2, 6, 4, 0.5);
+    padding: 0.6rem 0.85rem;
+    color: var(--color-phosphor-soft);
+    font-size: 0.62rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    opacity: 0.85;
+  }
+
+  .patch-console-readout span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .patch-console-dots-trail {
+    letter-spacing: 0.3em;
+    opacity: 0.4;
+  }
+
+  @media (max-width: 760px) {
+    .patch-entry-head time {
+      margin-left: 0;
+      width: 100%;
+    }
+
+    .patch-entry-changes li {
+      grid-template-columns: 3rem minmax(0, 1fr);
+      gap: 0.5rem;
+    }
+
+    .patch-console-dots-trail {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .patch-console-titlebar strong span,
+    .patch-entry.is-latest .patch-entry-node,
+    .patch-entry-badge {
+      animation: none;
+    }
+  }
+}

@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { getLocalBuddyLevel } from "../hooks/useBuddyFriendship";
+import { BuddySprite } from "./BuddySprite";
 
 const BOOT_STEPS = [
   { tone: "command", text: "$ knock --cabinet-gate" },
@@ -11,7 +13,7 @@ const BOOT_STEPS = [
 
 const STEP_DELAY = 430;
 
-export function EntrySplash({ onEnter }) {
+export function EntrySplash({ onEnter, onBuddyLaunch }) {
   const [visibleCount, setVisibleCount] = useState(1);
   const [displayProgress, setDisplayProgress] = useState(Math.round((1 / BOOT_STEPS.length) * 100));
   const [discordUser, setDiscordUser] = useState(null);
@@ -19,6 +21,9 @@ export function EntrySplash({ onEnter }) {
   const [closing, setClosing] = useState(false);
   const progressRef = useRef(displayProgress);
   const closeTimerRef = useRef(0);
+  const splashBuddyRef = useRef(null);
+  const [buddyLevel] = useState(() => getLocalBuddyLevel());
+  const [buddyLine, setBuddyLine] = useState("");
   const maxVisibleCount = authChecked ? BOOT_STEPS.length : BOOT_STEPS.length - 1;
   const bootComplete = visibleCount >= BOOT_STEPS.length;
   const ready = bootComplete && authChecked;
@@ -111,10 +116,27 @@ export function EntrySplash({ onEnter }) {
 
   function requestEnter() {
     if (!canEnter) return;
+
+    // Relevo del buddy: entrega su posicion exacta en viewport para que la
+    // caida de bienvenida (BuddyDrop, a nivel App) arranque sin costura.
+    // Si el perchado esta oculto (pantallas bajas) no hay caida que hacer.
+    const buddyRect = splashBuddyRef.current?.getBoundingClientRect();
+    onBuddyLaunch?.(buddyRect && buddyRect.width > 0 ? { x: buddyRect.left, y: buddyRect.top } : null);
+
     setClosing(true);
     window.clearTimeout(closeTimerRef.current);
     closeTimerRef.current = window.setTimeout(onEnter, 620);
   }
+
+  // El buddy saluda al abrirse la puerta: por nombre de Discord o como guest,
+  // y luego reta a la carrera hacia abajo.
+  useEffect(() => {
+    if (!ready) return undefined;
+    setBuddyLine(`hi, ${displayName}.`);
+    const raceTimer = window.setTimeout(() => setBuddyLine("race you down."), 3000);
+    return () => window.clearTimeout(raceTimer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
 
   useEffect(() => {
     if (!ready) return undefined;
@@ -130,7 +152,12 @@ export function EntrySplash({ onEnter }) {
   return (
     <div className={`entry-splash ${closing ? "is-closing" : ""}`} role="dialog" aria-modal="true" aria-labelledby="entry-splash-title">
       <div className="entry-splash-marquee" aria-hidden="true">DAI.EXE</div>
-      <section className={`entry-splash-gate ${ready ? "is-ready" : ""} ${closing ? "is-closing" : ""}`} aria-live="polite">
+      <div className="entry-splash-stage">
+        <div className={`splash-buddy ${closing ? "is-launched" : ""}`} aria-hidden="true" ref={splashBuddyRef}>
+          <div className={`screen-buddy-bubble ${buddyLine && !closing ? "is-visible" : ""}`}>{buddyLine}</div>
+          <BuddySprite className="splash-buddy-sprite" expression={ready ? "happy" : "idle"} friendshipLevel={buddyLevel} />
+        </div>
+        <section className={`entry-splash-gate ${ready ? "is-ready" : ""} ${closing ? "is-closing" : ""}`} aria-live="polite">
         <div className="entry-splash-id">
           <span className="pixel-label">WELCOME ACCESS PASS</span>
           <div className="entry-splash-identity">
@@ -175,7 +202,8 @@ export function EntrySplash({ onEnter }) {
             {closing ? "entering..." : ready ? "enter web" : "opening gate..."}
           </button>
         </footer>
-      </section>
+        </section>
+      </div>
     </div>
   );
 }

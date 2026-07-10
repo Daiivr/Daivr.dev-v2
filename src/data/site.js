@@ -29,6 +29,7 @@ export const navItems = [
   ["Room.sys", "#room"],
   ["Games", "#games"],
   ["Toolbelt", "#toolbelt"],
+  ["Patch.log", "#patchlog"],
   ["Comments", "#contact"]
 ];
 
@@ -308,6 +309,63 @@ export const stack = [
   {
     title: "Shipping hygiene",
     body: "Semantic HTML, modular JavaScript, clear data files, small static deployment surface, and verification in the browser."
+  }
+];
+
+// Tipos de cambio: new (verde), buff (cian), fix (dorado), nerf (rosa).
+// El primer elemento del array se muestra como LATEST.
+export const patchNotes = [
+  {
+    version: "v2.2.0",
+    codename: "AIRDROP",
+    date: "2026-07-09",
+    summary: "The buddy got a life upgrade and the cabinet learned to daydream.",
+    entries: [
+      ["new", "Attract mode: leave the cabinet alone for a minute and it starts its own demo reel — drifting DAI.EXE, top players, and a working coin slot. Yes, you need to insert a coin to get back in."],
+      ["new", "Buddy airlines: grab the little guy, carry him anywhere, and he parachutes back down to the rail. Style points guaranteed."],
+      ["new", "Buddy friendship levels, synced to your Discord login: pets unlock a party hat, sunglasses, a scarf, and a gold antenna."],
+      ["new", "Now-playing ticker: whatever Dai is spinning on Spotify scrolls above the footer. The buddy has opinions about it."],
+      ["buff", "Buddy bedtime: on desktop it now shuffles to a quiet corner of the footer before falling asleep."],
+      ["buff", "Grand entrance: the buddy waits on the welcome gate, jumps when you enter, and parachutes all the way down the page — scroll along with it and watch it land on the footer rail."]
+    ]
+  },
+  {
+    version: "v2.1.0",
+    codename: "HOLO",
+    date: "2026-07-09",
+    summary: "Quality-of-life pass: the cabinet learned a few arcade tricks and adopted a pet.",
+    entries: [
+      ["new", "Screen buddy deployed. A tiny CRT critter patrols the footer rail — it walks, chatters, dances, naps, and accepts pets."],
+      ["buff", "Buddy brain v2: cursor-tracking eyes, confetti celebrations, dizzy pet-overload, theme reactions, and a CRT power-on entrance."],
+      ["new", "PATCH.LOG panel installed. You are reading it right now. Very meta."],
+      ["buff", "Game carts got a holo-foil coating. Tilt one under the light and watch it shimmer."],
+      ["buff", "Section headings now decode like intercepted transmissions when they enter the screen."],
+      ["fix", "The FPS counter used to say 60 no matter what. It now measures real frames and tells the truth."]
+    ]
+  },
+  {
+    version: "v2.0.0",
+    codename: "REACT CABINET",
+    date: "2026-07-02",
+    summary: "Full rebuild of daivr.dev as a React arcade station. Everything glows now.",
+    entries: [
+      ["new", "Comments console with Discord login, GIF drops, replies, and pixel reactions."],
+      ["new", "VirusTotal download gate — TradeDex releases get scanned before the door opens."],
+      ["new", "Live Discord presence via Lanyard: status, activity, Spotify, badges, streak."],
+      ["new", "Steam playtime sync on the game shelf. The hours are real. Unfortunately."],
+      ["new", "Entry splash, launch sequence, XP core, and achievement toasts."],
+      ["buff", "Custom CRT pixel cursors with RGB split. Glitch theme got its own set."],
+      ["buff", "A secret bay hidden under the hero console. Drag things. That's the hint."]
+    ]
+  },
+  {
+    version: "v1.x",
+    codename: "LEGACY BOARD",
+    date: null,
+    summary: "The old static site. Served with honor, retired with dignity.",
+    entries: [
+      ["nerf", "Decommissioned and archived. Its phosphor lives on in this cabinet."]
+    ]
   }
 ];
 

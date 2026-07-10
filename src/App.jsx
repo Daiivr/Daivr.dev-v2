@@ -2,9 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { commands, discord, games, profile, projects } from "./data/site";
 import { preloadImages } from "./lib/preloadImages";
 import { useClock } from "./hooks/useClock";
+import { useFps } from "./hooks/useFps";
 import { useRandomGlitchWords } from "./hooks/useRandomGlitchWords";
 import { ArcadeBackground } from "./components/ArcadeBackground";
+import { AttractMode } from "./components/AttractMode";
+import { BuddyDrop } from "./components/BuddyDrop";
 import { CommentsSection } from "./components/CommentsSection";
+import { CursorTrail } from "./components/CursorTrail";
 import { EntrySplash } from "./components/EntrySplash";
 import { HeroStation } from "./components/HeroStation";
 import { LaunchOverlay } from "./components/LaunchOverlay";
@@ -25,11 +29,13 @@ export default function App() {
   const [launchComplete, setLaunchComplete] = useState(false);
   const [launchClosing, setLaunchClosing] = useState(false);
   const [entrySplashOpen, setEntrySplashOpen] = useState(true);
+  const [buddyDrop, setBuddyDrop] = useState(null);
   const [hasRun, setHasRun] = useState(false);
   const [achievement, setAchievement] = useState("");
   const achievementTimerRef = useRef(0);
   const shellRef = useRef(null);
   const time = useClock();
+  const fps = useFps();
   useRandomGlitchWords(theme === "glitch");
 
   useEffect(() => {
@@ -67,6 +73,7 @@ export default function App() {
   function updateThemePreference(nextTheme) {
     if (!["crt", "glitch"].includes(nextTheme)) return;
     setTheme(nextTheme);
+    window.dispatchEvent(new CustomEvent("daivr-theme", { detail: { theme: nextTheme } }));
 
     fetch("/api/comments/preferences", {
       method: "POST",
@@ -82,6 +89,19 @@ export default function App() {
     window.clearTimeout(achievementTimerRef.current);
     setAchievement(message);
     achievementTimerRef.current = window.setTimeout(() => setAchievement(""), duration);
+    window.dispatchEvent(new CustomEvent("daivr-achievement", { detail: { message } }));
+  }
+
+  const buddyPettedRef = useRef(false);
+
+  function handleBuddyPet() {
+    if (buddyPettedRef.current) return;
+    buddyPettedRef.current = true;
+    showAchievement("Achievement unlocked: buddy befriended", 3200);
+  }
+
+  function handleBuddyMilestone(level) {
+    showAchievement(`Achievement unlocked: buddy friendship lv ${String(level).padStart(2, "0")}`, 3600);
   }
 
   useEffect(() => () => window.clearTimeout(achievementTimerRef.current), []);
@@ -237,7 +257,11 @@ export default function App() {
   return (
     <div ref={shellRef} className={`app-shell ${theme === "glitch" ? "theme-glitch" : ""} ${isLaunching ? "is-launching" : ""}`} data-glitch-root>
       <ArcadeBackground />
-      {entrySplashOpen ? <EntrySplash onEnter={() => setEntrySplashOpen(false)} /> : null}
+      <CursorTrail theme={theme} />
+      {entrySplashOpen ? (
+        <EntrySplash onBuddyLaunch={setBuddyDrop} onEnter={() => setEntrySplashOpen(false)} />
+      ) : null}
+      {buddyDrop ? <BuddyDrop start={buddyDrop} onDone={() => setBuddyDrop(null)} /> : null}
 
       <a
         className="fixed left-3 top-3 z-100 -translate-y-24 bg-phosphor px-3 py-2 font-black text-ink-950 focus:translate-y-0"
@@ -257,7 +281,7 @@ export default function App() {
             </div>
             <div className="flex flex-wrap gap-2 text-xs">
               <span className="border border-phosphor/25 px-3 py-2 text-phosphor-soft">XP <b data-score>{String(score).padStart(3, "0")}</b></span>
-              <span className="border border-phosphor/25 px-3 py-2 text-phosphor-soft">FPS <b>60</b></span>
+              <span className="border border-phosphor/25 px-3 py-2 text-phosphor-soft">FPS <b className="tabular-nums">{fps}</b></span>
               <span className="border border-phosphor/25 px-3 py-2 text-phosphor-soft">{time}</span>
             </div>
           </header>
@@ -274,7 +298,7 @@ export default function App() {
             <ProgramSections />
             <CommentsSection />
           </main>
-          <SiteFooter />
+          <SiteFooter onBuddyPet={handleBuddyPet} onBuddyMilestone={handleBuddyMilestone} />
         </div>
       </div>
 
@@ -283,6 +307,8 @@ export default function App() {
           {achievement}
         </div>
       ) : null}
+
+      <AttractMode enabled={!entrySplashOpen} score={score} />
 
       <LaunchOverlay active={isLaunching} closing={launchClosing} complete={launchComplete} phase={launchPhase} />
 

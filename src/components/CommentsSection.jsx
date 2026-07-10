@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { DecodeText } from "./DecodeText";
 
 const COMMENTS_ENDPOINT = "/api/comments";
 const COMMENTS_STREAM_ENDPOINT = "/api/comments/stream";
@@ -408,6 +409,19 @@ export function CommentsSection() {
       setStatus("live stream reconnecting...");
     }
 
+    // Presencia en vivo: se re-emite como evento global para el footer y el buddy.
+    function handlePresence(event) {
+      try {
+        const payload = JSON.parse(event.data);
+        if (typeof payload.count === "number") {
+          window.dispatchEvent(new CustomEvent("daivr-presence", { detail: { count: payload.count } }));
+        }
+      } catch {
+        // Payload de presencia invalido: se ignora sin romper el stream.
+      }
+    }
+
+    stream.addEventListener("presence:update", handlePresence);
     stream.addEventListener("comments:init", handleStreamMessage);
     stream.addEventListener("comments:update", handleStreamMessage);
     stream.addEventListener("comments:create", handleStreamMessage);
@@ -773,10 +787,14 @@ export function CommentsSection() {
   return (
     <section className="py-16 md:py-24" id="contact">
       <div className="comments-section-heading">
-        <p className="pixel-label">OPEN CHANNEL</p>
-        <h2 className="font-display text-[clamp(2rem,4.6vw,4.2rem)] font-black uppercase leading-[.95] text-white">
-          Comments on the machine.
-        </h2>
+        <DecodeText as="p" className="pixel-label" duration={520} text="OPEN CHANNEL" />
+        <DecodeText
+          as="h2"
+          className="font-display text-[clamp(2rem,4.6vw,4.2rem)] font-black uppercase leading-[.95] text-white"
+          delay={140}
+          duration={980}
+          text="Comments on the machine."
+        />
       </div>
 
       <div className="comments-console panel-strong">

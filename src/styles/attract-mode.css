@@ -1,0 +1,429 @@
+@layer components {
+  .attract-mode {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 50% 42%, rgba(6, 22, 14, 0.55), rgba(2, 6, 4, 0.94) 70%),
+      rgba(2, 6, 4, 0.92);
+    animation: attract-fade-in 700ms ease both;
+    cursor: var(--cursor-default, default);
+  }
+
+  .attract-mode.is-closing {
+    animation: attract-fade-out 420ms ease both;
+  }
+
+  .attract-grid {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(rgba(63, 255, 151, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(63, 255, 151, 0.04) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 0.9), transparent 78%);
+    animation: attract-grid-drift 16s linear infinite;
+  }
+
+  .attract-vignette {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.035) 50%, transparent 50%),
+      radial-gradient(circle at center, transparent 55%, rgba(0, 0, 0, 0.6));
+    background-size: 100% 4px, auto;
+    mix-blend-mode: screen;
+    opacity: 0.5;
+  }
+
+  /* Deriva estilo DVD: dos ejes con duraciones distintas */
+  .attract-drift-x {
+    position: absolute;
+    inset: 8% 0 auto 0;
+    animation: attract-drift-x 13s ease-in-out infinite alternate;
+    width: max-content;
+  }
+
+  .attract-drift-y {
+    animation: attract-drift-y 8.6s ease-in-out infinite alternate;
+  }
+
+  .attract-logo {
+    display: grid;
+    justify-items: center;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
+  .attract-logo strong {
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: clamp(3rem, 9vw, 6.5rem);
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    line-height: 1;
+    text-shadow:
+      0 0 24px color-mix(in srgb, var(--color-phosphor) 55%, transparent),
+      4px 0 0 color-mix(in srgb, var(--color-glitch) 55%, transparent),
+      -4px 0 0 color-mix(in srgb, var(--color-cyan-arcade) 55%, transparent);
+    animation: attract-logo-hue 7s linear infinite;
+  }
+
+  .attract-logo-kicker,
+  .attract-logo-sub {
+    color: var(--color-phosphor-soft);
+    font-size: 0.62rem;
+    font-weight: 900;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    opacity: 0.65;
+  }
+
+  .attract-logo-sub {
+    color: var(--color-cyan-arcade);
+  }
+
+  .attract-scores {
+    position: absolute;
+    left: 50%;
+    top: 52%;
+    width: min(420px, calc(100% - 3rem));
+    transform: translateX(-50%);
+    display: grid;
+    gap: 0.65rem;
+  }
+
+  .attract-scores-title {
+    color: var(--color-cabinet);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.3em;
+    text-align: center;
+    text-transform: uppercase;
+    text-shadow: 0 0 14px color-mix(in srgb, var(--color-cabinet) 40%, transparent);
+  }
+
+  .attract-scores ol {
+    display: grid;
+    gap: 0.3rem;
+  }
+
+  .attract-scores li {
+    display: grid;
+    grid-template-columns: 2.2rem minmax(0, 1fr) auto;
+    gap: 0.8rem;
+    padding: 0.32rem 0.65rem;
+    color: var(--color-phosphor-soft);
+    font-size: 0.82rem;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    opacity: 0.55;
+    transition: opacity 300ms ease, background 300ms ease;
+  }
+
+  .attract-scores li.is-highlight {
+    background: color-mix(in srgb, var(--color-phosphor) 8%, transparent);
+    box-shadow: inset 2px 0 0 var(--color-phosphor);
+    color: #fff;
+    opacity: 1;
+  }
+
+  .attract-scores li span {
+    color: var(--color-phosphor);
+  }
+
+  .attract-scores li em {
+    font-style: normal;
+    color: var(--color-cabinet);
+  }
+
+  .attract-coin-dock {
+    position: absolute;
+    bottom: clamp(1.4rem, 6vh, 3.2rem);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .attract-coin-slot {
+    display: grid;
+    justify-items: center;
+    gap: 0.55rem;
+    border: 0;
+    background: transparent;
+    padding: 0.6rem 1rem;
+    cursor: var(--cursor-pointer, pointer);
+  }
+
+  .attract-coin-slot-label {
+    color: #fff;
+    font-size: clamp(0.72rem, 1.6vw, 0.95rem);
+    font-weight: 900;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    text-shadow: 0 0 18px color-mix(in srgb, var(--color-phosphor) 50%, transparent);
+    animation: attract-coin-blink 1.1s steps(1, end) infinite;
+    white-space: nowrap;
+  }
+
+  .attract-coin-slot.is-dropping .attract-coin-slot-label,
+  .attract-coin-slot.is-credited .attract-coin-slot-label {
+    animation: none;
+  }
+
+  .attract-coin-slot.is-credited .attract-coin-slot-label {
+    color: var(--color-phosphor);
+    text-shadow: 0 0 20px color-mix(in srgb, var(--color-phosphor) 70%, transparent);
+  }
+
+  /* Placa metalica con ranura vertical, LED de estado y moneda que cae */
+  .attract-coin-slot-plate {
+    position: relative;
+    display: grid;
+    width: 92px;
+    height: 68px;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 34%, transparent);
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 40%),
+      linear-gradient(rgba(63, 255, 151, 0.04) 1px, transparent 1px),
+      rgba(4, 12, 8, 0.92);
+    background-size: auto, 100% 3px, auto;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+      inset 0 0 22px rgba(0, 0, 0, 0.55),
+      0 0 26px color-mix(in srgb, var(--color-phosphor) 12%, transparent);
+    clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+    transition: box-shadow 240ms ease, border-color 240ms ease;
+  }
+
+  .attract-coin-slot:hover .attract-coin-slot-plate,
+  .attract-coin-slot:focus-visible .attract-coin-slot-plate {
+    border-color: color-mix(in srgb, var(--color-phosphor) 62%, transparent);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+      inset 0 0 22px rgba(0, 0, 0, 0.55),
+      0 0 34px color-mix(in srgb, var(--color-phosphor) 26%, transparent);
+  }
+
+  .attract-coin-slot:focus-visible {
+    outline: 2px solid var(--color-phosphor);
+    outline-offset: 4px;
+  }
+
+  .attract-coin-hole {
+    width: 7px;
+    height: 30px;
+    background: #010302;
+    box-shadow:
+      inset 0 0 6px rgba(0, 0, 0, 0.9),
+      0 0 10px color-mix(in srgb, var(--color-phosphor) 22%, transparent),
+      inset 0 0 0 1px rgba(63, 255, 151, 0.22);
+    transition: box-shadow 200ms ease;
+  }
+
+  .attract-coin-slot.is-credited .attract-coin-hole {
+    box-shadow:
+      inset 0 0 6px rgba(0, 0, 0, 0.9),
+      0 0 22px color-mix(in srgb, var(--color-phosphor) 65%, transparent),
+      inset 0 0 0 1px color-mix(in srgb, var(--color-phosphor) 75%, transparent);
+  }
+
+  .attract-coin-light {
+    position: absolute;
+    bottom: 7px;
+    left: 50%;
+    width: 22px;
+    height: 4px;
+    background: var(--color-danger-arcade);
+    box-shadow: 0 0 10px currentColor;
+    color: var(--color-danger-arcade);
+    transform: translateX(-50%);
+    transition: background 200ms ease, color 200ms ease;
+  }
+
+  .attract-coin-slot.is-credited .attract-coin-light {
+    background: var(--color-phosphor);
+    color: var(--color-phosphor);
+  }
+
+  /* La moneda: dorada, cae desde arriba, gira de canto y entra en la ranura */
+  .attract-coin-piece {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 34% 30%, #fff2c4 0 18%, transparent 40%),
+      radial-gradient(circle, var(--color-cabinet) 62%, #c99a2e 66% 100%);
+    box-shadow:
+      inset 0 0 0 2px rgba(201, 154, 46, 0.9),
+      0 0 14px color-mix(in srgb, var(--color-cabinet) 55%, transparent);
+    opacity: 0;
+    transform: translate(-50%, -46px);
+    pointer-events: none;
+  }
+
+  .attract-coin-slot.is-dropping .attract-coin-piece {
+    animation: attract-coin-drop 950ms cubic-bezier(0.5, 0, 0.75, 0.6) both;
+  }
+
+  .attract-coin-slot-sub {
+    color: var(--color-phosphor-soft);
+    font-size: 0.58rem;
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.6;
+    white-space: nowrap;
+  }
+
+  .attract-coin-slot.is-credited .attract-coin-slot-sub {
+    color: var(--color-phosphor);
+    opacity: 0.9;
+  }
+
+  .attract-corner {
+    position: absolute;
+    color: var(--color-phosphor-soft);
+    font-size: 0.6rem;
+    font-weight: 900;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    opacity: 0.5;
+  }
+
+  .attract-corner-tl {
+    top: 1.1rem;
+    left: 1.2rem;
+  }
+
+  .attract-corner-br {
+    right: 1.2rem;
+    bottom: 1.1rem;
+  }
+
+  @keyframes attract-fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes attract-fade-out {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes attract-grid-drift {
+    from {
+      background-position: 0 0, 0 0;
+    }
+
+    to {
+      background-position: 0 44px, 44px 0;
+    }
+  }
+
+  @keyframes attract-drift-x {
+    from {
+      transform: translateX(4vw);
+    }
+
+    to {
+      transform: translateX(calc(96vw - 100%));
+    }
+  }
+
+  @keyframes attract-drift-y {
+    from {
+      transform: translateY(0);
+    }
+
+    to {
+      transform: translateY(22vh);
+    }
+  }
+
+  @keyframes attract-logo-hue {
+    0%,
+    100% {
+      filter: hue-rotate(0deg);
+    }
+
+    50% {
+      filter: hue-rotate(38deg);
+    }
+  }
+
+  @keyframes attract-coin-blink {
+    0%,
+    58% {
+      opacity: 1;
+    }
+
+    59%,
+    100% {
+      opacity: 0.12;
+    }
+  }
+
+  @keyframes attract-coin-drop {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -52px) rotate(0deg) scaleX(1);
+    }
+
+    12% {
+      opacity: 1;
+    }
+
+    58% {
+      opacity: 1;
+      transform: translate(-50%, -6px) rotate(160deg) scaleX(0.72);
+    }
+
+    82% {
+      opacity: 1;
+      transform: translate(-50%, 8px) rotate(200deg) scaleX(0.3);
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(-50%, 16px) rotate(210deg) scaleX(0.14);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .attract-mode,
+    .attract-mode.is-closing {
+      animation: none;
+    }
+
+    .attract-grid,
+    .attract-drift-x,
+    .attract-drift-y,
+    .attract-logo strong,
+    .attract-coin-slot-label,
+    .attract-coin-piece {
+      animation: none;
+    }
+
+    .attract-drift-x {
+      inset: 14% 0 auto 0;
+      width: 100%;
+      display: grid;
+      justify-items: center;
+    }
+  }
+}

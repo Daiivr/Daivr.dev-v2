@@ -496,6 +496,23 @@
     @apply font-mono text-[0.72rem] font-black uppercase text-cabinet;
   }
 
+  /* Lineas bloqueadas durante el efecto decode: cada linea final se pinta
+     como bloque sin re-wrap para que las palabras no salten de renglon. */
+  .decode-line {
+    display: block;
+    white-space: nowrap;
+  }
+
+  /* Estela del cursor: bajo las scanlines del body (z-60), sobre el contenido */
+  .cursor-trail {
+    position: fixed;
+    inset: 0;
+    z-index: 55;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+  }
+
   .crt-button {
     display: inline-flex;
     width: fit-content;
@@ -3208,6 +3225,9 @@
     --shadow-x: 0px;
     --shadow-y: 0px;
     --shine-x: 50%;
+    --shine-y: 30%;
+    --foil-x: 0%;
+    --foil-y: 0%;
     display: grid;
     min-width: 0;
     gap: 0.85rem;
@@ -3359,6 +3379,74 @@
     object-fit: cover;
     transform: translate3d(var(--cover-x), var(--cover-y), 0) scale(1.03);
     transition: transform 260ms ease, filter 260ms ease;
+  }
+
+  /* Lamina holografica: brillo blanco que sigue el puntero + bandas
+     iridiscentes que se desplazan con --foil-x/y. color-dodge deja que el
+     arte de la caratula "encienda" los colores como una carta foil real. */
+  .game-card-foil {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    opacity: 0;
+    background-image:
+      radial-gradient(farthest-corner circle at var(--shine-x) var(--shine-y), rgba(255, 255, 255, 0.42) 5%, rgba(255, 255, 255, 0.12) 20%, transparent 48%),
+      repeating-linear-gradient(
+        115deg,
+        rgba(63, 255, 151, 0.22) 0%,
+        rgba(69, 216, 255, 0.27) 7%,
+        rgba(185, 134, 255, 0.25) 14%,
+        rgba(255, 61, 157, 0.22) 21%,
+        rgba(255, 209, 102, 0.25) 28%,
+        rgba(63, 255, 151, 0.22) 35%
+      );
+    background-size: 170% 170%, 260% 260%;
+    background-position:
+      center,
+      calc(50% + var(--foil-x)) calc(50% + var(--foil-y));
+    mix-blend-mode: color-dodge;
+    filter: saturate(1.25) contrast(1.06);
+    transition: opacity 320ms ease;
+  }
+
+  .game-card.is-active .game-card-foil,
+  .game-card:hover .game-card-foil,
+  .game-card:focus-visible .game-card-foil {
+    opacity: 0.72;
+  }
+
+  .game-card.is-flipped .game-card-foil,
+  .game-card.is-review-closing .game-card-foil {
+    opacity: 0;
+  }
+
+  .theme-glitch .game-card-foil {
+    background-image:
+      radial-gradient(farthest-corner circle at var(--shine-x) var(--shine-y), rgba(255, 255, 255, 0.46) 5%, rgba(255, 255, 255, 0.14) 20%, transparent 48%),
+      repeating-linear-gradient(
+        115deg,
+        rgba(255, 61, 157, 0.3) 0%,
+        rgba(185, 134, 255, 0.32) 9%,
+        rgba(69, 216, 255, 0.26) 18%,
+        rgba(255, 61, 157, 0.3) 27%
+      );
+  }
+
+  @media (hover: none) {
+    .game-card-foil {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .game-card-scene {
+      transition: none;
+    }
+
+    .game-card-foil {
+      transition: none;
+    }
   }
 
   .game-card-review {

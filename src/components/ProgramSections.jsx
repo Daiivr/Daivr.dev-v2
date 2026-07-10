@@ -2,8 +2,10 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowRight, Check, Cpu, Download, ExternalLink, Gamepad2, GitFork, Github, Globe2, Lock, MessageCircle, ShieldCheck, Star, Terminal, Twitch, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { now, projects, roomStats, socialLinks, stack } from "../data/site";
+import { DecodeText } from "./DecodeText";
 import { DiscordPresencePanel } from "./DiscordPresencePanel";
 import { GameShelf } from "./GameShelf";
+import { PatchNotes } from "./PatchNotes";
 
 const statIcons = {
   forks: GitFork,
@@ -207,6 +209,11 @@ export function ProgramSections() {
           ))}
         </div>
       </section>
+
+      <section className="py-16 md:py-24" id="patchlog">
+        <SectionHeading eyebrow="PATCH.LOG" title="Cabinet firmware history." />
+        <PatchNotes />
+      </section>
     </>
   );
 }
@@ -214,10 +221,14 @@ export function ProgramSections() {
 function SectionHeading({ eyebrow, title }) {
   return (
     <div className="mb-8 max-w-3xl">
-      <p className="pixel-label mb-2">{eyebrow}</p>
-      <h2 className="font-display text-[clamp(2rem,4.8vw,4.6rem)] font-black uppercase leading-[.95] text-white text-balance">
-        {title}
-      </h2>
+      <DecodeText as="p" className="pixel-label mb-2" duration={520} text={eyebrow} />
+      <DecodeText
+        as="h2"
+        className="font-display text-[clamp(2rem,4.8vw,4.6rem)] font-black uppercase leading-[.95] text-white text-balance"
+        delay={140}
+        duration={980}
+        text={title}
+      />
     </div>
   );
 }

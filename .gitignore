@@ -1,7 +1,10 @@
 node_modules/
 dist/
+.claude/
 data/tradedex-scan.json
 data/discord-streak.json
+data/comments.json
+data/visits.json
 .env
 .env.local
 .env.*.local

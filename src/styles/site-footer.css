@@ -41,6 +41,80 @@
     opacity: 0.68;
   }
 
+  /* Ticker de Spotify: franja marquee pegada al borde superior del footer */
+  .footer-ticker {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    overflow: hidden;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-phosphor) 12%, transparent);
+    background: rgba(2, 6, 4, 0.66);
+    padding: 0.42rem clamp(0.9rem, 3vw, 2rem);
+  }
+
+  .footer-ticker-label {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 0.45rem;
+    color: #1ed760;
+    font-size: 0.6rem;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(30, 215, 96, 0.4);
+  }
+
+  .footer-ticker-note {
+    font-style: normal;
+    animation: footer-heart-beat 1.4s ease-in-out infinite;
+  }
+
+  .footer-ticker-viewport {
+    overflow: hidden;
+    flex: 1;
+    min-width: 0;
+    mask-image: linear-gradient(90deg, transparent, black 6%, black 94%, transparent);
+  }
+
+  .footer-ticker-scroll {
+    display: inline-flex;
+    width: max-content;
+    animation: footer-ticker-scroll 18s linear infinite;
+  }
+
+  .footer-ticker-item {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    padding-right: 0.6rem;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 80%, white);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+
+  .footer-ticker-item b {
+    color: #fff;
+    font-weight: 900;
+  }
+
+  .footer-ticker-sep {
+    color: color-mix(in srgb, var(--color-phosphor-soft) 42%, transparent);
+  }
+
+  .footer-prompt-buddy {
+    color: color-mix(in srgb, var(--color-phosphor-soft) 62%, transparent);
+  }
+
+  .footer-prompt-buddy b {
+    color: var(--color-cabinet);
+    text-shadow: 0 0 8px color-mix(in srgb, var(--color-cabinet) 30%, transparent);
+  }
+
   .footer-shell {
     position: relative;
     z-index: 1;
@@ -246,9 +320,21 @@
   @media (prefers-reduced-motion: reduce) {
     .footer-heart,
     .footer-pill-led-ping,
-    .footer-prompt-caret {
+    .footer-prompt-caret,
+    .footer-ticker-note,
+    .footer-ticker-scroll {
       animation: none;
     }
+  }
+}
+
+@keyframes footer-ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
   }
 }
 

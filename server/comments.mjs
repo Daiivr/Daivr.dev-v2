@@ -294,6 +294,9 @@ function getUser(request) {
   };
 }
 
+// Sesion Discord compartida con otros modulos del server (p. ej. buddy.mjs).
+export const getSessionUser = getUser;
+
 function getBaseUrl(request) {
   const host = firstHeaderValue(request.headers?.["x-forwarded-host"]) || request.headers?.host || "127.0.0.1:5173";
   const forwardedProto = firstHeaderValue(request.headers?.["x-forwarded-proto"]);
@@ -427,6 +430,17 @@ async function broadcastComments(event = "comments:update") {
   }
 }
 
+// Presencia en vivo: cuantas pestañas estan conectadas al stream ahora mismo.
+function broadcastPresence() {
+  for (const client of streamClients) {
+    try {
+      sendEvent(client.response, "presence:update", { count: streamClients.size });
+    } catch {
+      streamClients.delete(client);
+    }
+  }
+}
+
 async function handleCommentsStream(request, response) {
   response.writeHead(200, {
     "Content-Type": "text/event-stream; charset=utf-8",
@@ -439,18 +453,21 @@ async function handleCommentsStream(request, response) {
 
   const client = { request, response };
   streamClients.add(client);
+  broadcastPresence();
   const keepAlive = setInterval(() => {
     try {
       response.write(": keep-alive\n\n");
     } catch {
       clearInterval(keepAlive);
       streamClients.delete(client);
+      broadcastPresence();
     }
   }, 25_000);
 
   request.on("close", () => {
     clearInterval(keepAlive);
     streamClients.delete(client);
+    broadcastPresence();
   });
 }
 

@@ -1,6 +1,7 @@
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
+import { handleBuddyRequest } from "./server/buddy.mjs";
 import { handleCommentsRequest } from "./server/comments.mjs";
 import { handleDiscordStreakRequest } from "./server/discord-streak.mjs";
 import { loadLocalEnv } from "./server/env.mjs";
@@ -41,6 +42,10 @@ export default defineConfig({
 
         server.middlewares.use("/api/visits", (request, response) => {
           handleVisitsRequest(request, response);
+        });
+
+        server.middlewares.use("/api/buddy", (request, response) => {
+          handleBuddyRequest(request, response);
         });
       }
     }

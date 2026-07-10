@@ -1,8 +1,14 @@
 import { Gamepad2, RadioTower } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { games } from "../data/site";
+import { DecodeText } from "./DecodeText";
 
 const STEAM_PLAYTIME_ENDPOINT = "/api/steam-playtime";
+
+const reduceMotionQuery =
+  typeof window !== "undefined" && typeof window.matchMedia === "function"
+    ? window.matchMedia("(prefers-reduced-motion: reduce)")
+    : null;
 
 const initialSteamPlaytime = {
   status: "syncing",
@@ -120,6 +126,8 @@ export function GameShelf() {
   }
 
   function setCardPointer(event) {
+    if (reduceMotionQuery?.matches) return;
+
     const card = event.currentTarget.closest?.(".game-card") || event.currentTarget;
     const rect = card.getBoundingClientRect();
     const x = ((event.clientX - rect.left) / rect.width - 0.5) * 2;
@@ -138,6 +146,9 @@ export function GameShelf() {
     card.style.setProperty("--shadow-x", `${(x * 18).toFixed(2)}px`);
     card.style.setProperty("--shadow-y", `${(y * 5).toFixed(2)}px`);
     card.style.setProperty("--shine-x", `${((x + 1) * 50).toFixed(2)}%`);
+    card.style.setProperty("--shine-y", `${((y + 1) * 50).toFixed(2)}%`);
+    card.style.setProperty("--foil-x", `${(x * 42).toFixed(2)}%`);
+    card.style.setProperty("--foil-y", `${(y * 24).toFixed(2)}%`);
   }
 
   function resetCardPointer(event) {
@@ -156,6 +167,9 @@ export function GameShelf() {
     card.style.setProperty("--shadow-x", "0px");
     card.style.setProperty("--shadow-y", "0px");
     card.style.setProperty("--shine-x", "50%");
+    card.style.setProperty("--shine-y", "30%");
+    card.style.setProperty("--foil-x", "0%");
+    card.style.setProperty("--foil-y", "0%");
   }
 
   function getGameHours(game) {
@@ -180,10 +194,14 @@ export function GameShelf() {
   return (
     <section className="py-16 md:py-24" id="games">
       <div className="mb-8 max-w-3xl">
-        <p className="pixel-label mb-2">GAME.SHELF</p>
-        <h2 className="font-display text-[clamp(2rem,4.8vw,4.6rem)] font-black uppercase leading-[.95] text-white text-balance">
-          Favorite game archive.
-        </h2>
+        <DecodeText as="p" className="pixel-label mb-2" duration={520} text="GAME.SHELF" />
+        <DecodeText
+          as="h2"
+          className="font-display text-[clamp(2rem,4.8vw,4.6rem)] font-black uppercase leading-[.95] text-white text-balance"
+          delay={140}
+          duration={980}
+          text="Favorite game archive."
+        />
       </div>
 
       <div className="game-shelf panel-strong overflow-visible p-4 md:p-6">
@@ -228,6 +246,7 @@ export function GameShelf() {
                           onClick={() => toggleCardFlip(game.title)}
                         >
                           <img className="game-card-cover" src={game.image} alt={`Cover art for ${game.title}`} loading="eager" decoding="async" fetchPriority="high" />
+                          <span className="game-card-foil" aria-hidden="true" />
                         </button>
                       </div>
                     </div>
