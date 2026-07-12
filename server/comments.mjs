@@ -59,6 +59,7 @@ const KLIPY_RATING = "pg-13";
 const KLIPY_LOCALE = "us_US";
 const THEME_VALUES = new Set(["crt", "glitch"]);
 const streamClients = new Set();
+const typingCooldowns = new Map();
 
 function sendJson(response, status, payload) {
   response.writeHead(status, {
@@ -443,6 +444,21 @@ function broadcastPresence() {
   for (const client of streamClients) {
     try {
       sendEvent(client.response, "presence:update", { count: streamClients.size });
+    } catch {
+      streamClients.delete(client);
+    }
+  }
+}
+
+function broadcastTyping(user) {
+  for (const client of streamClients) {
+    try {
+      const clientUser = getUser(client.request);
+      if (String(clientUser?.id || "") === String(user.id)) continue;
+      sendEvent(client.response, "typing:update", {
+        userId: String(user.id),
+        username: String(user.username || "someone").slice(0, 32)
+      });
     } catch {
       streamClients.delete(client);
     }
@@ -930,10 +946,32 @@ async function handlePreferences(request, response) {
   sendJson(response, 200, { theme });
 }
 
+function handleTyping(request, response) {
+  const user = getUser(request);
+  if (!user) {
+    sendJson(response, 401, { error: "Connect Discord before typing." });
+    return;
+  }
+
+  const key = String(user.id);
+  const now = Date.now();
+  if (now - (typingCooldowns.get(key) || 0) >= 5000) {
+    typingCooldowns.set(key, now);
+    broadcastTyping(user);
+  }
+  response.writeHead(204, { "Cache-Control": "no-store" });
+  response.end();
+}
+
 export async function handleCommentsRequest(request, response) {
   const requestUrl = new URL(request.url || "/api/comments", getBaseUrl(request));
   const pathname = requestUrl.pathname.replace(/^\/api\/comments\/?/, "");
   const parts = pathname.split("/").filter(Boolean);
+
+  if (request.method === "POST" && parts.length === 1 && parts[0] === "typing") {
+    handleTyping(request, response);
+    return;
+  }
 
   if (request.method === "GET" && parts[0] === "auth" && parts[1] === "discord") {
     await handleDiscordStart(request, response);

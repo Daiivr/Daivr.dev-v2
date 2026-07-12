@@ -412,6 +412,13 @@ export function CommentsSection() {
       window.dispatchEvent(new CustomEvent("daivr-comment-typing", {
         detail: { username: auth.user?.username || "someone" }
       }));
+      fetch(`${COMMENTS_ENDPOINT}/typing`, {
+        method: "POST",
+        credentials: "include",
+        keepalive: true
+      }).catch(() => {
+        // Typing presence is best-effort and must never interrupt the composer.
+      });
     }, 900);
 
     return () => window.clearTimeout(buddyTypingTimerRef.current);
@@ -471,7 +478,19 @@ export function CommentsSection() {
       }
     }
 
+    function handleRemoteTyping(event) {
+      try {
+        const payload = JSON.parse(event.data);
+        window.dispatchEvent(new CustomEvent("daivr-comment-typing", {
+          detail: { username: payload.username || "someone", remote: true }
+        }));
+      } catch {
+        // Invalid typing presence is ignored without interrupting the stream.
+      }
+    }
+
     stream.addEventListener("presence:update", handlePresence);
+    stream.addEventListener("typing:update", handleRemoteTyping);
     stream.addEventListener("comments:init", handleStreamMessage);
     stream.addEventListener("comments:update", handleStreamMessage);
     stream.addEventListener("comments:create", handleStreamMessage);
