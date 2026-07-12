@@ -232,7 +232,7 @@
     box-shadow: 0 0 18px currentColor;
   }
 
-  .discord-presence-avatar.is-offline i {
+  .discord-presence-avatar .discord-presence-offline-indicator {
     background-color: #748079;
     color: #748079;
   }
