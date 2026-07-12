@@ -341,7 +341,7 @@ export function DiscordPresencePanel() {
             <span className={cn("discord-presence-led", status.colorClass)} aria-hidden="true" />
           </div>
 
-          <a className="discord-presence-avatar arcade-focus" href={discord.profileUrl} rel="noreferrer" target="_blank">
+          <a className={cn("discord-presence-avatar arcade-focus", statusKey === "offline" && "is-offline")} href={discord.profileUrl} rel="noreferrer" target="_blank">
             <img src={avatarUrl} alt={`${displayName} Discord avatar`} />
             {decorationUrl ? <img className="discord-presence-decoration" src={decorationUrl} alt="" aria-hidden="true" /> : null}
             <i className={cn(status.colorClass)} aria-hidden="true" />
