@@ -1025,6 +1025,11 @@
     min-width: 0;
   }
 
+  .comment-card:has(.comment-actions .has-tooltip:hover) .comment-body,
+  .comment-card:has(.comment-actions .has-tooltip:focus-visible) .comment-body {
+    z-index: 4;
+  }
+
   .comment-card-head {
     display: flex;
     flex-wrap: wrap;
@@ -1230,6 +1235,16 @@
     align-items: center;
     gap: 0.45rem;
     margin-top: 0.8rem;
+  }
+
+  .comment-reactions.is-reply-reactions {
+    gap: 0.35rem;
+    margin-top: 0.55rem;
+  }
+
+  .comment-reactions.is-reply-reactions .reaction-chip,
+  .comment-reactions.is-reply-reactions .reaction-add-btn {
+    min-height: 1.75rem;
   }
 
   .reaction-chip,

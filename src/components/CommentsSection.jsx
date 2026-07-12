@@ -39,7 +39,14 @@ const REACTION_ASSETS = [
   { id: "fire", label: "Fire", src: "/assets/reactions/fire.webp" },
   { id: "party-popper", label: "Party popper", src: "/assets/reactions/party-popper.webp" },
   { id: "sparkles", label: "Sparkles", src: "/assets/reactions/sparkles.webp" },
-  { id: "skull", label: "Skull", src: "/assets/reactions/skull.webp" }
+  { id: "skull", label: "Skull", src: "/assets/reactions/skull.webp" },
+  { id: "neutral", label: "Neutral", src: "/assets/reactions/neutral.webp" },
+  { id: "sleeping", label: "Sleeping", src: "/assets/reactions/sleeping.webp" },
+  { id: "hundred", label: "One hundred", src: "/assets/reactions/hundred.webp" },
+  { id: "kiss", label: "Kiss", src: "/assets/reactions/kiss.webp" },
+  { id: "poop", label: "Poop", src: "/assets/reactions/poop.webp" },
+  { id: "thinking", label: "Thinking", src: "/assets/reactions/thinking.webp" },
+  { id: "hug", label: "Hug", src: "/assets/reactions/hug.webp" }
 ];
 const FALLBACK_REACTIONS = REACTION_ASSETS.map((reaction) => reaction.id);
 const REACTION_ASSET_MAP = Object.fromEntries(REACTION_ASSETS.map((reaction) => [reaction.id, reaction]));
@@ -332,6 +339,8 @@ function CommentMedia({ gifUrl }) {
 
 export function CommentsSection() {
   const sectionRef = useRef(null);
+  const buddyTypingTimerRef = useRef(0);
+  const buddyTypingNotifiedRef = useRef(false);
   const [comments, setComments] = useState([]);
   const [reactions, setReactions] = useState(FALLBACK_REACTIONS);
   const [auth, setAuth] = useState({ configured: false, user: null, loginUrl: "/api/comments/auth/discord", logoutUrl: "/api/comments/auth/logout" });
@@ -386,6 +395,26 @@ export function CommentsSection() {
   useEffect(() => {
     loadComments();
   }, []);
+
+  useEffect(() => {
+    window.clearTimeout(buddyTypingTimerRef.current);
+
+    if (!draft.trim()) {
+      buddyTypingNotifiedRef.current = false;
+      return undefined;
+    }
+
+    if (buddyTypingNotifiedRef.current) return undefined;
+
+    buddyTypingTimerRef.current = window.setTimeout(() => {
+      buddyTypingNotifiedRef.current = true;
+      window.dispatchEvent(new CustomEvent("daivr-comment-typing", {
+        detail: { username: auth.user?.username || "someone" }
+      }));
+    }, 900);
+
+    return () => window.clearTimeout(buddyTypingTimerRef.current);
+  }, [draft, auth.user?.username]);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -598,8 +627,9 @@ export function CommentsSection() {
     }
   }
 
-  async function toggleReaction(commentId, emoji) {
-    const reactionKey = `${commentId}:${emoji}`;
+  async function toggleReaction(commentId, emoji, replyId = "") {
+    const targetKey = replyId ? `${commentId}:reply:${replyId}` : commentId;
+    const reactionKey = `${targetKey}:${emoji}`;
     if (!auth.user) {
       setStatus(auth.configured ? "connect Discord to react" : "Discord OAuth needs env keys");
       return;
@@ -608,7 +638,10 @@ export function CommentsSection() {
 
     setReactionBusyId(reactionKey);
     try {
-      const response = await fetch(`${COMMENTS_ENDPOINT}/${commentId}/reactions`, {
+      const endpoint = replyId
+        ? `${COMMENTS_ENDPOINT}/${commentId}/replies/${replyId}/reactions`
+        : `${COMMENTS_ENDPOINT}/${commentId}/reactions`;
+      const response = await fetch(endpoint, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -625,8 +658,8 @@ export function CommentsSection() {
     }
   }
 
-  function chooseReaction(commentId, emoji) {
-    toggleReaction(commentId, emoji);
+  function chooseReaction(commentId, emoji, replyId = "") {
+    toggleReaction(commentId, emoji, replyId);
     setReactionPickerId("");
   }
 
@@ -804,6 +837,72 @@ export function CommentsSection() {
 
   const shouldPortalReactionPicker = isMobileViewport();
 
+  function renderReactionControls(commentId, reactionMap, replyId = "") {
+    const targetKey = replyId ? `${commentId}:reply:${replyId}` : commentId;
+    const reactionEntries = Object.entries(reactionMap).filter(([, ids]) => Array.isArray(ids) && ids.length > 0);
+
+    return (
+      <div className={`comment-reactions ${replyId ? "is-reply-reactions" : ""}`}>
+        {reactionEntries.map(([reactionId, ids]) => {
+          const reaction = getReactionAsset(reactionId);
+          const mine = !!auth.user && ids.includes(auth.user.id);
+          const isHeart = reactionId === "sparkle-heart" || reactionId === "heart-eyes";
+          const reactionKey = `${targetKey}:${reactionId}`;
+          return (
+            <button className={`reaction-chip has-tooltip ${mine ? "is-mine" : ""} ${isHeart ? "is-heart" : ""}`} data-tooltip={mine ? `Remove ${reaction.label} reaction.` : `React with ${reaction.label}.`} type="button" key={reactionId} onClick={() => toggleReaction(commentId, reactionId, replyId)} disabled={!!reactionBusyId && reactionBusyId !== reactionKey}>
+              {reaction.src ? <img className="reaction-emoji" src={reaction.src} alt="" aria-hidden="true" /> : <span className="reaction-emoji">{reaction.label}</span>}
+              <b>{ids.length}</b>
+            </button>
+          );
+        })}
+        <div className="reaction-picker-wrapper">
+          <button
+            className="reaction-add-btn has-tooltip"
+            data-tooltip={auth.user ? "Add a reaction." : "Connect Discord to react."}
+            type="button"
+            onClick={(event) => {
+              if (!auth.user) {
+                setStatus(auth.configured ? "connect Discord to react" : "Discord OAuth needs env keys");
+                return;
+              }
+              const nextStyle = isMobileViewport() ? getReactionPickerStyle(event.currentTarget) : undefined;
+              setReactionPickerId((current) => {
+                if (current === targetKey) {
+                  setReactionPickerStyle(undefined);
+                  return "";
+                }
+                setReactionPickerStyle(nextStyle);
+                return targetKey;
+              });
+            }}
+            aria-expanded={reactionPickerId === targetKey}
+            aria-label={replyId ? "Add reaction to reply" : "Add reaction"}
+          >
+            <span aria-hidden="true">+</span>
+            <SmilePlus size={14} aria-hidden="true" />
+          </button>
+          {reactionPickerId === targetKey ? (() => {
+            const picker = (
+              <div className="reaction-picker" role="menu" aria-label="Choose reaction" style={shouldPortalReactionPicker ? reactionPickerStyle : undefined}>
+                {reactions.map((reactionId) => {
+                  const reaction = getReactionAsset(reactionId);
+                  const active = !!auth.user && (reactionMap[reactionId] || []).includes(auth.user.id);
+                  const reactionKey = `${targetKey}:${reactionId}`;
+                  return (
+                    <button className={`reaction-picker-item ${active ? "is-active" : ""}`} type="button" key={reactionId} onClick={() => chooseReaction(commentId, reactionId, replyId)} aria-label={`React with ${reaction.label}`} disabled={!!reactionBusyId && reactionBusyId !== reactionKey}>
+                      {reaction.src ? <img className="reaction-emoji" src={reaction.src} alt="" aria-hidden="true" /> : reaction.label}
+                    </button>
+                  );
+                })}
+              </div>
+            );
+            return shouldPortalReactionPicker && typeof document !== "undefined" ? createPortal(picker, document.body) : picker;
+          })() : null}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <section className="py-16 md:py-24" id="contact" ref={sectionRef}>
       <div className="comments-section-heading">
@@ -931,7 +1030,6 @@ export function CommentsSection() {
 
         <div className="comments-stream" aria-live="polite">
           {visibleComments.map((comment) => {
-            const reactionEntries = Object.entries(comment.reactions || {}).filter(([, ids]) => Array.isArray(ids) && ids.length > 0);
             const canDeleteComment = !!auth.user && (auth.user.isAdmin || comment.mine);
             const canReplyComment = canReplyToComment(comment, auth.user);
             const isReplying = replyingTo === comment.id;
@@ -971,71 +1069,7 @@ export function CommentsSection() {
                   {comment.text ? <MarkdownText text={comment.text} /> : null}
                   <CommentMedia gifUrl={comment.gifUrl} />
 
-                  <div className="comment-reactions">
-                    {reactionEntries.map(([reactionId, ids]) => {
-                      const reaction = getReactionAsset(reactionId);
-                      const mine = !!auth.user && ids.includes(auth.user.id);
-                      const isHeart = reactionId === "sparkle-heart" || reactionId === "heart-eyes";
-                      const reactionKey = `${comment.id}:${reactionId}`;
-                      return (
-                        <button className={`reaction-chip has-tooltip ${mine ? "is-mine" : ""} ${isHeart ? "is-heart" : ""}`} data-tooltip={mine ? `Remove ${reaction.label} reaction.` : `React with ${reaction.label}.`} type="button" key={reactionId} onClick={() => toggleReaction(comment.id, reactionId)} disabled={!!reactionBusyId && reactionBusyId !== reactionKey}>
-                          {reaction.src ? <img className="reaction-emoji" src={reaction.src} alt="" aria-hidden="true" /> : <span className="reaction-emoji">{reaction.label}</span>}
-                          <b>{ids.length}</b>
-                        </button>
-                      );
-                    })}
-                    <div className="reaction-picker-wrapper">
-                      <button
-                        className="reaction-add-btn has-tooltip"
-                        data-tooltip={auth.user ? "Add a reaction." : "Connect Discord to react."}
-                        type="button"
-                        onClick={(event) => {
-                          if (!auth.user) {
-                            setStatus(auth.configured ? "connect Discord to react" : "Discord OAuth needs env keys");
-                            return;
-                          }
-                          const nextStyle = isMobileViewport() ? getReactionPickerStyle(event.currentTarget) : undefined;
-                          setReactionPickerId((current) => {
-                            if (current === comment.id) {
-                              setReactionPickerStyle(undefined);
-                              return "";
-                            }
-                            setReactionPickerStyle(nextStyle);
-                            return comment.id;
-                          });
-                        }}
-                        aria-expanded={reactionPickerId === comment.id}
-                        aria-label="Add reaction"
-                      >
-                        <span aria-hidden="true">+</span>
-                        <SmilePlus size={14} aria-hidden="true" />
-                      </button>
-                      {reactionPickerId === comment.id ? (() => {
-                        const picker = (
-                          <div className="reaction-picker" role="menu" aria-label="Choose reaction" style={shouldPortalReactionPicker ? reactionPickerStyle : undefined}>
-                            {reactions.map((reactionId) => {
-                              const reaction = getReactionAsset(reactionId);
-                              const active = !!auth.user && (reactionMap[reactionId] || []).includes(auth.user.id);
-                              const reactionKey = `${comment.id}:${reactionId}`;
-                              return (
-                                <button
-                                  className={`reaction-picker-item ${active ? "is-active" : ""}`}
-                                  type="button"
-                                  key={reactionId}
-                                  onClick={() => chooseReaction(comment.id, reactionId)}
-                                  aria-label={`React with ${reaction.label}`}
-                                  disabled={!!reactionBusyId && reactionBusyId !== reactionKey}
-                                >
-                                  {reaction.src ? <img className="reaction-emoji" src={reaction.src} alt="" aria-hidden="true" /> : reaction.label}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        );
-                        return shouldPortalReactionPicker && typeof document !== "undefined" ? createPortal(picker, document.body) : picker;
-                      })() : null}
-                    </div>
-                  </div>
+                  {renderReactionControls(comment.id, reactionMap)}
 
                   {Array.isArray(comment.replies) && comment.replies.length ? (
                     <div className="comment-replies">
@@ -1059,6 +1093,7 @@ export function CommentsSection() {
                               </header>
                               {reply.text ? <MarkdownText compact text={reply.text} /> : null}
                               <CommentMedia gifUrl={reply.gifUrl} />
+                              {renderReactionControls(comment.id, reply.reactions && typeof reply.reactions === "object" ? reply.reactions : {}, reply.id)}
                             </div>
                           </div>
                         );

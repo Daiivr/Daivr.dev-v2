@@ -29,7 +29,14 @@ const DEFAULT_REACTIONS = [
   "fire",
   "party-popper",
   "sparkles",
-  "skull"
+  "skull",
+  "neutral",
+  "sleeping",
+  "hundred",
+  "kiss",
+  "poop",
+  "thinking",
+  "hug"
 ];
 const LEGACY_REACTION_ALIASES = {
   "😀": "smile",
@@ -117,9 +124,10 @@ function readComments() {
       pinned: !!comment.pinned,
       gifUrl: sanitizeGifUrl(comment.gifUrl),
       replies: Array.isArray(comment.replies)
-        ? comment.replies.map((reply) => ({
+          ? comment.replies.map((reply) => ({
             ...reply,
             gifUrl: sanitizeGifUrl(reply.gifUrl),
+            reactions: normalizeReactions(reply.reactions),
             author: {
               username: "Unknown signal",
               avatarUrl: DEFAULT_AVATAR,
@@ -612,7 +620,8 @@ async function handleReply(request, response, id) {
     text,
     gifUrl,
     createdAt: new Date().toISOString(),
-    author: user
+    author: user,
+    reactions: {}
   };
 
   comment.replies = Array.isArray(comment.replies) ? [...comment.replies, reply] : [reply];
@@ -710,6 +719,46 @@ async function handleReaction(request, response, id) {
   writeComments(comments);
   await broadcastComments("comments:reaction");
   sendJson(response, 200, { comment, ...(await getCommentsPayload(request)) });
+}
+
+async function handleReplyReaction(request, response, commentId, replyId) {
+  const user = getUser(request);
+  if (!user) {
+    sendJson(response, 401, { error: "Connect Discord before reacting." });
+    return;
+  }
+
+  const body = await readBody(request);
+  const reaction = normalizeReactionKey(body.emoji || body.reaction);
+  if (!DEFAULT_REACTIONS.includes(reaction)) {
+    sendJson(response, 400, { error: "Reaction is not allowed." });
+    return;
+  }
+
+  const comments = readComments();
+  const comment = comments.find((entry) => String(entry.id) === String(commentId));
+  if (!comment) {
+    sendJson(response, 404, { error: "Comment not found." });
+    return;
+  }
+
+  const reply = (comment.replies || []).find((entry) => String(entry.id) === String(replyId));
+  if (!reply) {
+    sendJson(response, 404, { error: "Reply not found." });
+    return;
+  }
+
+  const reactions = normalizeReactions(reply.reactions);
+  const current = Array.isArray(reactions[reaction]) ? [...reactions[reaction]] : [];
+  const index = current.indexOf(user.id);
+  if (index >= 0) current.splice(index, 1);
+  else current.push(user.id);
+  if (current.length) reactions[reaction] = current;
+  else delete reactions[reaction];
+  reply.reactions = reactions;
+  writeComments(comments);
+  await broadcastComments("comments:reaction");
+  sendJson(response, 200, { reply, ...(await getCommentsPayload(request)) });
 }
 
 async function handlePin(request, response, id) {
@@ -935,6 +984,11 @@ export async function handleCommentsRequest(request, response) {
 
   if (request.method === "POST" && parts.length === 2 && parts[1] === "reactions") {
     await handleReaction(request, response, parts[0]);
+    return;
+  }
+
+  if (request.method === "POST" && parts.length === 4 && parts[1] === "replies" && parts[3] === "reactions") {
+    await handleReplyReaction(request, response, parts[0], parts[2]);
     return;
   }
 

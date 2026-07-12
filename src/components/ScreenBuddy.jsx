@@ -94,7 +94,13 @@ const LINES = {
   outage: ["uh... who turned off the pixels?", "flashlight protocol.", "checking the cabinet breaker..."],
   outageFix: ["technical tap incoming.", "stand back. certified repair.", "have you tried hitting it?"],
   rain: ["rain? umbrella protocol!", "nice try, weather.exe.", "dry buddy. wet world.", "cozy weather.", "plink plink plink."],
-  cartSwap: ["fresh cartridge loaded.", "blew on it for you.", "cart seated. no dust.", "new level, same footer."]
+  cartSwap: ["fresh cartridge loaded.", "blew on it for you.", "cart seated. no dust.", "new level, same footer."],
+  commentTyping: [
+    "psst... someone is composing a transmission. any minute now.",
+    "typing detected... incoming comment ETA: when it is perfect.",
+    "comment buffer filling up. i will pretend not to peek.",
+    "new signal being written... stand by for transmission."
+  ]
 };
 
 const reduceMotionQuery =
@@ -1366,6 +1372,20 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       settleDown(3200);
     }
 
+    function reactToCommentTyping(event) {
+      if (!visibleRef.current || activeEventRef.current) return;
+      if (["off", "held", "chute", "fishing", "outage", "hunt"].includes(moodRef.current)) return;
+
+      freezeAtCurrentPosition();
+      updateMood("talk");
+      const username = String(event.detail?.username || "").trim();
+      const line = username && username.toLowerCase() !== "someone" && Math.random() < 0.45
+        ? `${username} is composing a transmission... stand by.`
+        : pickLine(LINES.commentTyping);
+      say(line, 3600, { key: "comment-typing" });
+      settleDown(3700);
+    }
+
     // Relevo con la caida de bienvenida (BuddyDrop): mientras el clon del
     // splash sigue en el aire, este buddy NO aparece (evita duplicados); al
     // tocar el riel, toma el control exactamente donde aterrizo.
@@ -1449,6 +1469,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     window.addEventListener("daivr-achievement", celebrate);
     window.addEventListener("daivr-theme", reactToTheme);
     window.addEventListener("daivr-now-playing", reactToNowPlaying);
+    window.addEventListener("daivr-comment-typing", reactToCommentTyping);
     window.addEventListener("daivr-buddy-drop", onDropSignal);
     window.addEventListener("daivr-cart-swap", reactToCartSwap);
     window.addEventListener("daivr-buddy-fish", onFishSignal);
@@ -1474,6 +1495,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       window.removeEventListener("daivr-achievement", celebrate);
       window.removeEventListener("daivr-theme", reactToTheme);
       window.removeEventListener("daivr-now-playing", reactToNowPlaying);
+      window.removeEventListener("daivr-comment-typing", reactToCommentTyping);
       window.removeEventListener("daivr-buddy-drop", onDropSignal);
       window.removeEventListener("daivr-cart-swap", reactToCartSwap);
       window.removeEventListener("daivr-buddy-fish", onFishSignal);
