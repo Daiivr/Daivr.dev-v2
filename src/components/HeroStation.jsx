@@ -168,7 +168,7 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
             </div>
 
             <div className="hero-canvas-stage relative min-h-[360px] overflow-hidden bg-ink-950/85">
-              <ArcadeCanvas hasRun={hasRun} isLaunching={isLaunching} launchPhase={launchPhase} />
+              <ArcadeCanvas hasRun={hasRun} isLaunching={isLaunching} launchPhase={launchPhase} onRun={onRun} />
               <div className="pointer-events-none absolute left-4 top-4 grid gap-2 text-[0.66rem] font-black uppercase">
                 <span className="w-fit border border-cyan-arcade/35 bg-ink-950/70 px-2 py-1 text-cyan-arcade">{hasRun ? "canvas live" : isLaunching ? "canvas booting" : "canvas idle"}</span>
                 <span className="w-fit border border-phosphor/25 bg-ink-950/70 px-2 py-1 text-phosphor-soft/70">{hasRun ? "vector room" : "nodes offline"}</span>

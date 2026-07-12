@@ -6,6 +6,8 @@ const XP_STORAGE_KEY = "daivr.arcadeCanvasXp.v1";
 const XP_ENDPOINT = "/api/arcade-xp";
 const NODE_COUNT = 6;
 const BOOT_PHASE_COUNT = 6;
+const OVERCLOCK_FRAMES = 320;
+const OVERCLOCK_COOLDOWN = 540;
 
 function randomBetween(min, max) {
   return min + Math.random() * (max - min);
@@ -108,13 +110,15 @@ async function saveServerXpState(state, signal) {
   return normalizeXpState(await response.json());
 }
 
-export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase = 0 }) {
+export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase = 0, onRun }) {
   const canvasRef = useRef(null);
-  const runtimeRef = useRef({ hasRun, isLaunching, launchPhase });
+  const runtimeRef = useRef({ hasRun, isLaunching, launchPhase, onRun });
+  const redrawRef = useRef(null);
 
   useEffect(() => {
-    runtimeRef.current = { hasRun, isLaunching, launchPhase };
-  }, [hasRun, isLaunching, launchPhase]);
+    runtimeRef.current = { hasRun, isLaunching, launchPhase, onRun };
+    redrawRef.current?.();
+  }, [hasRun, isLaunching, launchPhase, onRun]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -131,6 +135,11 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
     let packets = [];
     let bursts = [];
     let ambientBits = [];
+    let pings = [];
+    let floaters = [];
+    let doze = { index: -1, until: 0 };
+    let overclockUntil = 0;
+    let cooldownUntil = 0;
     let xpState = loadLocalXpState();
     let pointer = { active: false, ttl: 0, x: 0, y: 0 };
     let isVisible = true;
@@ -196,9 +205,14 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
       return runtime.isLaunching ? Math.min(1, (runtime.launchPhase + 1) / BOOT_PHASE_COUNT) : runtime.hasRun ? 1 : 0;
     }
 
+    function isOverclocked() {
+      return getHasRun() && frame < overclockUntil;
+    }
+
     function getPacketLimit() {
       if (!getIsPowered()) return 0;
-      return getIsLaunching() ? 18 : 11;
+      if (getIsLaunching()) return 18;
+      return isOverclocked() ? 24 : 11;
     }
 
     function addXp(amount) {
@@ -382,15 +396,68 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
       ctx.translate(cx, cy);
       ctx.rotate(angle);
       const beam = ctx.createLinearGradient(0, 0, radius, 0);
-      beam.addColorStop(0, "rgba(63, 255, 151, 0.18)");
+      beam.addColorStop(0, isOverclocked() ? "rgba(255, 209, 102, 0.2)" : "rgba(63, 255, 151, 0.18)");
       beam.addColorStop(1, "rgba(63, 255, 151, 0)");
       ctx.fillStyle = beam;
-      ctx.beginPath();
-      ctx.moveTo(0, 0);
-      ctx.arc(0, 0, radius, -0.18, 0.18);
-      ctx.closePath();
-      ctx.fill();
+      const beamCount = isOverclocked() ? 2 : 1;
+      for (let i = 0; i < beamCount; i += 1) {
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.arc(0, 0, radius, -0.18, 0.18);
+        ctx.closePath();
+        ctx.fill();
+        ctx.rotate(Math.PI);
+      }
       ctx.restore();
+    }
+
+    function tickStandby() {
+      if (reduced || getIsPowered()) return;
+
+      if (frame % 250 === 40) pings.push({ life: 1 });
+
+      if (frame % 250 === 130) {
+        const index = Math.floor(Math.random() * sources.length);
+        const source = sources[index];
+        doze = { index, until: frame + 80 };
+        floaters.push({ x: source.x + 9, y: source.y - 26, glyph: "z", color: "#b4ffcf", life: 1, drift: 0.28 });
+        floaters.push({ x: source.x + 17, y: source.y - 34, glyph: "z", color: "#b4ffcf", life: 0.75, drift: 0.22 });
+      }
+    }
+
+    function drawStandbyPings() {
+      if (!pings.length) return;
+
+      const { x: cx, y: cy } = core();
+      pings = pings.filter((ping) => {
+        const spread = 1 - ping.life;
+        const radius = 24 + spread * (orbitRadius() + 12);
+        ctx.strokeStyle = `rgba(63, 255, 151, ${ping.life * 0.24})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        if (!reduced) ping.life -= 0.011;
+        return ping.life > 0;
+      });
+    }
+
+    function drawFloaters() {
+      if (!floaters.length) return;
+
+      ctx.textAlign = "center";
+      ctx.font = "900 10px JetBrains Mono, monospace";
+      floaters = floaters.filter((floater) => {
+        ctx.globalAlpha = Math.max(0, Math.min(1, floater.life));
+        ctx.fillStyle = floater.color;
+        ctx.fillText(floater.glyph, floater.x, floater.y);
+        ctx.globalAlpha = 1;
+        if (!reduced) {
+          floater.y -= floater.drift;
+          floater.life -= 0.014;
+        }
+        return floater.life > 0;
+      });
     }
 
     function drawRings() {
@@ -454,6 +521,8 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
       sources.forEach((source) => {
         const active = source.index < activeNodeCount;
         const hot = active && source.captured > 0;
+        const dozing = !active && source.index === doze.index && frame < doze.until;
+        const wake = dozing ? Math.sin(Math.min(1, (doze.until - frame) / 80) * Math.PI) : 0;
         const alpha = active ? hot ? 0.82 : 0.36 : 0.08;
 
         if (active) {
@@ -467,29 +536,29 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
 
         ctx.fillStyle = active ? hot ? source.color : rgba(source.color, 0.82) : "rgba(180, 255, 207, 0.22)";
         ctx.shadowColor = source.color;
-        ctx.shadowBlur = active && !isScrolling ? hot ? 18 : 8 : 0;
+        ctx.shadowBlur = !isScrolling ? active ? hot ? 18 : 8 : wake * 12 : 0;
 
-        ctx.strokeStyle = active ? rgba(source.color, hot ? 0.95 : 0.58) : "rgba(180, 255, 207, 0.16)";
+        ctx.strokeStyle = active ? rgba(source.color, hot ? 0.95 : 0.58) : dozing ? rgba(source.color, 0.18 + wake * 0.4) : "rgba(180, 255, 207, 0.16)";
         ctx.lineWidth = active ? hot ? 2 : 1.35 : 1;
         ctx.fillStyle = active ? rgba(source.color, 0.1) : "rgba(2, 6, 4, 0.58)";
         ctx.fillRect(source.x - 13, source.y - 17, 26, 24);
         strokeRoundRect(ctx, source.x - 13, source.y - 17, 26, 24, 3);
 
         ctx.font = "900 13px JetBrains Mono, monospace";
-        ctx.fillStyle = active ? source.color : "rgba(180, 255, 207, 0.28)";
+        ctx.fillStyle = active ? source.color : dozing ? rgba(source.color, 0.32 + wake * 0.45) : "rgba(180, 255, 207, 0.28)";
         ctx.fillText(source.glyph, source.x, source.y);
         ctx.font = "900 9px JetBrains Mono, monospace";
         ctx.fillStyle = active ? rgba(source.color, 0.95) : "rgba(180, 255, 207, 0.2)";
-        ctx.fillText(active ? `+${source.xpValue}` : "off", source.x, source.y + 20);
+        ctx.fillText(active ? `+${source.xpValue}` : dozing && wake > 0.45 ? "zzz" : "off", source.x, source.y + 20);
         ctx.shadowBlur = 0;
         if (!reduced && source.captured > 0) source.captured -= 1;
       });
     }
 
-    function spawnPacket(source = null) {
+    function spawnPacket(source = null, force = false) {
       const activeNodeCount = getActiveNodeCount();
       if (!getIsPowered()) return;
-      if (packets.length >= getPacketLimit()) return;
+      if (packets.length >= (force ? 36 : getPacketLimit())) return;
       const liveSources = sources.filter((item) => item.index < activeNodeCount);
       if (!liveSources.length) return;
       const picked = source || liveSources[Math.floor(Math.random() * liveSources.length)];
@@ -511,7 +580,7 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
         ty: target.y,
         xpValue: picked.xpValue || 10,
         progress: 0,
-        speed: randomBetween(0.0075, getIsLaunching() ? 0.018 : 0.0135),
+        speed: randomBetween(0.0075, getIsLaunching() ? 0.018 : 0.0135) * (isOverclocked() ? 1.45 : 1),
         size: randomBetween(0.88, 1.15),
         trail: []
       });
@@ -541,7 +610,7 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
         sources.filter((source) => source.index < activeNodeCount).forEach((source) => {
           if (frame >= source.nextAt && packets.length < packetLimit) {
             spawnPacket(source);
-            source.nextAt = frame + randomBetween(58, getIsLaunching() ? 130 : 220);
+            source.nextAt = frame + randomBetween(58, getIsLaunching() ? 130 : 220) * (isOverclocked() ? 0.32 : 1);
           }
         });
       }
@@ -661,12 +730,15 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
         ctx.fillText(text, x, y);
       }
 
+      const overclockActive = isOverclocked();
+      const coolingActive = hasRun && !overclockActive && frame < cooldownUntil;
+
       ctx.fillStyle = "rgba(2, 6, 4, 0.86)";
-      ctx.shadowColor = isPowered ? "rgba(63, 255, 151, 0.48)" : "rgba(180, 255, 207, 0.08)";
+      ctx.shadowColor = overclockActive ? "rgba(255, 209, 102, 0.55)" : isPowered ? "rgba(63, 255, 151, 0.48)" : "rgba(180, 255, 207, 0.08)";
       ctx.shadowBlur = isPowered && !isScrolling ? 28 : 0;
       ctx.fillRect(left, top, panelWidth, panelHeight);
       ctx.shadowBlur = 0;
-      ctx.strokeStyle = isPowered ? "rgba(63, 255, 151, 0.96)" : "rgba(180, 255, 207, 0.26)";
+      ctx.strokeStyle = overclockActive ? "rgba(255, 209, 102, 0.96)" : isPowered ? "rgba(63, 255, 151, 0.96)" : "rgba(180, 255, 207, 0.26)";
       ctx.lineWidth = 2;
       ctx.strokeRect(left, top, panelWidth, panelHeight);
       ctx.strokeStyle = isPowered ? "rgba(69, 216, 255, 0.58)" : "rgba(69, 216, 255, 0.14)";
@@ -688,9 +760,9 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
       ctx.font = "900 15px Orbitron, JetBrains Mono, monospace";
       ctx.fillText("DAI.EXE", cx, cy - 14);
       ctx.shadowBlur = 0;
-      ctx.fillStyle = isLaunching ? "#ffd166" : hasRun ? "#3fff97" : "rgba(255, 95, 104, 0.84)";
+      ctx.fillStyle = isLaunching || overclockActive ? "#ffd166" : hasRun ? "#3fff97" : "rgba(255, 95, 104, 0.84)";
       ctx.font = "900 12px JetBrains Mono, monospace";
-      ctx.fillText(getStatusLabel(), cx, cy + 6);
+      ctx.fillText(overclockActive ? "OVERCLOCKED" : getStatusLabel(), cx, cy + 6);
 
       drawFittedText(`LV ${formatCoreNumber(xpState.level)}`, cx - 56, cy + 23, 42, "left", "#ffd166");
       drawFittedText(`${formatCoreNumber(xpState.xp)}/${formatCoreNumber(xpNeeded)}`, cx + 56, cy + 23, 66, "right", "rgba(180, 255, 207, 0.78)");
@@ -698,9 +770,32 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
       ctx.strokeStyle = "rgba(63, 255, 151, 0.24)";
       ctx.strokeRect(cx - 56, cy + 28, 112, 8);
       ctx.fillStyle = isPowered ? "#ffd166" : "rgba(255, 209, 102, 0.18)";
-      ctx.fillRect(cx - 54, cy + 30, 108 * (isPowered ? xpProgress : 0), 4);
-      ctx.fillStyle = isPowered ? "rgba(69, 216, 255, 0.72)" : "rgba(69, 216, 255, 0.16)";
-      ctx.fillRect(cx - 54, cy + 35, 108 * progress, 1);
+      ctx.fillRect(cx - 54, cy + 30, 108 * xpProgress, 4);
+
+      const stripFraction = overclockActive
+        ? (overclockUntil - frame) / OVERCLOCK_FRAMES
+        : coolingActive
+          ? 1 - (cooldownUntil - frame) / OVERCLOCK_COOLDOWN
+          : progress;
+      ctx.fillStyle = overclockActive
+        ? "#ffd166"
+        : coolingActive
+          ? "rgba(69, 216, 255, 0.42)"
+          : isPowered ? "rgba(69, 216, 255, 0.72)" : "rgba(69, 216, 255, 0.16)";
+      ctx.fillRect(cx - 54, cy + 34, 108 * Math.max(0, Math.min(1, stripFraction)), overclockActive ? 2 : 1);
+
+      if (!isPowered) {
+        const promptVisible = reduced || frame % 110 < 64;
+        if (promptVisible) {
+          ctx.textAlign = "center";
+          ctx.font = "900 10px JetBrains Mono, monospace";
+          ctx.fillStyle = "#ffd166";
+          ctx.shadowColor = "#ffd166";
+          ctx.shadowBlur = isScrolling ? 0 : 10;
+          ctx.fillText(frame % 440 < 220 ? "INSERT COIN" : "CLICK TO BOOT", cx, top + panelHeight + 20);
+          ctx.shadowBlur = 0;
+        }
+      }
     }
 
     function scheduleDraw() {
@@ -724,17 +819,79 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
       drawBackground();
       drawSweep();
       drawRings();
+      drawStandbyPings();
       drawOrbitTicks();
       layoutSources();
+      tickStandby();
       drawSources();
       drawPackets();
       drawCore();
       drawBursts();
+      drawFloaters();
       drawPointerReticle();
       ctx.fillStyle = "rgba(255, 255, 255, 0.025)";
       ctx.fillRect(0, (frame * 2) % Math.max(height, 1), width, 3);
 
       frame += reduced ? 0 : 1;
+      scheduleDraw();
+    }
+
+    function coreHitTest(x, y) {
+      const { left, top, panelWidth, panelHeight } = corePanel();
+      return x >= left - 6 && x <= left + panelWidth + 6 && y >= top - 6 && y <= top + panelHeight + 6;
+    }
+
+    function nodeHitTest(x, y) {
+      const activeNodeCount = getActiveNodeCount();
+      return sources.find((source) => source.index < activeNodeCount && Math.hypot(source.x - x, source.y - y) < 24) || null;
+    }
+
+    function updateCursor(x, y) {
+      const runtime = getRuntime();
+      let interactive = !runtime.hasRun && !runtime.isLaunching;
+      if (runtime.hasRun && !reduced) interactive = Boolean(nodeHitTest(x, y)) || coreHitTest(x, y);
+      canvas.style.cursor = interactive ? "var(--cursor-pointer, pointer)" : "";
+    }
+
+    function handleClick(event) {
+      const rect = canvas.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+      const runtime = getRuntime();
+
+      if (!runtime.hasRun && !runtime.isLaunching) {
+        runtime.onRun?.();
+        return;
+      }
+
+      if (!runtime.hasRun || reduced) return;
+
+      const hitSource = nodeHitTest(x, y);
+      if (hitSource) {
+        hitSource.captured = 30;
+        hitSource.nextAt = frame + 220;
+        for (let i = 0; i < 3; i += 1) spawnPacket(hitSource, true);
+        bursts.push({ x: hitSource.x, y: hitSource.y, color: hitSource.color, glyph: "", life: 0.6 });
+        scheduleDraw();
+        return;
+      }
+
+      if (!coreHitTest(x, y) || frame < overclockUntil) return;
+
+      const { cx, cy, top } = corePanel();
+      if (frame < cooldownUntil) {
+        floaters.push({ x: cx, y: top - 10, glyph: "COOLING...", color: "#45d8ff", life: 1, drift: 0.3 });
+        scheduleDraw();
+        return;
+      }
+
+      overclockUntil = frame + OVERCLOCK_FRAMES;
+      cooldownUntil = overclockUntil + OVERCLOCK_COOLDOWN;
+      bursts.push({ x: cx, y: cy, color: "#ffd166", glyph: "OVERCLOCK", life: 1 });
+      const activeNodeCount = getActiveNodeCount();
+      sources.forEach((source) => {
+        if (source.index < activeNodeCount) spawnPacket(source, true);
+      });
       scheduleDraw();
     }
 
@@ -746,10 +903,12 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
         x: event.clientX - rect.left,
         y: event.clientY - rect.top
       };
+      updateCursor(pointer.x, pointer.y);
     }
 
     function handlePointerLeave() {
       pointer.ttl = Math.min(pointer.ttl, 20);
+      canvas.style.cursor = "";
     }
 
     function handleScroll() {
@@ -806,16 +965,22 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
     }
 
     if (reduced) draw();
+    redrawRef.current = () => {
+      if (reduced) draw();
+    };
     canvas.addEventListener("pointermove", handlePointerMove);
     canvas.addEventListener("pointerleave", handlePointerLeave);
+    canvas.addEventListener("click", handleClick);
     window.addEventListener("scroll", handleScroll, { passive: true, capture: true });
     window.addEventListener("resize", resize);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       observer?.disconnect();
+      redrawRef.current = null;
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerleave", handlePointerLeave);
+      canvas.removeEventListener("click", handleClick);
       window.removeEventListener("scroll", handleScroll, { capture: true });
       window.removeEventListener("resize", resize);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
@@ -827,5 +992,12 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="h-full min-h-[360px] w-full bg-ink-950/80" aria-hidden="true" />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className="h-full min-h-[360px] w-full bg-ink-950/80"
+      style={{ cursor: !hasRun && !isLaunching ? "var(--cursor-pointer, pointer)" : undefined }}
+      aria-hidden="true"
+    />
+  );
 }

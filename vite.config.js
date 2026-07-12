@@ -1,5 +1,6 @@
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import { handleBuddyRequest } from "./server/buddy.mjs";
 import { handleCommentsRequest } from "./server/comments.mjs";
@@ -77,7 +78,8 @@ export default defineConfig({
     host: "0.0.0.0",
     port: 5173,
     watch: {
-      ignored: ["**/data/**"]
+      // Only the runtime score/state store at the repo root; src/data must stay watched.
+      ignored: [`${fileURLToPath(new URL("data", import.meta.url)).replace(/\\/g, "/")}/**`]
     }
   }
 });
