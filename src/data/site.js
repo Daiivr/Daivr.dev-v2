@@ -322,6 +322,20 @@ export const stack = [
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.5.0",
+    codename: "STATION-86",
+    date: "2026-07-11",
+    summary: "A very old code now opens a very real console: four secret disks and a full cartridge ritual to load them.",
+    entries: [
+      ["new", "Secret game library: the cabinet finally honors the oldest code in gaming. Ten inputs, four disks — Madrace, Tower Block, Cross Road, and The Cube — each on its own labeled cartridge."],
+      ["new", "DAIVR STATION-86: mounting a disk now summons a whole console. Bus doors slide open, the cartridge drops in, hovers to align, and seats with a proper clunk — dust puff, shock ring and all."],
+      ["new", "Power-on ritual: the PWR switch flips itself, the LED blinks amber then locks to your game's color, the slot glows from inside, and the program boots on a screen flash."],
+      ["buff", "Mount audio re-scored to match the choreography: door tick, contact thud, two-stage clunk, latch click, and a rising power blip."],
+      ["buff", "The whole ritual scales down for phones and steps aside politely if your system asks for reduced motion."],
+      ["known", "The STATION-86 shipped without an eject button. Games check in whenever they like; the only way out is the back arrow. This is considered canon."]
+    ]
+  },
+  {
     version: "v2.4.0",
     codename: "VOID ANGLER",
     date: "2026-07-10",
