@@ -117,6 +117,8 @@ export function EntrySplash({ onEnter, onBuddyLaunch }) {
   function requestEnter() {
     if (!canEnter) return;
 
+    window.dispatchEvent(new CustomEvent("daivr-splash-enter"));
+
     // Relevo del buddy: entrega su posicion exacta en viewport para que la
     // caida de bienvenida (BuddyDrop, a nivel App) arranque sin costura.
     // Si el perchado esta oculto (pantallas bajas) no hay caida que hacer.

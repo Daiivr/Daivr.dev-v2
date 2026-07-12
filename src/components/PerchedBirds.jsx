@@ -123,8 +123,10 @@ export function PerchedBirds() {
     mutationObserver.observe(document.body, { childList: true, subtree: true });
 
     const handleMotionStart = () => trackLayout(1200);
+    const handleSplashEnter = () => flyAway(SPLASH_PERCH.id);
     scanPerches();
     window.addEventListener("resize", requestMeasure);
+    window.addEventListener("daivr-splash-enter", handleSplashEnter);
     document.addEventListener("transitionrun", handleMotionStart, true);
     document.addEventListener("animationstart", handleMotionStart, true);
 
@@ -133,6 +135,7 @@ export function PerchedBirds() {
       mutationObserver.disconnect();
       resizeObserver.disconnect();
       window.removeEventListener("resize", requestMeasure);
+      window.removeEventListener("daivr-splash-enter", handleSplashEnter);
       document.removeEventListener("transitionrun", handleMotionStart, true);
       document.removeEventListener("animationstart", handleMotionStart, true);
       if (frame) cancelAnimationFrame(frame);

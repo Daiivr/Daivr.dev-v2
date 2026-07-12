@@ -926,7 +926,7 @@ export function CommentsSection() {
   return (
     <section className="py-16 md:py-24" id="contact" ref={sectionRef}>
       <div className="comments-section-heading">
-        <DecodeText as="p" className="pixel-label" duration={520} text="OPEN CHANNEL" />
+        <DecodeText as="p" className="pixel-label" duration={520} text="OPEN.CHANNEL" />
         <DecodeText
           as="h2"
           className="font-display text-[clamp(2rem,4.6vw,4.2rem)] font-black uppercase leading-[.95] text-white"
