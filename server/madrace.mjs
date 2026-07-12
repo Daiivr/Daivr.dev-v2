@@ -7,6 +7,8 @@ const FILENAME = "madrace-leaderboard.json";
 const DATA_ENVS = ["MADRACE_DATA_DIR", "GAME_DATA_DIR"];
 const MAX_LEVEL = 10000;
 const MAX_TIME_MS = 24 * 60 * 60 * 1000;
+const MAX_LEVEL_CATCH_UP = 25;
+const MIN_LEVEL_TIME_MS = 250;
 const submissionWindows = new Map();
 
 function sendJson(response, status, payload) {
@@ -105,7 +107,7 @@ export async function handleMadraceRequest(request, response) {
   const url = new URL(request.url || "/api/madrace", "http://localhost");
   const path = url.pathname.replace(/^\/api\/(?:madrace|drive-mad)\/?/, "");
   const user = getSessionUser(request);
-  const scores = readScores();
+  let scores = readScores();
 
   if (["POST", "PUT", "PATCH", "DELETE"].includes(request.method || "") && !isSameOrigin(request)) {
     sendJson(response, 403, { error: "Cross-origin score mutation rejected." });
@@ -141,6 +143,11 @@ export async function handleMadraceRequest(request, response) {
       return sendJson(response, 400, { error: "Invalid progress payload." });
     }
 
+    // Re-read after the async request body. Level packets can arrive close
+    // together; this keeps each mutation based on the score written by the
+    // packet immediately before it instead of a stale pre-body snapshot.
+    scores = readScores();
+
     if (body.discordId && String(body.discordId) !== String(user.id)) {
       return sendJson(response, 403, { error: "Discord identity does not match the signed session." });
     }
@@ -163,17 +170,24 @@ export async function handleMadraceRequest(request, response) {
     const index = scores.findIndex((score) => String(score.discordId) === String(user.id));
     const current = index >= 0 ? scores[index] : null;
     const currentLevel = Number(current?.highestLevel) || 0;
-    const expectedLevel = currentLevel + 1;
-    if (level > expectedLevel) {
-      return sendJson(response, 409, { error: "Complete the previous level first.", expectedLevel });
+    const levelAdvance = level - currentLevel;
+    if (levelAdvance > MAX_LEVEL_CATCH_UP) {
+      return sendJson(response, 409, {
+        error: "Level jump exceeded the catch-up window.",
+        maximumLevel: currentLevel + MAX_LEVEL_CATCH_UP
+      });
     }
     if (level < currentLevel) {
       return sendJson(response, 202, { ignored: true, reason: "older-level", score: scoreForUser(scores, user.id) });
     }
-    if (level === expectedLevel && currentLevel > 0 && cumulativeMs < Number(current.bestTimeMs || 0)) {
+    if (levelAdvance > 0 && currentLevel > 0 && cumulativeMs < Number(current.bestTimeMs || 0)) {
       return sendJson(response, 409, { error: "Cumulative time moved backwards." });
     }
-    if (levelMs !== null && levelMs < 250) {
+    const previousTime = Number(current?.bestTimeMs) || 0;
+    if (levelAdvance > 0 && cumulativeMs - previousTime < levelAdvance * MIN_LEVEL_TIME_MS) {
+      return sendJson(response, 422, { error: "Catch-up progress was faster than the validation floor." });
+    }
+    if (levelMs !== null && levelMs < MIN_LEVEL_TIME_MS) {
       return sendJson(response, 422, { error: "Level completion was faster than the validation floor." });
     }
 
