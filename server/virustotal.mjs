@@ -13,6 +13,7 @@ const CACHE_FILENAME = "tradedex-scan.json";
 const RELEASE_CACHE_TTL_MS = 5 * 60 * 1000;
 const DONE_STATE_TTL_MS = 10 * 60 * 1000;
 const ERROR_STATE_TTL_MS = 15 * 1000;
+const VT_POLL_INTERVAL_MS = 30 * 1000;
 
 let releaseCache = { fetchedAt: 0, data: null };
 const inflight = new Map();
@@ -68,6 +69,8 @@ async function fetchJson(url, options = {}) {
     const error = new Error(payload?.error?.message || payload?.message || `HTTP ${response.status}`);
     error.status = response.status;
     error.payload = payload;
+    const retryAfter = Number(response.headers.get("retry-after"));
+    if (Number.isFinite(retryAfter) && retryAfter > 0) error.retryAfterMs = retryAfter * 1000;
     throw error;
   }
   return payload;
@@ -299,18 +302,27 @@ async function pollAnalysis(analysisId, state, { maxMs = 10 * 60 * 1000 } = {}) 
 
   while (Date.now() - start < maxMs) {
     const apiKey = getVirusTotalApiKey();
-    const payload = await withRetry(
-      () => fetchJson(`${VT_BASE}/analyses/${encodeURIComponent(analysisId)}`, {
-        headers: {
-          Accept: "application/json",
-          "x-apikey": apiKey
-        }
-      }),
-      { label: "vt analysis poll", retries: 2 }
-    );
+    let payload;
+    try {
+      payload = await withRetry(
+        () => fetchJson(`${VT_BASE}/analyses/${encodeURIComponent(analysisId)}`, {
+          headers: {
+            Accept: "application/json",
+            "x-apikey": apiKey
+          }
+        }),
+        { label: "vt analysis poll", retries: 2 }
+      );
+    } catch (error) {
+      if (error?.status !== 429) throw error;
+      const delay = Math.max(VT_POLL_INTERVAL_MS, error.retryAfterMs || 60_000);
+      state.rateLimitedUntil = Date.now() + delay;
+      await wait(delay);
+      continue;
+    }
     const attrs = payload?.data?.attributes || {};
     if (attrs.status === "completed") return summariseStats(attrs.stats);
-    await wait(4000);
+    await wait(VT_POLL_INTERVAL_MS);
   }
 
   return null;
@@ -406,6 +418,23 @@ async function runScan(state, cache) {
     state.stage = "error";
     state.error = error.message || "scan failed";
     state.finishedAt = Date.now();
+    // Persist failures for this exact release too. A modal reopen must never
+    // create a retry storm; the next GitHub release gets a fresh cache key.
+    if (state.sha256) {
+      cache.scans[state.tag] = {
+        tag: state.tag,
+        asset: state.asset,
+        sha256: state.sha256,
+        vt: state.vt || {
+          status: "error",
+          error: state.error,
+          rateLimited: error?.status === 429
+        },
+        error: state.error,
+        scannedAt: state.finishedAt
+      };
+      await writeCache(cache);
+    }
   }
 }
 
@@ -442,39 +471,66 @@ async function getCachedReleaseScan(release, cache) {
   const cached = cache.scans[release.tag];
   if (!cached?.sha256 || !cached?.vt) return null;
 
-  if (cached.vt.status === "pending" && cached.vt.analysisId) {
-    const summary = await checkAnalysisOnce(cached.vt.analysisId);
-    if (summary) {
-      cached.vt = {
-        status: "scanned",
-        stats: summary,
-        verdict: summary.verdict,
-        scanDate: Math.floor(Date.now() / 1000),
-        permalink: cached.vt.permalink,
-        submitted: true
-      };
-      cached.scannedAt = Date.now();
-      cache.scans[release.tag] = cached;
-      await writeCache(cache);
-    } else {
-      const recheck = await queryVirusTotalByHash(cached.sha256).catch(() => null);
-      if (recheck?.found && recheck.summary) {
-        cached.vt = {
+  // Disk reads are intentionally side-effect free. In particular, frontend
+  // polling must never turn into a VirusTotal request.
+  return cached;
+}
+
+function resumePendingAnalysis(release, cached, cache) {
+  if (inflight.has(release.tag) || cached.vt?.status !== "pending" || !cached.vt.analysisId) return;
+
+  const state = {
+    tag: release.tag,
+    asset: release.asset,
+    status: "scanning",
+    stage: "analyzing",
+    progress: 1,
+    sha256: cached.sha256,
+    vt: cached.vt,
+    error: null,
+    startedAt: Date.now(),
+    finishedAt: null
+  };
+  inflight.set(release.tag, state);
+
+  (async () => {
+    try {
+      const summary = await pollAnalysis(cached.vt.analysisId, state);
+      if (summary) {
+        state.vt = {
           status: "scanned",
-          stats: recheck.summary,
-          verdict: recheck.summary.verdict,
-          scanDate: recheck.scanDate || Math.floor(Date.now() / 1000),
+          stats: summary,
+          verdict: summary.verdict,
+          scanDate: Math.floor(Date.now() / 1000),
           permalink: cached.vt.permalink,
           submitted: true
         };
-        cached.scannedAt = Date.now();
-        cache.scans[release.tag] = cached;
-        await writeCache(cache);
       }
+      state.status = "done";
+      state.stage = "done";
+      state.finishedAt = Date.now();
+      cache.scans[release.tag] = {
+        ...cached,
+        vt: state.vt,
+        scannedAt: state.finishedAt
+      };
+      await writeCache(cache);
+    } catch (error) {
+      state.status = "error";
+      state.stage = "error";
+      state.error = error.message || "analysis resume failed";
+      state.finishedAt = Date.now();
+    } finally {
+      windowlessCleanup(release.tag, state);
     }
-  }
+  })();
+}
 
-  return cached;
+function windowlessCleanup(tag, state) {
+  const ttl = state.status === "error" ? ERROR_STATE_TTL_MS : DONE_STATE_TTL_MS;
+  setTimeout(() => {
+    if (inflight.get(tag) === state) inflight.delete(tag);
+  }, ttl);
 }
 
 export async function getTradeDexScan() {
@@ -503,18 +559,34 @@ export async function getTradeDexScan() {
   const cache = await readCache();
   const cached = await getCachedReleaseScan(release, cache);
   if (cached) {
+    if (cached.vt?.status === "pending") resumePendingAnalysis(release, cached, cache);
+    const pendingState = inflight.get(release.tag);
+    if (pendingState) {
+      return {
+        statusCode: 200,
+        body: {
+          tag: release.tag,
+          releaseUrl: release.htmlUrl,
+          publishedAt: release.publishedAt,
+          asset: release.asset,
+          ...snapshotState(pendingState),
+          fromCache: true
+        }
+      };
+    }
     return {
-      statusCode: 200,
+      statusCode: cached.vt?.status === "error" ? 502 : 200,
       body: {
         tag: release.tag,
         releaseUrl: release.htmlUrl,
         publishedAt: release.publishedAt,
         asset: release.asset,
-        status: "done",
-        stage: "done",
+        status: cached.vt?.status === "error" ? "error" : "done",
+        stage: cached.vt?.status === "error" ? "error" : "done",
         progress: 1,
         sha256: cached.sha256,
         vt: cached.vt,
+        error: cached.error || cached.vt?.error || null,
         scannedAt: cached.scannedAt,
         fromCache: true
       }
