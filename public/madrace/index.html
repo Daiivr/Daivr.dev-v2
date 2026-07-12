@@ -259,6 +259,37 @@
           } catch (err) {}
         }
 
+        function paintSkipMask() {
+          var gameCanvas = document.getElementById("canvas");
+          var maskCanvas = document.getElementById("madrace_skip_mask");
+          if (!gameCanvas || !maskCanvas || !gameCanvas.width || !gameCanvas.height) return;
+
+          var sourceX = Math.round(gameCanvas.width * 0.32);
+          var sourceY = Math.round(gameCanvas.height * 0.49);
+          var sourceWidth = Math.round(gameCanvas.width * 0.36);
+          var sourceHeight = Math.round(gameCanvas.height * 0.18);
+          var padding = Math.round(Math.min(gameCanvas.width, gameCanvas.height) * 0.075);
+          maskCanvas.width = sourceWidth;
+          maskCanvas.height = sourceHeight;
+
+          var context = maskCanvas.getContext("2d");
+          if (!context) return;
+          context.clearRect(0, 0, sourceWidth, sourceHeight);
+          context.filter = `blur(${Math.max(34, Math.round(padding * 0.72))}px) saturate(.88)`;
+          context.drawImage(
+            gameCanvas,
+            sourceX - padding,
+            sourceY - padding,
+            sourceWidth + padding * 2,
+            sourceHeight + padding * 2,
+            -padding,
+            -padding,
+            sourceWidth + padding * 2,
+            sourceHeight + padding * 2
+          );
+          context.filter = "none";
+        }
+
         function addCompletedLevelDuration(levelIndex, durationMs) {
           var key = String(levelIndex);
           var nextDuration = Math.max(0, Math.round(Number(durationMs) || 0));
@@ -385,9 +416,13 @@
         window.__daivrDriveMad = {
           gameplayStart: function () {
             ensureSessionStarted();
+            document.documentElement.classList.remove("madrace-game-paused");
           },
           gameplayStop: function () {
             ensureSessionStarted();
+            document.documentElement.classList.add("madrace-game-paused");
+            window.setTimeout(paintSkipMask, 90);
+            window.setTimeout(paintSkipMask, 220);
           },
           levelStart: function (levelIndex) {
             var nextLevelIndex = normalizeLevelIndex(levelIndex);
@@ -732,6 +767,28 @@
       position: relative
     }
 
+    #madrace_skip_mask {
+      position: absolute;
+      z-index: 30;
+      left: 50%;
+      top: 58%;
+      display: none;
+      width: min(36%, 390px);
+      height: 18%;
+      min-height: 88px;
+      margin: 0;
+      padding: 0;
+      transform: translate(-50%, -50%);
+      background: transparent;
+      mask-image: radial-gradient(ellipse at center, #000 52%, rgba(0,0,0,.9) 68%, rgba(0,0,0,.35) 86%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse at center, #000 52%, rgba(0,0,0,.9) 68%, rgba(0,0,0,.35) 86%, transparent 100%);
+      pointer-events: auto
+    }
+
+    html.madrace-game-paused #madrace_skip_mask {
+      display: block
+    }
+
     #gradient {
       background-image: linear-gradient(135deg, #70e1fd, #00a2ff);
       position: absolute;
@@ -1029,6 +1086,7 @@
       <p class="description"></p>
     </div>
     <canvas class="emscripten" id="canvas" tabindex="-1"></canvas>
+    <canvas id="madrace_skip_mask" aria-hidden="true"></canvas>
     <div id="gradient"></div>
     <div id="webview_content"></div>
   </div>
@@ -1046,6 +1104,12 @@
     var loadProgressFrac = 0;
     var fakeProgressPercentStart = 80 + Math.random() * 15;
     window.addEventListener('DOMContentLoaded', domContentLoaded);
+    window.addEventListener('keydown', function(event) {
+      if (!document.documentElement.classList.contains('madrace-game-paused')) return;
+      if (event.key !== 'ArrowDown' && String(event.key || '').toLowerCase() !== 's') return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }, true);
     window.addEventListener('load', function() {
       console.log("Load event received");
       if (inIframe()) {
