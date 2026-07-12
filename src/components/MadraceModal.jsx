@@ -2,6 +2,11 @@ import { LogIn, RotateCcw, Trophy, Volume2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const VOLUME_KEY = "daivr.madrace.volume.v1";
+const SAVE_SLOT_PREFIX = "daivr.madrace.save-slot.v1";
+
+function getSaveSlot(userId) {
+  return localStorage.getItem(`${SAVE_SLOT_PREFIX}.${userId || "guest"}`) || "default";
+}
 
 function formatTime(value) {
   const ms = Number(value);
@@ -19,12 +24,20 @@ export function MadraceModal({ open, onClose }) {
   const [myScore, setMyScore] = useState(null);
   const [launchRestore, setLaunchRestore] = useState(null);
   const [gameInstance, setGameInstance] = useState(0);
+  const [saveSlot, setSaveSlot] = useState("default");
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("");
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+  const [resetting, setResetting] = useState(false);
   const [volume, setVolume] = useState(() => Math.max(0, Math.min(100, Number(localStorage.getItem(VOLUME_KEY) ?? 12))));
   const frameRef = useRef(null);
   const closeRef = useRef(null);
   const launchConfiguredRef = useRef(false);
+  const resetConfirmRef = useRef(false);
+
+  useEffect(() => {
+    resetConfirmRef.current = resetConfirmOpen;
+  }, [resetConfirmOpen]);
 
   const loadScores = useCallback(async (quiet = false) => {
     if (!quiet) setLoading(true);
@@ -39,6 +52,7 @@ export function MadraceModal({ open, onClose }) {
       setLeaderboard(top.leaderboard || []);
       setMe(mine.user || null);
       setMyScore(mine.score || null);
+      setSaveSlot(getSaveSlot(mine.user?.id));
       if (!launchConfiguredRef.current) {
         launchConfiguredRef.current = true;
         setLaunchRestore(mine.score?.highestLevel > 0 ? {
@@ -61,6 +75,7 @@ export function MadraceModal({ open, onClose }) {
     launchConfiguredRef.current = false;
     setLaunchRestore(null);
     setStatus("");
+    setResetConfirmOpen(false);
     setLeaderboardOpen(false);
     const shell = document.querySelector(".app-shell");
     const previousOverflow = shell?.style.overflow;
@@ -68,7 +83,9 @@ export function MadraceModal({ open, onClose }) {
     window.setTimeout(() => closeRef.current?.focus(), 80);
 
     function onKeyDown(event) {
-      if (event.key === "Escape") onClose();
+      if (event.key !== "Escape") return;
+      if (resetConfirmRef.current) setResetConfirmOpen(false);
+      else onClose();
     }
     window.addEventListener("keydown", onKeyDown);
     return () => {
@@ -113,17 +130,33 @@ export function MadraceModal({ open, onClose }) {
   }
 
   async function resetScore() {
-    if (!me || !window.confirm("Reset your Madrace leaderboard score and local game progress?")) return;
+    if (!me || resetting) return;
+    setResetting(true);
     setStatus("RESETTING RUN...");
-    const response = await fetch("/api/madrace/me", { method: "DELETE", credentials: "include" });
-    if (!response.ok) {
-      setStatus("RESET FAILED");
-      return;
+    try {
+      frameRef.current?.contentWindow?.stop();
+      if (frameRef.current) frameRef.current.src = "about:blank";
+    } catch {
+      // The save-slot rotation below remains authoritative if frame shutdown is unavailable.
     }
-    setMyScore(null);
-    setStatus("RUN RESET // LEVEL 01 READY");
-    frameRef.current?.contentWindow?.postMessage({ type: "daivr:drive-mad-reset-score" }, window.location.origin);
-    loadScores(true);
+    try {
+      const response = await fetch("/api/madrace/me", { method: "DELETE", credentials: "include" });
+      if (!response.ok) throw new Error("reset-failed");
+      setMyScore(null);
+      const nextSaveSlot = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+      localStorage.setItem(`${SAVE_SLOT_PREFIX}.${me.id}`, nextSaveSlot);
+      setSaveSlot(nextSaveSlot);
+      setLaunchRestore(null);
+      setGameInstance((value) => value + 1);
+      setResetConfirmOpen(false);
+      setStatus("RUN RESET // LEVEL 01 READY");
+      loadScores(true);
+    } catch {
+      setStatus("RESET FAILED");
+      setGameInstance((value) => value + 1);
+    } finally {
+      setResetting(false);
+    }
   }
 
   async function refreshAndResume() {
@@ -142,12 +175,13 @@ export function MadraceModal({ open, onClose }) {
     if (loading) return "";
     const params = new URLSearchParams();
     if (me?.id) params.set("discordId", String(me.id));
+    params.set("saveSlot", saveSlot);
     if (launchRestore?.level > 1) {
       params.set("restoreLevel", String(launchRestore.level));
       params.set("restoreBaseTimeMs", String(launchRestore.baseTimeMs || 0));
     }
     return `/madrace/index.html${params.size ? `?${params}` : ""}`;
-  }, [launchRestore, loading, me?.id]);
+  }, [launchRestore, loading, me?.id, saveSlot]);
 
   if (!open) return null;
 
@@ -192,7 +226,7 @@ export function MadraceModal({ open, onClose }) {
                 <div className="madrace-player-record">
                   <img src={me.avatarUrl} alt="" />
                   <div><span>LINKED AS {me.username}</span><strong>{myScore ? `#${myScore.rank} // LV ${myScore.highestLevel} // ${formatTime(myScore.bestTimeMs)}` : "NO RUN RECORDED"}</strong></div>
-                  {myScore ? <button type="button" onClick={resetScore} aria-label="Reset Madrace score"><RotateCcw size={14} /></button> : null}
+                  {myScore ? <button type="button" onClick={() => setResetConfirmOpen(true)} aria-label="Reset Madrace score"><RotateCcw size={14} /></button> : null}
                 </div>
               ) : (
                 <a className="madrace-login" href="/api/comments/auth/discord"><LogIn size={15} /> CONNECT DISCORD TO SAVE</a>
@@ -220,6 +254,33 @@ export function MadraceModal({ open, onClose }) {
           <label><Volume2 size={14} /><input type="range" min="0" max="100" value={volume} onChange={updateVolume} /><b>{volume}%</b></label>
           <p>ARROWS / WASD TO DRIVE <i>•</i> ESC TO CLOSE</p>
         </footer>
+
+        {resetConfirmOpen ? (
+          <div className="madrace-reset-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && !resetting && setResetConfirmOpen(false)}>
+            <section className="madrace-reset-modal" role="alertdialog" aria-modal="true" aria-labelledby="madrace-reset-title" aria-describedby="madrace-reset-description">
+              <header>
+                <div>
+                  <span>RANKING.SYS // DESTRUCTIVE COMMAND</span>
+                  <h3 id="madrace-reset-title">RESET DRIVER RECORD?</h3>
+                </div>
+                <button type="button" onClick={() => setResetConfirmOpen(false)} disabled={resetting} aria-label="Cancel score reset"><X size={17} /></button>
+              </header>
+              <div className="madrace-reset-body">
+                <strong><RotateCcw size={22} /> CHECKPOINT WIPE</strong>
+                <p id="madrace-reset-description">This permanently removes your leaderboard score and clears Madrace progress saved in this browser.</p>
+                <dl>
+                  <div><dt>CURRENT RECORD</dt><dd>LV {myScore?.highestLevel || 0}</dd></div>
+                  <div><dt>DRIVER</dt><dd>{me?.username || "UNKNOWN"}</dd></div>
+                  <div><dt>RESTART POINT</dt><dd>LEVEL 01</dd></div>
+                </dl>
+              </div>
+              <footer>
+                <button type="button" className="is-cancel" onClick={() => setResetConfirmOpen(false)} disabled={resetting}>KEEP RECORD</button>
+                <button type="button" className="is-danger" onClick={resetScore} disabled={resetting}>{resetting ? "RESETTING..." : "CONFIRM RESET"}</button>
+              </footer>
+            </section>
+          </div>
+        ) : null}
       </section>
     </div>
   );

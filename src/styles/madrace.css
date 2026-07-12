@@ -112,6 +112,52 @@
   .madrace-footer b { width: 34px; color: #fff; }
   .madrace-footer p i { padding: 0 5px; color: var(--color-cabinet); font-style: normal; }
 
+  .madrace-reset-backdrop {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+    background: rgba(0,4,3,.82);
+    backdrop-filter: blur(7px);
+    animation: madrace-backdrop-in .2s ease both;
+  }
+  .madrace-reset-modal {
+    width: min(520px,100%);
+    overflow: hidden;
+    border: 1px solid rgba(255,61,157,.58);
+    background: #030b08;
+    box-shadow: 0 0 0 1px rgba(255,61,157,.1),0 0 45px rgba(255,61,157,.16),inset 0 0 32px rgba(0,0,0,.75);
+    clip-path: polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
+    animation: madrace-window-in .24s cubic-bezier(.2,.8,.25,1) both;
+  }
+  .madrace-reset-modal > header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    border-bottom: 1px solid rgba(255,61,157,.25);
+    padding: 17px 18px;
+    background: linear-gradient(90deg,rgba(255,61,157,.1),transparent 65%);
+  }
+  .madrace-reset-modal header span { color: var(--color-glitch); font-size: .55rem; font-weight: 900; letter-spacing: .18em; }
+  .madrace-reset-modal h3 { margin-top: 4px; color: #fff; font-family: var(--font-display); font-size: 1.15rem; letter-spacing: .08em; }
+  .madrace-reset-modal header button { display: grid; width: 34px; height: 34px; flex: none; place-items: center; border: 1px solid rgba(255,61,157,.42); background: rgba(255,61,157,.05); color: var(--color-glitch); cursor: var(--cursor-pointer,pointer); }
+  .madrace-reset-body { display: grid; gap: 16px; padding: 20px 18px; }
+  .madrace-reset-body > strong { display: flex; align-items: center; gap: 10px; color: var(--color-danger-arcade); font-size: .72rem; letter-spacing: .15em; }
+  .madrace-reset-body > p { max-width: 55ch; color: var(--color-phosphor-soft); font-size: .75rem; line-height: 1.65; }
+  .madrace-reset-body dl { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); border: 1px solid rgba(63,255,151,.18); }
+  .madrace-reset-body dl div { min-width: 0; padding: 10px; border-right: 1px solid rgba(63,255,151,.14); }
+  .madrace-reset-body dl div:last-child { border-right: 0; }
+  .madrace-reset-body dt { color: var(--color-phosphor-soft); font-size: .48rem; font-weight: 900; letter-spacing: .12em; opacity: .65; }
+  .madrace-reset-body dd { margin-top: 4px; overflow: hidden; color: #fff; font-size: .68rem; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
+  .madrace-reset-modal > footer { display: flex; justify-content: flex-end; gap: 9px; border-top: 1px solid rgba(63,255,151,.16); padding: 13px 18px; background: rgba(63,255,151,.025); }
+  .madrace-reset-modal footer button { min-height: 38px; border: 1px solid rgba(63,255,151,.28); padding: 0 14px; background: #05140d; color: var(--color-phosphor-soft); font-size: .6rem; font-weight: 900; letter-spacing: .1em; cursor: var(--cursor-pointer,pointer); }
+  .madrace-reset-modal footer button.is-danger { border-color: rgba(255,61,157,.62); background: rgba(255,61,157,.1); color: #ff79b8; box-shadow: 0 0 18px rgba(255,61,157,.08); }
+  .madrace-reset-modal footer button:hover:not(:disabled) { border-color: #fff; color: #fff; }
+  .madrace-reset-modal button:disabled { cursor: not-allowed; opacity: .5; }
+
   @keyframes madrace-backdrop-in { from { opacity: 0; } }
   @keyframes madrace-window-in { from { opacity: 0; transform: translateY(18px) scale(.975); } }
   @keyframes madrace-ranking-in { from { opacity: 0; transform: translateX(32px); } }
@@ -128,5 +174,9 @@
     .madrace-leaderboard li { grid-template-columns: 24px 30px minmax(0,1fr) auto; }
     .madrace-leaderboard li img { width: 30px; height: 30px; }
     .madrace-leaderboard li small { display: none; }
+    .madrace-reset-body dl { grid-template-columns: 1fr; }
+    .madrace-reset-body dl div { border-right: 0; border-bottom: 1px solid rgba(63,255,151,.14); }
+    .madrace-reset-body dl div:last-child { border-bottom: 0; }
+    .madrace-reset-modal > footer { flex-direction: column-reverse; }
   }
 }

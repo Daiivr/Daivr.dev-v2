@@ -19,6 +19,7 @@
         try {
           var params = new URLSearchParams(window.location.search || "");
           var discordId = params.get("discordId") || null;
+          var saveSlot = (params.get("saveSlot") || "default").replace(/[^a-z0-9_-]/gi, "").slice(0, 64) || "default";
           var realLocalStorage = window.localStorage;
 
           function createMemoryStorage() {
@@ -113,7 +114,7 @@
           // Keep this cabinet's Madrace save completely separate from the
           // legacy daivr.dev game, even when both run on the same localhost.
           var playerNamespace = discordId ? "discord_" + discordId : "guest";
-          var prefix = "daivr_v2_madrace_" + playerNamespace + "_";
+          var prefix = "daivr_v2_madrace_" + playerNamespace + "_slot_" + saveSlot + "_";
           var wrapped = createNamespacedStorage(realLocalStorage, prefix);
 
           Object.defineProperty(window, "localStorage", {
@@ -132,8 +133,9 @@
       (function () {
         var params = new URLSearchParams(window.location.search || "");
         var discordId = params.get("discordId") || "";
+        var saveSlot = (params.get("saveSlot") || "default").replace(/[^a-z0-9_-]/gi, "").slice(0, 64) || "default";
         var playerNamespace = discordId ? "discord_" + discordId : "guest";
-        var storagePrefix = "daivr_v2_madrace_" + playerNamespace + "_";
+        var storagePrefix = "daivr_v2_madrace_" + playerNamespace + "_slot_" + saveSlot + "_";
         var restoreLevel = Math.floor(Number(params.get("restoreLevel")) || 0);
         var restoreLevelIndex = restoreLevel > 1 ? restoreLevel - 1 : -1;
         var restoreCompletedLevel = Math.max(0, restoreLevel - 1);
