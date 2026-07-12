@@ -1,5 +1,71 @@
 @import "tailwindcss";
 
+/* Rare cabinet outage: the darkness lives inside the main stacking context so
+   the footer Buddy can remain above it with his working flashlight. */
+.has-power-outage .cabinet-layout::after {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  pointer-events: none;
+  content: "";
+  background: rgba(0, 3, 2, 0.975);
+  animation: cabinet-blackout-in 280ms steps(2, end) both;
+}
+
+.has-power-outage.outage-flicker .cabinet-layout::after {
+  animation: cabinet-power-flicker 1.2s steps(2, end) both;
+}
+
+.has-power-outage.outage-restore .cabinet-layout::after {
+  animation: cabinet-power-restore 1.7s steps(4, end) both;
+}
+
+.has-power-outage .app-footer-zone {
+  z-index: 50;
+}
+
+.has-power-outage .app-footer {
+  filter: brightness(.08) saturate(.25);
+}
+
+.cabinet-power-outage {
+  position: fixed;
+  inset: 0;
+  z-index: 54;
+  pointer-events: none;
+}
+
+.power-outage-noise {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(63,255,151,.04) 3px 4px);
+  opacity: .45;
+}
+
+.power-outage-label {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  border: 1px solid rgba(255,95,104,.42);
+  background: rgba(2,6,4,.9);
+  padding: .38rem .65rem;
+  color: #ff5f68;
+  font-family: var(--font-pixel);
+  font-size: .52rem;
+  letter-spacing: .14em;
+  transform: translateX(-50%);
+}
+
+.cabinet-power-outage.is-restore .power-outage-label { color: #3fff97; border-color: rgba(63,255,151,.5); }
+
+@keyframes cabinet-blackout-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cabinet-power-flicker { 0%,18%,42%,68% { opacity: .12; } 9%,31%,55%,100% { opacity: .98; } }
+@keyframes cabinet-power-restore { 0% { opacity: .96; } 28% { opacity: .2; } 43% { opacity: .72; } 62% { opacity: .08; } 100% { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .has-power-outage .cabinet-layout::after { animation: none; }
+}
+
 @theme {
   --font-display: "Orbitron", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", Consolas, monospace;
@@ -3114,9 +3180,9 @@
   .game-shelf-toolbar {
     position: relative;
     z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(18rem, 1fr) minmax(24rem, 0.72fr);
+    align-items: start;
     gap: 1rem;
     margin-bottom: 1rem;
     border-bottom: 1px solid color-mix(in srgb, var(--color-phosphor) 15%, transparent);
@@ -3133,9 +3199,11 @@
   }
 
   .game-shelf-stats {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.5rem;
+    width: min(100%, 31rem);
+    justify-self: end;
     font-size: 0.68rem;
     font-weight: 900;
     text-transform: uppercase;
@@ -3145,17 +3213,69 @@
     display: inline-flex;
     min-height: 2rem;
     align-items: center;
+    justify-content: center;
     gap: 0.35rem;
+    min-width: 0;
     border: 1px solid color-mix(in srgb, var(--color-phosphor) 24%, transparent);
     background: rgba(2, 6, 4, 0.72);
     padding-inline: 0.65rem;
     color: var(--color-phosphor-soft);
+    text-align: center;
+    white-space: nowrap;
   }
 
   .game-shelf-stats .is-live {
     border-color: color-mix(in srgb, var(--color-cyan-arcade) 46%, transparent);
     color: var(--color-cyan-arcade);
     text-shadow: 0 0 12px color-mix(in srgb, var(--color-cyan-arcade) 42%, transparent);
+  }
+
+  .game-shelf-upgrades {
+    position: relative;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+  }
+
+  .game-shelf-upgrade {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.12rem 0.55rem;
+    align-items: center;
+    min-height: 4.15rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 22%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 7%, transparent), transparent 46%),
+      rgba(2, 6, 4, 0.68);
+    padding: 0.65rem 0.75rem;
+    box-shadow: inset 3px 0 0 color-mix(in srgb, var(--color-cyan-arcade) 32%, transparent);
+  }
+
+  .game-shelf-upgrade svg {
+    grid-row: span 2;
+    color: var(--color-cabinet);
+    filter: drop-shadow(0 0 8px color-mix(in srgb, var(--color-cabinet) 42%, transparent));
+  }
+
+  .game-shelf-upgrade span {
+    color: color-mix(in srgb, var(--color-phosphor-soft) 58%, transparent);
+    font-size: 0.58rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .game-shelf-upgrade strong {
+    min-width: 0;
+    overflow: hidden;
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 900;
+    line-height: 1.3;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
   }
 
   .game-shelf-stage {
@@ -3242,6 +3362,25 @@
     transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
     transform-style: preserve-3d;
     transition: transform 180ms ease, filter 180ms ease;
+  }
+
+  .game-card-cartridge-bar {
+    position: absolute;
+    left: 50%;
+    top: -0.38rem;
+    z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.28rem;
+    width: min(8.5rem, 58%);
+    height: 0.62rem;
+    transform: translateX(-50%) translateZ(18px);
+    pointer-events: none;
+  }
+
+  .game-card-cartridge-bar i {
+    background: color-mix(in srgb, var(--game-accent, var(--color-phosphor)) 58%, transparent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--game-accent, var(--color-phosphor)) 34%, transparent);
   }
 
   .game-card-scene::before,
@@ -3633,6 +3772,26 @@
     transition: opacity 180ms ease;
   }
 
+  .game-card-favorite-ribbon {
+    position: absolute;
+    right: 0.85rem;
+    top: 0.85rem;
+    z-index: 5;
+    max-width: calc(100% - 6rem);
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--color-cabinet) 48%, transparent);
+    background: rgba(2, 6, 4, 0.76);
+    padding: 0.35rem 0.5rem;
+    color: var(--color-cabinet);
+    font-size: 0.58rem;
+    font-weight: 900;
+    pointer-events: none;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    transition: opacity 180ms ease;
+    white-space: nowrap;
+  }
+
   .game-card-meta {
     position: relative;
     display: grid;
@@ -3713,6 +3872,49 @@
     text-transform: uppercase;
   }
 
+  .game-card-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.34rem;
+    margin-top: 0.2rem;
+  }
+
+  .game-card-badges span {
+    border: 1px solid color-mix(in srgb, var(--game-accent, var(--color-phosphor)) 28%, transparent);
+    background: color-mix(in srgb, var(--game-accent, var(--color-phosphor)) 7%, rgba(2, 6, 4, 0.72));
+    color: color-mix(in srgb, var(--game-accent, var(--color-phosphor)) 82%, white);
+    font-size: 0.54rem;
+    font-weight: 900;
+    padding: 0.22rem 0.34rem;
+    text-transform: uppercase;
+  }
+
+  .game-card-playtime {
+    display: grid;
+    gap: 0.35rem;
+    margin-block: 0.25rem 0.1rem;
+  }
+
+  .game-card-playtime span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: color-mix(in srgb, var(--game-accent, var(--color-phosphor)) 86%, white);
+    font-size: 0.66rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .game-card-playtime i {
+    display: block;
+    height: 7px;
+    border: 1px solid color-mix(in srgb, var(--game-accent, var(--color-phosphor)) 24%, transparent);
+    background:
+      linear-gradient(90deg, var(--game-accent, var(--color-phosphor)), var(--color-cabinet)) 0 0 / var(--game-hours-progress, 10%) 100% no-repeat,
+      rgba(2, 6, 4, 0.74);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--game-accent, var(--color-phosphor)) 18%, transparent);
+  }
+
   .game-card.is-active .game-card-cover,
   .game-card:hover .game-card-cover,
   .game-card:focus-visible .game-card-cover {
@@ -3750,9 +3952,13 @@
   .game-card.is-flipped .game-card-character,
   .game-card.is-flipped .game-card-logo-wrap,
   .game-card.is-flipped .game-card-bay,
+  .game-card.is-flipped .game-card-favorite-ribbon,
+  .game-card.is-flipped .game-card-cartridge-bar,
   .game-card.is-review-closing .game-card-character,
   .game-card.is-review-closing .game-card-logo-wrap,
-  .game-card.is-review-closing .game-card-bay {
+  .game-card.is-review-closing .game-card-bay,
+  .game-card.is-review-closing .game-card-favorite-ribbon,
+  .game-card.is-review-closing .game-card-cartridge-bar {
     opacity: 0;
     pointer-events: none;
   }
@@ -4059,18 +4265,26 @@
 }
 
 @media (max-width: 980px) {
-.game-shelf-grid {
+  .game-shelf-upgrades {
+    grid-template-columns: 1fr;
+  }
+
+  .game-shelf-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .game-shelf-toolbar {
-    align-items: flex-start;
-    flex-direction: column;
+    grid-template-columns: 1fr;
+  }
+
+  .game-shelf-stats {
+    width: 100%;
+    justify-self: stretch;
   }
 }
 
 @media (max-width: 640px) {
-.secret-bay-core {
+  .secret-bay-core {
     width: min(88%, 420px);
   }
 
@@ -4093,8 +4307,20 @@
     grid-template-columns: 1fr;
   }
 
+  .game-shelf-stats {
+    grid-template-columns: 1fr;
+  }
+
   .game-card-scene {
     min-height: 320px;
+  }
+
+  .game-card-favorite-ribbon {
+    max-width: calc(100% - 5.5rem);
+  }
+
+  .game-card-badges span {
+    font-size: 0.5rem;
   }
 
   .game-shelf-readout {

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
-const IDLE_MS = 60000;
+const IDLE_MS = 5 * 60 * 1000;
+const AFTER_BUDDY_SLEEP_MS = 3000;
 const CHECK_MS = 2500;
 const SCORE_CYCLE_MS = 1600;
 const CLOSE_MS = 420;
@@ -15,7 +16,8 @@ const HIGH_SCORES = [
 ];
 
 /*
-  Modo attract de cabinet real: tras 60s sin actividad la pantalla se atenua y
+  Modo attract de cabinet real: unos segundos despues de que Buddy se duerme por
+  inactividad, la pantalla se atenua y
   entra un screensaver autonomo (logo DAI.EXE a la deriva, tabla de puntajes,
   ranura de moneda). Como en un arcade de verdad, moverse no lo apaga: hay que
   INSERTAR UNA MONEDA (click o Enter — el boton recibe foco al abrir) para
@@ -33,6 +35,7 @@ export function AttractMode({ enabled, score = 0 }) {
   const closingRef = useRef(false);
   const enabledRef = useRef(enabled);
   const coinButtonRef = useRef(null);
+  const buddySleepAtRef = useRef(0);
   const timersRef = useRef(new Set());
 
   function schedule(fn, ms) {
@@ -50,26 +53,45 @@ export function AttractMode({ enabled, score = 0 }) {
   }, [enabled]);
 
   useEffect(() => {
+    function activateAttractMode() {
+      if (!enabledRef.current || activeRef.current || closingRef.current) return;
+      activeRef.current = true;
+      setActive(true);
+      setClosing(false);
+      setCoinDropping(false);
+      setCredit(false);
+      window.dispatchEvent(new CustomEvent("daivr-attract-mode", { detail: { active: true } }));
+    }
+
     function recordActivity() {
       // Con el attract activo la actividad NO lo cierra: eso lo hace la moneda.
       if (activeRef.current) return;
       lastActivityRef.current = Date.now();
+      buddySleepAtRef.current = 0;
+    }
+
+    function recordBuddySleep() {
+      buddySleepAtRef.current = Date.now();
     }
 
     function checkIdle() {
       if (!enabledRef.current || activeRef.current) return;
       if (Date.now() - lastActivityRef.current < IDLE_MS) return;
-      activeRef.current = true;
-      setActive(true);
+      if (!buddySleepAtRef.current || Date.now() - buddySleepAtRef.current < AFTER_BUDDY_SLEEP_MS) return;
+      activateAttractMode();
     }
 
     const events = ["pointermove", "pointerdown", "keydown", "wheel", "touchstart", "scroll"];
     events.forEach((name) => window.addEventListener(name, recordActivity, { passive: true }));
+    window.addEventListener("daivr-buddy-sleep", recordBuddySleep);
+    window.addEventListener("daivr-attract-request", activateAttractMode);
     const idleTimer = window.setInterval(checkIdle, CHECK_MS);
     const timers = timersRef.current;
 
     return () => {
       events.forEach((name) => window.removeEventListener(name, recordActivity));
+      window.removeEventListener("daivr-buddy-sleep", recordBuddySleep);
+      window.removeEventListener("daivr-attract-request", activateAttractMode);
       window.clearInterval(idleTimer);
       timers.forEach((timer) => window.clearTimeout(timer));
       timers.clear();
@@ -105,6 +127,7 @@ export function AttractMode({ enabled, score = 0 }) {
           setCoinDropping(false);
           setCredit(false);
           lastActivityRef.current = Date.now();
+          window.dispatchEvent(new CustomEvent("daivr-attract-mode", { detail: { active: false } }));
         }, CLOSE_MS);
       }, reduceMotion ? 200 : CREDIT_LINGER_MS);
     }, dropMs);

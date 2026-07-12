@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { discord, profile } from "../data/site";
-import { useBuddyFriendship } from "../hooks/useBuddyFriendship";
 import { useLanyardPresence } from "../hooks/useLanyardPresence";
 import { ScreenBuddy } from "./ScreenBuddy";
+import { FooterScenery } from "./FooterScenery";
+import { FooterWildlife } from "./FooterWildlife";
 
-export function SiteFooter({ onBuddyPet, onBuddyMilestone }) {
+export function SiteFooter({ buddy, onBuddyPet, onPowerOutage }) {
   const [visitCount, setVisitCount] = useState(null);
   const [visitError, setVisitError] = useState(false);
   const [discordUser, setDiscordUser] = useState(null);
@@ -13,13 +14,6 @@ export function SiteFooter({ onBuddyPet, onBuddyMilestone }) {
 
   const presence = useLanyardPresence(discord.userId);
   const spotify = presence.data?.listening_to_spotify && presence.data.spotify ? presence.data.spotify : null;
-
-  const friendship = useBuddyFriendship({ onMilestone: onBuddyMilestone });
-
-  function handleBuddyPet() {
-    friendship.registerPet();
-    onBuddyPet?.();
-  }
 
   useEffect(() => {
     async function hitVisit() {
@@ -52,31 +46,56 @@ export function SiteFooter({ onBuddyPet, onBuddyMilestone }) {
     loadDiscordUser();
   }, []);
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("daivr-now-playing", {
+      detail: {
+        active: Boolean(spotify),
+        song: spotify?.song || "",
+        artist: spotify?.artist || ""
+      }
+    }));
+
+    if (spotify) {
+      window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
+        detail: { type: "spotify" }
+      }));
+    }
+  }, [spotify]);
+
   return (
-    <div className="app-footer-zone">
+    <div className={`app-footer-zone ${spotify ? "is-spotify-live" : ""}`}>
+      <FooterScenery />
+      <FooterWildlife />
       <ScreenBuddy
-        onPet={handleBuddyPet}
+        onPet={onBuddyPet}
+        onPowerOutage={onPowerOutage}
+        user={discordUser}
         visitCount={visitError ? null : visitCount}
-        friendshipLevel={friendship.level}
+        friendshipLevel={buddy.friendship.level}
+        inventory={buddy.adventure.inventoryIds}
+        hiddenGear={buddy.effectiveHiddenGear}
+        unlockedGear={buddy.unlockedGearIds}
         nowPlaying={spotify ? { song: spotify.song, artist: spotify.artist } : null}
       />
       <footer className="app-footer">
         {spotify ? (
           <div className="footer-ticker" aria-label={`Now playing on Spotify: ${spotify.song} by ${spotify.artist}`}>
-            <span className="footer-ticker-label" aria-hidden="true">
-              <i className="footer-ticker-note">♪</i>
-              now_playing
-            </span>
-            <div className="footer-ticker-viewport" aria-hidden="true">
-              <div className="footer-ticker-scroll">
-                {[0, 1].map((copy) => (
-                  <span className="footer-ticker-item" key={copy}>
-                    <b>{spotify.song}</b>
-                    <span className="footer-ticker-sep">—</span>
-                    {spotify.artist}
-                    <span className="footer-ticker-sep">//</span>
-                  </span>
-                ))}
+            <div className="footer-ticker-content">
+              <span className="footer-ticker-label" aria-hidden="true">
+                <i className="footer-ticker-note">♪</i>
+                now_playing
+              </span>
+              <div className="footer-ticker-viewport" aria-hidden="true">
+                <div className="footer-ticker-scroll">
+                  {[0, 1].map((copy) => (
+                    <span className="footer-ticker-item" key={copy}>
+                      <b>{spotify.song}</b>
+                      <span className="footer-ticker-sep">—</span>
+                      {spotify.artist}
+                      <span className="footer-ticker-sep">//</span>
+                    </span>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -119,7 +138,9 @@ export function SiteFooter({ onBuddyPet, onBuddyMilestone }) {
               </div>
             </div>
           </div>
+        </div>
 
+        <div className="footer-prompt-band">
           <div className="footer-prompt" aria-hidden="true">
             <span className="footer-prompt-user">guest</span>
             <span className="footer-prompt-at">@</span>
@@ -127,10 +148,6 @@ export function SiteFooter({ onBuddyPet, onBuddyMilestone }) {
             <span className="footer-prompt-colon">:</span>
             <span className="footer-prompt-path">~$</span>
             <span className="footer-prompt-cmd">session.end()</span>
-            <span className="footer-prompt-buddy">
-              · buddy_lv <b>{String(friendship.level).padStart(2, "0")}</b>
-              {friendship.isSynced ? "" : " (local)"}
-            </span>
             <span className="footer-prompt-caret" />
           </div>
         </div>

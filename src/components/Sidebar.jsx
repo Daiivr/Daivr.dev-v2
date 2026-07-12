@@ -1,9 +1,9 @@
-import { MonitorCog } from "lucide-react";
+import { Backpack, BookOpen, MonitorCog, ScrollText } from "lucide-react";
 import { navItems, profile } from "../data/site";
 import { cn } from "../lib/cn";
 import { DiscordPlayerCard } from "./DiscordPlayerCard";
 
-export function Sidebar({ activeSection, theme, onThemeChange }) {
+export function Sidebar({ activeSection, buddy, onOpenBuddyModal, theme, onThemeChange }) {
   const displayNavItems = navItems
     .filter(([label]) => label !== "Links")
     .map(([label, href]) => [label === "Contact" ? "Comments" : label, href]);
@@ -42,12 +42,26 @@ export function Sidebar({ activeSection, theme, onThemeChange }) {
         ))}
       </nav>
 
-      <div className="panel mt-4 p-3">
-        <p className="pixel-label mb-3">LOADOUT</p>
-        <div className="flex flex-wrap gap-2">
-          {profile.tags.map((tag) => (
-            <span className="tag-chip" key={tag}>{tag}</span>
-          ))}
+      <div className="panel buddy-nav-card mt-4 p-3">
+        <p className="pixel-label buddy-nav-title">BUDDY</p>
+        <div className="buddy-nav-card-stats">
+          <span>lv <b>{String(buddy.friendship.level).padStart(2, "0")}</b></span>
+          <span>gear <b>{buddy.activeGearCount}/{buddy.gearItems.length || 0}</b></span>
+          <span>quests <b>{String(buddy.adventure.completedCount).padStart(2, "0")}</b></span>
+        </div>
+        <div className="buddy-nav-actions">
+          <button className="arcade-focus" type="button" onClick={() => onOpenBuddyModal("inventory")} aria-label="Open Buddy inventory">
+            <Backpack size={14} aria-hidden="true" />
+            inv
+          </button>
+          <button className="arcade-focus" type="button" onClick={() => onOpenBuddyModal("quests")}>
+            <ScrollText size={14} aria-hidden="true" />
+            quests
+          </button>
+          <button className="arcade-focus" type="button" onClick={() => onOpenBuddyModal("journal")}>
+            <BookOpen size={14} aria-hidden="true" />
+            journal
+          </button>
         </div>
       </div>
 

@@ -114,6 +114,18 @@
     text-align: left;
   }
 
+  .project-card::after {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    content: "";
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-cabinet) 34%, transparent), transparent 18%) 0 0 / 5rem 100% no-repeat,
+      repeating-linear-gradient(180deg, color-mix(in srgb, var(--color-phosphor) 20%, transparent) 0 1px, transparent 1px 14px) 0.82rem 1rem / 0.9rem calc(100% - 2rem) no-repeat;
+    opacity: 0.34;
+  }
+
   .project-card::before {
     position: absolute;
     inset: 0;
@@ -172,6 +184,25 @@
       linear-gradient(180deg, rgba(2, 8, 6, 0.18), rgba(2, 6, 4, 0.82)),
       radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--color-cyan-arcade) 18%, transparent), transparent 58%),
       rgba(2, 6, 4, 0.96);
+  }
+
+  .project-card-cartridge-top {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    z-index: 8;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.35rem;
+    width: min(9.4rem, 52%);
+    height: 0.62rem;
+    transform: translateX(-50%);
+  }
+
+  .project-card-cartridge-top i {
+    display: block;
+    background: color-mix(in srgb, var(--color-cabinet) 72%, transparent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--color-cabinet) 22%, transparent);
   }
 
   .project-card-fallout .project-card-media {
@@ -397,6 +428,17 @@
     align-content: start;
     gap: 1rem;
     padding: clamp(1rem, 2.2vw, 1.45rem);
+  }
+
+  .project-card-cartridge-label {
+    width: fit-content;
+    border: 1px solid color-mix(in srgb, var(--color-cabinet) 34%, transparent);
+    background: color-mix(in srgb, var(--color-cabinet) 8%, rgba(2, 6, 4, 0.7));
+    color: var(--color-cabinet);
+    font-size: 0.6rem;
+    font-weight: 900;
+    padding: 0.32rem 0.5rem;
+    text-transform: uppercase;
   }
 
   .project-card-meta {

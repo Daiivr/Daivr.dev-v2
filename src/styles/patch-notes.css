@@ -73,6 +73,118 @@
     animation: status-meter-pulse 2.4s ease-in-out infinite;
   }
 
+  .patch-personality-readout {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    gap: 0.65rem;
+    align-items: center;
+    border: 1px solid color-mix(in srgb, var(--color-cabinet) 26%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-cabinet) 10%, transparent), transparent 44%),
+      rgba(2, 6, 4, 0.58);
+    padding: 0.75rem 0.9rem;
+  }
+
+  .patch-personality-readout span,
+  .patch-personality-readout strong {
+    font-size: 0.62rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .patch-personality-readout span {
+    color: var(--color-cabinet);
+  }
+
+  .patch-personality-readout strong {
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 32%, transparent);
+    color: var(--color-phosphor);
+    padding: 0.24rem 0.42rem;
+  }
+
+  .patch-personality-readout p {
+    min-width: 0;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 78%, white);
+    font-size: 0.72rem;
+    font-weight: 800;
+    line-height: 1.45;
+  }
+
+  .patch-console-pagination {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 22%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent), transparent 55%),
+      rgba(2, 6, 4, 0.54);
+    padding: 0.5rem;
+  }
+
+  .patch-page-list {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .patch-page-arrow,
+  .patch-page-button {
+    display: inline-grid;
+    place-items: center;
+    min-width: 2rem;
+    height: 2rem;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 24%, transparent);
+    background: color-mix(in srgb, var(--color-phosphor) 5%, rgba(2, 6, 4, 0.72));
+    color: var(--color-phosphor-soft);
+    font-size: 0.62rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    transition:
+      border-color 160ms ease,
+      background 160ms ease,
+      color 160ms ease,
+      transform 160ms ease;
+  }
+
+  .patch-page-arrow:not(:disabled):hover,
+  .patch-page-arrow:not(:disabled):focus-visible,
+  .patch-page-button:hover,
+  .patch-page-button:focus-visible,
+  .patch-page-button[aria-current="page"] {
+    border-color: color-mix(in srgb, var(--color-cyan-arcade) 58%, transparent);
+    background: color-mix(in srgb, var(--color-cyan-arcade) 12%, transparent);
+    color: var(--color-cyan-arcade);
+    box-shadow:
+      inset 0 0 12px color-mix(in srgb, var(--color-cyan-arcade) 9%, transparent),
+      0 0 14px color-mix(in srgb, var(--color-cyan-arcade) 12%, transparent);
+  }
+
+  .patch-page-arrow:not(:disabled):hover,
+  .patch-page-button:hover {
+    transform: translateY(-1px);
+  }
+
+  .patch-page-arrow:disabled {
+    cursor: not-allowed;
+    opacity: 0.35;
+  }
+
+  .patch-page-readout {
+    margin-left: auto;
+    border: 1px solid color-mix(in srgb, var(--color-cabinet) 26%, transparent);
+    background: color-mix(in srgb, var(--color-cabinet) 7%, transparent);
+    padding: 0.52rem 0.62rem;
+    color: var(--color-cabinet);
+    font-size: 0.58rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
   /* Timeline: riel vertical a la izquierda con nodos por version */
   .patch-console-list {
     position: relative;
@@ -232,6 +344,10 @@
     --patch-accent: var(--color-glitch);
   }
 
+  .patch-chip.is-known {
+    --patch-accent: var(--color-danger-arcade);
+  }
+
   .patch-console-readout {
     position: relative;
     z-index: 1;
@@ -262,6 +378,15 @@
   }
 
   @media (max-width: 760px) {
+    .patch-personality-readout {
+      grid-template-columns: 1fr;
+    }
+
+    .patch-page-readout {
+      margin-left: 0;
+      width: 100%;
+    }
+
     .patch-entry-head time {
       margin-left: 0;
       width: 100%;
@@ -278,10 +403,13 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
+    .patch-page-arrow,
+    .patch-page-button,
     .patch-console-titlebar strong span,
     .patch-entry.is-latest .patch-entry-node,
     .patch-entry-badge {
       animation: none;
+      transition: none;
     }
   }
 }

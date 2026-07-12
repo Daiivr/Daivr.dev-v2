@@ -1,0 +1,119 @@
+@layer components {
+  /* Cambio de cartucho: <main> es el cartucho que se expulsa y reasienta;
+     la cabecera pegajosa hace de ranura y destella cuando el cartucho toca
+     fondo. Solo transform + opacity para que el compositor haga el trabajo. */
+  .cart-stage.is-cart-eject {
+    pointer-events: none;
+    animation: cart-eject 250ms cubic-bezier(0.6, 0.04, 0.9, 0.5) both;
+    will-change: transform, opacity;
+  }
+
+  .cart-stage.is-cart-insert {
+    pointer-events: none;
+    animation: cart-insert 480ms cubic-bezier(0.3, 0.62, 0.34, 1) both;
+    will-change: transform, opacity;
+  }
+
+  /* Linea de la ranura: vive pegada al borde inferior de la cabecera */
+  .cart-slot::after {
+    position: absolute;
+    inset: auto 0 -2px;
+    height: 2px;
+    content: "";
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent 3%,
+      color-mix(in srgb, var(--color-phosphor) 85%, transparent) 28%,
+      #f4fff8 50%,
+      color-mix(in srgb, var(--color-phosphor) 85%, transparent) 72%,
+      transparent 97%
+    );
+    box-shadow:
+      0 0 16px var(--color-phosphor),
+      0 0 42px color-mix(in srgb, var(--color-phosphor) 55%, transparent);
+    opacity: 0;
+  }
+
+  .cart-slot.is-cart-seat::after {
+    animation: cart-slot-flash 480ms linear both;
+  }
+
+  @keyframes cart-eject {
+    0% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* destrabe: el cartucho se hunde antes de saltar */
+    26% {
+      opacity: 1;
+      transform: translateY(10px);
+    }
+
+    100% {
+      opacity: 0;
+      transform: translateY(-88px);
+    }
+  }
+
+  @keyframes cart-insert {
+    0% {
+      opacity: 0;
+      transform: translateY(-92px);
+    }
+
+    38% {
+      opacity: 1;
+    }
+
+    /* cae pasando el asiento, resorte y clunk final */
+    58% {
+      transform: translateY(8px);
+    }
+
+    74% {
+      transform: translateY(-3px);
+    }
+
+    88% {
+      transform: translateY(1.5px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes cart-slot-flash {
+    0%,
+    46% {
+      opacity: 0;
+    }
+
+    58% {
+      opacity: 1;
+    }
+
+    76% {
+      opacity: 0.35;
+    }
+
+    88% {
+      opacity: 0.7;
+    }
+
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cart-stage.is-cart-eject,
+    .cart-stage.is-cart-insert,
+    .cart-slot.is-cart-seat::after {
+      animation: none;
+    }
+  }
+}

@@ -377,6 +377,9 @@ function ProjectCard({ project, scanInfo }) {
   function handleOpenChange(nextOpen) {
     if (nextOpen) {
       lockProjectPageWidth();
+      window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
+        detail: { type: "cartridge", id: `project:${project.title}` }
+      }));
     } else {
       unlockProjectPageWidth();
     }
@@ -404,6 +407,11 @@ function ProjectCardContent({ project, scanData }) {
   return (
     <>
       <div className="project-card-media">
+        <span className="project-card-cartridge-top" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+        </span>
         <span className="project-card-grid" aria-hidden="true" />
         <span className="project-card-glow" aria-hidden="true" />
         <span className="project-card-scan" aria-hidden="true" />
@@ -439,6 +447,7 @@ function ProjectCardContent({ project, scanData }) {
       </div>
 
       <div className="project-card-body">
+        <span className="project-card-cartridge-label">arcade cartridge // {project.kicker}</span>
         <div className="project-card-meta">
           <span>./project</span>
           <span>{project.channel}</span>

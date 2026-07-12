@@ -15,7 +15,7 @@ import {
   Trash2,
   X
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { DecodeText } from "./DecodeText";
 
@@ -331,6 +331,7 @@ function CommentMedia({ gifUrl }) {
 }
 
 export function CommentsSection() {
+  const sectionRef = useRef(null);
   const [comments, setComments] = useState([]);
   const [reactions, setReactions] = useState(FALLBACK_REACTIONS);
   const [auth, setAuth] = useState({ configured: false, user: null, loginUrl: "/api/comments/auth/discord", logoutUrl: "/api/comments/auth/logout" });
@@ -384,6 +385,25 @@ export function CommentsSection() {
 
   useEffect(() => {
     loadComments();
+  }, []);
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return undefined;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+        window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
+          detail: { type: "guestbook" }
+        }));
+        observer.disconnect();
+      },
+      { threshold: 0.25 }
+    );
+
+    observer.observe(section);
+    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {
@@ -785,7 +805,7 @@ export function CommentsSection() {
   const shouldPortalReactionPicker = isMobileViewport();
 
   return (
-    <section className="py-16 md:py-24" id="contact">
+    <section className="py-16 md:py-24" id="contact" ref={sectionRef}>
       <div className="comments-section-heading">
         <DecodeText as="p" className="pixel-label" duration={520} text="OPEN CHANNEL" />
         <DecodeText
@@ -919,8 +939,9 @@ export function CommentsSection() {
             const reactionMap = comment.reactions && typeof comment.reactions === "object" ? comment.reactions : {};
 
             return (
-              <article className={`comment-card ${comment.pinned ? "is-pinned" : ""}`} key={comment.id}>
+              <article className={`comment-card is-terminal-transmission ${comment.pinned ? "is-pinned" : ""}`} key={comment.id}>
                 {comment.pinned ? <span className="comment-pinned-badge"><Pin size={12} aria-hidden="true" /> pinned</span> : null}
+                <span className="comment-transmission-badge" aria-hidden="true">incoming transmission</span>
                 <div className="comment-avatar">
                   <UserAvatar user={comment.author} />
                 </div>

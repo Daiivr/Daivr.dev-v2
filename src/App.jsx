@@ -1,28 +1,48 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { commands, discord, games, profile, projects } from "./data/site";
 import { preloadImages } from "./lib/preloadImages";
+import { useBuddyAdventure } from "./hooks/useBuddyAdventure";
+import { useBuddyFriendship } from "./hooks/useBuddyFriendship";
+import { useBuddyLoadout } from "./hooks/useBuddyLoadout";
+import { useCartridgeSwap } from "./hooks/useCartridgeSwap";
 import { useClock } from "./hooks/useClock";
 import { useFps } from "./hooks/useFps";
 import { useRandomGlitchWords } from "./hooks/useRandomGlitchWords";
 import { ArcadeBackground } from "./components/ArcadeBackground";
 import { AttractMode } from "./components/AttractMode";
 import { BuddyDrop } from "./components/BuddyDrop";
+import { BuddyModal } from "./components/BuddyModal";
 import { CommentsSection } from "./components/CommentsSection";
 import { CursorTrail } from "./components/CursorTrail";
 import { EntrySplash } from "./components/EntrySplash";
 import { HeroStation } from "./components/HeroStation";
 import { LaunchOverlay } from "./components/LaunchOverlay";
+import { MadraceModal } from "./components/MadraceModal";
+import { PerchedBirds } from "./components/PerchedBirds";
 import { ProgramSections } from "./components/ProgramSections";
 import { Sidebar } from "./components/Sidebar";
 import { SiteFooter } from "./components/SiteFooter";
 import { TerminalDialog } from "./components/TerminalDialog";
+
+const TERMINAL_NODES = [
+  ["home", "home"],
+  ["now", "now"],
+  ["builds", "builds"],
+  ["room", "room"],
+  ["games", "games"],
+  ["toolbelt", "toolbelt"],
+  ["patch", "patchlog"],
+  ["patchlog", "patchlog"],
+  ["comments", "contact"],
+  ["contact", "contact"]
+];
 
 export default function App() {
   const [theme, setTheme] = useState("crt");
   const [terminalOpen, setTerminalOpen] = useState(false);
   const [score, setScore] = useState(87);
   const [buildLog, setBuildLog] = useState("$ idle\nDai.exe offline\nnodes waiting for RUN command...");
-  const [terminalLog, setTerminalLog] = useState("$ whoami\npersonal arcade station offline.\n\nTip: type help, run, theme, scan, clear.");
+  const [terminalLog, setTerminalLog] = useState("┌─ DAI.EXE COMMAND CONSOLE // v2.6\n│ cabinet shell mounted at ~/daivr\n│ history + completion modules online\n└─ Tip: type help, use Tab completion, or press ↑ for history.\n\n$ status\nshell ready // awaiting operator input");
   const [activeSection, setActiveSection] = useState("home");
   const [isLaunching, setIsLaunching] = useState(false);
   const [launchPhase, setLaunchPhase] = useState(0);
@@ -30,12 +50,22 @@ export default function App() {
   const [launchClosing, setLaunchClosing] = useState(false);
   const [entrySplashOpen, setEntrySplashOpen] = useState(true);
   const [buddyDrop, setBuddyDrop] = useState(null);
+  const [buddyModal, setBuddyModal] = useState(null);
   const [hasRun, setHasRun] = useState(false);
   const [achievement, setAchievement] = useState("");
+  const [powerOutage, setPowerOutage] = useState("");
+  const [madraceOpen, setMadraceOpen] = useState(false);
   const achievementTimerRef = useRef(0);
+  const konamiIndexRef = useRef(0);
   const shellRef = useRef(null);
   const time = useClock();
   const fps = useFps();
+  const friendship = useBuddyFriendship({ onMilestone: handleBuddyMilestone });
+  const adventure = useBuddyAdventure({ onQuestComplete: handleBuddyQuestComplete });
+  const loadout = useBuddyLoadout({ friendship, adventure });
+  const cartPhase = useCartridgeSwap(shellRef);
+  const buddy = { friendship, adventure, ...loadout };
+  const closeMadrace = useCallback(() => setMadraceOpen(false), []);
   useRandomGlitchWords(theme === "glitch");
 
   useEffect(() => {
@@ -46,6 +76,28 @@ export default function App() {
       ...projects.flatMap((project) => [project.image, project.icon])
     ]);
   }, []);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV || entrySplashOpen) return undefined;
+    const event = new URLSearchParams(window.location.search).get("buddyEvent");
+    const eventNames = {
+      fish: "daivr-buddy-fish",
+      forage: "daivr-buddy-find",
+      wildlife: "daivr-buddy-creature",
+      rain: "daivr-buddy-rain",
+      enemy: "daivr-buddy-enemy",
+      outage: "daivr-buddy-outage"
+    };
+    if (!eventNames[event]) return undefined;
+    const params = new URLSearchParams(window.location.search);
+    const weapon = params.get("buddyWeapon") || "";
+    const creatureId = params.get("buddyCreature") || "";
+    const forceCollision = params.get("buddyFishCollision") === "1";
+    const timer = window.setTimeout(() => window.dispatchEvent(new CustomEvent(eventNames[event], {
+      detail: weapon || creatureId || forceCollision ? { weapon, id: creatureId, forceCollision } : undefined
+    })), 2800);
+    return () => window.clearTimeout(timer);
+  }, [entrySplashOpen]);
 
   useEffect(() => {
     let cancelled = false;
@@ -95,6 +147,7 @@ export default function App() {
   const buddyPettedRef = useRef(false);
 
   function handleBuddyPet() {
+    friendship.registerPet();
     if (buddyPettedRef.current) return;
     buddyPettedRef.current = true;
     showAchievement("Achievement unlocked: buddy befriended", 3200);
@@ -104,7 +157,69 @@ export default function App() {
     showAchievement(`Achievement unlocked: buddy friendship lv ${String(level).padStart(2, "0")}`, 3600);
   }
 
+  function handleBuddyQuestComplete(quest) {
+    showAchievement(`Buddy quest complete: ${quest.title} // ${quest.reward} acquired`, 3600);
+  }
+
+  function openTerminal() {
+    window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
+      detail: { type: "terminal" }
+    }));
+    setTerminalOpen(true);
+  }
+
+  useEffect(() => {
+    function openTerminalShortcut(event) {
+      if (event.key !== "/" || event.ctrlKey || event.metaKey || event.altKey) return;
+      const target = event.target;
+      const isTyping = target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
+      if (isTyping || terminalOpen || entrySplashOpen || buddyModal || isLaunching) return;
+      if (document.querySelector(".attract-mode,.madrace-backdrop,.project-modal,.comments-gif-modal,.comments-delete-modal")) return;
+      event.preventDefault();
+      window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
+        detail: { type: "terminal" }
+      }));
+      setTerminalOpen(true);
+    }
+
+    window.addEventListener("keydown", openTerminalShortcut);
+    return () => window.removeEventListener("keydown", openTerminalShortcut);
+  }, [buddyModal, entrySplashOpen, isLaunching, terminalOpen]);
+
   useEffect(() => () => window.clearTimeout(achievementTimerRef.current), []);
+
+  useEffect(() => {
+    const sequence = ["arrowup", "arrowup", "arrowdown", "arrowdown", "arrowleft", "arrowright", "arrowleft", "arrowright", "b", "a"];
+
+    function detectKonami(event) {
+      if (entrySplashOpen || madraceOpen || isLaunching || terminalOpen || buddyModal) return;
+      const target = event.target;
+      if (target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))) {
+        konamiIndexRef.current = 0;
+        return;
+      }
+      if (document.querySelector(".attract-mode,.project-modal,.comments-gif-modal,.comments-delete-modal")) return;
+
+      const key = String(event.key || "").toLowerCase();
+      const index = konamiIndexRef.current;
+      if (key === sequence[index]) {
+        event.preventDefault();
+        const next = index + 1;
+        if (next === sequence.length) {
+          konamiIndexRef.current = 0;
+          setMadraceOpen(true);
+          showAchievement("SECRET CARTRIDGE UNLOCKED // MADRACE.EXE", 3000);
+        } else {
+          konamiIndexRef.current = next;
+        }
+        return;
+      }
+      konamiIndexRef.current = key === sequence[0] ? 1 : 0;
+    }
+
+    window.addEventListener("keydown", detectKonami);
+    return () => window.removeEventListener("keydown", detectKonami);
+  }, [buddyModal, entrySplashOpen, isLaunching, madraceOpen, terminalOpen]);
 
   useEffect(() => {
     const shell = shellRef.current;
@@ -221,12 +336,28 @@ export default function App() {
 
   function runCommand(rawInput) {
     const input = rawInput.trim();
-    const name = input.toLowerCase();
-    if (!name) return;
+    if (!input) return;
+    const [rawName, ...args] = input.split(/\s+/);
+    const name = rawName.toLowerCase();
+    const arg = args.join(" ").trim();
+
+    if (name === "help") {
+      const advanced = args.some((item) => ["--all", "-a", "advanced"].includes(item.toLowerCase()));
+      appendTerminal(input, advanced
+        ? "COMMAND INDEX // ALL\n  help [--all]       command directory\n  status             cabinet telemetry\n  ls                 list page nodes\n  goto <node>        navigate the cabinet\n  theme [crt|glitch] set or toggle theme\n  run                boot Dai.exe\n  attract            start arcade demo mode\n  whoami / now / scan / discord / contact\n  date / echo <text> / clear / exit\n\nDIAGNOSTIC BUS // use responsibly\n  fish / forage / wildlife / debugbug\n  blackout           rare breaker simulation"
+        : "COMMAND INDEX\n  status             cabinet telemetry\n  ls                 list page nodes\n  goto <node>        navigate the cabinet\n  theme [crt|glitch] set or toggle theme\n  run                boot Dai.exe\n  attract            start arcade demo mode\n  whoami / now / scan / discord / contact\n  date / echo <text> / clear / exit\n\nHint: help --all opens the diagnostic bus.");
+      return;
+    }
 
     if (name === "theme") {
-      updateThemePreference(theme === "crt" ? "glitch" : "crt");
-      appendTerminal(input, "Theme toggled. Glitch layer recalibrated.");
+      const requested = args[0]?.toLowerCase();
+      if (requested && !["crt", "glitch", "toggle"].includes(requested)) {
+        appendTerminal(input, "Usage: theme [crt|glitch|toggle]");
+        return;
+      }
+      const nextTheme = requested && requested !== "toggle" ? requested : theme === "crt" ? "glitch" : "crt";
+      updateThemePreference(nextTheme);
+      appendTerminal(input, `Theme set: ${nextTheme.toUpperCase()} // palette bus synchronized.`);
       return;
     }
 
@@ -240,8 +371,90 @@ export default function App() {
       return;
     }
 
+    if (name === "exit" || name === "close") {
+      appendTerminal(input, "Session detached. Press / to reconnect.");
+      setTerminalOpen(false);
+      return;
+    }
+
+    if (name === "status") {
+      appendTerminal(input, [
+        "CABINET TELEMETRY",
+        `  dai.exe       ${hasRun ? "ONLINE" : isLaunching ? "BOOTING" : "OFFLINE"}`,
+        `  theme         ${theme.toUpperCase()}`,
+        `  score         ${String(score).padStart(3, "0")}`,
+        `  fps           ${fps}`,
+        `  active_node   ${activeSection}`,
+        `  buddy_level   ${String(friendship.level).padStart(2, "0")}`,
+        `  power_bus     ${powerOutage || "nominal"}`,
+        "status complete // all readable systems polled"
+      ].join("\n"));
+      return;
+    }
+
+    if (name === "ls") {
+      appendTerminal(input, "~/daivr nodes\n  home/  now/  builds/  room/  games/\n  toolbelt/  patchlog/  comments/\nUsage: goto <node>");
+      return;
+    }
+
+    if (name === "goto" || name === "cd") {
+      const requested = arg.toLowerCase().replace(/^#/, "");
+      const nodeId = TERMINAL_NODES.find(([alias]) => alias === requested)?.[1];
+      const node = nodeId ? document.getElementById(nodeId) : null;
+      if (!node) {
+        appendTerminal(input, `Node not found: ${arg || "(missing)"}\nRun ls to list valid cabinet nodes.`);
+        return;
+      }
+      node.scrollIntoView({ behavior: "smooth", block: "start" });
+      appendTerminal(input, `Mounted #${nodeId} // viewport routing accepted.`);
+      return;
+    }
+
+    if (name === "date" || name === "time") {
+      appendTerminal(input, `${new Date().toLocaleString()}\nlocal cabinet clock synchronized.`);
+      return;
+    }
+
+    if (name === "echo") {
+      appendTerminal(input, arg || "Usage: echo <text>");
+      return;
+    }
+
+    if (name === "attract" || name === "demo") {
+      appendTerminal(input, "ATTRACT.MODE requested.\nHanding controls to the coin slot...");
+      setTerminalOpen(false);
+      window.dispatchEvent(new CustomEvent("daivr-attract-request"));
+      return;
+    }
+
     if (name === "contact") {
       appendTerminal(input, `Open channel: ${profile.email}`);
+      return;
+    }
+
+    // Hidden cabinet diagnostics double as easter-egg commands. They are kept
+    // out of help so normal visitors discover the encounters organically.
+    const buddySignals = {
+      fish: ["daivr-buddy-fish", "Buddy fishing diagnostic queued."],
+      forage: ["daivr-buddy-find", "Footer loot scanner pulsed."],
+      wildlife: ["daivr-buddy-creature", "Environmental creature ping sent."],
+      debugbug: ["daivr-buddy-enemy", "Hostile bug simulation started."]
+    };
+    if (buddySignals[name]) {
+      const [eventName, response] = buddySignals[name];
+      window.dispatchEvent(new CustomEvent(eventName));
+      appendTerminal(input, response);
+      return;
+    }
+
+    if (["blackout", "powerout", "power-out"].includes(name)) {
+      if (powerOutage) {
+        appendTerminal(input, `Power bus already busy: ${powerOutage}.`);
+        return;
+      }
+      appendTerminal(input, "BREAKER_OVERRIDE accepted.\nRare outage sequence armed // flashlight crew notified.");
+      setTerminalOpen(false);
+      window.dispatchEvent(new CustomEvent("daivr-buddy-outage"));
       return;
     }
 
@@ -251,17 +464,33 @@ export default function App() {
       return;
     }
 
-    appendTerminal(input, `Command not found: ${input}\nTry help, run, theme, scan, clear.`);
+    appendTerminal(input, `Command not found: ${input}\nTip: run help, use Tab completion, or try ls.`);
   }
 
   return (
-    <div ref={shellRef} className={`app-shell ${theme === "glitch" ? "theme-glitch" : ""} ${isLaunching ? "is-launching" : ""}`} data-glitch-root>
+    <div ref={shellRef} className={`app-shell ${theme === "glitch" ? "theme-glitch" : ""} ${isLaunching ? "is-launching" : ""} ${powerOutage ? `has-power-outage outage-${powerOutage}` : ""}`} data-glitch-root>
       <ArcadeBackground />
       <CursorTrail theme={theme} />
+      <PerchedBirds />
+      {powerOutage ? (
+        <div className={`cabinet-power-outage is-${powerOutage}`} aria-live="polite">
+          <span className="power-outage-noise" aria-hidden="true" />
+          <span className="power-outage-label">{powerOutage === "restore" ? "POWER RESTORING" : "CABINET POWER LOST"}</span>
+        </div>
+      ) : null}
       {entrySplashOpen ? (
         <EntrySplash onBuddyLaunch={setBuddyDrop} onEnter={() => setEntrySplashOpen(false)} />
       ) : null}
-      {buddyDrop ? <BuddyDrop start={buddyDrop} onDone={() => setBuddyDrop(null)} /> : null}
+      {buddyDrop ? (
+        <BuddyDrop
+          start={buddyDrop}
+          onDone={() => setBuddyDrop(null)}
+          friendshipLevel={buddy.friendship.level}
+          inventory={buddy.adventure.inventoryIds}
+          hiddenGear={buddy.effectiveHiddenGear}
+          unlockedGear={buddy.unlockedGearIds}
+        />
+      ) : null}
 
       <a
         className="fixed left-3 top-3 z-100 -translate-y-24 bg-phosphor px-3 py-2 font-black text-ink-950 focus:translate-y-0"
@@ -270,11 +499,17 @@ export default function App() {
         Skip to content
       </a>
 
-      <div className="relative z-10 grid min-h-screen lg:grid-cols-[292px_minmax(0,1fr)]">
-        <Sidebar activeSection={activeSection} theme={theme} onThemeChange={updateThemePreference} />
+      <div className="cabinet-layout relative grid min-h-screen lg:grid-cols-[292px_minmax(0,1fr)]">
+        <Sidebar
+          activeSection={activeSection}
+          buddy={buddy}
+          onOpenBuddyModal={setBuddyModal}
+          theme={theme}
+          onThemeChange={updateThemePreference}
+        />
 
         <div className="min-w-0">
-          <header className="sticky top-0 z-40 flex min-h-[68px] flex-col gap-3 border-b border-phosphor/20 bg-ink-950/85 px-4 py-3 backdrop-blur md:flex-row md:items-center md:justify-between lg:px-10">
+          <header className={`cart-slot sticky top-0 z-40 flex min-h-[68px] flex-col gap-3 border-b border-phosphor/20 bg-ink-950/85 px-4 py-3 backdrop-blur md:flex-row md:items-center md:justify-between lg:px-10 ${cartPhase === "insert" ? "is-cart-seat" : ""}`}>
             <div>
               <span className="pixel-label text-phosphor-soft/60">ACTIVE PROGRAM</span>
               <strong className="ml-2 font-display text-white">Dai.exe</strong>
@@ -286,19 +521,19 @@ export default function App() {
             </div>
           </header>
 
-          <main className="mx-auto w-[min(1180px,calc(100%-clamp(28px,6vw,76px)))]" id="main">
+          <main className={`cart-stage mx-auto w-[min(1180px,calc(100%-clamp(28px,6vw,76px)))] ${cartPhase ? `is-cart-${cartPhase}` : ""}`} id="main">
             <HeroStation
               buildLog={buildLog}
               hasRun={hasRun}
               isLaunching={isLaunching}
               launchPhase={launchPhase}
-              onOpenTerminal={() => setTerminalOpen(true)}
+              onOpenTerminal={openTerminal}
               onRun={runBuild}
             />
             <ProgramSections />
             <CommentsSection />
           </main>
-          <SiteFooter onBuddyPet={handleBuddyPet} onBuddyMilestone={handleBuddyMilestone} />
+          <SiteFooter buddy={buddy} onBuddyPet={handleBuddyPet} onPowerOutage={setPowerOutage} />
         </div>
       </div>
 
@@ -309,6 +544,15 @@ export default function App() {
       ) : null}
 
       <AttractMode enabled={!entrySplashOpen} score={score} />
+
+      <MadraceModal open={madraceOpen} onClose={closeMadrace} />
+
+      <BuddyModal
+        buddy={buddy}
+        mode={buddyModal}
+        onClose={() => setBuddyModal(null)}
+        onModeChange={setBuddyModal}
+      />
 
       <LaunchOverlay active={isLaunching} closing={launchClosing} complete={launchComplete} phase={launchPhase} />
 

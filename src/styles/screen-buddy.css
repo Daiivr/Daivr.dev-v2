@@ -5,6 +5,20 @@
     position: relative;
   }
 
+  .app-footer-zone.is-spotify-live::before {
+    position: absolute;
+    inset: -32px 0 auto;
+    height: 72px;
+    pointer-events: none;
+    content: "";
+    background:
+      linear-gradient(90deg, transparent, color-mix(in srgb, #1ed760 20%, transparent), transparent),
+      repeating-linear-gradient(90deg, transparent 0 18px, color-mix(in srgb, #1ed760 18%, transparent) 18px 20px);
+    opacity: 0.35;
+    filter: blur(10px);
+    animation: footer-spotify-wake 2.4s ease-in-out infinite;
+  }
+
   /* El buddy vive parado sobre el borde superior del footer (la linea
      arcoiris). Se desplaza con --buddy-x y la transicion dura lo que el
      paseo actual (--buddy-walk-ms) para velocidad constante. */
@@ -66,7 +80,7 @@
     position: absolute;
     bottom: calc(100% + 8px);
     left: 50%;
-    z-index: 3;
+    z-index: 20;
     max-width: 200px;
     min-width: max-content;
     border: 1px solid color-mix(in srgb, var(--color-phosphor) 45%, transparent);
@@ -103,9 +117,48 @@
     transform: translate(-50%, 0);
   }
 
+  /* En las esquinas la burbuja crece hacia dentro del footer, evitando que
+     los comentarios largos queden recortados por el borde de la pagina. */
+  .screen-buddy-bubble.anchor-right {
+    right: 4px;
+    left: auto;
+    transform: translateY(4px);
+  }
+
+  .screen-buddy-bubble.anchor-right.is-visible {
+    transform: translateY(0);
+  }
+
+  .screen-buddy-bubble.anchor-right::after {
+    right: 22px;
+    left: auto;
+    transform: translate(50%, -55%) rotate(45deg);
+  }
+
+  .screen-buddy-bubble.anchor-left {
+    right: auto;
+    left: 4px;
+    transform: translateY(4px);
+  }
+
+  .screen-buddy-bubble.anchor-left.is-visible {
+    transform: translateY(0);
+  }
+
+  .screen-buddy-bubble.anchor-left::after {
+    right: auto;
+    left: 22px;
+  }
+
   /* Con el paracaidas abierto la burbuja sube por encima de la cupula */
   .screen-buddy-root.is-chute .screen-buddy-bubble {
     bottom: calc(100% + 34px);
+  }
+
+  /* Keep rain comments clear of the raised umbrella canopy. */
+  .screen-buddy-root.weather-rain .screen-buddy-bubble {
+    bottom: calc(100% + 24px);
+    z-index: 30;
   }
 
   /* Zzz flotantes al dormir */
@@ -180,8 +233,40 @@
     animation: buddy-blink 4.4s infinite;
   }
 
+  .buddy-green-visor {
+    filter: drop-shadow(0 0 3px rgba(63, 255, 151, 0.75));
+    animation: buddy-visor-glint 2.1s steps(2, end) infinite;
+  }
+
   .buddy-led {
     animation: buddy-led-pulse 1.8s ease-in-out infinite;
+  }
+
+  .buddy-antenna-spark {
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .screen-buddy-root.is-walk .buddy-antenna-spark,
+  .screen-buddy-root.is-sleepy .buddy-antenna-spark,
+  .screen-buddy-root.is-chute .buddy-antenna-spark,
+  .screen-buddy-root.is-dance .buddy-antenna-spark {
+    animation: buddy-antenna-spark-trail 0.62s steps(3, end) infinite;
+  }
+
+  .screen-buddy-root.is-walk .buddy-antenna-spark-b,
+  .screen-buddy-root.is-sleepy .buddy-antenna-spark-b,
+  .screen-buddy-root.is-chute .buddy-antenna-spark-b,
+  .screen-buddy-root.is-dance .buddy-antenna-spark-b {
+    animation-delay: 120ms;
+  }
+
+  .screen-buddy-root.is-walk .buddy-antenna-spark-c,
+  .screen-buddy-root.is-sleepy .buddy-antenna-spark-c,
+  .screen-buddy-root.is-chute .buddy-antenna-spark-c,
+  .screen-buddy-root.is-dance .buddy-antenna-spark-c {
+    animation-delay: 240ms;
   }
 
   .buddy-power {
@@ -287,9 +372,27 @@
     bottom: calc(100% + 8px);
   }
 
+  .buddy-drop.has-rocket-boots:not(.is-held) .buddy-drop-body {
+    animation: buddy-rocket-cushion 0.48s ease-in-out infinite;
+    transform-origin: 50% 90%;
+  }
+
+  .buddy-drop.has-rocket-boots .buddy-drop-canopy {
+    display: none;
+  }
+
+  .buddy-drop.has-rocket-boots .buddy-drop-bubble {
+    bottom: calc(100% + 8px);
+  }
+
   /* Caminar: balanceo + patas alternando */
+  .screen-buddy-root.is-walk .screen-buddy-body {
+    animation: buddy-walk-body 0.46s ease-in-out infinite;
+    transform-origin: 50% 90%;
+  }
+
   .screen-buddy-root.is-walk .screen-buddy-sprite {
-    animation: buddy-bob 0.52s steps(2, end) infinite;
+    animation: buddy-walk-sprite 0.46s ease-in-out infinite;
   }
 
   .buddy-leg {
@@ -297,12 +400,21 @@
     transform-origin: center;
   }
 
-  .screen-buddy-root.is-walk .buddy-leg-l {
-    animation: buddy-step 0.52s linear infinite;
+  .buddy-leg-foot {
+    transform-box: fill-box;
+    transform-origin: center;
   }
 
-  .screen-buddy-root.is-walk .buddy-leg-r {
-    animation: buddy-step 0.52s linear infinite reverse;
+  .screen-buddy-root.is-walk:not(.has-rocket-boots) .buddy-leg-foot-l {
+    animation: buddy-foot-stride 0.46s ease-in-out infinite;
+  }
+
+  .screen-buddy-root.is-walk:not(.has-rocket-boots) .buddy-leg-foot-r {
+    animation: buddy-foot-stride 0.46s ease-in-out infinite reverse;
+  }
+
+  .screen-buddy-root.is-walk .screen-buddy-shadow {
+    animation: buddy-walk-shadow 0.46s ease-in-out infinite;
   }
 
   /* Respiracion sutil parado */
@@ -326,12 +438,12 @@
     animation: buddy-dance 0.62s ease-in-out infinite;
   }
 
-  .screen-buddy-root.is-dance .buddy-leg-l {
-    animation: buddy-step 0.31s linear infinite;
+  .screen-buddy-root.is-dance .buddy-leg-foot-l {
+    animation: buddy-foot-stride 0.31s linear infinite;
   }
 
-  .screen-buddy-root.is-dance .buddy-leg-r {
-    animation: buddy-step 0.31s linear infinite reverse;
+  .screen-buddy-root.is-dance .buddy-leg-foot-r {
+    animation: buddy-foot-stride 0.31s linear infinite reverse;
   }
 
   /* FX transitorios */
@@ -341,6 +453,10 @@
 
   .screen-buddy-root.fx-flip .screen-buddy-sprite {
     animation: buddy-flip 0.8s cubic-bezier(0.3, 0.9, 0.4, 1.1);
+  }
+
+  .screen-buddy-root.fx-bump .screen-buddy-sprite {
+    animation: buddy-fish-bump .62s cubic-bezier(.2,.9,.35,1.2) both !important;
   }
 
   .screen-buddy-root.fx-glitchy .screen-buddy-sprite {
@@ -374,6 +490,91 @@
     transform-origin: 50% -22px;
   }
 
+  .screen-buddy-root.has-rocket-boots.is-chute .screen-buddy-body {
+    animation: buddy-rocket-cushion 0.48s ease-in-out infinite;
+    transform-origin: 50% 90%;
+  }
+
+  .buddy-drop.has-rocket-boots:not(.is-held) .buddy-drop-body::before,
+  .buddy-drop.has-rocket-boots:not(.is-held) .buddy-drop-body::after,
+  .screen-buddy-root.has-rocket-boots.is-chute .screen-buddy-body::before,
+  .screen-buddy-root.has-rocket-boots.is-chute .screen-buddy-body::after,
+  .screen-buddy-root.has-rocket-boots.is-walk .screen-buddy-body::before,
+  .screen-buddy-root.has-rocket-boots.is-walk .screen-buddy-body::after,
+  .screen-buddy-root.has-rocket-boots.is-sleepy .screen-buddy-body::before,
+  .screen-buddy-root.has-rocket-boots.is-sleepy .screen-buddy-body::after {
+    position: absolute;
+    top: calc(100% - 4px);
+    z-index: 0;
+    width: 12px;
+    height: 28px;
+    pointer-events: none;
+    content: "";
+    background:
+      linear-gradient(180deg, #f4fff8 0 14%, #ffd166 14% 34%, #ff3d9d 34% 62%, transparent 62%),
+      repeating-linear-gradient(180deg, transparent 0 5px, rgba(255, 255, 255, 0.32) 5px 7px);
+    clip-path: polygon(28% 0, 72% 0, 100% 54%, 58% 100%, 50% 82%, 42% 100%, 0 54%);
+    filter:
+      drop-shadow(0 0 5px rgba(255, 209, 102, 0.78))
+      drop-shadow(0 0 12px rgba(255, 61, 157, 0.45));
+    mix-blend-mode: screen;
+    opacity: 0.92;
+    transform-origin: 50% 0;
+    animation: buddy-rocket-plume 0.18s steps(2, end) infinite;
+  }
+
+  .buddy-drop.has-rocket-boots:not(.is-held) .buddy-drop-body::before,
+  .screen-buddy-root.has-rocket-boots.is-chute .screen-buddy-body::before,
+  .screen-buddy-root.has-rocket-boots.is-walk .screen-buddy-body::before,
+  .screen-buddy-root.has-rocket-boots.is-sleepy .screen-buddy-body::before {
+    left: 15px;
+  }
+
+  .buddy-drop.has-rocket-boots:not(.is-held) .buddy-drop-body::after,
+  .screen-buddy-root.has-rocket-boots.is-chute .screen-buddy-body::after,
+  .screen-buddy-root.has-rocket-boots.is-walk .screen-buddy-body::after,
+  .screen-buddy-root.has-rocket-boots.is-sleepy .screen-buddy-body::after {
+    right: 15px;
+    animation-delay: 90ms;
+  }
+
+  .screen-buddy-root.has-rocket-boots.is-walk .screen-buddy-body,
+  .screen-buddy-root.has-rocket-boots.is-sleepy .screen-buddy-body {
+    animation: buddy-rocket-hover 0.92s ease-in-out infinite;
+    transform-origin: 50% 90%;
+  }
+
+  .screen-buddy-root.has-rocket-boots.is-walk .screen-buddy-sprite,
+  .screen-buddy-root.has-rocket-boots.is-sleepy .screen-buddy-sprite {
+    animation: buddy-rocket-hover-screen 0.92s ease-in-out infinite;
+  }
+
+  .screen-buddy-root.has-rocket-boots.is-walk .buddy-leg-l,
+  .screen-buddy-root.has-rocket-boots.is-walk .buddy-leg-r,
+  .screen-buddy-root.has-rocket-boots.is-sleepy .buddy-leg-l,
+  .screen-buddy-root.has-rocket-boots.is-sleepy .buddy-leg-r {
+    animation: buddy-rocket-leg-float 0.92s ease-in-out infinite;
+  }
+
+  .screen-buddy-root.has-rocket-boots.is-walk .buddy-leg-r,
+  .screen-buddy-root.has-rocket-boots.is-sleepy .buddy-leg-r {
+    animation-delay: 140ms;
+  }
+
+  .screen-buddy-root.has-rocket-boots.is-walk .screen-buddy-shadow,
+  .screen-buddy-root.has-rocket-boots.is-sleepy .screen-buddy-shadow {
+    animation: buddy-rocket-shadow 0.92s ease-in-out infinite;
+  }
+
+  .screen-buddy-root.has-rocket-boots.is-walk .screen-buddy-body::before,
+  .screen-buddy-root.has-rocket-boots.is-walk .screen-buddy-body::after,
+  .screen-buddy-root.has-rocket-boots.is-sleepy .screen-buddy-body::before,
+  .screen-buddy-root.has-rocket-boots.is-sleepy .screen-buddy-body::after {
+    height: 18px;
+    opacity: 0.74;
+    animation-duration: 0.24s;
+  }
+
   /* Agarrado: patas colgando y meneo pendular */
   .screen-buddy-root.is-held .screen-buddy-body {
     animation: buddy-held-wiggle 0.9s ease-in-out infinite;
@@ -402,12 +603,12 @@
     animation: buddy-bob 0.74s steps(2, end) infinite;
   }
 
-  .screen-buddy-root.is-sleepy .buddy-leg-l {
-    animation: buddy-step 0.74s linear infinite;
+  .screen-buddy-root.is-sleepy:not(.has-rocket-boots) .buddy-leg-foot-l {
+    animation: buddy-foot-stride 0.74s linear infinite;
   }
 
-  .screen-buddy-root.is-sleepy .buddy-leg-r {
-    animation: buddy-step 0.74s linear infinite reverse;
+  .screen-buddy-root.is-sleepy:not(.has-rocket-boots) .buddy-leg-foot-r {
+    animation: buddy-foot-stride 0.74s linear infinite reverse;
   }
 
   .screen-buddy-root.is-sleepy .buddy-screen {
@@ -419,6 +620,72 @@
     transform-box: fill-box;
     transform-origin: top center;
     animation: buddy-scarf-flutter 2.3s ease-in-out infinite;
+  }
+
+  .buddy-tool-wrench,
+  .buddy-loot-cartridge,
+  .buddy-coffee,
+  .buddy-rocket-boots {
+    filter: drop-shadow(0 0 4px currentColor);
+  }
+
+  .buddy-carry-item {
+    transform-box: fill-box;
+    transform-origin: 22% 18%;
+  }
+
+  .screen-buddy-root.is-walk .buddy-carry-item,
+  .screen-buddy-root.is-sleepy .buddy-carry-item {
+    animation: buddy-cartridge-carry 0.46s ease-in-out infinite;
+  }
+
+  .screen-buddy-root.has-rocket-boots.is-walk .buddy-carry-item,
+  .screen-buddy-root.has-rocket-boots.is-sleepy .buddy-carry-item {
+    animation: buddy-cartridge-hover-carry 0.92s ease-in-out infinite;
+  }
+
+  .screen-buddy-root.is-chute .buddy-carry-item,
+  .buddy-drop:not(.is-held) .buddy-carry-item {
+    animation: buddy-cartridge-swing 1.15s ease-in-out infinite;
+  }
+
+  .screen-buddy-root.is-held .buddy-carry-item,
+  .buddy-drop.is-held .buddy-carry-item {
+    animation: buddy-cartridge-held-swing 0.9s ease-in-out infinite;
+  }
+
+  .screen-buddy-root.is-dance .buddy-tool-wrench,
+  .screen-buddy-root.is-dance .buddy-loot-cartridge,
+  .screen-buddy-root.is-dance .buddy-coffee {
+    animation: buddy-inventory-jiggle 0.62s ease-in-out infinite;
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .screen-buddy-root.is-walk .buddy-rocket-boots,
+  .screen-buddy-root.is-sleepy .buddy-rocket-boots,
+  .screen-buddy-root.is-dance .buddy-rocket-boots {
+    animation: buddy-rocket-flicker 0.32s steps(2, end) infinite;
+  }
+
+  .buddy-rocket-flame {
+    transform-box: fill-box;
+    transform-origin: top center;
+  }
+
+  .buddy-drop.has-rocket-boots:not(.is-held) .buddy-rocket-boots,
+  .screen-buddy-root.has-rocket-boots.is-chute .buddy-rocket-boots {
+    animation: buddy-rocket-flicker 0.18s steps(2, end) infinite;
+  }
+
+  .buddy-drop.has-rocket-boots:not(.is-held) .buddy-rocket-flame,
+  .screen-buddy-root.has-rocket-boots.is-chute .buddy-rocket-flame {
+    animation: buddy-rocket-flame-cushion 0.18s steps(2, end) infinite;
+  }
+
+  .buddy-drop.has-rocket-boots:not(.is-held) .buddy-rocket-flame-r,
+  .screen-buddy-root.has-rocket-boots.is-chute .buddy-rocket-flame-r {
+    animation-delay: 90ms;
   }
 
   /* Dormido: pantalla atenuada, ojos en linea, sin parpadeo */
@@ -446,6 +713,407 @@
     filter: drop-shadow(0 0 6px rgba(63, 255, 151, 0.14));
   }
 
+  /* Pesca: sentado en la esquina con la caña hacia el vacio; la linea cuelga
+     por delante del riel. El aparejo esta dibujado mirando a la izquierda y
+     se espeja con --buddy-facing, igual que el sprite. */
+
+  /* Skins de caña (cosmeticas, desbloqueadas pescando): pisan los fills
+     por atributo de los rects buddy-rod-*. Aplican tanto al aparejo de la
+     sesion (.buddy-fishing-rig) como a la caña de exhibicion del inventario
+     (.buddy-rod-icon). */
+  :is(.buddy-fishing-rig, .buddy-rod-icon).rod-bamboo .buddy-rod-seg {
+    fill: #3fff97;
+  }
+
+  :is(.buddy-fishing-rig, .buddy-rod-icon).rod-bamboo .buddy-rod-tip {
+    fill: #b4ffcf;
+  }
+
+  :is(.buddy-fishing-rig, .buddy-rod-icon).rod-neon .buddy-rod-seg {
+    fill: #ff3d9d;
+  }
+
+  :is(.buddy-fishing-rig, .buddy-rod-icon).rod-neon .buddy-rod-tip {
+    fill: #ffd166;
+  }
+
+  .buddy-fishing-rig.rod-neon .buddy-fishing-svg,
+  .buddy-rod-icon.rod-neon {
+    filter: drop-shadow(0 0 6px rgba(255, 61, 157, 0.55));
+  }
+
+  :is(.buddy-fishing-rig, .buddy-rod-icon).rod-golden .buddy-rod-seg {
+    fill: #ffd166;
+  }
+
+  :is(.buddy-fishing-rig, .buddy-rod-icon).rod-golden .buddy-rod-tip {
+    fill: #f4fff8;
+    animation: buddy-led-pulse 1.4s ease-in-out infinite;
+  }
+
+  .buddy-fishing-rig.rod-golden .buddy-fishing-svg,
+  .buddy-rod-icon.rod-golden {
+    filter: drop-shadow(0 0 7px rgba(255, 209, 102, 0.6));
+  }
+
+  /* Boya segun el señuelo puesto (mismos colores que el dije del sprite) */
+  :is(.buddy-fishing-rig, .buddy-rod-icon).lure-swift .buddy-lure-top,
+  .buddy-lucky-lure.is-lure-swift .buddy-lure-top {
+    fill: #45d8ff;
+  }
+
+  :is(.buddy-fishing-rig, .buddy-rod-icon).lure-swift .buddy-lure-bottom,
+  .buddy-lucky-lure.is-lure-swift .buddy-lure-bottom {
+    fill: #f4fff8;
+  }
+
+  :is(.buddy-fishing-rig, .buddy-rod-icon).lure-anchor .buddy-lure-top,
+  .buddy-lucky-lure.is-lure-anchor .buddy-lure-top {
+    fill: #b4ffcf;
+  }
+
+  :is(.buddy-fishing-rig, .buddy-rod-icon).lure-anchor .buddy-lure-bottom,
+  .buddy-lucky-lure.is-lure-anchor .buddy-lure-bottom {
+    fill: #45d8ff;
+  }
+
+  :is(.buddy-fishing-rig, .buddy-rod-icon).lure-magnet .buddy-lure-top,
+  .buddy-lucky-lure.is-lure-magnet .buddy-lure-top {
+    fill: #ff3d9d;
+  }
+
+  :is(.buddy-fishing-rig, .buddy-rod-icon).lure-magnet .buddy-lure-bottom,
+  .buddy-lucky-lure.is-lure-magnet .buddy-lure-bottom {
+    fill: #f4fff8;
+  }
+
+  /* The quest lucky lure uses its own gold/white bobber in the inventory
+     preview instead of falling back to the generic pink starter colors. */
+  .buddy-rod-icon.lure .buddy-lure-top {
+    fill: #ffd166;
+  }
+
+  .buddy-rod-icon.lure .buddy-lure-bottom {
+    fill: #f4fff8;
+  }
+  .buddy-fishing-rig {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    transform: scaleX(var(--buddy-facing, 1));
+  }
+
+  .buddy-fishing-svg {
+    position: absolute;
+    bottom: -12px;
+    left: -26px;
+    overflow: visible;
+    filter: drop-shadow(0 0 5px rgba(69, 216, 255, 0.35));
+  }
+
+  /* Lanzamiento: la caña gira desde atras y queda plantada */
+  .buddy-fishing-rig.is-cast .buddy-fishing-svg {
+    animation: buddy-rod-cast 0.52s cubic-bezier(0.3, 1.4, 0.4, 1) both;
+    transform-origin: 32px 44px;
+  }
+
+  .buddy-fishing-rig.is-cast .buddy-fishing-line-group {
+    opacity: 0;
+  }
+
+  .buddy-fishing-line-group {
+    opacity: 1;
+    transform-origin: 5.5px 14px;
+    transition: opacity 240ms ease;
+    animation: buddy-line-sway 3.2s ease-in-out infinite;
+  }
+
+  .buddy-fishing-bobber {
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: buddy-bobber-bob 2.4s ease-in-out infinite;
+  }
+
+  .buddy-fishing-rig.is-bite .buddy-fishing-bobber {
+    animation: buddy-bobber-bite 0.4s ease-in-out 2;
+  }
+
+  /* Captura: recoge la linea y sube el botin */
+  .buddy-fishing-rig.is-catch .buddy-fishing-line-group {
+    animation: buddy-line-reel 0.32s ease-out both;
+  }
+
+  .buddy-fishing-loot {
+    opacity: 0;
+    transform-box: fill-box;
+  }
+
+  .buddy-fishing-rig.is-catch .buddy-fishing-loot {
+    animation: buddy-loot-up 0.55s cubic-bezier(0.25, 1.35, 0.45, 1) 0.14s both;
+  }
+
+  .buddy-fishing-rig.tier-junk .buddy-fishing-loot-core {
+    fill: #2e8f5b;
+  }
+
+  .buddy-fishing-rig.tier-common .buddy-fishing-loot-core {
+    fill: #45d8ff;
+  }
+
+  .buddy-fishing-rig.tier-rare .buddy-fishing-loot-core {
+    fill: #ffd166;
+  }
+
+  .buddy-fishing-rig.tier-rare .buddy-fishing-loot {
+    filter: drop-shadow(0 0 6px rgba(255, 209, 102, 0.9));
+  }
+
+  .buddy-fishing-rig.tier-rare .buddy-fishing-loot-glint {
+    animation: buddy-led-pulse 0.5s steps(2, end) infinite;
+  }
+
+  /* El agua tiene una linea de superficie estable y tres ondas completas que
+     nacen justo bajo la boya. */
+  .buddy-water-surface {
+    opacity: 0.72;
+    animation: buddy-water-shimmer 2.8s steps(3, end) infinite;
+  }
+
+  .buddy-ripple {
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    animation: buddy-ripple-out 2.4s ease-out infinite;
+  }
+
+  .buddy-ripple-b {
+    animation-delay: 0.8s;
+  }
+
+  .buddy-ripple-c {
+    animation-delay: 1.6s;
+  }
+
+  .buddy-fish-school {
+    opacity: 1;
+    transition: opacity 180ms ease;
+  }
+
+  .buddy-fish {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .buddy-fish-small {
+    animation: buddy-fish-cruise 5.4s ease-in-out infinite;
+  }
+
+  .buddy-fish-biter {
+    animation: buddy-fish-lurk 4.1s ease-in-out infinite;
+  }
+
+  .buddy-fishing-rig.is-bite .buddy-fish-biter,
+  .buddy-fishing-rig.is-fight .buddy-fish-biter {
+    animation: buddy-fish-bite 0.42s ease-in-out infinite;
+  }
+
+  .buddy-fishing-rig.is-bite .buddy-fish-mouth,
+  .buddy-fishing-rig.is-fight .buddy-fish-mouth {
+    fill: #ff3d9d;
+  }
+
+  .buddy-hook-line {
+    opacity: 0.9;
+  }
+
+  .buddy-fishing-rig.is-cast .buddy-fish-school,
+  .buddy-fishing-rig.is-catch .buddy-fish-school,
+  .buddy-fishing-rig.is-escape .buddy-fish-school {
+    opacity: 0;
+  }
+
+  /* Con pique o pelea el agua se agita */
+  .buddy-fishing-rig.is-bite .buddy-ripple,
+  .buddy-fishing-rig.is-fight .buddy-ripple {
+    animation-duration: 0.55s;
+  }
+
+  .buddy-fishing-ripples {
+    transition: opacity 200ms ease;
+  }
+
+  .buddy-fishing-rig.is-cast .buddy-fishing-ripples,
+  .buddy-fishing-rig.is-catch .buddy-fishing-ripples,
+  .buddy-fishing-rig.is-escape .buddy-fishing-ripples {
+    opacity: 0;
+  }
+
+  /* Pelea con un raro: caña tensada, linea latigueando, boya hundiendose */
+  .buddy-fishing-rig.is-fight .buddy-fishing-svg {
+    animation: buddy-rod-strain 0.5s ease-in-out infinite;
+    transform-origin: 32px 44px;
+  }
+
+  .buddy-fishing-rig.is-fight .buddy-fishing-line-group {
+    animation: buddy-line-fight 0.25s linear infinite;
+  }
+
+  .buddy-fishing-rig.is-fight .buddy-fishing-bobber {
+    animation: buddy-bobber-bite 0.3s ease-in-out infinite;
+  }
+
+  /* Se escapo: la linea rebota recogida y la boya se pierde en el vacio */
+  .buddy-fishing-rig.is-escape .buddy-fishing-line-group {
+    animation: buddy-line-snap 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  }
+
+  .buddy-fishing-rig.is-escape .buddy-fishing-bobber {
+    opacity: 0;
+  }
+
+  /* El buddy forcejea: tirones hacia el agua y palancas hacia atras.
+     Valores planos: el espejo del sprite ya orienta el tira y afloja.
+     (Triple clase para ganarle a la respiracion de .is-fishing de abajo.) */
+  .screen-buddy-root.is-fishing.is-fish-fight .screen-buddy-sprite {
+    animation: buddy-fish-fight 0.5s ease-in-out infinite;
+  }
+
+  /* Pose sentado: respira tranquilo, patas plegadas con los pies al frente
+     (el espejo del sprite ya orienta el desplazamiento hacia el vacio) */
+  .screen-buddy-root.is-fishing .screen-buddy-sprite {
+    animation: buddy-breathe 3.4s ease-in-out infinite;
+  }
+
+  .buddy-leg-upper {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+
+  .screen-buddy-root.is-fishing .buddy-leg-upper {
+    transform: scaleY(0.55) translateY(1.6px);
+  }
+
+  .screen-buddy-root.is-fishing .buddy-leg-foot {
+    transform: translate(-2.4px, -1.4px);
+  }
+
+  .screen-buddy-root.is-fishing .screen-buddy-shadow {
+    width: 84%;
+  }
+
+  /* Tormenta ambiental: lluvia localizada y paraguas de pixel art. */
+  .buddy-weather {
+    position: absolute;
+    inset: -34px -24px -8px;
+    z-index: 4;
+    pointer-events: none;
+  }
+
+  /* Paraguas pixel sobre la cabeza: se abre de golpe y luego se mece con una
+     leve inclinacion hacia la lluvia (que cae de arriba a la derecha). El
+     mastil queda detras del cuerpo (el sprite tiene z-index 1). */
+  .buddy-umbrella {
+    position: absolute;
+    top: 3px;
+    /* .buddy-weather extends 24px beyond the body on each side. These values
+       recenter the 40px-wide SVG canopy and scale it to cover all 64px of Buddy. */
+    left: 18px;
+    width: 76px;
+    height: 78px;
+    overflow: visible;
+    transform-origin: 50% 26%;
+    filter: drop-shadow(0 0 8px rgba(255, 61, 157, 0.3));
+    animation: buddy-umbrella-open 0.35s steps(4, end) both, buddy-umbrella-bob 2s ease-in-out 0.35s infinite;
+  }
+
+  /* Gotas reventando contra la cupula: cada punto hace plink a su ritmo */
+  .buddy-umbrella-splash {
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center bottom;
+    animation: buddy-umbrella-plink 0.62s linear infinite;
+    animation-delay: calc(var(--splash-i) * 0.13s);
+  }
+
+  .buddy-rain-field {
+    position: absolute;
+    inset: -34px -18px 0;
+    overflow: hidden;
+  }
+
+  /* Gotas: rayitas afiladas que caen en diagonal (7deg, igual que su deriva) */
+  .buddy-rain-field i {
+    position: absolute;
+    top: -14px;
+    left: calc((var(--rain-i) * 5.7%) - 2%);
+    width: 2px;
+    height: 9px;
+    background: linear-gradient(180deg, transparent, #b8f7ff 55%, #f4fff8);
+    opacity: 0.8;
+    transform: rotate(7deg);
+    animation: buddy-rain-fall 0.6s linear infinite;
+    animation-delay: calc(var(--rain-i) * -0.09s);
+  }
+
+  .buddy-rain-field i:nth-child(3n) {
+    height: 13px;
+    animation-duration: 0.5s;
+  }
+
+  .buddy-rain-field i:nth-child(3n + 1) {
+    height: 7px;
+    opacity: 0.55;
+    animation-duration: 0.7s;
+  }
+
+  .buddy-rain-field i:nth-child(2n) {
+    margin-left: 3%;
+  }
+
+  /* Drops above the protected center hit the canopy and vanish there. They
+     never continue behind Buddy or reach the dry patch under the umbrella. */
+  .buddy-rain-field i:nth-child(n + 6):nth-child(-n + 15) {
+    animation-name: buddy-rain-hit-canopy;
+  }
+
+  /* Plinks contra el riel: gotitas que rebotan en el piso alrededor */
+  .buddy-rain-plink {
+    position: absolute;
+    bottom: 0;
+    left: calc(10% + var(--plink-i) * 80%);
+    width: 2px;
+    height: 2px;
+    background: #b8f7ff;
+    opacity: 0;
+    box-shadow:
+      3px -2px 0 rgba(184, 247, 255, 0.75),
+      -3px -3px 0 rgba(244, 255, 248, 0.6);
+    animation: buddy-rain-plink-pop 0.74s linear infinite;
+    animation-delay: calc(var(--plink-i) * 0.19s);
+  }
+
+  /* Bajo la lluvia respira tranquilo, no se congela */
+  .screen-buddy-root.is-rain .screen-buddy-sprite {
+    animation: buddy-breathe 3.4s ease-in-out infinite;
+  }
+
+  /* Salpicadura al sacar algo del vacio */
+  .buddy-particle-splash {
+    width: 3px;
+    height: 3px;
+    animation-name: buddy-splash-pop;
+    animation-duration: 0.72s;
+  }
+
+  /* Lucky lure (recompensa de Void angler): boya colgando entre las patas */
+  .buddy-lucky-lure {
+    transform-box: fill-box;
+    transform-origin: top center;
+    filter: drop-shadow(0 0 3px rgba(255, 209, 102, 0.8));
+    animation: buddy-scarf-flutter 2.6s ease-in-out 0.4s infinite;
+  }
+
   @keyframes buddy-blink {
     0%,
     91%,
@@ -470,6 +1138,34 @@
     }
   }
 
+  @keyframes buddy-visor-glint {
+    0%,
+    100% {
+      opacity: 0.86;
+    }
+
+    50% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes buddy-antenna-spark-trail {
+    0% {
+      opacity: 0;
+      transform: translate(0, 0) scale(0.8);
+    }
+
+    35% {
+      opacity: 1;
+      transform: translate(2px, -1px) scale(1);
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(6px, 2px) scale(0.55);
+    }
+  }
+
   @keyframes buddy-bob {
     0%,
     100% {
@@ -478,6 +1174,61 @@
 
     50% {
       transform: scaleX(var(--buddy-facing, 1)) translateY(-2px);
+    }
+  }
+
+  @keyframes buddy-fish-bump {
+    0%, 100% { transform: scaleX(var(--buddy-facing, 1)) translateX(0) rotate(0); }
+    18% { transform: scaleX(var(--buddy-facing, 1)) translateX(7px) rotate(5deg); }
+    42% { transform: scaleX(var(--buddy-facing, 1)) translateX(-4px) rotate(-3deg); }
+    68% { transform: scaleX(var(--buddy-facing, 1)) translateX(2px) rotate(1deg); }
+  }
+
+  @keyframes buddy-walk-body {
+    0%,
+    100% {
+      transform: translateY(0) rotate(-1.2deg);
+    }
+
+    25% {
+      transform: translateY(-2.8px) rotate(1.4deg);
+    }
+
+    50% {
+      transform: translateY(0) rotate(1.2deg);
+    }
+
+    75% {
+      transform: translateY(-2px) rotate(-1.4deg);
+    }
+  }
+
+  @keyframes buddy-walk-sprite {
+    0%,
+    100% {
+      transform: scaleX(var(--buddy-facing, 1)) translateY(0) scaleY(1);
+    }
+
+    25%,
+    75% {
+      transform: scaleX(var(--buddy-facing, 1)) translateY(-1px) scaleY(1.015);
+    }
+
+    50% {
+      transform: scaleX(var(--buddy-facing, 1)) translateY(0.5px) scaleY(0.985);
+    }
+  }
+
+  @keyframes buddy-walk-shadow {
+    0%,
+    100% {
+      opacity: 0.82;
+      transform: translateX(-50%) scaleX(1);
+    }
+
+    50% {
+      opacity: 0.58;
+      transform: translateX(-50%) scaleX(0.78);
     }
   }
 
@@ -503,14 +1254,18 @@
     }
   }
 
-  @keyframes buddy-step {
+  @keyframes buddy-foot-stride {
     0%,
     100% {
-      transform: translateY(0);
+      transform: translateX(calc(var(--buddy-facing, 1) * -1.4px)) translateY(0);
     }
 
-    50% {
-      transform: translateY(-3px);
+    35% {
+      transform: translateX(calc(var(--buddy-facing, 1) * 2.2px)) translateY(0.4px);
+    }
+
+    65% {
+      transform: translateX(calc(var(--buddy-facing, 1) * 1px)) translateY(-0.3px);
     }
   }
 
@@ -722,6 +1477,266 @@
     }
   }
 
+  @keyframes buddy-rod-cast {
+    0% {
+      transform: rotate(-58deg);
+    }
+
+    62% {
+      transform: rotate(9deg);
+    }
+
+    100% {
+      transform: rotate(0deg);
+    }
+  }
+
+  @keyframes buddy-line-sway {
+    0%,
+    100% {
+      transform: rotate(-2.4deg);
+    }
+
+    50% {
+      transform: rotate(2.4deg);
+    }
+  }
+
+  @keyframes buddy-bobber-bob {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(2px);
+    }
+  }
+
+  @keyframes buddy-bobber-bite {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(6px);
+    }
+  }
+
+  @keyframes buddy-line-reel {
+    to {
+      transform: scaleY(0.3);
+    }
+  }
+
+  @keyframes buddy-loot-up {
+    0% {
+      opacity: 0;
+      transform: translateY(36px);
+    }
+
+    45% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes buddy-splash-pop {
+    0% {
+      opacity: 0;
+      transform: translate(0, 8px) scale(0.7);
+    }
+
+    22% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(var(--px, 0px), var(--py, -20px)) scale(1);
+    }
+  }
+
+  @keyframes buddy-ripple-out {
+    0% {
+      opacity: 0;
+      transform: scale(0.45, 0.7);
+    }
+
+    18% {
+      opacity: 0.85;
+    }
+
+    100% {
+      opacity: 0;
+      transform: scale(1.65, 1.05);
+    }
+  }
+
+  @keyframes buddy-water-shimmer {
+    0%, 100% { transform: translateX(0); opacity: 0.65; }
+    50% { transform: translateX(2px); opacity: 0.9; }
+  }
+
+  @keyframes buddy-fish-cruise {
+    0%, 100% { transform: translate(0, 1px) scaleX(1); opacity: 0.45; }
+    48% { transform: translate(-22px, -1px) scaleX(1); opacity: 0.9; }
+    52% { transform: translate(-22px, -1px) scaleX(-1); opacity: 0.9; }
+    96% { transform: translate(0, 1px) scaleX(-1); opacity: 0.45; }
+  }
+
+  @keyframes buddy-fish-lurk {
+    0%, 100% { transform: translate(-8px, 4px); opacity: 0.55; }
+    50% { transform: translate(4px, 0); opacity: 1; }
+  }
+
+  @keyframes buddy-fish-bite {
+    0%, 100% { transform: translate(8px, 0) rotate(0deg); }
+    50% { transform: translate(11px, -4px) rotate(-9deg); }
+  }
+
+  @keyframes buddy-umbrella-open {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scaleX(0.12);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scaleX(1);
+    }
+  }
+
+  /* Mecida con inclinacion constante hacia el lado del que llega la lluvia */
+  @keyframes buddy-umbrella-bob {
+    0%,
+    100% {
+      transform: translateY(0) rotate(2.5deg);
+    }
+
+    50% {
+      transform: translateY(1px) rotate(4.5deg);
+    }
+  }
+
+  @keyframes buddy-umbrella-plink {
+    0% {
+      opacity: 0;
+      transform: translateY(2.5px) scale(0.4);
+    }
+
+    14% {
+      opacity: 1;
+    }
+
+    55% {
+      opacity: 0.9;
+      transform: translateY(-2px) scale(1);
+    }
+
+    100% {
+      opacity: 0;
+      transform: translateY(-4.5px) scale(1.2);
+    }
+  }
+
+  @keyframes buddy-rain-plink-pop {
+    0%,
+    55% {
+      opacity: 0;
+      transform: translateY(2px) scale(0.5);
+    }
+
+    64% {
+      opacity: 0.95;
+      transform: translateY(0) scale(1);
+    }
+
+    100% {
+      opacity: 0;
+      transform: translateY(-3.5px) scale(1.25);
+    }
+  }
+
+  @keyframes buddy-rain-fall {
+    from {
+      transform: translate(0, -8px) rotate(7deg);
+    }
+
+    to {
+      transform: translate(-15px, 122px) rotate(7deg);
+    }
+  }
+
+  @keyframes buddy-rain-hit-canopy {
+    0% {
+      opacity: 0;
+      transform: translate(0, -8px) rotate(7deg);
+    }
+
+    22%,
+    72% {
+      opacity: 0.82;
+    }
+
+    100% {
+      opacity: 0;
+      transform: translate(-7px, 52px) rotate(7deg);
+    }
+  }
+
+  @keyframes buddy-rod-strain {
+    0%,
+    100% {
+      transform: rotate(-9deg);
+    }
+
+    50% {
+      transform: rotate(4deg);
+    }
+  }
+
+  @keyframes buddy-line-fight {
+    0%,
+    100% {
+      transform: rotate(-4.5deg);
+    }
+
+    50% {
+      transform: rotate(4.5deg);
+    }
+  }
+
+  @keyframes buddy-line-snap {
+    0% {
+      transform: rotate(0deg) scaleY(1);
+    }
+
+    100% {
+      transform: rotate(14deg) scaleY(0.18);
+    }
+  }
+
+  @keyframes buddy-fish-fight {
+    0%,
+    100% {
+      transform: scaleX(var(--buddy-facing, 1)) translate(1.6px, 0) rotate(5deg);
+    }
+
+    35% {
+      transform: scaleX(var(--buddy-facing, 1)) translate(-2.2px, 0.7px) rotate(-4deg);
+    }
+
+    65% {
+      transform: scaleX(var(--buddy-facing, 1)) translate(2.4px, -0.5px) rotate(7deg);
+    }
+  }
+
   @keyframes buddy-particle-rise {
     0% {
       opacity: 0;
@@ -755,6 +1770,397 @@
     }
   }
 
+  /* --- Living footer encounters ----------------------------------------- */
+  .buddy-field-find {
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    z-index: 8;
+    display: grid;
+    min-width: 52px;
+    justify-items: center;
+    border: 0;
+    background: transparent;
+    padding: 0 0 18px;
+    color: var(--color-cabinet);
+    cursor: pointer;
+    pointer-events: auto;
+    transform: translateX(var(--find-x, 76px));
+    animation: buddy-find-arrive 0.45s steps(5, end) both;
+  }
+
+  .buddy-field-find::after {
+    position: absolute;
+    bottom: 3px;
+    width: 32px;
+    height: 4px;
+    content: "";
+    background: rgba(0, 0, 0, 0.55);
+    filter: blur(2px);
+  }
+
+  .buddy-field-find > i {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 20px;
+    height: 18px;
+    background: currentColor;
+    filter: drop-shadow(0 0 7px currentColor);
+    animation: buddy-find-hover 1.1s steps(3, end) infinite;
+  }
+
+  .buddy-field-find > span {
+    position: absolute;
+    bottom: -12px;
+    width: max-content;
+    max-width: 110px;
+    border: 1px solid color-mix(in srgb, currentColor 45%, transparent);
+    background: rgba(2, 6, 4, 0.94);
+    padding: 0.16rem 0.3rem;
+    color: #fff;
+    font-size: 0.46rem;
+    font-weight: 900;
+    opacity: 0;
+    text-transform: uppercase;
+    transition: opacity 120ms ease;
+  }
+
+  .buddy-field-find:hover > span,
+  .buddy-field-find:focus-visible > span { opacity: 1; }
+  .buddy-field-find.is-arcade-coin > i { border-radius: 50%; box-shadow: inset 0 0 0 4px #9a651f; }
+  .buddy-field-find.is-floppy-disk { color: var(--color-cyan-arcade); }
+  .buddy-field-find.is-floppy-disk > i { clip-path: polygon(0 0, 82% 0, 100% 18%, 100% 100%, 0 100%); box-shadow: inset 5px 3px 0 #020604, inset -4px -5px 0 #b8f7ff; }
+  .buddy-field-find.is-battery { color: var(--color-phosphor); }
+  .buddy-field-find.is-battery > i { width: 13px; box-shadow: inset 0 7px 0 #071b1c; }
+  .buddy-field-find.is-battery > i::before { position: absolute; top: -3px; left: 4px; width: 5px; height: 3px; content: ""; background: #b8f7ff; }
+  .buddy-field-find.is-lost-bug { color: var(--color-glitch); }
+  .buddy-field-find.is-lost-bug > i { width: 16px; height: 12px; border-radius: 50% 50% 38% 38%; box-shadow: -7px -3px 0 -5px currentColor, 7px -3px 0 -5px currentColor; }
+  .buddy-field-find.is-mini-cartridge { color: #a78bfa; }
+  .buddy-field-find.is-mini-cartridge > i { clip-path: polygon(0 0, 100% 0, 100% 78%, 78% 78%, 78% 100%, 22% 100%, 22% 78%, 0 78%); box-shadow: inset 0 -5px 0 #ffd166; }
+
+  .buddy-ambient-creature {
+    position: absolute;
+    z-index: 7;
+    pointer-events: none;
+  }
+
+  .buddy-ambient-creature i { position: absolute; display: block; }
+  .buddy-ambient-creature.is-moth { bottom: 58px; left: 12px; width: 12px; height: 10px; animation: buddy-moth-flight 4.2s ease-in-out infinite; }
+  .buddy-ambient-creature.is-moth i { top: 3px; width: 7px; height: 6px; background: #f4fff8; box-shadow: 0 0 9px #b8f7ff; }
+  .buddy-ambient-creature.is-moth i:first-child { right: 6px; transform-origin: right; animation: buddy-moth-wing 0.18s steps(2, end) infinite; }
+  .buddy-ambient-creature.is-moth i:nth-child(2) { left: 6px; transform-origin: left; animation: buddy-moth-wing 0.18s steps(2, end) infinite reverse; }
+  .buddy-ambient-creature.is-moth i:last-child { top: 4px; left: 5px; width: 2px; height: 7px; background: #ffd166; }
+
+  .buddy-ambient-creature.is-bird { left: 18px; bottom: 53px; width: 34px; height: 26px; filter: drop-shadow(0 0 7px rgba(69,216,255,.48)); }
+  .buddy-ambient-creature.is-bird .pixel-bird-svg { width: 34px; height: 26px; overflow: visible; }
+  .buddy-ambient-creature.is-bird .pixel-bird-wing { transform-box: fill-box; transform-origin: center bottom; }
+  .buddy-ambient-creature.is-bird.phase-fly-in { animation: buddy-bird-fly-in 1.45s linear both; }
+  .buddy-ambient-creature.is-bird.phase-perched { animation: buddy-bird-perch 1.8s steps(3,end) infinite; }
+  .buddy-ambient-creature.is-bird.phase-fly-out { animation: buddy-bird-fly-out 1.4s linear both; }
+  .buddy-ambient-creature.is-bird.phase-fly-in .pixel-bird-wing,
+  .buddy-ambient-creature.is-bird.phase-fly-out .pixel-bird-wing { animation: buddy-bird-wing .16s steps(2,end) infinite; }
+  .buddy-ambient-creature.is-bird.phase-fly-in .pixel-bird-svg { transform: scaleX(var(--creature-bird-in-facing, -1)); }
+  .buddy-ambient-creature.is-bird.phase-fly-out .pixel-bird-svg { transform: scaleX(var(--creature-bird-out-facing, -1)); }
+  .screen-buddy-root.is-shoo .screen-buddy-sprite { animation: buddy-shoo-bird .42s steps(3,end) 4; }
+
+  .buddy-enemy-encounter { position: absolute; inset: 0; z-index: 6; pointer-events: none; transform: scaleX(var(--enemy-side, 1)); }
+  .buddy-enemy-bug { position: absolute; left: 82px; bottom: -1px; width: 30px; height: 23px; overflow: visible; filter: drop-shadow(0 0 6px rgba(255,95,104,.52)); }
+  .phase-stalk .buddy-enemy-bug { animation: buddy-enemy-approach .8s steps(6,end) both; }
+  .phase-ready .buddy-enemy-bug { animation: buddy-enemy-taunt .25s steps(2,end) infinite; }
+  .phase-attack .buddy-enemy-bug { animation: buddy-enemy-dodge .35s steps(3,end) 2; }
+  .phase-hit .buddy-enemy-bug { animation: buddy-enemy-squash .72s steps(5,end) both; }
+
+  .buddy-hunt-weapon { position: absolute; left: 42px; bottom: 15px; width: 52px; height: 40px; overflow: visible; filter: drop-shadow(0 0 5px rgba(69,216,255,.36)); transform: rotate(-18deg); transform-origin: 5px 21px; }
+  .phase-stalk .buddy-hunt-weapon { opacity: 0; transform: translateX(-8px) rotate(-28deg); }
+  .phase-ready .buddy-hunt-weapon { opacity: 1; animation: buddy-weapon-aim .75s steps(4,end) both; }
+  .phase-attack.weapon-wrench .buddy-hunt-weapon,
+  .phase-attack.weapon-flyswatter .buddy-hunt-weapon { animation: buddy-weapon-smash .72s steps(6,end) both; }
+  .phase-attack.weapon-net .buddy-hunt-weapon { animation: buddy-net-scoop .72s steps(6,end) both; }
+  .phase-attack.weapon-laser .buddy-hunt-weapon { animation: buddy-laser-recoil .32s steps(3,end) 2; }
+  .phase-hit .buddy-hunt-weapon { transform: rotate(18deg) translateX(8px); }
+  .buddy-laser-charge { animation: buddy-laser-charge .4s steps(2,end) infinite; }
+
+  .buddy-laser-beam { position: absolute; left: 87px; bottom: 29px; width: 38px; height: 3px; background: #f4fff8; box-shadow: 0 0 3px #fff, 0 0 9px #ff3d9d; opacity: 0; transform-origin: left; }
+  .phase-attack.weapon-laser .buddy-laser-beam { animation: buddy-laser-fire .32s steps(2,end) 2; }
+
+  .buddy-hit-burst { position: absolute; left: 91px; bottom: 10px; width: 22px; height: 22px; opacity: 0; }
+  .buddy-hit-burst b { position: absolute; top: 9px; left: 9px; width: 4px; height: 4px; background: #ffd166; box-shadow: 0 0 5px #ffd166; }
+  .buddy-hit-burst b:nth-child(1) { --hit-x: 16px; --hit-y: -13px; }
+  .buddy-hit-burst b:nth-child(2) { --hit-x: -14px; --hit-y: -11px; background: #45d8ff; }
+  .buddy-hit-burst b:nth-child(3) { --hit-x: 17px; --hit-y: 11px; background: #ff3d9d; }
+  .buddy-hit-burst b:nth-child(4) { --hit-x: -15px; --hit-y: 13px; background: #f4fff8; }
+  .phase-hit .buddy-hit-burst { opacity: 1; }
+  .phase-hit .buddy-hit-burst b { animation: buddy-hit-pixel .72s steps(4,end) both; }
+
+  .screen-buddy-root.is-hunt .screen-buddy-sprite { animation: buddy-hunt-ready .48s steps(3,end) infinite; }
+  .screen-buddy-root.is-hunt:has(.phase-attack) .screen-buddy-sprite { animation: buddy-hunt-lunge .72s steps(6,end) both; }
+  .screen-buddy-root.is-hunt:has(.phase-hit) .screen-buddy-sprite { animation: buddy-hunt-recover .45s steps(3,end) both; }
+
+  .buddy-leviathan { opacity: 0; transform-origin: 0 80px; }
+  .buddy-fishing-rig.is-monster .buddy-leviathan { opacity: 1; animation: buddy-leviathan-rise 3.4s ease-in-out both; }
+  .buddy-fishing-rig.is-monster .buddy-fish-school { opacity: 0; }
+  .buddy-fishing-rig.is-monster .buddy-fishing-svg { animation: buddy-rod-strain .22s steps(2,end) infinite; }
+  .screen-buddy-root.is-fishing:has(.is-monster) .screen-buddy-sprite { animation: buddy-leviathan-pull .32s steps(2,end) infinite; }
+  .buddy-catch-fish { filter: drop-shadow(0 0 4px var(--catch-color)); }
+  .buddy-fishing-rig.tier-legendary .buddy-fishing-loot,
+  .buddy-fishing-rig.tier-treasure .buddy-fishing-loot { filter: drop-shadow(0 0 8px #ffd166); }
+  .buddy-fishing-rig.tier-mythic .buddy-fishing-loot { filter: drop-shadow(0 0 10px #c084fc) drop-shadow(0 0 5px #45d8ff); }
+
+  .buddy-outage-kit { position: absolute; inset: 0; z-index: 8; pointer-events: none; transform: scaleX(var(--buddy-event-side, 1)); }
+
+  .buddy-flashlight {
+    position: absolute;
+    right: -8px;
+    bottom: 14px;
+    z-index: 4;
+    width: 30px;
+    max-width: none;
+    height: 16px;
+    overflow: visible;
+    filter: drop-shadow(0 0 5px rgba(255,209,102,.55));
+    transform: rotate(-8deg);
+    transform-origin: 4px 8px;
+  }
+
+  /* SVG layers replace the former clipped CSS polygon. Both layers fade to
+     transparent inside the artwork, so the sweep has no hard black seams. */
+  .buddy-flashlight-beam {
+    position: absolute;
+    right: -158px;
+    bottom: -36px;
+    z-index: 1;
+    width: 168px;
+    max-width: none;
+    height: 112px;
+    overflow: visible;
+    opacity: 0;
+    filter: blur(.35px) drop-shadow(0 0 10px rgba(255,209,102,.24));
+    transform: rotate(-7deg);
+    transform-origin: 1px 56px;
+  }
+
+  .buddy-outage-kit.is-search .buddy-flashlight { animation: buddy-flashlight-hand-search 1.9s ease-in-out infinite alternate; }
+  .buddy-outage-kit.is-search .buddy-flashlight-beam { opacity: .86; animation: buddy-flashlight-search 1.9s ease-in-out infinite alternate; }
+  .buddy-outage-kit.is-fix .buddy-flashlight { animation: buddy-flashlight-stow .38s steps(3,end) both; }
+  .buddy-outage-kit.is-fix .buddy-flashlight-beam { opacity: .16; transform: rotate(8deg) scaleX(.72); transition: opacity .28s ease, transform .28s ease; }
+  .buddy-outage-kit.is-restore .buddy-flashlight,
+  .buddy-outage-kit.is-restore .buddy-flashlight-beam { opacity: 0; transition: opacity .22s ease; }
+
+  .buddy-breaker-box {
+    position: absolute;
+    right: -64px;
+    bottom: -4px;
+    z-index: 3;
+    width: 48px;
+    max-width: none;
+    height: 64px;
+    overflow: visible;
+    opacity: 0;
+    filter: brightness(.5) drop-shadow(0 0 5px rgba(69,216,255,.22));
+    transform: translateY(5px) scale(.92);
+    transform-origin: center bottom;
+  }
+
+  .buddy-outage-kit.is-search .buddy-breaker-box { animation: buddy-breaker-discover 1.2s steps(4,end) 1.45s both; }
+  .buddy-outage-kit.is-fix .buddy-breaker-box { opacity: 1; filter: brightness(.78) drop-shadow(0 0 7px rgba(255,209,102,.32)); animation: buddy-breaker-rattle 1.15s steps(7,end) 2; }
+  .buddy-outage-kit.is-restore .buddy-breaker-box { opacity: 1; filter: brightness(1.08) drop-shadow(0 0 9px rgba(63,255,151,.5)); animation: buddy-breaker-online .46s steps(4,end) both; }
+
+  .buddy-breaker-led { filter: drop-shadow(0 0 3px #ff5f68); }
+  .buddy-outage-kit.is-search .buddy-breaker-led,
+  .buddy-outage-kit.is-fix .buddy-breaker-led { animation: buddy-breaker-led-fail .7s steps(1,end) infinite; }
+  .buddy-outage-kit.is-search .buddy-breaker-led-b,
+  .buddy-outage-kit.is-fix .buddy-breaker-led-b { animation-delay: .32s; }
+  .buddy-outage-kit.is-restore .buddy-breaker-led { fill: #3fff97; filter: drop-shadow(0 0 4px #3fff97); animation: buddy-breaker-led-wake .4s steps(2,end) both; }
+  .buddy-outage-kit.is-restore .buddy-breaker-led-b { animation-delay: .18s; }
+
+  /* Aguja del medidor: muerta a la izquierda; revive con rebote al volver */
+  .buddy-breaker-needle {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    transform: rotate(-44deg);
+  }
+
+  .buddy-outage-kit.is-fix .buddy-breaker-needle { animation: buddy-breaker-needle-twitch 1.15s steps(3,end) 2; }
+  .buddy-outage-kit.is-restore .buddy-breaker-needle { fill: #3fff97; animation: buddy-breaker-needle-wake .6s cubic-bezier(.3,1.6,.5,1) both; }
+
+  /* Palanca principal: caida (OFF); cede en cada tiron y clava arriba al final */
+  .buddy-breaker-lever {
+    transform-box: fill-box;
+    transform-origin: 50% 92%;
+    transform: rotate(26deg);
+  }
+
+  .buddy-outage-kit.is-fix .buddy-breaker-lever { animation: buddy-breaker-lever-yank 1.15s steps(5,end) 2; }
+  .buddy-outage-kit.is-restore .buddy-breaker-lever { animation: buddy-breaker-lever-slam .5s steps(4,end) both; }
+
+  /* Despedida: con la luz de vuelta, la caja se apaga como un tubo CRT
+     (colapsa a una linea brillante y luego a un punto). Las piezas conservan
+     su estado "encendido" para que no salten atras durante el colapso. */
+  .buddy-outage-kit.is-stow .buddy-flashlight,
+  .buddy-outage-kit.is-stow .buddy-flashlight-beam { opacity: 0; }
+  .buddy-outage-kit.is-stow .buddy-breaker-box { opacity: 1; animation: buddy-breaker-derez .62s steps(6,end) both; }
+  .buddy-outage-kit.is-stow .buddy-breaker-lever { transform: rotate(-30deg); }
+  .buddy-outage-kit.is-stow .buddy-breaker-needle { fill: #3fff97; transform: rotate(34deg); }
+  .buddy-outage-kit.is-stow .buddy-breaker-led { fill: #3fff97; filter: drop-shadow(0 0 4px #3fff97); }
+
+  .buddy-breaker-sparks { position: absolute; right: -43px; bottom: 21px; z-index: 5; width: 8px; height: 8px; opacity: 0; }
+  .buddy-breaker-sparks i { position: absolute; top: 3px; left: 3px; width: 3px; height: 3px; background: #f4fff8; box-shadow: 0 0 4px #ffd166; }
+  .buddy-breaker-sparks i:nth-child(1) { --spark-x: 15px; --spark-y: -14px; background: #ffd166; }
+  .buddy-breaker-sparks i:nth-child(2) { --spark-x: -12px; --spark-y: -17px; background: #45d8ff; }
+  .buddy-breaker-sparks i:nth-child(3) { --spark-x: 13px; --spark-y: 12px; background: #ff5f68; }
+  .buddy-breaker-sparks i:nth-child(4) { --spark-x: -10px; --spark-y: 10px; }
+  .buddy-outage-kit.is-fix .buddy-breaker-sparks { opacity: 1; }
+  .buddy-outage-kit.is-fix .buddy-breaker-sparks i { animation: buddy-breaker-spark-burst 1.15s steps(5,end) 2; }
+
+  .screen-buddy-root.is-outage .screen-buddy-sprite { filter: brightness(.55) drop-shadow(0 0 8px #ffd166); }
+  .screen-buddy-root.outage-search .screen-buddy-sprite { animation: buddy-outage-investigate 1.9s steps(4,end) infinite alternate; }
+  .screen-buddy-root.outage-fix .screen-buddy-sprite { animation: buddy-breaker-repair 1.15s steps(7,end) 2 both; }
+  .screen-buddy-root.outage-restore .screen-buddy-sprite { animation: buddy-breaker-success .7s steps(5,end) both; }
+
+  /* En el stow la luz ya volvio: el buddy recupera su brillo normal */
+  .screen-buddy-root.outage-stow .screen-buddy-sprite,
+  .theme-glitch .screen-buddy-root.is-outage.outage-stow .screen-buddy-sprite {
+    filter: drop-shadow(0 0 10px rgba(63, 255, 151, 0.28));
+    animation: buddy-breathe 3.4s ease-in-out infinite;
+  }
+
+  /* Buddy events share the same glitch-biome language as the footer: split
+     RGB shadows, violet water and magenta/green corrupted highlights. */
+  .theme-glitch .buddy-fishing-svg {
+    filter: hue-rotate(96deg) saturate(1.45) contrast(1.06) drop-shadow(-2px 0 rgba(63,255,151,.34)) drop-shadow(2px 0 rgba(255,61,157,.4)) drop-shadow(0 0 6px rgba(185,134,255,.48));
+  }
+
+  .theme-glitch .buddy-water-surface { fill: #712b86; }
+  .theme-glitch .buddy-fishing-ripples { filter: hue-rotate(100deg) saturate(1.6); }
+  .theme-glitch .buddy-fish-school { filter: hue-rotate(110deg) saturate(1.55) contrast(1.08); }
+  .theme-glitch .buddy-catch-fish { filter: hue-rotate(105deg) saturate(1.6) drop-shadow(0 0 5px #ff3d9d); }
+  .theme-glitch .buddy-leviathan { filter: hue-rotate(115deg) saturate(1.55) drop-shadow(-2px 0 #3fff97) drop-shadow(2px 0 #ff3d9d); }
+
+  .theme-glitch .buddy-umbrella {
+    filter: hue-rotate(82deg) saturate(1.45) drop-shadow(-2px 0 rgba(63,255,151,.42)) drop-shadow(2px 0 rgba(255,61,157,.52)) drop-shadow(0 0 8px rgba(185,134,255,.5));
+  }
+
+  .theme-glitch .buddy-rain-field i {
+    background: linear-gradient(180deg, transparent, #b986ff 48%, #ff9ddb 72%, #3fff97);
+    box-shadow: 1px 0 rgba(69,216,255,.28);
+  }
+
+  .theme-glitch .buddy-rain-plink {
+    background: #ff9ddb;
+    box-shadow: 3px -2px 0 rgba(63,255,151,.78), -3px -3px 0 rgba(185,134,255,.8);
+  }
+
+  .theme-glitch .buddy-umbrella-splash,
+  .theme-glitch .buddy-particle-splash,
+  .theme-glitch .buddy-particles {
+    filter: hue-rotate(105deg) saturate(1.6) drop-shadow(1px 0 rgba(255,61,157,.5));
+  }
+
+  .theme-glitch .buddy-field-find {
+    filter: hue-rotate(78deg) saturate(1.55) drop-shadow(-2px 0 rgba(63,255,151,.34)) drop-shadow(2px 0 rgba(255,61,157,.42));
+  }
+
+  .theme-glitch .buddy-field-find.is-arcade-coin { color: #ff3d9d; }
+  .theme-glitch .buddy-field-find.is-floppy-disk { color: #b986ff; }
+  .theme-glitch .buddy-field-find.is-battery { color: #3fff97; }
+  .theme-glitch .buddy-field-find.is-lost-bug { color: #45d8ff; }
+  .theme-glitch .buddy-field-find.is-mini-cartridge { color: #ff79c6; }
+
+  .theme-glitch .buddy-ambient-creature.is-moth i {
+    background: #ff9ddb;
+    box-shadow: -2px 0 #3fff97, 2px 0 #45d8ff, 0 0 9px #ff3d9d;
+  }
+
+  .theme-glitch .buddy-ambient-creature.is-moth i:last-child { background: #b986ff; }
+  .theme-glitch .buddy-ambient-creature.is-bird { filter: drop-shadow(-2px 0 rgba(63,255,151,.4)) drop-shadow(2px 0 rgba(255,61,157,.5)) drop-shadow(0 0 7px rgba(185,134,255,.58)); }
+  .theme-glitch .buddy-ambient-creature.is-bird .pixel-bird-svg { filter: hue-rotate(105deg) saturate(1.6) contrast(1.08); }
+
+  .theme-glitch .buddy-enemy-bug {
+    filter: hue-rotate(72deg) saturate(1.5) drop-shadow(-2px 0 rgba(63,255,151,.4)) drop-shadow(2px 0 rgba(255,61,157,.5)) drop-shadow(0 0 7px rgba(185,134,255,.6));
+  }
+
+  .theme-glitch .buddy-hunt-weapon {
+    filter: hue-rotate(95deg) saturate(1.4) drop-shadow(-2px 0 rgba(63,255,151,.32)) drop-shadow(2px 0 rgba(255,61,157,.4));
+  }
+
+  .theme-glitch .buddy-laser-beam {
+    background: #f4fff8;
+    box-shadow: -2px 0 #3fff97, 2px 0 #ff3d9d, 0 0 11px #b986ff;
+  }
+
+  .theme-glitch .buddy-hit-burst { filter: hue-rotate(92deg) saturate(1.6); }
+  .theme-glitch .buddy-flashlight { filter: hue-rotate(82deg) saturate(1.5) drop-shadow(-1px 0 #3fff97) drop-shadow(1px 0 #ff3d9d) drop-shadow(0 0 7px #b986ff); }
+  .theme-glitch .buddy-flashlight-beam { filter: hue-rotate(285deg) saturate(1.35) blur(.35px) drop-shadow(0 0 13px rgba(255,61,157,.4)); }
+  .theme-glitch .buddy-breaker-box { filter: hue-rotate(62deg) saturate(1.45) drop-shadow(-1px 0 #3fff97) drop-shadow(1px 0 #ff3d9d) drop-shadow(0 0 7px #b986ff); }
+  .theme-glitch .buddy-breaker-sparks { filter: hue-rotate(92deg) saturate(1.65); }
+  .theme-glitch .screen-buddy-root.is-outage .screen-buddy-sprite { filter: brightness(.55) drop-shadow(-2px 0 #3fff97) drop-shadow(2px 0 #ff3d9d) drop-shadow(0 0 8px #b986ff); }
+
+  @keyframes buddy-find-arrive { from { opacity: 0; transform: translateX(var(--find-x)) translateY(-22px) scale(.5); } to { opacity: 1; transform: translateX(var(--find-x)) translateY(0) scale(1); } }
+  @keyframes buddy-find-hover { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+  @keyframes buddy-moth-flight { 0%,100% { transform: translate(var(--creature-moth-start-x,8px),-8px) rotate(-8deg); } 35% { transform: translate(var(--creature-moth-mid-x,36px),-31px) rotate(12deg); } 70% { transform: translate(var(--creature-moth-end-x,58px),5px) rotate(-4deg); } }
+  @keyframes buddy-moth-wing { 0% { transform: scaleX(.3); } 100% { transform: scaleX(1); } }
+  @keyframes buddy-bird-fly-in { 0% { opacity: 0; transform: translate(var(--creature-bird-in-start-x,145px),-82px) rotate(-18deg) scale(.72); } 45% { opacity: 1; transform: translate(var(--creature-bird-in-mid-x,65px),-34px) rotate(-6deg) scale(1); } 82% { transform: translate(var(--creature-bird-in-near-x,12px),-10px) rotate(4deg); } 100% { opacity: 1; transform: translate(0,0) rotate(0); } }
+  @keyframes buddy-bird-perch { 0%,100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-1px) rotate(1deg); } }
+  @keyframes buddy-bird-fly-out { 0% { opacity: 1; transform: translate(0,0) rotate(0); } 30% { transform: translate(var(--creature-bird-out-mid-x,-28px),-24px) rotate(-12deg) scale(1.08); } 100% { opacity: 0; transform: translate(var(--creature-bird-out-end-x,-140px),-88px) rotate(-24deg) scale(.7); } }
+  @keyframes buddy-bird-wing { from { transform: rotate(-22deg) scaleY(.55); } to { transform: rotate(25deg) scaleY(1.15); } }
+  @keyframes buddy-shoo-bird { 0%,100% { transform: scaleX(var(--buddy-facing)) translateX(0) rotate(0); } 50% { transform: scaleX(var(--buddy-facing)) translateX(-4px) rotate(-5deg); } }
+  @keyframes buddy-enemy-approach { from { opacity: 0; transform: translateX(52px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes buddy-enemy-taunt { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-2px) rotate(3deg); } }
+  @keyframes buddy-enemy-dodge { 0%,100% { transform: translateX(0); } 50% { transform: translateX(7px) translateY(-3px); } }
+  @keyframes buddy-enemy-squash { 0% { opacity: 1; transform: scale(1); } 45% { opacity: 1; transform: translateY(7px) scale(1.25,.32); } 100% { opacity: 0; transform: translate(18px,-18px) scale(.25) rotate(30deg); } }
+  @keyframes buddy-weapon-aim { from { transform: translateX(-10px) rotate(-36deg); } to { transform: translateX(0) rotate(-18deg); } }
+  @keyframes buddy-weapon-smash { 0% { transform: rotate(-42deg) translateY(-5px); } 45% { transform: rotate(-50deg) translateY(-8px); } 70%,100% { transform: rotate(26deg) translate(8px,5px); } }
+  @keyframes buddy-net-scoop { 0% { transform: translate(-6px,4px) rotate(-12deg); } 55% { transform: translate(20px,-2px) rotate(4deg); } 100% { transform: translate(13px,-10px) rotate(-22deg); } }
+  @keyframes buddy-laser-recoil { 0%,100% { transform: translateX(0) rotate(-4deg); } 50% { transform: translateX(-6px) rotate(-1deg); } }
+  @keyframes buddy-laser-charge { 0%,100% { fill: #ffd166; } 50% { fill: #f4fff8; } }
+  @keyframes buddy-laser-fire { 0%,34% { opacity: 0; transform: scaleX(.1); } 35%,70% { opacity: 1; transform: scaleX(1); } 100% { opacity: 0; transform: scaleX(.65); } }
+  @keyframes buddy-hit-pixel { from { opacity: 1; transform: translate(0,0) scale(1); } to { opacity: 0; transform: translate(var(--hit-x),var(--hit-y)) scale(.5); } }
+  @keyframes buddy-hunt-ready { 0%,100% { transform: scaleX(var(--buddy-facing)) translateY(0) rotate(-2deg); } 50% { transform: scaleX(var(--buddy-facing)) translateY(-2px) rotate(2deg); } }
+  @keyframes buddy-hunt-lunge { 0% { transform: scaleX(var(--buddy-facing)) translateX(0); } 55%,100% { transform: scaleX(var(--buddy-facing)) translateX(8px) rotate(5deg); } }
+  @keyframes buddy-hunt-recover { from { transform: scaleX(var(--buddy-facing)) translateX(8px) rotate(5deg); } to { transform: scaleX(var(--buddy-facing)) translateX(0) rotate(-2deg); } }
+  @keyframes buddy-leviathan-rise { 0% { transform: translate(-38px,30px) scale(.65); opacity: 0; } 25%,75% { opacity: 1; transform: translate(0,0) scale(1); } 100% { opacity: 0; transform: translate(25px,18px) scale(1.1); } }
+  @keyframes buddy-leviathan-pull { 0%,100% { transform: scaleX(var(--buddy-facing)) translate(-2px,3px) rotate(-8deg); } 50% { transform: scaleX(var(--buddy-facing)) translate(3px,8px) rotate(8deg); } }
+  @keyframes buddy-flashlight-search {
+    from { transform: translateY(-2px) rotate(-10deg) scaleX(.94); opacity: .72; }
+    to { transform: translateY(2px) rotate(13deg) scaleX(1.03); opacity: .9; }
+  }
+  @keyframes buddy-flashlight-hand-search { from { transform: translateY(-1px) rotate(-15deg); } to { transform: translateY(2px) rotate(10deg); } }
+  @keyframes buddy-flashlight-stow { from { opacity: 1; transform: rotate(8deg); } to { opacity: .22; transform: translate(-5px,8px) rotate(34deg) scale(.75); } }
+  @keyframes buddy-breaker-discover { from { opacity: 0; filter: brightness(.25); transform: translateY(8px) scale(.86); } to { opacity: .72; filter: brightness(.56) drop-shadow(0 0 5px rgba(69,216,255,.25)); transform: translateY(0) scale(1); } }
+  @keyframes buddy-breaker-led-fail { 0%,48% { opacity: .18; } 49%,100% { opacity: 1; } }
+  /* La caja se sacude EN el tiron (52%): tirada hacia el buddy y rebote */
+  @keyframes buddy-breaker-rattle { 0%,40%,100% { transform: translate(0,0) rotate(0); } 50% { transform: translate(-2.5px,1px) rotate(-3deg); } 58% { transform: translate(1.5px,-1px) rotate(1.5deg); } 68% { transform: translate(-1px,0) rotate(-1deg); } 78% { transform: translate(0,0) rotate(0); } }
+  @keyframes buddy-breaker-lever-yank { 0%,42% { transform: rotate(26deg); } 52% { transform: rotate(4deg); } 62% { transform: rotate(32deg); } 74%,100% { transform: rotate(26deg); } }
+  @keyframes buddy-breaker-lever-slam { 0% { transform: rotate(26deg); } 55% { transform: rotate(-38deg); } 75% { transform: rotate(-24deg); } 100% { transform: rotate(-30deg); } }
+  @keyframes buddy-breaker-needle-twitch { 0%,48% { transform: rotate(-44deg); } 54% { transform: rotate(-30deg); } 64% { transform: rotate(-42deg); } 100% { transform: rotate(-44deg); } }
+  @keyframes buddy-breaker-needle-wake { from { transform: rotate(-44deg); } to { transform: rotate(34deg); } }
+  @keyframes buddy-breaker-led-wake { from { opacity: .2; } to { opacity: 1; } }
+  @keyframes buddy-breaker-spark-burst { 0%,48% { opacity: 0; transform: translate(0,0) scale(.35); } 56% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--spark-x),var(--spark-y)) scale(.8); } }
+  @keyframes buddy-breaker-online { 0% { transform: translateY(0) scale(1); } 45% { transform: translateY(-2px) scale(1.04); } 100% { transform: translateY(0) scale(1); } }
+  @keyframes buddy-breaker-derez {
+    0% { opacity: 1; transform: scaleY(1) scaleX(1); filter: brightness(1.15) drop-shadow(0 0 9px rgba(63,255,151,.5)); }
+    35% { opacity: 1; transform: scaleY(.06) scaleX(1.08); filter: brightness(2.3) drop-shadow(0 0 12px rgba(63,255,151,.8)); }
+    60% { opacity: 1; transform: scaleY(.045) scaleX(.42); filter: brightness(2.4) drop-shadow(0 0 10px rgba(184,247,255,.85)); }
+    82% { opacity: .95; transform: scaleY(.04) scaleX(.07); filter: brightness(2.8) drop-shadow(0 0 8px #f4fff8); }
+    100% { opacity: 0; transform: scaleY(.03) scaleX(.02); filter: brightness(3) drop-shadow(0 0 4px #f4fff8); }
+  }
+  @keyframes buddy-outage-investigate { 0% { transform: scaleX(var(--buddy-facing)) translateX(-1px) rotate(-2deg); } 50% { transform: scaleX(var(--buddy-facing)) translateX(1px) rotate(2deg); } 100% { transform: scaleX(var(--buddy-facing)) translateX(2px) rotate(0); } }
+  /* Tira de la palanca de verdad: paso, agarre estirado, tiron con todo el
+     cuerpo y resbalon. En este espacio, translateX NEGATIVO acerca al buddy
+     a la caja sin importar de que lado quedo (el espejo invierte el eje). */
+  @keyframes buddy-breaker-repair {
+    0% { transform: scaleX(var(--buddy-facing)) translateX(0) rotate(0); }
+    14% { transform: scaleX(var(--buddy-facing)) translateX(-3px) rotate(-2deg); }
+    30% { transform: scaleX(var(--buddy-facing)) translateX(-8px) rotate(-8deg); }
+    44% { transform: scaleX(var(--buddy-facing)) translateX(-7px) rotate(-6deg) scaleY(.97); }
+    52% { transform: scaleX(var(--buddy-facing)) translateX(3px) rotate(10deg) scaleY(.93); }
+    64% { transform: scaleX(var(--buddy-facing)) translateX(1px) rotate(5deg); }
+    78% { transform: scaleX(var(--buddy-facing)) translateX(-1px) rotate(-2deg); }
+    100% { transform: scaleX(var(--buddy-facing)) translateX(0) rotate(0); }
+  }
+  @keyframes buddy-breaker-success { 0% { transform: scaleX(var(--buddy-facing)) translateY(0); } 35% { transform: scaleX(var(--buddy-facing)) translateY(-5px) rotate(-3deg); } 70% { transform: scaleX(var(--buddy-facing)) translateY(1px) rotate(2deg); } 100% { transform: scaleX(var(--buddy-facing)) translateY(0); } }
+
   @media (max-width: 760px) {
     .screen-buddy-sprite {
       width: 50px;
@@ -769,20 +2175,226 @@
 
     .screen-buddy-root .screen-buddy-sprite,
     .screen-buddy-root .screen-buddy-body,
-    .screen-buddy-root .buddy-leg-l,
-    .screen-buddy-root .buddy-leg-r,
+    .screen-buddy-root .buddy-leg,
+    .screen-buddy-root .buddy-leg-foot,
     .screen-buddy-root .buddy-screen,
     .screen-buddy-root .buddy-eye-track,
     .splash-buddy,
     .splash-buddy-sprite,
     .buddy-drop-body,
     .buddy-eye,
+    .buddy-green-visor,
     .buddy-led,
+    .buddy-antenna-spark,
     .buddy-power,
     .buddy-particle,
+    .buddy-loot-cartridge,
     .buddy-scarf-tail,
+    .buddy-fishing-svg,
+    .buddy-fishing-line-group,
+    .buddy-fishing-bobber,
+    .buddy-fishing-loot,
+    .buddy-ripple,
+    .buddy-water-surface,
+    .buddy-fish,
+    .buddy-umbrella,
+    .buddy-umbrella-splash,
+    .buddy-rain-field i,
+    .buddy-rain-plink,
+    .buddy-field-find,
+    .buddy-field-find > i,
+    .buddy-ambient-creature,
+    .buddy-ambient-creature i,
+    .buddy-ambient-creature .pixel-bird-wing,
+    .buddy-enemy-bug,
+    .buddy-hunt-weapon,
+    .buddy-laser-beam,
+    .buddy-hit-burst b,
+    .buddy-leviathan,
+    .buddy-flashlight,
+    .buddy-flashlight-beam,
+    .buddy-breaker-box,
+    .buddy-breaker-lever,
+    .buddy-breaker-needle,
+    .buddy-breaker-led,
+    .buddy-breaker-sparks i,
+    .buddy-lucky-lure,
     .screen-buddy-zzz i {
       animation: none;
     }
+  }
+}
+
+@keyframes footer-spotify-wake {
+  0%,
+  100% {
+    opacity: 0.18;
+    transform: translateY(0);
+  }
+
+  50% {
+    opacity: 0.45;
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes buddy-inventory-jiggle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-1.4px);
+  }
+}
+
+@keyframes buddy-cartridge-carry {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(-4deg);
+  }
+
+  25% {
+    transform: translate(calc(var(--buddy-facing, 1) * -0.8px), -1px) rotate(5deg);
+  }
+
+  50% {
+    transform: translate(calc(var(--buddy-facing, 1) * -1.4px), 0.6px) rotate(8deg);
+  }
+
+  75% {
+    transform: translate(calc(var(--buddy-facing, 1) * 0.6px), -0.6px) rotate(-6deg);
+  }
+}
+
+@keyframes buddy-cartridge-hover-carry {
+  0%,
+  100% {
+    transform: translate(calc(var(--buddy-facing, 1) * -0.5px), 0.4px) rotate(-5deg);
+  }
+
+  50% {
+    transform: translate(calc(var(--buddy-facing, 1) * 1px), -2px) rotate(7deg);
+  }
+}
+
+@keyframes buddy-cartridge-swing {
+  0%,
+  100% {
+    transform: translate(calc(var(--buddy-facing, 1) * -1px), 0) rotate(-11deg);
+  }
+
+  50% {
+    transform: translate(calc(var(--buddy-facing, 1) * 1.2px), 1px) rotate(10deg);
+  }
+}
+
+@keyframes buddy-cartridge-held-swing {
+  0%,
+  100% {
+    transform: translate(0, 0.6px) rotate(-8deg);
+  }
+
+  50% {
+    transform: translate(calc(var(--buddy-facing, 1) * 1.4px), -0.8px) rotate(9deg);
+  }
+}
+
+@keyframes buddy-rocket-flicker {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes buddy-rocket-cushion {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+
+  50% {
+    transform: translateY(-2.5px) rotate(2deg);
+  }
+}
+
+@keyframes buddy-rocket-flame-cushion {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scaleY(1.4);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scaleY(3.4) translateY(1.5px);
+  }
+}
+
+@keyframes buddy-rocket-plume {
+  0% {
+    opacity: 0.78;
+    transform: translateY(0) scaleX(0.82) scaleY(0.86);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(2px) scaleX(1.18) scaleY(1.25);
+  }
+
+  100% {
+    opacity: 0.86;
+    transform: translateY(1px) scaleX(0.96) scaleY(1.05);
+  }
+}
+
+@keyframes buddy-rocket-hover {
+  0%,
+  100% {
+    transform: translateY(-7px) rotate(calc(var(--buddy-travel-direction, 1) * 5deg));
+  }
+
+  50% {
+    transform: translateY(-13px) rotate(calc(var(--buddy-travel-direction, 1) * 8deg));
+  }
+}
+
+@keyframes buddy-rocket-hover-screen {
+  0%,
+  100% {
+    transform: scaleX(var(--buddy-facing, 1)) translateY(0);
+  }
+
+  50% {
+    transform: scaleX(var(--buddy-facing, 1)) translateY(-1px);
+  }
+}
+
+@keyframes buddy-rocket-leg-float {
+  0%,
+  100% {
+    transform: translateY(0.8px);
+  }
+
+  50% {
+    transform: translateY(2.4px);
+  }
+}
+
+@keyframes buddy-rocket-shadow {
+  0%,
+  100% {
+    opacity: 0.42;
+    transform: translateX(-50%) scaleX(0.72);
+  }
+
+  50% {
+    opacity: 0.24;
+    transform: translateX(-50%) scaleX(0.52);
   }
 }

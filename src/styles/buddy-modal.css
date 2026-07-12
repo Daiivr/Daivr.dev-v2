@@ -1,0 +1,566 @@
+@layer components {
+  .buddy-nav-card {
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .buddy-nav-title {
+    margin-bottom: 0;
+  }
+
+  .buddy-nav-card-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+
+  .buddy-nav-card-stats span {
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 18%, transparent);
+    background: color-mix(in srgb, var(--color-ink-950) 82%, transparent);
+    padding: 0.45rem 0.35rem;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 76%, transparent);
+    font-size: 0.56rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .buddy-nav-card-stats b {
+    color: var(--color-cabinet);
+  }
+
+  .buddy-nav-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .buddy-nav-actions button,
+  .buddy-modal-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.38rem;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 24%, transparent);
+    background: color-mix(in srgb, var(--color-ink-950) 86%, transparent);
+    padding: 0.62rem 0.48rem;
+    color: var(--color-phosphor-soft);
+    font-size: 0.62rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
+  }
+
+  .buddy-nav-actions button svg {
+    flex: 0 0 auto;
+  }
+
+  .buddy-nav-actions button:hover,
+  .buddy-nav-actions button:focus-visible,
+  .buddy-modal-actions button:hover,
+  .buddy-modal-actions button:focus-visible,
+  .buddy-modal-actions button.is-active {
+    border-color: var(--color-phosphor);
+    background: color-mix(in srgb, var(--color-phosphor) 16%, transparent);
+    color: #fff;
+    transform: translateY(-1px);
+  }
+
+  .buddy-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 120;
+    display: grid;
+    place-items: center;
+    overflow: auto;
+    background:
+      linear-gradient(rgba(63, 255, 151, 0.04) 50%, transparent 50%),
+      rgba(2, 6, 4, 0.78);
+    background-size: 100% 4px, auto;
+    padding: clamp(1rem, 3vw, 2rem);
+    backdrop-filter: blur(8px);
+  }
+
+  .buddy-modal {
+    position: relative;
+    width: min(940px, 100%);
+    max-height: min(780px, calc(100vh - 2rem));
+    overflow: auto;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 62%, transparent);
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.035) 50%, transparent 50%),
+      radial-gradient(circle at 84% 12%, color-mix(in srgb, var(--color-cyan-arcade) 18%, transparent), transparent 30%),
+      linear-gradient(135deg, color-mix(in srgb, var(--color-phosphor) 10%, transparent), rgba(2, 6, 4, 0.96) 42%),
+      var(--color-ink-950);
+    background-size: 100% 4px, auto, auto, auto;
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, #fff 7%, transparent),
+      0 28px 90px rgba(0, 0, 0, 0.68),
+      0 0 42px color-mix(in srgb, var(--color-cyan-arcade) 16%, transparent);
+    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  }
+
+  .buddy-modal.is-journal {
+    display: grid;
+    height: min(780px, calc(100vh - 2rem));
+    grid-template-rows: auto minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  .buddy-modal-header {
+    position: sticky;
+    top: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-phosphor) 20%, transparent);
+    background: rgba(2, 6, 4, 0.93);
+    padding: 1rem;
+  }
+
+  .buddy-modal-kicker {
+    color: var(--color-cyan-arcade);
+    font-size: 0.58rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .buddy-modal-header h2 {
+    margin: 0.2rem 0 0;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: clamp(1.15rem, 2.8vw, 1.65rem);
+    font-weight: 900;
+    letter-spacing: 0;
+  }
+
+  .buddy-modal-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.45rem;
+  }
+
+  .buddy-modal-actions .buddy-modal-close {
+    width: 2.35rem;
+    padding-inline: 0;
+    color: var(--color-glitch);
+  }
+
+  .buddy-modal-inventory {
+    display: grid;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .buddy-inventory-stage {
+    display: grid;
+    grid-template-columns: minmax(180px, 0.72fr) minmax(0, 1.28fr);
+    gap: 1rem;
+  }
+
+  .buddy-preview-card,
+  .buddy-equip-slot,
+  .buddy-loot-cell,
+  .buddy-modal-quest,
+  .buddy-loot-empty {
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 18%, transparent);
+    background: rgba(2, 6, 4, 0.72);
+  }
+
+  .buddy-preview-card {
+    display: grid;
+    align-content: start;
+    gap: 0.75rem;
+    padding: 0.9rem;
+  }
+
+  .buddy-preview-screen {
+    display: grid;
+    min-height: 176px;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 26%, transparent);
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.038) 50%, transparent 50%),
+      radial-gradient(circle, color-mix(in srgb, var(--color-phosphor) 12%, transparent), transparent 62%),
+      var(--color-ink-950);
+    background-size: 100% 4px, auto, auto;
+  }
+
+  .buddy-preview-sprite {
+    width: 112px;
+    height: 108px;
+    transform: scaleX(var(--buddy-facing, 1));
+    filter: drop-shadow(0 0 16px color-mix(in srgb, var(--color-phosphor) 26%, transparent));
+  }
+
+  /* Pose de loadout completo: la cupula va arriba en flujo normal (el sprite
+     pinta despues y tapa las cuerdas) y la caña se apoya al costado. */
+  .buddy-preview-pose {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    padding-block: 0.5rem;
+  }
+
+  .buddy-preview-chute {
+    width: 112px;
+    height: auto;
+    margin-bottom: -8px;
+    filter: drop-shadow(0 0 10px color-mix(in srgb, var(--color-glitch) 32%, transparent));
+  }
+
+  .buddy-preview-rod {
+    position: absolute;
+    right: -48px;
+    bottom: -0.15rem;
+    width: 68px;
+    height: 96px;
+    overflow: visible;
+    transform: scaleX(-1) rotate(3deg);
+    transform-origin: center;
+  }
+
+  .buddy-preview-stats {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.6rem;
+    color: var(--color-cabinet);
+    font-size: 0.62rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .buddy-slot-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .buddy-equip-slot {
+    display: grid;
+    min-height: 64px;
+    align-content: space-between;
+    gap: 0.4rem;
+    padding: 0.6rem;
+    transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+  }
+
+  .buddy-equip-slot:hover,
+  .buddy-equip-slot:focus-within {
+    border-color: color-mix(in srgb, var(--color-cyan-arcade) 62%, transparent);
+    box-shadow: inset 0 0 18px color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent);
+  }
+
+  .buddy-equip-slot > span {
+    color: var(--color-cyan-arcade);
+    font-size: 0.58rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .buddy-equip-slot small {
+    color: color-mix(in srgb, var(--color-phosphor-soft) 48%, transparent);
+    font-size: 0.58rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .buddy-equipped-chip {
+    display: inline-flex;
+    max-width: 100%;
+    align-items: center;
+    gap: 0.34rem;
+    border: 1px solid color-mix(in srgb, currentColor 36%, transparent);
+    background: color-mix(in srgb, currentColor 10%, transparent);
+    padding: 0.34rem 0.38rem;
+    color: var(--color-phosphor);
+    font-size: 0.56rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .buddy-equipped-chip i,
+  .buddy-loot-cell i {
+    width: 0.72rem;
+    aspect-ratio: 1;
+    flex: 0 0 auto;
+    background: currentColor;
+    box-shadow: 0 0 10px currentColor;
+  }
+
+  /* Panel de botin: chips de filtro por slot + zona con scroll propio, asi
+     el modal deja de crecer con cada item nuevo. */
+  .buddy-loot-panel {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .buddy-loot-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .buddy-loot-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.34rem;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 22%, transparent);
+    background: color-mix(in srgb, var(--color-ink-950) 86%, transparent);
+    padding: 0.34rem 0.55rem;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 72%, transparent);
+    font-size: 0.56rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+  }
+
+  .buddy-loot-filter b {
+    color: var(--color-cabinet);
+  }
+
+  .buddy-loot-filter:hover,
+  .buddy-loot-filter:focus-visible {
+    border-color: color-mix(in srgb, var(--color-phosphor) 62%, transparent);
+    color: #fff;
+  }
+
+  .buddy-loot-filter.is-active {
+    border-color: var(--color-phosphor);
+    background: color-mix(in srgb, var(--color-phosphor) 14%, transparent);
+    color: #fff;
+  }
+
+  .buddy-loot-scroll {
+    max-height: min(292px, 38vh);
+    padding: 2px 0.3rem 2px 1px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-color: color-mix(in srgb, var(--color-phosphor) 45%, transparent) transparent;
+    scrollbar-width: thin;
+  }
+
+  .buddy-loot-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+    gap: 0.5rem;
+  }
+
+  .buddy-loot-cell {
+    display: grid;
+    min-height: 62px;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.3rem 0.55rem;
+    padding: 0.55rem;
+    color: var(--color-phosphor);
+    text-align: left;
+    transition: border-color 160ms ease, background 160ms ease, opacity 160ms ease, transform 160ms ease;
+  }
+
+  .buddy-loot-cell:hover,
+  .buddy-loot-cell:focus-visible {
+    border-color: var(--color-phosphor);
+    background: color-mix(in srgb, var(--color-phosphor) 9%, transparent);
+    transform: translateY(-1px);
+  }
+
+  .buddy-loot-cell.is-stashed {
+    opacity: 0.58;
+  }
+
+  .buddy-loot-cell span {
+    overflow: hidden;
+    color: #fff;
+    font-size: 0.62rem;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .buddy-loot-cell small {
+    grid-column: 2;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 62%, transparent);
+    font-size: 0.54rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .buddy-equipped-chip.is-wrench,
+  .buddy-equipped-chip.is-headset,
+  .buddy-equipped-chip.is-sunglasses,
+  .buddy-equipped-chip.is-star-cap,
+  .buddy-equipped-chip.is-green-visor,
+  .buddy-loot-cell.is-wrench,
+  .buddy-loot-cell.is-headset,
+  .buddy-loot-cell.is-sunglasses,
+  .buddy-loot-cell.is-star-cap,
+  .buddy-loot-cell.is-green-visor {
+    color: var(--color-cyan-arcade);
+  }
+
+  .buddy-equipped-chip.is-party-hat,
+  .buddy-equipped-chip.is-rocket-boots,
+  .buddy-loot-cell.is-party-hat,
+  .buddy-loot-cell.is-rocket-boots {
+    color: var(--color-glitch);
+  }
+
+  .buddy-equipped-chip.is-gold-antenna i,
+  .buddy-loot-cell.is-gold-antenna i {
+    clip-path: polygon(50% 0, 60% 34%, 96% 34%, 66% 54%, 78% 92%, 50% 68%, 22% 92%, 34% 54%, 4% 34%, 40% 34%);
+    animation: inventory-spark-antenna 1.2s steps(2, end) infinite;
+  }
+
+  .buddy-equipped-chip.is-lure,
+  .buddy-loot-cell.is-lure {
+    color: var(--color-cabinet);
+  }
+
+  /* La boya de la suerte es redonda, como corresponde */
+  .buddy-equipped-chip.is-lure i,
+  .buddy-loot-cell.is-lure i {
+    border-radius: 999px;
+  }
+
+  .buddy-loot-empty {
+    padding: 1rem;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 55%, transparent);
+    font-size: 0.68rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .buddy-modal-quests {
+    display: grid;
+    gap: 0.65rem;
+    padding: 1rem;
+  }
+
+  .buddy-modal-quest {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.82rem;
+  }
+
+  .buddy-modal-quest.is-complete {
+    border-color: color-mix(in srgb, var(--color-phosphor) 56%, transparent);
+    background: color-mix(in srgb, var(--color-phosphor) 8%, transparent);
+  }
+
+  .buddy-modal-quest > div {
+    display: flex;
+    min-width: 0;
+    align-items: flex-start;
+    gap: 0.65rem;
+  }
+
+  .buddy-modal-quest > div > span {
+    display: grid;
+    width: 1.75rem;
+    aspect-ratio: 1;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 42%, transparent);
+    color: var(--color-cyan-arcade);
+  }
+
+  .buddy-modal-quest strong,
+  .buddy-modal-quest b {
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .buddy-modal-quest p {
+    margin: 0.22rem 0 0;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 68%, transparent);
+    font-size: 0.62rem;
+    font-weight: 800;
+    line-height: 1.55;
+  }
+
+  /* Catch journal --------------------------------------------------------- */
+  .buddy-journal { display: grid; gap: 1rem; padding: 1rem; }
+  .buddy-modal.is-journal .buddy-journal { min-height: 0; grid-template-rows: auto minmax(0,1fr) auto; overflow: hidden; }
+  .buddy-journal-summary { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .6rem; }
+  .buddy-journal-summary > div { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .65rem; border: 1px solid color-mix(in srgb,var(--color-cyan-arcade) 28%,transparent); background: rgba(2,6,4,.72); padding: .75rem; color: var(--color-cyan-arcade); }
+  .buddy-journal-summary span { color: color-mix(in srgb,var(--color-phosphor-soft) 68%,transparent); font-size: .56rem; font-weight: 900; text-transform: uppercase; }
+  .buddy-journal-summary strong { color: #fff; font-size: .78rem; }
+  .buddy-journal-section { display: grid; gap: .65rem; }
+  .buddy-journal-section.is-fish-catalog { min-height: 0; grid-template-rows: auto minmax(0,1fr); }
+  .buddy-journal-section > header { display: flex; align-items: end; justify-content: space-between; gap: 1rem; border-bottom: 1px solid color-mix(in srgb,var(--color-phosphor) 18%,transparent); padding-bottom: .5rem; }
+  .buddy-journal-section > header span { color: var(--color-cyan-arcade); font-size: .52rem; font-weight: 900; letter-spacing: .14em; }
+  .buddy-journal-section h3 { margin: 0; color: #fff; font-family: var(--font-display); font-size: .86rem; text-transform: uppercase; }
+  .buddy-journal-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(250px,1fr)); grid-auto-rows: max-content; gap: .55rem; }
+  .is-fish-catalog .buddy-journal-grid { min-height: 0; align-content: start; overflow-x: hidden; overflow-y: auto; padding-right: .45rem; overscroll-behavior: contain; scrollbar-color: var(--color-cyan-arcade) rgba(2,6,4,.82); scrollbar-width: thin; }
+  .is-fish-catalog .buddy-journal-grid::-webkit-scrollbar { width: 8px; }
+  .is-fish-catalog .buddy-journal-grid::-webkit-scrollbar-track { border-left: 1px solid color-mix(in srgb,var(--color-cyan-arcade) 12%,transparent); background: rgba(2,6,4,.82); }
+  .is-fish-catalog .buddy-journal-grid::-webkit-scrollbar-thumb { border: 2px solid rgba(2,6,4,.82); background: var(--color-cyan-arcade); box-shadow: 0 0 7px color-mix(in srgb,var(--color-cyan-arcade) 42%,transparent); }
+  .buddy-journal-card { position: relative; display: grid; min-height: 128px; box-sizing: border-box; grid-template-columns: 72px minmax(0,1fr) auto; align-items: start; gap: .65rem; overflow: hidden; border: 1px solid color-mix(in srgb,var(--color-phosphor) 18%,transparent); background: rgba(2,6,4,.74); padding: .7rem; }
+  .buddy-journal-card > div:nth-child(2) { min-width: 0; align-self: start; }
+  .buddy-journal-card.is-discovered { border-color: color-mix(in srgb,var(--journal-color,var(--color-phosphor)) 42%,transparent); }
+  .buddy-journal-card.rarity-rare, .buddy-journal-card.rarity-legendary, .buddy-journal-card.rarity-mythic, .buddy-journal-card.rarity-treasure { background: radial-gradient(circle at 12% 50%,color-mix(in srgb,var(--color-cabinet) 12%,transparent),transparent 40%),rgba(2,6,4,.78); }
+  .buddy-journal-card.rarity-mythic.is-discovered { box-shadow: inset 0 0 18px color-mix(in srgb,var(--journal-color) 14%,transparent),0 0 12px color-mix(in srgb,var(--journal-color) 12%,transparent); }
+  .buddy-journal-card > b { align-self: start; color: var(--color-cabinet); font-size: .58rem; }
+  .buddy-journal-card span { color: var(--color-cyan-arcade); font-size: .48rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
+  .buddy-journal-card strong { display: block; margin-top: .16rem; overflow-wrap: anywhere; color: #fff; font-size: .68rem; line-height: 1.35; text-transform: uppercase; }
+  .buddy-journal-card p { margin: .3rem 0 0; overflow-wrap: anywhere; color: color-mix(in srgb,var(--color-phosphor-soft) 58%,transparent); font-size: .55rem; font-weight: 700; line-height: 1.5; }
+  .buddy-journal-silhouette { position: relative; display: grid; width: 68px; height: 50px; align-self: center; place-items: center; color: var(--journal-color); filter: drop-shadow(0 0 7px color-mix(in srgb,var(--journal-color) 55%,transparent)); }
+  .buddy-collectible-icon { display: block; width: 68px; height: 50px; overflow: visible; image-rendering: pixelated; }
+  .buddy-journal-card.is-unknown .buddy-journal-silhouette { color: #17372a; filter: none; }
+  .buddy-journal-card.is-unknown { opacity: .72; }
+  .buddy-find-ledger { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: .45rem; }
+  .buddy-find-ledger article { display: grid; grid-template-columns: 52px 1fr; gap: .28rem .55rem; align-items: center; border: 1px solid color-mix(in srgb,var(--color-phosphor) 18%,transparent); background: rgba(2,6,4,.7); padding: .5rem .6rem; }
+  .buddy-find-ledger .buddy-collectible-icon { grid-row: 1 / 3; width: 48px; height: 36px; filter: drop-shadow(0 0 6px color-mix(in srgb,var(--find-color,var(--color-phosphor)) 45%,transparent)); }
+  .buddy-find-ledger strong { color: #fff; font-size: .58rem; text-transform: uppercase; }
+  .buddy-find-ledger span { color: var(--color-cabinet); font-size: .52rem; font-weight: 900; text-transform: uppercase; }
+  .buddy-find-ledger .is-unknown { opacity: .42; filter: grayscale(1); }
+  .buddy-bug-total { justify-self: end; margin: 0; border: 1px solid color-mix(in srgb,var(--color-danger-arcade) 35%,transparent); padding: .45rem .6rem; color: color-mix(in srgb,var(--color-phosphor-soft) 68%,transparent); font-size: .56rem; font-weight: 900; }
+  .buddy-bug-total b { color: var(--color-danger-arcade); }
+
+  @media (max-width: 760px) {
+    .buddy-modal-header,
+    .buddy-inventory-stage {
+      grid-template-columns: 1fr;
+    }
+
+    .buddy-modal-header {
+      display: grid;
+    }
+
+    .buddy-modal-actions {
+      justify-content: stretch;
+    }
+
+    .buddy-modal-actions button:not(.buddy-modal-close) {
+      flex: 1 1 0;
+    }
+
+    .buddy-slot-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .buddy-journal-summary { grid-template-columns: 1fr; }
+    .buddy-journal-grid { grid-template-columns: 1fr; }
+    .buddy-journal-card { grid-template-columns: 62px minmax(0,1fr) auto; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .buddy-nav-actions button,
+    .buddy-modal-actions button,
+    .buddy-loot-cell,
+    .buddy-loot-filter,
+    .buddy-equipped-chip.is-gold-antenna i,
+    .buddy-loot-cell.is-gold-antenna i {
+      animation: none;
+      transition: none;
+    }
+  }
+}

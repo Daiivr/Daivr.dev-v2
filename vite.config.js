@@ -4,6 +4,7 @@ import { defineConfig } from "vite";
 import { handleBuddyRequest } from "./server/buddy.mjs";
 import { handleCommentsRequest } from "./server/comments.mjs";
 import { handleDiscordStreakRequest } from "./server/discord-streak.mjs";
+import { handleMadraceRequest } from "./server/madrace.mjs";
 import { loadLocalEnv } from "./server/env.mjs";
 import { handleSteamPlaytimeRequest } from "./server/steam-playtime.mjs";
 import { handleTradeDexVirusTotalRequest } from "./server/virustotal.mjs";
@@ -34,6 +35,16 @@ export default defineConfig({
 
         server.middlewares.use("/api/steam-playtime", (request, response) => {
           handleSteamPlaytimeRequest(request, response);
+        });
+
+        server.middlewares.use("/api/madrace", (request, response) => {
+          request.url = `/api/madrace${request.url}`;
+          handleMadraceRequest(request, response);
+        });
+
+        server.middlewares.use("/api/drive-mad", (request, response) => {
+          request.url = `/api/drive-mad${request.url}`;
+          handleMadraceRequest(request, response);
         });
 
         server.middlewares.use("/api/comments", (request, response) => {

@@ -1,6 +1,8 @@
 import { useEffect } from "react";
 
 const WORD_PATTERN = /[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9'’._/-]{2,}/g;
+const MAX_VISIBLE_CANDIDATES = 640;
+
 const EXCLUDED_SELECTOR = [
   "script",
   "style",
@@ -28,6 +30,54 @@ function isVisibleRect(rect) {
   );
 }
 
+function hasClippingOverflow(style) {
+  return [style.overflow, style.overflowX, style.overflowY].some((value) =>
+    ["auto", "clip", "hidden", "scroll"].includes(value)
+  );
+}
+
+function rectsIntersect(a, b) {
+  const width = Math.min(a.right, b.right) - Math.max(a.left, b.left);
+  const height = Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top);
+  return width > 4 && height > 4;
+}
+
+function isRectVisibleThroughClippingParents(rect, parent) {
+  if (!isVisibleRect(rect)) return false;
+
+  for (let element = parent; element && element !== document.body; element = element.parentElement) {
+    const style = window.getComputedStyle(element);
+    if (hasClippingOverflow(style) && !rectsIntersect(rect, element.getBoundingClientRect())) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function isEligibleTextParent(parent) {
+  if (!parent) return false;
+
+  const hiddenReview = parent.closest(".game-card-review");
+  if (hiddenReview && !hiddenReview.closest(".game-card.is-flipped:not(.is-review-closing)")) {
+    return false;
+  }
+
+  for (let element = parent; element && element !== document.body; element = element.parentElement) {
+    const style = window.getComputedStyle(element);
+    if (
+      style.display === "none" ||
+      style.visibility === "hidden" ||
+      Number(style.opacity) === 0 ||
+      style.pointerEvents === "none"
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 function collectWordCandidates(root) {
   const candidates = [];
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
@@ -35,30 +85,45 @@ function collectWordCandidates(root) {
       const parent = node.parentElement;
       if (!parent || parent.closest(EXCLUDED_SELECTOR)) return NodeFilter.FILTER_REJECT;
       if (!node.nodeValue?.trim()) return NodeFilter.FILTER_REJECT;
-
-      const style = window.getComputedStyle(parent);
-      if (style.display === "none" || style.visibility === "hidden" || Number(style.opacity) === 0) {
-        return NodeFilter.FILTER_REJECT;
-      }
+      if (!isEligibleTextParent(parent)) return NodeFilter.FILTER_REJECT;
 
       return NodeFilter.FILTER_ACCEPT;
     }
   });
 
   let node = walker.nextNode();
-  while (node && candidates.length < 260) {
+  while (node && candidates.length < MAX_VISIBLE_CANDIDATES) {
     const text = node.nodeValue;
+    const parent = node.parentElement;
+
+    if (!parent || !isVisibleRect(parent.getBoundingClientRect())) {
+      node = walker.nextNode();
+      continue;
+    }
+
     WORD_PATTERN.lastIndex = 0;
 
     for (const match of text.matchAll(WORD_PATTERN)) {
       const word = match[0];
       if (word.length < 3 || word.length > 28) continue;
+
+      const range = document.createRange();
+      range.setStart(node, match.index);
+      range.setEnd(node, match.index + word.length);
+      const rect = range.getBoundingClientRect();
+      range.detach();
+
+      if (!isRectVisibleThroughClippingParents(rect, parent)) continue;
+
       candidates.push({
         end: match.index + word.length,
         node,
+        rect,
         start: match.index,
         word
       });
+
+      if (candidates.length >= MAX_VISIBLE_CANDIDATES) break;
     }
 
     node = walker.nextNode();
@@ -68,15 +133,18 @@ function collectWordCandidates(root) {
 }
 
 function spawnGlitchOverlay(candidate) {
-  const range = document.createRange();
-  range.setStart(candidate.node, candidate.start);
-  range.setEnd(candidate.node, candidate.end);
-
-  const rect = range.getBoundingClientRect();
+  let rect = candidate.rect;
   const parent = candidate.node.parentElement;
-  range.detach();
 
-  if (!parent || !isVisibleRect(rect)) return null;
+  if (!rect) {
+    const range = document.createRange();
+    range.setStart(candidate.node, candidate.start);
+    range.setEnd(candidate.node, candidate.end);
+    rect = range.getBoundingClientRect();
+    range.detach();
+  }
+
+  if (!parent || !isRectVisibleThroughClippingParents(rect, parent)) return null;
 
   const style = window.getComputedStyle(parent);
   const overlay = document.createElement("span");
@@ -133,7 +201,7 @@ export function useRandomGlitchWords(enabled) {
       if (stopped) return;
 
       const candidates = collectWordCandidates(root);
-      const count = Math.min(candidates.length, Math.random() > 0.72 ? 3 : Math.random() > 0.38 ? 2 : 1);
+      const count = Math.min(candidates.length, Math.random() > 0.82 ? 2 : 1);
 
       for (let index = 0; index < count; index += 1) {
         const candidate = candidates[Math.floor(Math.random() * candidates.length)];
@@ -143,10 +211,10 @@ export function useRandomGlitchWords(enabled) {
         if (!overlay) continue;
 
         active.add(overlay);
-        window.setTimeout(() => clearOverlay(overlay), 420 + Math.random() * 560);
+        window.setTimeout(() => clearOverlay(overlay), 340 + Math.random() * 420);
       }
 
-      timer = window.setTimeout(tick, 260 + Math.random() * 920);
+      timer = window.setTimeout(tick, 520 + Math.random() * 1250);
     }
 
     timer = window.setTimeout(tick, 180);

@@ -5,6 +5,7 @@ data/tradedex-scan.json
 data/discord-streak.json
 data/comments.json
 data/visits.json
+data/madrace-leaderboard.json
 .env
 .env.local
 .env.*.local

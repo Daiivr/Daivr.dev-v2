@@ -113,6 +113,8 @@ export const games = [
     meta: "YoRHa signal",
     genre: "action RPG",
     hours: "988h played",
+    favoriteRank: "S-rank favorite",
+    badges: ["story-heavy", "soundtrack", "completionist"],
     serial: "SN//0524220",
     image: "/games/nier-automata-cover-card.webp",
     logo: "/games/nier-automata-logo.webp",
@@ -132,6 +134,8 @@ A game worth spending your whole life exploring every corner of the map and comp
     meta: "Appalachia signal",
     genre: "online RPG",
     hours: "3,863h played",
+    favoriteRank: "main save",
+    badges: ["live-service", "base-builder", "community"],
     serial: "SN//1151340",
     image: "/games/fallout-76-poster-card.webp",
     logo: "/games/fallout-76-logo.png",
@@ -157,6 +161,8 @@ Overall, if you are a fan of open-world games and post-apocalyptic settings, I w
     meta: "Van der Linde signal",
     genre: "western adventure",
     hours: "2,399h played",
+    favoriteRank: "legendary cart",
+    badges: ["open-world", "cinematic", "comfort replay"],
     serial: "SN//1174180",
     image: "/games/rdr2-cover-card.webp",
     logo: "/games/rdr2-logo.png",
@@ -316,6 +322,40 @@ export const stack = [
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.4.0",
+    codename: "VOID ANGLER",
+    date: "2026-07-10",
+    summary: "The buddy took up fishing, the cabinet swaps sections like cartridges, and sometimes it rains indoors.",
+    entries: [
+      ["new", "Cartridge-swap navigation: jumping to a section ejects the current panel, drops the next one in, and seats it with a proper clunk. The slot under the header flashes on contact."],
+      ["new", "Buddy fishing trips: every couple of minutes buddy wanders to the footer edge, casts a line into the void, and reels something back up. Sometimes it's kelp.txt."],
+      ["new", "Rare hooks fight back: the rod strains, the line whips, buddy gets dragged around the rail — and some get away."],
+      ["new", "Void angler quest: land 3 rare catches and buddy earns a lucky lure for its pack."],
+      ["new", "Tackle unlocks: keep fishing to earn cosmetic rods (driftwood, bamboo, neon, golden) and ability lures — swift bites, anchor grip, junk-repelling magnet. The buddy pack grew rod + lure slots."],
+      ["new", "Indoor weather: every so often it rains over the footer. Buddy deploys a pixel umbrella cut from the same cloth as his parachute — drops plink off the canopy and bounce on the rail."],
+      ["new", "Rare blackout: the cabinet can lose power. Buddy sweeps a flashlight, finds the breaker cabinet — gauge, fault LEDs, hazard stripes, main lever — and hauls it back to life. Terminal fans: try `blackout`."],
+      ["buff", "Lucky lure equipped = double odds on rare bites and fewer escapes. Buddy insists it's skill."],
+      ["buff", "The void got water physics around the bobber. Ripples confirmed."],
+      ["buff", "Buddy pack reorganized: loot is grouped by slot with filter chips and its own scroll — hoard as much as you want, the card stays the same size."],
+      ["buff", "Inventory preview now shows the full loadout: equipped chute floats overhead and the current rod (with its lure) leans beside the buddy."],
+      ["known", "The void has never been stocked with fish. Catches keep happening anyway. Do not question it."]
+    ]
+  },
+  {
+    version: "v2.3.0",
+    codename: "LOOT RUN",
+    date: "2026-07-10",
+    summary: "Buddy quests, inventory loot, live music ambience, and cartridge-flavored project cards rolled into the cabinet.",
+    entries: [
+      ["new", "Buddy quests: find cartridges, tap the terminal, catch the music signal, open the guestbook stream, and wake buddy on the late shift."],
+      ["new", "Buddy inventory: quest rewards now show as tiny accessories — cartridge, pixel blaster, coffee, headset, and an upgraded chute."],
+      ["buff", "Project cards now read more like arcade cartridges, with slot teeth, serial labels, and collectible-card framing."],
+      ["buff", "Spotify live mode adds a subtle room pulse and gives buddy a reason to dance."],
+      ["fix", "Guestbook comments now enter like terminal transmissions instead of plain message cards."],
+      ["known", "Buddy still refuses to explain where the inventory backpack is stored. Investigation pending."]
+    ]
+  },
+  {
     version: "v2.2.0",
     codename: "AIRDROP",
     date: "2026-07-09",
@@ -323,7 +363,7 @@ export const patchNotes = [
     entries: [
       ["new", "Attract mode: leave the cabinet alone for a minute and it starts its own demo reel — drifting DAI.EXE, top players, and a working coin slot. Yes, you need to insert a coin to get back in."],
       ["new", "Buddy airlines: grab the little guy, carry him anywhere, and he parachutes back down to the rail. Style points guaranteed."],
-      ["new", "Buddy friendship levels, synced to your Discord login: pets unlock a party hat, sunglasses, a scarf, and a gold antenna."],
+      ["new", "Buddy friendship levels, synced to your Discord login: pets unlock a party hat, sunglasses, a scarf, and a spark antenna."],
       ["new", "Now-playing ticker: whatever Dai is spinning on Spotify scrolls above the footer. The buddy has opinions about it."],
       ["buff", "Buddy bedtime: on desktop it now shuffles to a quiet corner of the footer before falling asleep."],
       ["buff", "Grand entrance: the buddy waits on the welcome gate, jumps when you enter, and parachutes all the way down the page — scroll along with it and watch it land on the footer rail."]

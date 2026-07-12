@@ -10,8 +10,10 @@ const DRAG_THRESHOLD_PX = 6;
 const COMMENT_POLL_MS = 380;
 
 const LAUNCH_LINE = "geronimoooo.";
+const ROCKET_LAUNCH_LINE = "boosters online.";
 const HELD_LINES = ["hey! mid-flight!", "turbulence???", "unauthorized mid-air pickup!"];
 const REDEPLOY_LINES = ["re-deploying chute!", "chute v2. good as new.", "resuming descent."];
+const ROCKET_RESUME_LINES = ["boosters re-lit.", "rocket descent resumed.", "thrusters back online."];
 
 // Comentarios por seccion mientras pasa cayendo (el hero queda cubierto por
 // la linea de despegue).
@@ -44,7 +46,7 @@ function clamp(value, min, max) {
   (el ScreenBuddy del footer no aparece mientras tanto) y {phase:"land", x}
   al tocar el riel para que el ScreenBuddy tome el control justo ahi.
 */
-export function BuddyDrop({ start, onDone }) {
+export function BuddyDrop({ start, onDone, friendshipLevel, inventory = [], hiddenGear = [], unlockedGear = [] }) {
   const [geometry, setGeometry] = useState(null);
   const [mode, setMode] = useState("boarding"); // boarding | fall | held
   const [anchorTop, setAnchorTop] = useState(0);
@@ -70,6 +72,8 @@ export function BuddyDrop({ start, onDone }) {
   const landedRef = useRef(false);
 
   const reduceMotion = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+  const buddyLevel = friendshipLevel || getLocalBuddyLevel();
+  const hasRocketBoots = unlockedGear.includes("rocket-boots") && !hiddenGear.includes("rocket-boots");
 
   useEffect(() => {
     onDoneRef.current = onDone;
@@ -101,6 +105,24 @@ export function BuddyDrop({ start, onDone }) {
     const shell = shellRef.current;
     if (!node || !shell) return topRef.current;
     return node.getBoundingClientRect().top + shell.scrollTop;
+  }
+
+  function horizontalBounds() {
+    const shell = shellRef.current;
+    const content = shell?.querySelector(".cabinet-layout")?.lastElementChild;
+    if (!shell || !content) {
+      return { minLeft: 8, maxLeft: Math.max(8, (shell?.clientWidth || 800) - SPRITE_WIDTH - 8) };
+    }
+
+    const shellRect = shell.getBoundingClientRect();
+    const contentRect = content.getBoundingClientRect();
+    const contentLeft = contentRect.left - shellRect.left + shell.scrollLeft;
+    const contentRight = contentRect.right - shellRect.left + shell.scrollLeft;
+    const minLeft = contentLeft > 24 ? contentLeft + 8 : 8;
+    return {
+      minLeft,
+      maxLeft: Math.max(minLeft, contentRight - SPRITE_WIDTH - 8)
+    };
   }
 
   function land() {
@@ -146,7 +168,7 @@ export function BuddyDrop({ start, onDone }) {
     const drag = dragRef.current;
     const point = pendingDragRef.current;
     if (!drag?.dragging || !point) return;
-    moveLeft(clamp(drag.originLeft + (point.clientX - drag.startClientX), 8, drag.maxLeft));
+    moveLeft(clamp(drag.originLeft + (point.clientX - drag.startClientX), drag.minLeft, drag.maxLeft));
     moveTop(clamp(drag.originTop + (point.clientY - drag.startClientY), 8, endTopRef.current));
   }
 
@@ -154,13 +176,15 @@ export function BuddyDrop({ start, onDone }) {
     if (reduceMotion || landedRef.current) return;
     if (event.button != null && event.button !== 0) return;
 
+    const bounds = horizontalBounds();
     dragRef.current = {
       pointerId: event.pointerId,
       startClientX: event.clientX,
       startClientY: event.clientY,
       originLeft: leftRef.current,
       originTop: 0,
-      maxLeft: Math.max(8, (shellRef.current?.clientWidth || 800) - SPRITE_WIDTH - 8),
+      minLeft: bounds.minLeft,
+      maxLeft: bounds.maxLeft,
       dragging: false
     };
     try {
@@ -212,7 +236,7 @@ export function BuddyDrop({ start, onDone }) {
 
     if (!drag.dragging || landedRef.current) return;
 
-    say(pickRandom(REDEPLOY_LINES), 2200);
+    say(pickRandom(hasRocketBoots ? ROCKET_RESUME_LINES : REDEPLOY_LINES), 2200);
     updateMode("boarding");
     armFall(topRef.current);
   }
@@ -248,12 +272,25 @@ export function BuddyDrop({ start, onDone }) {
 
     window.dispatchEvent(new CustomEvent("daivr-buddy-drop", { detail: { phase: "start" } }));
 
-    leftRef.current = start.x;
-    setGeometry({ left: start.x });
+    const initialBounds = horizontalBounds();
+    const initialLeft = clamp(start.x, initialBounds.minLeft, initialBounds.maxLeft);
+    leftRef.current = initialLeft;
+    setGeometry({ left: initialLeft });
     armFall(startTop);
 
+    function clampHorizontalPosition() {
+      const bounds = horizontalBounds();
+      if (dragRef.current) {
+        dragRef.current.minLeft = bounds.minLeft;
+        dragRef.current.maxLeft = bounds.maxLeft;
+      }
+      moveLeft(clamp(leftRef.current, bounds.minLeft, bounds.maxLeft));
+    }
+
+    window.addEventListener("resize", clampHorizontalPosition);
+
     const launchTimer = window.setTimeout(() => {
-      if (modeRef.current === "fall") say(LAUNCH_LINE, 2200);
+      if (modeRef.current === "fall") say(hasRocketBoots ? ROCKET_LAUNCH_LINE : LAUNCH_LINE, 2200);
     }, 350);
 
     const commentTimer = window.setInterval(() => {
@@ -271,6 +308,7 @@ export function BuddyDrop({ start, onDone }) {
       window.clearInterval(commentTimer);
       window.clearTimeout(landTimerRef.current);
       window.clearTimeout(bubbleTimerRef.current);
+      window.removeEventListener("resize", clampHorizontalPosition);
       window.cancelAnimationFrame(dragFrameRef.current);
       fallRafRef.current.forEach((raf) => window.cancelAnimationFrame(raf));
     };
@@ -281,7 +319,7 @@ export function BuddyDrop({ start, onDone }) {
 
   return (
     <div
-      className={`buddy-drop ${mode === "held" ? "is-held" : ""}`}
+      className={`buddy-drop ${mode === "held" ? "is-held" : ""} ${hasRocketBoots ? "has-rocket-boots" : ""}`}
       ref={rootRef}
       style={{
         left: `${geometry.left}px`,
@@ -292,14 +330,20 @@ export function BuddyDrop({ start, onDone }) {
     >
       <div className={`screen-buddy-bubble buddy-drop-bubble ${bubble ? "is-visible" : ""}`}>{bubble}</div>
       <div
-        className="buddy-drop-body"
+        className={`buddy-drop-body ${mode === "held" ? "cursor-grabbing" : "cursor-grab"}`}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerRelease}
         onPointerCancel={handlePointerRelease}
       >
-        <BuddyChuteCanopy className="buddy-drop-canopy" />
-        <BuddySprite expression="happy" friendshipLevel={getLocalBuddyLevel()} />
+        {hasRocketBoots ? null : <BuddyChuteCanopy className="buddy-drop-canopy" />}
+        <BuddySprite
+          expression="happy"
+          friendshipLevel={buddyLevel}
+          inventory={inventory}
+          hiddenGear={hiddenGear}
+          unlockedGear={unlockedGear}
+        />
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { Gamepad2, RadioTower } from "lucide-react";
+import { BadgeCheck, Clock3, Gamepad2, RadioTower, Star, Trophy } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { games } from "../data/site";
 import { DecodeText } from "./DecodeText";
@@ -15,6 +15,15 @@ const initialSteamPlaytime = {
   source: "fallback",
   games: {}
 };
+
+function parseHoursLabel(value) {
+  const match = String(value || "").match(/[\d,.]+/);
+  return match ? Number(match[0].replaceAll(",", "")) || 0 : 0;
+}
+
+function formatHours(value) {
+  return `${Math.round(value).toLocaleString("en-US")}h`;
+}
 
 export function GameShelf() {
   const [flippedCards, setFlippedCards] = useState(() => new Set());
@@ -105,6 +114,9 @@ export function GameShelf() {
         closingTimers.current.set(title, timer);
       } else {
         next.add(title);
+        window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
+          detail: { type: "cartridge", id: `game:${title}` }
+        }));
         setClosingCards((closing) => {
           const nextClosing = new Set(closing);
           nextClosing.delete(title);
@@ -176,8 +188,20 @@ export function GameShelf() {
     return steamPlaytime.games?.[game.appId]?.label || game.hours;
   }
 
+  function getGameHourValue(game) {
+    return parseHoursLabel(getGameHours(game));
+  }
+
   const syncedCount = games.filter((game) => steamPlaytime.games?.[game.appId]).length;
   const hasLiveSteamHours = steamPlaytime.status === "online" && syncedCount > 0;
+  const totalHours = games.reduce((sum, game) => sum + getGameHourValue(game), 0);
+  const maxHours = Math.max(...games.map(getGameHourValue), 1);
+  const topGame = games.reduce((top, game) => (getGameHourValue(game) > getGameHourValue(top) ? game : top), games[0]);
+  const favoriteStack = games
+    .map((game) => game.favoriteRank || game.kicker || game.title)
+    .filter(Boolean)
+    .join(" // ");
+  const badgePool = [...new Set(games.flatMap((game) => game.badges || []))];
   const steamStatusLabel =
     steamPlaytime.status === "syncing"
       ? "steam sync..."
@@ -210,9 +234,28 @@ export function GameShelf() {
           <div className="game-shelf-stats">
             <span><Gamepad2 size={13} aria-hidden="true" /> {String(games.length).padStart(2, "0")} cartridges</span>
             <span className={hasLiveSteamHours ? "is-live" : ""}><RadioTower size={13} aria-hidden="true" /> {steamStatusLabel}</span>
+            <span><Clock3 size={13} aria-hidden="true" /> {formatHours(totalHours)} logged</span>
             <span>{syncReadout}</span>
           </div>
         </header>
+
+        <div className="game-shelf-upgrades" aria-label="Game shelf summary">
+          <div className="game-shelf-upgrade">
+            <Trophy size={16} aria-hidden="true" />
+            <span>top cartridge</span>
+            <strong>{topGame.title}</strong>
+          </div>
+          <div className="game-shelf-upgrade">
+            <Star size={16} aria-hidden="true" />
+            <span>favorite stack</span>
+            <strong>{favoriteStack || "favorites pending"}</strong>
+          </div>
+          <div className="game-shelf-upgrade">
+            <BadgeCheck size={16} aria-hidden="true" />
+            <span>badge pool</span>
+            <strong>{badgePool.length} traits indexed</strong>
+          </div>
+        </div>
 
         <div className="game-shelf-stage">
           <span className="game-shelf-corner game-shelf-corner-tl" aria-hidden="true" />
@@ -224,6 +267,8 @@ export function GameShelf() {
             {games.map((game) => {
               const isFlipped = flippedCards.has(game.title);
               const isClosing = closingCards.has(game.title);
+              const hours = getGameHourValue(game);
+              const hourPercent = Math.max(8, Math.min(100, (hours / maxHours) * 100));
 
               return (
                 <article
@@ -236,6 +281,12 @@ export function GameShelf() {
                   onPointerMove={setCardPointer}
                 >
                   <div className="game-card-scene">
+                    <div className="game-card-cartridge-bar" aria-hidden="true">
+                      <i />
+                      <i />
+                      <i />
+                      <i />
+                    </div>
                     <div className="game-card-flip">
                       <div className="game-card-flip-inner">
                         <button
@@ -270,15 +321,28 @@ export function GameShelf() {
                       <img className="game-card-logo" src={game.logo} alt="" loading="eager" decoding="async" fetchPriority="high" />
                     </div>
                     <span className="game-card-bay">{game.bay}</span>
+                    <span className="game-card-favorite-ribbon">{game.favoriteRank || game.kicker}</span>
                   </div>
 
                   <div className="game-card-meta">
                     <span className="game-card-kicker">{game.kicker}</span>
                     <strong>{game.title}</strong>
                     <em>{game.meta}</em>
+                    <div className="game-card-badges" aria-label={`${game.title} badges`}>
+                      {(game.badges || []).map((badge) => (
+                        <span key={badge}>{badge}</span>
+                      ))}
+                    </div>
+                    <div className="game-card-playtime" style={{ "--game-hours-progress": `${hourPercent}%` }}>
+                      <span>
+                        <Clock3 size={12} aria-hidden="true" />
+                        {getGameHours(game)}
+                      </span>
+                      <i aria-hidden="true" />
+                    </div>
                     <small>{game.genre}</small>
                     <small className={steamPlaytime.games?.[game.appId] ? "game-card-hours is-live" : "game-card-hours"}>
-                      {getGameHours(game)}
+                      steam_app {game.appId}
                     </small>
                     <span className="game-card-serial">{game.serial}</span>
                   </div>

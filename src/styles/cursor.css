@@ -110,12 +110,14 @@
   }
 
   .hero-console-handle,
+  .terminal-windowbar,
   [draggable="true"],
   .cursor-grab {
     cursor: var(--cursor-grab), grab;
   }
 
   .hero-console-handle:active,
+  .terminal-window.is-dragging .terminal-windowbar,
   [draggable="true"]:active,
   .cursor-grabbing,
   .hero-console.is-dragging,
