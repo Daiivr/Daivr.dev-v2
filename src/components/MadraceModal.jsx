@@ -18,6 +18,7 @@ export function MadraceModal({ open, onClose }) {
   const [me, setMe] = useState(null);
   const [myScore, setMyScore] = useState(null);
   const [launchRestore, setLaunchRestore] = useState(null);
+  const [gameInstance, setGameInstance] = useState(0);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("");
   const [volume, setVolume] = useState(() => Math.max(0, Math.min(100, Number(localStorage.getItem(VOLUME_KEY) ?? 12))));
@@ -45,8 +46,10 @@ export function MadraceModal({ open, onClose }) {
           baseTimeMs: mine.score.bestTimeMs || 0
         } : null);
       }
+      return mine.score || null;
     } catch {
       setStatus("RANKING LINK OFFLINE");
+      return null;
     } finally {
       setLoading(false);
     }
@@ -123,6 +126,18 @@ export function MadraceModal({ open, onClose }) {
     loadScores(true);
   }
 
+  async function refreshAndResume() {
+    setStatus("SYNCING RANK // RELOADING CHECKPOINT...");
+    const score = await loadScores(true) || myScore;
+    const nextLevel = score?.highestLevel > 0 ? score.highestLevel + 1 : 1;
+    setLaunchRestore(score?.highestLevel > 0 ? {
+      level: nextLevel,
+      baseTimeMs: score.bestTimeMs || 0
+    } : null);
+    setGameInstance((value) => value + 1);
+    setStatus(`CHECKPOINT LOADED // LEVEL ${String(nextLevel).padStart(2, "0")}`);
+  }
+
   const gameSrc = useMemo(() => {
     if (loading) return "";
     const params = new URLSearchParams();
@@ -157,6 +172,7 @@ export function MadraceModal({ open, onClose }) {
         <div className="madrace-screen">
           {gameSrc ? (
             <iframe
+              key={gameInstance}
               ref={frameRef}
               src={gameSrc}
               title="Madrace minigame"
@@ -169,7 +185,7 @@ export function MadraceModal({ open, onClose }) {
             <aside className="madrace-leaderboard" aria-label="Madrace leaderboard">
               <div className="madrace-leaderboard-head">
                 <div><span>RANKING.SYS</span><strong>TOP DRIVERS</strong></div>
-                <button type="button" onClick={() => loadScores()}>REFRESH</button>
+                <button type="button" onClick={refreshAndResume}>REFRESH</button>
               </div>
 
               {me ? (

@@ -180,29 +180,36 @@ export async function handleMadraceRequest(request, response) {
     if (level < currentLevel) {
       return sendJson(response, 202, { ignored: true, reason: "older-level", score: scoreForUser(scores, user.id) });
     }
-    if (levelAdvance > 0 && currentLevel > 0 && cumulativeMs < Number(current.bestTimeMs || 0)) {
-      return sendJson(response, 409, { error: "Cumulative time moved backwards." });
-    }
     const previousTime = Number(current?.bestTimeMs) || 0;
-    if (levelAdvance > 0 && cumulativeMs - previousTime < levelAdvance * MIN_LEVEL_TIME_MS) {
-      return sendJson(response, 422, { error: "Catch-up progress was faster than the validation floor." });
-    }
     if (levelMs !== null && levelMs < MIN_LEVEL_TIME_MS) {
       return sendJson(response, 422, { error: "Level completion was faster than the validation floor." });
     }
 
+    // The embedded game owns a session-relative clock. Restarts, restores and
+    // level retries can legitimately reset or recalculate that clock, so it
+    // must not be compared as if it were a global monotonic timestamp. Keep
+    // leaderboard time monotonic when advancing and retain raw time separately.
+    const minimumAdvanceMs = Math.max(
+      levelAdvance * MIN_LEVEL_TIME_MS,
+      levelMs !== null ? levelMs : 0
+    );
+    const normalizedTimeMs = levelAdvance > 0
+      ? Math.max(cumulativeMs, previousTime + minimumAdvanceMs)
+      : cumulativeMs;
+
     const now = new Date().toISOString();
-    const improves = level > currentLevel || (level === currentLevel && cumulativeMs < Number(current?.bestTimeMs ?? Infinity));
+    const improves = level > currentLevel || (level === currentLevel && normalizedTimeMs < Number(current?.bestTimeMs ?? Infinity));
     const next = {
       ...(current || { discordId: String(user.id), createdAt: now }),
       discordId: String(user.id),
       username: user.username,
       avatarUrl: user.avatarUrl || DEFAULT_AVATAR_URL,
       highestLevel: improves ? level : currentLevel,
-      bestTimeMs: improves ? cumulativeMs : current?.bestTimeMs,
+      bestTimeMs: improves ? normalizedTimeMs : current?.bestTimeMs,
       bestSessionId: improves ? sessionId : current?.bestSessionId,
       updatedAt: improves ? now : current?.updatedAt || now,
       lastSeenAt: now,
+      lastReportedTimeMs: cumulativeMs,
       submissions: (Number(current?.submissions) || 0) + 1
     };
     if (index >= 0) scores[index] = next;

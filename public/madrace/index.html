@@ -153,6 +153,7 @@
         var cumulativeLevelTimeMs = restoreBaseTimeMs;
         var lastSubmitKey = "";
         var lastSavedLevel = restoreCompletedLevel;
+        var submissionChain = Promise.resolve();
 
         function clockMs() {
           if (window.performance && typeof window.performance.now === "function") {
@@ -176,6 +177,7 @@
           cumulativeLevelTimeMs = 0;
           lastSubmitKey = "";
           lastSavedLevel = 0;
+          submissionChain = Promise.resolve();
 
           if (activeLevelIndex !== null) {
             activeLevelStartedAt = clockMs();
@@ -322,14 +324,18 @@
             levelIndex: levelIndex,
           });
 
-          fetch("/api/drive-mad/progress", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify(payload),
-          })
+          // Keep level packets in completion order. Parallel requests could
+          // otherwise let a later level reach the server before the previous
+          // score mutation had committed.
+          submissionChain = submissionChain.then(function () {
+            return fetch("/api/drive-mad/progress", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify(payload),
+            })
             .then(function (res) {
               return res
                 .json()
@@ -369,6 +375,7 @@
                 error: "network-error",
               });
             });
+          });
 
           return true;
         }
