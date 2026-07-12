@@ -9,6 +9,7 @@ import { useClock } from "./hooks/useClock";
 import { useFps } from "./hooks/useFps";
 import { useRandomGlitchWords } from "./hooks/useRandomGlitchWords";
 import { ArcadeBackground } from "./components/ArcadeBackground";
+import { ArcadeEmbedModal } from "./components/ArcadeEmbedModal";
 import { AttractMode } from "./components/AttractMode";
 import { BuddyDrop } from "./components/BuddyDrop";
 import { BuddyModal } from "./components/BuddyModal";
@@ -17,12 +18,14 @@ import { CursorTrail } from "./components/CursorTrail";
 import { EntrySplash } from "./components/EntrySplash";
 import { HeroStation } from "./components/HeroStation";
 import { LaunchOverlay } from "./components/LaunchOverlay";
+import { KonamiGameLibrary } from "./components/KonamiGameLibrary";
 import { MadraceModal } from "./components/MadraceModal";
 import { PerchedBirds } from "./components/PerchedBirds";
 import { ProgramSections } from "./components/ProgramSections";
 import { Sidebar } from "./components/Sidebar";
 import { SiteFooter } from "./components/SiteFooter";
 import { TerminalDialog } from "./components/TerminalDialog";
+import { TowerBlockModal } from "./components/TowerBlockModal";
 
 const TERMINAL_NODES = [
   ["home", "home"],
@@ -54,7 +57,7 @@ export default function App() {
   const [hasRun, setHasRun] = useState(false);
   const [achievement, setAchievement] = useState("");
   const [powerOutage, setPowerOutage] = useState("");
-  const [madraceOpen, setMadraceOpen] = useState(false);
+  const [konamiView, setKonamiView] = useState(null);
   const achievementTimerRef = useRef(0);
   const konamiIndexRef = useRef(0);
   const shellRef = useRef(null);
@@ -65,7 +68,9 @@ export default function App() {
   const loadout = useBuddyLoadout({ friendship, adventure });
   const cartPhase = useCartridgeSwap(shellRef);
   const buddy = { friendship, adventure, ...loadout };
-  const closeMadrace = useCallback(() => setMadraceOpen(false), []);
+  const closeKonami = useCallback(() => setKonamiView(null), []);
+  const openKonamiLibrary = useCallback(() => setKonamiView("library"), []);
+  const selectKonamiGame = useCallback((game) => setKonamiView(game), []);
   useRandomGlitchWords(theme === "glitch");
 
   useEffect(() => {
@@ -174,7 +179,7 @@ export default function App() {
       const target = event.target;
       const isTyping = target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
       if (isTyping || terminalOpen || entrySplashOpen || buddyModal || isLaunching) return;
-      if (document.querySelector(".attract-mode,.madrace-backdrop,.project-modal,.comments-gif-modal,.comments-delete-modal")) return;
+      if (document.querySelector(".attract-mode,.konami-library-backdrop,.madrace-backdrop,.tower-modal-backdrop,.arcade-embed-backdrop,.project-modal,.comments-gif-modal,.comments-delete-modal")) return;
       event.preventDefault();
       window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
         detail: { type: "terminal" }
@@ -192,7 +197,7 @@ export default function App() {
     const sequence = ["arrowup", "arrowup", "arrowdown", "arrowdown", "arrowleft", "arrowright", "arrowleft", "arrowright", "b", "a"];
 
     function detectKonami(event) {
-      if (entrySplashOpen || madraceOpen || isLaunching || terminalOpen || buddyModal) return;
+      if (entrySplashOpen || konamiView || isLaunching || terminalOpen || buddyModal) return;
       const target = event.target;
       if (target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName))) {
         konamiIndexRef.current = 0;
@@ -207,8 +212,8 @@ export default function App() {
         const next = index + 1;
         if (next === sequence.length) {
           konamiIndexRef.current = 0;
-          setMadraceOpen(true);
-          showAchievement("SECRET CARTRIDGE UNLOCKED // MADRACE.EXE", 3000);
+          setKonamiView("library");
+          showAchievement("SECRET GAME LIBRARY UNLOCKED // 2 DISKS FOUND", 3000);
         } else {
           konamiIndexRef.current = next;
         }
@@ -219,7 +224,7 @@ export default function App() {
 
     window.addEventListener("keydown", detectKonami);
     return () => window.removeEventListener("keydown", detectKonami);
-  }, [buddyModal, entrySplashOpen, isLaunching, madraceOpen, terminalOpen]);
+  }, [buddyModal, entrySplashOpen, isLaunching, konamiView, terminalOpen]);
 
   useEffect(() => {
     const shell = shellRef.current;
@@ -545,7 +550,10 @@ export default function App() {
 
       <AttractMode enabled={!entrySplashOpen} score={score} />
 
-      <MadraceModal open={madraceOpen} onClose={closeMadrace} />
+      <KonamiGameLibrary open={konamiView === "library"} onClose={closeKonami} onSelect={selectKonamiGame} />
+      <MadraceModal open={konamiView === "madrace"} onBack={openKonamiLibrary} onClose={closeKonami} />
+      <TowerBlockModal open={konamiView === "tower-block"} onBack={openKonamiLibrary} onClose={closeKonami} />
+      <ArcadeEmbedModal game={konamiView} open={["cross-road", "rubiks-cube"].includes(konamiView)} onBack={openKonamiLibrary} onClose={closeKonami} />
 
       <BuddyModal
         buddy={buddy}

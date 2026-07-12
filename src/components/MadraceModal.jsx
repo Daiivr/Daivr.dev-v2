@@ -1,4 +1,4 @@
-import { LogIn, RotateCcw, Trophy, Volume2, X } from "lucide-react";
+import { ArrowLeft, LogIn, RotateCcw, Trophy, Volume2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 const VOLUME_KEY = "daivr.madrace.volume.v1";
@@ -17,7 +17,7 @@ function formatTime(value) {
   return minutes ? `${minutes}:${String(seconds).padStart(2, "0")}.${tenths}` : `${seconds}.${tenths}s`;
 }
 
-export function MadraceModal({ open, onClose }) {
+export function MadraceModal({ open, onBack, onClose }) {
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [leaderboard, setLeaderboard] = useState([]);
   const [me, setMe] = useState(null);
@@ -189,9 +189,12 @@ export function MadraceModal({ open, onClose }) {
     <div className="madrace-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <section className="madrace-modal" role="dialog" aria-modal="true" aria-labelledby="madrace-title">
         <header className="madrace-header">
-          <div>
+          <div className="madrace-title-with-back">
+            <button type="button" onClick={onBack} aria-label="Back to game library"><ArrowLeft size={17} /></button>
+            <div>
             <span className="madrace-kicker">SECRET PROGRAM // KONAMI CLEARANCE</span>
             <h2 id="madrace-title">MADRACE.EXE</h2>
+            </div>
           </div>
           <div className="madrace-actions">
             <button type="button" className={leaderboardOpen ? "is-active" : ""} onClick={() => setLeaderboardOpen((value) => !value)}>

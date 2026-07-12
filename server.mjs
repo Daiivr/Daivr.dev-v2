@@ -4,11 +4,13 @@ import { readFile } from "node:fs/promises";
 import { handleArcadeXpRequest } from "./server/arcade-xp.mjs";
 import { handleBuddyRequest } from "./server/buddy.mjs";
 import { handleCommentsRequest } from "./server/comments.mjs";
+import { handleCrossRoadRequest } from "./server/cross-road.mjs";
 import { handleDiscordStreakRequest } from "./server/discord-streak.mjs";
 import { handleMadraceRequest } from "./server/madrace.mjs";
 import { loadLocalEnv } from "./server/env.mjs";
 import { handleSteamPlaytimeRequest } from "./server/steam-playtime.mjs";
 import { handleTradeDexVirusTotalRequest } from "./server/virustotal.mjs";
+import { handleTowerBlockRequest } from "./server/tower-block.mjs";
 import { handleVisitsRequest } from "./server/visits.mjs";
 
 process.on("uncaughtException", (error) => {
@@ -136,6 +138,16 @@ const appServer = createServer(async (request, response) => {
 
     if (requestUrl.pathname.startsWith("/api/madrace/") || requestUrl.pathname.startsWith("/api/drive-mad/")) {
       await handleMadraceRequest(request, response);
+      return;
+    }
+
+    if (requestUrl.pathname.startsWith("/api/tower-block/")) {
+      await handleTowerBlockRequest(request, response);
+      return;
+    }
+
+    if (requestUrl.pathname.startsWith("/api/cross-road/")) {
+      await handleCrossRoadRequest(request, response);
       return;
     }
 

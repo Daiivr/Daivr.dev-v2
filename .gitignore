@@ -6,6 +6,8 @@ data/discord-streak.json
 data/comments.json
 data/visits.json
 data/madrace-leaderboard.json
+data/tower-block-leaderboard.json
+data/cross-road-leaderboard.json
 .env
 .env.local
 .env.*.local

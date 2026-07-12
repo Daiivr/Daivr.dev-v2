@@ -16,6 +16,7 @@ import "./styles/footer-wildlife.css";
 import "./styles/buddy-modal.css";
 import "./styles/terminal-dialog.css";
 import "./styles/madrace.css";
+import "./styles/konami-library.css";
 import "./styles/cursor.css";
 import "./styles/mobile.css";
 

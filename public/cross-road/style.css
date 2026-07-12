@@ -1,0 +1,114 @@
+@import url("https://fonts.googleapis.com/css?family=Press+Start+2P");
+
+body {
+  margin: 0;
+  display: flex;
+  min-height: 100vh;
+}
+
+body::after { content:""; position:fixed; inset:0; pointer-events:none; background:linear-gradient(rgba(255,255,255,.025) 50%,transparent 50%); background-size:100% 4px; mix-blend-mode:screen; }
+.cross-brand { position:fixed; z-index:8; top:14px; right:16px; display:grid; color:#fff; font-family:"Press Start 2P",monospace; text-align:right; text-shadow:0 0 12px rgba(63,255,151,.45); pointer-events:none; }
+.cross-brand span { color:#45d8ff; font-size:7px; letter-spacing:.12em; }.cross-brand strong { margin-top:5px; font-size:13px; }
+
+#root {
+  width: 100%;
+}
+
+.game {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  font-family: "Press Start 2P", cursive;
+}
+
+#controls {
+  position: absolute;
+  bottom: 20px;
+  min-width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+#controls div {
+  display: grid;
+  grid-template-columns: 50px 50px 50px;
+  gap: 10px;
+}
+
+#controls button {
+  width: 100%;
+  height: 40px;
+  background-color: #04150e;
+  border: 1px solid #3fff97;
+  box-shadow: 3px 5px 0 rgba(0,0,0,.72),0 0 12px rgba(63,255,151,.16);
+  color:#fff;
+  cursor: pointer;
+  outline: none;
+}
+
+#controls button:first-of-type {
+  grid-column: 1/-1;
+}
+
+#score {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+
+  font-size: 2em;
+  color: white;
+  text-shadow:3px 0 #ff3d9d,-3px 0 #45d8ff;
+}
+
+#result-container {
+  position: absolute;
+  z-index: 10;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(1, 7, 5, .36);
+  backdrop-filter: blur(5px) saturate(.82);
+}
+
+#result {
+  position: relative;
+  display: flex;
+  width: min(420px, calc(100% - 28px));
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(63, 255, 151, .72);
+  padding: 28px 24px 24px;
+  background:
+    linear-gradient(rgba(255,255,255,.025) 50%,transparent 50%),
+    radial-gradient(circle at 50% 0,rgba(69,216,255,.1),transparent 55%),
+    rgba(2, 12, 8, .96);
+  background-size: 100% 4px, auto, auto;
+  box-shadow: 0 0 0 1px rgba(63,255,151,.1), 0 18px 55px rgba(0,0,0,.55), 0 0 32px rgba(63,255,151,.16);
+  clip-path: polygon(11px 0,100% 0,100% calc(100% - 11px),calc(100% - 11px) 100%,0 100%,0 11px);
+  animation: cross-result-in .28s cubic-bezier(.2,.8,.25,1) both;
+}
+
+#result::before { content:"RUN.TERMINATED // COLLISION DETECTED"; margin-bottom:14px; color:#ff3d9d; font-size:7px; letter-spacing:.13em; }
+#result h1 { margin:0; color:#fff; font-size:clamp(24px,5vw,39px); line-height:1.2; text-align:center; text-shadow:3px 0 #ff3d9d,-3px 0 #45d8ff; }
+#result p { margin:14px 0 20px; color:#b8dfca; font-size:11px; letter-spacing:.08em; }
+#result p::first-letter { color:#3fff97; }
+#result button {
+  min-width:190px;
+  border:1px solid #3fff97;
+  padding:14px 22px;
+  background:rgba(63,255,151,.08);
+  color:#fff;
+  font-family:inherit;
+  font-size:11px;
+  letter-spacing:.12em;
+  box-shadow:inset 0 0 14px rgba(63,255,151,.06),0 0 20px rgba(63,255,151,.1);
+  cursor:pointer;
+  transition:background .18s ease,box-shadow .18s ease,transform .18s ease;
+}
+#result button:hover,#result button:focus-visible { outline:0; background:#3fff97; color:#021008; box-shadow:0 0 28px rgba(63,255,151,.38); transform:translateY(-2px); }
+
+@keyframes cross-result-in { from { opacity:0; transform:translateY(16px) scale(.96); } }

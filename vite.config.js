@@ -3,11 +3,13 @@ import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
 import { handleBuddyRequest } from "./server/buddy.mjs";
 import { handleCommentsRequest } from "./server/comments.mjs";
+import { handleCrossRoadRequest } from "./server/cross-road.mjs";
 import { handleDiscordStreakRequest } from "./server/discord-streak.mjs";
 import { handleMadraceRequest } from "./server/madrace.mjs";
 import { loadLocalEnv } from "./server/env.mjs";
 import { handleSteamPlaytimeRequest } from "./server/steam-playtime.mjs";
 import { handleTradeDexVirusTotalRequest } from "./server/virustotal.mjs";
+import { handleTowerBlockRequest } from "./server/tower-block.mjs";
 import { handleVisitsRequest } from "./server/visits.mjs";
 
 loadLocalEnv();
@@ -45,6 +47,16 @@ export default defineConfig({
         server.middlewares.use("/api/drive-mad", (request, response) => {
           request.url = `/api/drive-mad${request.url}`;
           handleMadraceRequest(request, response);
+        });
+
+        server.middlewares.use("/api/tower-block", (request, response) => {
+          request.url = `/api/tower-block${request.url}`;
+          handleTowerBlockRequest(request, response);
+        });
+
+        server.middlewares.use("/api/cross-road", (request, response) => {
+          request.url = `/api/cross-road${request.url}`;
+          handleCrossRoadRequest(request, response);
         });
 
         server.middlewares.use("/api/comments", (request, response) => {

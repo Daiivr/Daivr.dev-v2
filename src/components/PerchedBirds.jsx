@@ -26,6 +26,9 @@ function getActivePerches() {
   if (document.querySelector([
     ".buddy-modal-backdrop",
     ".madrace-backdrop",
+    ".konami-library-backdrop",
+    ".tower-modal-backdrop",
+    ".arcade-embed-backdrop",
     ".project-modal-overlay[data-state=\"open\"]",
     ".comments-gif-modal",
     ".comments-delete-modal"

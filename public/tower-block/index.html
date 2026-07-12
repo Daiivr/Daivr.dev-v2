@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+	<title>Tower Block // DAIVR Arcade</title>
+	<link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+	<div id="container">
+		<div class="tower-grid" aria-hidden="true"></div>
+		<div class="tower-brand"><span>KONAMI CARTRIDGE // 02</span><strong>TOWER.BLOCK</strong></div>
+		<div id="game"></div>
+		<div id="score">0</div>
+		<div id="instructions">CLICK OR PRESS SPACE // PLACE BLOCK</div>
+		<div class="game-over">
+			<span>STRUCTURAL FAILURE</span>
+			<h2>STACK LOST</h2>
+			<p>Click or press space to deploy another tower.</p>
+		</div>
+		<div class="game-ready">
+			<div id="start-button">INITIALIZE BUILD</div>
+			<div></div>
+		</div>
+	</div>
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js'></script>
+	<script src='https://cdnjs.cloudflare.com/ajax/libs/gsap/latest/TweenMax.min.js'></script>
+	<script src="./script.js"></script>
+
+</body>
+
+</html>
