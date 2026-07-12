@@ -1373,17 +1373,21 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     }
 
     function reactToCommentTyping(event) {
-      if (!visibleRef.current || activeEventRef.current) return;
-      if (["off", "held", "chute", "fishing", "outage", "hunt"].includes(moodRef.current)) return;
+      const buddyRect = rootRef.current?.getBoundingClientRect();
+      const buddyIsVisible = buddyRect && buddyRect.bottom > 0 && buddyRect.top < window.innerHeight && buddyRect.right > 0 && buddyRect.left < window.innerWidth;
+      if (!buddyIsVisible || moodRef.current === "off") return;
 
-      freezeAtCurrentPosition();
-      updateMood("talk");
+      const canPause = !activeEventRef.current && !["held", "chute", "fishing", "outage", "hunt"].includes(moodRef.current);
+      if (canPause) {
+        freezeAtCurrentPosition();
+        updateMood("talk");
+      }
       const username = String(event.detail?.username || "").trim();
       const line = username && username.toLowerCase() !== "someone" && Math.random() < 0.45
         ? `${username} is composing a transmission... stand by.`
         : pickLine(LINES.commentTyping);
       say(line, 3600, { key: "comment-typing" });
-      settleDown(3700);
+      if (canPause) settleDown(3700);
     }
 
     // Relevo con la caida de bienvenida (BuddyDrop): mientras el clon del

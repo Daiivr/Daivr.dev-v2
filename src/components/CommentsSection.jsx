@@ -371,6 +371,7 @@ export function CommentsSection() {
   const visibleRegularComments = regularComments.slice(startIndex, startIndex + COMMENTS_PER_PAGE);
   const visibleComments = [...pinnedComments, ...visibleRegularComments];
   const canPost = !!auth.user && auth.configured && hasContent(draft, draftGif) && !busy;
+  const isDraftActive = draft.trim().length > 0;
   const draftPercent = Math.min(100, (draft.length / MAX_COMMENT_LENGTH) * 100);
   const meterWidth = `${draftPercent}%`;
 
@@ -399,7 +400,7 @@ export function CommentsSection() {
   useEffect(() => {
     window.clearTimeout(buddyTypingTimerRef.current);
 
-    if (!draft.trim()) {
+    if (!isDraftActive) {
       buddyTypingNotifiedRef.current = false;
       return undefined;
     }
@@ -414,7 +415,7 @@ export function CommentsSection() {
     }, 900);
 
     return () => window.clearTimeout(buddyTypingTimerRef.current);
-  }, [draft, auth.user?.username]);
+  }, [isDraftActive, auth.user?.username]);
 
   useEffect(() => {
     const section = sectionRef.current;

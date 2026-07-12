@@ -122,7 +122,7 @@ function getVisibleActivities(presence) {
       image: getActivityImage(activity),
       meta: activity.assets?.large_text || activity.assets?.small_text || getActivityTypeLabel(activity.type),
       name: activity.name,
-      state: activity.state || "live signal",
+      state: activity.state || "",
       timestamps: activity.timestamps,
       type: activity.type,
       typeLabel: getActivityTypeLabel(activity.type)
@@ -424,7 +424,7 @@ export function DiscordPresencePanel() {
                       <span>{activity.typeLabel}</span>
                       <strong>{activity.name}</strong>
                       <p>{activity.detail}</p>
-                      <small>{activity.state}</small>
+                      {activity.state ? <small>{activity.state}</small> : null}
                       {activity.isSpotify ? (
                         <SpotifyProgress now={now} timestamps={activity.timestamps} />
                       ) : null}
