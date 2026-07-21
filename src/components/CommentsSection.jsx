@@ -1115,15 +1115,32 @@ export function CommentsSection() {
                   {renderReactionControls(comment.id, reactionMap)}
 
                   {replies.length ? (
-                    <div className="comment-replies">
+                    <div
+                      className="comment-replies"
+                      role="group"
+                      aria-label={`${replies.length} ${replies.length === 1 ? "reply" : "replies"} to ${comment.author?.username || "this comment"}`}
+                    >
+                      <div className="comment-thread-heading" aria-hidden="true">
+                        <span className="comment-thread-icon"><Reply size={12} /></span>
+                        <span>thread // {replies.length} {replies.length === 1 ? "response" : "responses"}</span>
+                      </div>
                       {visibleReplies.map((reply) => {
                         const canDeleteReply = !!auth.user && (auth.user.isAdmin || reply.mine);
                         return (
-                          <div className="comment-reply" key={reply.id}>
+                          <article
+                            className="comment-reply"
+                            key={reply.id}
+                            aria-label={`Reply from ${reply.author?.username || "Unknown signal"} to ${comment.author?.username || "this comment"}`}
+                          >
                             <div className="comment-reply-avatar">
                               <UserAvatar user={reply.author} />
                             </div>
-                            <div>
+                            <div className="comment-reply-content">
+                              <div className="comment-reply-context">
+                                <Reply size={11} aria-hidden="true" />
+                                <span>replying to</span>
+                                <b>@{comment.author?.username || "original post"}</b>
+                              </div>
                               <header>
                                 <strong>{reply.author?.username || "Unknown signal"}</strong>
                                 {reply.author?.isAdmin ? <em className="comment-admin-badge"><ShieldCheck size={10} aria-hidden="true" /> admin</em> : null}
@@ -1138,7 +1155,7 @@ export function CommentsSection() {
                               <CommentMedia gifUrl={reply.gifUrl} />
                               {renderReactionControls(comment.id, reply.reactions && typeof reply.reactions === "object" ? reply.reactions : {}, reply.id)}
                             </div>
-                          </div>
+                          </article>
                         );
                       })}
                       {collapsibleReplies ? (

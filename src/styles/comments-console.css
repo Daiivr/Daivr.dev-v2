@@ -1431,20 +1431,125 @@
   }
 
   .comment-replies {
+    position: relative;
     display: grid;
     gap: 0.65rem;
-    margin-top: 0.95rem;
-    border-left: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 28%, transparent);
-    padding-left: 0.85rem;
+    margin-top: 1.05rem;
+    padding-left: 1.65rem;
+  }
+
+  .comment-replies::before {
+    position: absolute;
+    top: 1.05rem;
+    bottom: 1rem;
+    left: 0.48rem;
+    width: 1px;
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--color-cyan-arcade) 72%, transparent),
+      color-mix(in srgb, var(--color-cyan-arcade) 22%, transparent)
+    );
+    box-shadow: 0 0 8px color-mix(in srgb, var(--color-cyan-arcade) 22%, transparent);
+    content: "";
+  }
+
+  .comment-thread-heading {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+    gap: 0.45rem;
+    margin-left: -1.65rem;
+    color: color-mix(in srgb, var(--color-cyan-arcade) 72%, white);
+    font-size: 0.58rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .comment-thread-icon {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 54%, transparent);
+    background: #020604;
+    box-shadow: 0 0 8px color-mix(in srgb, var(--color-cyan-arcade) 16%, transparent);
   }
 
   .comment-reply {
+    position: relative;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
+    justify-self: start;
     gap: 0.65rem;
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 16%, transparent);
-    background: rgba(2, 6, 4, 0.42);
+    box-sizing: border-box;
+    width: fit-content;
+    min-width: min(25rem, 100%);
+    max-width: 100%;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 25%, transparent);
+    border-left: 2px solid color-mix(in srgb, var(--color-cyan-arcade) 62%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 7%, transparent), transparent 38%),
+      rgba(2, 6, 4, 0.56);
+    box-shadow: inset 3px 0 12px color-mix(in srgb, var(--color-cyan-arcade) 5%, transparent);
     padding: 0.7rem;
+  }
+
+  .comment-reply::before {
+    position: absolute;
+    top: 1rem;
+    right: 100%;
+    width: 1.2rem;
+    height: 0.7rem;
+    border-top: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 46%, transparent);
+    border-left: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 46%, transparent);
+    content: "";
+  }
+
+  .comment-reply::after {
+    position: absolute;
+    top: calc(1rem - 2px);
+    right: calc(100% + 1.15rem);
+    width: 5px;
+    height: 5px;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 72%, white);
+    background: #020604;
+    box-shadow: 0 0 6px color-mix(in srgb, var(--color-cyan-arcade) 36%, transparent);
+    content: "";
+    transform: rotate(45deg);
+  }
+
+  .comment-reply-content {
+    min-width: 0;
+  }
+
+  .comment-reply-context {
+    display: flex;
+    align-items: center;
+    gap: 0.28rem;
+    margin-bottom: 0.35rem;
+    color: color-mix(in srgb, var(--color-cyan-arcade) 58%, transparent);
+    font-size: 0.54rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .comment-reply-context svg {
+    flex: 0 0 auto;
+  }
+
+  .comment-reply-context b {
+    max-width: 14rem;
+    overflow: hidden;
+    color: color-mix(in srgb, var(--color-cyan-arcade) 78%, white);
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   /* Colapsa el hilo: tras la primera respuesta, el resto se oculta detras de

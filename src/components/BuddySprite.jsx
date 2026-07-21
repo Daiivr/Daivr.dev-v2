@@ -95,7 +95,7 @@ export function BuddyRodIcon({ className = "", rodId = "", lureId = "" }) {
 export function BuddySprite({ className = "", expression = "idle", facing = 1, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [], width = 64, height = 61 }) {
   const isHappy = expression === "happy";
   const isAsleep = expression === "sleep";
-  const hasItem = (id) => inventory.includes(id) && !hiddenGear.includes(id);
+  const hasItem = (id) => (inventory.includes(id) || unlockedGear.includes(id)) && !hiddenGear.includes(id);
   const hasGear = (id) => unlockedGear.includes(id) && !hiddenGear.includes(id);
   const showFriendshipGear = (id, level) => friendshipLevel >= level && !hiddenGear.includes(id);
   const hasSparkAntenna = showFriendshipGear("gold-antenna", 5);
