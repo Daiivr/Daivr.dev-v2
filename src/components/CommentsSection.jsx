@@ -1134,6 +1134,9 @@ export function CommentsSection() {
                             key={reply.id}
                             aria-label={`Reply from ${reply.author?.username || "Unknown signal"} to ${replyTargetName}`}
                           >
+                            <span className="comment-reply-index" aria-hidden="true">
+                              reply {String(replyIndex + 1).padStart(2, "0")}
+                            </span>
                             <div className="comment-reply-avatar">
                               <UserAvatar user={reply.author} />
                             </div>
