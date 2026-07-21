@@ -354,7 +354,7 @@ export default function App() {
     return "Launching Dai.exe...\nwatch the cabinet warm up.";
   }
 
-  function runCommand(rawInput) {
+  async function runCommand(rawInput) {
     const input = rawInput.trim();
     if (!input) return;
     const [rawName, ...args] = input.split(/\s+/);
@@ -529,6 +529,31 @@ export default function App() {
     }
 
     if (["unlockall", "unlock-all", "unlockcosmetics"].includes(name)) {
+      let operator;
+
+      try {
+        const response = await fetch("/api/comments/me", {
+          credentials: "include",
+          cache: "no-store",
+          headers: { Accept: "application/json" }
+        });
+        if (!response.ok) throw new Error(`Discord session check returned ${response.status}`);
+        operator = (await response.json())?.user || null;
+      } catch {
+        appendTerminal(input, "AUTH BUS OFFLINE // Discord admin session could not be verified.\nNo buddy gear was changed.");
+        return;
+      }
+
+      if (!operator) {
+        appendTerminal(input, "ACCESS DENIED // Sign in through Discord with an admin account before using unlockall.\nNo buddy gear was changed.");
+        return;
+      }
+
+      if (!operator.isAdmin) {
+        appendTerminal(input, `ACCESS DENIED // Discord operator ${operator.username || operator.id} is not an admin.\nNo buddy gear was changed.`);
+        return;
+      }
+
       const disable = ["off", "lock", "reset", "clear", "false", "0"].includes((args[0] || "").toLowerCase());
       window.dispatchEvent(new CustomEvent("daivr-buddy-admin-unlock", { detail: { value: !disable } }));
       appendTerminal(input, disable

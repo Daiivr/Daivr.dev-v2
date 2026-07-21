@@ -5,8 +5,8 @@ const GEAR_STORAGE_KEY = "daivr.buddyGearHidden.v1";
 const GUEST_GEAR_STORAGE_KEY = "daivr.buddyGearHidden.guest.v1";
 const GEAR_OWNER_STORAGE_KEY = "daivr.buddyGearHidden.owner.v1";
 // Interruptor de admin (comando de consola `unlockall`): abre todo el vestuario
-// sin tocar el progreso real — es un override local, no se sincroniza al server.
-const ADMIN_UNLOCK_STORAGE_KEY = "daivr.buddyAdminUnlock.v1";
+// sin tocar el progreso real. Es deliberadamente efimero: cada sesion debe
+// volver a pasar la comprobacion Discord del terminal.
 const ADMIN_UNLOCK_EVENT = "daivr-buddy-admin-unlock";
 const BUDDY_ENDPOINT = "/api/buddy";
 
@@ -71,23 +71,6 @@ const ALL_COSMETICS = [
   ...BUDDY_INVENTORY
 ];
 
-function readAdminUnlock() {
-  try {
-    return window.localStorage.getItem(ADMIN_UNLOCK_STORAGE_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
-function writeAdminUnlock(value) {
-  try {
-    if (value) window.localStorage.setItem(ADMIN_UNLOCK_STORAGE_KEY, "1");
-    else window.localStorage.removeItem(ADMIN_UNLOCK_STORAGE_KEY);
-  } catch {
-    // Admin override is a local-only dev toggle; ignore storage failures.
-  }
-}
-
 function readHiddenGear(key = GEAR_STORAGE_KEY) {
   try {
     const parsed = JSON.parse(window.localStorage.getItem(key) || "[]");
@@ -140,7 +123,7 @@ export function slotForGear(id) {
 
 export function useBuddyLoadout({ friendship, adventure }) {
   const [hiddenGear, setHiddenGear] = useState(() => readHiddenGear());
-  const [adminUnlock, setAdminUnlock] = useState(() => readAdminUnlock());
+  const [adminUnlock, setAdminUnlock] = useState(false);
   const hiddenGearRef = useRef(hiddenGear);
   const storageKeyRef = useRef(GEAR_STORAGE_KEY);
   const syncedRef = useRef(false);
@@ -149,7 +132,6 @@ export function useBuddyLoadout({ friendship, adventure }) {
   useEffect(() => {
     function handleAdminUnlock(event) {
       const value = event.detail?.value !== false;
-      writeAdminUnlock(value);
       setAdminUnlock(value);
     }
     window.addEventListener(ADMIN_UNLOCK_EVENT, handleAdminUnlock);
