@@ -1,6 +1,8 @@
 import {
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   Image as ImageIcon,
   LogIn,
   LogOut,
@@ -359,6 +361,7 @@ export function CommentsSection() {
   const [busy, setBusy] = useState(false);
   const [reactionBusyId, setReactionBusyId] = useState("");
   const [page, setPage] = useState(1);
+  const [expandedThreads, setExpandedThreads] = useState(() => new Set());
   const [deleteDialog, setDeleteDialog] = useState(null);
   const [markdownHelpOpen, setMarkdownHelpOpen] = useState(false);
 
@@ -509,6 +512,12 @@ export function CommentsSection() {
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
   }, [page, totalPages]);
+
+  // Al cambiar de pagina los hilos se colapsan: cada pagina arranca mostrando
+  // solo la primera respuesta de cada comentario.
+  useEffect(() => {
+    setExpandedThreads(new Set());
+  }, [currentPage]);
 
   useEffect(() => {
     if (!reactionPickerId) return undefined;
@@ -698,6 +707,15 @@ export function CommentsSection() {
     } finally {
       setBusy(false);
     }
+  }
+
+  function toggleThread(commentId) {
+    setExpandedThreads((current) => {
+      const next = new Set(current);
+      if (next.has(commentId)) next.delete(commentId);
+      else next.add(commentId);
+      return next;
+    });
   }
 
   function startReply(comment) {
@@ -1055,6 +1073,11 @@ export function CommentsSection() {
             const isReplying = replyingTo === comment.id;
             const canSendReply = canReplyComment && hasContent(replyDraft, replyGif) && !busy;
             const reactionMap = comment.reactions && typeof comment.reactions === "object" ? comment.reactions : {};
+            const replies = Array.isArray(comment.replies) ? comment.replies : [];
+            const threadExpanded = expandedThreads.has(comment.id);
+            const collapsibleReplies = replies.length > 1;
+            const visibleReplies = collapsibleReplies && !threadExpanded ? replies.slice(0, 1) : replies;
+            const hiddenReplyCount = replies.length - visibleReplies.length;
 
             return (
               <article className={`comment-card is-terminal-transmission ${comment.pinned ? "is-pinned" : ""}`} key={comment.id}>
@@ -1091,9 +1114,9 @@ export function CommentsSection() {
 
                   {renderReactionControls(comment.id, reactionMap)}
 
-                  {Array.isArray(comment.replies) && comment.replies.length ? (
+                  {replies.length ? (
                     <div className="comment-replies">
-                      {comment.replies.map((reply) => {
+                      {visibleReplies.map((reply) => {
                         const canDeleteReply = !!auth.user && (auth.user.isAdmin || reply.mine);
                         return (
                           <div className="comment-reply" key={reply.id}>
@@ -1118,6 +1141,27 @@ export function CommentsSection() {
                           </div>
                         );
                       })}
+                      {collapsibleReplies ? (
+                        <button
+                          className="comment-replies-toggle has-tooltip"
+                          data-tooltip={threadExpanded ? "Collapse the thread." : "Show the rest of this thread."}
+                          type="button"
+                          onClick={() => toggleThread(comment.id)}
+                          aria-expanded={threadExpanded}
+                        >
+                          {threadExpanded ? (
+                            <>
+                              <ChevronUp size={13} aria-hidden="true" />
+                              show less
+                            </>
+                          ) : (
+                            <>
+                              <ChevronDown size={13} aria-hidden="true" />
+                              show more ({hiddenReplyCount})
+                            </>
+                          )}
+                        </button>
+                      ) : null}
                     </div>
                   ) : null}
 

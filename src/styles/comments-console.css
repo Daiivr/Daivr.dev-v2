@@ -1447,6 +1447,37 @@
     padding: 0.7rem;
   }
 
+  /* Colapsa el hilo: tras la primera respuesta, el resto se oculta detras de
+     este boton (show more / show less). */
+  .comment-replies-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+    gap: 0.35rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 34%, transparent);
+    background: color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent);
+    padding: 0.36rem 0.62rem;
+    color: var(--color-cyan-arcade);
+    font-size: 0.62rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+  }
+
+  .comment-replies-toggle:hover,
+  .comment-replies-toggle:focus-visible {
+    border-color: var(--color-cyan-arcade);
+    background: color-mix(in srgb, var(--color-cyan-arcade) 16%, transparent);
+    color: #fff;
+  }
+
+  .comment-replies-toggle svg {
+    width: 13px;
+    height: 13px;
+  }
+
   .comment-reply-avatar img,
   .comment-reply-avatar span {
     display: grid;

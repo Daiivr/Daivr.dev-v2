@@ -322,6 +322,16 @@ export const stack = [
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.12.0",
+    codename: "THREAD FOLD",
+    date: "2026-07-20",
+    summary: "Long reply threads in the guestbook now fold up — only the first reply shows, the rest hide behind a show more / show less toggle.",
+    entries: [
+      ["new", "Comment threads collapse after the first reply: any extra replies tuck behind a \"show more\" button (with a count of what's hidden), and \"show less\" folds them back. Keeps busy threads from flooding the stream."],
+      ["fix", "Expanded a thread and flipped to another comment page? It snaps shut on the way — every page starts clean, showing just the first reply of each thread."]
+    ]
+  },
+  {
     version: "v2.11.0",
     codename: "TWIN TAILS",
     date: "2026-07-20",
