@@ -1,8 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { BUDDY_INVENTORY } from "./useBuddyAdventure";
 
 const GEAR_STORAGE_KEY = "daivr.buddyGearHidden.v1";
 const GUEST_GEAR_STORAGE_KEY = "daivr.buddyGearHidden.guest.v1";
 const GEAR_OWNER_STORAGE_KEY = "daivr.buddyGearHidden.owner.v1";
+// Interruptor de admin (comando de consola `unlockall`): abre todo el vestuario
+// sin tocar el progreso real — es un override local, no se sincroniza al server.
+const ADMIN_UNLOCK_STORAGE_KEY = "daivr.buddyAdminUnlock.v1";
+const ADMIN_UNLOCK_EVENT = "daivr-buddy-admin-unlock";
 const BUDDY_ENDPOINT = "/api/buddy";
 
 export const FRIENDSHIP_GEAR = [
@@ -35,13 +40,48 @@ export const LURE_GEAR = [
   { id: "lure-magnet", label: "magnet lure", unlockRares: 6, perk: "junk upgrades to common" }
 ];
 
-export const HEADWEAR_IDS = ["party-hat", "star-cap", "pixel-crown"];
+// El peluco Miku es la recompensa de llenar el diario: se desbloquea cuando
+// todas las especies del catalogo estan escaneadas. Ocupa el slot de cabeza,
+// asi que excluye a los sombreros (no se llevan los dos a la vez).
+export const JOURNAL_GEAR = [
+  { id: "miku-wig", label: "miku wig" }
+];
+
+export const HEADWEAR_IDS = ["party-hat", "star-cap", "pixel-crown", "miku-wig"];
 export const FACE_GEAR_IDS = ["sunglasses", "green-visor"];
 export const MOBILITY_IDS = ["rocket-boots", "parachute-upgrade"];
 export const ROD_IDS = ROD_GEAR.map((item) => item.id);
 // El lucky lure (recompensa de quest) comparte slot con los señuelos pescados.
 export const LURE_IDS = ["lure", ...LURE_GEAR.map((item) => item.id)];
 const CARRY_ITEM_IDS = ["cartridge", "wrench"];
+
+// Vestuario completo: todo lo equipable, sin importar como se gana. Lo usa el
+// override de admin para mostrarlo todo de golpe.
+const ALL_COSMETICS = [
+  ...FRIENDSHIP_GEAR,
+  ...PET_GEAR,
+  ...JOURNAL_GEAR,
+  ...ROD_GEAR,
+  ...LURE_GEAR,
+  ...BUDDY_INVENTORY
+];
+
+function readAdminUnlock() {
+  try {
+    return window.localStorage.getItem(ADMIN_UNLOCK_STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeAdminUnlock(value) {
+  try {
+    if (value) window.localStorage.setItem(ADMIN_UNLOCK_STORAGE_KEY, "1");
+    else window.localStorage.removeItem(ADMIN_UNLOCK_STORAGE_KEY);
+  } catch {
+    // Admin override is a local-only dev toggle; ignore storage failures.
+  }
+}
 
 function readHiddenGear(key = GEAR_STORAGE_KEY) {
   try {
@@ -94,9 +134,21 @@ export function slotForGear(id) {
 
 export function useBuddyLoadout({ friendship, adventure }) {
   const [hiddenGear, setHiddenGear] = useState(() => readHiddenGear());
+  const [adminUnlock, setAdminUnlock] = useState(() => readAdminUnlock());
   const hiddenGearRef = useRef(hiddenGear);
   const storageKeyRef = useRef(GEAR_STORAGE_KEY);
   const syncedRef = useRef(false);
+
+  // Comando de consola `unlockall`: alterna el override de vestuario en vivo.
+  useEffect(() => {
+    function handleAdminUnlock(event) {
+      const value = event.detail?.value !== false;
+      writeAdminUnlock(value);
+      setAdminUnlock(value);
+    }
+    window.addEventListener(ADMIN_UNLOCK_EVENT, handleAdminUnlock);
+    return () => window.removeEventListener(ADMIN_UNLOCK_EVENT, handleAdminUnlock);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -147,6 +199,11 @@ export function useBuddyLoadout({ friendship, adventure }) {
   }, []);
 
   const gearItems = useMemo(() => {
+    // Override de admin: todo el vestuario disponible, ignorando el progreso.
+    if (adminUnlock) {
+      return ALL_COSMETICS.map((item) => ({ ...item, source: "admin unlock", slot: slotForGear(item.id) }));
+    }
+
     const unlockedFriendshipGear = FRIENDSHIP_GEAR.filter((item) => friendship.level >= item.unlockLevel);
     const unlockedPetGear = PET_GEAR.filter((item) => friendship.pets >= item.unlockPets);
     const totalCatches = adventure.totalCatches || 0;
@@ -154,10 +211,15 @@ export function useBuddyLoadout({ friendship, adventure }) {
     const unlockedTackle = [...ROD_GEAR, ...LURE_GEAR].filter((item) =>
       item.unlockRares ? rareCatches >= item.unlockRares : totalCatches >= item.unlockCatches
     );
+    // El peluco cae al completar el diario: todas las especies escaneadas.
+    const totalSpecies = adventure.fishJournal?.length || 0;
+    const journalComplete = totalSpecies > 0 && (adventure.discoveredFishCount || 0) >= totalSpecies;
+    const unlockedJournalGear = journalComplete ? JOURNAL_GEAR : [];
 
     return [
       ...unlockedFriendshipGear.map((item) => ({ ...item, source: `friendship lv ${item.unlockLevel}` })),
       ...unlockedPetGear.map((item) => ({ ...item, source: `${item.unlockPets} pets` })),
+      ...unlockedJournalGear.map((item) => ({ ...item, source: "journal 100%" })),
       ...unlockedTackle.map((item) => ({
         ...item,
         source: item.unlockRares
@@ -168,7 +230,7 @@ export function useBuddyLoadout({ friendship, adventure }) {
       })),
       ...adventure.inventory
     ].map((item) => ({ ...item, slot: slotForGear(item.id) }));
-  }, [adventure.inventory, adventure.rareCatches, adventure.totalCatches, friendship.level, friendship.pets]);
+  }, [adminUnlock, adventure.discoveredFishCount, adventure.fishJournal, adventure.inventory, adventure.rareCatches, adventure.totalCatches, friendship.level, friendship.pets]);
 
   const unlockedGearIds = useMemo(() => gearItems.map((item) => item.id), [gearItems]);
   const availableHeadwearIds = unlockedGearIds.filter((id) => HEADWEAR_IDS.includes(id));

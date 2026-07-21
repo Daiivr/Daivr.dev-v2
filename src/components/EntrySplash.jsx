@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getLocalBuddyLevel } from "../hooks/useBuddyFriendship";
 import { BuddySprite } from "./BuddySprite";
+import { SeasonalSplashNotice } from "./SeasonalEvent";
 
 const BOOT_STEPS = [
   { tone: "command", text: "$ knock --cabinet-gate" },
@@ -13,7 +14,7 @@ const BOOT_STEPS = [
 
 const STEP_DELAY = 430;
 
-export function EntrySplash({ onEnter, onBuddyLaunch }) {
+export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent }) {
   const [visibleCount, setVisibleCount] = useState(1);
   const [displayProgress, setDisplayProgress] = useState(Math.round((1 / BOOT_STEPS.length) * 100));
   const [discordUser, setDiscordUser] = useState(null);
@@ -154,6 +155,43 @@ export function EntrySplash({ onEnter, onBuddyLaunch }) {
   return (
     <div className={`entry-splash ${closing ? "is-closing" : ""}`} role="dialog" aria-modal="true" aria-labelledby="entry-splash-title">
       <div className="entry-splash-marquee" aria-hidden="true">DAI.EXE</div>
+      {seasonalEvent ? <SeasonalSplashNotice event={seasonalEvent} /> : null}
+      {seasonalEvent === "winter" || seasonalEvent === "halloween" ? (
+        // Decorado estacional del splash: el evento se ve desde la puerta.
+        <div className={`entry-splash-season is-${seasonalEvent}`} aria-hidden="true">
+          {seasonalEvent === "winter"
+            ? Array.from({ length: 16 }, (_, index) => (
+              <i
+                className="splash-flake"
+                key={index}
+                style={{
+                  "--delay": `${-((index * 1.31) % 11)}s`,
+                  "--drift": `${((index * 53) % 120) - 60}px`,
+                  "--duration": `${8 + (index % 7)}s`,
+                  "--left": `${(index * 37) % 100}%`,
+                  "--size": `${(.5 + (index % 4) * .22).toFixed(2)}rem`
+                }}
+              >
+                ❄
+              </i>
+            ))
+            : null}
+          {seasonalEvent === "halloween" ? (
+            <>
+              <svg className="splash-web" viewBox="0 0 130 130">
+                <g fill="none" stroke="currentColor" strokeWidth="1">
+                  <path d="M0 0 L125 18 M0 0 L109 63 M0 0 L72 103 M0 0 L22 124" />
+                  <path d="M36 5 Q27 9 31 18 Q21 20 21 30 Q11 27 6 36" />
+                  <path d="M67 9 Q51 18 59 34 Q40 37 39 56 Q21 50 12 67" />
+                  <path d="M99 14 Q76 26 87 50 Q59 54 57 82 Q31 74 17 99" />
+                </g>
+              </svg>
+              <span className="splash-spider"><i /></span>
+              <div className="splash-bats"><i /><i /><i /></div>
+            </>
+          ) : null}
+        </div>
+      ) : null}
       <div className="entry-splash-stage">
         <div className={`splash-buddy ${closing ? "is-launched" : ""}`} aria-hidden="true" ref={splashBuddyRef}>
           <div className={`screen-buddy-bubble ${buddyLine && !closing ? "is-visible" : ""}`}>{buddyLine}</div>
@@ -175,6 +213,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch }) {
             <span>{discordUser ? "discord linked" : "guest pass"}</span>
             <span>{ready ? "gate open" : "checking signal"}</span>
             <span>{progress}%</span>
+            {seasonalEvent ? <span className="is-event">{seasonalEvent.replace("-", " ")} live</span> : null}
           </div>
         </div>
 

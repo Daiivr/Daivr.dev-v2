@@ -99,7 +99,8 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
   const hasGear = (id) => unlockedGear.includes(id) && !hiddenGear.includes(id);
   const showFriendshipGear = (id, level) => friendshipLevel >= level && !hiddenGear.includes(id);
   const hasSparkAntenna = showFriendshipGear("gold-antenna", 5);
-  const hasHeadAccessory = showFriendshipGear("party-hat", 2) || hasGear("star-cap") || hasGear("pixel-crown");
+  const hasMikuWig = hasGear("miku-wig");
+  const hasHeadAccessory = showFriendshipGear("party-hat", 2) || hasGear("star-cap") || hasGear("pixel-crown") || hasMikuWig;
 
   return (
     <svg
@@ -147,6 +148,45 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
             <rect x="38" y="27" width="7" height="1" fill="#45d8ff" />
           </g>
         ) : null}
+        {/* peluco miku (atras): coletas largas que cuelgan detras de la cabeza,
+            con banda de goma + bulto, y punta anidada para el latigazo fisico */}
+        {hasMikuWig ? (
+          <g className="buddy-miku-hair-back">
+            <g className="buddy-hair-tail buddy-hair-tail-l">
+              <rect x="1" y="11" width="6" height="3" fill="#0e4a44" />
+              <rect x="0" y="14" width="7" height="7" fill="#48ded0" />
+              <rect x="5" y="14" width="2" height="7" fill="#28a99c" />
+              <rect x="0" y="15" width="2" height="6" fill="#9ff5ea" />
+              <rect x="0" y="21" width="6" height="6" fill="#48ded0" />
+              <rect x="4" y="21" width="2" height="6" fill="#28a99c" />
+              <rect x="0" y="21" width="1" height="6" fill="#9ff5ea" />
+              <g className="buddy-hair-tip">
+                <rect x="1" y="27" width="5" height="7" fill="#48ded0" />
+                <rect x="4" y="27" width="2" height="7" fill="#28a99c" />
+                <rect x="1" y="28" width="1" height="9" fill="#9ff5ea" />
+                <rect x="1" y="34" width="4" height="5" fill="#48ded0" />
+                <rect x="2" y="39" width="3" height="3" fill="#1f8b81" />
+              </g>
+            </g>
+            <g className="buddy-hair-tail buddy-hair-tail-r">
+              <rect x="41" y="11" width="6" height="3" fill="#0e4a44" />
+              <rect x="41" y="14" width="7" height="7" fill="#48ded0" />
+              <rect x="41" y="14" width="2" height="7" fill="#28a99c" />
+              <rect x="46" y="15" width="2" height="6" fill="#9ff5ea" />
+              <rect x="42" y="21" width="6" height="6" fill="#48ded0" />
+              <rect x="42" y="21" width="2" height="6" fill="#28a99c" />
+              <rect x="47" y="21" width="1" height="6" fill="#9ff5ea" />
+              <g className="buddy-hair-tip">
+                <rect x="42" y="27" width="5" height="7" fill="#48ded0" />
+                <rect x="42" y="27" width="2" height="7" fill="#28a99c" />
+                <rect x="46" y="28" width="1" height="9" fill="#9ff5ea" />
+                <rect x="43" y="34" width="4" height="5" fill="#48ded0" />
+                <rect x="43" y="39" width="3" height="3" fill="#1f8b81" />
+              </g>
+            </g>
+          </g>
+        ) : null}
+
         {/* cuerpo monitor */}
         <rect x="6" y="10" width="36" height="24" fill="#020604" stroke="#3fff97" strokeWidth="1.5" />
 
@@ -198,6 +238,40 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
             <rect x="17" y="26" width="7" height="2" fill="#3fff97" />
           )}
         </g>
+
+        {/* peluco miku (frente): corona center-parted, mechones que enmarcan la
+            cara y flequillo en punta. Estatico: el pelo del craneo no se mece */}
+        {hasMikuWig ? (
+          <g className="buddy-miku-hair-front">
+            <rect x="8" y="9" width="24" height="2" fill="#48ded0" />
+            <rect x="9" y="7" width="22" height="2" fill="#48ded0" />
+            <rect x="11" y="5" width="18" height="2" fill="#48ded0" />
+            <rect x="14" y="3" width="12" height="2" fill="#48ded0" />
+            <rect x="16" y="2" width="8" height="2" fill="#48ded0" />
+            <rect x="19" y="3" width="2" height="7" fill="#28a99c" />
+            <rect x="11" y="4" width="8" height="1" fill="#9ff5ea" />
+            <rect x="6" y="12" width="4" height="9" fill="#48ded0" />
+            <rect x="6" y="21" width="3" height="4" fill="#48ded0" />
+            <rect x="6" y="25" width="2" height="2" fill="#1f8b81" />
+            <rect x="9" y="12" width="1" height="10" fill="#28a99c" />
+            <rect x="6" y="13" width="1" height="9" fill="#9ff5ea" />
+            <rect x="31" y="12" width="4" height="9" fill="#48ded0" />
+            <rect x="32" y="21" width="3" height="4" fill="#48ded0" />
+            <rect x="33" y="25" width="2" height="2" fill="#1f8b81" />
+            <rect x="31" y="12" width="1" height="10" fill="#28a99c" />
+            <rect x="34" y="13" width="1" height="9" fill="#9ff5ea" />
+            <rect x="16" y="10" width="9" height="2" fill="#48ded0" />
+            <rect x="20" y="10" width="1" height="3" fill="#28a99c" />
+            <rect x="9" y="10" width="7" height="3" fill="#48ded0" />
+            <rect x="10" y="13" width="4" height="2" fill="#48ded0" />
+            <rect x="11" y="15" width="2" height="1" fill="#1f8b81" />
+            <rect x="14" y="10" width="1" height="4" fill="#28a99c" />
+            <rect x="25" y="10" width="7" height="3" fill="#48ded0" />
+            <rect x="27" y="13" width="4" height="2" fill="#48ded0" />
+            <rect x="28" y="15" width="2" height="1" fill="#1f8b81" />
+            <rect x="25" y="10" width="1" height="4" fill="#28a99c" />
+          </g>
+        ) : null}
 
         {/* bisel derecho: perillas + led */}
         <rect x="33" y="14" width="1" height="16" fill="rgba(63,255,151,.28)" />

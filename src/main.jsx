@@ -18,6 +18,7 @@ import "./styles/terminal-dialog.css";
 import "./styles/madrace.css";
 import "./styles/konami-library.css";
 import "./styles/cursor.css";
+import "./styles/seasonal-events.css";
 import "./styles/mobile.css";
 
 createRoot(document.getElementById("root")).render(

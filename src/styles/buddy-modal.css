@@ -409,6 +409,12 @@
     color: var(--color-glitch);
   }
 
+  /* El peluco Miku lleva su teal caracteristico */
+  .buddy-equipped-chip.is-miku-wig,
+  .buddy-loot-cell.is-miku-wig {
+    color: #48ded0;
+  }
+
   .buddy-equipped-chip.is-gold-antenna i,
   .buddy-loot-cell.is-gold-antenna i {
     clip-path: polygon(50% 0, 60% 34%, 96% 34%, 66% 54%, 78% 92%, 50% 68%, 22% 92%, 34% 54%, 4% 34%, 40% 34%);

@@ -622,6 +622,87 @@
     animation: buddy-scarf-flutter 2.3s ease-in-out infinite;
   }
 
+  /* Coletas Miku: pendulo compuesto. La coleta se mece desde donde nace y la
+     punta anidada arrastra con desfase (secondary motion). El vaiven base va
+     siempre — hasta en el preview del modal — y sube de intensidad/velocidad
+     cuando el buddy se mueve. Las dos coletas van en contrafase. */
+  .buddy-hair-tail {
+    transform-box: fill-box;
+    transform-origin: top center;
+    animation: buddy-hair-idle 3.2s ease-in-out infinite;
+  }
+
+  .buddy-hair-tail-r {
+    animation-delay: -1.6s;
+  }
+
+  .buddy-hair-tip {
+    transform-box: fill-box;
+    transform-origin: top center;
+    animation: buddy-hair-tip-idle 3.2s ease-in-out infinite;
+    animation-delay: -0.5s;
+  }
+
+  .buddy-hair-tail-r .buddy-hair-tip {
+    animation-delay: -2.1s;
+  }
+
+  /* Caminar: agita las coletas al ritmo del cuerpo (0.46s como las patas) */
+  .screen-buddy-root.is-walk .buddy-hair-tail {
+    animation: buddy-hair-swing 0.46s ease-in-out infinite;
+  }
+
+  .screen-buddy-root.is-walk .buddy-hair-tail-r {
+    animation-delay: -0.23s;
+  }
+
+  .screen-buddy-root.is-walk .buddy-hair-tip {
+    animation: buddy-hair-tip-swing 0.46s ease-in-out infinite;
+    animation-delay: -0.12s;
+  }
+
+  .screen-buddy-root.is-walk .buddy-hair-tail-r .buddy-hair-tip {
+    animation-delay: -0.35s;
+  }
+
+  /* Baile: swing mas amplio y lento (0.62s como el sprite) */
+  .screen-buddy-root.is-dance .buddy-hair-tail {
+    animation: buddy-hair-swing 0.62s ease-in-out infinite;
+  }
+
+  .screen-buddy-root.is-dance .buddy-hair-tail-r {
+    animation-delay: -0.31s;
+  }
+
+  .screen-buddy-root.is-dance .buddy-hair-tip {
+    animation: buddy-hair-tip-swing 0.62s ease-in-out infinite;
+    animation-delay: -0.16s;
+  }
+
+  /* Fiesta / caricia (salto): rebote rapido de las coletas */
+  .screen-buddy-root.is-party .buddy-hair-tail,
+  .screen-buddy-root.is-pet .buddy-hair-tail {
+    animation: buddy-hair-swing 0.42s ease-in-out infinite alternate;
+  }
+
+  .screen-buddy-root.is-party .buddy-hair-tip,
+  .screen-buddy-root.is-pet .buddy-hair-tip {
+    animation: buddy-hair-tip-swing 0.42s ease-in-out infinite alternate;
+    animation-delay: -0.1s;
+  }
+
+  /* Paracaidas: la caida mece el pelo lento */
+  .screen-buddy-root.is-chute .buddy-hair-tail,
+  .buddy-drop:not(.is-held) .buddy-hair-tail {
+    animation: buddy-hair-swing 1.15s ease-in-out infinite;
+  }
+
+  .screen-buddy-root.is-chute .buddy-hair-tip,
+  .buddy-drop:not(.is-held) .buddy-hair-tip {
+    animation: buddy-hair-tip-swing 1.15s ease-in-out infinite;
+    animation-delay: -0.3s;
+  }
+
   .buddy-tool-wrench,
   .buddy-loot-cartridge,
   .buddy-coffee,
@@ -1461,6 +1542,50 @@
     }
   }
 
+  @keyframes buddy-hair-idle {
+    0%,
+    100% {
+      transform: rotate(-3deg);
+    }
+
+    50% {
+      transform: rotate(3deg);
+    }
+  }
+
+  @keyframes buddy-hair-tip-idle {
+    0%,
+    100% {
+      transform: rotate(2.5deg);
+    }
+
+    50% {
+      transform: rotate(-5deg);
+    }
+  }
+
+  @keyframes buddy-hair-swing {
+    0%,
+    100% {
+      transform: rotate(-9deg) translateY(0);
+    }
+
+    50% {
+      transform: rotate(8deg) translateY(0.6px);
+    }
+  }
+
+  @keyframes buddy-hair-tip-swing {
+    0%,
+    100% {
+      transform: rotate(7deg);
+    }
+
+    50% {
+      transform: rotate(-8deg);
+    }
+  }
+
   @keyframes buddy-zzz-float {
     0% {
       opacity: 0;
@@ -2190,6 +2315,8 @@
     .buddy-particle,
     .buddy-loot-cartridge,
     .buddy-scarf-tail,
+    .buddy-hair-tail,
+    .buddy-hair-tip,
     .buddy-fishing-svg,
     .buddy-fishing-line-group,
     .buddy-fishing-bobber,

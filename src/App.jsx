@@ -26,6 +26,7 @@ import { Sidebar } from "./components/Sidebar";
 import { SiteFooter } from "./components/SiteFooter";
 import { TerminalDialog } from "./components/TerminalDialog";
 import { TowerBlockModal } from "./components/TowerBlockModal";
+import { getSeasonalEvent, SeasonalEvent } from "./components/SeasonalEvent";
 
 const TERMINAL_NODES = [
   ["home", "home"],
@@ -58,6 +59,8 @@ export default function App() {
   const [achievement, setAchievement] = useState("");
   const [powerOutage, setPowerOutage] = useState("");
   const [konamiView, setKonamiView] = useState(null);
+  const [seasonalEvent, setSeasonalEvent] = useState(() => getSeasonalEvent());
+  const [seasonalOverride, setSeasonalOverride] = useState(null);
   const achievementTimerRef = useRef(0);
   const konamiIndexRef = useRef(0);
   const shellRef = useRef(null);
@@ -72,6 +75,18 @@ export default function App() {
   const openKonamiLibrary = useCallback(() => setKonamiView("library"), []);
   const selectKonamiGame = useCallback((game) => setKonamiView(game), []);
   useRandomGlitchWords(theme === "glitch");
+
+  useEffect(() => {
+    const refreshSeason = () => {
+      if (seasonalOverride === null) setSeasonalEvent(getSeasonalEvent());
+    };
+    const interval = window.setInterval(refreshSeason, 60 * 60 * 1000);
+    window.addEventListener("popstate", refreshSeason);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("popstate", refreshSeason);
+    };
+  }, [seasonalOverride]);
 
   useEffect(() => {
     preloadImages([
@@ -349,8 +364,8 @@ export default function App() {
     if (name === "help") {
       const advanced = args.some((item) => ["--all", "-a", "advanced"].includes(item.toLowerCase()));
       appendTerminal(input, advanced
-        ? "COMMAND INDEX // ALL\n  help [--all]       command directory\n  status             cabinet telemetry\n  ls                 list page nodes\n  goto <node>        navigate the cabinet\n  theme [crt|glitch] set or toggle theme\n  run                boot Dai.exe\n  attract            start arcade demo mode\n  whoami / now / scan / discord / contact\n  date / echo <text> / clear / exit\n\nDIAGNOSTIC BUS // use responsibly\n  fish / forage / wildlife / debugbug\n  blackout           rare breaker simulation"
-        : "COMMAND INDEX\n  status             cabinet telemetry\n  ls                 list page nodes\n  goto <node>        navigate the cabinet\n  theme [crt|glitch] set or toggle theme\n  run                boot Dai.exe\n  attract            start arcade demo mode\n  whoami / now / scan / discord / contact\n  date / echo <text> / clear / exit\n\nHint: help --all opens the diagnostic bus.");
+        ? "COMMAND INDEX // ALL\n  help [--all]       command directory\n  status             cabinet telemetry\n  ls                 list page nodes\n  goto <node>        navigate the cabinet\n  theme [crt|glitch] set or toggle theme\n  season [event]     mount a seasonal cartridge\n  run                boot Dai.exe\n  attract            start arcade demo mode\n  whoami / now / scan / discord / contact\n  date / echo <text> / clear / exit\n\nDIAGNOSTIC BUS // use responsibly\n  fish / forage / wildlife / debugbug\n  blackout           rare breaker simulation\n  unlockall [off]    admin: unlock all buddy cosmetics"
+        : "COMMAND INDEX\n  status             cabinet telemetry\n  ls                 list page nodes\n  goto <node>        navigate the cabinet\n  theme [crt|glitch] set or toggle theme\n  season [event]     mount a seasonal cartridge\n  run                boot Dai.exe\n  attract            start arcade demo mode\n  whoami / now / scan / discord / contact\n  date / echo <text> / clear / exit\n\nHint: type season for event names, or help --all for diagnostics.");
       return;
     }
 
@@ -363,6 +378,56 @@ export default function App() {
       const nextTheme = requested && requested !== "toggle" ? requested : theme === "crt" ? "glitch" : "crt";
       updateThemePreference(nextTheme);
       appendTerminal(input, `Theme set: ${nextTheme.toUpperCase()} // palette bus synchronized.`);
+      return;
+    }
+
+    if (name === "season" || name === "event") {
+      const requested = (args[0] || "status").toLowerCase();
+      const aliases = {
+        april: "april-fools",
+        aprilfools: "april-fools",
+        "april-fools": "april-fools",
+        birthday: "birthday",
+        anniversary: "anniversary",
+        halloween: "halloween",
+        winter: "winter"
+      };
+
+      if (requested === "status") {
+        appendTerminal(input, [
+          "SEASONAL EVENT BUS",
+          `  active       ${seasonalEvent || "none"}`,
+          `  scheduler    ${seasonalOverride === null ? "automatic" : "manual"}`,
+          "Usage: season <halloween|winter|birthday|anniversary|april-fools|auto|off>"
+        ].join("\n"));
+        return;
+      }
+
+      if (requested === "auto") {
+        const scheduled = getSeasonalEvent();
+        setSeasonalOverride(null);
+        setSeasonalEvent(scheduled);
+        appendTerminal(input, `Season scheduler restored // ${scheduled || "no event scheduled today"}.`);
+        return;
+      }
+
+      if (["off", "none", "clear"].includes(requested)) {
+        setSeasonalOverride("off");
+        setSeasonalEvent(null);
+        appendTerminal(input, "Seasonal effects suspended for this session.");
+        return;
+      }
+
+      const nextSeason = aliases[requested];
+      if (!nextSeason) {
+        appendTerminal(input, "Unknown seasonal cartridge.\nAvailable: halloween, winter, birthday, anniversary, april-fools, auto, off");
+        return;
+      }
+
+      setSeasonalOverride(nextSeason);
+      setSeasonalEvent(nextSeason);
+      appendTerminal(input, `Seasonal cartridge mounted: ${nextSeason.toUpperCase()} // environment reskin online.`);
+      showAchievement(`Seasonal event activated: ${nextSeason}`, 3000);
       return;
     }
 
@@ -463,6 +528,16 @@ export default function App() {
       return;
     }
 
+    if (["unlockall", "unlock-all", "unlockcosmetics"].includes(name)) {
+      const disable = ["off", "lock", "reset", "clear", "false", "0"].includes((args[0] || "").toLowerCase());
+      window.dispatchEvent(new CustomEvent("daivr-buddy-admin-unlock", { detail: { value: !disable } }));
+      appendTerminal(input, disable
+        ? "ADMIN // cosmetic override cleared.\nBuddy loadout back to earned unlocks."
+        : "ADMIN // GEAR_OVERRIDE accepted.\nAll buddy cosmetics unlocked // open the buddy inventory to equip.");
+      if (!disable) showAchievement("Admin override: all buddy cosmetics unlocked", 3200);
+      return;
+    }
+
     const command = commands.find(([commandName]) => commandName === name);
     if (command) {
       appendTerminal(input, command[1]);
@@ -473,8 +548,9 @@ export default function App() {
   }
 
   return (
-    <div ref={shellRef} className={`app-shell ${theme === "glitch" ? "theme-glitch" : ""} ${isLaunching ? "is-launching" : ""} ${powerOutage ? `has-power-outage outage-${powerOutage}` : ""}`} data-glitch-root>
+    <div ref={shellRef} className={`app-shell ${theme === "glitch" ? "theme-glitch" : ""} ${isLaunching ? "is-launching" : ""} ${powerOutage ? `has-power-outage outage-${powerOutage}` : ""} ${seasonalEvent ? `season-${seasonalEvent}` : ""}`} data-glitch-root>
       <ArcadeBackground />
+      <SeasonalEvent event={seasonalEvent} entrySplashOpen={entrySplashOpen} />
       <CursorTrail theme={theme} />
       <PerchedBirds />
       {powerOutage ? (
@@ -484,7 +560,7 @@ export default function App() {
         </div>
       ) : null}
       {entrySplashOpen ? (
-        <EntrySplash onBuddyLaunch={setBuddyDrop} onEnter={() => setEntrySplashOpen(false)} />
+        <EntrySplash onBuddyLaunch={setBuddyDrop} onEnter={() => setEntrySplashOpen(false)} seasonalEvent={seasonalEvent} />
       ) : null}
       {buddyDrop ? (
         <BuddyDrop

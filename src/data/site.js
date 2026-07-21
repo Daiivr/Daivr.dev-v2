@@ -322,6 +322,122 @@ export const stack = [
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.11.0",
+    codename: "TWIN TAILS",
+    date: "2026-07-20",
+    summary: "Scan every last species in the fishing journal and buddy earns a set of long teal twin-tails — the Miku wig, now with hair that actually swings when buddy moves.",
+    entries: [
+      ["new", "Miku wig: fill the catch journal to 100% — every fish, every piece of junk, the treasure chest, all of it — and buddy unlocks a proper pixel Miku wig: center-parted bangs, face-framing side locks, and long twin-tails tied high with little hair ties."],
+      ["new", "The twin-tails have physics. They hang from where they're tied and sway on their own, then whip and bounce in time with buddy — faster when it walks, wider when it dances, a hard swing on a happy hop, a slow drift under the parachute. The tip lags the base for a real pendulum feel."],
+      ["buff", "The wig moved into the head slot (it's hair, it goes where hats go), so it swaps in and out cleanly with the party hat, star cap, and pixel crown."],
+      ["known", "The wig does not improve buddy's singing. Nothing improves buddy's singing."]
+    ]
+  },
+  {
+    version: "v2.10.0",
+    codename: "SEASON PASS",
+    date: "2026-07-19",
+    summary: "Seasonal events now greet you at the door, April Fools breaks the cabinet like it means it, the birthday party finally has enough cake, and the anniversary show writes its own number in the sky.",
+    entries: [
+      ["new", "The seasonal event notice moved to the entry splash: the active event announces itself before you even step inside, with a live-signal chip stamped onto your access pass. No more toast ambushing you after the door."],
+      ["buff", "April Fools shattered glass got an actual physics-of-sadness pass: tapered radial cracks with kinks and branches, glass facets catching the light, a fallen-out shard leaving a dark hole into the cabinet's void, shards resting on the ledge, and a specular glint that sweeps the damage."],
+      ["new", "April Fools panels now suffer proper corruption: RGB tear bands that rip across at random, corrupt pixel blocks, exposed wires dangling from jagged holes in the trim — sparking, obviously — and a three-act glitch cycle (power dip, chromatic tear, spasm) per panel."],
+      ["buff", "Birthday cakes everywhere: tiered cakes on plates with frosting drips, sugar sprinkles, and glowing candles now show up on medium panels too — plus cake slices with a cherry on little plates and frosted cupcakes for the narrow ledges. A neon cake joined the backdrop."],
+      ["new", "Anniversary special: every so often a golden rocket climbs up and bursts into a \"02\" drawn in twinkling sparks that hold formation, then rain out. Star-shaped bursts joined the regular show."],
+      ["new", "Champagne bottles on the anniversary ledges pop their own corks — real cork ballistics, foam spray, bubbles — then quietly re-foil themselves for the next round. Plus a rotating gold halo behind the V2 plaque, spotlight beams, and a giant \"02\" watermark in the sky."],
+      ["known", "The cancel button on the April update screen remains undefeated."]
+    ]
+  },
+  {
+    version: "v2.9.0",
+    codename: "ENCORE",
+    date: "2026-07-14",
+    summary: "The anniversary event graduated from looping CSS sparkles to a real fireworks show — with rocket physics, three burst types, and a crowd (you) that can call the shots.",
+    entries: [
+      ["new", "Fireworks with actual physics: rockets climb from below the fold on sparkling trails and detonate into peonies (full spheres), rings, or golden willows with long heavy trails — shockwave ring, sky glow, gravity, and twinkling embers included."],
+      ["new", "Conduct the show: swipe your cursor fast anywhere and a rocket launches toward that exact spot and bursts on arrival. The pyrotechnics crew trusts you completely."],
+      ["new", "Pennant bunting strung across the wide panels — triangle flags in the full arcade palette, swaying on sagging lines, double swags on the really wide ones."],
+      ["new", "Ledge trophies: little golden cups with handles and an engraved plaque, because two years of cabinet uptime deserves hardware. Curly streamers dangle off a few corners too."],
+      ["buff", "Celebration vignette: gold and cyan light creeps in from the screen corners while the fireworks paint the middle."],
+      ["known", "The fireworks are silent out of respect for the neighbors. The neighbors are a Discord bot."]
+    ]
+  },
+  {
+    version: "v2.8.0",
+    codename: "PARTY FOUL",
+    date: "2026-07-14",
+    summary: "April Fools breaks the cabinet properly — cracked glass, hazard tape, crooked panels — and the birthday event finally throws a real party: gifts, cake, balloons, and confetti physics.",
+    entries: [
+      ["new", "April Fools: the cabinet is now visibly held together with hope. Panels hang slightly crooked like badly hung picture frames, flinch with a glitch spasm every so often, and some sport spider-cracked glass with a bright impact point."],
+      ["new", "Hazard tape slapped diagonally over random panel corners, plus tilted mini error dialogs perched on the ledges that periodically lose their grip, slip a few pixels, and pretend nothing happened."],
+      ["new", "Birthday: wrapped gifts on the ledges — bows, ribbons, shading, the occasional gift stacked on a bigger gift — next to striped party candles and, on the widest panels, a two-tier frosted cake with three lit candles."],
+      ["new", "Birthday confetti physics: an ambient drizzle of tumbling rects, dots, and wavy streamers, plus party-popper bursts with expanding shockwave rings every few seconds. Balloons launch from below and float off with wobbly strings."],
+      ["new", "Swipe your cursor fast on the birthday page and it pops a burst of confetti. This serves no purpose. Happy birthday."],
+      ["known", "The cracked glass cannot be repaired. The cake cannot be eaten. The tape is load-bearing."]
+    ]
+  },
+  {
+    version: "v2.7.1",
+    codename: "SERVICE PACK",
+    date: "2026-07-14",
+    summary: "The ghosts learned cloth physics, the witch hats got a size up, and the April Fools fake update is now a fully avoidable inconvenience with an unavoidable Cancel button.",
+    entries: [
+      ["buff", "Ghost overhaul: the sheet now behaves like a sheet. Ghosts lean into their movement, the cloth drags behind them and ripples faster the quicker they float, they leave a faint wake when they accelerate, they blink, and their eyes track where they're going."],
+      ["buff", "Witch hats grew about 40% — apparently the old ones were kids' sizes."],
+      ["nerf", "Snowmen recalled from the winter event. They stood on the snow, they rose with the snow, and they have now returned to the snow. The drifts remain."],
+      ["new", "April Fools takeover, deluxe edition: a Cancel update button that dodges your cursor forever, a wandering hourglass, a shine on the progress bar, and a proper shake of shame when the progress loops back from 99%."],
+      ["new", "DaiOS ambience: the pixel rain is now a drizzle of tiny tumbling windows, ghost error dialogs pop up around the page (Success failed successfully), and the corner DaiOS window runs an eternal marquee progress bar under a spinning hourglass."],
+      ["buff", "More fake update messages, including the reticulation of splines and the un-deletion of System32 after it got weird."],
+      ["known", "The Cancel update button has logged 0 successful clicks. It considers this a perfect record."]
+    ]
+  },
+  {
+    version: "v2.7.0",
+    codename: "SEASON PASS",
+    date: "2026-07-14",
+    summary: "Both seasonal events got a content drop: ghosts and witch hats for October, snowmen and true dendrite snowflakes for December, and the welcome gate now dresses for the occasion.",
+    entries: [
+      ["new", "Little ghosts drift around the Halloween page on slow, wandering orbits — fading in, bobbing about, and fading back out. The big ones have a mouth. It is always open."],
+      ["new", "Witch hats: some 90-degree corners now wear a crooked-tip hat with a purple band and a gold buckle instead of a web. The spiders respect the dress code."],
+      ["new", "Trick-or-treat upgrade: more pumpkins on the ledges, now often accompanied by a candy bucket with sweets peeking over the rim (and one dropped beside it, tragically out of reach)."],
+      ["buff", "The candle shrines multiplied: more clusters per ledge, tall thin tapers next to short chunky pillars, each flame on its own flicker rhythm."],
+      ["new", "Winter: snowmen now stand on some snowpacks — coal faces, carrot noses, branch arms, scarves that flap in the wind, and the occasional top hat. They rise with the snow they stand on."],
+      ["buff", "Falling snow upgraded from dots to actual six-armed dendrite snowflakes that spin as they drift. The far layer stays soft-focus, like real depth of field."],
+      ["new", "The welcome gate now joins the party: snowfall and a frosted card top in December, cobwebs, a dangling spider, and bat silhouettes in October — all visible before you even enter."],
+      ["known", "The ghosts have no collision box. They are going through a lot."]
+    ]
+  },
+  {
+    version: "v2.6.0",
+    codename: "SPINNERET",
+    date: "2026-07-14",
+    summary: "The Halloween event hired a decorating crew: cobwebs in the cabinet corners, spiders on silk threads, bat flocks in the airspace, and jack-o-lanterns on the ledges.",
+    entries: [
+      ["new", "Corner cobwebs: panels grow hand-spun webs — sagging silk rings, uneven spokes, torn segments, and glints of moonlight caught in the threads. Spiders are picky architects: webs only go on true 90-degree corners, never on the chamfered cuts."],
+      ["new", "Hanging spiders: some webs come with a resident dangling on a thread, swinging gently and reeling themselves up and down. A few more dangle straight off the top status bar. Get your cursor close and they bolt up the silk in a panic."],
+      ["new", "Bat flocks: squadrons of 3-7 bats flap across the screen in front of the cabinet every so often, with proper wing membranes, wobbly flight paths, and tiny glowing eyes on the big ones."],
+      ["new", "Ledge shrines: carved jack-o-lanterns flicker on a few panel tops, now joined by clusters of dripless wax candles with swaying flames. Fire safety compliance: unverified."],
+      ["new", "A big cobweb drapes over the top-left corner of the screen on desktop. Yes, it probably has a spider. No, it will not move in with you."],
+      ["buff", "Deeper Halloween ambience: purple gloom creeps in from the screen corners while the orange moonlight holds the middle."],
+      ["known", "The spiders only do webs. They have declined all debugging assignments."]
+    ]
+  },
+  {
+    version: "v2.5.1",
+    codename: "WHITEOUT",
+    date: "2026-07-12",
+    summary: "The winter event got a real snow engine: drifts pile up grain by grain, and overloaded corners calve off in chunks instead of building little white cliffs.",
+    entries: [
+      ["new", "Snow accumulation physics: flakes now settle into per-panel snowpacks that obey an angle of repose, so drifts slump into soft dunes instead of stacking straight up."],
+      ["new", "Corner calving: snow that creeps past a panel's edge loses its grip and tumbles off as a proper clump — it can even land on the panel below and trigger a second slide."],
+      ["new", "Blizzard details: wind gusts drift the snowpack downwind, kick spindrift off the crests, and every landing leaves a tiny glint. The drifts sparkle. Obviously."],
+      ["new", "Swipe your cursor through a drift fast enough and you'll carve it — the loose snow comes off as a chunk thrown in the direction you swiped."],
+      ["buff", "Snow caps now ride their panels perfectly during scrolling and hover lifts instead of floating off into space."],
+      ["fix", "Snow no longer tries to accumulate on things that move: the draggable homebase console and the tilting game cartridges stay clean."],
+      ["known", "The snow is not cold. Engineering has been notified."]
+    ]
+  },
+  {
     version: "v2.5.0",
     codename: "STATION-86",
     date: "2026-07-11",
