@@ -14,7 +14,7 @@ const BOOT_STEPS = [
 
 const STEP_DELAY = 430;
 
-export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent }) {
+export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [] }) {
   const [visibleCount, setVisibleCount] = useState(1);
   const [displayProgress, setDisplayProgress] = useState(Math.round((1 / BOOT_STEPS.length) * 100));
   const [discordUser, setDiscordUser] = useState(null);
@@ -195,7 +195,17 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent }) {
       <div className="entry-splash-stage">
         <div className={`splash-buddy ${closing ? "is-launched" : ""}`} aria-hidden="true" ref={splashBuddyRef}>
           <div className={`screen-buddy-bubble ${buddyLine && !closing ? "is-visible" : ""}`}>{buddyLine}</div>
-          <BuddySprite className="splash-buddy-sprite" expression={ready ? "happy" : "idle"} friendshipLevel={buddyLevel} />
+          {/* Mismo loadout que el footer: cosmeticos equipados (peluco, gorros,
+              gafas, botas, items) visibles ya en la puerta. buddyLevel local
+              evita el parpadeo del gear de amistad antes de que el hook cargue. */}
+          <BuddySprite
+            className="splash-buddy-sprite"
+            expression={ready ? "happy" : "idle"}
+            friendshipLevel={Math.max(friendshipLevel, buddyLevel)}
+            inventory={inventory}
+            hiddenGear={hiddenGear}
+            unlockedGear={unlockedGear}
+          />
         </div>
         <section className={`entry-splash-gate ${ready ? "is-ready" : ""} ${closing ? "is-closing" : ""}`} aria-live="polite">
         <div className="entry-splash-id">

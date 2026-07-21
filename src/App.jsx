@@ -560,7 +560,15 @@ export default function App() {
         </div>
       ) : null}
       {entrySplashOpen ? (
-        <EntrySplash onBuddyLaunch={setBuddyDrop} onEnter={() => setEntrySplashOpen(false)} seasonalEvent={seasonalEvent} />
+        <EntrySplash
+          onBuddyLaunch={setBuddyDrop}
+          onEnter={() => setEntrySplashOpen(false)}
+          seasonalEvent={seasonalEvent}
+          friendshipLevel={buddy.friendship.level}
+          inventory={buddy.adventure.inventoryIds}
+          hiddenGear={buddy.effectiveHiddenGear}
+          unlockedGear={buddy.unlockedGearIds}
+        />
       ) : null}
       {buddyDrop ? (
         <BuddyDrop

@@ -330,6 +330,7 @@ export const patchNotes = [
       ["new", "Miku wig: fill the catch journal to 100% — every fish, every piece of junk, the treasure chest, all of it — and buddy unlocks a proper pixel Miku wig: center-parted bangs, face-framing side locks, and long twin-tails tied high with little hair ties."],
       ["new", "The twin-tails have physics. They hang from where they're tied and sway on their own, then whip and bounce in time with buddy — faster when it walks, wider when it dances, a hard swing on a happy hop, a slow drift under the parachute. The tip lags the base for a real pendulum feel."],
       ["buff", "The wig moved into the head slot (it's hair, it goes where hats go), so it swaps in and out cleanly with the party hat, star cap, and pixel crown."],
+      ["fix", "The buddy waiting at the welcome gate now wears your actual loadout — the wig, hats, visor, boots, and whatever you're carrying all show up on the splash exactly like they do down in the footer, instead of the gate buddy turning up half-dressed."],
       ["known", "The wig does not improve buddy's singing. Nothing improves buddy's singing."]
     ]
   },
