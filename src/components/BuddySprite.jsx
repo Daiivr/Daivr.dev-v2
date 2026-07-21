@@ -92,6 +92,131 @@ export function BuddyRodIcon({ className = "", rodId = "", lureId = "" }) {
   );
 }
 
+function BuddyMikuCostume({ expression = "idle", rocketBoots = false }) {
+  const isHappy = expression === "happy";
+  const isAsleep = expression === "sleep";
+
+  return (
+    <g className="buddy-miku-costume" shapeRendering="crispEdges">
+      {/* Big rounded twin-tails, closely following the user's chibi reference. */}
+      <g className="buddy-hair-tail buddy-hair-tail-l">
+        <rect x="5" y="5" width="10" height="7" fill="#161d27" />
+        <rect x="7" y="6" width="6" height="3" fill="#ff3d9d" />
+        <path d="M3 8h8v3h3v8h-2v12h-2v7H8v5H4v-2H2v-5H1V29H0V17h2v-6h1z" fill="#39cfc4" />
+        <path d="M3 12h3v24H4v4H2V18h1z" fill="#8af7e9" />
+        <path d="M9 11h4v9h-2v12H9v7H7v4H4v-3h2v-9h2V19h1z" fill="#147b83" />
+        <g className="buddy-hair-tip"><path d="M3 39h7v3H8v3H4v-2H2v-2h1z" fill="#147b83" /></g>
+      </g>
+      <g className="buddy-hair-tail buddy-hair-tail-r">
+        <rect x="33" y="5" width="10" height="7" fill="#161d27" />
+        <rect x="35" y="6" width="6" height="3" fill="#ff3d9d" />
+        <path d="M37 8h8v3h1v6h2v12h-1v7h-1v5h-2v2h-4v-5h-2v-7h-2V19h-2v-8h3z" fill="#39cfc4" />
+        <path d="M42 12h3v6h1v22h-2v-4h-2z" fill="#8af7e9" />
+        <path d="M35 11h4v8h1v12h2v9h2v3h-3v-4h-2v-7h-2V20h-2z" fill="#147b83" />
+        <g className="buddy-hair-tip"><path d="M38 39h7v2h1v2h-2v2h-4v-3h-2z" fill="#147b83" /></g>
+      </g>
+
+      {/* Oversized chibi head: a broad face, soft eyes and stepped bangs keep
+          Miku friendly and readable even when the sprite is only 64px wide. */}
+      <g className="buddy-miku-head">
+        <path d="M14 2h20v2h3v3h2v12h-2v3h-3v3h-5v2H19v-2h-5v-3h-3v-3H9V7h2V4h3z" fill="#ffd8c8" />
+        <path d="M14 1h20v2h3v3h2v10h-4V8h-3v6h-3V9h-3v7h-4V9h-3v6h-3V9h-3v7H9V6h2V3h3z" fill="#39cfc4" />
+        <path d="M15 1h14v2H15zm-2 3h8v2h-8z" fill="#8af7e9" />
+        <path d="M9 8h5v12h-3v-3H9zm25 0h5v9h-2v3h-3z" fill="#147b83" />
+
+        <path d="M8 4h6v12H8zM34 4h6v12h-6z" fill="#161d27" />
+        <path d="M9 6h4v5H9zm26 0h4v5h-4z" fill="#ff3d9d" />
+        <path d="M37 13h4v2h-2v3h-3v-2h1z" fill="#161d27" />
+        <rect x="39" y="16" width="2" height="2" fill="#ff3d9d" />
+
+        {isAsleep ? (
+          <path d="M16 16h5v1h-5zm12 0h5v1h-5z" fill="#17212a" />
+        ) : (
+          <>
+            <g className="buddy-eye">
+              <rect x="16" y="14" width="4" height="6" fill="#17212a" />
+            </g>
+            <g className="buddy-eye">
+              <rect x="29" y="14" width="4" height="6" fill="#17212a" />
+            </g>
+          </>
+        )}
+        <rect x="12" y="21" width="3" height="1" fill="#ff91ae" opacity=".72" />
+        <rect x="34" y="21" width="3" height="1" fill="#ff91ae" opacity=".72" />
+        {isHappy
+          ? <path d="M21 21h1v1h5v-1h1v2h-2v1h-3v-1h-2z" fill="#d95778" />
+          : <path d="M23 22h3v1h-3z" fill="#d95778" />}
+      </g>
+
+      {/* Larger white/gray blouse, wide collar, teal tie and detached sleeves. */}
+      <rect x="22" y="22" width="6" height="3" fill="#ffd8c8" />
+      <g className="buddy-miku-torso">
+        <path d="M17 24h16v2h2v9H15v-9h2z" fill="#e8f1ef" />
+        <path d="M18 26h4v7h-4zm10 0h4v7h-4z" fill="#9aa9ad" />
+        <path d="M17 24h6v3h4v-3h6v3h-5v3h-6v-3h-5z" fill="#27313c" />
+        <path d="M23 26h4v3h1v7h-6v-7h1z" fill="#39cfc4" />
+        <rect x="24" y="27" width="2" height="7" fill="#8af7e9" />
+      </g>
+
+      <g className="buddy-miku-arm buddy-miku-arm-l">
+        <rect x="12" y="25" width="5" height="8" fill="#ffd8c8" />
+        <path d="M8 31h7v9h-2v2H8v-2H7v-7h1z" fill="#202633" />
+        <rect x="8" y="32" width="2" height="8" fill="#39cfc4" />
+        <rect x="10" y="41" width="4" height="3" fill="#ffd8c8" />
+      </g>
+      <g className="buddy-miku-arm buddy-miku-arm-r">
+        <rect x="33" y="25" width="5" height="8" fill="#ffd8c8" />
+        <rect x="35" y="27" width="2" height="2" fill="#ff4b61" />
+        <path d="M35 31h7v2h1v7h-1v2h-5v-2h-2z" fill="#202633" />
+        <rect x="40" y="32" width="2" height="8" fill="#39cfc4" />
+        <rect x="36" y="41" width="4" height="3" fill="#ffd8c8" />
+      </g>
+
+      {/* Wide pleated skirt and two truly independent thigh-high boot groups. */}
+      <path d="M15 34h20v2h2v4H11v-4h4z" fill="#252b38" />
+      <path d="M13 38h5v-1h4v1h4v-1h4v1h5v2H13z" fill="#39cfc4" />
+      <path d="M16 35h2v4h-2zm7 0h2v4h-2zm7 0h2v4h-2z" fill="#3b4351" />
+
+      <g className="buddy-miku-leg buddy-miku-leg-l buddy-leg buddy-leg-l buddy-leg-foot buddy-leg-foot-l">
+        <rect x="17" y="40" width="7" height="3" fill="#ffd8c8" />
+        <rect x="17" y="43" width="7" height="4" fill="#202633" />
+        <path d="M16 46h8v2h2v1H15v-2h1z" fill="#151a23" />
+        <rect x="15" y="48" width="11" height="1" fill="#39cfc4" />
+        {rocketBoots ? (
+          <>
+            <rect x="15" y="44" width="3" height="4" fill="#ff3d9d" />
+            <rect x="18" y="47" width="7" height="2" fill="#5b314e" />
+            <rect className="buddy-miku-thruster" x="18" y="49" width="4" height="1" fill="#ffd166" />
+            <g className="buddy-miku-rocket-flame buddy-miku-rocket-flame-l">
+              <rect x="19" y="50" width="2" height="3" fill="#f4fff8" />
+              <rect x="18" y="53" width="4" height="3" fill="#ffd166" />
+              <path d="M18 56h4v3h-1v2h-2v-2h-1z" fill="#ff3d9d" />
+            </g>
+          </>
+        ) : null}
+      </g>
+      <g className="buddy-miku-leg buddy-miku-leg-r buddy-leg buddy-leg-r buddy-leg-foot buddy-leg-foot-r">
+        <rect x="27" y="40" width="7" height="3" fill="#ffd8c8" />
+        <rect x="27" y="43" width="7" height="4" fill="#202633" />
+        <path d="M27 46h8v1h1v2H26v-1h1z" fill="#151a23" />
+        <rect x="26" y="48" width="10" height="1" fill="#39cfc4" />
+        {rocketBoots ? (
+          <>
+            <rect x="33" y="44" width="3" height="4" fill="#ff3d9d" />
+            <rect x="27" y="47" width="7" height="2" fill="#5b314e" />
+            <rect className="buddy-miku-thruster" x="29" y="49" width="4" height="1" fill="#ffd166" />
+            <g className="buddy-miku-rocket-flame buddy-miku-rocket-flame-r">
+              <rect x="30" y="50" width="2" height="3" fill="#f4fff8" />
+              <rect x="29" y="53" width="4" height="3" fill="#ffd166" />
+              <path d="M29 56h4v3h-1v2h-2v-2h-1z" fill="#ff3d9d" />
+            </g>
+          </>
+        ) : null}
+      </g>
+    </g>
+  );
+}
+
 export function BuddySprite({ className = "", expression = "idle", facing = 1, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [], width = 64, height = 61 }) {
   const isHappy = expression === "happy";
   const isAsleep = expression === "sleep";
@@ -100,7 +225,23 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
   const showFriendshipGear = (id, level) => friendshipLevel >= level && !hiddenGear.includes(id);
   const hasSparkAntenna = showFriendshipGear("gold-antenna", 5);
   const hasMikuWig = hasGear("miku-wig");
+  const hasRocketBoots = hasGear("rocket-boots");
   const hasHeadAccessory = showFriendshipGear("party-hat", 2) || hasGear("star-cap") || hasGear("pixel-crown") || hasMikuWig;
+
+  if (hasGear("miku-costume")) {
+    return (
+      <svg
+        className={`${className} buddy-miku-costume-sprite`.trim()}
+        viewBox="0 0 48 50"
+        width={width}
+        height={height}
+        style={{ "--buddy-facing": facing, overflow: "visible" }}
+        aria-hidden="true"
+      >
+        <BuddyMikuCostume expression={expression} rocketBoots={hasRocketBoots} />
+      </svg>
+    );
+  }
 
   return (
     <svg

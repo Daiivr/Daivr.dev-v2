@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { Backpack, BookOpen, Check, ScrollText, X } from "lucide-react";
-import { FACE_GEAR_IDS, HEADWEAR_IDS, LURE_IDS, MOBILITY_IDS, ROD_IDS } from "../hooks/useBuddyLoadout";
+import { COSTUME_IDS, FACE_GEAR_IDS, HEADWEAR_IDS, LURE_IDS, MOBILITY_IDS, ROD_IDS } from "../hooks/useBuddyLoadout";
 import { BuddyChuteCanopy, BuddyRodIcon, BuddySprite } from "./BuddySprite";
+import { BuddyGearIcon } from "./BuddyGearIcon";
 import { BuddyJournal } from "./BuddyJournal";
 
 const BUDDY_SLOTS = [
+  { id: "costume", label: "costume", accepts: COSTUME_IDS },
   { id: "head", label: "head", accepts: HEADWEAR_IDS },
   { id: "face", label: "face", accepts: FACE_GEAR_IDS },
   { id: "antenna", label: "antenna", accepts: ["gold-antenna"] },
@@ -67,7 +69,7 @@ function InventorySlot({ buddy, slot }) {
             aria-label={`Unequip ${item.label}`}
             title={item.perk || undefined}
           >
-            <i aria-hidden="true" />
+            <BuddyGearIcon id={item.id} />
             <b>{item.label}</b>
             <X size={12} aria-hidden="true" />
           </button>
@@ -174,7 +176,7 @@ function BuddyInventoryView({ buddy }) {
                   aria-pressed={equipped}
                   title={item.perk || undefined}
                 >
-                  <i aria-hidden="true" />
+                  <BuddyGearIcon id={item.id} />
                   <span>{item.label}</span>
                   <small>{item.perk || item.source}</small>
                 </button>

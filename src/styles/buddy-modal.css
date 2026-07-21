@@ -281,13 +281,18 @@
     text-transform: uppercase;
   }
 
-  .buddy-equipped-chip i,
-  .buddy-loot-cell i {
-    width: 0.72rem;
-    aspect-ratio: 1;
+  .buddy-gear-icon {
+    width: 1.22rem;
+    height: 1.22rem;
     flex: 0 0 auto;
-    background: currentColor;
-    box-shadow: 0 0 10px currentColor;
+    overflow: visible;
+    color: currentColor;
+    filter: drop-shadow(0 0 4px color-mix(in srgb, currentColor 55%, transparent));
+  }
+
+  .buddy-equipped-chip .buddy-gear-icon {
+    width: 1rem;
+    height: 1rem;
   }
 
   /* Panel de botin: chips de filtro por slot + zona con scroll propio, asi
@@ -350,7 +355,7 @@
 
   .buddy-loot-cell {
     display: grid;
-    min-height: 62px;
+    min-height: 68px;
     grid-template-columns: auto minmax(0, 1fr);
     align-items: center;
     gap: 0.3rem 0.55rem;
@@ -409,15 +414,16 @@
     color: var(--color-glitch);
   }
 
-  /* El peluco Miku lleva su teal caracteristico */
+  /* Las recompensas Miku llevan su teal caracteristico */
   .buddy-equipped-chip.is-miku-wig,
-  .buddy-loot-cell.is-miku-wig {
+  .buddy-loot-cell.is-miku-wig,
+  .buddy-equipped-chip.is-miku-costume,
+  .buddy-loot-cell.is-miku-costume {
     color: #48ded0;
   }
 
-  .buddy-equipped-chip.is-gold-antenna i,
-  .buddy-loot-cell.is-gold-antenna i {
-    clip-path: polygon(50% 0, 60% 34%, 96% 34%, 66% 54%, 78% 92%, 50% 68%, 22% 92%, 34% 54%, 4% 34%, 40% 34%);
+  .buddy-equipped-chip.is-gold-antenna .buddy-gear-icon,
+  .buddy-loot-cell.is-gold-antenna .buddy-gear-icon {
     animation: inventory-spark-antenna 1.2s steps(2, end) infinite;
   }
 
@@ -427,11 +433,6 @@
   }
 
   /* La boya de la suerte es redonda, como corresponde */
-  .buddy-equipped-chip.is-lure i,
-  .buddy-loot-cell.is-lure i {
-    border-radius: 999px;
-  }
-
   .buddy-loot-empty {
     padding: 1rem;
     color: color-mix(in srgb, var(--color-phosphor-soft) 55%, transparent);

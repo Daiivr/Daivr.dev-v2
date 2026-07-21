@@ -1523,6 +1523,26 @@
     transform: rotate(45deg);
   }
 
+  /* A follow-up belongs to the reply immediately above it, not directly to
+     the original post. Indent it and continue an elbow from that card. */
+  .comment-reply.is-follow-up {
+    margin-left: 1.45rem;
+    max-width: calc(100% - 1.45rem);
+  }
+
+  .comment-reply.is-follow-up::before {
+    top: calc(-0.65rem - 1px);
+    width: 1.45rem;
+    height: calc(1.65rem + 1px);
+    border-top: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 52%, transparent);
+    border-left: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 52%, transparent);
+  }
+
+  .comment-reply.is-follow-up::after {
+    right: calc(100% + 1.28rem);
+  }
+
   .comment-reply-content {
     min-width: 0;
   }

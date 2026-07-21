@@ -1124,13 +1124,15 @@ export function CommentsSection() {
                         <span className="comment-thread-icon"><Reply size={12} /></span>
                         <span>thread // {replies.length} {replies.length === 1 ? "response" : "responses"}</span>
                       </div>
-                      {visibleReplies.map((reply) => {
+                      {visibleReplies.map((reply, replyIndex) => {
                         const canDeleteReply = !!auth.user && (auth.user.isAdmin || reply.mine);
+                        const replyTarget = replyIndex > 0 ? replies[replyIndex - 1]?.author : comment.author;
+                        const replyTargetName = replyTarget?.username || (replyIndex > 0 ? "previous reply" : "original post");
                         return (
                           <article
-                            className="comment-reply"
+                            className={`comment-reply ${replyIndex > 0 ? "is-follow-up" : "is-direct-reply"}`}
                             key={reply.id}
-                            aria-label={`Reply from ${reply.author?.username || "Unknown signal"} to ${comment.author?.username || "this comment"}`}
+                            aria-label={`Reply from ${reply.author?.username || "Unknown signal"} to ${replyTargetName}`}
                           >
                             <div className="comment-reply-avatar">
                               <UserAvatar user={reply.author} />
@@ -1139,7 +1141,7 @@ export function CommentsSection() {
                               <div className="comment-reply-context">
                                 <Reply size={11} aria-hidden="true" />
                                 <span>replying to</span>
-                                <b>@{comment.author?.username || "original post"}</b>
+                                <b>@{replyTargetName}</b>
                               </div>
                               <header>
                                 <strong>{reply.author?.username || "Unknown signal"}</strong>

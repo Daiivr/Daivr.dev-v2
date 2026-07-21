@@ -40,16 +40,17 @@ export const LURE_GEAR = [
   { id: "lure-magnet", label: "magnet lure", unlockRares: 6, perk: "junk upgrades to common" }
 ];
 
-// El peluco Miku es la recompensa de llenar el diario: se desbloquea cuando
-// todas las especies del catalogo estan escaneadas. Ocupa el slot de cabeza,
-// asi que excluye a los sombreros (no se llevan los dos a la vez).
+// Las recompensas Miku caen al llenar el diario. El peluco ocupa cabeza; el
+// traje vive en su propio slot y sustituye el sprite completo cuando se usa.
 export const JOURNAL_GEAR = [
-  { id: "miku-wig", label: "miku wig" }
+  { id: "miku-wig", label: "miku wig" },
+  { id: "miku-costume", label: "miku costume" }
 ];
 
 export const HEADWEAR_IDS = ["party-hat", "star-cap", "pixel-crown", "miku-wig"];
 export const FACE_GEAR_IDS = ["sunglasses", "green-visor"];
 export const MOBILITY_IDS = ["rocket-boots", "parachute-upgrade"];
+export const COSTUME_IDS = ["miku-costume"];
 export const ROD_IDS = ROD_GEAR.map((item) => item.id);
 // El lucky lure (recompensa de quest) comparte slot con los señuelos pescados.
 export const LURE_IDS = ["lure", ...LURE_GEAR.map((item) => item.id)];
@@ -121,6 +122,7 @@ function unique(items) {
 }
 
 export function slotForGear(id) {
+  if (COSTUME_IDS.includes(id)) return "costume";
   if (HEADWEAR_IDS.includes(id)) return "head";
   if (FACE_GEAR_IDS.includes(id)) return "face";
   if (id === "gold-antenna") return "antenna";
@@ -239,6 +241,8 @@ export function useBuddyLoadout({ friendship, adventure }) {
   const equippedFaceGear = availableFaceGearIds.find((id) => !hiddenGear.includes(id)) || "";
   const availableMobilityIds = unlockedGearIds.filter((id) => MOBILITY_IDS.includes(id));
   const equippedMobility = availableMobilityIds.find((id) => !hiddenGear.includes(id)) || "";
+  const availableCostumeIds = unlockedGearIds.filter((id) => COSTUME_IDS.includes(id));
+  const equippedCostume = availableCostumeIds.find((id) => !hiddenGear.includes(id)) || "";
   // Cañas: la mas nueva se equipa sola (como el headwear); señuelos: estable,
   // el puesto no cambia solo porque un perk nuevo aparezca.
   const availableRodIds = unlockedGearIds.filter((id) => ROD_IDS.includes(id));
@@ -253,10 +257,11 @@ export function useBuddyLoadout({ friendship, adventure }) {
     ...availableHeadwearIds.filter((id) => id !== equippedHeadwear),
     ...availableFaceGearIds.filter((id) => id !== equippedFaceGear),
     ...availableMobilityIds.filter((id) => id !== equippedMobility),
+    ...availableCostumeIds.filter((id) => id !== equippedCostume),
     ...availableRodIds.filter((id) => id !== equippedRod),
     ...availableLureIds.filter((id) => id !== equippedLure),
     ...availableCarryItemIds.filter((id) => id !== equippedCarryItem)
-  ]), [availableCarryItemIds, availableFaceGearIds, availableHeadwearIds, availableLureIds, availableMobilityIds, availableRodIds, equippedCarryItem, equippedFaceGear, equippedHeadwear, equippedLure, equippedMobility, equippedRod, hiddenGear]);
+  ]), [availableCarryItemIds, availableCostumeIds, availableFaceGearIds, availableHeadwearIds, availableLureIds, availableMobilityIds, availableRodIds, equippedCarryItem, equippedCostume, equippedFaceGear, equippedHeadwear, equippedLure, equippedMobility, equippedRod, hiddenGear]);
 
   const activeGearCount = gearItems.filter((item) => !effectiveHiddenGear.includes(item.id)).length;
 
@@ -294,6 +299,11 @@ export function useBuddyLoadout({ friendship, adventure }) {
       if (MOBILITY_IDS.includes(id)) {
         const nonMobilityHidden = current.filter((itemId) => !availableMobilityIds.includes(itemId));
         return [...nonMobilityHidden, ...availableMobilityIds.filter((itemId) => itemId !== id)];
+      }
+
+      if (COSTUME_IDS.includes(id)) {
+        const nonCostumeHidden = current.filter((itemId) => !availableCostumeIds.includes(itemId));
+        return [...nonCostumeHidden, ...availableCostumeIds.filter((itemId) => itemId !== id)];
       }
 
       if (ROD_IDS.includes(id)) {

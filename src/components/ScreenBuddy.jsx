@@ -103,6 +103,33 @@ const LINES = {
   ]
 };
 
+// Extra dialogue enters the pools only while the full costume is equipped.
+// These are original nods to Miku's virtual-singer identity, teal palette,
+// "39" wordplay and famous leek motif rather than quoted song lyrics.
+const MIKU_LINES = {
+  boot: ["Miku signal online!", "virtual singer reporting in!", "39! stage link ready."],
+  idle: [
+    "39 signal: crystal clear!",
+    "teal twin-tails at full power.",
+    "virtual singer, real footer.",
+    "leek supply: secured.",
+    "ready for the next song, producer!"
+  ],
+  walkStop: ["stage mark reached!", "twin-tails calibrated.", "tour stop: footer rail."],
+  pet: ["miku miku!", "thank you, producer!", "39!", "encore pets?"],
+  party: ["stage lights—on!", "encore mode!", "39 celebration!"],
+  dance: ["one, two—spotlight!", "digital diva dance break!", "follow my rhythm!"],
+  music: ["shall we sing together?", "this beat needs a teal harmony.", "adding one virtual vocal!"],
+  fishCast: ["leek bait deployed!", "digital diva fishing arc!", "casting on beat—one, two!"],
+  fishWait: ["shh... the fish is listening.", "holding this note... and the line.", "39 seconds. probably."],
+  fishFight: ["high note, high tension!", "producer, this fish has rhythm!", "reel on the beat!"],
+  fishEscape: ["the fish skipped the encore...", "next verse, next catch!"],
+  fishSight: ["a backup dancer with fins?", "teal fish duet detected!"],
+  fishBump: ["fish choreography failed!", "that was not in rehearsal!"],
+  fishRare: ["rare catch—spotlight!", "a legendary duet partner!"],
+  leviathan: ["that is NOT a stage prop!", "producer, the audience is enormous!"]
+};
+
 const reduceMotionQuery =
   typeof window !== "undefined" && typeof window.matchMedia === "function"
     ? window.matchMedia("(prefers-reduced-motion: reduce)")
@@ -176,6 +203,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
   const nowPlayingRef = useRef(null);
   const lastSongRef = useRef("");
   const equippedGearRef = useRef({ lure: "", rod: "" });
+  const mikuCostumeRef = useRef(false);
   const inventoryRef = useRef(inventory);
   const fishingCooldownRef = useRef(0);
   const fishSightCommentRef = useRef(0);
@@ -214,10 +242,15 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
   // el señuelo define las reglas de pesca, la caña solo el color.
   const equippedLure = LURE_IDS.find((id) => unlockedGear.includes(id) && !hiddenGear.includes(id)) || "";
   const equippedRod = ROD_IDS.find((id) => unlockedGear.includes(id) && !hiddenGear.includes(id)) || "";
+  const hasMikuCostume = unlockedGear.includes("miku-costume") && !hiddenGear.includes("miku-costume");
 
   useEffect(() => {
     equippedGearRef.current = { lure: equippedLure, rod: equippedRod };
   }, [equippedLure, equippedRod]);
+
+  useEffect(() => {
+    mikuCostumeRef.current = hasMikuCostume;
+  }, [hasMikuCostume]);
 
   useEffect(() => {
     inventoryRef.current = inventory;
@@ -423,9 +456,16 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     }, delayMs);
   }
 
+  function buddyLine(key) {
+    const regular = LINES[key] || [];
+    const miku = mikuCostumeRef.current ? MIKU_LINES[key] || [] : [];
+    return pickLine(miku.length ? [...miku, ...miku, ...regular] : regular);
+  }
+
   function contextIdlePool() {
     const hour = new Date().getHours();
     const pool = [...LINES.idle, ...LINES.walkStop];
+    if (mikuCostumeRef.current) pool.push(...MIKU_LINES.idle, ...MIKU_LINES.idle, ...MIKU_LINES.walkStop);
     if (hour >= 22 || hour < 5) pool.push(...LINES.night, ...LINES.night);
     else if (hour < 11) pool.push(...LINES.morning);
     if (visitCountRef.current) pool.push(`visitor #${visitCountRef.current.toLocaleString("en-US")} logged.`);
@@ -462,9 +502,11 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
 
   function greetingPool() {
     const identity = userRef.current;
-    return identity.discord
+    const pool = identity.discord
       ? [...LINES.boot, `hello, ${identity.name}!`, `${identity.name} signal linked.`, `welcome back, ${identity.name}.`]
       : [...LINES.boot, "hello, guest!", "guest session linked. stay awhile."];
+    if (mikuCostumeRef.current) pool.push(...MIKU_LINES.boot, ...MIKU_LINES.boot);
+    return pool;
   }
 
   function handlePet() {
@@ -510,8 +552,8 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     spawnParticles("heart", 3);
     const identity = userRef.current;
     const petLine = !wasAsleep && !wasFishing && identity.discord && Math.random() < 0.35
-      ? `${identity.name}! ${pickLine(LINES.pet)}`
-      : wasAsleep ? pickLine(LINES.wake) : wasFishing ? pickLine(LINES.fishInterrupt) : pickLine(LINES.pet);
+      ? `${identity.name}! ${buddyLine("pet")}`
+      : wasAsleep ? pickLine(LINES.wake) : wasFishing ? buddyLine("fishInterrupt") : buddyLine("pet");
     say(petLine, 1900, { key: "pet" });
     onPet?.();
     settleDown(1700);
@@ -782,7 +824,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         setFishingCatch("");
         setFishingCatchId("");
         setWeather("");
-        say(pickLine(LINES.fishCast), 2000);
+        say(buddyLine("fishCast"), 2000);
 
         schedule(() => {
           if (stillFishing()) setFishingPhase("wait");
@@ -793,12 +835,12 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         const waitMs = lure === "lure-swift" ? 3200 + Math.random() * 2800 : 7000 + Math.random() * 6000;
 
         schedule(() => {
-          if (stillFishing()) say(pickLine(LINES.fishWait), 2200);
+          if (stillFishing()) say(buddyLine("fishWait"), 2200);
         }, 2600 + Math.random() * 2400);
 
         if (waitMs > 9500) {
           schedule(() => {
-            if (stillFishing()) say(pickLine(LINES.fishWait), 2200);
+            if (stillFishing()) say(buddyLine("fishWait"), 2200);
           }, 7800);
         }
 
@@ -815,7 +857,10 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
           setFishingCatchId(catchItem.id);
           spawnParticles("splash", 7);
           const prefix = catchItem.kind === "treasure" ? "TREASURE" : tier === "mythic" ? "MYTHIC" : tier === "legendary" ? "LEGENDARY" : tier === "rare" ? "RARE" : "caught";
-          say(`${prefix}: ${catchItem.name}!`, 3000);
+          const rareEncore = mikuCostumeRef.current && ["rare", "legendary", "mythic"].includes(tier)
+            ? ` ${buddyLine("fishRare")}`
+            : "";
+          say(`${prefix}: ${catchItem.name}!${rareEncore}`, 3300);
 
           // Toda captura suma al total (desbloquea aparejos); las raras
           // ademas avanzan la quest Void angler.
@@ -845,7 +890,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
             setFishingPhase("monster");
             setFishingCatch("mythic");
             setFishingCatchId(LEVIATHAN.id);
-            say(pickLine(LINES.leviathan), 3000);
+            say(buddyLine("leviathan"), 3000);
             spawnParticles("splash", 14);
             liftTo(22);
             window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
@@ -874,11 +919,11 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
           // Los raros pelean: tira de la linea un rato y puede escaparse
           // (el lucky lure tambien ayuda a no perderlos).
           setFishingPhase("fight");
-          say(pickLine(LINES.fishFight), 2000);
+          say(buddyLine("fishFight"), 2000);
           const fightMs = 2600 + Math.random() * 1400;
 
           schedule(() => {
-            if (stillFishing()) say(pickLine(LINES.fishFight), 1700);
+            if (stillFishing()) say(buddyLine("fishFight"), 1700);
           }, fightMs * 0.55);
 
           schedule(() => {
@@ -889,7 +934,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
               setFishingPhase("escape");
               spawnParticles("splash", 9);
               playFx("dizzy", 900);
-              say(pickLine(LINES.fishEscape), 2400);
+              say(buddyLine("fishEscape"), 2400);
               endSessionAfter(2000);
               return;
             }
@@ -1192,7 +1237,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         settleDown(2700);
       } else if (roll < 0.51 && !reduceMotion) {
         updateMood("dance");
-        if (Math.random() < 0.5) say(pickLine(LINES.dance), 2200, { priority: "ambient", key: "ambient" });
+        if (Math.random() < 0.5) say(buddyLine("dance"), 2200, { priority: "ambient", key: "ambient" });
         settleDown(2600);
       } else if (roll < 0.58 && !reduceMotion) {
         playFx("static", 700);
@@ -1241,7 +1286,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       freezeAtCurrentPosition();
       updateMood("party");
       spawnParticles("confetti", 16);
-      say(pickLine(LINES.party), 2600);
+      say(buddyLine("party"), 2600);
       settleDown(3000);
     }
 
@@ -1276,7 +1321,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       const fishX = clamp(Number(event.detail?.x || 50), 0, 100) / 100 * stageWidth();
       fishSightCommentRef.current = Date.now();
       updateFacing(facingForDirection(fishX >= xRef.current ? 1 : -1));
-      say(pickLine(LINES.fishSight), 2300);
+      say(buddyLine("fishSight"), 2300);
     }
 
     function reactToFishBump(event) {
@@ -1291,7 +1336,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       updateFacing(facingForDirection(-direction));
       playFx("bump", 620);
       spawnParticles("splash", 5);
-      say(pickLine(LINES.fishBump), 2200);
+      say(buddyLine("fishBump"), 2200);
       schedule(() => setWalkMs(0), 200);
     }
 
@@ -1368,7 +1413,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       lastSongRef.current = detail.song;
       freezeAtCurrentPosition();
       updateMood("dance");
-      say(pickLine(LINES.music), 2600);
+      say(buddyLine("music"), 2600);
       settleDown(3200);
     }
 
@@ -1523,7 +1568,9 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const isHappy = ["pet", "party", "dance"].includes(mood);
+  const isHappy = ["pet", "party", "dance"].includes(mood)
+    || (mood === "fishing" && fishingPhase === "catch")
+    || (mood === "hunt" && enemy?.phase === "hit");
   const isAsleep = mood === "sleep";
   const isAirborne = y < -4;
   const hasRocketBoots = unlockedGear.includes("rocket-boots") && !hiddenGear.includes("rocket-boots");
@@ -1535,7 +1582,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
 
   return (
     <div
-      className={`screen-buddy-root is-${mood} ${fx ? `fx-${fx}` : ""} ${mood === "fishing" && fishingPhase === "fight" ? "is-fish-fight" : ""} ${weather ? `weather-${weather}` : ""} ${outagePhase ? `outage-${outagePhase}` : ""} ${isAirborne ? "is-airborne" : ""} ${hasRocketBoots ? "has-rocket-boots" : ""}`}
+      className={`screen-buddy-root is-${mood} ${fx ? `fx-${fx}` : ""} ${mood === "fishing" && fishingPhase === "fight" ? "is-fish-fight" : ""} ${weather ? `weather-${weather}` : ""} ${outagePhase ? `outage-${outagePhase}` : ""} ${isAirborne ? "is-airborne" : ""} ${hasRocketBoots ? "has-rocket-boots" : ""} ${hasMikuCostume ? "has-miku-costume" : ""}`}
       ref={rootRef}
       style={{
         "--buddy-x": `${x}px`,
@@ -1677,7 +1724,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
                   el contenedor se espeja con --buddy-facing igual que el sprite.
                   Los colores de caña/boya los pisa el aparejo puesto via CSS. */}
               <svg className="buddy-fishing-svg" viewBox="0 0 44 78" width="44" height="78">
-                <g shapeRendering="crispEdges">
+                <g className="buddy-fishing-rod-art" shapeRendering="crispEdges">
                   <rect className="buddy-rod-seg" x="30" y="40" width="4" height="3" fill="#b8f7ff" />
                   <rect className="buddy-rod-seg" x="24" y="34" width="8" height="3" fill="#b8f7ff" />
                   <rect className="buddy-rod-seg" x="17" y="27" width="9" height="3" fill="#b8f7ff" />
@@ -1933,6 +1980,35 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
             hiddenGear={hiddenGear}
             unlockedGear={unlockedGear}
           />
+
+          {mood === "fishing" && hasMikuCostume ? (
+            <span
+              className={`buddy-fishing-rod-overlay is-${fishingPhase || "cast"} ${equippedRod}`}
+              aria-hidden="true"
+            >
+              <svg className="buddy-fishing-rod-overlay-svg" viewBox="0 0 44 78" width="44" height="78">
+                <g shapeRendering="crispEdges">
+                  <rect className="buddy-rod-seg" x="30" y="40" width="4" height="3" fill="#b8f7ff" />
+                  <rect className="buddy-rod-seg" x="24" y="34" width="8" height="3" fill="#b8f7ff" />
+                  <rect className="buddy-rod-seg" x="17" y="27" width="9" height="3" fill="#b8f7ff" />
+                  <rect className="buddy-rod-seg" x="10" y="20" width="9" height="3" fill="#b8f7ff" />
+                  <rect className="buddy-rod-tip" x="5" y="13" width="7" height="3" fill="#45d8ff" />
+                  <rect className="buddy-rod-tip" x="4" y="10" width="4" height="4" fill="#45d8ff" />
+                  <rect x="26" y="43" width="5" height="5" fill="#ffd166" />
+                  <rect x="27" y="44" width="2" height="2" fill="#020604" />
+
+                  {/* Two small foreground grips visually lock her posed hands
+                      around the handle instead of letting it cross her body. */}
+                  <g className="buddy-miku-rod-grip">
+                    <rect x="28" y="38" width="5" height="4" fill="#202633" />
+                    <rect x="29" y="39" width="3" height="2" fill="#ffd8c8" />
+                    <rect x="31" y="42" width="5" height="4" fill="#202633" />
+                    <rect x="32" y="43" width="3" height="2" fill="#ffd8c8" />
+                  </g>
+                </g>
+              </svg>
+            </span>
+          ) : null}
         </span>
         <span className="screen-buddy-shadow" aria-hidden="true" />
       </button>

@@ -74,6 +74,7 @@ export function BuddyDrop({ start, onDone, friendshipLevel, inventory = [], hidd
   const reduceMotion = Boolean(window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
   const buddyLevel = friendshipLevel || getLocalBuddyLevel();
   const hasRocketBoots = unlockedGear.includes("rocket-boots") && !hiddenGear.includes("rocket-boots");
+  const hasMikuCostume = unlockedGear.includes("miku-costume") && !hiddenGear.includes("miku-costume");
 
   useEffect(() => {
     onDoneRef.current = onDone;
@@ -319,7 +320,7 @@ export function BuddyDrop({ start, onDone, friendshipLevel, inventory = [], hidd
 
   return (
     <div
-      className={`buddy-drop ${mode === "held" ? "is-held" : ""} ${hasRocketBoots ? "has-rocket-boots" : ""}`}
+      className={`buddy-drop ${mode === "held" ? "is-held" : ""} ${hasRocketBoots ? "has-rocket-boots" : ""} ${hasMikuCostume ? "has-miku-costume" : ""}`}
       ref={rootRef}
       style={{
         left: `${geometry.left}px`,

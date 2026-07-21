@@ -710,6 +710,277 @@
     filter: drop-shadow(0 0 4px currentColor);
   }
 
+  .buddy-miku-costume-sprite {
+    filter: drop-shadow(0 0 9px rgba(72, 222, 208, 0.34));
+  }
+
+  .buddy-miku-arm,
+  .buddy-miku-leg,
+  .buddy-miku-head,
+  .buddy-miku-torso {
+    transform-box: fill-box;
+  }
+
+  .buddy-miku-arm,
+  .buddy-miku-leg {
+    transform-origin: top center;
+  }
+
+  /* Four distinct gait phases: each boot lifts, passes the planted foot,
+     lands, then pushes back. The left/right keyframes are explicitly offset
+     rather than reversing one two-frame wobble. */
+  .screen-buddy-root.is-walk.has-miku-costume .buddy-miku-leg.buddy-miku-leg-l {
+    animation: buddy-miku-walk-leg-l 0.56s steps(4, end) infinite;
+  }
+
+  .screen-buddy-root.is-walk.has-miku-costume .buddy-miku-leg.buddy-miku-leg-r {
+    animation: buddy-miku-walk-leg-r 0.56s steps(4, end) infinite;
+  }
+
+  .screen-buddy-root.is-walk .buddy-miku-arm-l {
+    animation: buddy-miku-walk-arm 0.56s ease-in-out infinite;
+  }
+
+  .screen-buddy-root.is-walk .buddy-miku-arm-r {
+    animation: buddy-miku-walk-arm 0.56s ease-in-out -.28s infinite;
+  }
+
+  .screen-buddy-root.is-walk .buddy-miku-head {
+    transform: translateX(-.8px) rotate(-1.5deg);
+    transform-origin: bottom center;
+  }
+
+  .screen-buddy-root.is-walk .buddy-miku-torso {
+    transform: translateX(-.45px) rotate(-1deg);
+    transform-origin: bottom center;
+  }
+
+  .screen-buddy-root.is-walk.has-miku-costume .screen-buddy-body,
+  .screen-buddy-root.is-walk.has-miku-costume .screen-buddy-sprite,
+  .screen-buddy-root.is-walk.has-miku-costume .screen-buddy-shadow,
+  .screen-buddy-root.is-walk.has-miku-costume .buddy-hair-tail,
+  .screen-buddy-root.is-walk.has-miku-costume .buddy-hair-tip {
+    animation-duration: .56s;
+  }
+
+  /* While fishing she leans toward the rod and grips it with both hands.
+     Cast, wait, fight and catch each get a readable little pose change. */
+  .screen-buddy-root.is-fishing .buddy-miku-head {
+    transform: translate(-1px, 1px) rotate(-3deg);
+    transform-origin: bottom center;
+  }
+
+  .screen-buddy-root.is-fishing .buddy-miku-torso {
+    transform: translate(-1px, 2px) rotate(-4deg);
+    transform-origin: bottom center;
+  }
+
+  .screen-buddy-root.is-fishing .buddy-miku-arm-l {
+    transform: translate(-6px, -3px) rotate(-58deg);
+  }
+
+  .screen-buddy-root.is-fishing .buddy-miku-arm-r {
+    transform: translate(-12px, -1px) rotate(-72deg);
+  }
+
+  .screen-buddy-root.is-fishing .buddy-miku-leg.buddy-leg-foot-l {
+    transform: translate(-2px, -2px) rotate(24deg) scaleY(.8);
+  }
+
+  .screen-buddy-root.is-fishing .buddy-miku-leg.buddy-leg-foot-r {
+    transform: translate(2px, -3px) rotate(-18deg) scaleY(.78);
+  }
+
+  .screen-buddy-root.is-fishing.has-miku-costume .buddy-hair-tail-l {
+    animation: buddy-miku-fish-hair-l 1.4s ease-in-out infinite;
+  }
+
+  .screen-buddy-root.is-fishing.has-miku-costume .buddy-hair-tail-r {
+    animation: buddy-miku-fish-hair-r 1.4s ease-in-out infinite;
+  }
+
+  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-cast) .buddy-miku-arm-l {
+    animation: buddy-miku-fish-cast-front .52s cubic-bezier(.3, 1.4, .4, 1) both;
+  }
+
+  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-cast) .buddy-miku-arm-r {
+    animation: buddy-miku-fish-cast-back .52s cubic-bezier(.3, 1.4, .4, 1) both;
+  }
+
+  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-cast) .buddy-miku-head {
+    animation: buddy-miku-fish-cast-head .52s steps(3, end) both;
+  }
+
+  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-wait) .buddy-miku-arm-l,
+  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-bite) .buddy-miku-arm-l {
+    animation: buddy-miku-fish-hold .72s steps(2, end) infinite;
+  }
+
+  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-wait) .buddy-miku-arm-r,
+  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-bite) .buddy-miku-arm-r {
+    animation: buddy-miku-reel .72s steps(2, end) infinite;
+  }
+
+  .screen-buddy-root.is-fishing.is-fish-fight.has-miku-costume .buddy-miku-arm-l,
+  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-monster) .buddy-miku-arm-l {
+    animation: buddy-miku-fish-pull-front .28s steps(2, end) infinite;
+  }
+
+  .screen-buddy-root.is-fishing.is-fish-fight.has-miku-costume .buddy-miku-arm-r,
+  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-monster) .buddy-miku-arm-r {
+    animation: buddy-miku-fish-pull-back .28s steps(2, end) infinite reverse;
+  }
+
+  .screen-buddy-root.is-fishing.is-fish-fight.has-miku-costume .buddy-miku-torso,
+  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-monster) .buddy-miku-torso {
+    animation: buddy-miku-fish-brace .28s steps(2, end) infinite;
+  }
+
+  .screen-buddy-root.is-fishing.is-fish-fight.has-miku-costume .buddy-miku-leg-l,
+  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-monster) .buddy-miku-leg-l {
+    transform: translate(-4px, -1px) rotate(28deg) scaleY(.82);
+  }
+
+  .screen-buddy-root.is-fishing.is-fish-fight.has-miku-costume .buddy-miku-leg-r,
+  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-monster) .buddy-miku-leg-r {
+    transform: translate(4px, 0) rotate(-24deg) scaleY(.86);
+  }
+
+  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-catch) .buddy-miku-arm-l {
+    animation: buddy-miku-catch-cheer-l .68s steps(4, end) both;
+  }
+
+  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-catch) .buddy-miku-arm-r {
+    animation: buddy-miku-catch-cheer-r .68s steps(4, end) both;
+  }
+
+  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-catch) .buddy-miku-head,
+  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-catch) .buddy-miku-torso {
+    animation: buddy-miku-catch-hop .68s steps(4, end) both;
+  }
+
+  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-catch) .buddy-hair-tail {
+    animation: buddy-miku-catch-hair .68s steps(4, end) both;
+  }
+
+  /* Collectibles get a small kneel-and-reach pose instead of the robot's
+     upright scan. Mirroring the whole sprite keeps the hand on the find side. */
+  .screen-buddy-root.is-find.has-miku-costume .buddy-miku-head {
+    transform: translate(-2px, 3px) rotate(-8deg);
+    transform-origin: bottom center;
+  }
+
+  .screen-buddy-root.is-find.has-miku-costume .buddy-miku-torso {
+    transform: translate(-2px, 4px) rotate(-7deg);
+    transform-origin: bottom center;
+  }
+
+  .screen-buddy-root.is-find.has-miku-costume .buddy-miku-arm-l {
+    animation: buddy-miku-find-reach .9s steps(3, end) infinite;
+  }
+
+  .screen-buddy-root.is-find.has-miku-costume .buddy-miku-arm-r {
+    transform: translate(-4px, 1px) rotate(-24deg);
+  }
+
+  .screen-buddy-root.is-find.has-miku-costume .buddy-miku-leg-l {
+    transform: translate(-2px, -1px) rotate(22deg) scaleY(.72);
+  }
+
+  .screen-buddy-root.is-find.has-miku-costume .buddy-miku-leg-r {
+    transform: translate(2px, 1px) rotate(-12deg) scaleY(.82);
+  }
+
+  .screen-buddy-root.is-find.has-miku-costume .buddy-hair-tail {
+    animation: buddy-miku-find-hair 1.2s ease-in-out infinite;
+  }
+
+  /* Bug encounters use Miku's actual shoulders, stance and twin-tails.
+     Each weapon gets a distinct attack so netting and laser fire no longer
+     look like a prop floating beside an unrelated idle sprite. */
+  .screen-buddy-root.is-hunt.has-miku-costume .buddy-miku-head {
+    transform: translate(-2px, 1px) rotate(-5deg);
+    transform-origin: bottom center;
+  }
+
+  .screen-buddy-root.is-hunt.has-miku-costume .buddy-miku-torso {
+    transform: translate(-2px, 2px) rotate(-5deg);
+    transform-origin: bottom center;
+  }
+
+  .screen-buddy-root.is-hunt.has-miku-costume .buddy-miku-arm-l {
+    transform: translate(-5px, -2px) rotate(-48deg);
+  }
+
+  .screen-buddy-root.is-hunt.has-miku-costume .buddy-miku-arm-r {
+    transform: translate(-8px, -1px) rotate(-62deg);
+  }
+
+  .screen-buddy-root.is-hunt.has-miku-costume .buddy-miku-leg-l {
+    transform: translate(-3px, 0) rotate(18deg) scaleY(.9);
+  }
+
+  .screen-buddy-root.is-hunt.has-miku-costume .buddy-miku-leg-r {
+    transform: translate(3px, 0) rotate(-15deg) scaleY(.92);
+  }
+
+  .screen-buddy-root.is-hunt.has-miku-costume .buddy-hair-tail-l {
+    animation: buddy-miku-hunt-hair-l .48s steps(2, end) infinite;
+  }
+
+  .screen-buddy-root.is-hunt.has-miku-costume .buddy-hair-tail-r {
+    animation: buddy-miku-hunt-hair-r .48s steps(2, end) infinite;
+  }
+
+  .screen-buddy-root.is-hunt.has-miku-costume .screen-buddy-sprite {
+    animation: buddy-miku-hunt-ready .48s steps(3, end) infinite;
+  }
+
+  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-attack.weapon-wrench) .buddy-miku-arm,
+  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-attack.weapon-flyswatter) .buddy-miku-arm {
+    animation: buddy-miku-bug-smash .72s steps(5, end) both;
+  }
+
+  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-attack.weapon-net) .buddy-miku-arm-l {
+    animation: buddy-miku-bug-net-l .72s steps(5, end) both;
+  }
+
+  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-attack.weapon-net) .buddy-miku-arm-r {
+    animation: buddy-miku-bug-net-r .72s steps(5, end) both;
+  }
+
+  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-attack.weapon-laser) .buddy-miku-arm-l {
+    animation: buddy-miku-bug-laser-l .32s steps(3, end) 2;
+  }
+
+  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-attack.weapon-laser) .buddy-miku-arm-r {
+    animation: buddy-miku-bug-laser-r .32s steps(3, end) 2;
+  }
+
+  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-attack) .screen-buddy-sprite {
+    animation: buddy-miku-hunt-lunge .72s steps(6, end) both;
+  }
+
+  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-hit) .buddy-miku-arm-l {
+    animation: buddy-miku-bug-win-l .62s steps(4, end) both;
+  }
+
+  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-hit) .buddy-miku-arm-r {
+    animation: buddy-miku-bug-win-r .62s steps(4, end) both;
+  }
+
+  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-hit) .buddy-hair-tail {
+    animation: buddy-miku-catch-hair .62s steps(4, end) both;
+  }
+
+  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-hit) .screen-buddy-sprite {
+    animation: buddy-miku-hunt-win .62s steps(4, end) both;
+  }
+
+  .theme-glitch .buddy-miku-costume-sprite {
+    filter: drop-shadow(-1px 0 #3fff97) drop-shadow(1px 0 #ff3d9d) drop-shadow(0 0 9px rgba(72, 222, 208, 0.36));
+  }
+
   .buddy-carry-item {
     transform-box: fill-box;
     transform-origin: 22% 18%;
@@ -752,6 +1023,46 @@
   .buddy-rocket-flame {
     transform-box: fill-box;
     transform-origin: top center;
+  }
+
+  .buddy-miku-thruster {
+    transform-box: fill-box;
+    transform-origin: center top;
+    filter: drop-shadow(0 1px 1px rgba(255, 61, 157, 0.9));
+    animation: buddy-rocket-flicker 0.24s steps(2, end) infinite;
+  }
+
+  /* Miku's boost is part of each SVG boot, so it follows that boot's gait,
+     facing mirror and hover pose instead of using the robot's fixed nozzles. */
+  .buddy-miku-rocket-flame {
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center top;
+    filter:
+      drop-shadow(0 0 2px rgba(255, 209, 102, 0.95))
+      drop-shadow(0 0 5px rgba(255, 61, 157, 0.68));
+  }
+
+  .buddy-drop.has-miku-costume.has-rocket-boots:not(.is-held) .buddy-miku-rocket-flame,
+  .screen-buddy-root.has-miku-costume.has-rocket-boots.is-chute .buddy-miku-rocket-flame,
+  .screen-buddy-root.has-miku-costume.has-rocket-boots.is-walk .buddy-miku-rocket-flame,
+  .screen-buddy-root.has-miku-costume.has-rocket-boots.is-sleepy .buddy-miku-rocket-flame {
+    opacity: 1;
+    animation: buddy-miku-rocket-boost 0.18s steps(2, end) infinite;
+  }
+
+  .buddy-drop.has-miku-costume.has-rocket-boots:not(.is-held) .buddy-miku-rocket-flame-r,
+  .screen-buddy-root.has-miku-costume.has-rocket-boots.is-chute .buddy-miku-rocket-flame-r,
+  .screen-buddy-root.has-miku-costume.has-rocket-boots.is-walk .buddy-miku-rocket-flame-r,
+  .screen-buddy-root.has-miku-costume.has-rocket-boots.is-sleepy .buddy-miku-rocket-flame-r {
+    animation-delay: 90ms;
+  }
+
+  .buddy-drop.has-miku-costume.has-rocket-boots .buddy-drop-body::before,
+  .buddy-drop.has-miku-costume.has-rocket-boots .buddy-drop-body::after,
+  .screen-buddy-root.has-miku-costume.has-rocket-boots .screen-buddy-body::before,
+  .screen-buddy-root.has-miku-costume.has-rocket-boots .screen-buddy-body::after {
+    content: none;
   }
 
   .buddy-drop.has-rocket-boots:not(.is-held) .buddy-rocket-boots,
@@ -802,37 +1113,39 @@
      por atributo de los rects buddy-rod-*. Aplican tanto al aparejo de la
      sesion (.buddy-fishing-rig) como a la caña de exhibicion del inventario
      (.buddy-rod-icon). */
-  :is(.buddy-fishing-rig, .buddy-rod-icon).rod-bamboo .buddy-rod-seg {
+  :is(.buddy-fishing-rig, .buddy-fishing-rod-overlay, .buddy-rod-icon).rod-bamboo .buddy-rod-seg {
     fill: #3fff97;
   }
 
-  :is(.buddy-fishing-rig, .buddy-rod-icon).rod-bamboo .buddy-rod-tip {
+  :is(.buddy-fishing-rig, .buddy-fishing-rod-overlay, .buddy-rod-icon).rod-bamboo .buddy-rod-tip {
     fill: #b4ffcf;
   }
 
-  :is(.buddy-fishing-rig, .buddy-rod-icon).rod-neon .buddy-rod-seg {
+  :is(.buddy-fishing-rig, .buddy-fishing-rod-overlay, .buddy-rod-icon).rod-neon .buddy-rod-seg {
     fill: #ff3d9d;
   }
 
-  :is(.buddy-fishing-rig, .buddy-rod-icon).rod-neon .buddy-rod-tip {
+  :is(.buddy-fishing-rig, .buddy-fishing-rod-overlay, .buddy-rod-icon).rod-neon .buddy-rod-tip {
     fill: #ffd166;
   }
 
   .buddy-fishing-rig.rod-neon .buddy-fishing-svg,
+  .buddy-fishing-rod-overlay.rod-neon .buddy-fishing-rod-overlay-svg,
   .buddy-rod-icon.rod-neon {
     filter: drop-shadow(0 0 6px rgba(255, 61, 157, 0.55));
   }
 
-  :is(.buddy-fishing-rig, .buddy-rod-icon).rod-golden .buddy-rod-seg {
+  :is(.buddy-fishing-rig, .buddy-fishing-rod-overlay, .buddy-rod-icon).rod-golden .buddy-rod-seg {
     fill: #ffd166;
   }
 
-  :is(.buddy-fishing-rig, .buddy-rod-icon).rod-golden .buddy-rod-tip {
+  :is(.buddy-fishing-rig, .buddy-fishing-rod-overlay, .buddy-rod-icon).rod-golden .buddy-rod-tip {
     fill: #f4fff8;
     animation: buddy-led-pulse 1.4s ease-in-out infinite;
   }
 
   .buddy-fishing-rig.rod-golden .buddy-fishing-svg,
+  .buddy-fishing-rod-overlay.rod-golden .buddy-fishing-rod-overlay-svg,
   .buddy-rod-icon.rod-golden {
     filter: drop-shadow(0 0 7px rgba(255, 209, 102, 0.6));
   }
@@ -883,6 +1196,46 @@
     z-index: 0;
     pointer-events: none;
     transform: scaleX(var(--buddy-facing, 1));
+  }
+
+  .screen-buddy-root.is-fishing.has-miku-costume .buddy-fishing-svg {
+    bottom: -10px;
+    left: -12px;
+  }
+
+  .screen-buddy-root.is-fishing.has-miku-costume .buddy-fishing-rig .buddy-fishing-rod-art {
+    visibility: hidden;
+  }
+
+  .buddy-fishing-rod-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    transform: scaleX(var(--buddy-facing, 1));
+  }
+
+  .buddy-fishing-rod-overlay-svg {
+    position: absolute;
+    bottom: -10px;
+    left: -12px;
+    overflow: visible;
+    filter: drop-shadow(0 0 5px rgba(69, 216, 255, 0.35));
+  }
+
+  .buddy-fishing-rod-overlay.is-cast .buddy-fishing-rod-overlay-svg {
+    animation: buddy-rod-cast 0.52s cubic-bezier(0.3, 1.4, 0.4, 1) both;
+    transform-origin: 32px 44px;
+  }
+
+  .buddy-fishing-rod-overlay.is-fight .buddy-fishing-rod-overlay-svg,
+  .buddy-fishing-rod-overlay.is-monster .buddy-fishing-rod-overlay-svg {
+    animation: buddy-rod-strain 0.5s ease-in-out infinite;
+    transform-origin: 32px 44px;
+  }
+
+  .buddy-miku-rod-grip {
+    filter: drop-shadow(0 0 2px rgba(255, 216, 200, 0.42));
   }
 
   .buddy-fishing-svg {
@@ -1584,6 +1937,177 @@
     50% {
       transform: rotate(-8deg);
     }
+  }
+
+  @keyframes buddy-miku-walk-leg-l {
+    0%, 100% { transform: translateY(0) scaleY(1); }
+    25% { transform: translateY(-3px) scaleY(.9); }
+    50% { transform: translateY(-1px) scaleY(.96); }
+    75% { transform: translateY(0) scaleY(1.04); }
+  }
+
+  @keyframes buddy-miku-walk-leg-r {
+    0%, 100% { transform: translateY(-1px) scaleY(.96); }
+    25% { transform: translateY(0) scaleY(1.04); }
+    50% { transform: translateY(0) scaleY(1); }
+    75% { transform: translateY(-3px) scaleY(.9); }
+  }
+
+  @keyframes buddy-miku-walk-arm {
+    0%, 100% { transform: rotate(-9deg) translateY(0); }
+    50% { transform: rotate(10deg) translateY(-1px); }
+  }
+
+  @keyframes buddy-miku-fish-hair-l {
+    0%, 100% { transform: rotate(1deg) translateY(0); }
+    50% { transform: rotate(5deg) translateY(1px); }
+  }
+
+  @keyframes buddy-miku-fish-hair-r {
+    0%, 100% { transform: rotate(-1deg) translateY(1px); }
+    50% { transform: rotate(-5deg) translateY(0); }
+  }
+
+  @keyframes buddy-miku-fish-cast-front {
+    0% { transform: translate(2px, -3px) rotate(38deg); }
+    48% { transform: translate(-9px, -7px) rotate(-94deg); }
+    100% { transform: translate(-7px, -2px) rotate(-64deg); }
+  }
+
+  @keyframes buddy-miku-fish-cast-back {
+    0% { transform: translate(1px, -2px) rotate(28deg); }
+    48% { transform: translate(-12px, -5px) rotate(-82deg); }
+    100% { transform: translate(-11px, -1px) rotate(-70deg); }
+  }
+
+  @keyframes buddy-miku-fish-cast-head {
+    0% { transform: translate(1px, 0) rotate(4deg); }
+    48% { transform: translate(-2px, -1px) rotate(-7deg); }
+    100% { transform: translate(-1px, 1px) rotate(-3deg); }
+  }
+
+  @keyframes buddy-miku-fish-hold {
+    0%, 100% { transform: translate(-6px, -3px) rotate(-58deg); }
+    50% { transform: translate(-7px, -2px) rotate(-61deg); }
+  }
+
+  @keyframes buddy-miku-reel {
+    0%, 100% { transform: translate(-12px, -1px) rotate(-72deg); }
+    50% { transform: translate(-10px, -3px) rotate(-62deg); }
+  }
+
+  @keyframes buddy-miku-fish-pull-front {
+    0% { transform: translate(-10px, -1px) rotate(-78deg); }
+    100% { transform: translate(-5px, -6px) rotate(-48deg); }
+  }
+
+  @keyframes buddy-miku-fish-pull-back {
+    0% { transform: translate(-13px, 0) rotate(-82deg); }
+    100% { transform: translate(-8px, -5px) rotate(-58deg); }
+  }
+
+  @keyframes buddy-miku-fish-brace {
+    0% { transform: translate(-3px, 3px) rotate(-8deg); }
+    100% { transform: translate(0, 1px) rotate(1deg); }
+  }
+
+  @keyframes buddy-miku-catch-cheer-l {
+    0% { transform: translate(-8px, -2px) rotate(-66deg); }
+    45% { transform: translate(-1px, -10px) rotate(-154deg); }
+    72%, 100% { transform: translate(1px, -7px) rotate(-126deg); }
+  }
+
+  @keyframes buddy-miku-catch-cheer-r {
+    0% { transform: translate(-11px, -1px) rotate(-70deg); }
+    45% { transform: translate(2px, -10px) rotate(142deg); }
+    72%, 100% { transform: translate(0, -7px) rotate(116deg); }
+  }
+
+  @keyframes buddy-miku-catch-hop {
+    0%, 100% { transform: translateY(0); }
+    45% { transform: translateY(-4px); }
+    72% { transform: translateY(-1px); }
+  }
+
+  @keyframes buddy-miku-catch-hair {
+    0%, 100% { transform: translateY(0) rotate(0); }
+    45% { transform: translateY(-5px) rotate(-7deg); }
+    72% { transform: translateY(-1px) rotate(4deg); }
+  }
+
+  @keyframes buddy-miku-find-reach {
+    0%, 100% { transform: translate(-5px, -2px) rotate(-62deg); }
+    50% { transform: translate(-9px, 1px) rotate(-84deg); }
+  }
+
+  @keyframes buddy-miku-find-hair {
+    0%, 100% { transform: translateY(2px) rotate(2deg); }
+    50% { transform: translateY(0) rotate(-3deg); }
+  }
+
+  @keyframes buddy-miku-hunt-hair-l {
+    0%, 100% { transform: translateX(0) rotate(2deg); }
+    50% { transform: translateX(2px) rotate(7deg); }
+  }
+
+  @keyframes buddy-miku-hunt-hair-r {
+    0%, 100% { transform: translateX(0) rotate(-2deg); }
+    50% { transform: translateX(2px) rotate(-7deg); }
+  }
+
+  @keyframes buddy-miku-hunt-ready {
+    0%, 100% { transform: scaleX(var(--buddy-facing)) translateY(0) rotate(-1deg); }
+    50% { transform: scaleX(var(--buddy-facing)) translateY(-1px) rotate(1deg); }
+  }
+
+  @keyframes buddy-miku-hunt-lunge {
+    0% { transform: scaleX(var(--buddy-facing)) translateX(0) translateY(0); }
+    48% { transform: scaleX(var(--buddy-facing)) translateX(7px) translateY(-3px) rotate(5deg); }
+    72%, 100% { transform: scaleX(var(--buddy-facing)) translateX(9px) translateY(0) rotate(3deg); }
+  }
+
+  @keyframes buddy-miku-bug-smash {
+    0% { transform: translate(-4px, -3px) rotate(-72deg); }
+    38% { transform: translate(0, -10px) rotate(-152deg); }
+    70%, 100% { transform: translate(-12px, 2px) rotate(-28deg); }
+  }
+
+  @keyframes buddy-miku-bug-net-l {
+    0% { transform: translate(-4px, -2px) rotate(-52deg); }
+    45% { transform: translate(-11px, -8px) rotate(-112deg); }
+    100% { transform: translate(-14px, 3px) rotate(-36deg); }
+  }
+
+  @keyframes buddy-miku-bug-net-r {
+    0% { transform: translate(-7px, -1px) rotate(-62deg); }
+    45% { transform: translate(-13px, -6px) rotate(-98deg); }
+    100% { transform: translate(-11px, 4px) rotate(-27deg); }
+  }
+
+  @keyframes buddy-miku-bug-laser-l {
+    0%, 100% { transform: translate(-7px, -2px) rotate(-66deg); }
+    50% { transform: translate(-9px, -1px) rotate(-72deg); }
+  }
+
+  @keyframes buddy-miku-bug-laser-r {
+    0%, 100% { transform: translate(-11px, -1px) rotate(-76deg); }
+    50% { transform: translate(-13px, 0) rotate(-82deg); }
+  }
+
+  @keyframes buddy-miku-bug-win-l {
+    0% { transform: translate(-8px, -1px) rotate(-52deg); }
+    55%, 100% { transform: translate(1px, -8px) rotate(-138deg); }
+  }
+
+  @keyframes buddy-miku-bug-win-r {
+    0% { transform: translate(-8px, -1px) rotate(-62deg); }
+    55%, 100% { transform: translate(1px, -8px) rotate(128deg); }
+  }
+
+  @keyframes buddy-miku-hunt-win {
+    0% { transform: scaleX(var(--buddy-facing)) translateY(0); }
+    45% { transform: scaleX(var(--buddy-facing)) translateY(-5px) rotate(-3deg); }
+    72%, 100% { transform: scaleX(var(--buddy-facing)) translateY(0) rotate(2deg); }
   }
 
   @keyframes buddy-zzz-float {
@@ -2317,7 +2841,12 @@
     .buddy-scarf-tail,
     .buddy-hair-tail,
     .buddy-hair-tip,
+    .buddy-miku-arm,
+    .buddy-miku-leg,
+    .buddy-miku-thruster,
+    .buddy-miku-rocket-flame,
     .buddy-fishing-svg,
+    .buddy-fishing-rod-overlay-svg,
     .buddy-fishing-line-group,
     .buddy-fishing-bobber,
     .buddy-fishing-loot,
@@ -2477,6 +3006,23 @@
   100% {
     opacity: 0.86;
     transform: translateY(1px) scaleX(0.96) scaleY(1.05);
+  }
+}
+
+@keyframes buddy-miku-rocket-boost {
+  0% {
+    opacity: 0.82;
+    transform: translateY(0) scaleX(0.88) scaleY(0.82);
+  }
+
+  50% {
+    opacity: 1;
+    transform: translateY(1px) scaleX(1.12) scaleY(1.24);
+  }
+
+  100% {
+    opacity: 0.9;
+    transform: translateY(0.5px) scaleX(0.96) scaleY(1.04);
   }
 }
 
