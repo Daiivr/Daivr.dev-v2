@@ -51,6 +51,10 @@ export const HEADWEAR_IDS = ["party-hat", "star-cap", "pixel-crown", "miku-wig"]
 export const FACE_GEAR_IDS = ["sunglasses", "green-visor"];
 export const MOBILITY_IDS = ["rocket-boots", "parachute-upgrade"];
 export const COSTUME_IDS = ["miku-costume"];
+
+function isEditableWithMikuCostume(id) {
+  return id === "miku-costume" || ROD_IDS.includes(id) || LURE_IDS.includes(id);
+}
 export const ROD_IDS = ROD_GEAR.map((item) => item.id);
 // El lucky lure (recompensa de quest) comparte slot con los señuelos pescados.
 export const LURE_IDS = ["lure", ...LURE_GEAR.map((item) => item.id)];
@@ -285,6 +289,8 @@ export function useBuddyLoadout({ friendship, adventure }) {
   }
 
   function equipGear(id) {
+    if (equippedCostume === "miku-costume" && !isEditableWithMikuCostume(id)) return;
+
     updateHiddenGear((current) => {
       if (HEADWEAR_IDS.includes(id)) {
         const nonHeadwearHidden = current.filter((itemId) => !availableHeadwearIds.includes(itemId));
@@ -326,10 +332,12 @@ export function useBuddyLoadout({ friendship, adventure }) {
   }
 
   function stashGear(id) {
+    if (equippedCostume === "miku-costume" && !isEditableWithMikuCostume(id)) return;
     updateHiddenGear((current) => current.includes(id) ? current : [...current, id]);
   }
 
   function toggleGear(id) {
+    if (equippedCostume === "miku-costume" && !isEditableWithMikuCostume(id)) return;
     if (effectiveHiddenGear.includes(id)) equipGear(id);
     else stashGear(id);
   }

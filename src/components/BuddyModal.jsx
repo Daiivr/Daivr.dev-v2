@@ -19,6 +19,11 @@ const BUDDY_SLOTS = [
 
 // Orden estable del botin: agrupado por slot, en el orden de los slots.
 const SLOT_ORDER = Object.fromEntries(BUDDY_SLOTS.map((slot, index) => [slot.id, index]));
+const MIKU_EDITABLE_SLOTS = new Set(["costume", "rod", "lure"]);
+
+function isMikuEditableItem(id) {
+  return id === "miku-costume" || ROD_IDS.includes(id) || LURE_IDS.includes(id);
+}
 
 function isEquipped(item, buddy) {
   return !buddy.effectiveHiddenGear.includes(item.id);
@@ -38,36 +43,43 @@ function slotItems(slot, buddy) {
   return buddy.gearItems.filter((item) => slot.accepts.includes(item.id) && isEquipped(item, buddy));
 }
 
-function InventorySlot({ buddy, slot }) {
+function InventorySlot({ buddy, slot, mikuCostumeActive }) {
   const equipped = slotItems(slot, buddy);
+  const slotLocked = mikuCostumeActive && !MIKU_EDITABLE_SLOTS.has(slot.id);
 
   function handleDrop(event) {
     event.preventDefault();
+    if (slotLocked) return;
     const itemId = droppedItemId(event);
     if (!slot.accepts.includes(itemId)) return;
     buddy.equipGear(itemId);
   }
 
   function allowDrop(event) {
+    if (slotLocked) return;
     event.preventDefault();
   }
 
   return (
     <div
-      className={`buddy-equip-slot is-${slot.id} ${equipped.length ? "is-filled" : ""}`}
+      className={`buddy-equip-slot is-${slot.id} ${equipped.length ? "is-filled" : ""} ${slotLocked ? "is-miku-locked" : ""}`}
       onDragOver={allowDrop}
       onDrop={handleDrop}
+      aria-disabled={slotLocked || undefined}
     >
       <span>{slot.label}</span>
       <div>
         {equipped.length ? equipped.map((item) => (
           <button
-            className={`buddy-equipped-chip is-${item.id}`}
+            className={`buddy-equipped-chip is-${item.id} ${mikuCostumeActive && !isMikuEditableItem(item.id) ? "is-miku-locked" : ""}`}
             type="button"
             key={item.id}
             onClick={() => buddy.stashGear(item.id)}
+            disabled={mikuCostumeActive && !isMikuEditableItem(item.id)}
             aria-label={`Unequip ${item.label}`}
-            title={item.perk || undefined}
+            title={mikuCostumeActive && !isMikuEditableItem(item.id)
+              ? "Unequip Miku Costume to edit other gear."
+              : item.perk || undefined}
           >
             <BuddyGearIcon id={item.id} />
             <b>{item.label}</b>
@@ -81,6 +93,8 @@ function InventorySlot({ buddy, slot }) {
 
 function BuddyInventoryView({ buddy }) {
   const [filter, setFilter] = useState("all");
+  const mikuCostumeActive = buddy.unlockedGearIds.includes("miku-costume")
+    && !buddy.effectiveHiddenGear.includes("miku-costume");
 
   const slotCounts = buddy.gearItems.reduce((counts, item) => {
     counts[item.slot] = (counts[item.slot] || 0) + 1;
@@ -141,11 +155,25 @@ function BuddyInventoryView({ buddy }) {
         </div>
 
         <div className="buddy-slot-grid">
-          {BUDDY_SLOTS.map((slot) => <InventorySlot buddy={buddy} key={slot.id} slot={slot} />)}
+          {BUDDY_SLOTS.map((slot) => (
+            <InventorySlot
+              buddy={buddy}
+              key={slot.id}
+              slot={slot}
+              mikuCostumeActive={mikuCostumeActive}
+            />
+          ))}
         </div>
       </div>
 
       <div className="buddy-loot-panel" aria-label="Buddy inventory items">
+        {mikuCostumeActive ? (
+          <div className="buddy-miku-lock-notice" role="status">
+            <span>costume lock</span>
+            Clothing and accessories are locked. Rods and lures stay editable.
+          </div>
+        ) : null}
+
         <div className="buddy-loot-filters" aria-label="Filter loot by slot">
           {filterChips.map((chip) => (
             <button
@@ -165,16 +193,18 @@ function BuddyInventoryView({ buddy }) {
           <div className="buddy-loot-grid">
             {visibleItems.length ? visibleItems.map((item) => {
               const equipped = isEquipped(item, buddy);
+              const itemLocked = mikuCostumeActive && !isMikuEditableItem(item.id);
               return (
                 <button
-                  className={`buddy-loot-cell is-${item.id} ${equipped ? "is-equipped" : "is-stashed"}`}
+                  className={`buddy-loot-cell is-${item.id} ${equipped ? "is-equipped" : "is-stashed"} ${itemLocked ? "is-miku-locked" : ""}`}
                   type="button"
-                  draggable
+                  draggable={!itemLocked}
                   key={item.id}
                   onClick={() => buddy.toggleGear(item.id)}
                   onDragStart={(event) => dragItem(event, item)}
+                  disabled={itemLocked}
                   aria-pressed={equipped}
-                  title={item.perk || undefined}
+                  title={itemLocked ? "Unequip Miku Costume to edit other gear." : item.perk || undefined}
                 >
                   <BuddyGearIcon id={item.id} />
                   <span>{item.label}</span>

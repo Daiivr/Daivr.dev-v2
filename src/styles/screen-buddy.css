@@ -302,7 +302,7 @@
 
   /* Sin espacio sobre la puerta (pantallas bajas) el perchado se recorta feo:
      mejor ocultarlo; el aterrizaje en el footer sigue ocurriendo igual. */
-  @media (max-height: 780px) {
+  @media (max-height: 700px) {
     .splash-buddy {
       display: none;
     }

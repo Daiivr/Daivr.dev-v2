@@ -68,6 +68,7 @@ export function BuddyDrop({ start, onDone, friendshipLevel, inventory = [], hidd
   const pendingDragRef = useRef(null);
   const landTimerRef = useRef(0);
   const fallRafRef = useRef([0, 0]);
+  const handoffRafRef = useRef([0, 0]);
   const bubbleTimerRef = useRef(0);
   const landedRef = useRef(false);
 
@@ -132,7 +133,15 @@ export function BuddyDrop({ start, onDone, friendshipLevel, inventory = [], hidd
     const zone = zoneRef.current;
     const landingX = zone ? leftRef.current - zone.getBoundingClientRect().left : null;
     window.dispatchEvent(new CustomEvent("daivr-buddy-drop", { detail: { phase: "land", x: landingX } }));
-    onDoneRef.current?.();
+
+    // Keep the falling sprite painted at the rail until ScreenBuddy has had
+    // two frames to commit and paint its landing state. Unmounting in the
+    // same turn as the event caused a visible blank frame near the footer.
+    handoffRafRef.current[0] = window.requestAnimationFrame(() => {
+      handoffRafRef.current[1] = window.requestAnimationFrame(() => {
+        onDoneRef.current?.();
+      });
+    });
   }
 
   // Retoma (o inicia) el descenso desde fromTop hasta el riel.
@@ -312,6 +321,7 @@ export function BuddyDrop({ start, onDone, friendshipLevel, inventory = [], hidd
       window.removeEventListener("resize", clampHorizontalPosition);
       window.cancelAnimationFrame(dragFrameRef.current);
       fallRafRef.current.forEach((raf) => window.cancelAnimationFrame(raf));
+      handoffRafRef.current.forEach((raf) => window.cancelAnimationFrame(raf));
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
