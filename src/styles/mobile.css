@@ -222,16 +222,28 @@
   }
 
   .link-console-titlebar {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 0.75rem;
   }
 
-  .link-console-flags {
+  .link-console-status-label,
+  .link-console-status-live {
     display: none;
   }
 
+  .link-console-status {
+    display: block;
+    min-width: 0;
+    padding-left: 0.7rem;
+  }
+
+  .link-console-status strong {
+    font-size: 1.3rem;
+  }
+
   .link-console-card {
-    grid-template-columns: 1.55rem 2.55rem minmax(0, 1fr) !important;
+    grid-template-columns: none !important;
+    grid-template-rows: auto 1fr auto !important;
     gap: 0.85rem;
     padding: 0.85rem !important;
   }
@@ -240,6 +252,11 @@
   .link-console-copy small {
     white-space: normal;
     overflow-wrap: anywhere;
+  }
+
+  .link-console-identity {
+    grid-template-columns: 3.35rem minmax(0, 1fr);
+    gap: 0.8rem;
   }
 
   .project-console,
@@ -905,10 +922,11 @@
   }
 
   .link-console-card {
-    grid-template-columns: 1.35rem minmax(0, 1fr) !important;
+    grid-template-columns: none !important;
+    grid-template-rows: auto 1fr auto !important;
   }
 
   .link-console-icon {
-    display: none;
+    width: 3rem;
   }
 }

@@ -1,4 +1,4 @@
-import { Activity, Gamepad2, Headphones, Radio, WifiOff, Zap } from "lucide-react";
+import { Activity, Gamepad2, Headphones, Radio, Users, WifiOff, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { discord, profile } from "../data/site";
@@ -117,11 +117,13 @@ function getVisibleActivities(presence) {
     activities.push({
       appIcon: getActivityAppIcon(activity),
       appIconAlt: activity.assets?.small_text || `${activity.name} icon`,
+      createdAt: activity.created_at,
       detail: activity.details || "",
       icon: activity.type === 2 ? "audio" : "activity",
       image: getActivityImage(activity),
       meta: activity.assets?.large_text || activity.assets?.small_text || getActivityTypeLabel(activity.type),
       name: activity.name,
+      party: activity.party,
       state: activity.state || "",
       timestamps: activity.timestamps,
       type: activity.type,
@@ -160,13 +162,25 @@ function getSpotifyProgress(timestamps, now) {
 function formatSessionDuration(ms) {
   if (!Number.isFinite(ms) || ms <= 0) return null;
 
-  const totalMinutes = Math.floor(ms / 60_000);
-  if (totalMinutes < 1) return "0m";
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
 
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
+  return hours > 0
+    ? `${hours}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`
+    : `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
 
-  return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+function getActivityPartySize(activity) {
+  const size = activity?.party?.size;
+  if (!Array.isArray(size) || size.length < 2) return null;
+
+  const current = Number(size[0]);
+  const maximum = Number(size[1]);
+  if (!Number.isFinite(current) || !Number.isFinite(maximum) || current < 0 || maximum <= 0) return null;
+
+  return { current, maximum };
 }
 
 function getActivitySessionMs(activity, presence, now, mainGameName) {
@@ -175,7 +189,7 @@ function getActivitySessionMs(activity, presence, now, mainGameName) {
   const lanyardSessionMs = Number(presence?.kv?.session_duration_ms || 0);
   if (lanyardSessionMs > 0 && activity.name === mainGameName) return lanyardSessionMs;
 
-  const start = Number(activity.timestamps?.start);
+  const start = Number(activity.timestamps?.start ?? activity.createdAt);
   if (!start || start > now) return 0;
 
   return now - start;
@@ -211,7 +225,11 @@ export function DiscordPresencePanel() {
   const mainGameName = activities.find((activity) => activity.type === 0)?.name || null;
   const hasTimedActivity = Boolean(
     presence?.listening_to_spotify ||
-      activities.some((activity) => activity.type === 0 && (activity.timestamps?.start || presence?.kv?.session_duration_ms))
+      activities.some(
+        (activity) =>
+          activity.type === 0 &&
+          (activity.timestamps?.start || activity.createdAt || presence?.kv?.session_duration_ms)
+      )
   );
   const steamGridLookupNames = activities
     .filter((activity) => !activity.isSpotify && !activity.image && activity.name)
@@ -397,6 +415,7 @@ export function DiscordPresencePanel() {
             {activities.length ? (
               activities.map((activity) => {
                 const sessionLabel = formatSessionDuration(getActivitySessionMs(activity, presence, now, mainGameName));
+                const partySize = getActivityPartySize(activity);
                 const hasGameStreak = Boolean(
                   streak?.alive && streak.streak > 0 && activity.type === 0 && streak.game === activity.name
                 );
@@ -428,22 +447,33 @@ export function DiscordPresencePanel() {
                       {activity.isSpotify ? (
                         <SpotifyProgress now={now} timestamps={activity.timestamps} />
                       ) : null}
-                      {sessionLabel || hasGameStreak ? (
+                      {sessionLabel || partySize || hasGameStreak ? (
                         <div className="discord-activity-session" aria-label="Game session details">
+                          {partySize ? (
+                            <span
+                              className="discord-party-chip"
+                              title={`${partySize.current} de ${partySize.maximum} jugadores`}
+                            >
+                              <Users size={12} aria-hidden="true" />
+                              {partySize.current} de {partySize.maximum}
+                            </span>
+                          ) : null}
                           {sessionLabel ? (
                             <span className="discord-session-chip">
-                              <i aria-hidden="true" />
-                              Jugando hace {sessionLabel}
+                              <Gamepad2 size={12} aria-hidden="true" />
+                              {sessionLabel}
                             </span>
                           ) : null}
                           {hasGameStreak ? (
-                            <span
-                              className="discord-streak-chip"
-                              title={`Has jugado ${activity.name} ${streak.streak} dias seguidos`}
-                            >
-                              <Zap size={12} aria-hidden="true" />
-                              {streak.streak}x Streak
-                            </span>
+                            <div className="discord-streak-row">
+                              <span
+                                className="discord-streak-chip"
+                                title={`Has jugado ${activity.name} ${streak.streak} dias seguidos`}
+                              >
+                                <Zap size={12} aria-hidden="true" />
+                                {streak.streak}x Streak
+                              </span>
+                            </div>
                           ) : null}
                         </div>
                       ) : null}

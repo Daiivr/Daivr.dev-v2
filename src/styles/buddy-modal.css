@@ -473,11 +473,6 @@
     color: #48ded0;
   }
 
-  .buddy-equipped-chip.is-gold-antenna .buddy-gear-icon,
-  .buddy-loot-cell.is-gold-antenna .buddy-gear-icon {
-    animation: inventory-spark-antenna 1.2s steps(2, end) infinite;
-  }
-
   .buddy-equipped-chip.is-lure,
   .buddy-loot-cell.is-lure {
     color: var(--color-cabinet);
@@ -617,7 +612,6 @@
     .buddy-loot-filter,
     .buddy-equipped-chip.is-gold-antenna i,
     .buddy-loot-cell.is-gold-antenna i {
-      animation: none;
       transition: none;
     }
   }

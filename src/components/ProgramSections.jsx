@@ -1,5 +1,6 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { ArrowRight, Check, Cpu, Download, ExternalLink, Gamepad2, GitFork, Github, Globe2, Lock, MessageCircle, ShieldCheck, Star, Terminal, Twitch, X } from "lucide-react";
+import { ArrowRight, Bot, Check, Code2, Cpu, Download, ExternalLink, Gamepad2, GitFork, Github, Globe2, Lock, ShieldCheck, Star, Terminal, Twitch, X } from "lucide-react";
+import { FaDiscord, FaSteam } from "react-icons/fa6";
 import { useEffect, useRef, useState } from "react";
 import { now, projects, roomStats, socialLinks, stack } from "../data/site";
 import { DecodeText } from "./DecodeText";
@@ -14,11 +15,24 @@ const statIcons = {
 };
 
 const socialIcons = {
-  discord: MessageCircle,
+  discord: FaDiscord,
   github: Github,
-  steam: Gamepad2,
+  steam: FaSteam,
   twitch: Twitch
 };
+
+const toolbeltModules = [
+  { code: "UI.SYS", icon: Code2 },
+  { code: "BOT.OPS", icon: Bot },
+  { code: "GAME.UX", icon: Gamepad2 },
+  { code: "SHIP.CHECK", icon: ShieldCheck }
+];
+
+const nowModules = [
+  { code: "BUILD.SYS", icon: Code2 },
+  { code: "PLAY.STATE", icon: Gamepad2 },
+  { code: "LEARN.LOG", icon: Cpu }
+];
 
 const TRADEDEX_INFO_ENDPOINT = "/api/tradedex/info";
 const TRADEDEX_SCAN_ENDPOINT = "/api/tradedex/scan";
@@ -136,48 +150,76 @@ export function ProgramSections() {
     <>
       <section className="py-16 md:py-24" id="now">
         <SectionHeading eyebrow="NOW.LOG" title="Current save-state." />
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
-          <div className="grid gap-3">
-            {now.map((item, index) => (
-              <article className="interactive-card panel now-card" key={item.title}>
-                <span className="now-card-index">{String(index + 1).padStart(2, "0")}</span>
-                <div className="now-card-copy">
-                  <p className="pixel-label">{item.label}</p>
-                  <h3>{item.title}</h3>
-                  <p>{item.body}</p>
-                </div>
-                <span className="now-card-corner" aria-hidden="true" />
-              </article>
-            ))}
+        <div className="now-console panel-strong">
+          <div className="now-console-header">
+            <div>
+              <span className="now-console-lights" aria-hidden="true"><i /><i /><i /></span>
+              <code>~/daivr/now.log</code>
+            </div>
+            <span className="now-console-state"><i /> {String(now.length).padStart(2, "0")} slots loaded</span>
           </div>
-          <div className="interactive-card panel-strong status-sidecar overflow-hidden">
-            <div className="status-sidecar-header">
-              <div>
-                <p className="pixel-label">status.ini</p>
-                <strong>room profile</strong>
-              </div>
-              <span className="status-sidecar-signal" aria-hidden="true">
-                <i />
-                <i />
-                <i />
-              </span>
+
+          <div className="now-dashboard">
+            <div className="now-stream">
+              {now.map((item, index) => {
+                const module = nowModules[index] || { code: "STATE.LOG", icon: Cpu };
+                const Icon = module.icon;
+
+                return (
+                  <article className={`interactive-card now-card is-now-${index + 1}`} key={item.title}>
+                    <div className="now-card-rail">
+                      <span className="now-card-index">{String(index + 1).padStart(2, "0")}</span>
+                      <span className="now-card-icon"><Icon size={20} aria-hidden="true" /></span>
+                    </div>
+
+                    <div className="now-card-copy">
+                      <div className="now-card-topline">
+                        <p>{item.label}</p>
+                        <span><i /> synced</span>
+                      </div>
+                      <small>{module.code}</small>
+                      <h3>{item.title}</h3>
+                      <p>{item.body}</p>
+                      <div className="now-card-footer" aria-hidden="true">
+                        <span>save slot active</span>
+                        <span><i /><i /><i /><i /></span>
+                      </div>
+                    </div>
+                    <span className="now-card-corner" aria-hidden="true" />
+                  </article>
+                );
+              })}
             </div>
-            <dl className="status-sidecar-list">
-              {roomStats.map(([label, value]) => (
-                <div className="status-sidecar-row" key={label}>
-                  <dt>{label}</dt>
-                  <dd className="font-black text-white">{value}</dd>
+
+            <div className="interactive-card status-sidecar overflow-hidden">
+              <div className="status-sidecar-header">
+                <div>
+                  <p className="pixel-label">status.ini</p>
+                  <strong>room profile</strong>
                 </div>
-              ))}
-            </dl>
-            <div className="status-sidecar-graph" aria-hidden="true">
-              {Array.from({ length: 18 }).map((_, index) => (
-                <span key={index} />
-              ))}
-            </div>
-            <div className="status-sidecar-footer" aria-hidden="true">
-              <span>runtime stable</span>
-              <i />
+                <span className="status-sidecar-signal" aria-hidden="true">
+                  <i />
+                  <i />
+                  <i />
+                </span>
+              </div>
+              <dl className="status-sidecar-list">
+                {roomStats.map(([label, value]) => (
+                  <div className="status-sidecar-row" key={label}>
+                    <dt>{label}</dt>
+                    <dd className="font-black text-white">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+              <div className="status-sidecar-graph" aria-hidden="true">
+                {Array.from({ length: 18 }).map((_, index) => (
+                  <span key={index} />
+                ))}
+              </div>
+              <div className="status-sidecar-footer" aria-hidden="true">
+                <span>runtime stable</span>
+                <i />
+              </div>
             </div>
           </div>
         </div>
@@ -199,14 +241,45 @@ export function ProgramSections() {
 
       <section className="py-16 md:py-24" id="toolbelt">
         <SectionHeading eyebrow="TOOLBELT.DAT" title="What powers the cabinet." />
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {stack.map((item) => (
-            <article className="interactive-card panel min-h-64 p-4" key={item.title}>
-              <Cpu className="mb-8 text-phosphor" size={24} aria-hidden="true" />
-              <h3 className="mb-3 font-display text-xl text-white">{item.title}</h3>
-              <p>{item.body}</p>
-            </article>
-          ))}
+        <div className="toolbelt-console panel-strong">
+          <div className="toolbelt-console-header">
+            <div>
+              <span className="toolbelt-console-lights" aria-hidden="true"><i /><i /><i /></span>
+              <code>~/daivr/toolbelt.scan</code>
+            </div>
+            <span className="toolbelt-console-state"><i /> {String(stack.length).padStart(2, "0")} modules online</span>
+          </div>
+
+          <div className="toolbelt-grid">
+            {stack.map((item, index) => {
+              const module = toolbeltModules[index] || { code: "SYS.NODE", icon: Cpu };
+              const Icon = module.icon;
+
+              return (
+                <article className={`interactive-card toolbelt-card is-module-${index + 1}`} key={item.title}>
+                  <div className="toolbelt-card-header">
+                    <span>MOD.{String(index + 1).padStart(2, "0")}</span>
+                    <span><i /> ready</span>
+                  </div>
+
+                  <div className="toolbelt-card-icon" aria-hidden="true">
+                    <Icon size={25} />
+                  </div>
+
+                  <div className="toolbelt-card-copy">
+                    <p>{module.code}</p>
+                    <h3>{item.title}</h3>
+                    <p>{item.body}</p>
+                  </div>
+
+                  <div className="toolbelt-card-footer">
+                    <span>capability online</span>
+                    <span className="toolbelt-card-meter" aria-hidden="true"><i /><i /><i /><i /></span>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
         </div>
       </section>
 
@@ -244,12 +317,12 @@ function LinkConsole() {
         </div>
         <div>
           <h3>&gt; links.sh</h3>
-          <p>verified destinations · launch safely</p>
+          <p>external route selector · verified endpoints</p>
         </div>
-        <div className="link-console-flags" aria-hidden="true">
-          <span>./run</span>
-          <span>external</span>
-          <span>new_tab</span>
+        <div className="link-console-status" aria-label={`${socialLinks.length} verified external routes`}>
+          <span className="link-console-status-label">route table</span>
+          <strong>{String(socialLinks.length).padStart(2, "0")}</strong>
+          <span className="link-console-status-live"><i /> online</span>
         </div>
       </div>
 
@@ -264,15 +337,24 @@ function LinkConsole() {
               rel="noreferrer"
               target="_blank"
             >
-              <span className="link-console-index">{String(index + 1).padStart(2, "0")}</span>
-              <span className="link-console-icon">
-                <Icon size={25} aria-hidden="true" />
+              <span className="link-console-card-topline">
+                <span className="link-console-index">route_{String(index + 1).padStart(2, "0")}</span>
+                <span className="link-console-verified"><Check size={11} aria-hidden="true" /> verified</span>
               </span>
-              <span className="link-console-copy">
-                <strong>{link.label}</strong>
-                <small>{link.host}</small>
+              <span className="link-console-identity">
+                <span className="link-console-icon">
+                  <Icon size={27} aria-hidden="true" />
+                </span>
+                <span className="link-console-copy">
+                  <small>{link.host}</small>
+                  <strong>{link.label}</strong>
+                  <span>{link.summary}</span>
+                </span>
               </span>
-              <span className="link-console-action">open</span>
+              <span className="link-console-card-footer">
+                <span className="link-console-route"><i /> {link.route}</span>
+                <span className="link-console-action">launch <ExternalLink size={13} aria-hidden="true" /></span>
+              </span>
             </a>
           );
         })}
@@ -307,11 +389,17 @@ function ProjectConsole() {
   return (
     <div className="project-console panel-strong">
       <div className="project-console-header">
-        <div>
+        <div className="project-console-header-copy">
           <h3>&gt; current-projects.sh</h3>
-          <p><span /> now shipping · {projects.length} active · realtime build</p>
+          <p><span /> workspace feed · realtime build</p>
         </div>
-        <strong><span /> building</strong>
+        <div className="project-console-telemetry">
+          <span className="project-console-count">
+            <small>active slots</small>
+            <b>{String(projects.length).padStart(2, "0")}</b>
+          </span>
+          <strong><span /> building</strong>
+        </div>
       </div>
 
       <div className="project-console-grid">
@@ -447,9 +535,8 @@ function ProjectCardContent({ project, scanData }) {
       </div>
 
       <div className="project-card-body">
-        <span className="project-card-cartridge-label">arcade cartridge // {project.kicker}</span>
         <div className="project-card-meta">
-          <span>./project</span>
+          <span>cartridge // {project.kicker}</span>
           <span>{project.channel}</span>
         </div>
 
@@ -461,21 +548,27 @@ function ProjectCardContent({ project, scanData }) {
           </span>
         </div>
 
-        <p>{project.description}</p>
+        <div className="project-card-summary">
+          <span>system summary</span>
+          <p>{project.description}</p>
+        </div>
 
-        <ul className="project-card-tags">
-          {project.tags.map((tag) => (
-            <li key={tag}>{tag}</li>
-          ))}
-        </ul>
+        <div className="project-card-stack">
+          <span>runtime stack</span>
+          <ul className="project-card-tags">
+            {project.tags.map((tag) => (
+              <li key={tag}>{tag}</li>
+            ))}
+          </ul>
+        </div>
 
         <div className="project-card-footer">
           <span>{project.meta}</span>
           <strong>
             {project.modal.type === "download" ? <Download size={16} aria-hidden="true" /> : <Globe2 size={16} aria-hidden="true" />}
             <span>{project.modal.type === "download" ? "Open gate" : "Open details"}</span>
+            <ArrowRight size={15} aria-hidden="true" />
           </strong>
-          <ArrowRight size={18} aria-hidden="true" />
         </div>
       </div>
     </>

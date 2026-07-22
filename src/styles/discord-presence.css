@@ -608,6 +608,7 @@
   }
 
   .discord-activity-card .discord-session-chip,
+  .discord-activity-card .discord-party-chip,
   .discord-activity-card .discord-streak-chip {
     display: inline-flex;
     align-items: center;
@@ -626,16 +627,25 @@
     text-shadow: 0 0 8px color-mix(in srgb, var(--color-phosphor) 34%, transparent);
   }
 
-  .discord-session-chip i {
-    display: inline-block;
-    width: 7px;
-    height: 7px;
+  .discord-session-chip svg {
     flex: 0 0 auto;
-    background: var(--color-phosphor);
-    box-shadow:
-      0 0 9px var(--color-phosphor),
-      0 0 18px color-mix(in srgb, var(--color-phosphor) 45%, transparent);
-    animation: discord-session-pulse 1.6s ease-in-out infinite;
+    filter: drop-shadow(0 0 5px color-mix(in srgb, var(--color-phosphor) 52%, transparent));
+  }
+
+  .discord-streak-row {
+    display: flex;
+    flex: 0 0 100%;
+  }
+
+  .discord-activity-card .discord-party-chip {
+    gap: 0.34rem;
+    color: var(--color-cyan-arcade);
+    text-shadow: 0 0 8px color-mix(in srgb, var(--color-cyan-arcade) 34%, transparent);
+  }
+
+  .discord-party-chip svg {
+    flex: 0 0 auto;
+    filter: drop-shadow(0 0 5px color-mix(in srgb, var(--color-cyan-arcade) 52%, transparent));
   }
 
   .discord-activity-card .discord-streak-chip {
@@ -725,19 +735,6 @@
   }
 }
 
-@keyframes discord-session-pulse {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.55;
-    transform: scale(0.82);
-  }
-}
-
 @keyframes discord-streak-flicker {
   0%,
   100% {
@@ -762,7 +759,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .discord-session-chip i,
   .discord-streak-chip svg {
     animation: none;
   }

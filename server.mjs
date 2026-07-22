@@ -176,6 +176,7 @@ const appServer = createServer(async (request, response) => {
     const filePath = resolvePath(request.url || "/");
     let data;
     let contentType = types[extname(filePath)] || "application/octet-stream";
+    let spaFallback = false;
 
     try {
       data = await readFile(filePath);
@@ -186,9 +187,15 @@ const appServer = createServer(async (request, response) => {
 
       data = await readFile(join(staticRoot, "index.html"));
       contentType = types[".html"];
+      spaFallback = true;
     }
 
-    response.writeHead(200, {
+    const normalizedPath = requestUrl.pathname.toLowerCase().replace(/\/+$/, "") || "/";
+    const deniedRoute = ["/403", "/access-denied", "/forbidden"].includes(normalizedPath)
+      || ["/admin", "/private", "/restricted", "/system"].some((prefix) => normalizedPath === prefix || normalizedPath.startsWith(`${prefix}/`));
+    const responseStatus = spaFallback ? (deniedRoute ? 403 : 404) : 200;
+
+    response.writeHead(responseStatus, {
       "Content-Type": contentType,
       "Cache-Control": getCacheControl(filePath)
     });

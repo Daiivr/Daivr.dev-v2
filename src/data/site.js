@@ -63,6 +63,8 @@ export const socialLinks = [
     label: "Discord",
     href: "https://discordapp.com/users/271701484922601472",
     host: "discordapp.com",
+    route: "COMMS.CHANNEL",
+    summary: "Primary line for messages, community chatter, and project talk.",
     icon: "discord",
     tone: "violet"
   },
@@ -70,6 +72,8 @@ export const socialLinks = [
     label: "GitHub",
     href: "https://github.com/Daiivr",
     host: "github.com",
+    route: "SOURCE.REPOS",
+    summary: "Code, experiments, releases, and the projects currently in motion.",
     icon: "github",
     tone: "white"
   },
@@ -77,6 +81,8 @@ export const socialLinks = [
     label: "Steam",
     href: "https://steamcommunity.com/id/Daivr",
     host: "steamcommunity.com",
+    route: "GAME.PROFILE",
+    summary: "Library, play history, and the multiplayer side of the cabinet.",
     icon: "steam",
     tone: "cyan"
   },
@@ -84,6 +90,8 @@ export const socialLinks = [
     label: "Twitch",
     href: "https://www.twitch.tv/daiivr",
     host: "twitch.tv",
+    route: "LIVE.SIGNAL",
+    summary: "Occasional live sessions, games, builds, and late-night detours.",
     icon: "twitch",
     tone: "purple"
   }

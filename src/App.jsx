@@ -27,6 +27,7 @@ import { SiteFooter } from "./components/SiteFooter";
 import { TerminalDialog } from "./components/TerminalDialog";
 import { TowerBlockModal } from "./components/TowerBlockModal";
 import { getSeasonalEvent, SeasonalEvent } from "./components/SeasonalEvent";
+import { SystemGatePage } from "./components/SystemGatePage";
 
 const TERMINAL_NODES = [
   ["home", "home"],
@@ -41,7 +42,30 @@ const TERMINAL_NODES = [
   ["contact", "contact"]
 ];
 
+const ACCESS_DENIED_ROUTES = ["/403", "/access-denied", "/forbidden"];
+const PROTECTED_ROUTE_PREFIXES = ["/admin", "/private", "/restricted", "/system"];
+
+function isAccessDeniedPath(pathname) {
+  const normalizedPath = pathname.toLowerCase().replace(/\/+$/, "") || "/";
+  return ACCESS_DENIED_ROUTES.includes(normalizedPath)
+    || PROTECTED_ROUTE_PREFIXES.some((prefix) => normalizedPath === prefix || normalizedPath.startsWith(`${prefix}/`));
+}
+
 export default function App() {
+  const pathname = window.location.pathname;
+
+  if (isAccessDeniedPath(pathname)) {
+    return <SystemGatePage requestedPath={pathname} variant="denied" />;
+  }
+
+  if (pathname !== "/" && pathname !== "/index.html") {
+    return <SystemGatePage requestedPath={pathname} variant="missing" />;
+  }
+
+  return <CabinetApp />;
+}
+
+function CabinetApp() {
   const [theme, setTheme] = useState("crt");
   const [terminalOpen, setTerminalOpen] = useState(false);
   const [score, setScore] = useState(87);

@@ -1,0 +1,391 @@
+@layer components {
+  .now-console {
+    position: relative;
+    container-name: now-console;
+    container-type: inline-size;
+    overflow: hidden;
+    padding: clamp(0.8rem, 2vw, 1.15rem);
+    background:
+      linear-gradient(rgba(63, 255, 151, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(69, 216, 255, 0.03) 1px, transparent 1px),
+      radial-gradient(circle at 4% 4%, color-mix(in srgb, var(--color-cyan-arcade) 10%, transparent), transparent 30%),
+      radial-gradient(circle at 96% 4%, color-mix(in srgb, var(--color-glitch) 8%, transparent), transparent 28%),
+      rgba(2, 6, 4, 0.92);
+    background-size: 18px 18px, 18px 18px, auto, auto, auto;
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, var(--color-phosphor) 8%, transparent),
+      inset 0 0 58px rgba(0, 0, 0, 0.34),
+      var(--shadow-crt);
+  }
+
+  .now-console::before {
+    position: absolute;
+    inset: 0;
+    content: "";
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, var(--color-cyan-arcade), transparent 32%) 0 0 / 48% 1px no-repeat,
+      linear-gradient(180deg, var(--color-phosphor), transparent 72%) 0 0 / 2px 100% no-repeat,
+      linear-gradient(rgba(255, 255, 255, 0.03) 50%, transparent 50%);
+    background-size: 48% 1px, 2px 100%, 100% 4px;
+    opacity: 0.62;
+  }
+
+  .now-console-header,
+  .now-dashboard {
+    position: relative;
+    z-index: 1;
+  }
+
+  .now-console-header {
+    display: flex;
+    min-height: 3.7rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: clamp(0.75rem, 1.6vw, 1rem);
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 18%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 8%, transparent), transparent 52%),
+      rgba(2, 6, 4, 0.76);
+    padding: 0.72rem 0.85rem;
+  }
+
+  .now-console-header > div,
+  .now-console-state,
+  .now-console-lights {
+    display: flex;
+    align-items: center;
+  }
+
+  .now-console-header > div {
+    min-width: 0;
+    gap: 0.75rem;
+  }
+
+  .now-console-lights {
+    flex: 0 0 auto;
+    gap: 0.3rem;
+  }
+
+  .now-console-lights i {
+    width: 6px;
+    height: 6px;
+    background: var(--color-danger-arcade);
+  }
+
+  .now-console-lights i:nth-child(2) {
+    background: var(--color-cabinet);
+  }
+
+  .now-console-lights i:nth-child(3) {
+    background: var(--color-phosphor);
+  }
+
+  .now-console-header code {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--color-phosphor-soft);
+    font-size: 0.68rem;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .now-console-state {
+    flex: 0 0 auto;
+    gap: 0.45rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 32%, transparent);
+    background: color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent);
+    padding: 0.45rem 0.6rem;
+    color: var(--color-cyan-arcade);
+    font-size: 0.58rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .now-console-state i,
+  .now-card-topline span i {
+    width: 6px;
+    height: 6px;
+    background: currentColor;
+    box-shadow: 0 0 10px currentColor;
+  }
+
+  .now-dashboard {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(290px, 0.42fr);
+    gap: clamp(0.75rem, 1.6vw, 1rem);
+  }
+
+  .now-stream {
+    display: grid;
+    gap: 0.72rem;
+  }
+
+  .now-card {
+    --now-accent: var(--color-cyan-arcade);
+    position: relative;
+    display: grid;
+    min-height: 9.25rem;
+    grid-template-columns: 4.4rem minmax(0, 1fr);
+    gap: 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--now-accent) 26%, transparent);
+    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+    background:
+      linear-gradient(100deg, color-mix(in srgb, var(--now-accent) 7%, transparent), transparent 48%),
+      linear-gradient(rgba(255, 255, 255, 0.024) 50%, transparent 50%),
+      rgba(2, 6, 4, 0.8);
+    background-size: auto, 100% 4px, auto;
+    padding: 0;
+    box-shadow:
+      inset 3px 0 0 color-mix(in srgb, var(--now-accent) 72%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--now-accent) 20%, transparent),
+      inset 0 0 28px rgba(0, 0, 0, 0.28);
+  }
+
+  .now-card.is-now-2 {
+    --now-accent: var(--color-glitch);
+  }
+
+  .now-card.is-now-3 {
+    --now-accent: var(--color-phosphor);
+  }
+
+  .now-card::before {
+    width: 3px;
+    background: linear-gradient(180deg, var(--now-accent), transparent 86%);
+    box-shadow: 0 0 16px color-mix(in srgb, var(--now-accent) 34%, transparent);
+  }
+
+  .now-card::after {
+    background: linear-gradient(110deg, transparent 0 35%, color-mix(in srgb, var(--now-accent) 14%, transparent), transparent 65% 100%);
+  }
+
+  .now-card:hover {
+    border-color: color-mix(in srgb, var(--now-accent) 58%, transparent);
+    background:
+      linear-gradient(100deg, color-mix(in srgb, var(--now-accent) 10%, transparent), transparent 52%),
+      linear-gradient(rgba(255, 255, 255, 0.03) 50%, transparent 50%),
+      rgba(2, 6, 4, 0.86);
+    background-size: auto, 100% 4px, auto;
+    box-shadow:
+      inset 3px 0 0 color-mix(in srgb, var(--now-accent) 84%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--now-accent) 28%, transparent),
+      0 18px 50px color-mix(in srgb, var(--now-accent) 9%, transparent),
+      0 22px 58px rgba(0, 0, 0, 0.42);
+  }
+
+  .now-card-rail {
+    display: grid;
+    align-content: space-between;
+    justify-items: center;
+    border-right: 1px solid color-mix(in srgb, var(--now-accent) 18%, transparent);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--now-accent) 10%, transparent), transparent 72%),
+      rgba(2, 6, 4, 0.5);
+    padding: 0.9rem 0.65rem;
+  }
+
+  .now-card-index {
+    color: var(--now-accent);
+    font-size: 0.88rem;
+    font-weight: 950;
+    text-shadow: 0 0 14px color-mix(in srgb, var(--now-accent) 34%, transparent);
+  }
+
+  .now-card-icon {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--now-accent) 34%, transparent);
+    background: color-mix(in srgb, var(--now-accent) 7%, rgba(2, 6, 4, 0.72));
+    color: var(--now-accent);
+    box-shadow: inset 0 0 14px color-mix(in srgb, var(--now-accent) 8%, transparent);
+  }
+
+  .now-card-copy {
+    display: grid;
+    min-width: 0;
+    align-content: start;
+    padding: 0.88rem 1rem 0.78rem;
+  }
+
+  .now-card-topline,
+  .now-card-topline span,
+  .now-card-footer,
+  .now-card-footer > span:last-child {
+    display: flex;
+    align-items: center;
+  }
+
+  .now-card-topline,
+  .now-card-footer {
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .now-card-topline > p {
+    color: var(--color-cabinet);
+    font-size: 0.62rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .now-card-topline span {
+    gap: 0.35rem;
+    color: var(--now-accent);
+    font-size: 0.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .now-card-copy > small {
+    margin-top: 0.42rem;
+    color: var(--now-accent);
+    font-size: 0.5rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.74;
+  }
+
+  .now-card-copy h3 {
+    margin-block: 0.22rem 0.42rem;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: clamp(1.08rem, 1.8vw, 1.35rem);
+    font-weight: 900;
+    line-height: 1.05;
+    text-shadow: 0 0 18px color-mix(in srgb, var(--now-accent) 11%, transparent);
+  }
+
+  .now-card-copy > p {
+    max-width: 72ch;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 74%, #aeb9b3);
+    font-size: 0.84rem;
+    font-weight: 650;
+    line-height: 1.5;
+  }
+
+  .now-card-footer {
+    margin-top: 0.65rem;
+    border-top: 1px solid color-mix(in srgb, var(--now-accent) 14%, transparent);
+    padding-top: 0.48rem;
+    color: color-mix(in srgb, var(--now-accent) 54%, var(--color-phosphor-soft));
+    font-size: 0.48rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .now-card-footer > span:last-child {
+    gap: 3px;
+  }
+
+  .now-card-footer > span:last-child i {
+    width: 13px;
+    height: 3px;
+    background: var(--now-accent);
+    box-shadow: 0 0 6px color-mix(in srgb, var(--now-accent) 36%, transparent);
+    opacity: 0.28;
+  }
+
+  .now-card-footer > span:last-child i:nth-child(-n + 3) {
+    opacity: 0.9;
+  }
+
+  .now-card-corner {
+    border-color: color-mix(in srgb, var(--now-accent) 46%, transparent);
+  }
+
+  .now-console .status-sidecar {
+    min-height: 100%;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 30%, transparent);
+    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  }
+
+  .now-console .status-sidecar-header {
+    min-height: 4.15rem;
+    padding: 0.85rem 0.95rem;
+  }
+
+  .now-console .status-sidecar-list {
+    padding: 0.78rem 0.85rem 0.35rem;
+  }
+
+  .now-console .status-sidecar-row {
+    min-height: 2.75rem;
+    padding: 0.5rem 0.68rem;
+  }
+
+  .now-console .status-sidecar-row dt {
+    font-size: 0.6rem;
+  }
+
+  .now-console .status-sidecar-row dd {
+    font-size: 0.78rem;
+  }
+
+  .now-console .status-sidecar-graph {
+    min-height: 6.8rem;
+    margin: 0.25rem 0.85rem 0.75rem;
+  }
+
+  .now-console .status-sidecar-footer {
+    margin: 0 0.85rem 0.85rem;
+  }
+}
+
+@container now-console (max-width: 780px) {
+  .now-dashboard {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .now-console .status-sidecar {
+    min-height: 28rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .now-console-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .now-console-state {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .now-console .now-card {
+    min-height: 10.5rem;
+    grid-template-columns: 3.55rem minmax(0, 1fr) !important;
+    gap: 0;
+    padding: 0 !important;
+  }
+
+  .now-card-rail {
+    padding-inline: 0.45rem;
+  }
+
+  .now-card-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .now-console .now-card-index {
+    justify-self: center;
+  }
+
+  .now-card-copy {
+    padding-inline: 0.78rem;
+  }
+
+  .now-card-topline {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.28rem;
+  }
+}

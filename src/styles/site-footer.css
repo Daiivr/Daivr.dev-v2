@@ -552,7 +552,6 @@
 
   .buddy-inventory-item.is-gold-antenna i {
     clip-path: polygon(50% 0, 60% 34%, 96% 34%, 66% 54%, 78% 92%, 50% 68%, 22% 92%, 34% 54%, 4% 34%, 40% 34%);
-    animation: inventory-spark-antenna 1.2s steps(2, end) infinite;
   }
 
   .buddy-inventory-item.is-wrench,
@@ -799,7 +798,6 @@
     .footer-prompt-caret,
     .footer-ticker-note,
     .footer-ticker-scroll,
-    .buddy-inventory-item.is-gold-antenna i,
     .buddy-inventory-popover {
       animation: none;
     }
@@ -876,20 +874,5 @@
 
   to {
     opacity: 1;
-  }
-}
-
-@keyframes inventory-spark-antenna {
-  0%,
-  100% {
-    opacity: 0.75;
-    transform: rotate(0deg) scale(0.9);
-    box-shadow: 0 0 8px currentColor;
-  }
-
-  50% {
-    opacity: 1;
-    transform: rotate(18deg) scale(1.08);
-    box-shadow: 0 0 14px currentColor, 0 0 4px #f4fff8;
   }
 }
