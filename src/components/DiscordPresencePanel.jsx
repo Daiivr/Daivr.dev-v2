@@ -510,7 +510,7 @@ export function DiscordPresencePanel() {
       {badgeTooltip ? (
         createPortal(
           <div
-            className="discord-floating-tooltip"
+            className={cn("discord-floating-tooltip", badgeTooltip.iconType === "streak" && "is-streak")}
             role="tooltip"
             style={{
               "--tooltip-arrow-offset": `${badgeTooltip.arrowOffset || 0}px`,

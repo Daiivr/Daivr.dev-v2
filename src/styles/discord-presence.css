@@ -419,6 +419,12 @@
     opacity: 0.66;
   }
 
+  .discord-floating-tooltip.is-streak .discord-badge-tooltip-sublabel {
+    overflow: visible;
+    text-overflow: clip;
+    white-space: normal;
+  }
+
   .discord-presence-activity {
     display: grid;
     grid-template-rows: auto minmax(0, 1fr) auto;
