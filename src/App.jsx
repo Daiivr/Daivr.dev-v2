@@ -310,6 +310,35 @@ function CabinetApp() {
     setTerminalLog((value) => `${value}\n\n$ ${command}\n${response}`.trim());
   }
 
+  async function verifyDiscordAdmin(input, commandLabel, unchangedMessage) {
+    let operator;
+
+    try {
+      const response = await fetch("/api/comments/me", {
+        credentials: "include",
+        cache: "no-store",
+        headers: { Accept: "application/json" }
+      });
+      if (!response.ok) throw new Error(`Discord session check returned ${response.status}`);
+      operator = (await response.json())?.user || null;
+    } catch {
+      appendTerminal(input, `AUTH BUS OFFLINE // Discord admin session could not be verified.\n${unchangedMessage}`);
+      return null;
+    }
+
+    if (!operator) {
+      appendTerminal(input, `ACCESS DENIED // Sign in through Discord with an admin account before using ${commandLabel}.\n${unchangedMessage}`);
+      return null;
+    }
+
+    if (!operator.isAdmin) {
+      appendTerminal(input, `ACCESS DENIED // Discord operator ${operator.username || operator.id} is not an admin.\n${unchangedMessage}`);
+      return null;
+    }
+
+    return operator;
+  }
+
   function runBuild() {
     if (isLaunching) {
       return "Dai.exe is already running. Let the cabinet finish booting.";
@@ -388,8 +417,8 @@ function CabinetApp() {
     if (name === "help") {
       const advanced = args.some((item) => ["--all", "-a", "advanced"].includes(item.toLowerCase()));
       appendTerminal(input, advanced
-        ? "COMMAND INDEX // ALL\n  help [--all]       command directory\n  status             cabinet telemetry\n  ls                 list page nodes\n  goto <node>        navigate the cabinet\n  theme [crt|glitch] set or toggle theme\n  season [event]     mount a seasonal cartridge\n  run                boot Dai.exe\n  attract            start arcade demo mode\n  whoami / now / scan / discord / contact\n  date / echo <text> / clear / exit\n\nDIAGNOSTIC BUS // use responsibly\n  fish / forage / wildlife / debugbug\n  blackout           rare breaker simulation\n  unlockall [off]    admin: unlock all buddy cosmetics"
-        : "COMMAND INDEX\n  status             cabinet telemetry\n  ls                 list page nodes\n  goto <node>        navigate the cabinet\n  theme [crt|glitch] set or toggle theme\n  season [event]     mount a seasonal cartridge\n  run                boot Dai.exe\n  attract            start arcade demo mode\n  whoami / now / scan / discord / contact\n  date / echo <text> / clear / exit\n\nHint: type season for event names, or help --all for diagnostics.");
+        ? "COMMAND INDEX // ALL\n  help [--all]       command directory\n  status             cabinet telemetry\n  ls                 list page nodes\n  goto <node>        navigate the cabinet\n  theme [crt|glitch] set or toggle theme\n  run                boot Dai.exe\n  attract            start arcade demo mode\n  whoami / now / scan / discord / contact\n  date / echo <text> / clear / exit\n\nDIAGNOSTIC BUS // use responsibly\n  fish / forage / wildlife / debugbug\n  blackout           rare breaker simulation\n  season [event]     admin: mount a seasonal cartridge\n  unlockall [off]    admin: unlock all buddy cosmetics"
+        : "COMMAND INDEX\n  status             cabinet telemetry\n  ls                 list page nodes\n  goto <node>        navigate the cabinet\n  theme [crt|glitch] set or toggle theme\n  run                boot Dai.exe\n  attract            start arcade demo mode\n  whoami / now / scan / discord / contact\n  date / echo <text> / clear / exit\n\nHint: type help --all for diagnostics and admin commands.");
       return;
     }
 
@@ -406,6 +435,9 @@ function CabinetApp() {
     }
 
     if (name === "season" || name === "event") {
+      const operator = await verifyDiscordAdmin(input, "season", "No seasonal settings were changed.");
+      if (!operator) return;
+
       const requested = (args[0] || "status").toLowerCase();
       const aliases = {
         april: "april-fools",
@@ -553,30 +585,8 @@ function CabinetApp() {
     }
 
     if (["unlockall", "unlock-all", "unlockcosmetics"].includes(name)) {
-      let operator;
-
-      try {
-        const response = await fetch("/api/comments/me", {
-          credentials: "include",
-          cache: "no-store",
-          headers: { Accept: "application/json" }
-        });
-        if (!response.ok) throw new Error(`Discord session check returned ${response.status}`);
-        operator = (await response.json())?.user || null;
-      } catch {
-        appendTerminal(input, "AUTH BUS OFFLINE // Discord admin session could not be verified.\nNo buddy gear was changed.");
-        return;
-      }
-
-      if (!operator) {
-        appendTerminal(input, "ACCESS DENIED // Sign in through Discord with an admin account before using unlockall.\nNo buddy gear was changed.");
-        return;
-      }
-
-      if (!operator.isAdmin) {
-        appendTerminal(input, `ACCESS DENIED // Discord operator ${operator.username || operator.id} is not an admin.\nNo buddy gear was changed.`);
-        return;
-      }
+      const operator = await verifyDiscordAdmin(input, "unlockall", "No buddy gear was changed.");
+      if (!operator) return;
 
       const disable = ["off", "lock", "reset", "clear", "false", "0"].includes((args[0] || "").toLowerCase());
       window.dispatchEvent(new CustomEvent("daivr-buddy-admin-unlock", { detail: { value: !disable } }));
