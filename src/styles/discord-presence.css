@@ -643,6 +643,14 @@
     filter: drop-shadow(0 0 5px color-mix(in srgb, var(--color-phosphor) 52%, transparent));
   }
 
+  .discord-streak-row {
+    display: flex;
+  }
+
+  .discord-streak-row.is-stacked {
+    flex: 0 0 100%;
+  }
+
   .discord-activity-card .discord-party-chip {
     gap: 0.34rem;
     color: var(--color-cyan-arcade);

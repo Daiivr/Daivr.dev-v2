@@ -315,6 +315,7 @@ export function DiscordPresencePanel() {
     setBadgeTooltip({
       arrowOffset: anchorX - left,
       icon: badge.tooltipIcon || badge.icon,
+      iconType: badge.iconType,
       label: badge.label,
       left,
       sublabel: badge.sublabel,
@@ -473,17 +474,19 @@ export function DiscordPresencePanel() {
                             </span>
                           ) : null}
                           {hasGameStreak ? (
-                            <span
-                              className="discord-streak-chip"
-                              aria-label={streakTooltip.sublabel}
-                              onBlur={hideBadgeTooltip}
-                              onFocus={(event) => showBadgeTooltip(streakTooltip, event.currentTarget)}
-                              onMouseEnter={(event) => showBadgeTooltip(streakTooltip, event.currentTarget)}
-                              onMouseLeave={hideBadgeTooltip}
-                              tabIndex={0}
-                            >
-                              <Zap size={12} aria-hidden="true" />
-                              {streak.streak}x Streak
+                            <span className={cn("discord-streak-row", partySize && "is-stacked")}>
+                              <span
+                                className="discord-streak-chip"
+                                aria-label={streakTooltip.sublabel}
+                                onBlur={hideBadgeTooltip}
+                                onFocus={(event) => showBadgeTooltip(streakTooltip, event.currentTarget)}
+                                onMouseEnter={(event) => showBadgeTooltip(streakTooltip, event.currentTarget)}
+                                onMouseLeave={hideBadgeTooltip}
+                                tabIndex={0}
+                              >
+                                <Zap size={12} aria-hidden="true" />
+                                {streak.streak}x Streak
+                              </span>
                             </span>
                           ) : null}
                         </div>
