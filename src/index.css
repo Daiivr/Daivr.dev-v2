@@ -2187,6 +2187,11 @@
     gap: clamp(0.9rem, 2vw, 1.2rem);
   }
 
+  .entry-splash-identity-copy {
+    min-width: 0;
+    container-type: inline-size;
+  }
+
   .entry-splash-avatar {
     position: relative;
     display: grid;
@@ -2243,11 +2248,27 @@
     margin: 0;
     color: #fff;
     font-family: var(--font-display);
-    font-size: clamp(2.1rem, 6.5vw, 5.4rem);
     font-weight: 900;
     letter-spacing: 0;
     line-height: 0.88;
     text-transform: uppercase;
+  }
+
+  .entry-splash-id h1 span,
+  .entry-splash-id h1 strong {
+    display: block;
+    font: inherit;
+  }
+
+  .entry-splash-id h1 span {
+    font-size: clamp(2rem, 18cqi, 5.4rem);
+  }
+
+  .entry-splash-id h1 strong {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    font-size: clamp(1.15rem, var(--entry-name-fit, 14cqi), 5.4rem);
+    text-wrap: balance;
   }
 
   .entry-splash-id p {

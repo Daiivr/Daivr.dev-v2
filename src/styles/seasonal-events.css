@@ -3,15 +3,12 @@
 .seasonal-world{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;isolation:isolate}
 .seasonal-particles{position:absolute;inset:0;overflow:hidden}
 .seasonal-particles>i{position:absolute;left:var(--left);top:-22px;width:var(--size);height:var(--size);animation:seasonal-fall var(--duration) var(--delay) linear infinite}
-/* Dos lienzos, ambos bajo el header (z-40) para que la nieve desaparezca tras
-   el al desplazarse. Los copos/bloques van fijos al viewport (caen respecto a
-   la pantalla); los mantos van absolutos dentro de .app-shell y del alto del
-   contenido, para que el compositor los mueva con los paneles durante el scroll
-   (sin arrastre de un frame). El manto (z-38) queda bajo los copos (z-39). */
+/* La nieve acumulada usa una franja absoluta con buffer que el compositor
+   desplaza junto al contenido; los copos siguen fijos al viewport. */
 .winter-snow-piles{position:absolute;left:0;top:0;z-index:38;display:block;pointer-events:none}
 .winter-snow-physics{position:fixed;inset:0;z-index:39;width:100vw;height:100vh;pointer-events:none}
-/* Halloween, april, cumpleanos y aniversario usan el mismo par de lienzos:
-   decorado pegado a paneles (documento) y particulas/pantalla (fijo). */
+/* El resto de temporadas usa la misma franja absoluta con buffer para adornos
+   de panel, mientras las particulas y criaturas aereas siguen fijas. */
 .halloween-decor-piles,.april-decor-piles,.birthday-decor-piles,.anniversary-decor-piles{position:absolute;left:0;top:0;z-index:38;display:block;pointer-events:none}
 .halloween-decor-physics,.april-decor-physics,.birthday-decor-physics,.anniversary-decor-physics{position:fixed;inset:0;z-index:39;width:100vw;height:100vh;pointer-events:none}
 

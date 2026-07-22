@@ -151,6 +151,9 @@ function fract(value) {
   return value - Math.floor(value);
 }
 
+const SEASONAL_DPR_CAP = 1.25;
+const SEASONAL_FRAME_MS = 1000 / 30;
+
 function resizeSnowBins(previous, count) {
   if (!previous?.length) return Array.from({ length: count }, () => 0);
   return Array.from({ length: count }, (_, index) => {
@@ -206,9 +209,9 @@ function readSquareCorners(element) {
 }
 
 /* Un panel esta "anclado al viewport" si el o algun ancestro es fixed/sticky
-   (p.ej. la barra lateral lg:sticky o el aviso del evento). Su nieve NO puede
-   ir en el lienzo de documento —que el compositor desplaza con el scroll—,
-   porque el panel se queda quieto en pantalla; va en el lienzo fijo. */
+   (p.ej. la barra lateral lg:sticky o el aviso del evento). Sus adornos se
+   dibujan con las particulas; los paneles normales usan una franja dentro del
+   contenido que el compositor desplaza junto a ellos. */
 function isViewportAnchored(element) {
   let node = element;
   while (node && node !== document.body) {
@@ -238,12 +241,15 @@ function WinterSnowPhysics({ active }) {
     let width = window.innerWidth;
     let height = window.innerHeight;
     let pileWidth = 1;
+    let pileHeight = 1;
+    let pileTop = 0;
     let lastFrame = performance.now();
     let lastScan = -1e9;
     let headerBottom = 68;
     let spawnBudget = 0;
     let frameCost = .016;
     let sweepFlip = false;
+    let surfaceSyncPending = true;
     let tracked = [];
     const surfaces = [];
     const piles = new Map();
@@ -255,7 +261,7 @@ function WinterSnowPhysics({ active }) {
 
     // Lienzo de copos: fijo al viewport (los copos caen respecto a la pantalla).
     function resizeCanvas() {
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const ratio = Math.min(window.devicePixelRatio || 1, SEASONAL_DPR_CAP);
       width = window.innerWidth;
       height = window.innerHeight;
       flakeCanvas.width = Math.round(width * ratio);
@@ -265,25 +271,45 @@ function WinterSnowPhysics({ active }) {
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
     }
 
-    /* Lienzo de mantos: absoluto dentro de .app-shell y del tamano del
-       contenido, para que el compositor lo desplace en bloque con los paneles
-       durante el scroll. Asi la nieve queda clavada al panel sin arrastre de
-       un frame. Ratio limitado a 1 (los mantos son borrosos) para acotar la
-       memoria en paginas muy largas. */
+    /* La capa de mantos es una franja de tres viewports dentro del contenido.
+       El compositor la desplaza junto a los paneles sin delay, pero conserva
+       un bitmap acotado en vez del lienzo gigante de toda la pagina. */
     function resizePileCanvas() {
       const content = document.querySelector(".cabinet-layout");
       const cssWidth = Math.max(1, shell.clientWidth);
-      const cssHeight = Math.max(1, content ? content.offsetHeight : shell.scrollHeight);
-      const ratio = Math.min(1, 16000 / cssHeight, 16000 / cssWidth);
+      const contentHeight = Math.max(height, content?.offsetHeight || shell.scrollHeight);
+      const cssHeight = Math.min(contentHeight, Math.max(1200, height * 3));
+      const ratio = Math.min(window.devicePixelRatio || 1, 1);
       const backingWidth = Math.round(cssWidth * ratio);
       const backingHeight = Math.round(cssHeight * ratio);
       pileWidth = cssWidth;
-      if (pileCanvas.width === backingWidth && pileCanvas.height === backingHeight) return;
-      pileCanvas.width = backingWidth;
-      pileCanvas.height = backingHeight;
+      pileHeight = cssHeight;
+      const resized = pileCanvas.width !== backingWidth || pileCanvas.height !== backingHeight;
+      if (resized) {
+        pileCanvas.width = backingWidth;
+        pileCanvas.height = backingHeight;
+      }
       pileCanvas.style.width = `${cssWidth}px`;
       pileCanvas.style.height = `${cssHeight}px`;
       pileContext.setTransform(ratio, 0, 0, ratio, 0, 0);
+      positionPileStrip(resized);
+    }
+
+    function positionPileStrip(force = false) {
+      const content = document.querySelector(".cabinet-layout");
+      const contentHeight = Math.max(height, content?.offsetHeight || shell.scrollHeight);
+      const maxTop = Math.max(0, contentHeight - pileHeight);
+      const buffer = Math.max(80, (pileHeight - height) * .28);
+      const scrollTop = shell.scrollTop;
+      const visibleBottom = scrollTop + shell.clientHeight;
+      const insideBuffer = scrollTop >= pileTop + buffer
+        && visibleBottom <= pileTop + pileHeight - buffer;
+      if (!force && insideBuffer) return false;
+      const nextTop = Math.min(maxTop, Math.max(0, scrollTop - (pileHeight - height) / 2));
+      if (!force && Math.abs(nextTop - pileTop) < 1) return false;
+      pileTop = nextTop;
+      pileCanvas.style.top = `${pileTop}px`;
+      return true;
     }
 
     function trackPointer(event) {
@@ -376,10 +402,13 @@ function WinterSnowPhysics({ active }) {
     function updateSurfaces() {
       surfaces.length = 0;
       const cutoffTop = headerBottom - 30;
+      const shellRect = shell.getBoundingClientRect();
+      const documentOffsetX = shell.scrollLeft - shellRect.left;
+      const documentOffsetY = shell.scrollTop - shellRect.top;
       for (const element of tracked) {
         if (!element.isConnected) continue;
         const rect = element.getBoundingClientRect();
-        if (rect.width < 90 || rect.top < cutoffTop || rect.top > height - 8 || rect.right < 24 || rect.left > width - 24) continue;
+        if (rect.width < 90 || rect.right < 24 || rect.left > width - 24) continue;
         let pile = piles.get(element);
         if (!pile) {
           pile = makePile(element, rect);
@@ -388,10 +417,25 @@ function WinterSnowPhysics({ active }) {
         if (pile.releasing) continue;
         const left = rect.left + pile.insetLeft;
         const right = rect.right - pile.insetRight;
+        const documentTop = rect.top + documentOffsetY;
+        const documentBottom = rect.bottom + documentOffsetY;
+        const inViewport = rect.top >= cutoffTop && rect.top <= height - 8;
+        const inPileStrip = documentBottom >= pileTop - 32
+          && documentTop <= pileTop + pileHeight + 8;
+        if (pile.anchored ? !inViewport : !inPileStrip) continue;
         const edgeWidth = right - left;
         if (edgeWidth < 60) continue;
         if (Math.abs(edgeWidth - pile.edgeWidth) > 14) resamplePile(pile, edgeWidth);
-        surfaces.push({ element, pile, top: rect.top, left, right, width: edgeWidth });
+        surfaces.push({
+          documentLeft: left + documentOffsetX,
+          documentTop,
+          element,
+          pile,
+          top: rect.top,
+          left,
+          right,
+          width: edgeWidth
+        });
       }
       surfaces.sort((a, b) => a.top - b.top);
     }
@@ -705,10 +749,8 @@ function WinterSnowPhysics({ active }) {
       }
     }
 
-    // Dibuja el manto sobre el lienzo indicado. Los paneles normales van al
-    // lienzo de documento (ox/oy = desplazamiento de scroll) que el compositor
-    // mueve con la pagina; los anclados (barra lateral sticky, aviso fixed) van
-    // al lienzo fijo (ox/oy = 0) para no separarse del panel al hacer scroll.
+    // Los paneles normales van a la franja desplazable; los sticky/fixed
+    // comparten la capa de particulas porque no viajan con el contenido.
     function drawPile(ctx, surface, now, ox, oy) {
       const bins = surface.pile.bins;
       const count = bins.length;
@@ -850,6 +892,27 @@ function WinterSnowPhysics({ active }) {
       context.globalAlpha = 1;
     }
 
+    function drawScrollingPiles(now) {
+      pileContext.clearRect(0, 0, pileWidth, pileHeight);
+      for (const surface of surfaces) {
+        if (!surface.pile.anchored) {
+          drawPile(
+            pileContext,
+            surface,
+            now,
+            surface.documentLeft - surface.left,
+            surface.documentTop - pileTop - surface.top
+          );
+        }
+      }
+    }
+
+    function requestSurfaceSync() {
+      // Mientras el viewport siga dentro de la franja, el compositor mueve la
+      // nieve sin JS. Solo redibujamos cuando hay que desplazar esa franja.
+      if (positionPileStrip()) surfaceSyncPending = true;
+    }
+
     function tick(now) {
       const rawDelta = (now - lastFrame) / 1000;
       const delta = Math.min(.05, Math.max(.001, rawDelta));
@@ -870,15 +933,9 @@ function WinterSnowPhysics({ active }) {
         pointer.speed *= Math.max(0, 1 - delta * 6);
       }
 
-      // Mantos de paneles normales: lienzo de documento (el compositor lo
-      // desplaza con la pagina). Solo se limpia/repinta la franja visible.
-      const shellRect = shell.getBoundingClientRect();
-      const ox = shell.scrollLeft - shellRect.left;
-      const oy = shell.scrollTop - shellRect.top;
-      pileContext.clearRect(0, oy - 60, pileWidth, shell.clientHeight + 120);
-      for (const surface of surfaces) {
-        if (!surface.pile.anchored) drawPile(pileContext, surface, now, ox, oy);
-      }
+      // Mantos de paneles normales: franja absoluta movida por el compositor.
+      drawScrollingPiles(now);
+      surfaceSyncPending = false;
 
       // Lienzo fijo al viewport: mantos anclados (sticky/fixed) + copos + bloques.
       context.clearRect(0, 0, width, height);
@@ -893,8 +950,16 @@ function WinterSnowPhysics({ active }) {
     }
 
     function loop(now) {
-      tick(now);
       frame = window.requestAnimationFrame(loop);
+      // La fisica permanece a 30 FPS. El scroll normal no entra aqui porque
+      // la franja viaja con el contenido; solo se sincroniza al recolocarla.
+      if (surfaceSyncPending) {
+        updateSurfaces();
+        drawScrollingPiles(now);
+        surfaceSyncPending = false;
+      }
+      if (now - lastFrame < SEASONAL_FRAME_MS) return;
+      tick(now);
     }
 
     resizeCanvas();
@@ -909,6 +974,7 @@ function WinterSnowPhysics({ active }) {
     window.addEventListener("resize", resizePileCanvas);
     window.addEventListener("pointermove", trackPointer, { passive: true });
     window.addEventListener("daivr-snow-release", releaseSurfaceSnow);
+    shell.addEventListener("scroll", requestSurfaceSync, { passive: true });
 
     if (import.meta.env.DEV) {
       // Gancho de depuracion: permite avanzar la simulacion sin rAF.
@@ -945,11 +1011,14 @@ function WinterSnowPhysics({ active }) {
       window.removeEventListener("resize", resizePileCanvas);
       window.removeEventListener("pointermove", trackPointer);
       window.removeEventListener("daivr-snow-release", releaseSurfaceSnow);
+      shell.removeEventListener("scroll", requestSurfaceSync);
       context.clearRect(0, 0, width, height);
       pileContext.clearRect(0, 0, pileCanvas.width, pileCanvas.height);
       if (import.meta.env.DEV) delete window.__daivrSnow;
     };
   }, [active]);
+
+  if (!active) return null;
 
   return (
     <>
@@ -960,9 +1029,9 @@ function WinterSnowPhysics({ active }) {
 }
 
 /* ---- Motor de decorado de Halloween -------------------------------------
-   Mismo esquema que la nieve: lienzo de documento para lo pegado a paneles
-   (telaranas, aranas, calabazas) y lienzo fijo para lo que vuela respecto a
-   la pantalla (murcielagos) y los paneles anclados (sidebar sticky). */
+   Mismo esquema que la nieve: una franja que viaja con el contenido
+   (telaranas, aranas, calabazas) y otra para lo que vuela respecto a la pantalla
+   (murcielagos) y los paneles anclados (sidebar sticky). */
 
 function buildCornerWeb(seed, radius, dirX, dirY) {
   const spokeCount = 5 + Math.floor(fract(seed * 3.17) * 3);
@@ -1030,9 +1099,12 @@ function HalloweenDecorPhysics({ active }) {
     let width = window.innerWidth;
     let height = window.innerHeight;
     let docWidth = 1;
+    let docHeight = 1;
+    let docTop = 0;
     let lastFrame = performance.now();
     let lastScan = -1e9;
     let headerBottom = 68;
+    let surfaceSyncPending = true;
     let headerLeft = 0;
     let headerRight = window.innerWidth;
     let nextFlockAt = 0;
@@ -1171,7 +1243,7 @@ function HalloweenDecorPhysics({ active }) {
     }
 
     function resizeCanvas() {
-      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const ratio = Math.min(window.devicePixelRatio || 1, SEASONAL_DPR_CAP);
       width = window.innerWidth;
       height = window.innerHeight;
       fixedCanvas.width = Math.round(width * ratio);
@@ -1184,17 +1256,39 @@ function HalloweenDecorPhysics({ active }) {
     function resizeDocCanvas() {
       const content = document.querySelector(".cabinet-layout");
       const cssWidth = Math.max(1, shell.clientWidth);
-      const cssHeight = Math.max(1, content ? content.offsetHeight : shell.scrollHeight);
-      const ratio = Math.min(1, 16000 / cssHeight, 16000 / cssWidth);
+      const contentHeight = Math.max(height, content?.offsetHeight || shell.scrollHeight);
+      const cssHeight = Math.min(contentHeight, Math.max(1200, height * 3));
+      const ratio = Math.min(window.devicePixelRatio || 1, 1);
       const backingWidth = Math.round(cssWidth * ratio);
       const backingHeight = Math.round(cssHeight * ratio);
       docWidth = cssWidth;
-      if (docCanvas.width === backingWidth && docCanvas.height === backingHeight) return;
-      docCanvas.width = backingWidth;
-      docCanvas.height = backingHeight;
+      docHeight = cssHeight;
+      const resized = docCanvas.width !== backingWidth || docCanvas.height !== backingHeight;
+      if (resized) {
+        docCanvas.width = backingWidth;
+        docCanvas.height = backingHeight;
+      }
       docCanvas.style.width = `${cssWidth}px`;
       docCanvas.style.height = `${cssHeight}px`;
       docContext.setTransform(ratio, 0, 0, ratio, 0, 0);
+      positionDocStrip(resized);
+    }
+
+    function positionDocStrip(force = false) {
+      const content = document.querySelector(".cabinet-layout");
+      const contentHeight = Math.max(height, content?.offsetHeight || shell.scrollHeight);
+      const maxTop = Math.max(0, contentHeight - docHeight);
+      const buffer = Math.max(80, (docHeight - height) * .28);
+      const scrollTop = shell.scrollTop;
+      const visibleBottom = scrollTop + shell.clientHeight;
+      const insideBuffer = scrollTop >= docTop + buffer
+        && visibleBottom <= docTop + docHeight - buffer;
+      if (!force && insideBuffer) return false;
+      const nextTop = Math.min(maxTop, Math.max(0, scrollTop - (docHeight - height) / 2));
+      if (!force && Math.abs(nextTop - docTop) < 1) return false;
+      docTop = nextTop;
+      docCanvas.style.top = `${docTop}px`;
+      return true;
     }
 
     function trackPointer(event) {
@@ -1319,15 +1413,23 @@ function HalloweenDecorPhysics({ active }) {
     function updateSurfaces() {
       surfaces.length = 0;
       const cutoffBottom = headerBottom - 150;
+      const shellRect = shell.getBoundingClientRect();
+      const documentOffsetY = shell.scrollTop - shellRect.top;
       for (const element of tracked) {
         if (!element.isConnected) continue;
         const rect = element.getBoundingClientRect();
-        if (rect.width < 90 || rect.bottom < cutoffBottom || rect.top > height + 30 || rect.right < 24 || rect.left > width - 24) continue;
+        if (rect.width < 90 || rect.right < 24 || rect.left > width - 24) continue;
         let deco = decorations.get(element);
         if (!deco) {
           deco = makeDecor(element, rect);
           decorations.set(element, deco);
         }
+        const documentTop = rect.top + documentOffsetY;
+        const documentBottom = rect.bottom + documentOffsetY;
+        const inViewport = rect.bottom >= cutoffBottom && rect.top <= height + 30;
+        const inDocStrip = documentBottom >= docTop - 240
+          && documentTop <= docTop + docHeight + 240;
+        if (deco.anchored ? !inViewport : !inDocStrip) continue;
         const left = rect.left + deco.insetLeft;
         const right = rect.right - deco.insetRight;
         const edgeWidth = right - left;
@@ -1713,6 +1815,20 @@ function HalloweenDecorPhysics({ active }) {
       }
     }
 
+    function drawScrollingDecor(now) {
+      const shellRect = shell.getBoundingClientRect();
+      const offsetX = shell.scrollLeft - shellRect.left;
+      const offsetY = shell.scrollTop - shellRect.top - docTop;
+      docContext.clearRect(0, 0, docWidth, docHeight);
+      for (const surface of surfaces) {
+        if (!surface.deco.anchored) drawSurfaceDecor(docContext, surface, now, offsetX, offsetY);
+      }
+    }
+
+    function requestSurfaceSync() {
+      if (positionDocStrip()) surfaceSyncPending = true;
+    }
+
     function tick(now) {
       const rawDelta = (now - lastFrame) / 1000;
       const delta = Math.min(.05, Math.max(.001, rawDelta));
@@ -1736,22 +1852,9 @@ function HalloweenDecorPhysics({ active }) {
         updateSpiderSprite(spider, headerLeft + spider.x01 * Math.max(1, headerRight - headerLeft), headerBottom - 2, now, delta);
       }
 
-      // Decorado de paneles normales: lienzo de documento (viaja con el scroll).
-      // La franja a limpiar se calcula del alcance real de las superficies,
-      // que ahora pueden asomar por su borde inferior desde muy arriba.
-      const shellRect = shell.getBoundingClientRect();
-      const ox = shell.scrollLeft - shellRect.left;
-      const oy = shell.scrollTop - shellRect.top;
-      let clearTop = 0;
-      let clearBottom = shell.clientHeight;
-      for (const surface of surfaces) {
-        if (surface.top - 240 < clearTop) clearTop = surface.top - 240;
-        if (surface.bottom + 240 > clearBottom) clearBottom = surface.bottom + 240;
-      }
-      docContext.clearRect(0, oy + clearTop, docWidth, clearBottom - clearTop);
-      for (const surface of surfaces) {
-        if (!surface.deco.anchored) drawSurfaceDecor(docContext, surface, now, ox, oy);
-      }
+      // Decorado de paneles normales: franja desplazable con buffer.
+      drawScrollingDecor(now);
+      surfaceSyncPending = false;
 
       // Lienzo fijo: telarana de esquina de pantalla, aranas del header,
       // paneles anclados y murcielagos.
@@ -1771,8 +1874,14 @@ function HalloweenDecorPhysics({ active }) {
     }
 
     function loop(now) {
-      tick(now);
       frame = window.requestAnimationFrame(loop);
+      if (surfaceSyncPending) {
+        updateSurfaces();
+        drawScrollingDecor(now);
+        surfaceSyncPending = false;
+      }
+      if (now - lastFrame < SEASONAL_FRAME_MS) return;
+      tick(now);
     }
 
     resizeCanvas();
@@ -1782,6 +1891,7 @@ function HalloweenDecorPhysics({ active }) {
     window.addEventListener("resize", resizeCanvas);
     window.addEventListener("resize", resizeDocCanvas);
     window.addEventListener("pointermove", trackPointer, { passive: true });
+    shell.addEventListener("scroll", requestSurfaceSync, { passive: true });
 
     if (import.meta.env.DEV) {
       // Gancho de depuracion: permite avanzar la simulacion sin rAF.
@@ -1828,11 +1938,14 @@ function HalloweenDecorPhysics({ active }) {
       window.removeEventListener("resize", resizeCanvas);
       window.removeEventListener("resize", resizeDocCanvas);
       window.removeEventListener("pointermove", trackPointer);
+      shell.removeEventListener("scroll", requestSurfaceSync);
       context.clearRect(0, 0, width, height);
       docContext.clearRect(0, 0, docCanvas.width, docCanvas.height);
       if (import.meta.env.DEV) delete window.__daivrHalloween;
     };
   }, [active]);
+
+  if (!active) return null;
 
   return (
     <>
@@ -1843,10 +1956,10 @@ function HalloweenDecorPhysics({ active }) {
 }
 
 /* ---- Fabrica de motores de decorado de repisa ---------------------------
-   April y cumpleanos comparten esqueleto: lienzo de documento para lo pegado
-   a paneles (viaja con el scroll) y lienzo fijo para lo que flota en pantalla,
-   con enrutado de paneles anclados igual que nieve/halloween. El contenido lo
-   aporta cada evento via config. */
+   April y cumpleanos comparten esqueleto: una franja que viaja con el contenido
+   con el scroll y otra para lo que flota en pantalla, con enrutado de paneles
+   anclados igual que nieve/halloween. El contenido lo aporta cada evento via
+   config. */
 function createLedgeDecorEngine(config) {
   return function LedgeDecorEngine({ active }) {
     const fixedCanvasRef = useRef(null);
@@ -1867,9 +1980,12 @@ function createLedgeDecorEngine(config) {
       let width = window.innerWidth;
       let height = window.innerHeight;
       let docWidth = 1;
+      let docHeight = 1;
+      let docTop = 0;
       let lastFrame = performance.now();
       let lastScan = -1e9;
       let headerBottom = 68;
+      let surfaceSyncPending = true;
       let tracked = [];
       const surfaces = [];
       const decorations = new Map();
@@ -1885,7 +2001,7 @@ function createLedgeDecorEngine(config) {
       if (config.init) config.init(env);
 
       function resizeCanvas() {
-        const ratio = Math.min(window.devicePixelRatio || 1, 2);
+        const ratio = Math.min(window.devicePixelRatio || 1, SEASONAL_DPR_CAP);
         width = window.innerWidth;
         height = window.innerHeight;
         fixedCanvas.width = Math.round(width * ratio);
@@ -1898,17 +2014,39 @@ function createLedgeDecorEngine(config) {
       function resizeDocCanvas() {
         const content = document.querySelector(".cabinet-layout");
         const cssWidth = Math.max(1, shell.clientWidth);
-        const cssHeight = Math.max(1, content ? content.offsetHeight : shell.scrollHeight);
-        const ratio = Math.min(1, 16000 / cssHeight, 16000 / cssWidth);
+        const contentHeight = Math.max(height, content?.offsetHeight || shell.scrollHeight);
+        const cssHeight = Math.min(contentHeight, Math.max(1200, height * 3));
+        const ratio = Math.min(window.devicePixelRatio || 1, 1);
         const backingWidth = Math.round(cssWidth * ratio);
         const backingHeight = Math.round(cssHeight * ratio);
         docWidth = cssWidth;
-        if (docCanvas.width === backingWidth && docCanvas.height === backingHeight) return;
-        docCanvas.width = backingWidth;
-        docCanvas.height = backingHeight;
+        docHeight = cssHeight;
+        const resized = docCanvas.width !== backingWidth || docCanvas.height !== backingHeight;
+        if (resized) {
+          docCanvas.width = backingWidth;
+          docCanvas.height = backingHeight;
+        }
         docCanvas.style.width = `${cssWidth}px`;
         docCanvas.style.height = `${cssHeight}px`;
         docContext.setTransform(ratio, 0, 0, ratio, 0, 0);
+        positionDocStrip(resized);
+      }
+
+      function positionDocStrip(force = false) {
+        const content = document.querySelector(".cabinet-layout");
+        const contentHeight = Math.max(height, content?.offsetHeight || shell.scrollHeight);
+        const maxTop = Math.max(0, contentHeight - docHeight);
+        const buffer = Math.max(80, (docHeight - height) * .28);
+        const scrollTop = shell.scrollTop;
+        const visibleBottom = scrollTop + shell.clientHeight;
+        const insideBuffer = scrollTop >= docTop + buffer
+          && visibleBottom <= docTop + docHeight - buffer;
+        if (!force && insideBuffer) return false;
+        const nextTop = Math.min(maxTop, Math.max(0, scrollTop - (docHeight - height) / 2));
+        if (!force && Math.abs(nextTop - docTop) < 1) return false;
+        docTop = nextTop;
+        docCanvas.style.top = `${docTop}px`;
+        return true;
       }
 
       function trackPointer(event) {
@@ -1953,15 +2091,23 @@ function createLedgeDecorEngine(config) {
       function updateSurfaces() {
         surfaces.length = 0;
         const cutoffBottom = headerBottom - 150;
+        const shellRect = shell.getBoundingClientRect();
+        const documentOffsetY = shell.scrollTop - shellRect.top;
         for (const element of tracked) {
           if (!element.isConnected) continue;
           const rect = element.getBoundingClientRect();
-          if (rect.width < 90 || rect.bottom < cutoffBottom || rect.top > height + 30 || rect.right < 24 || rect.left > width - 24) continue;
+          if (rect.width < 90 || rect.right < 24 || rect.left > width - 24) continue;
           let deco = decorations.get(element);
           if (!deco) {
             deco = makeDecor(element, rect);
             decorations.set(element, deco);
           }
+          const documentTop = rect.top + documentOffsetY;
+          const documentBottom = rect.bottom + documentOffsetY;
+          const inViewport = rect.bottom >= cutoffBottom && rect.top <= height + 30;
+          const inDocStrip = documentBottom >= docTop - 240
+            && documentTop <= docTop + docHeight + 240;
+          if (deco.anchored ? !inViewport : !inDocStrip) continue;
           const left = rect.left + deco.insetLeft;
           const right = rect.right - deco.insetRight;
           const edgeWidth = right - left;
@@ -1984,6 +2130,20 @@ function createLedgeDecorEngine(config) {
         }
       }
 
+      function drawScrollingDecor(now) {
+        const shellRect = shell.getBoundingClientRect();
+        const offsetX = shell.scrollLeft - shellRect.left;
+        const offsetY = shell.scrollTop - shellRect.top - docTop;
+        docContext.clearRect(0, 0, docWidth, docHeight);
+        for (const surface of surfaces) {
+          if (!surface.deco.anchored) config.drawSurface(docContext, surface, now, offsetX, offsetY, env);
+        }
+      }
+
+      function requestSurfaceSync() {
+        if (positionDocStrip()) surfaceSyncPending = true;
+      }
+
       function tick(now) {
         const rawDelta = (now - lastFrame) / 1000;
         const delta = Math.min(.05, Math.max(.001, rawDelta));
@@ -1993,19 +2153,8 @@ function createLedgeDecorEngine(config) {
         if (config.update) config.update(env, now, delta);
         pointer.speed *= Math.max(0, 1 - delta * 6);
 
-        const shellRect = shell.getBoundingClientRect();
-        const ox = shell.scrollLeft - shellRect.left;
-        const oy = shell.scrollTop - shellRect.top;
-        let clearTop = 0;
-        let clearBottom = shell.clientHeight;
-        for (const surface of surfaces) {
-          if (surface.top - 240 < clearTop) clearTop = surface.top - 240;
-          if (surface.bottom + 240 > clearBottom) clearBottom = surface.bottom + 240;
-        }
-        docContext.clearRect(0, oy + clearTop, docWidth, clearBottom - clearTop);
-        for (const surface of surfaces) {
-          if (!surface.deco.anchored) config.drawSurface(docContext, surface, now, ox, oy, env);
-        }
+        drawScrollingDecor(now);
+        surfaceSyncPending = false;
         context.clearRect(0, 0, width, height);
         for (const surface of surfaces) {
           if (surface.deco.anchored) config.drawSurface(context, surface, now, 0, 0, env);
@@ -2014,8 +2163,14 @@ function createLedgeDecorEngine(config) {
       }
 
       function loop(now) {
-        tick(now);
         frame = window.requestAnimationFrame(loop);
+        if (surfaceSyncPending) {
+          updateSurfaces();
+          drawScrollingDecor(now);
+          surfaceSyncPending = false;
+        }
+        if (now - lastFrame < SEASONAL_FRAME_MS) return;
+        tick(now);
       }
 
       resizeCanvas();
@@ -2025,6 +2180,7 @@ function createLedgeDecorEngine(config) {
       window.addEventListener("resize", resizeCanvas);
       window.addEventListener("resize", resizeDocCanvas);
       window.addEventListener("pointermove", trackPointer, { passive: true });
+      shell.addEventListener("scroll", requestSurfaceSync, { passive: true });
 
       if (import.meta.env.DEV) {
         window[config.hookName] = {
@@ -2051,11 +2207,14 @@ function createLedgeDecorEngine(config) {
         window.removeEventListener("resize", resizeCanvas);
         window.removeEventListener("resize", resizeDocCanvas);
         window.removeEventListener("pointermove", trackPointer);
+        shell.removeEventListener("scroll", requestSurfaceSync);
         context.clearRect(0, 0, width, height);
         docContext.clearRect(0, 0, docCanvas.width, docCanvas.height);
         if (import.meta.env.DEV) delete window[config.hookName];
       };
     }, [active]);
+
+    if (!active) return null;
 
     return (
       <>

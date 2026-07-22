@@ -48,15 +48,20 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
   }, []);
 
   useEffect(() => {
-    if (!open || !hasRanking) return;
-    setRankingOpen(false); setStatus(""); loadLeaderboard();
-  }, [hasRanking, loadLeaderboard, open]);
+    setRankingOpen(false);
+    setStatus("");
+    if (open && hasRanking) loadLeaderboard();
+  }, [game, hasRanking, loadLeaderboard, open]);
 
   useEffect(() => {
     if (!open) return undefined;
     function onMessage(event) {
       if (event.origin !== window.location.origin) return;
-      if (event.data?.type === "daivr:arcade-close") onClose();
+      if (event.data?.type === "daivr:arcade-close") {
+        if (rankingOpen) setRankingOpen(false);
+        else onClose();
+        return;
+      }
       if (event.data?.type !== "daivr:cross-score") return;
       const score = Math.max(0, Number(event.data.score) || 0);
       const durationMs = Math.max(0, Number(event.data.durationMs) || 0);
@@ -68,7 +73,18 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
     }
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [me, onClose, open]);
+  }, [me, onClose, open, rankingOpen]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    function onKeyDown(event) {
+      if (event.key !== "Escape" || !rankingOpen) return;
+      event.preventDefault();
+      setRankingOpen(false);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open, rankingOpen]);
 
   if (!open || !config) return null;
 
@@ -80,8 +96,8 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
           <div>{hasRanking ? <button className={rankingOpen ? "is-active" : ""} type="button" onClick={() => setRankingOpen((value) => !value)} aria-label="Toggle Cross Road leaderboard"><Trophy size={16} /></button> : null}<button type="button" onClick={() => setInstance((value) => value + 1)} aria-label={`Restart ${config.title}`}><RotateCcw size={16} /></button><button type="button" onClick={onClose} aria-label={`Close ${config.title}`}><X size={18} /></button></div>
         </header>
         <div className="arcade-embed-screen"><iframe key={instance} src={config.src} title={config.title} />
-          {rankingOpen ? <aside className="tower-ranking cross-road-ranking" aria-label="Cross Road leaderboard">
-            <header><div><small>RANKING.SYS</small><strong>TOP ROAD RUNNERS</strong></div><button type="button" onClick={() => loadLeaderboard()}>REFRESH</button></header>
+          {hasRanking && rankingOpen ? <aside className="tower-ranking cross-road-ranking" aria-label="Cross Road leaderboard">
+            <header><div><small>RANKING.SYS</small><strong>TOP ROAD RUNNERS</strong></div><div className="cross-road-ranking-actions"><button type="button" onClick={() => loadLeaderboard()}>REFRESH</button><button type="button" onClick={() => setRankingOpen(false)} aria-label="Close Cross Road leaderboard"><X size={15} /></button></div></header>
             {me ? <div className="tower-ranking-self"><img src={me.avatarUrl} alt="" /><span><small>LINKED AS {me.username}</small><strong>{myScore ? `#${myScore.rank} // ROAD ${myScore.bestScore} // ${formatDuration(myScore.bestDurationMs)}` : "NO RUN RECORDED"}</strong></span></div> : <a href="/api/comments/auth/discord"><LogIn size={15} /> CONNECT DISCORD TO RANK</a>}
             {rankingLoading ? <p>SCANNING LANES...</p> : <ol>{leaderboard.map((entry) => <li className={entry.discordId === me?.id ? "is-player" : ""} key={entry.discordId}><b>{String(entry.rank).padStart(2,"0")}</b><img src={entry.avatarUrl} alt="" /><span>{entry.username}</span><em>ROAD {entry.bestScore}</em><small>{formatDuration(entry.bestDurationMs)}</small></li>)}</ol>}
           </aside> : null}

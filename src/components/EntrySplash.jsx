@@ -30,6 +30,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   const ready = bootComplete && authChecked;
   const displayName = discordUser?.username || "guest";
   const greeting = `hi, ${displayName}`;
+  const greetingFit = Math.max(4.8, Math.min(22, 96 / Math.max(4, displayName.length)));
   const targetProgress = Math.round((visibleCount / BOOT_STEPS.length) * 100);
   const progress = Math.round(displayProgress);
   const initial = displayName.trim().charAt(0).toUpperCase() || "G";
@@ -214,8 +215,11 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
             <div className="entry-splash-avatar" aria-hidden="true">
               {discordUser?.avatarUrl ? <img src={discordUser.avatarUrl} alt="" /> : <span>{initial}</span>}
             </div>
-            <div>
-              <h1 id="entry-splash-title">{greeting}</h1>
+            <div className="entry-splash-identity-copy" style={{ "--entry-name-fit": `${greetingFit}cqi` }}>
+              <h1 id="entry-splash-title" aria-label={greeting}>
+                <span aria-hidden="true">hi,</span>
+                <strong aria-hidden="true">{displayName}</strong>
+              </h1>
               <p>{discordUser ? "Discord signal recognized. Your cabinet session is warmed up." : "Guest signal recognized. The arcade cabinet is ready for a look around."}</p>
             </div>
           </div>
