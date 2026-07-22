@@ -384,11 +384,16 @@
     transform: translateX(-50%) rotate(45deg);
   }
 
-  .discord-floating-tooltip img {
+  .discord-floating-tooltip img,
+  .discord-floating-tooltip .discord-tooltip-icon {
     max-width: 34px;
     max-height: 34px;
     object-fit: contain;
     filter: drop-shadow(0 0 10px color-mix(in srgb, var(--color-cyan-arcade) 24%, transparent));
+  }
+
+  .discord-floating-tooltip .discord-tooltip-icon {
+    color: color-mix(in srgb, var(--color-cabinet) 86%, #fff);
   }
 
   .discord-badge-tooltip-label,
@@ -630,11 +635,6 @@
   .discord-session-chip svg {
     flex: 0 0 auto;
     filter: drop-shadow(0 0 5px color-mix(in srgb, var(--color-phosphor) 52%, transparent));
-  }
-
-  .discord-streak-row {
-    display: flex;
-    flex: 0 0 100%;
   }
 
   .discord-activity-card .discord-party-chip {

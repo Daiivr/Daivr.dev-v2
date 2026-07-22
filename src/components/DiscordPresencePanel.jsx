@@ -419,6 +419,14 @@ export function DiscordPresencePanel() {
                 const hasGameStreak = Boolean(
                   streak?.alive && streak.streak > 0 && activity.type === 0 && streak.game === activity.name
                 );
+                const streakTooltip = hasGameStreak
+                  ? {
+                      iconType: "streak",
+                      label: "Racha activa",
+                      sublabel: `Has jugado ${activity.name} ${streak.streak} días seguidos`,
+                      tooltipWidth: 240
+                    }
+                  : null;
 
                 return (
                   <article className="discord-activity-card" key={`${activity.name}-${activity.detail}`}>
@@ -465,15 +473,18 @@ export function DiscordPresencePanel() {
                             </span>
                           ) : null}
                           {hasGameStreak ? (
-                            <div className="discord-streak-row">
-                              <span
-                                className="discord-streak-chip"
-                                title={`Has jugado ${activity.name} ${streak.streak} dias seguidos`}
-                              >
-                                <Zap size={12} aria-hidden="true" />
-                                {streak.streak}x Streak
-                              </span>
-                            </div>
+                            <span
+                              className="discord-streak-chip"
+                              aria-label={streakTooltip.sublabel}
+                              onBlur={hideBadgeTooltip}
+                              onFocus={(event) => showBadgeTooltip(streakTooltip, event.currentTarget)}
+                              onMouseEnter={(event) => showBadgeTooltip(streakTooltip, event.currentTarget)}
+                              onMouseLeave={hideBadgeTooltip}
+                              tabIndex={0}
+                            >
+                              <Zap size={12} aria-hidden="true" />
+                              {streak.streak}x Streak
+                            </span>
                           ) : null}
                         </div>
                       ) : null}
@@ -508,7 +519,11 @@ export function DiscordPresencePanel() {
               width: `${badgeTooltip.width}px`
             }}
           >
-            <img src={badgeTooltip.icon} alt="" aria-hidden="true" />
+            {badgeTooltip.iconType === "streak" ? (
+              <Zap className="discord-tooltip-icon" size={28} aria-hidden="true" />
+            ) : (
+              <img src={badgeTooltip.icon} alt="" aria-hidden="true" />
+            )}
             <span className="discord-badge-tooltip-label">{badgeTooltip.label}</span>
             {badgeTooltip.sublabel ? (
               <span className="discord-badge-tooltip-sublabel">{badgeTooltip.sublabel}</span>
