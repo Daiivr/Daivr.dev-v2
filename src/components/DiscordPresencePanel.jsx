@@ -424,7 +424,7 @@ export function DiscordPresencePanel() {
                   ? {
                       iconType: "streak",
                       label: "Racha activa",
-                      sublabel: `Has jugado ${activity.name} ${streak.streak} días seguidos`,
+                      sublabel: `Dai ha jugado ${activity.name} ${streak.streak} días seguidos`,
                       tooltipWidth: 240
                     }
                   : null;
