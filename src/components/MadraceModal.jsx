@@ -1,5 +1,6 @@
 import { ArrowLeft, LogIn, RotateCcw, Trophy, Volume2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { RankingAvatar } from "./RankingAvatar";
 
 const VOLUME_KEY = "daivr.madrace.volume.v1";
 const SAVE_SLOT_PREFIX = "daivr.madrace.save-slot.v1";
@@ -227,7 +228,7 @@ export function MadraceModal({ open, onBack, onClose }) {
 
               {me ? (
                 <div className="madrace-player-record">
-                  <img src={me.avatarUrl} alt="" />
+                  <RankingAvatar src={me.avatarUrl} name={me.username} loading="eager" />
                   <div><span>LINKED AS {me.username}</span><strong>{myScore ? `#${myScore.rank} // LV ${myScore.highestLevel} // ${formatTime(myScore.bestTimeMs)}` : "NO RUN RECORDED"}</strong></div>
                   {myScore ? <button type="button" onClick={() => setResetConfirmOpen(true)} aria-label="Reset Madrace score"><RotateCcw size={14} /></button> : null}
                 </div>
@@ -240,7 +241,7 @@ export function MadraceModal({ open, onBack, onClose }) {
                   {leaderboard.map((entry) => (
                     <li className={entry.discordId === me?.id ? "is-player" : ""} key={entry.discordId}>
                       <b>{String(entry.rank).padStart(2, "0")}</b>
-                      <img src={entry.avatarUrl} alt="" loading="lazy" />
+                      <RankingAvatar src={entry.avatarUrl} name={entry.username} />
                       <span>{entry.username}</span>
                       <em>LV {entry.highestLevel}</em>
                       <small>{formatTime(entry.bestTimeMs)}</small>

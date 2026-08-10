@@ -832,8 +832,8 @@
 
   .project-modal-windowbar,
   .project-modal-hero,
-  .project-verdict-grid,
-  .project-scan-progress,
+  .project-scan-summary,
+  .project-file-facts,
   .project-terminal-log,
   .project-site-grid,
   .project-modal-actions,
@@ -979,114 +979,218 @@
     opacity: 0.68;
   }
 
-  .project-verdict-grid {
+  .project-scan-summary {
+    --scan-tone: var(--color-cyan-arcade);
     display: grid;
-    grid-template-columns: minmax(250px, 2fr) repeat(4, minmax(110px, 1fr));
-    gap: 0.75rem;
-    padding: clamp(1rem, 2.4vw, 1.35rem);
-  }
-
-  .project-verdict-card {
-    display: grid;
-    align-content: center;
-    min-width: 0;
-    min-height: 88px;
-    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 25%, transparent);
-    background: rgba(2, 6, 4, 0.66);
-    padding: 0.75rem;
-    box-shadow: inset 0 0 24px rgba(0, 0, 0, 0.28);
-  }
-
-  .project-verdict-primary {
-    border-color: color-mix(in srgb, var(--color-cyan-arcade) 50%, transparent);
+    grid-template-columns: auto minmax(0, 1fr) minmax(125px, auto);
+    align-items: center;
+    gap: 0.9rem 1rem;
+    margin: clamp(1rem, 2.4vw, 1.35rem) clamp(1rem, 2.4vw, 1.35rem) 0;
+    border: 1px solid color-mix(in srgb, var(--scan-tone) 42%, transparent);
     background:
-      radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--color-cyan-arcade) 18%, transparent), transparent 56%),
+      radial-gradient(circle at 0 0, color-mix(in srgb, var(--scan-tone) 14%, transparent), transparent 48%),
       rgba(2, 6, 4, 0.72);
-    box-shadow: inset 0 0 28px color-mix(in srgb, var(--color-cyan-arcade) 10%, transparent);
+    padding: clamp(0.9rem, 2vw, 1.15rem);
+    box-shadow: inset 0 0 32px rgba(0, 0, 0, 0.28);
   }
 
-  .project-verdict-card span {
+  .project-scan-summary.is-clean {
+    --scan-tone: var(--color-phosphor);
+  }
+
+  .project-scan-summary.is-false-positive {
+    --scan-tone: var(--color-cabinet);
+  }
+
+  .project-scan-summary.is-flagged {
+    --scan-tone: var(--color-danger-arcade);
+  }
+
+  .project-scan-summary-icon {
+    display: grid;
+    width: 3.25rem;
+    aspect-ratio: 1;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--scan-tone) 52%, transparent);
+    background: color-mix(in srgb, var(--scan-tone) 9%, rgba(2, 6, 4, 0.84));
+    color: var(--scan-tone);
+    box-shadow: 0 0 22px color-mix(in srgb, var(--scan-tone) 12%, transparent);
+  }
+
+  .project-scan-summary-copy {
+    display: grid;
+    min-width: 0;
+    gap: 0.28rem;
+  }
+
+  .project-scan-summary-copy > span,
+  .project-scan-summary-stat > span,
+  .project-file-fact > span {
     color: var(--color-phosphor-soft);
-    font-size: 0.62rem;
+    font-size: 0.6rem;
     font-weight: 900;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    opacity: 0.55;
+    opacity: 0.66;
   }
 
-  .project-verdict-card strong {
-    min-width: 0;
-    overflow: hidden;
-    margin-top: 0.32rem;
-    color: #fff;
+  .project-scan-summary-copy > strong {
+    color: var(--scan-tone);
     font-family: var(--font-display);
-    font-size: 0.86rem;
-    font-weight: 900;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    font-size: clamp(1.15rem, 2.4vw, 1.65rem);
+    letter-spacing: 0.045em;
+    line-height: 1.08;
+    overflow-wrap: anywhere;
   }
 
-  .project-verdict-primary strong {
-    color: var(--color-cyan-arcade);
-    font-size: 1.35rem;
-    letter-spacing: 0.08em;
-  }
-
-  .project-verdict-card small {
-    margin-top: 0.25rem;
+  .project-scan-summary-copy > p {
+    max-width: 65ch;
     color: var(--color-phosphor-soft);
     font-size: 0.72rem;
-    font-weight: 900;
-    opacity: 0.6;
+    font-weight: 800;
+    line-height: 1.45;
+    opacity: 0.72;
   }
 
-  .project-scan-progress {
+  .project-scan-summary-stat {
     display: grid;
-    gap: 0.7rem;
-    margin-inline: clamp(1rem, 2.4vw, 1.35rem);
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 18%, transparent);
-    background: rgba(2, 6, 4, 0.52);
-    padding: 0.8rem 0.9rem;
+    min-width: 0;
+    align-content: center;
+    justify-items: end;
+    border-left: 1px solid color-mix(in srgb, var(--scan-tone) 25%, transparent);
+    padding-left: 1rem;
+    text-align: right;
   }
 
-  .project-scan-progress div {
+  .project-scan-summary-stat > strong {
+    margin-top: 0.2rem;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: clamp(1.2rem, 2.5vw, 1.75rem);
+    line-height: 1;
+  }
+
+  .project-scan-summary-stat > small {
+    margin-top: 0.25rem;
+    color: var(--scan-tone);
+    font-size: 0.62rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .project-scan-meter {
+    display: grid;
+    grid-column: 1 / -1;
+    gap: 0.45rem;
+    border-top: 1px solid color-mix(in srgb, var(--scan-tone) 18%, transparent);
+    padding-top: 0.75rem;
+  }
+
+  .project-scan-meter > div {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 1rem;
     color: var(--color-phosphor-soft);
-    font-size: 0.68rem;
+    font-size: 0.62rem;
     font-weight: 900;
     text-transform: uppercase;
-    opacity: 0.78;
   }
 
-  .project-scan-progress div strong {
-    color: var(--color-cyan-arcade);
+  .project-scan-meter > div strong {
+    color: var(--scan-tone);
+    text-align: right;
   }
 
-  .project-scan-progress > i {
+  .project-scan-meter > i {
     display: block;
-    height: 7px;
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 22%, transparent);
+    height: 4px;
     background:
-      linear-gradient(90deg, var(--color-cyan-arcade), var(--color-phosphor), var(--color-glitch)) 0 0 / var(--project-progress) 100% no-repeat,
-      rgba(2, 6, 4, 0.72);
-    box-shadow: 0 0 16px color-mix(in srgb, var(--color-cyan-arcade) 25%, transparent);
+      linear-gradient(90deg, var(--scan-tone), color-mix(in srgb, var(--scan-tone) 68%, white)) 0 0 / var(--project-progress) 100% no-repeat,
+      color-mix(in srgb, var(--scan-tone) 9%, rgba(2, 6, 4, 0.72));
+    box-shadow: 0 0 12px color-mix(in srgb, var(--scan-tone) 18%, transparent);
   }
 
-  .project-scan-progress ol {
+  .project-file-facts {
     display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
-    gap: 1rem;
+    grid-template-columns: minmax(100px, 0.45fr) minmax(180px, 0.85fr) minmax(0, 2fr);
+    margin: 0 clamp(1rem, 2.4vw, 1.35rem);
+    border-inline: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 16%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 20%, transparent);
+    background: rgba(2, 6, 4, 0.42);
   }
 
-  .project-scan-progress li {
-    width: 10px;
-    aspect-ratio: 1;
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 50%, transparent);
-    border-radius: 999px;
-    background: var(--color-phosphor);
-    box-shadow: 0 0 12px var(--color-phosphor);
+  .project-file-fact {
+    display: grid;
+    min-width: 0;
+    align-content: center;
+    gap: 0.28rem;
+    padding: 0.8rem 0.9rem;
+  }
+
+  .project-file-fact + .project-file-fact {
+    border-left: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 15%, transparent);
+  }
+
+  .project-file-fact > strong {
+    color: #fff;
+    font-size: 0.76rem;
+    font-weight: 900;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .project-file-fact > small {
+    color: var(--color-phosphor-soft);
+    font-size: 0.64rem;
+    font-weight: 800;
+    opacity: 0.68;
+  }
+
+  .project-file-hash > div {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .project-file-hash code {
+    min-width: 0;
+    flex: 1 1 auto;
+    color: color-mix(in srgb, var(--color-cyan-arcade) 74%, white);
+    font-size: 0.64rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    word-break: break-all;
+    white-space: normal;
+  }
+
+  .project-file-hash button {
+    display: inline-flex;
+    min-width: 4.7rem;
+    min-height: 2.75rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 32%, transparent);
+    background: rgba(2, 6, 4, 0.68);
+    color: var(--color-cyan-arcade);
+    cursor: pointer;
+    font-size: 0.6rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .project-file-hash button:hover:not(:disabled),
+  .project-file-hash button:focus-visible:not(:disabled) {
+    border-color: var(--color-cyan-arcade);
+    background: color-mix(in srgb, var(--color-cyan-arcade) 10%, transparent);
+  }
+
+  .project-file-hash button:disabled {
+    cursor: not-allowed;
+    opacity: 0.38;
   }
 
   .project-terminal-log {
@@ -1146,13 +1250,22 @@
     gap: 0.46rem;
     grid-column: 2;
     min-width: 0;
-    overflow: hidden;
+    overflow: visible;
     padding-left: 1.18rem;
     color: var(--color-phosphor-soft);
     font-size: 0.66rem;
     opacity: 0.54;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .project-terminal-prompt > strong,
+  .project-terminal-command {
+    overflow: visible;
+    overflow-wrap: anywhere;
+    text-overflow: clip;
+    white-space: normal;
   }
 
   .project-terminal-log p small span {
@@ -1165,11 +1278,14 @@
   .project-terminal-verdict {
     grid-column: 2 / -1;
     width: fit-content;
+    max-width: 100%;
     border-left: 2px solid currentColor;
     background: color-mix(in srgb, currentColor 10%, transparent);
     padding: 0.26rem 0.52rem;
     color: var(--color-cyan-arcade);
     text-transform: uppercase;
+    overflow-wrap: anywhere;
+    white-space: normal;
   }
 
   .project-terminal-verdict.is-flagged {
@@ -1248,7 +1364,7 @@
     padding: 1rem;
   }
 
-  .theme-glitch .project-verdict-card,
+  .theme-glitch .project-scan-summary,
   .theme-glitch .project-terminal-log,
   .theme-glitch .project-site-preview,
   .theme-glitch .project-site-copy {
@@ -1300,13 +1416,13 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
     gap: 0.75rem;
-    padding: 1rem clamp(1rem, 2.4vw, 1.35rem);
+    padding: 0.65rem clamp(1rem, 2.4vw, 1.35rem);
   }
 
   .project-modal-actions a,
   .project-modal-locked {
     display: inline-flex;
-    min-height: 4rem;
+    min-height: 3.25rem;
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
@@ -1349,19 +1465,33 @@
     color: var(--color-cabinet);
   }
 
+  .project-modal-locked.is-report {
+    --project-report-color: var(--color-cyan-arcade);
+    border-color: color-mix(in srgb, var(--project-report-color) 48%, transparent);
+    color: var(--project-report-color);
+  }
+
+  .project-modal-locked.is-report.is-online {
+    --project-report-color: var(--color-phosphor);
+  }
+
+  .project-modal-locked.is-report.is-warning {
+    --project-report-color: var(--color-cabinet);
+  }
+
   .project-modal-locked.is-link {
     background:
-      linear-gradient(90deg, color-mix(in srgb, var(--color-cabinet) 12%, transparent), transparent),
+      linear-gradient(90deg, color-mix(in srgb, var(--project-report-color) 12%, transparent), transparent),
       rgba(2, 6, 4, 0.62);
   }
 
   .project-modal-locked.is-link:hover,
   .project-modal-locked.is-link:focus-visible {
-    border-color: var(--color-cabinet);
-    background: color-mix(in srgb, var(--color-cabinet) 13%, transparent);
+    border-color: var(--project-report-color);
+    background: color-mix(in srgb, var(--project-report-color) 13%, transparent);
     box-shadow:
-      inset 0 0 20px color-mix(in srgb, var(--color-cabinet) 9%, transparent),
-      0 0 18px color-mix(in srgb, var(--color-cabinet) 18%, transparent);
+      inset 0 0 20px color-mix(in srgb, var(--project-report-color) 9%, transparent),
+      0 0 18px color-mix(in srgb, var(--project-report-color) 18%, transparent);
   }
 
   .project-download-warning-shell {
@@ -1581,13 +1711,18 @@
     border-bottom: 1px solid color-mix(in srgb, var(--project-accent) 22%, transparent);
   }
 
-  .project-verdict-grid {
+  .project-file-facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .project-verdict-primary,
+  .project-file-hash,
   .project-site-grid {
     grid-column: 1 / -1;
+  }
+
+  .project-file-hash {
+    border-top: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 15%, transparent);
+    border-left: 0;
   }
 
   .project-site-grid,
@@ -1681,8 +1816,45 @@
     white-space: nowrap;
   }
 
-  .project-verdict-grid {
+  .project-scan-summary {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .project-scan-summary-stat {
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    justify-items: start;
+    gap: 0.75rem;
+    border-top: 1px solid color-mix(in srgb, var(--scan-tone) 18%, transparent);
+    border-left: 0;
+    padding-top: 0.7rem;
+    padding-left: 0;
+    text-align: left;
+  }
+
+  .project-scan-summary-stat > strong,
+  .project-scan-summary-stat > small {
+    margin-top: 0;
+  }
+
+  .project-file-facts {
     grid-template-columns: 1fr;
+  }
+
+  .project-file-fact + .project-file-fact,
+  .project-file-hash {
+    border-top: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 15%, transparent);
+    border-left: 0;
+  }
+
+  .project-file-hash > div {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .project-file-hash button {
+    width: 100%;
   }
 
   .project-terminal-log {

@@ -53,4 +53,19 @@ export async function getDiscordAvatarUrl(userId, size = 64, fallbackUrl = DEFAU
   return profile.avatarUrl;
 }
 
+export async function refreshLeaderboardProfiles(entries, size = 64) {
+  return Promise.all(entries.map(async (entry) => {
+    const profile = await getDiscordUserProfile(entry.discordId, size, {
+      displayName: entry.username,
+      avatarUrl: entry.avatarUrl || DEFAULT_AVATAR_URL
+    });
+
+    return {
+      ...entry,
+      username: profile.displayName || entry.username,
+      avatarUrl: profile.avatarUrl || DEFAULT_AVATAR_URL
+    };
+  }));
+}
+
 export { DEFAULT_AVATAR_URL };

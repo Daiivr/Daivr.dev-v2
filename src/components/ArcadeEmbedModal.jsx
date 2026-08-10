@@ -1,5 +1,6 @@
 import { ArrowLeft, Gamepad2, LogIn, RotateCcw, Trophy, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { RankingAvatar } from "./RankingAvatar";
 
 const GAME_CONFIG = {
   "cross-road": {
@@ -98,8 +99,8 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
         <div className="arcade-embed-screen"><iframe key={instance} src={config.src} title={config.title} />
           {hasRanking && rankingOpen ? <aside className="tower-ranking cross-road-ranking" aria-label="Cross Road leaderboard">
             <header><div><small>RANKING.SYS</small><strong>TOP ROAD RUNNERS</strong></div><div className="cross-road-ranking-actions"><button type="button" onClick={() => loadLeaderboard()}>REFRESH</button><button type="button" onClick={() => setRankingOpen(false)} aria-label="Close Cross Road leaderboard"><X size={15} /></button></div></header>
-            {me ? <div className="tower-ranking-self"><img src={me.avatarUrl} alt="" /><span><small>LINKED AS {me.username}</small><strong>{myScore ? `#${myScore.rank} // ROAD ${myScore.bestScore} // ${formatDuration(myScore.bestDurationMs)}` : "NO RUN RECORDED"}</strong></span></div> : <a href="/api/comments/auth/discord"><LogIn size={15} /> CONNECT DISCORD TO RANK</a>}
-            {rankingLoading ? <p>SCANNING LANES...</p> : <ol>{leaderboard.map((entry) => <li className={entry.discordId === me?.id ? "is-player" : ""} key={entry.discordId}><b>{String(entry.rank).padStart(2,"0")}</b><img src={entry.avatarUrl} alt="" /><span>{entry.username}</span><em>ROAD {entry.bestScore}</em><small>{formatDuration(entry.bestDurationMs)}</small></li>)}</ol>}
+            {me ? <div className="tower-ranking-self"><RankingAvatar src={me.avatarUrl} name={me.username} loading="eager" /><span><small>LINKED AS {me.username}</small><strong>{myScore ? `#${myScore.rank} // ROAD ${myScore.bestScore} // ${formatDuration(myScore.bestDurationMs)}` : "NO RUN RECORDED"}</strong></span></div> : <a href="/api/comments/auth/discord"><LogIn size={15} /> CONNECT DISCORD TO RANK</a>}
+            {rankingLoading ? <p>SCANNING LANES...</p> : <ol>{leaderboard.map((entry) => <li className={entry.discordId === me?.id ? "is-player" : ""} key={entry.discordId}><b>{String(entry.rank).padStart(2,"0")}</b><RankingAvatar src={entry.avatarUrl} name={entry.username} /><span>{entry.username}</span><em>ROAD {entry.bestScore}</em><small>{formatDuration(entry.bestDurationMs)}</small></li>)}</ol>}
           </aside> : null}
         </div>
         <footer><span>{config.controls}</span><b>{status || "PROGRAM ONLINE"}</b><em>ESC TO CLOSE</em></footer>

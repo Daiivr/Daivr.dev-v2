@@ -175,7 +175,7 @@
     .madrace-footer { flex-wrap: wrap; }
     .madrace-footer input { width: 82px; }
     .madrace-leaderboard li { grid-template-columns: 24px 30px minmax(0,1fr) auto; }
-    .madrace-leaderboard li img { width: 30px; height: 30px; }
+    .madrace-leaderboard li .ranking-avatar { width: 30px; height: 30px; }
     .madrace-leaderboard li small { display: none; }
     .madrace-reset-body dl { grid-template-columns: 1fr; }
     .madrace-reset-body dl div { border-right: 0; border-bottom: 1px solid rgba(63,255,151,.14); }

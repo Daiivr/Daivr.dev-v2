@@ -1,5 +1,5 @@
 import { renameSync, readFileSync, writeFileSync } from "node:fs";
-import { DEFAULT_AVATAR_URL } from "./discord-avatar.mjs";
+import { DEFAULT_AVATAR_URL, refreshLeaderboardProfiles } from "./discord-avatar.mjs";
 import { getSessionUser } from "./comments.mjs";
 import { ensureDataFile, getDataFile } from "./storage.mjs";
 
@@ -53,7 +53,10 @@ export async function handleCrossRoadRequest(request, response) {
   const user = getSessionUser(request);
   let scores = readScores();
   if (["POST", "DELETE"].includes(request.method || "") && !sameOrigin(request)) return sendJson(response, 403, { error: "Cross-origin score mutation rejected." });
-  if (request.method === "GET" && path === "leaderboard") return sendJson(response, 200, { leaderboard: leaderboard(scores, url.searchParams.get("limit")) });
+  if (request.method === "GET" && path === "leaderboard") {
+    const rankings = leaderboard(scores, url.searchParams.get("limit"));
+    return sendJson(response, 200, { leaderboard: await refreshLeaderboardProfiles(rankings) });
+  }
   if (request.method === "GET" && path === "me") return sendJson(response, 200, { authenticated: !!user, user, score: user ? mine(scores, user.id) : null });
   if (request.method === "DELETE" && path === "me") {
     if (!user) return sendJson(response, 401, { error: "Connect Discord to reset your record." });

@@ -863,7 +863,7 @@
   }
 
   .discord-profile-frame-layer.is-bottom {
-    bottom: calc(var(--discord-frame-bottom-offset) - 2.9cqi);
+    bottom: calc(var(--discord-frame-bottom-offset) - 2.7cqi);
   }
 }
 

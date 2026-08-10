@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { ArrowRight, Bot, Check, Code2, Cpu, Download, ExternalLink, Gamepad2, GitFork, Github, Globe2, Lock, ShieldCheck, Star, Terminal, Twitch, X } from "lucide-react";
+import { ArrowRight, Bot, Check, Code2, Copy, Cpu, Download, ExternalLink, Gamepad2, GitFork, Github, Globe2, Lock, ShieldCheck, Star, Terminal, Twitch, X } from "lucide-react";
 import { FaDiscord, FaSteam } from "react-icons/fa6";
 import { useEffect, useRef, useState } from "react";
 import { now, projects, roomStats, socialLinks, stack } from "../data/site";
@@ -644,8 +644,9 @@ function buildDownloadGateView(project, scanData, scanError) {
   const vtPending = vt?.status === "pending";
   const assetName = scanData?.asset?.name || "TradeDex_1.10.exe";
   const assetSize = formatBytes(scanData?.asset?.size) || modal.asset;
-  const shaLabel = shortHash(scanData?.sha256) || modal.sha;
-  const engines = stats?.total ? `${stats.total} engines` : modal.engines;
+  const fullSha = scanData?.sha256 || "";
+  const shaLabel = shortHash(fullSha) || modal.sha;
+  const engineTotal = Number(stats?.total || 0);
   const progress = Math.round(
     scanData?.progress != null
       ? Math.max(0, Math.min(1, Number(scanData.progress))) * 100
@@ -672,41 +673,66 @@ function buildDownloadGateView(project, scanData, scanError) {
   let verdict = modal.verdict;
   let status = modal.status;
   if (scanError || scanData?.status === "error") {
-    verdict = "SCANNER.FAIL";
+    verdict = "CHECK FAILED";
     status = scanError || scanData?.error || "scan failed";
   } else if (isPending || vtPending || state === "scanning") {
-    verdict = "SCANNING...";
-    status = vtPending ? "queued in VirusTotal" : "gate locked";
+    verdict = "CHECKING FILE";
+    status = vtPending ? "VirusTotal analysis is queued" : "Requesting the latest report";
   } else if (state === "flagged") {
-    verdict = "MALICIOUS";
-    status = "gate sealed";
+    verdict = detections ? `${detections} THREATS FOUND` : "THREATS FOUND";
+    status = stats?.total ? `${detections} of ${stats.total} engines flagged this file` : "Download blocked";
   } else if (state === "false-positive") {
-    verdict = "FALSE POSITIVE";
-    status = "single detection review";
+    verdict = "1 DETECTION";
+    status = stats?.total ? `1 of ${stats.total} engines flagged this file` : "Review recommended before downloading";
   } else if (state === "clean") {
-    verdict = "CLEAN";
-    status = "gate open";
+    verdict = "NO THREATS FOUND";
+    status = stats?.total ? `0 of ${stats.total} engines flagged this file` : "VirusTotal marked this file clean";
   } else if (state === "unavailable") {
-    verdict = "NO REPORT";
+    verdict = "REPORT UNAVAILABLE";
     status = vt?.reason === "hash-not-indexed"
-      ? "hash not indexed"
+      ? "VirusTotal has not indexed this file yet"
       : vt?.reason === "missing-github-digest"
-        ? "digest unavailable"
-        : "lookup unavailable";
+        ? "GitHub did not publish a file hash"
+        : "The VirusTotal report could not be loaded";
   }
+
+  const reportFailed = Boolean(scanError || scanData?.status === "error");
+  const reportProgress = reportFailed || state === "unavailable" ? 0 : progress;
+  const reportProgressTitle = reportFailed
+    ? "VirusTotal check failed"
+    : state === "unavailable"
+      ? "VirusTotal report unavailable"
+      : state === "scanning"
+        ? "Loading VirusTotal report"
+        : "VirusTotal report complete";
+  const reportProgressLabel = reportFailed
+    ? "Could not complete"
+    : state === "unavailable"
+      ? "No engine data"
+      : state === "scanning"
+        ? `${progress}%`
+        : stats?.total
+          ? `${stats.total} engines checked`
+          : `${progress}%`;
 
   return {
     release: scanData?.tag || modal.release,
     asset: assetSize,
     assetName,
     sha: shaLabel,
-    engines,
-    progress,
+    fullSha,
+    detections: detections ?? null,
+    engineTotal,
+    reportProgress,
+    reportProgressTitle,
+    reportProgressLabel,
     verdict,
     status,
     state,
     statsDetail,
-    virusTotalUrl: vt?.permalink || null,
+    virusTotalUrl: vt?.permalink || (scanData?.sha256
+      ? `https://www.virustotal.com/gui/file/${scanData.sha256}`
+      : null),
     submitted: Boolean(vt?.submitted),
     canDownload: (state === "clean" || state === "false-positive") && !scanError && scanData?.status === "done",
     needsDownloadWarning: state === "false-positive"
@@ -716,6 +742,13 @@ function buildDownloadGateView(project, scanData, scanError) {
 function DownloadGate({ project, scanData, scanError }) {
   const modal = project.modal;
   const view = buildDownloadGateView(project, scanData, scanError);
+  const StatusIcon = view.state === "clean" || view.state === "false-positive"
+    ? ShieldCheck
+    : view.state === "flagged"
+      ? Lock
+      : view.state === "scanning"
+        ? Cpu
+        : Terminal;
   const terminalRows = [
     { type: "prompt", content: modal.command },
     { type: "blank" },
@@ -754,27 +787,45 @@ function DownloadGate({ project, scanData, scanError }) {
         </div>
       </header>
 
-      <div className="project-verdict-grid">
-        <div className="project-verdict-card project-verdict-primary">
-          <span>security verdict</span>
+      <section
+        className={`project-scan-summary is-${view.state || "scanning"}`}
+        style={{ "--project-progress": `${view.reportProgress}%` }}
+        role="status"
+        aria-live="polite"
+      >
+        <div className="project-scan-summary-icon" aria-hidden="true">
+          <StatusIcon size={25} />
+        </div>
+        <div className="project-scan-summary-copy">
+          <span>VirusTotal result</span>
           <strong>{view.verdict}</strong>
-          <small>{view.status}</small>
+          <p>{view.status}</p>
         </div>
-        <Metric label="release" value={view.release} />
-        <Metric label="asset" value={view.asset} />
-        <Metric label="sha" value={view.sha} />
-        <Metric label="engines" value={view.engines} />
-      </div>
+        <div className="project-scan-summary-stat">
+          <span>{view.engineTotal ? "engine detections" : "engine data"}</span>
+          <strong>{view.engineTotal ? `${view.detections || 0}/${view.engineTotal}` : "—"}</strong>
+          <small>{view.engineTotal ? "engines flagged" : "not available"}</small>
+        </div>
+        <div className="project-scan-meter">
+          <div>
+            <span>{view.reportProgressTitle}</span>
+            <strong>{view.reportProgressLabel}</strong>
+          </div>
+          <i aria-hidden="true" />
+        </div>
+      </section>
 
-      <div className="project-scan-progress" style={{ "--project-progress": `${view.progress}%` }}>
-        <div>
-          <span>{view.state && view.state !== "scanning" ? "verdict received" : "awaiting verdict"}</span>
-          <strong>{view.progress}%</strong>
+      <div className="project-file-facts" aria-label="Release file details">
+        <div className="project-file-fact">
+          <span>Release</span>
+          <strong>{view.release}</strong>
         </div>
-        <i />
-        <ol aria-label="Scan checkpoints">
-          {[0, 1, 2, 3, 4, 5, 6].map((item) => <li key={item} />)}
-        </ol>
+        <div className="project-file-fact">
+          <span>Download file</span>
+          <strong>{view.assetName}</strong>
+          <small>{view.asset}</small>
+        </div>
+        <ProjectHash value={view.fullSha} fallback={view.sha} />
       </div>
 
       <div className="project-terminal-log">
@@ -801,7 +852,13 @@ function DownloadGate({ project, scanData, scanError }) {
             ) : null}
             {row.type === "verdict" ? (
               <strong className={`project-terminal-verdict is-${row.tone}`}>
-                <X size={15} aria-hidden="true" />
+                {row.tone === "clean" ? (
+                  <Check size={15} aria-hidden="true" />
+                ) : row.tone === "false-positive" ? (
+                  <ShieldCheck size={15} aria-hidden="true" />
+                ) : (
+                  <X size={15} aria-hidden="true" />
+                )}
                 {row.detail}
               </strong>
             ) : null}
@@ -815,7 +872,7 @@ function DownloadGate({ project, scanData, scanError }) {
         secondaryIcon={Github}
         canDownload={view.canDownload}
         downloadWarning={view.needsDownloadWarning ? view.statsDetail || "single detection review" : ""}
-        virusTotalUrl={view.state === "false-positive" ? view.virusTotalUrl : null}
+        virusTotalUrl={view.virusTotalUrl}
       />
       <footer className="project-modal-status">
         <span /> streaming <b>tag {view.release}</b> <b>vt {view.state || "scanning"}</b>
@@ -869,11 +926,42 @@ function LiveSitePanel({ project }) {
   );
 }
 
-function Metric({ label, value }) {
+function ProjectHash({ value, fallback }) {
+  const [copied, setCopied] = useState(false);
+  const resetTimerRef = useRef(null);
+
+  useEffect(() => () => {
+    if (resetTimerRef.current) window.clearTimeout(resetTimerRef.current);
+  }, []);
+
+  async function copyHash() {
+    if (!value || !navigator.clipboard) return;
+    try {
+      await navigator.clipboard.writeText(value);
+      setCopied(true);
+      if (resetTimerRef.current) window.clearTimeout(resetTimerRef.current);
+      resetTimerRef.current = window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      setCopied(false);
+    }
+  }
+
   return (
-    <div className="project-verdict-card">
-      <span>{label}</span>
-      <strong>{value}</strong>
+    <div className="project-file-fact project-file-hash">
+      <span>SHA-256 file hash</span>
+      <div>
+        <code title={value || fallback}>{value || fallback}</code>
+        <button
+          className="arcade-focus"
+          type="button"
+          onClick={copyHash}
+          disabled={!value}
+          aria-label={copied ? "SHA-256 copied" : "Copy complete SHA-256 hash"}
+        >
+          {copied ? <Check size={14} aria-hidden="true" /> : <Copy size={14} aria-hidden="true" />}
+          <span aria-live="polite">{copied ? "Copied" : "Copy"}</span>
+        </button>
+      </div>
     </div>
   );
 }
@@ -889,6 +977,7 @@ function ModalActions({
   const [showDownloadWarning, setShowDownloadWarning] = useState(false);
   const gateLocked = project.modal.type === "download" && !canDownload;
   const needsWarning = project.modal.type === "download" && Boolean(downloadWarning);
+  const reportAction = needsWarning ? "review VT report" : canDownload ? "view VT report" : "check VT report";
 
   function confirmDownload() {
     setShowDownloadWarning(false);
@@ -926,17 +1015,23 @@ function ModalActions({
           <ExternalLink size={15} aria-hidden="true" />
         </a>
         {project.modal.type === "download" ? (
-          virusTotalUrl && needsWarning ? (
-            <a className="arcade-focus project-modal-locked is-warning is-link" href={virusTotalUrl} target="_blank" rel="noreferrer">
-              <Check size={18} aria-hidden="true" />
-              <span>VT report</span>
+          virusTotalUrl ? (
+            <a
+              aria-label={`${reportAction}, opens in a new tab`}
+              className={`arcade-focus project-modal-locked is-report is-link${needsWarning ? " is-warning" : canDownload ? " is-online" : ""}`}
+              href={virusTotalUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <ShieldCheck size={18} aria-hidden="true" />
+              <span>{reportAction}</span>
               <ExternalLink size={15} aria-hidden="true" />
             </a>
           ) : (
-            <div className={`project-modal-locked${needsWarning ? " is-warning" : canDownload ? " is-online" : ""}`}>
-              {gateLocked ? <Lock size={18} aria-hidden="true" /> : <Check size={18} aria-hidden="true" />}
-              <span>{needsWarning ? "review required" : canDownload ? "gate open" : "waiting..."}</span>
-              {gateLocked ? <X size={15} aria-hidden="true" /> : null}
+            <div className="project-modal-locked">
+              <Lock size={18} aria-hidden="true" />
+              <span>report unavailable</span>
+              <X size={15} aria-hidden="true" />
             </div>
           )
         ) : (

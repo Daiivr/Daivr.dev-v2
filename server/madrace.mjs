@@ -1,5 +1,5 @@
 import { renameSync, readFileSync, writeFileSync } from "node:fs";
-import { DEFAULT_AVATAR_URL } from "./discord-avatar.mjs";
+import { DEFAULT_AVATAR_URL, refreshLeaderboardProfiles } from "./discord-avatar.mjs";
 import { getSessionUser } from "./comments.mjs";
 import { ensureDataFile, getDataFile } from "./storage.mjs";
 
@@ -115,7 +115,8 @@ export async function handleMadraceRequest(request, response) {
   }
 
   if (request.method === "GET" && path === "leaderboard") {
-    sendJson(response, 200, { leaderboard: leaderboard(scores, url.searchParams.get("limit")) });
+    const rankings = leaderboard(scores, url.searchParams.get("limit"));
+    sendJson(response, 200, { leaderboard: await refreshLeaderboardProfiles(rankings) });
     return;
   }
 

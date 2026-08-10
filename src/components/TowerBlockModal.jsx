@@ -1,5 +1,6 @@
 import { ArrowLeft, Blocks, LogIn, RotateCcw, Trophy, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { RankingAvatar } from "./RankingAvatar";
 
 const BEST_KEY = "daivr.tower-block.best.v1";
 
@@ -95,8 +96,8 @@ export function TowerBlockModal({ open, onBack, onClose }) {
           <iframe key={instance} ref={frameRef} src="/tower-block/index.html" title="Tower Block minigame" />
           {rankingOpen ? <aside className="tower-ranking" aria-label="Tower Block leaderboard">
             <header><div><small>RANKING.SYS</small><strong>TOP BUILDERS</strong></div><button type="button" onClick={() => loadLeaderboard()}>REFRESH</button></header>
-            {me ? <div className="tower-ranking-self"><img src={me.avatarUrl} alt="" /><span><small>LINKED AS {me.username}</small><strong>{myScore ? `#${myScore.rank} // ${myScore.bestScore} BLOCKS // ${formatDuration(myScore.bestDurationMs)}` : "NO TOWER RECORDED"}</strong></span></div> : <a href="/api/comments/auth/discord"><LogIn size={15} /> CONNECT DISCORD TO RANK</a>}
-            {rankingLoading ? <p>SCANNING TOWERS...</p> : <ol>{leaderboard.map((entry) => <li className={entry.discordId === me?.id ? "is-player" : ""} key={entry.discordId}><b>{String(entry.rank).padStart(2,"0")}</b><img src={entry.avatarUrl} alt="" /><span>{entry.username}</span><em>{entry.bestScore} BLOCKS</em><small>{formatDuration(entry.bestDurationMs)}</small></li>)}</ol>}
+            {me ? <div className="tower-ranking-self"><RankingAvatar src={me.avatarUrl} name={me.username} loading="eager" /><span><small>LINKED AS {me.username}</small><strong>{myScore ? `#${myScore.rank} // ${myScore.bestScore} BLOCKS // ${formatDuration(myScore.bestDurationMs)}` : "NO TOWER RECORDED"}</strong></span></div> : <a href="/api/comments/auth/discord"><LogIn size={15} /> CONNECT DISCORD TO RANK</a>}
+            {rankingLoading ? <p>SCANNING TOWERS...</p> : <ol>{leaderboard.map((entry) => <li className={entry.discordId === me?.id ? "is-player" : ""} key={entry.discordId}><b>{String(entry.rank).padStart(2,"0")}</b><RankingAvatar src={entry.avatarUrl} name={entry.username} /><span>{entry.username}</span><em>{entry.bestScore} BLOCKS</em><small>{formatDuration(entry.bestDurationMs)}</small></li>)}</ol>}
           </aside> : null}
         </div>
         <footer><span>SPACE / CLICK TO PLACE</span><b>{saveStatus || "BUILD SIGNAL ONLINE"}</b><em>ESC TO CLOSE</em></footer>
