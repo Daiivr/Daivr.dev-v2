@@ -331,26 +331,46 @@ function isMobileViewport() {
 }
 
 function CommentMedia({ gifUrl }) {
-  const [loadState, setLoadState] = useState("loading");
+  const imageRef = useRef(null);
+  const [mediaState, setMediaState] = useState(() => ({
+    url: gifUrl,
+    status: "loading"
+  }));
+  const loadState = mediaState.url === gifUrl ? mediaState.status : "loading";
 
   useEffect(() => {
-    setLoadState("loading");
+    const image = imageRef.current;
+    if (!gifUrl || !image || !image.complete) return;
+
+    setMediaState({
+      url: gifUrl,
+      status: image.naturalWidth > 0 ? "loaded" : "error"
+    });
   }, [gifUrl]);
 
   if (!gifUrl) return null;
   return (
-    <a className={`comment-gif is-${loadState}`} href={gifUrl} target="_blank" rel="noreferrer">
-      <span className="comment-gif-status" aria-live="polite">
-        {loadState === "error" ? "GIF signal unavailable" : "loading GIF signal..."}
-      </span>
+    <a
+      className={`comment-gif is-${loadState}`}
+      href={gifUrl}
+      target="_blank"
+      rel="noreferrer"
+      aria-busy={loadState === "loading"}
+    >
+      {loadState !== "loaded" ? (
+        <span className="comment-gif-status" aria-live="polite">
+          {loadState === "error" ? "GIF signal unavailable" : "loading GIF signal..."}
+        </span>
+      ) : null}
       <img
+        ref={imageRef}
         src={gifUrl}
         alt="Attached GIF"
         loading="eager"
         decoding="async"
         fetchPriority="high"
-        onLoad={() => setLoadState("loaded")}
-        onError={() => setLoadState("error")}
+        onLoad={() => setMediaState({ url: gifUrl, status: "loaded" })}
+        onError={() => setMediaState({ url: gifUrl, status: "error" })}
       />
     </a>
   );

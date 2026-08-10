@@ -452,9 +452,15 @@ function ProjectCard({ project, scanInfo }) {
         const shouldPoll =
           data?.status !== "done" ||
           data?.vt?.status === "pending" ||
+          data?.vt?.status === "not-scanned" ||
           ["init", "downloading", "hashing", "querying", "submitting", "analyzing"].includes(data?.stage);
 
-        if (shouldPoll && !cancelled) timer = window.setTimeout(loadScan, 4000);
+        if (shouldPoll && !cancelled) {
+          const retryDelay = data?.vt?.status === "not-scanned"
+            ? Math.max(5_000, Number(data?.retryAfterMs || 60_000) + 1_000)
+            : 4_000;
+          timer = window.setTimeout(loadScan, retryDelay);
+        }
       } catch (error) {
         if (cancelled) return;
         console.error("TradeDex scan failed", error);

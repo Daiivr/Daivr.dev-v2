@@ -8,7 +8,11 @@ const GITHUB_REPO = process.env.TRADEDEX_REPO || "Daiivr/TradeDex";
 const GITHUB_RELEASE_API = `https://api.github.com/repos/${GITHUB_REPO}/releases/latest`;
 const CACHE_FILENAME = "tradedex-scan.json";
 const RELEASE_CACHE_TTL_MS = 5 * 60 * 1000;
-const VT_MISS_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
+// A file can be submitted to VirusTotal after our first hash lookup. Keep a
+// short negative cache so the public API is not hammered, but do not preserve
+// a stale 404 for hours after a report becomes available.
+const VT_MISS_CACHE_TTL_MS = 60 * 1000;
+const VT_REPORT_CACHE_TTL_MS = 12 * 60 * 60 * 1000;
 
 let releaseCache = { fetchedAt: 0, data: null };
 const lookupInflight = new Map();
@@ -200,10 +204,20 @@ function getCachedReleaseScan(release, cache) {
     if (!checkedAt || Date.now() - checkedAt > VT_MISS_CACHE_TTL_MS) return null;
   }
 
+  if (cached.vt.status === "scanned") {
+    const checkedAt = Number(cached.checkedAt || cached.scannedAt || 0);
+    if (!checkedAt || Date.now() - checkedAt > VT_REPORT_CACHE_TTL_MS) return null;
+  }
+
   return cached;
 }
 
 function buildResponse(release, record, fromCache) {
+  const checkedAt = Number(record.checkedAt || record.scannedAt || 0);
+  const retryAfterMs = record.vt?.status === "not-scanned"
+    ? Math.max(0, VT_MISS_CACHE_TTL_MS - (Date.now() - checkedAt))
+    : null;
+
   return {
     tag: release.tag,
     releaseUrl: release.htmlUrl,
@@ -215,6 +229,7 @@ function buildResponse(release, record, fromCache) {
     sha256: record.sha256 || release.asset?.sha256 || null,
     vt: record.vt,
     scannedAt: record.scannedAt || record.checkedAt || null,
+    retryAfterMs,
     fromCache
   };
 }
@@ -359,7 +374,7 @@ export async function handleTradeDexVirusTotalRequest(request, response) {
   try {
     const url = new URL(request.url || "/", "http://localhost");
     if (url.pathname === "/api/tradedex/info") {
-      sendJson(response, 200, await getTradeDexInfo(), "public, max-age=60, stale-while-revalidate=300");
+      sendJson(response, 200, await getTradeDexInfo(), "public, max-age=30, stale-while-revalidate=30");
       return;
     }
 

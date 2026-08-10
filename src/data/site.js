@@ -343,7 +343,9 @@ export const patchNotes = [
       ["new", "Discord's new Profile Frames now sync to the presence card; standard desktop and mobile preserve their separately tuned alignment, while only full-width desktop viewports receive the lower top panel and higher bottom panel adjustment and rear flowers remain obscured."],
       ["new", "Palwatch Live Server Map replaces the retired Fallout Terminal project: the card uses its supplied mascot logo while the detail modal preserves the full desktop map preview, stack, systems, repository, and documentation links."],
       ["fix", "TradeDex security telemetry now reads the SHA-256 digest published by GitHub and caches a hash-only VirusTotal lookup; opening the project no longer downloads, buffers, or uploads the 98 MB release on Render."],
+      ["fix", "TradeDex no longer holds a stale VirusTotal 'hash not indexed' result for six hours: negative lookups refresh after one minute and the open security gate retries automatically, while completed reports retain a long cache."],
       ["fix", "Published comment GIFs now begin loading eagerly with a visible signal placeholder, while newly attached Klipy GIFs prefer the lighter small rendition for faster repeat visits."],
+      ["fix", "Cached comment GIFs no longer get trapped behind the loading signal: media state now follows the active URL and confirms already-complete browser images without resetting a successful load event."],
       ["fix", "The example environment file no longer includes a Discord user ID or profile-frame SKU; both values are now deployment-specific placeholders."]
     ]
   },
