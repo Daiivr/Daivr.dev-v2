@@ -331,10 +331,27 @@ function isMobileViewport() {
 }
 
 function CommentMedia({ gifUrl }) {
+  const [loadState, setLoadState] = useState("loading");
+
+  useEffect(() => {
+    setLoadState("loading");
+  }, [gifUrl]);
+
   if (!gifUrl) return null;
   return (
-    <a className="comment-gif" href={gifUrl} target="_blank" rel="noreferrer">
-      <img src={gifUrl} alt="Attached GIF" loading="lazy" decoding="async" />
+    <a className={`comment-gif is-${loadState}`} href={gifUrl} target="_blank" rel="noreferrer">
+      <span className="comment-gif-status" aria-live="polite">
+        {loadState === "error" ? "GIF signal unavailable" : "loading GIF signal..."}
+      </span>
+      <img
+        src={gifUrl}
+        alt="Attached GIF"
+        loading="eager"
+        decoding="async"
+        fetchPriority="high"
+        onLoad={() => setLoadState("loaded")}
+        onError={() => setLoadState("error")}
+      />
     </a>
   );
 }

@@ -205,11 +205,52 @@ function ActivityIcon({ icon }) {
   return <Activity size={16} aria-hidden="true" />;
 }
 
+function DiscordProfileFrame({ anchor, className, decorative = false, frame }) {
+  if (!frame?.layers?.length || !frame.innerWidth) return null;
+
+  const layers = anchor ? frame.layers.filter((layer) => layer.anchor === anchor) : frame.layers;
+  const horizontalOverflow = (frame.overflowHorizontal / frame.innerWidth) * 100;
+  const frameWidth = 100 + horizontalOverflow * 2;
+  const style = {
+    "--discord-frame-bottom-offset": `${(frame.overflowBottom / frame.innerWidth) * -100}cqi`,
+    "--discord-frame-left-offset": `${-horizontalOverflow}%`,
+    "--discord-frame-top-offset": `${(frame.overflowTop / frame.innerWidth) * -100}cqi`,
+    "--discord-frame-width": `${frameWidth}%`
+  };
+
+  return (
+    <div
+      className={cn("discord-profile-frame", className)}
+      style={style}
+      role={decorative ? undefined : "img"}
+      aria-hidden={decorative || undefined}
+      aria-label={decorative ? undefined : `${frame.name}: ${frame.label}`}
+    >
+      {layers.map((layer) => (
+        <img
+          className={cn(
+            "discord-profile-frame-layer",
+            `is-${layer.anchor}`,
+            `is-${layer.order}`
+          )}
+          src={layer.src}
+          alt=""
+          aria-hidden="true"
+          decoding="async"
+          key={layer.id}
+          loading="lazy"
+        />
+      ))}
+    </div>
+  );
+}
+
 export function DiscordPresencePanel() {
   const { data: presence, error, loading, updatedAt } = useLanyardPresence(discord.userId);
   const [activityImages, setActivityImages] = useState({});
   const [badgeTooltip, setBadgeTooltip] = useState(null);
   const [now, setNow] = useState(Date.now());
+  const [profileFrame, setProfileFrame] = useState(null);
   const [streak, setStreak] = useState(null);
   const user = presence?.discord_user;
   const displayName = getDiscordDisplayName(user);
@@ -242,6 +283,28 @@ export function DiscordPresencePanel() {
     const interval = window.setInterval(() => setNow(Date.now()), 1000);
     return () => window.clearInterval(interval);
   }, [hasTimedActivity]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadProfileFrame() {
+      try {
+        const response = await fetch("/api/discord-profile-frame", { cache: "no-store" });
+        if (!response.ok) throw new Error(`Discord profile frame returned ${response.status}`);
+
+        const payload = await response.json();
+        if (!cancelled) setProfileFrame(payload.frame || null);
+      } catch {
+        if (!cancelled) setProfileFrame(null);
+      }
+    }
+
+    loadProfileFrame();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -345,7 +408,7 @@ export function DiscordPresencePanel() {
   }, [badgeTooltip]);
 
   return (
-    <section className="discord-presence-shell panel-strong overflow-hidden" aria-label="Discord presence">
+    <section className="discord-presence-shell panel-strong" aria-label="Discord presence">
       <div className="discord-presence-titlebar">
         <span />
         <span />
@@ -355,6 +418,8 @@ export function DiscordPresencePanel() {
 
       <div className="discord-presence-grid">
         <aside className="discord-presence-profile">
+          <DiscordProfileFrame className="discord-profile-frame-profile" frame={profileFrame} />
+
           <div className="flex items-center justify-between gap-3">
             <p className="pixel-label">DISCORD.PRESENCE</p>
             <span className={cn("discord-presence-led", status.colorClass)} aria-hidden="true" />
@@ -509,6 +574,13 @@ export function DiscordPresencePanel() {
             <span>{error ? "api fallback mode" : "presence online"}</span>
           </div>
         </div>
+
+        <DiscordProfileFrame
+          anchor="bottom"
+          className="discord-profile-frame-mobile-bottom"
+          decorative
+          frame={profileFrame}
+        />
       </div>
       {badgeTooltip ? (
         createPortal(

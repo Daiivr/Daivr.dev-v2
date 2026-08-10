@@ -5,6 +5,7 @@ import { defineConfig } from "vite";
 import { handleBuddyRequest } from "./server/buddy.mjs";
 import { handleCommentsRequest } from "./server/comments.mjs";
 import { handleCrossRoadRequest } from "./server/cross-road.mjs";
+import { handleDiscordProfileFrameRequest } from "./server/discord-profile-frame.mjs";
 import { handleDiscordStreakRequest } from "./server/discord-streak.mjs";
 import { handleMadraceRequest } from "./server/madrace.mjs";
 import { loadLocalEnv } from "./server/env.mjs";
@@ -34,6 +35,10 @@ export default defineConfig({
 
         server.middlewares.use("/api/discord-streak", (request, response) => {
           handleDiscordStreakRequest(request, response);
+        });
+
+        server.middlewares.use("/api/discord-profile-frame", (request, response) => {
+          handleDiscordProfileFrameRequest(request, response);
         });
 
         server.middlewares.use("/api/steam-playtime", (request, response) => {

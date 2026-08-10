@@ -193,10 +193,10 @@ export const projects = [
     image: "/projects/tradedex-card.webp",
     href: "https://github.com/Daiivr/TradeDex/releases/latest",
     repoHref: "https://github.com/Daiivr/TradeDex",
-    badge: "v1.9.1",
-    status: "vt clean",
+    badge: "v1.10",
+    status: "vt digest lookup",
     virusTotal: {
-      state: "scanning",
+      state: "unavailable",
       detections: 0
     },
     channel: "open-source // main",
@@ -214,19 +214,19 @@ export const projects = [
       path: "~/tradedex",
       title: "TradeDex .exe",
       label: "safe download gate",
-      description: "Hash + VirusTotal before enabling the download. If the verdict is not clean, the gate stays closed.",
-      release: "v1.9.1",
+      description: "Reads GitHub's published SHA-256 and requests only the cached VirusTotal verdict. The website never downloads or uploads the release binary.",
+      release: "v1.10",
       asset: "98 MB",
-      sha: "07ac99fe...7bfc4269",
-      engines: "queued",
-      progress: 89,
-      verdict: "SCANNING...",
+      sha: "a0ce3a88...13cdacad",
+      engines: "lookup pending",
+      progress: 100,
+      verdict: "HASH LOOKUP",
       status: "gate locked",
-      command: "tradedex scan --release latest --validate",
+      command: "tradedex verify --release latest --digest-only",
       terminal: [
         ["init scanner", "OK"],
-        ["pull asset", "OK", "TradeDex_1.9.1.exe · 98 MB"],
-        ["compute sha-256", "OK", "07ac99fe...7bfc4269"],
+        ["resolve asset metadata", "OK", "TradeDex_1.10.exe · 98 MB"],
+        ["read GitHub sha-256", "OK", "a0ce3a88...13cdacad"],
         ["query virustotal", "OK"]
       ],
       primaryAction: "Open release",
@@ -234,20 +234,19 @@ export const projects = [
     }
   },
   {
-    title: "Fallout Terminal",
+    title: "Palwatch",
     kicker: "02",
-    visual: "fallout",
-    image: "/projects/fallout-terminal-frame-card.webp",
-    icon: "/projects/vault-tec-terminal-symbol.svg",
-    href: "https://pip-boy.net/",
-    repoHref: "https://github.com/Daiivr/Fallout-terminal",
-    badge: "live site",
-    status: "live site",
+    visual: "palwatch",
+    image: "/projects/palwatch-logo.png",
+    href: "https://github.com/Daiivr/Palwatch-Live-Server-Map",
+    repoHref: "https://github.com/Daiivr/Palwatch-Live-Server-Map#readme",
+    badge: "main",
+    status: "open source",
     channel: "open-source // main",
     description:
-      "Fallout 76 fan terminal with Pip-Boy style UI, live silo code tracking, Minerva schedule and inventory intel, protected archive flows, and a Discord bot worker for subscribed channels.",
-    tags: ["HTML", "CSS", "Node", "Express", "Discord.js"],
-    meta: "silo codes // Minerva intel // Discord bot",
+      "Responsive Palworld dedicated-server map with live players, guild-owned PalBoxes, searchable locations, privacy-focused server-side REST access, and desktop/mobile controls.",
+    tags: ["TypeScript", "React", "MapLibre GL", "Cloudflare Workers", "Vinext"],
+    meta: "live players // guild bases // private REST bridge",
     stats: [
       ["issues", "0"],
       ["stars", "0"],
@@ -255,21 +254,22 @@ export const projects = [
     ],
     modal: {
       type: "site",
-      path: "~/pip-boy",
-      title: "Fallout Terminal",
-      label: "live website",
-      description: "A public Pip-Boy style control room for Fallout 76 utilities, live silo intel, Minerva schedules, protected archive flows, and Discord channel helpers.",
-      endpoint: "https://pip-boy.net/",
-      repo: "Daiivr/Fallout-terminal",
-      status: "online",
+      path: "~/palwatch",
+      title: "Palwatch",
+      label: "live server map",
+      description: "A privacy-focused Palworld live map that keeps server credentials behind the backend while presenting player, guild-base, location, resource, NPC, and Pal data.",
+      previewImage: "https://raw.githubusercontent.com/Daiivr/Palwatch-Live-Server-Map/main/docs/screenshots/palwatch-desktop.jpg",
+      endpoint: "github.com/Daiivr/Palwatch-Live-Server-Map",
+      repo: "Daiivr/Palwatch-Live-Server-Map",
+      status: "repository online",
       systems: [
-        ["silo codes", "live tracking"],
-        ["minerva intel", "schedule + inventory"],
-        ["archive gate", "protected flows"],
-        ["discord worker", "subscribed channels"]
+        ["player radar", "live server positions"],
+        ["guild PalBoxes", "owned base markers"],
+        ["map layers", "Palpagos + World Tree"],
+        ["privacy bridge", "server-side REST auth"]
       ],
-      primaryAction: "Open live site",
-      secondaryAction: "Open repo"
+      primaryAction: "Open repository",
+      secondaryAction: "Read documentation"
     }
   }
 ];
@@ -329,6 +329,24 @@ export const stack = [
 // Tipos de cambio: new (verde), buff (cian), fix (dorado), nerf (rosa).
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
+  {
+    version: "v2.13.0",
+    codename: "POCKET CABINET",
+    date: "2026-08-10",
+    summary: "The mobile cabinet got a full fit-and-finish pass: the entry gate, home hero, link console, live activity card, and Discord avatar now behave cleanly on small screens.",
+    entries: [
+      ["fix", "Entry splash now respects dynamic mobile viewport and safe-area sizing, keeps the full gate and ENTER WEB control visible, and switches to a compact landscape layout."],
+      ["buff", "Mobile home view is leaner: the Run Dai.exe and Terminal controls plus the large hero console are hidden while the full desktop station remains unchanged."],
+      ["fix", "LINKS.SH title-bar lights and route count now keep equal gutters instead of touching the frame on narrow screens."],
+      ["fix", "Spotify activity labels now flow beneath the live activity details on mobile instead of crowding the song title."],
+      ["fix", "Discord avatar decorations are no longer clamped to the avatar image on mobile, restoring the intended animated frame overhang."],
+      ["new", "Discord's new Profile Frames now sync to the presence card; standard desktop and mobile preserve their separately tuned alignment, while only full-width desktop viewports receive the lower top panel and higher bottom panel adjustment and rear flowers remain obscured."],
+      ["new", "Palwatch Live Server Map replaces the retired Fallout Terminal project: the card uses its supplied mascot logo while the detail modal preserves the full desktop map preview, stack, systems, repository, and documentation links."],
+      ["fix", "TradeDex security telemetry now reads the SHA-256 digest published by GitHub and caches a hash-only VirusTotal lookup; opening the project no longer downloads, buffers, or uploads the 98 MB release on Render."],
+      ["fix", "Published comment GIFs now begin loading eagerly with a visible signal placeholder, while newly attached Klipy GIFs prefer the lighter small rendition for faster repeat visits."],
+      ["fix", "The example environment file no longer includes a Discord user ID or profile-frame SKU; both values are now deployment-specific placeholders."]
+    ]
+  },
   {
     version: "v2.12.0",
     codename: "THREAD FOLD",
@@ -562,7 +580,7 @@ export const commands = [
   ["whoami", "Dai // EN/ES dev // bots, web panels, game-room interfaces."],
   ["now", "Current quest: rebuild daivr.dev into a full arcade coding station."],
   ["scan", "Cartridges indexed: TradeDex, DaiBot, Image Host, daivr.dev OS."],
-  ["discord", "Lanyard sync active: avatar, status, decoration, and activity are pulled from Discord."],
+  ["discord", "Lanyard sync active: avatar, status, decoration, profile frame, and activity are pulled from Discord."],
   ["theme", "Theme toggled: CRT green / glitch magenta cabinet mode."],
   ["run", "Dai.exe compiled. XP increased. Terminal stayed dramatic."],
   ["contact", "Open channel: hello@daivr.dev"],

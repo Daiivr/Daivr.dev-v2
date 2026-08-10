@@ -134,6 +134,11 @@
     overflow-wrap: anywhere;
   }
 
+  .hero-actions,
+  .hero-console-dock {
+    display: none;
+  }
+
   .hero-console {
     width: 100% !important;
     max-width: 100%;
@@ -216,14 +221,20 @@
     overflow: hidden;
   }
 
-  .link-console-titlebar,
   .link-console-grid {
     padding-inline: 0;
   }
 
   .link-console-titlebar {
     grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: start;
     gap: 0.75rem;
+    padding: 0.8rem;
+  }
+
+  .link-console-lights,
+  .link-console-status {
+    align-self: start;
   }
 
   .link-console-status-label,
@@ -480,12 +491,16 @@
 
   .discord-presence-shell {
     max-width: 100%;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .discord-presence-grid,
   .discord-presence-activity-grid {
     grid-template-columns: 1fr !important;
+  }
+
+  .discord-presence-grid {
+    container-type: inline-size;
   }
 
   .discord-presence-profile,
@@ -503,6 +518,45 @@
     width: min(38vw, 8rem);
   }
 
+  .app-shell .discord-presence-avatar .discord-presence-decoration {
+    width: calc(100% + 36px);
+    height: calc(100% + 36px);
+    max-width: none;
+  }
+
+  .app-shell .discord-profile-frame-layer {
+    max-width: none;
+  }
+
+  .app-shell .discord-profile-frame-layer.is-top {
+    /* Preserve the previously approved mobile alignment independently from desktop. */
+    top: calc(var(--discord-frame-top-offset) - 1.85cqi);
+  }
+
+  .app-shell .discord-profile-frame-profile .discord-profile-frame-layer.is-bottom {
+    display: none;
+  }
+
+  .app-shell .discord-presence-activity {
+    z-index: 1;
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent), transparent 42%),
+      rgba(2, 6, 4, 0.94);
+  }
+
+  .app-shell .discord-profile-frame-mobile-bottom {
+    top: auto;
+    right: var(--discord-presence-grid-padding);
+    bottom: var(--discord-presence-grid-padding);
+    left: var(--discord-presence-grid-padding);
+    display: block;
+    height: 0;
+  }
+
+  .app-shell .discord-profile-frame-mobile-bottom .discord-profile-frame-layer.is-bottom {
+    bottom: calc(var(--discord-frame-bottom-offset) - 0.2cqi);
+  }
+
   .discord-presence-activity-head,
   .discord-presence-footer {
     align-items: stretch;
@@ -512,7 +566,8 @@
   .discord-activity-card {
     grid-template-columns: 64px minmax(0, 1fr) !important;
     align-items: start;
-    padding-right: 3.1rem;
+    row-gap: 0.55rem;
+    padding-right: 0.75rem;
   }
 
   .discord-activity-art {
@@ -520,17 +575,18 @@
   }
 
   .discord-activity-card em {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
+    position: static;
+    grid-column: 2;
+    justify-self: end;
     z-index: 2;
-    max-width: 2.6rem;
+    max-width: 100%;
     border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 32%, transparent);
     background: rgba(2, 6, 4, 0.82);
     padding: 0.22rem 0.34rem;
     color: var(--color-cyan-arcade);
     line-height: 1;
     text-align: center;
+    white-space: nowrap;
   }
 
   .discord-activity-card strong,

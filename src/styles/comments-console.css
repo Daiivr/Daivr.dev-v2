@@ -1415,12 +1415,39 @@
   }
 
   .comment-gif {
+    position: relative;
     display: block;
     width: min(330px, 100%);
+    min-height: 7rem;
     margin-top: 0.75rem;
+    overflow: hidden;
     border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 34%, transparent);
     background: rgba(2, 6, 4, 0.62);
     padding: 0.35rem;
+  }
+
+  .comment-gif-status {
+    position: absolute;
+    inset: 0.35rem;
+    display: grid;
+    place-items: center;
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.025) 50%, transparent 50%),
+      rgba(2, 6, 4, 0.9);
+    background-size: 100% 4px, auto;
+    color: color-mix(in srgb, var(--color-cyan-arcade) 72%, white);
+    font-size: 0.62rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .comment-gif.is-loaded {
+    min-height: 0;
+  }
+
+  .comment-gif.is-loaded .comment-gif-status {
+    display: none;
   }
 
   .comment-gif img {
@@ -1428,6 +1455,11 @@
     width: 100%;
     max-height: 230px;
     object-fit: cover;
+  }
+
+  .comment-gif.is-loading img,
+  .comment-gif.is-error img {
+    opacity: 0;
   }
 
   .comment-replies {

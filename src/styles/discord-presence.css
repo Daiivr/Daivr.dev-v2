@@ -44,7 +44,9 @@
 
   .discord-presence-shell {
     position: relative;
-    overflow: hidden;
+    --discord-presence-grid-padding: clamp(1rem, 2.4vw, 1.45rem);
+    overflow: visible;
+    clip-path: none;
     background:
       radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--color-cyan-arcade) 14%, transparent), transparent 30%),
       radial-gradient(circle at 82% 0%, color-mix(in srgb, var(--color-glitch) 12%, transparent), transparent 28%),
@@ -126,10 +128,10 @@
 
   .discord-presence-grid {
     position: relative;
-    z-index: 2;
+    z-index: 21;
     display: grid;
     gap: clamp(1rem, 2.4vw, 1.4rem);
-    padding: clamp(1rem, 2.4vw, 1.45rem);
+    padding: var(--discord-presence-grid-padding);
   }
 
   .discord-presence-profile,
@@ -161,6 +163,70 @@
     align-content: start;
     gap: 1rem;
     padding: clamp(1rem, 2.5vw, 1.35rem);
+    overflow: visible;
+    container-type: inline-size;
+    isolation: isolate;
+  }
+
+  .discord-presence-profile::after {
+    position: absolute;
+    inset: -1px;
+    z-index: 1;
+    content: "";
+    pointer-events: none;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 24%, transparent);
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent), transparent 42%),
+      rgba(2, 6, 4, 0.96);
+    box-shadow: inset 0 0 38px rgba(0, 0, 0, 0.35);
+  }
+
+  .discord-presence-profile::before {
+    z-index: 2;
+  }
+
+  .discord-presence-profile > :not(.discord-profile-frame) {
+    position: relative;
+    z-index: 3;
+  }
+
+  .discord-profile-frame {
+    position: absolute;
+    inset: 0;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .discord-profile-frame-mobile-bottom {
+    display: none;
+  }
+
+  .discord-profile-frame-layer {
+    position: absolute;
+    left: var(--discord-frame-left-offset);
+    width: var(--discord-frame-width);
+    height: auto;
+    max-width: none;
+    object-fit: contain;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .discord-profile-frame-layer.is-top {
+    /* Discord's native anchor plus one container-relative optical correction at every size. */
+    top: calc(var(--discord-frame-top-offset) - 4.3cqi);
+  }
+
+  .discord-profile-frame-layer.is-bottom {
+    bottom: calc(var(--discord-frame-bottom-offset) - 4cqi);
+  }
+
+  .discord-profile-frame-layer.is-back {
+    z-index: 0;
+  }
+
+  .discord-profile-frame-layer.is-front {
+    z-index: 6;
   }
 
   .discord-presence-led {
@@ -776,6 +842,7 @@
   .discord-streak-chip svg {
     animation: none;
   }
+
 }
 
 @media (max-width: 980px) {
@@ -788,6 +855,18 @@
     grid-template-columns: minmax(260px, 0.62fr) minmax(0, 1.38fr);
   }
 }
+
+/* The wider profile card at a full desktop viewport needs its own optical alignment. */
+@media (min-width: 1600px) {
+  .discord-profile-frame-layer.is-top {
+    top: calc(var(--discord-frame-top-offset) - 3.6cqi);
+  }
+
+  .discord-profile-frame-layer.is-bottom {
+    bottom: calc(var(--discord-frame-bottom-offset) - 2.9cqi);
+  }
+}
+
 @media (max-width: 640px) {
   .discord-presence-activity-head,
   .discord-presence-footer {

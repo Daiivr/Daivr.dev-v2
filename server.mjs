@@ -5,6 +5,7 @@ import { handleArcadeXpRequest } from "./server/arcade-xp.mjs";
 import { handleBuddyRequest } from "./server/buddy.mjs";
 import { handleCommentsRequest } from "./server/comments.mjs";
 import { handleCrossRoadRequest } from "./server/cross-road.mjs";
+import { handleDiscordProfileFrameRequest } from "./server/discord-profile-frame.mjs";
 import { handleDiscordStreakRequest } from "./server/discord-streak.mjs";
 import { handleMadraceRequest } from "./server/madrace.mjs";
 import { loadLocalEnv } from "./server/env.mjs";
@@ -113,6 +114,11 @@ const appServer = createServer(async (request, response) => {
 
     if (requestUrl.pathname === "/api/discord-streak") {
       await handleDiscordStreakRequest(request, response);
+      return;
+    }
+
+    if (requestUrl.pathname === "/api/discord-profile-frame") {
+      await handleDiscordProfileFrameRequest(request, response);
       return;
     }
 

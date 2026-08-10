@@ -2415,27 +2415,166 @@
   }
 
   @media (max-width: 760px) {
+    .entry-splash {
+      min-width: 0;
+      height: 100vh;
+      height: 100dvh;
+      min-height: 100svh;
+      padding:
+        max(0.5rem, env(safe-area-inset-top))
+        max(0.5rem, env(safe-area-inset-right))
+        max(0.5rem, env(safe-area-inset-bottom))
+        max(0.5rem, env(safe-area-inset-left));
+    }
+
+    .entry-splash-stage {
+      max-height: 100%;
+    }
+
     .entry-splash-gate {
       grid-template-columns: 1fr;
       grid-template-areas:
         "identity"
         "console"
         "actions";
-      max-height: calc(100vh - 2rem);
+      gap: clamp(0.6rem, 1.8dvh, 0.8rem);
+      max-height: 100%;
       overflow: auto;
+      overscroll-behavior: contain;
+      padding: clamp(0.7rem, 2.8vw, 0.9rem);
+      scrollbar-width: thin;
+      -webkit-overflow-scrolling: touch;
     }
 
     .entry-splash-id {
+      gap: clamp(0.7rem, 1.8dvh, 0.95rem);
       min-height: auto;
+      padding: 0.45rem;
     }
 
-    .entry-splash-identity,
+    .entry-splash-identity {
+      grid-template-columns: auto minmax(0, 1fr);
+      gap: clamp(0.65rem, 2.8vw, 0.9rem);
+    }
+
+    .entry-splash-avatar {
+      width: clamp(3.75rem, 18vw, 4.5rem);
+    }
+
+    .entry-splash-id p {
+      margin-top: 0.55rem;
+      font-size: clamp(0.76rem, 3.2vw, 0.9rem);
+      line-height: 1.48;
+    }
+
+    .entry-splash-tags {
+      gap: 0.4rem;
+    }
+
+    .entry-splash-tags span {
+      padding: 0.45rem 0.55rem;
+    }
+
+    .entry-splash-console {
+      min-height: clamp(10rem, 27dvh, 12.5rem);
+    }
+
+    .entry-splash-console > div {
+      gap: clamp(0.35rem, 1.1dvh, 0.5rem);
+      padding: 0.7rem;
+    }
+
     .entry-splash-actions {
       grid-template-columns: 1fr;
+      gap: 0.65rem;
+      padding-top: 0.7rem;
     }
 
     .entry-splash-actions button {
       justify-self: stretch;
+      min-height: 3rem;
+    }
+  }
+
+  @media (max-height: 560px) and (orientation: landscape) {
+    .entry-splash {
+      height: 100vh;
+      height: 100dvh;
+      padding:
+        max(0.5rem, env(safe-area-inset-top))
+        max(0.5rem, env(safe-area-inset-right))
+        max(0.5rem, env(safe-area-inset-bottom))
+        max(0.5rem, env(safe-area-inset-left));
+    }
+
+    .entry-splash-stage {
+      max-height: 100%;
+    }
+
+    .entry-splash-gate {
+      grid-template-columns: minmax(0, 1fr) minmax(230px, 0.72fr);
+      grid-template-areas:
+        "identity console"
+        "actions actions";
+      gap: 0.6rem;
+      max-height: 100%;
+      overflow: auto;
+      padding: 0.7rem;
+    }
+
+    .entry-splash-id {
+      gap: 0.6rem;
+      min-height: auto;
+      padding: 0.4rem;
+    }
+
+    .entry-splash-avatar {
+      width: 3.75rem;
+    }
+
+    .entry-splash-id p {
+      margin-top: 0.45rem;
+      font-size: 0.75rem;
+      line-height: 1.4;
+    }
+
+    .entry-splash-console {
+      min-height: min(15rem, calc(100dvh - 6.25rem));
+    }
+
+    .entry-splash-console > div {
+      gap: 0.35rem;
+      padding: 0.65rem;
+    }
+
+    .entry-splash-actions {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.65rem;
+      padding-top: 0.6rem;
+    }
+  }
+
+  @media (max-width: 760px) and (max-height: 620px) and (orientation: portrait) {
+    .entry-splash-gate {
+      gap: 0.5rem;
+    }
+
+    .entry-splash-id {
+      gap: 0.55rem;
+    }
+
+    .entry-splash-console header {
+      padding: 0.55rem 0.7rem;
+    }
+
+    .entry-splash-console > div {
+      gap: 0.25rem;
+      padding: 0.55rem 0.7rem;
+    }
+
+    .entry-splash-actions {
+      gap: 0.45rem;
+      padding-top: 0.5rem;
     }
   }
 

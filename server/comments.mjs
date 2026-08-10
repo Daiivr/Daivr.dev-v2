@@ -831,7 +831,10 @@ function pickGifRendition(images) {
 function pickKlipyFileUrl(file) {
   if (!file || typeof file !== "object") return "";
 
-  for (const size of ["md", "sm", "xs", "hd"]) {
+  // Comment media tops out at 330px, so prefer the smaller animated rendition.
+  // Existing comments keep their saved URL; newly attached GIFs avoid the
+  // unnecessary transfer and decode cost of Klipy's medium/HD files.
+  for (const size of ["sm", "md", "xs", "hd"]) {
     const url = sanitizeGifUrl(file[size]?.gif?.url);
     if (url) return url;
   }

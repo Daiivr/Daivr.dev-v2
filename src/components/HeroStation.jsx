@@ -48,7 +48,7 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
             <span className="status-chip" key={item}>{item}</span>
           ))}
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className="hero-actions flex flex-wrap gap-3">
           <ArcadeButton variant="primary" onClick={onRun} data-run-build>
             <Play size={18} aria-hidden="true" />
             {isLaunching ? "Running..." : hasRun ? "Dai.exe Online" : "Run Dai.exe"}

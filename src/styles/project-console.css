@@ -182,9 +182,9 @@
     --project-secondary: var(--color-glitch);
   }
 
-  .project-card-fallout {
-    --project-accent: var(--color-phosphor);
-    --project-secondary: var(--color-cabinet);
+  .project-card-palwatch {
+    --project-accent: var(--color-cyan-arcade);
+    --project-secondary: var(--color-phosphor);
   }
 
   .project-card::after {
@@ -279,10 +279,10 @@
     box-shadow: 0 0 10px color-mix(in srgb, var(--project-secondary) 28%, transparent);
   }
 
-  .project-card-fallout .project-card-media {
+  .project-card-palwatch .project-card-media {
     background:
-      linear-gradient(180deg, rgba(2, 8, 6, 0.08), rgba(2, 6, 4, 0.88)),
-      radial-gradient(circle at 52% 42%, color-mix(in srgb, var(--color-cabinet) 22%, transparent), transparent 58%),
+      linear-gradient(180deg, rgba(2, 8, 6, 0.06), rgba(2, 6, 4, 0.9)),
+      radial-gradient(circle at 52% 42%, color-mix(in srgb, var(--color-cyan-arcade) 22%, transparent), transparent 58%),
       rgba(2, 6, 4, 0.96);
   }
 
@@ -369,16 +369,18 @@
     transform: translateY(-2px) scale(1.02);
   }
 
-  .project-card-fallout .project-card-logo {
+  .project-card-palwatch .project-card-logo {
     inset: 2.55rem 0.9rem 5.35rem;
     width: calc(100% - 1.8rem);
     height: calc(100% - 7.9rem);
     opacity: 0.94;
     transform: translateY(-2px) scale(1.02);
+    object-fit: contain;
+    object-position: center;
     filter:
-      saturate(0.78)
+      saturate(0.9)
       contrast(1.08)
-      drop-shadow(0 0 22px color-mix(in srgb, var(--color-cabinet) 24%, transparent));
+      drop-shadow(0 0 22px color-mix(in srgb, var(--color-cyan-arcade) 24%, transparent));
   }
 
   .project-card:hover .project-card-logo {
@@ -388,12 +390,12 @@
       drop-shadow(0 0 36px color-mix(in srgb, var(--color-glitch) 22%, transparent));
   }
 
-  .project-card-fallout:hover .project-card-logo {
+  .project-card-palwatch:hover .project-card-logo {
     transform: translateY(-4px) scale(1.06);
     filter:
-      saturate(0.92)
+      saturate(1)
       contrast(1.12)
-      drop-shadow(0 0 28px color-mix(in srgb, var(--color-cabinet) 34%, transparent));
+      drop-shadow(0 0 28px color-mix(in srgb, var(--color-cyan-arcade) 34%, transparent));
   }
 
   .project-card-emblem {
@@ -409,7 +411,7 @@
       drop-shadow(0 0 26px color-mix(in srgb, var(--color-cabinet) 18%, transparent));
   }
 
-  .project-card-fallout .project-card-emblem {
+  .project-card-palwatch .project-card-emblem {
     top: 39%;
   }
 
@@ -1642,7 +1644,7 @@
     height: calc(100% - 8.4rem);
   }
 
-  .project-card-fallout .project-card-logo {
+  .project-card-palwatch .project-card-logo {
     inset: 2.7rem 0.8rem 5.5rem;
     width: calc(100% - 1.6rem);
     height: calc(100% - 8.2rem);

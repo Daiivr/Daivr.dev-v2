@@ -57,7 +57,9 @@ function getDetectionsFromStats(stats) {
 function getVirusTotalState(project, scanData) {
   if (scanData?.error || scanData?.status === "error") return "flagged";
   if (scanData?.status && scanData.status !== "done") return "scanning";
-  if (scanData?.vt?.status === "pending" || scanData?.scan?.status === "pending") return "scanning";
+  const lookupStatus = scanData?.vt?.status || scanData?.scan?.status;
+  if (lookupStatus === "pending") return "scanning";
+  if (["not-scanned", "unavailable"].includes(lookupStatus)) return "unavailable";
 
   const stats = scanData?.vt?.stats || scanData?.scan?.stats || null;
   const detections = getDetectionsFromStats(stats);
@@ -84,6 +86,13 @@ function getVirusTotalBadge(project, scanData) {
   if (!state) return null;
 
   if (state === "scanning") return { className: "is-scanning", label: "VT scanning" };
+  if (state === "unavailable") {
+    const reason = scanData?.vt?.reason || scanData?.scan?.reason;
+    return {
+      className: "is-scanning",
+      label: reason === "hash-not-indexed" ? "VT not indexed" : "VT unavailable"
+    };
+  }
   if (state === "flagged") return { className: "is-flagged", label: "VT flagged" };
   if (state === "false-positive") return { className: "is-false-positive", label: "False positive" };
   return { className: "is-clean", label: "VT clean" };
@@ -371,7 +380,7 @@ function ProjectConsole() {
 
     async function loadTradeDexInfo() {
       try {
-        const response = await fetch(TRADEDEX_INFO_ENDPOINT, { cache: "no-store" });
+        const response = await fetch(TRADEDEX_INFO_ENDPOINT);
         if (!response.ok) return;
         const data = await response.json();
         if (!cancelled) setProjectScanInfo((current) => ({ ...current, TradeDex: data }));
@@ -627,7 +636,7 @@ function buildDownloadGateView(project, scanData, scanError) {
   const detections = getDetectionsFromStats(stats);
   const isPending = scanData?.status && scanData.status !== "done";
   const vtPending = vt?.status === "pending";
-  const assetName = scanData?.asset?.name || "TradeDex_1.9.1.exe";
+  const assetName = scanData?.asset?.name || "TradeDex_1.10.exe";
   const assetSize = formatBytes(scanData?.asset?.size) || modal.asset;
   const shaLabel = shortHash(scanData?.sha256) || modal.sha;
   const engines = stats?.total ? `${stats.total} engines` : modal.engines;
@@ -637,11 +646,22 @@ function buildDownloadGateView(project, scanData, scanError) {
       : modal.progress
   );
   const state = getVirusTotalState(project, scanData);
+  const vtUnavailable = ["not-scanned", "unavailable"].includes(vt?.status);
   const statsDetail = stats
     ? `engines ${stats.total} · clean ${(stats.harmless || 0) + (stats.undetected || 0)} · susp ${stats.suspicious || 0} · mal ${stats.malicious || 0}`
     : vtPending
       ? "analysis queued in VirusTotal"
-      : null;
+      : vtUnavailable
+        ? vt?.reason === "missing-github-digest"
+          ? "GitHub did not publish a SHA-256 digest for this asset"
+          : vt?.reason === "hash-not-indexed"
+            ? "release digest is not indexed by VirusTotal yet"
+            : vt?.reason === "analysis-missing"
+              ? "VirusTotal has no completed engine summary for this digest"
+            : vt?.reason === "missing-vt-key"
+                ? "VirusTotal lookup is not configured on this server"
+                : "VirusTotal lookup is temporarily unavailable"
+        : null;
 
   let verdict = modal.verdict;
   let status = modal.status;
@@ -660,6 +680,13 @@ function buildDownloadGateView(project, scanData, scanError) {
   } else if (state === "clean") {
     verdict = "CLEAN";
     status = "gate open";
+  } else if (state === "unavailable") {
+    verdict = "NO REPORT";
+    status = vt?.reason === "hash-not-indexed"
+      ? "hash not indexed"
+      : vt?.reason === "missing-github-digest"
+        ? "digest unavailable"
+        : "lookup unavailable";
   }
 
   return {
@@ -689,13 +716,13 @@ function DownloadGate({ project, scanData, scanError }) {
     { type: "command", label: "init scanner", state: scanData ? "OK" : ".." },
     {
       type: "command",
-      label: "pull asset",
+      label: "resolve asset metadata",
       state: scanData?.asset ? "OK" : ".."
     },
     ...(scanData?.asset ? [{ type: "detail", detail: `${view.assetName} · ${view.asset}` }] : []),
     {
       type: "command",
-      label: "compute sha-256",
+      label: "read GitHub sha-256",
       state: scanData?.sha256 ? "OK" : ".."
     },
     ...(scanData?.sha256 ? [{ type: "detail", detail: view.sha }] : []),
@@ -704,7 +731,6 @@ function DownloadGate({ project, scanData, scanError }) {
       label: "query virustotal",
       state: scanData?.vt || scanData?.status === "error" ? (scanData?.status === "error" ? "ERR" : "OK") : ".."
     },
-    ...(view.submitted ? [{ type: "command", label: "upload sample", state: "OK" }] : []),
     ...(view.statsDetail ? [{ type: "detail", detail: view.statsDetail }] : []),
     ...(scanError || scanData?.status === "error" || (scanData?.status === "done" && view.state !== "scanning")
       ? [{ type: "verdict", tone: view.state, detail: `verdict · ${view.verdict.toLowerCase()} — ${view.status}` }]
@@ -807,7 +833,13 @@ function LiveSitePanel({ project }) {
       <div className="project-site-grid">
         <div className="project-site-preview">
           <span className="project-card-grid" aria-hidden="true" />
-          <img src={project.image} alt="" loading="eager" decoding="async" fetchPriority="high" />
+          <img
+            src={modal.previewImage || project.image}
+            alt={`${project.title} interface preview`}
+            loading="eager"
+            decoding="async"
+            fetchPriority="high"
+          />
           {project.icon ? <img className="project-site-emblem" src={project.icon} alt="" aria-hidden="true" /> : null}
         </div>
         <div className="project-site-copy">
