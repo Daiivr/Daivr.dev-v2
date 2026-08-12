@@ -348,6 +348,42 @@
     --patch-accent: var(--color-danger-arcade);
   }
 
+  .patch-entry-read-more {
+    display: inline-flex;
+    min-height: 2.6rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 0.85rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 40%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 11%, transparent), transparent),
+      rgba(2, 6, 4, 0.72);
+    padding: 0.55rem 0.75rem;
+    color: var(--color-cyan-arcade);
+    font-size: 0.62rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition:
+      border-color 160ms ease,
+      background 160ms ease,
+      color 160ms ease,
+      transform 160ms ease;
+  }
+
+  .patch-entry-read-more:hover,
+  .patch-entry-read-more:focus-visible {
+    border-color: color-mix(in srgb, var(--color-phosphor) 65%, transparent);
+    background: color-mix(in srgb, var(--color-phosphor) 12%, rgba(2, 6, 4, 0.72));
+    color: var(--color-phosphor);
+    box-shadow: 0 0 18px color-mix(in srgb, var(--color-phosphor) 10%, transparent);
+  }
+
+  .patch-entry-read-more:hover {
+    transform: translateY(-1px);
+  }
+
   .patch-console-readout {
     position: relative;
     z-index: 1;
@@ -405,6 +441,7 @@
   @media (prefers-reduced-motion: reduce) {
     .patch-page-arrow,
     .patch-page-button,
+    .patch-entry-read-more,
     .patch-console-titlebar strong span,
     .patch-entry.is-latest .patch-entry-node,
     .patch-entry-badge {

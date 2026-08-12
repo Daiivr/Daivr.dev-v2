@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
-import { ChevronLeft, ChevronRight, FileClock } from "lucide-react";
+import { BookOpenText, ChevronDown, ChevronLeft, ChevronRight, ChevronUp, FileClock } from "lucide-react";
 import { patchNotes } from "../data/site";
 
 const PATCHES_PER_PAGE = 3;
+const PATCH_ENTRY_PREVIEW_LIMIT = 4;
 
 const PATCH_LABELS = {
   new: "new drop",
@@ -20,6 +21,7 @@ function formatPatchDate(date) {
 export function PatchNotes() {
   const [latest] = patchNotes;
   const [activePage, setActivePage] = useState(0);
+  const [expandedPatches, setExpandedPatches] = useState(() => new Set());
   const pageCount = Math.ceil(patchNotes.length / PATCHES_PER_PAGE);
   const pageStart = activePage * PATCHES_PER_PAGE;
   const visiblePatches = useMemo(
@@ -29,6 +31,17 @@ export function PatchNotes() {
 
   const goToPage = (page) => {
     setActivePage(Math.min(Math.max(page, 0), pageCount - 1));
+  };
+
+  const togglePatchEntries = (version) => {
+    setExpandedPatches((current) => {
+      const next = new Set(current);
+
+      if (next.has(version)) next.delete(version);
+      else next.add(version);
+
+      return next;
+    });
   };
 
   return (
@@ -94,6 +107,10 @@ export function PatchNotes() {
       <ol className="patch-console-list">
         {visiblePatches.map((patch, index) => {
           const patchIndex = pageStart + index;
+          const isExpanded = expandedPatches.has(patch.version);
+          const hiddenEntryCount = Math.max(patch.entries.length - PATCH_ENTRY_PREVIEW_LIMIT, 0);
+          const visibleEntries = isExpanded ? patch.entries : patch.entries.slice(0, PATCH_ENTRY_PREVIEW_LIMIT);
+          const changesId = `patch-changes-${patch.version.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}`;
 
           return (
             <li className={`patch-entry ${patchIndex === 0 ? "is-latest" : ""}`} key={patch.version}>
@@ -107,14 +124,27 @@ export function PatchNotes() {
                 <time dateTime={patch.date || undefined}>{formatPatchDate(patch.date)}</time>
               </header>
               {patch.summary ? <p className="patch-entry-summary">{patch.summary}</p> : null}
-              <ul className="patch-entry-changes">
-                {patch.entries.map(([type, text], entryIndex) => (
+              <ul className="patch-entry-changes" id={changesId}>
+                {visibleEntries.map(([type, text], entryIndex) => (
                   <li key={entryIndex}>
                     <span className={`patch-chip is-${type}`}>{PATCH_LABELS[type] || type}</span>
                     <p>{text}</p>
                   </li>
                 ))}
               </ul>
+              {hiddenEntryCount > 0 ? (
+                <button
+                  className="patch-entry-read-more"
+                  type="button"
+                  onClick={() => togglePatchEntries(patch.version)}
+                  aria-expanded={isExpanded}
+                  aria-controls={changesId}
+                >
+                  <BookOpenText size={14} aria-hidden="true" />
+                  <span>{isExpanded ? "show less" : `read full log (+${hiddenEntryCount})`}</span>
+                  {isExpanded ? <ChevronUp size={14} aria-hidden="true" /> : <ChevronDown size={14} aria-hidden="true" />}
+                </button>
+              ) : null}
             </li>
           );
         })}

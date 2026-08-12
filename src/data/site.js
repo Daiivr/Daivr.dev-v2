@@ -347,6 +347,7 @@ export const patchNotes = [
       ["fix", "At full desktop width, Discord's straight side bars remain visible across the profile card and are clipped only where they extend below the bottom decorative panel."],
       ["fix", "The heart-accented side ornaments now sit slightly higher on both sides of the full-desktop Discord profile frame without shifting the straight bars or other frame panels."],
       ["buff", "The Discord custom-status row is now centered, and its Loading state uses three independently pulsing dots with an accessible reduced-motion fallback."],
+      ["buff", "PATCH.LOG versions now open as four-entry release previews, with an accessible read-full-log control that reveals the remaining notes and collapses them again on demand."],
       ["fix", "The frame-boundary toggle now sits at the far-right end of the discord.presence title bar instead of floating inside the profile card."],
       ["fix", "The discord.presence path is now mathematically centered in the title bar between grouped status lights and the admin frame control, keeping it clear of overflowing profile decorations."]
     ]
