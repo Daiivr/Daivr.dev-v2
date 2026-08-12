@@ -486,14 +486,20 @@ export function DiscordPresencePanel() {
               profileFrameOverflow && "is-active"
             )}
             type="button"
+            role="switch"
             aria-label={profileFrameOverflow ? "Contain profile frame inside the presence card" : "Allow profile frame outside the presence card"}
-            aria-pressed={profileFrameOverflow}
+            aria-checked={profileFrameOverflow}
             data-tooltip={profileFrameOverflow ? "Contain profile frame" : "Allow profile frame overflow"}
             disabled={profileFrameOverflowBusy}
             onClick={toggleProfileFrameOverflow}
           >
-            {profileFrameOverflow ? <Maximize2 size={13} aria-hidden="true" /> : <Minimize2 size={13} aria-hidden="true" />}
-            <span>{profileFrameOverflow ? "FRAME OUT" : "FRAME IN"}</span>
+            <span className="discord-frame-toggle-label is-in" aria-hidden="true">IN</span>
+            <span className="discord-frame-toggle-track" aria-hidden="true">
+              <span className="discord-frame-toggle-thumb">
+                {profileFrameOverflow ? <Maximize2 size={12} /> : <Minimize2 size={12} />}
+              </span>
+            </span>
+            <span className="discord-frame-toggle-label is-out" aria-hidden="true">OUT</span>
           </button>
         ) : null}
       </div>
