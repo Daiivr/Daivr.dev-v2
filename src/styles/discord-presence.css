@@ -55,6 +55,10 @@
     background-size: auto, auto, 100% 5px, auto;
   }
 
+  .discord-presence-shell.is-frame-contained {
+    overflow: hidden;
+  }
+
   .discord-presence-shell::before,
   .discord-presence-shell::after {
     position: absolute;
@@ -233,6 +237,50 @@
     width: 9px;
     height: 9px;
     box-shadow: 0 0 16px currentColor;
+  }
+
+  .discord-frame-overflow-toggle {
+    position: absolute;
+    top: -1rem;
+    right: -1rem;
+    z-index: 8;
+    display: inline-grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border: 0;
+    background: transparent;
+    color: var(--color-danger-arcade);
+    cursor: pointer;
+  }
+
+  .discord-frame-overflow-toggle::before {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border: 1px solid currentColor;
+    content: "";
+    background: color-mix(in srgb, currentColor 14%, #020604);
+    box-shadow: 0 0 12px color-mix(in srgb, currentColor 36%, transparent);
+  }
+
+  .discord-frame-overflow-toggle svg {
+    position: relative;
+    z-index: 1;
+  }
+
+  .discord-frame-overflow-toggle.is-active {
+    color: var(--color-phosphor);
+  }
+
+  .discord-frame-overflow-toggle:hover::before,
+  .discord-frame-overflow-toggle:focus-visible::before {
+    background: color-mix(in srgb, currentColor 28%, #020604);
+  }
+
+  .discord-frame-overflow-toggle:disabled {
+    cursor: wait;
+    opacity: 0.55;
   }
 
   .discord-presence-avatar {

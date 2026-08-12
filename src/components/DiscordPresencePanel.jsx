@@ -1,4 +1,4 @@
-import { Activity, Gamepad2, Headphones, Radio, Users, WifiOff, Zap } from "lucide-react";
+import { Activity, Gamepad2, Headphones, Maximize2, Minimize2, Radio, Users, WifiOff, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { discord, profile } from "../data/site";
@@ -251,6 +251,9 @@ export function DiscordPresencePanel() {
   const [badgeTooltip, setBadgeTooltip] = useState(null);
   const [now, setNow] = useState(Date.now());
   const [profileFrame, setProfileFrame] = useState(null);
+  const [profileFrameOverflow, setProfileFrameOverflow] = useState(true);
+  const [profileFrameOverflowAdmin, setProfileFrameOverflowAdmin] = useState(false);
+  const [profileFrameOverflowBusy, setProfileFrameOverflowBusy] = useState(false);
   const [streak, setStreak] = useState(null);
   const user = presence?.discord_user;
   const displayName = getDiscordDisplayName(user);
@@ -300,6 +303,34 @@ export function DiscordPresencePanel() {
     }
 
     loadProfileFrame();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadProfileFramePreference() {
+      try {
+        const response = await fetch("/api/comments/preferences", {
+          cache: "no-store",
+          credentials: "include"
+        });
+        if (!response.ok) throw new Error(`Profile frame preference returned ${response.status}`);
+
+        const payload = await response.json();
+        if (!cancelled) {
+          setProfileFrameOverflow(payload.profileFrameOverflow !== false);
+          setProfileFrameOverflowAdmin(payload.canEditProfileFrameOverflow === true);
+        }
+      } catch {
+        if (!cancelled) setProfileFrameOverflowAdmin(false);
+      }
+    }
+
+    loadProfileFramePreference();
 
     return () => {
       cancelled = true;
@@ -391,6 +422,32 @@ export function DiscordPresencePanel() {
     setBadgeTooltip(null);
   }
 
+  async function toggleProfileFrameOverflow() {
+    if (!profileFrameOverflowAdmin || profileFrameOverflowBusy) return;
+
+    const nextValue = !profileFrameOverflow;
+    setProfileFrameOverflow(nextValue);
+    setProfileFrameOverflowBusy(true);
+
+    try {
+      const response = await fetch("/api/comments/preferences", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profileFrameOverflow: nextValue })
+      });
+      if (!response.ok) throw new Error(`Profile frame preference returned ${response.status}`);
+
+      const payload = await response.json();
+      setProfileFrameOverflow(payload.profileFrameOverflow !== false);
+      setProfileFrameOverflowAdmin(payload.canEditProfileFrameOverflow === true);
+    } catch {
+      setProfileFrameOverflow(!nextValue);
+    } finally {
+      setProfileFrameOverflowBusy(false);
+    }
+  }
+
   useEffect(() => {
     if (!badgeTooltip) return undefined;
 
@@ -408,7 +465,13 @@ export function DiscordPresencePanel() {
   }, [badgeTooltip]);
 
   return (
-    <section className="discord-presence-shell panel-strong" aria-label="Discord presence">
+    <section
+      className={cn(
+        "discord-presence-shell panel-strong",
+        profileFrameOverflow ? "is-frame-overflowing" : "is-frame-contained"
+      )}
+      aria-label="Discord presence"
+    >
       <div className="discord-presence-titlebar">
         <span />
         <span />
@@ -422,7 +485,24 @@ export function DiscordPresencePanel() {
 
           <div className="flex items-center justify-between gap-3">
             <p className="pixel-label">DISCORD.PRESENCE</p>
-            <span className={cn("discord-presence-led", status.colorClass)} aria-hidden="true" />
+            {profileFrameOverflowAdmin ? (
+              <button
+                className={cn(
+                  "discord-frame-overflow-toggle arcade-focus has-tooltip",
+                  profileFrameOverflow && "is-active"
+                )}
+                type="button"
+                aria-label={profileFrameOverflow ? "Contain profile frame inside the presence card" : "Allow profile frame outside the presence card"}
+                aria-pressed={profileFrameOverflow}
+                data-tooltip={profileFrameOverflow ? "Contain profile frame" : "Allow profile frame overflow"}
+                disabled={profileFrameOverflowBusy}
+                onClick={toggleProfileFrameOverflow}
+              >
+                {profileFrameOverflow ? <Maximize2 size={13} aria-hidden="true" /> : <Minimize2 size={13} aria-hidden="true" />}
+              </button>
+            ) : (
+              <span className={cn("discord-presence-led", status.colorClass)} aria-hidden="true" />
+            )}
           </div>
 
           <a className={cn("discord-presence-avatar arcade-focus", statusKey === "offline" && "is-offline")} href={discord.profileUrl} rel="noreferrer" target="_blank">

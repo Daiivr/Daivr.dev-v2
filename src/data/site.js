@@ -330,6 +330,15 @@ export const stack = [
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.14.0",
+    codename: "FRAME CONTROL",
+    date: "2026-08-11",
+    summary: "Discord profile-frame boundaries are now under authenticated cabinet control, allowing the live presence decoration to switch cleanly between full overflow and contained presentation.",
+    entries: [
+      ["new", "Discord admins now get a persistent profile-frame boundary toggle in the presence card: it can either preserve Discord's full decorative overflow or clip the frame cleanly at the card edge for every visitor."]
+    ]
+  },
+  {
     version: "v2.13.0",
     codename: "POCKET CABINET",
     date: "2026-08-10",

@@ -177,11 +177,13 @@ function writePreferences(preferences) {
 }
 
 function getUserPreferences(user) {
-  if (!user) return { theme: "" };
   const preferences = readPreferences();
-  const entry = preferences[String(user.id)] || {};
+  const sitePreferences = preferences.__site || {};
+  const entry = user ? preferences[String(user.id)] || {} : {};
   return {
-    theme: THEME_VALUES.has(entry.theme) ? entry.theme : ""
+    canEditProfileFrameOverflow: !!user?.isAdmin,
+    profileFrameOverflow: sitePreferences.profileFrameOverflow !== false,
+    theme: user && THEME_VALUES.has(entry.theme) ? entry.theme : ""
   };
 }
 
@@ -933,20 +935,47 @@ async function handlePreferences(request, response) {
   }
 
   const body = await readBody(request);
+  const hasTheme = Object.prototype.hasOwnProperty.call(body, "theme");
+  const hasProfileFrameOverflow = Object.prototype.hasOwnProperty.call(body, "profileFrameOverflow");
+
+  if (!hasTheme && !hasProfileFrameOverflow) {
+    sendJson(response, 400, { error: "No supported preference was provided." });
+    return;
+  }
+
   const theme = String(body.theme || "").trim().toLowerCase();
-  if (!THEME_VALUES.has(theme)) {
+  if (hasTheme && !THEME_VALUES.has(theme)) {
     sendJson(response, 400, { error: "Theme preference is not valid." });
     return;
   }
 
+  if (hasProfileFrameOverflow && !user.isAdmin) {
+    sendJson(response, 403, { error: "Only admins can change the Discord profile-frame boundary." });
+    return;
+  }
+
   const preferences = readPreferences();
-  preferences[String(user.id)] = {
-    ...(preferences[String(user.id)] || {}),
-    theme,
-    updatedAt: new Date().toISOString()
-  };
+  const updatedAt = new Date().toISOString();
+
+  if (hasTheme) {
+    preferences[String(user.id)] = {
+      ...(preferences[String(user.id)] || {}),
+      theme,
+      updatedAt
+    };
+  }
+
+  if (hasProfileFrameOverflow) {
+    preferences.__site = {
+      ...(preferences.__site || {}),
+      profileFrameOverflow: body.profileFrameOverflow === true,
+      profileFrameOverflowUpdatedBy: String(user.id),
+      updatedAt
+    };
+  }
+
   writePreferences(preferences);
-  sendJson(response, 200, { theme });
+  sendJson(response, 200, getUserPreferences(user));
 }
 
 function handleTyping(request, response) {
