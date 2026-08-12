@@ -90,13 +90,21 @@
   .discord-presence-titlebar {
     position: relative;
     z-index: 2;
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     min-height: 42px;
     align-items: center;
     gap: 0.55rem;
     border-bottom: 1px solid color-mix(in srgb, var(--color-phosphor) 20%, transparent);
     background: rgba(2, 6, 4, 0.76);
     padding-inline: 1rem;
+  }
+
+  .discord-presence-titlebar-lights {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    justify-self: start;
   }
 
   .theme-glitch .discord-presence-shell::after {
@@ -109,25 +117,27 @@
     filter: drop-shadow(0 0 12px color-mix(in srgb, var(--color-phosphor) 34%, transparent));
   }
 
-  .discord-presence-titlebar span {
+  .discord-presence-titlebar-lights span {
     width: 6px;
     height: 6px;
     background: var(--color-cabinet);
   }
 
-  .discord-presence-titlebar span:first-child {
+  .discord-presence-titlebar-lights span:first-child {
     background: var(--color-danger-arcade);
   }
 
-  .discord-presence-titlebar span:last-of-type {
+  .discord-presence-titlebar-lights span:last-child {
     background: var(--color-phosphor);
   }
 
   .discord-presence-titlebar code {
-    margin-left: 0.5rem;
+    grid-column: 2;
+    justify-self: center;
     color: var(--color-phosphor-soft);
     font-size: 0.7rem;
     font-weight: 900;
+    white-space: nowrap;
   }
 
   .discord-presence-grid {
@@ -240,17 +250,17 @@
   }
 
   .discord-frame-overflow-toggle {
-    position: absolute;
-    top: -0.8rem;
-    right: -0.8rem;
-    z-index: 8;
+    position: relative;
+    z-index: 3;
     display: inline-flex;
     width: auto;
     min-width: 108px;
-    height: 44px;
+    min-height: 32px;
     align-items: center;
     justify-content: center;
     gap: 0.4rem;
+    grid-column: 3;
+    justify-self: end;
     border: 1px solid currentColor;
     background: rgba(2, 6, 4, 0.96);
     padding: 0.4rem 0.55rem;
@@ -259,6 +269,12 @@
       inset 0 0 14px color-mix(in srgb, currentColor 10%, transparent),
       0 0 14px color-mix(in srgb, currentColor 28%, transparent);
     cursor: pointer;
+  }
+
+  .discord-frame-overflow-toggle::after {
+    position: absolute;
+    inset: -6px 0;
+    content: "";
   }
 
   .discord-frame-overflow-toggle span {

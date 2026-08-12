@@ -473,10 +473,29 @@ export function DiscordPresencePanel() {
       aria-label="Discord presence"
     >
       <div className="discord-presence-titlebar">
-        <span />
-        <span />
-        <span />
+        <div className="discord-presence-titlebar-lights" aria-hidden="true">
+          <span />
+          <span />
+          <span />
+        </div>
         <code>~/daivr/discord.presence</code>
+        {profileFrameOverflowAdmin ? (
+          <button
+            className={cn(
+              "discord-frame-overflow-toggle arcade-focus has-tooltip",
+              profileFrameOverflow && "is-active"
+            )}
+            type="button"
+            aria-label={profileFrameOverflow ? "Contain profile frame inside the presence card" : "Allow profile frame outside the presence card"}
+            aria-pressed={profileFrameOverflow}
+            data-tooltip={profileFrameOverflow ? "Contain profile frame" : "Allow profile frame overflow"}
+            disabled={profileFrameOverflowBusy}
+            onClick={toggleProfileFrameOverflow}
+          >
+            {profileFrameOverflow ? <Maximize2 size={13} aria-hidden="true" /> : <Minimize2 size={13} aria-hidden="true" />}
+            <span>{profileFrameOverflow ? "FRAME OUT" : "FRAME IN"}</span>
+          </button>
+        ) : null}
       </div>
 
       <div className="discord-presence-grid">
@@ -485,25 +504,7 @@ export function DiscordPresencePanel() {
 
           <div className="flex items-center justify-between gap-3">
             <p className="pixel-label">DISCORD.PRESENCE</p>
-            {profileFrameOverflowAdmin ? (
-              <button
-                className={cn(
-                  "discord-frame-overflow-toggle arcade-focus has-tooltip",
-                  profileFrameOverflow && "is-active"
-                )}
-                type="button"
-                aria-label={profileFrameOverflow ? "Contain profile frame inside the presence card" : "Allow profile frame outside the presence card"}
-                aria-pressed={profileFrameOverflow}
-                data-tooltip={profileFrameOverflow ? "Contain profile frame" : "Allow profile frame overflow"}
-                disabled={profileFrameOverflowBusy}
-                onClick={toggleProfileFrameOverflow}
-              >
-                {profileFrameOverflow ? <Maximize2 size={13} aria-hidden="true" /> : <Minimize2 size={13} aria-hidden="true" />}
-                <span>{profileFrameOverflow ? "FRAME OUT" : "FRAME IN"}</span>
-              </button>
-            ) : (
-              <span className={cn("discord-presence-led", status.colorClass)} aria-hidden="true" />
-            )}
+            <span className={cn("discord-presence-led", status.colorClass)} aria-hidden="true" />
           </div>
 
           <a className={cn("discord-presence-avatar arcade-focus", statusKey === "offline" && "is-offline")} href={discord.profileUrl} rel="noreferrer" target="_blank">
