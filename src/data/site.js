@@ -339,6 +339,14 @@ export const patchNotes = [
       ["fix", "On mobile, the upper profile card now owns the higher stacking layer so its overflowing frame rails remain visible over the Activity Stream card instead of being painted underneath it."],
       ["fix", "The admin frame-boundary control now has a solid cabinet surface and a clear containment state instead of appearing as an easy-to-miss decorative arrow icon."],
       ["buff", "The admin frame control is now a proper arcade-styled switch with clearly marked IN and OUT positions, a responsive sliding thumb, accessible switch semantics, and reduced-motion support."],
+      ["buff", "Mobile Discord presence now shows one focused activity at a time, prioritizing an active game over Spotify and using Spotify only when no game is running; desktop keeps the full activity stream."],
+      ["fix", "The mobile Activity Stream now collapses around its single focused card instead of reserving desktop-height empty space, and its active-count badge sits beside the activity heading."],
+      ["fix", "The mobile Discord cabinet now gives its decorative bottom frame a cleaner buffer by extending the outer shell border below it without moving the approved frame alignment."],
+      ["fix", "Mobile frame alignment now leaves Discord's curly rail ornament at its native position and applies a measured micro-adjustment only to the straight border bars so they meet the lower frame corners cleanly."],
+      ["fix", "Mobile Spotify and game source labels now sit in the activity card's top-right corner, with reserved title space and no extra label row beneath the activity details."],
+      ["fix", "At full desktop width, Discord's straight side bars remain visible across the profile card and are clipped only where they extend below the bottom decorative panel."],
+      ["fix", "The heart-accented side ornaments now sit slightly higher on both sides of the full-desktop Discord profile frame without shifting the straight bars or other frame panels."],
+      ["buff", "The Discord custom-status row is now centered, and its Loading state uses three independently pulsing dots with an accessible reduced-motion fallback."],
       ["fix", "The frame-boundary toggle now sits at the far-right end of the discord.presence title bar instead of floating inside the profile card."],
       ["fix", "The discord.presence path is now mathematically centered in the title bar between grouped status lights and the admin frame control, keeping it clear of overflowing profile decorations."]
     ]

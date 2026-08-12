@@ -215,6 +215,10 @@
     display: none;
   }
 
+  .discord-profile-frame-bottom-clip {
+    display: contents;
+  }
+
   .discord-profile-frame-layer {
     position: absolute;
     left: var(--discord-frame-left-offset);
@@ -470,11 +474,13 @@
     display: flex;
     min-width: 0;
     align-items: center;
+    justify-content: center;
     gap: 0.6rem;
     padding: 0.8rem 0.85rem;
     color: var(--color-phosphor-soft);
     font-size: 0.82rem;
     font-weight: 900;
+    text-align: center;
   }
 
   .discord-presence-custom img {
@@ -488,6 +494,37 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .discord-presence-custom .discord-loading-label {
+    display: inline-flex;
+    overflow: visible;
+    align-items: baseline;
+    text-overflow: clip;
+  }
+
+  .discord-presence-custom .discord-loading-dots {
+    display: inline-flex;
+    width: 1.45em;
+    overflow: visible;
+    justify-content: space-between;
+    margin-left: 0.05em;
+  }
+
+  .discord-loading-dots i {
+    display: inline-block;
+    font-style: normal;
+    opacity: 0.24;
+    transform: translateY(0);
+    animation: discord-loading-dot 1.05s ease-in-out infinite;
+  }
+
+  .discord-loading-dots i:nth-child(2) {
+    animation-delay: 0.16s;
+  }
+
+  .discord-loading-dots i:nth-child(3) {
+    animation-delay: 0.32s;
   }
 
   .discord-presence-badges {
@@ -946,6 +983,20 @@
   }
 }
 
+@keyframes discord-loading-dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.24;
+    transform: translateY(0);
+  }
+
+  30% {
+    opacity: 1;
+    transform: translateY(-0.18em);
+  }
+}
+
 @keyframes discord-streak-flicker {
   0%,
   100% {
@@ -970,6 +1021,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .discord-loading-dots i {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
   .discord-streak-chip svg {
     animation: none;
   }
@@ -994,6 +1051,20 @@
 
 /* The wider profile card at a full desktop viewport needs its own optical alignment. */
 @media (min-width: 1600px) {
+  .discord-profile-frame-profile .discord-profile-frame-bottom-clip {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    display: block;
+    overflow: visible;
+    clip-path: inset(-100vmax -100vmax 0 -100vmax);
+    pointer-events: none;
+  }
+
+  .discord-profile-frame-profile .discord-profile-frame-layer.is-rail {
+    transform: translateY(-25px);
+  }
+
   .discord-profile-frame-layer.is-top {
     top: calc(var(--discord-frame-top-offset) - 3.6cqi);
   }

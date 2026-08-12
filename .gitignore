@@ -11,3 +11,5 @@ data/cross-road-leaderboard.json
 .env
 .env.local
 .env.*.local
+.codex-*.log
+.codex-*.log

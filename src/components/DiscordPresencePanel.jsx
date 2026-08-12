@@ -134,6 +134,32 @@ function getVisibleActivities(presence) {
   return activities.slice(0, 4);
 }
 
+function useMobilePresenceLayout() {
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia("(max-width: 760px)").matches
+  );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 760px)");
+    const updateViewport = (event) => setIsMobile(event.matches);
+
+    setIsMobile(mediaQuery.matches);
+    mediaQuery.addEventListener("change", updateViewport);
+    return () => mediaQuery.removeEventListener("change", updateViewport);
+  }, []);
+
+  return isMobile;
+}
+
+function getMobileActivities(activities) {
+  const priorityActivity =
+    activities.find((activity) => activity.type === 0) ||
+    activities.find((activity) => activity.isSpotify) ||
+    activities[0];
+
+  return priorityActivity ? [priorityActivity] : [];
+}
+
 function formatDuration(ms) {
   if (!Number.isFinite(ms) || ms < 0) return "0:00";
 
@@ -226,27 +252,39 @@ function DiscordProfileFrame({ anchor, className, decorative = false, frame }) {
       aria-hidden={decorative || undefined}
       aria-label={decorative ? undefined : `${frame.name}: ${frame.label}`}
     >
-      {layers.map((layer) => (
-        <img
+      {layers.map((layer) => {
+        const layerImage = (
+          <img
           className={cn(
             "discord-profile-frame-layer",
             `is-${layer.anchor}`,
-            `is-${layer.order}`
+            `is-${layer.order}`,
+            `is-${layer.type}`,
+            layer.responsive && "is-responsive"
           )}
           src={layer.src}
           alt=""
           aria-hidden="true"
           decoding="async"
-          key={layer.id}
           loading="lazy"
-        />
-      ))}
+          />
+        );
+
+        return layer.type === "border" ? (
+          <span className="discord-profile-frame-bottom-clip" key={layer.id}>
+            {layerImage}
+          </span>
+        ) : (
+          <span className="contents" key={layer.id}>{layerImage}</span>
+        );
+      })}
     </div>
   );
 }
 
 export function DiscordPresencePanel() {
   const { data: presence, error, loading, updatedAt } = useLanyardPresence(discord.userId);
+  const isMobileLayout = useMobilePresenceLayout();
   const [activityImages, setActivityImages] = useState({});
   const [badgeTooltip, setBadgeTooltip] = useState(null);
   const [now, setNow] = useState(Date.now());
@@ -264,8 +302,10 @@ export function DiscordPresencePanel() {
   const customStatus = getCustomStatus(presence?.activities);
   const customEmojiUrl = getEmojiUrl(customStatus?.emoji);
   const activities = getVisibleActivities(presence);
+  const displayedActivities = isMobileLayout ? getMobileActivities(activities) : activities;
   const badges = getUserBadges(user);
   const statusText = error ? "Lanyard signal lost" : customStatus?.state || customStatus?.name || profile.location;
+  const isLoadingStatus = /^loading\.{3}$/i.test(statusText.trim());
   const mainGameName = activities.find((activity) => activity.type === 0)?.name || null;
   const hasTimedActivity = Boolean(
     presence?.listening_to_spotify ||
@@ -531,7 +571,14 @@ export function DiscordPresencePanel() {
 
           <div className="discord-presence-custom">
             {customEmojiUrl ? <img src={customEmojiUrl} alt={customStatus?.emoji?.name || ""} /> : <Gamepad2 size={16} aria-hidden="true" />}
-            <span>{statusText}</span>
+            {isLoadingStatus ? (
+              <span className="discord-loading-label" aria-label="Loading...">
+                Loading
+                <span className="discord-loading-dots" aria-hidden="true">
+                  <i>.</i><i>.</i><i>.</i>
+                </span>
+              </span>
+            ) : <span>{statusText}</span>}
           </div>
 
           {badges.length ? (
@@ -561,13 +608,13 @@ export function DiscordPresencePanel() {
             </div>
             <span className="discord-presence-live">
               {error ? <WifiOff size={14} aria-hidden="true" /> : <Radio size={14} aria-hidden="true" />}
-              {activities.length} activas
+              {displayedActivities.length} {displayedActivities.length === 1 ? "activa" : "activas"}
             </span>
           </div>
 
           <div className="discord-presence-feed">
-            {activities.length ? (
-              activities.map((activity) => {
+            {displayedActivities.length ? (
+              displayedActivities.map((activity) => {
                 const sessionLabel = formatSessionDuration(getActivitySessionMs(activity, presence, now, mainGameName));
                 const partySize = getActivityPartySize(activity);
                 const hasGameStreak = Boolean(

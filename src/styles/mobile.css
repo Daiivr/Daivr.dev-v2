@@ -492,6 +492,7 @@
   .discord-presence-shell {
     max-width: 100%;
     overflow: visible;
+    padding-bottom: 0.75rem;
   }
 
   .discord-presence-grid,
@@ -532,7 +533,13 @@
 
   .app-shell .discord-profile-frame-layer.is-top {
     /* Preserve the previously approved mobile alignment independently from desktop. */
-    top: calc(var(--discord-frame-top-offset) - 1.85cqi);
+    top: calc(var(--discord-frame-top-offset) - 2.0cqi);
+  }
+
+  .app-shell .discord-profile-frame-profile .discord-profile-frame-layer.is-border {
+    /* Align the straight bars with the bottom-staple corner centers. */
+    left: calc(var(--discord-frame-left-offset) - 0.2%);
+    width: calc(var(--discord-frame-width) + 0.5%);
   }
 
   .app-shell .discord-profile-frame-profile .discord-profile-frame-layer.is-bottom {
@@ -540,6 +547,9 @@
   }
 
   .app-shell .discord-presence-activity {
+    align-self: start;
+    grid-template-rows: auto auto auto;
+    min-height: 0;
     z-index: 1;
     background:
       linear-gradient(135deg, color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent), transparent 42%),
@@ -559,10 +569,25 @@
     bottom: calc(var(--discord-frame-bottom-offset) - 0.2cqi);
   }
 
-  .discord-presence-activity-head,
+  .discord-presence-activity-head {
+    align-items: center;
+    flex-direction: row;
+  }
+
+  .discord-presence-live {
+    flex: 0 0 auto;
+    padding: 0.48rem 0.6rem;
+  }
+
+  .discord-presence-feed {
+    margin-top: 0.9rem;
+  }
+
   .discord-presence-footer {
     align-items: stretch;
     flex-direction: column;
+    margin-top: 0.75rem;
+    padding-top: 0.7rem;
   }
 
   .discord-activity-card {
@@ -577,9 +602,9 @@
   }
 
   .discord-activity-card em {
-    position: static;
-    grid-column: 2;
-    justify-self: end;
+    position: absolute;
+    top: 0.7rem;
+    right: 0.7rem;
     z-index: 2;
     max-width: 100%;
     border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 32%, transparent);
@@ -589,6 +614,10 @@
     line-height: 1;
     text-align: center;
     white-space: nowrap;
+  }
+
+  .discord-activity-card > .min-w-0 {
+    padding-right: 3.75rem;
   }
 
   .discord-activity-card strong,
