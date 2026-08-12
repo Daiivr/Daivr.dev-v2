@@ -499,6 +499,7 @@ export function DiscordPresencePanel() {
                 onClick={toggleProfileFrameOverflow}
               >
                 {profileFrameOverflow ? <Maximize2 size={13} aria-hidden="true" /> : <Minimize2 size={13} aria-hidden="true" />}
+                <span>{profileFrameOverflow ? "FRAME OUT" : "FRAME IN"}</span>
               </button>
             ) : (
               <span className={cn("discord-presence-led", status.colorClass)} aria-hidden="true" />

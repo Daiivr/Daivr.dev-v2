@@ -512,6 +512,8 @@
 
   .discord-presence-profile {
     align-items: flex-start;
+    /* Keep the upper Discord frame's overflowing side rails above ACTIVITY.STREAM. */
+    z-index: 2;
   }
 
   .discord-presence-avatar {

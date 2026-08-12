@@ -241,41 +241,41 @@
 
   .discord-frame-overflow-toggle {
     position: absolute;
-    top: -1rem;
-    right: -1rem;
+    top: -0.8rem;
+    right: -0.8rem;
     z-index: 8;
-    display: inline-grid;
-    width: 44px;
+    display: inline-flex;
+    width: auto;
+    min-width: 108px;
     height: 44px;
-    place-items: center;
-    border: 0;
-    background: transparent;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border: 1px solid currentColor;
+    background: rgba(2, 6, 4, 0.96);
+    padding: 0.4rem 0.55rem;
     color: var(--color-danger-arcade);
+    box-shadow:
+      inset 0 0 14px color-mix(in srgb, currentColor 10%, transparent),
+      0 0 14px color-mix(in srgb, currentColor 28%, transparent);
     cursor: pointer;
   }
 
-  .discord-frame-overflow-toggle::before {
-    position: absolute;
-    width: 22px;
-    height: 22px;
-    border: 1px solid currentColor;
-    content: "";
-    background: color-mix(in srgb, currentColor 14%, #020604);
-    box-shadow: 0 0 12px color-mix(in srgb, currentColor 36%, transparent);
-  }
-
-  .discord-frame-overflow-toggle svg {
-    position: relative;
-    z-index: 1;
+  .discord-frame-overflow-toggle span {
+    font-size: 0.58rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    white-space: nowrap;
   }
 
   .discord-frame-overflow-toggle.is-active {
     color: var(--color-phosphor);
   }
 
-  .discord-frame-overflow-toggle:hover::before,
-  .discord-frame-overflow-toggle:focus-visible::before {
-    background: color-mix(in srgb, currentColor 28%, #020604);
+  .discord-frame-overflow-toggle:hover,
+  .discord-frame-overflow-toggle:focus-visible {
+    background: color-mix(in srgb, currentColor 14%, #020604);
   }
 
   .discord-frame-overflow-toggle:disabled {

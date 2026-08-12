@@ -335,7 +335,9 @@ export const patchNotes = [
     date: "2026-08-11",
     summary: "Discord profile-frame boundaries are now under authenticated cabinet control, allowing the live presence decoration to switch cleanly between full overflow and contained presentation.",
     entries: [
-      ["new", "Discord admins now get a persistent profile-frame boundary toggle in the presence card: it can either preserve Discord's full decorative overflow or clip the frame cleanly at the card edge for every visitor."]
+      ["new", "Discord admins now get a persistent profile-frame boundary toggle in the presence card: it can either preserve Discord's full decorative overflow or clip the frame cleanly at the card edge for every visitor."],
+      ["fix", "On mobile, the upper profile card now owns the higher stacking layer so its overflowing frame rails remain visible over the Activity Stream card instead of being painted underneath it."],
+      ["fix", "The admin frame-boundary toggle now has a solid cabinet surface and explicit FRAME OUT / FRAME IN label instead of appearing as an easy-to-miss decorative arrow icon."]
     ]
   },
   {
