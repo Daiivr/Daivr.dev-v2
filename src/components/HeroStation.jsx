@@ -1,4 +1,4 @@
-import { Cpu, Play, RadioTower, Terminal } from "lucide-react";
+import { Activity, Cpu, Grip, Play, RadioTower, Terminal } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { profile } from "../data/site";
 import { useElasticDrag } from "../hooks/useElasticDrag";
@@ -12,6 +12,8 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
   const visibleBuildLog = buildLog.split("\n").slice(-6).join("\n");
   const progress = isLaunching ? Math.min(100, ((launchPhase + 1) / 6) * 100) : 0;
   const progressWidth = isLaunching ? progress : hasRun ? 100 : 0;
+  const activeCodeLine = hasRun ? 4 : isLaunching ? Math.min(4, launchPhase) : 0;
+  const onlineNodes = hasRun ? 6 : isLaunching ? Math.min(6, launchPhase + 1) : 0;
   const systemState = isLaunching ? "booting" : hasRun ? "online" : "offline";
   const signalState = hasRun || isLaunching ? "signal hot" : "signal cold";
   const heroChips = hasRun
@@ -101,35 +103,50 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
           ref={targetRef}
         >
           <div
-            className="hero-console-handle relative z-10 flex min-h-12 flex-wrap items-center justify-between gap-3 border-b border-phosphor/20 bg-ink-950/80 px-4 py-2"
+            className="hero-console-handle relative z-10"
             {...handleProps}
           >
-            <div className="flex min-w-0 items-center gap-2">
-              <span className="h-2.5 w-2.5 bg-danger-arcade shadow-[0_0_14px_rgba(255,95,104,.45)]" />
-              <span className="h-2.5 w-2.5 bg-cabinet shadow-[0_0_14px_rgba(255,209,102,.35)]" />
-              <span className="h-2.5 w-2.5 bg-phosphor shadow-[0_0_14px_rgba(63,255,151,.35)]" />
-              <code className="ml-2 truncate text-xs font-black text-phosphor-soft/65">~/daivr/homebase.jsx</code>
+            <div className="hero-console-file">
+              <div className="hero-console-window-lights" aria-hidden="true">
+                <span />
+                <span />
+                <span />
+              </div>
+              <span className="hero-console-window-id">WS-01</span>
+              <code>~/daivr/homebase.jsx</code>
             </div>
-            <div className="flex items-center gap-2 text-[0.66rem] font-black uppercase">
-              <span className="inline-flex items-center gap-1 border border-cyan-arcade/25 px-2 py-1 text-cyan-arcade">
+
+            <span className="hero-console-drag-hint" aria-hidden="true">
+              <Grip size={13} />
+              drag panel
+            </span>
+
+            <div className="hero-console-state">
+              <span className="is-signal">
                 <RadioTower size={12} aria-hidden="true" />
                 {signalState}
               </span>
-              <span className="border border-phosphor/25 px-2 py-1 text-phosphor" data-system-state>{systemState}</span>
+              <span className={`is-system is-${systemState}`} data-system-state>
+                <i aria-hidden="true" />
+                {systemState}
+              </span>
             </div>
           </div>
 
-          <div className="hero-console-content relative z-10 grid xl:grid-cols-[minmax(330px,.95fr)_minmax(0,1.05fr)]">
+          <div className="hero-console-content relative z-10 grid">
             <div className="console-left border-b border-phosphor/20 p-4 md:p-5 lg:border-b-0 lg:border-r">
               <div className="code-card border border-phosphor/18 bg-ink-950/62">
                 <div className="flex items-center justify-between gap-3 border-b border-phosphor/15 px-3 py-2">
-                  <p className="pixel-label text-phosphor-soft/70">BOOT SCRIPT</p>
+                  <div>
+                    <p className="pixel-label text-phosphor-soft/70">SOURCE // BOOT SCRIPT</p>
+                    <small className="hero-panel-file">homebase.jsx</small>
+                  </div>
                   <span className="inline-flex items-center gap-1 text-[0.66rem] font-black uppercase text-cabinet">
                     <Cpu size={12} aria-hidden="true" />
-                    jsx
+                    ln {activeCodeLine + 1}:05
                   </span>
                 </div>
-                <ol className="code-lines grid gap-0 px-3 py-3 text-sm leading-7 md:text-[0.94rem]">
+                <ol className="code-lines">
                   {[
                     ["const", "player", "=", "\"Dai\";"],
                     ["load", "(\"discord-bots\");", "", ""],
@@ -137,7 +154,7 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
                     ["queue", "(\"game-night-ui\");", "", ""],
                     ["render", "(\"personal-site\");", "", ""]
                   ].map(([head, body, operator, value], index) => (
-                    <li className="grid grid-cols-[2ch_minmax(0,1fr)] gap-3 py-1" key={`${head}-${index}`}>
+                    <li className={index === activeCodeLine ? "is-active" : ""} key={`${head}-${index}`}>
                       <span className="select-none text-right text-phosphor-soft/30">{index + 1}</span>
                       <code className="min-w-0 break-words">
                         <span className="text-cyan-arcade">{head}</span>
@@ -152,8 +169,11 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
 
               <div className="build-output-panel border border-phosphor/18 bg-ink-950/70">
                 <div className="flex items-center justify-between gap-3 border-b border-phosphor/15 px-3 py-2">
-                  <p className="pixel-label">BUILD OUTPUT</p>
-                  <span className="text-xs font-black text-cabinet">{Math.round(progressWidth)}%</span>
+                  <div>
+                    <p className="pixel-label">RUNTIME // BUILD OUTPUT</p>
+                    <small className="hero-panel-file">dai.boot.log</small>
+                  </div>
+                  <span className={`hero-build-state is-${systemState}`}>{isLaunching ? `${Math.round(progressWidth)}%` : systemState}</span>
                 </div>
                 <pre className="terminal-screen build-output-screen overflow-hidden whitespace-pre-wrap break-words p-3 text-[0.8rem] leading-6 text-phosphor" data-build-output>
                   <code>{visibleBuildLog}</code>
@@ -169,15 +189,24 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
 
             <div className="hero-canvas-stage relative min-h-[360px] overflow-hidden bg-ink-950/85">
               <ArcadeCanvas hasRun={hasRun} isLaunching={isLaunching} launchPhase={launchPhase} onRun={onRun} />
-              <div className="pointer-events-none absolute left-4 top-4 grid gap-2 text-[0.66rem] font-black uppercase">
-                <span className="w-fit border border-cyan-arcade/35 bg-ink-950/70 px-2 py-1 text-cyan-arcade">{hasRun ? "canvas live" : isLaunching ? "canvas booting" : "canvas idle"}</span>
-                <span className="w-fit border border-phosphor/25 bg-ink-950/70 px-2 py-1 text-phosphor-soft/70">{hasRun ? "vector room" : "nodes offline"}</span>
+              <div className="hero-canvas-hud pointer-events-none absolute">
+                <span>VECTOR CANVAS // 01</span>
+                <strong>{hasRun ? "LIVE FEED" : isLaunching ? "LINKING" : "STANDBY"}</strong>
+                <small>{hasRun ? "room.render stable" : isLaunching ? `mounting node ${String(onlineNodes).padStart(2, "0")}` : "waiting for boot signal"}</small>
               </div>
               <div className="canvas-node-badge pointer-events-none absolute border border-phosphor/25 bg-ink-950/75 px-3 py-2 text-right">
-                <p className="pixel-label text-[0.64rem]">NODE</p>
+                <p className="pixel-label text-[0.64rem]">PRIMARY NODE</p>
                 <strong className="font-display text-lg leading-none text-white">DAI.EXE</strong>
+                <small>{systemState} // {String(onlineNodes).padStart(2, "0")}/06</small>
               </div>
             </div>
+          </div>
+
+          <div className="hero-console-telemetry relative z-10" aria-label="Workstation telemetry">
+            <span><b>SESSION</b> {hasRun ? "STABLE" : isLaunching ? "BOOTING" : "STANDBY"}</span>
+            <span><b>NODES</b> {String(onlineNodes).padStart(2, "0")}/06</span>
+            <span><b>ROUTE</b> /HOME</span>
+            <strong><Activity size={12} aria-hidden="true" /> {signalState}</strong>
           </div>
         </div>
       </div>

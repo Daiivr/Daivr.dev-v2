@@ -71,26 +71,28 @@ export function DiscordPlayerCard() {
     >
       <div className="relative grid grid-cols-[76px_minmax(0,1fr)] items-center gap-3">
         <a
-          className="arcade-focus group relative block h-[76px] w-[76px]"
+          className="discord-player-avatar arcade-focus group relative block h-[76px] w-[76px]"
           href={discord.profileUrl}
           rel="noreferrer"
           target="_blank"
           aria-label={`Open ${displayName} on Discord`}
         >
           <span className="absolute inset-0 border border-cyan-arcade/45 bg-cyan-arcade/8 shadow-[0_0_22px_rgba(69,216,255,.16)]" />
-          <img
-            className="relative z-10 h-full w-full border border-phosphor/45 object-cover transition duration-200 group-hover:scale-[1.035]"
-            src={avatarUrl}
-            alt={`${displayName} Discord avatar`}
-          />
-          {decorationUrl ? (
+          <span className="discord-player-avatar-viewport">
             <img
-              className="discord-avatar-decoration"
-              src={decorationUrl}
-              alt=""
-              aria-hidden="true"
+              className="discord-player-avatar-image"
+              src={avatarUrl}
+              alt={`${displayName} Discord avatar`}
             />
-          ) : null}
+            {decorationUrl ? (
+              <img
+                className="discord-avatar-decoration"
+                src={decorationUrl}
+                alt=""
+                aria-hidden="true"
+              />
+            ) : null}
+          </span>
           <span
             className={cn(
               "absolute -bottom-1 -right-1 z-30 h-4 w-4 border-2 border-ink-950 shadow-[0_0_18px_currentColor]",

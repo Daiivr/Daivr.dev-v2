@@ -152,7 +152,7 @@
 
   /* Con el paracaidas abierto la burbuja sube por encima de la cupula */
   .screen-buddy-root.is-chute .screen-buddy-bubble {
-    bottom: calc(100% + 34px);
+    bottom: calc(100% + 72px);
   }
 
   /* Keep rain comments clear of the raised umbrella canopy. */
@@ -283,13 +283,13 @@
   .entry-splash-stage {
     position: relative;
     z-index: 2;
-    width: min(940px, 100%);
+    width: min(1080px, 100%);
   }
 
   .splash-buddy {
     position: absolute;
     bottom: calc(100% - 2px);
-    right: clamp(20px, 7%, 96px);
+    right: clamp(24px, 8%, 112px);
     z-index: 3;
     pointer-events: none;
     animation: entry-splash-gate-in 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -314,6 +314,14 @@
     filter: drop-shadow(0 0 10px rgba(63, 255, 151, 0.28));
   }
 
+  /* Splash greetings are deliberately short. Keep them on one line so the
+     bubble grows sideways instead of becoming a tall stack above the buddy. */
+  .splash-buddy .screen-buddy-bubble {
+    width: max-content;
+    max-width: min(220px, calc(100vw - 24px));
+    white-space: nowrap;
+  }
+
   /* Caida de bienvenida: absoluta dentro de .app-shell (espacio de pagina),
      asi el scroll puede acompañar al buddy durante todo el descenso. */
   .buddy-drop {
@@ -330,7 +338,7 @@
   .buddy-drop-body {
     position: relative;
     animation: buddy-chute-sway 1.15s ease-in-out infinite;
-    transform-origin: 50% -22px;
+    transform-origin: 50% -38px;
     filter: drop-shadow(0 0 12px rgba(63, 255, 151, 0.22));
     pointer-events: auto;
     cursor: var(--cursor-grab, grab);
@@ -340,7 +348,11 @@
   .buddy-drop-canopy {
     position: absolute;
     bottom: calc(100% - 4px);
-    left: 0;
+    left: 50%;
+    width: 80px;
+    height: auto;
+    overflow: visible;
+    transform: translateX(-50%);
     filter: drop-shadow(0 0 8px rgba(255, 61, 157, 0.3));
   }
 
@@ -365,7 +377,7 @@
 
   /* Burbuja del que cae: por encima de la cupula (o cerca si esta plegada) */
   .buddy-drop-bubble {
-    bottom: calc(100% + 30px);
+    bottom: calc(100% + 70px);
   }
 
   .buddy-drop.is-held .buddy-drop-bubble {
@@ -476,8 +488,12 @@
   .screen-buddy-chute-canopy {
     position: absolute;
     bottom: calc(100% - 4px);
-    left: 0;
+    left: 50%;
     display: none;
+    width: 80px;
+    height: auto;
+    overflow: visible;
+    transform: translateX(-50%);
     filter: drop-shadow(0 0 8px rgba(255, 61, 157, 0.3));
   }
 
@@ -487,7 +503,61 @@
 
   .screen-buddy-root.is-chute .screen-buddy-body {
     animation: buddy-chute-sway 1.15s ease-in-out infinite;
-    transform-origin: 50% -22px;
+    transform-origin: 50% -38px;
+  }
+
+  .buddy-chute-wind,
+  .buddy-chute-canopy-shell,
+  .buddy-chute-panel,
+  .buddy-chute-skirt,
+  .buddy-chute-cell,
+  .buddy-chute-lines,
+  .buddy-chute-harness {
+    transform-box: fill-box;
+  }
+
+  .buddy-chute-wind {
+    transform-origin: 50% 100%;
+    animation: buddy-chute-wind-drift 2.2s ease-in-out infinite;
+  }
+
+  .buddy-chute-canopy-shell {
+    transform-origin: 50% 100%;
+    transform: translateY(3px);
+    animation: buddy-chute-canopy-breathe 1.8s cubic-bezier(0.42, 0, 0.28, 1) infinite;
+  }
+
+  .buddy-chute-skirt {
+    transform-origin: 50% 0;
+    transform: translateY(10px) scale(0.92, 0.9);
+    animation: buddy-chute-rear-breathe 1.8s ease-in-out infinite;
+  }
+
+  .buddy-chute-lines {
+    transform-origin: 50% 100%;
+    animation: buddy-chute-line-tension 1.8s ease-in-out infinite;
+  }
+
+  .buddy-chute-line-outline {
+    stroke: #020604;
+    stroke-width: 3.5px;
+  }
+
+  .buddy-chute-line-core {
+    stroke: rgba(224, 246, 250, 0.96);
+    stroke-width: 1.35px;
+    filter: drop-shadow(0 0 1px rgba(69, 216, 255, 0.72));
+  }
+
+  .buddy-chute-harness {
+    transform-origin: 50% 0;
+    animation: buddy-chute-harness-pull 1.8s ease-in-out infinite;
+  }
+
+  .buddy-chute-art.is-upgraded {
+    filter:
+      drop-shadow(0 0 4px rgba(69, 216, 255, 0.28))
+      drop-shadow(0 0 8px rgba(63, 255, 151, 0.16));
   }
 
   .screen-buddy-root.has-rocket-boots.is-chute .screen-buddy-body {
@@ -1854,12 +1924,44 @@
   @keyframes buddy-chute-sway {
     0%,
     100% {
-      transform: rotate(-8deg);
+      transform: translate(-1px, 0) rotate(-5deg);
     }
 
     50% {
-      transform: rotate(8deg);
+      transform: translate(1px, 1px) rotate(5deg);
     }
+  }
+
+  @keyframes buddy-chute-canopy-breathe {
+    0%, 100% { transform: translateY(3px) scale(1); }
+    22% { transform: translateY(3.45px) scaleX(1.022) scaleY(0.985); }
+    48% { transform: translateY(2.35px) scaleX(0.992) scaleY(1.018); }
+    72% { transform: translateY(3.25px) scaleX(1.015) scaleY(0.99); }
+  }
+
+  @keyframes buddy-chute-wind-drift {
+    0%, 100% { transform: translate(0, 0) rotate(-0.7deg); }
+    24% { transform: translate(-0.7px, 0.25px) rotate(-1.8deg); }
+    52% { transform: translate(0.35px, -0.35px) rotate(0.65deg); }
+    76% { transform: translate(0.8px, 0.15px) rotate(1.55deg); }
+  }
+
+  @keyframes buddy-chute-rear-breathe {
+    0%, 100% { transform: translateY(10px) scale(0.92, 0.9); }
+    30% { transform: translateY(10.7px) scale(0.93, 0.88); }
+    62% { transform: translateY(9.6px) scale(0.91, 0.92); }
+  }
+
+  @keyframes buddy-chute-line-tension {
+    0%, 100% { transform: skewX(0deg) scaleY(1); }
+    28% { transform: skewX(-0.65deg) scaleY(0.985); }
+    62% { transform: skewX(0.5deg) scaleY(1.012); }
+  }
+
+  @keyframes buddy-chute-harness-pull {
+    0%, 100% { transform: translate(0, 0); }
+    28% { transform: translate(-0.2px, -0.35px); }
+    62% { transform: translate(0.25px, 0.55px); }
   }
 
   @keyframes buddy-held-wiggle {
@@ -2831,6 +2933,13 @@
     .splash-buddy,
     .splash-buddy-sprite,
     .buddy-drop-body,
+    .buddy-chute-wind,
+    .buddy-chute-canopy-shell,
+    .buddy-chute-panel,
+    .buddy-chute-skirt,
+    .buddy-chute-cell,
+    .buddy-chute-lines,
+    .buddy-chute-harness,
     .buddy-eye,
     .buddy-green-visor,
     .buddy-led,

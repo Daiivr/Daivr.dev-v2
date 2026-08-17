@@ -330,6 +330,33 @@ export const stack = [
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.15.0",
+    codename: "PACKET REX",
+    date: "2026-08-16",
+    summary: "The cabinet rebuilt its front door, workstation, cold-start sequence, and Discord room signal into one coherent system—from the first DAI.EXE handshake to the autonomous pixel runner waiting between live broadcasts.",
+    entries: [
+      ["new", "The welcome splash has been rebuilt as a full visitor-access gate with a DAI.EXE title bar, live channel state, responsive identity pass, system-handshake console, six-node startup meter, and a clear ENTER ARCADE control."],
+      ["buff", "DAI.EXE is visible again behind the splash as a deliberately positioned boot wordmark with a short cyan-and-magenta signal echo, arcade-access caption, orbit rings, horizon grid, and a no-motion fallback instead of being hidden behind the gate."],
+      ["buff", "The draggable homebase.jsx panel is now a complete WS-01 workstation: compact source lines, active-line tracking, runtime output, offline/booting/online state chips, vector-canvas telemetry, primary-node status, and a persistent bottom system readout all share the same signal state."],
+      ["new", "Running Dai.exe now opens a full BOOT SEQUENCE instead of the old oversized console: six radar nodes link around the core while the active-process briefing, route checklist, compact terminal history, progress bar, and circular sync dial advance together."],
+      ["fix", "The boot overlay's terminal output is capped to the latest useful lines, and the circular percentage readout now stays centered and legible through 100% without colliding with its ring or footer telemetry."],
+      ["fix", "homebase.jsx source commands keep a compact single-line rhythm at their intended workstation width, preventing the boot script from wrapping into awkward two-column fragments."],
+      ["fix", "Vector-canvas packets no longer chase the website cursor or draw a payload reticle; the homebase routing animation follows its own node paths again."],
+      ["new", "When Discord has no visible game or music activity on desktop, PACKET_REX takes over the empty channel with a cabinet-styled runner scene, moving signal markers, scanner telemetry, and automatically generated cactus obstacles."],
+      ["buff", "The idle T-Rex now uses the original Chromium runner frames for a proper two-step walk cycle, while collision-aware launch timing makes every jump line up with the approaching obstacle instead of firing early."],
+      ["fix", "PACKET_REX's phosphor tint now preserves the sprite's eye, mouth, arms, and negative-space body details, and its tighter glow keeps the silhouette crisp at the cabinet's scaled pixel size."],
+      ["buff", "Discord activities now enter and leave with short staggered opacity-and-transform transitions instead of popping into the stream; reduced-motion visitors still receive immediate, stable state changes."],
+      ["new", "Discord collectible nameplates now sync through the profile customization endpoint and animate behind the badge collection, with a static artwork fallback whenever reduced motion is requested."],
+      ["fix", "The nameplate backdrop now fills the full badge tray at every supported desktop width without stretching, changing proportions, or leaving an empty strip at the right edge."],
+      ["new", "The equipped primary-server identity badge now appears directly beside Dai's display name, including its server tag and a cabinet-styled tooltip that is available by hover, keyboard focus, and screen-reader label."],
+      ["fix", "Discord display-name, server-tag, and username alignment has been rebalanced so the identity block stays vertically centered instead of making the tag ride above the name."],
+      ["fix", "The sidebar's animated Discord avatar decoration now uses the exact same 84px canvas, centered offset, and clipping boundary on desktop and mobile, preventing its frames from shifting or escaping the 76px portrait slot at narrow widths."],
+      ["fix", "The Discord presence grid, profile card, decorative frame, and activity surface now preserve their intended proportions across full desktop, constrained desktop, and developer-tools view widths."],
+      ["fix", "Profile controls and status blocks now keep a deliberate inner gutter from Discord's decorative frame, preventing buttons and card edges from visually colliding with the artwork."],
+      ["buff", "Desktop's empty signal view now carries the full runner scene and listening readout, while smaller view modes retain the compact no-activity message to avoid turning the live room into another nested scrolling surface."]
+    ]
+  },
+  {
     version: "v2.14.0",
     codename: "FRAME CONTROL",
     date: "2026-08-11",

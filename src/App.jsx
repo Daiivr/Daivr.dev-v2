@@ -14,6 +14,7 @@ import { AttractMode } from "./components/AttractMode";
 import { BuddyDrop } from "./components/BuddyDrop";
 import { BuddyModal } from "./components/BuddyModal";
 import { CommentsSection } from "./components/CommentsSection";
+import { SignalCursor } from "./components/SignalCursor";
 import { CursorTrail } from "./components/CursorTrail";
 import { EntrySplash } from "./components/EntrySplash";
 import { HeroStation } from "./components/HeroStation";
@@ -611,6 +612,7 @@ function CabinetApp() {
       <ArcadeBackground />
       <SeasonalEvent event={seasonalEvent} entrySplashOpen={entrySplashOpen} />
       <CursorTrail theme={theme} />
+      <SignalCursor theme={theme} />
       <PerchedBirds />
       {powerOutage ? (
         <div className={`cabinet-power-outage is-${powerOutage}`} aria-live="polite">
@@ -621,7 +623,10 @@ function CabinetApp() {
       {entrySplashOpen ? (
         <EntrySplash
           onBuddyLaunch={setBuddyDrop}
-          onEnter={() => setEntrySplashOpen(false)}
+          onEnter={() => {
+            setEntrySplashOpen(false);
+            window.requestAnimationFrame(() => document.getElementById("main")?.focus({ preventScroll: true }));
+          }}
           seasonalEvent={seasonalEvent}
           friendshipLevel={buddy.friendship.level}
           inventory={buddy.adventure.inventoryIds}
@@ -643,11 +648,12 @@ function CabinetApp() {
       <a
         className="fixed left-3 top-3 z-100 -translate-y-24 bg-phosphor px-3 py-2 font-black text-ink-950 focus:translate-y-0"
         href="#main"
+        tabIndex={entrySplashOpen ? -1 : undefined}
       >
         Skip to content
       </a>
 
-      <div className="cabinet-layout relative grid min-h-screen lg:grid-cols-[292px_minmax(0,1fr)]">
+      <div className="cabinet-layout relative grid min-h-screen lg:grid-cols-[292px_minmax(0,1fr)]" inert={entrySplashOpen ? true : undefined} aria-hidden={entrySplashOpen ? "true" : undefined}>
         <Sidebar
           activeSection={activeSection}
           buddy={buddy}
@@ -669,7 +675,7 @@ function CabinetApp() {
             </div>
           </header>
 
-          <main className={`cart-stage mx-auto w-[min(1180px,calc(100%-clamp(28px,6vw,76px)))] ${cartPhase ? `is-cart-${cartPhase}` : ""}`} id="main">
+          <main className={`cart-stage mx-auto w-[min(1180px,calc(100%-clamp(28px,6vw,76px)))] ${cartPhase ? `is-cart-${cartPhase}` : ""}`} id="main" tabIndex={-1}>
             <HeroStation
               buildLog={buildLog}
               hasRun={hasRun}

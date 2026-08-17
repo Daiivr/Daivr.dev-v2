@@ -141,7 +141,6 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
     let overclockUntil = 0;
     let cooldownUntil = 0;
     let xpState = loadLocalXpState();
-    let pointer = { active: false, ttl: 0, x: 0, y: 0 };
     let isVisible = true;
     let isScrolling = false;
     let lastFrameAt = 0;
@@ -564,9 +563,7 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
       const picked = source || liveSources[Math.floor(Math.random() * liveSources.length)];
       if (picked.index >= activeNodeCount) return;
       const target = picked.target;
-      const control = pointer.active && pointer.ttl > 0
-        ? { x: pointer.x, y: pointer.y }
-        : picked.control;
+      const control = picked.control;
 
       picked.captured = 26;
       packets.push({
@@ -596,17 +593,6 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
       }
 
       if (!reduced) {
-        if (pointer.active && pointer.ttl > 0) {
-          const nearest = sources
-            .filter((source) => source.index < activeNodeCount)
-            .map((source) => ({ source, distance: Math.hypot(source.x - pointer.x, source.y - pointer.y) }))
-            .sort((a, b) => a.distance - b.distance)[0]?.source;
-          if (nearest && frame >= nearest.nextAt) {
-            spawnPacket(nearest);
-            nearest.nextAt = frame + randomBetween(42, getIsLaunching() ? 92 : 150);
-          }
-        }
-
         sources.filter((source) => source.index < activeNodeCount).forEach((source) => {
           if (frame >= source.nextAt && packets.length < packetLimit) {
             spawnPacket(source);
@@ -679,32 +665,6 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
         if (!reduced) burst.life -= 0.04;
         return burst.life > 0;
       });
-    }
-
-    function drawPointerReticle() {
-      if (!pointer.active || pointer.ttl <= 0) return;
-
-      ctx.save();
-      ctx.translate(pointer.x, pointer.y);
-      ctx.strokeStyle = "rgba(255, 209, 102, 0.72)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.arc(0, 0, 16, 0, Math.PI * 2);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(-24, 0);
-      ctx.lineTo(-10, 0);
-      ctx.moveTo(10, 0);
-      ctx.lineTo(24, 0);
-      ctx.moveTo(0, -24);
-      ctx.lineTo(0, -10);
-      ctx.moveTo(0, 10);
-      ctx.lineTo(0, 24);
-      ctx.stroke();
-      ctx.restore();
-
-      if (!reduced) pointer.ttl -= 1;
-      if (pointer.ttl <= 0) pointer.active = false;
     }
 
     function drawCore() {
@@ -828,7 +788,6 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
       drawCore();
       drawBursts();
       drawFloaters();
-      drawPointerReticle();
       ctx.fillStyle = "rgba(255, 255, 255, 0.025)";
       ctx.fillRect(0, (frame * 2) % Math.max(height, 1), width, 3);
 
@@ -897,17 +856,10 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
 
     function handlePointerMove(event) {
       const rect = canvas.getBoundingClientRect();
-      pointer = {
-        active: true,
-        ttl: 95,
-        x: event.clientX - rect.left,
-        y: event.clientY - rect.top
-      };
-      updateCursor(pointer.x, pointer.y);
+      updateCursor(event.clientX - rect.left, event.clientY - rect.top);
     }
 
     function handlePointerLeave() {
-      pointer.ttl = Math.min(pointer.ttl, 20);
       canvas.style.cursor = "";
     }
 

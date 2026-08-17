@@ -209,6 +209,12 @@ function BuddyInventoryView({ buddy }) {
                   <BuddyGearIcon id={item.id} />
                   <span>{item.label}</span>
                   <small>{item.perk || item.source}</small>
+                  {equipped ? (
+                    <b className="buddy-loot-equipped" aria-hidden="true">
+                      <Check size={8} />
+                      on
+                    </b>
+                  ) : null}
                 </button>
               );
             }) : (

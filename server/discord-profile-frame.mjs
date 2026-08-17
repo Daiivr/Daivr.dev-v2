@@ -3,12 +3,34 @@ const DEFAULT_PROFILE_FRAME_SKU = "1491908830844424302";
 const FRAME_CACHE_MS = 5 * 60 * 1000;
 const DISCORD_API_BASE = "https://discord.com/api/v10";
 const DISCORD_CDN_BASE = "https://cdn.discordapp.com/media/v1/collectibles-shop";
+const DISCORD_COLLECTIBLES_CDN_BASE = "https://cdn.discordapp.com/assets/collectibles";
 
 let cachedFrame = null;
+let cachedNameplate = null;
 let cachedAt = 0;
 
 function isSnowflake(value) {
   return typeof value === "string" && /^\d{16,22}$/.test(value);
+}
+
+function normalizeNameplate(nameplate) {
+  const asset = String(nameplate?.asset || "").replace(/^\/+|\/+$/g, "");
+  if (!isSnowflake(String(nameplate?.sku_id || "")) || !/^nameplates\/[a-z0-9_'/-]+$/i.test(asset)) {
+    return null;
+  }
+
+  const encodedAsset = asset
+    .split("/")
+    .map((segment) => encodeURIComponent(segment))
+    .join("/");
+
+  return {
+    animatedSrc: `${DISCORD_COLLECTIBLES_CDN_BASE}/${encodedAsset}/asset.webm`,
+    fallbackSrc: `${DISCORD_COLLECTIBLES_CDN_BASE}/${encodedAsset}/static.png`,
+    label: String(nameplate.label || "Discord nameplate"),
+    palette: String(nameplate.palette || "").toLowerCase(),
+    skuId: String(nameplate.sku_id)
+  };
 }
 
 async function getEquippedFrameSku() {
@@ -24,6 +46,7 @@ async function getEquippedFrameSku() {
     if (!response.ok) throw new Error(`profile lookup returned ${response.status}`);
 
     const payload = await response.json();
+    cachedNameplate = normalizeNameplate(payload?.user?.collectibles?.nameplate);
     const collectibles = Array.isArray(payload?.user_profile?.collectibles)
       ? payload.user_profile.collectibles
       : [];
@@ -32,6 +55,7 @@ async function getEquippedFrameSku() {
     return profileFrame ? String(profileFrame.sku_id) : fallbackSku;
   } catch (error) {
     console.error("Discord profile frame lookup error:", error.message || error);
+    cachedNameplate = null;
     return fallbackSku;
   }
 }
@@ -97,13 +121,13 @@ export async function handleDiscordProfileFrameRequest(_request, response) {
       "Cache-Control": "public, max-age=300, stale-while-revalidate=3600",
       "Content-Type": "application/json; charset=utf-8"
     });
-    response.end(JSON.stringify({ frame }));
+    response.end(JSON.stringify({ frame, nameplate: cachedNameplate }));
   } catch (error) {
     console.error("Discord profile frame error:", error.message || error);
     response.writeHead(502, {
       "Cache-Control": "no-store",
       "Content-Type": "application/json; charset=utf-8"
     });
-    response.end(JSON.stringify({ error: "Profile frame unavailable", frame: null }));
+    response.end(JSON.stringify({ error: "Profile customization unavailable", frame: null, nameplate: null }));
   }
 }

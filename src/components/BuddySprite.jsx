@@ -6,40 +6,46 @@
 */
 export function BuddyChuteCanopy({ className = "", upgraded = false }) {
   return (
-    <svg className={className} viewBox="0 0 48 22" width="64" height="29" aria-hidden="true">
-      <g shapeRendering="crispEdges">
-        {/* cupula en escalera */}
-        <rect x="12" y="0" width="24" height="4" fill="#ff3d9d" />
-        <rect x="8" y="4" width="32" height="4" fill="#ff3d9d" />
-        <rect x="5" y="8" width="38" height="4" fill="#ff3d9d" />
-        <rect x="4" y="12" width="40" height="3" fill="#e02f86" />
+    <svg
+      className={`buddy-chute-art ${upgraded ? "is-upgraded" : ""} ${className}`.replace(/\s+/g, " ").trim()}
+      viewBox="0 0 72 64"
+      width="80"
+      height="71"
+      aria-hidden="true"
+    >
+      <g className="buddy-chute-wind" shapeRendering="crispEdges">
+        {/* A lower charcoal copy of the dome forms the rear canopy/shadow. */}
+        <g className="buddy-chute-skirt">
+          <path d="M18 2h36v2h6v3h4v4h3v5h2v11h-3v3h-8v-2H48v2h-8v-2h-8v2h-8v-2H14v2H6v-3H3V16h2v-5h3V7h4V4h6z" fill="#020604" />
+          <path className="buddy-chute-rear-panel buddy-chute-rear-panel-l" d="M18 5h12v3h-3v4h-3v5h-2v7h-4v4H8V17h2v-5h3V9h3V6h2z" fill="#41464e" />
+          <path className="buddy-chute-rear-panel buddy-chute-rear-panel-c" d="M29 5h14v2h2v4h2v5h2v8h4v2h-5v3h-7v2H31v-2h-7v-3h-5v-2h3v-8h2v-5h2V7h3z" fill="#343940" />
+          <path className="buddy-chute-rear-panel buddy-chute-rear-panel-r" d="M42 5h12v1h2v3h3v3h3v5h2v11H54l-4-4h-2v-7h-2v-5h-2V8h-2z" fill="#41464e" />
+          <path d="M14 10h5v3h-2v5h-2v7h-4v-7h1v-5h2zM50 9h4v2h3v4h2v8h-3v-6h-2v-4h-4z" fill="#596069" opacity="0.58" />
+        </g>
 
-        {/* paneles de color */}
-        <rect x="13" y="0" width="5" height="15" fill="#ffd166" />
-        <rect x="30" y="0" width="5" height="15" fill="#45d8ff" />
+        {/* Pixel rigging sits over the rear canopy and behind the bright dome. */}
+        <g className="buddy-chute-lines" fill="none" strokeLinecap="square" strokeLinejoin="miter">
+          <path className="buddy-chute-line-outline" d="M7 29 29 58M19 30l13 28M28 31l6 27M44 31l-6 27M53 30 40 58M65 29 43 58" />
+          <path className="buddy-chute-line-core" d="M7 29 29 58M19 30l13 28M28 31l6 27M44 31l-6 27M53 30 40 58M65 29 43 58" />
+        </g>
 
-        {/* respiradero + brillo */}
-        <rect x="22" y="0" width="4" height="2" fill="#b3216b" />
-        <rect x="14" y="1" width="7" height="1" fill="rgba(255, 255, 255, 0.35)" />
-        <rect x="26" y="1" width="8" height="1" fill="rgba(255, 255, 255, 0.35)" />
+        {/* Tall segmented dome, redrawn from the reference's stepped silhouette. */}
+        <g className="buddy-chute-canopy-shell">
+          <path d="M18 2h36v2h6v3h4v4h3v5h2v11h-3v3h-8v-2H48v2h-8v-2h-8v2h-8v-2H14v2H6v-3H3V16h2v-5h3V7h4V4h6z" fill="#020604" />
+          <path className="buddy-chute-panel buddy-chute-panel-l" d="M18 5h10v3h-3v4h-3v5h-2v7h-4v4H8V17h2v-5h3V9h3V6h2z" fill="#aeb9d1" />
+          <path className="buddy-chute-panel buddy-chute-panel-ml" d="M28 5h8v26h-4v-2h-8v-3h-5v-2h3v-8h2v-5h2V7h2z" fill="#d9e2ef" />
+          <path className="buddy-chute-panel buddy-chute-panel-mr" d="M36 5h8v2h2v4h2v5h2v8h3v2h-5v3h-8v2h-4z" fill="#f5f8fb" />
+          <path className="buddy-chute-panel buddy-chute-panel-r" d="M44 5h10v1h2v3h3v3h3v5h2v11h-8l-4-4h-2v-7h-2v-5h-2V8h-2z" fill="#b8c5d8" />
+          <path d="M16 8h8v3h-3v4h-2v6h-3v5h-5v-8h2v-5h3z" fill="#f9fcff" opacity="0.58" />
+          <path d="M49 7h5v2h3v3h3v5h2v7h-4v-6h-2v-4h-3v-3h-4z" fill="#ffffff" opacity="0.82" />
+        </g>
 
-        {/* festones del borde */}
-        <rect x="4" y="15" width="6" height="2" fill="#e02f86" />
-        <rect x="14" y="15" width="6" height="2" fill="#ffd166" />
-        <rect x="24" y="15" width="6" height="2" fill="#e02f86" />
-        <rect x="34" y="15" width="6" height="2" fill="#45d8ff" />
-        {upgraded ? (
-          <>
-            <rect x="8" y="6" width="32" height="1" fill="#3fff97" opacity="0.9" />
-            <rect x="19" y="0" width="10" height="15" fill="#3fff97" opacity="0.32" />
-          </>
-        ) : null}
-
-        {/* cuerdas hacia la cabeza */}
-        <rect x="6" y="15" width="1" height="7" fill="rgba(180, 255, 207, 0.75)" />
-        <rect x="17" y="17" width="1" height="5" fill="rgba(180, 255, 207, 0.55)" />
-        <rect x="30" y="17" width="1" height="5" fill="rgba(180, 255, 207, 0.55)" />
-        <rect x="41" y="15" width="1" height="7" fill="rgba(180, 255, 207, 0.75)" />
+        {/* Central slider and webbing keep the canopy visually tied to Buddy. */}
+        <g className="buddy-chute-harness">
+          <path d="M28 55h16v5h-3v4H31v-4h-3z" fill="#020604" />
+          <rect x="31" y="57" width="10" height="3" fill="#dce8ef" />
+          <rect x="34" y="60" width="4" height="4" fill="#45d8ff" />
+        </g>
       </g>
     </svg>
   );

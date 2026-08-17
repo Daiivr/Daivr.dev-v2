@@ -1,5 +1,5 @@
 import { Activity, Gamepad2, Headphones, Maximize2, Minimize2, Radio, Users, WifiOff, Zap } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { discord, profile } from "../data/site";
 import {
@@ -13,6 +13,10 @@ import {
 import { cn } from "../lib/cn";
 
 const BADGE_BASE = "https://raw.githubusercontent.com/merlinfuchs/discord-badges/main/SVG";
+const ACTIVITY_EXIT_DURATION = 220;
+const IDLE_TREX_PATH = "M24 0h17v2H24zM22 2h4v3h-4zM28 2h16v3H28zM22 5h22v7H22zM22 12h11v2H22zM22 14h17v2H22zM0 16h2v3H0zM20 16h11v3H20zM0 19h2v2H0zM16 19h15v2H16zM0 21h4v2H0zM13 21h22v2H13zM0 23h6v2H0zM11 23h20v2H11zM33 23h2v2H33zM0 25h31v4H0zM2 29h29v2H2zM4 31h24v2H4zM9 33h17v3H9zM9 36h15v2H9zM11 38h6v3h-6zM20 38h4v3h-4zM11 41h4v2h-4zM22 41h2v4h-2zM11 43h2v2h-2zM11 45h5v2h-5zM22 45h5v2h-5z";
+// Copyright (c) 2014 The Chromium Authors. Sprite extracted from the user-supplied BSD-licensed runner.
+const IDLE_TREX_SPRITE = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAQgAAAAvAgMAAABiRrxWAAAADFBMVEX///9TU1P39/f///+TS9URAAAAAXRSTlMAQObYZgAAAPpJREFUeF7d0jFKRkEMhdGLMM307itNLALyVmHvJuzTDMjdn72E95PGFEZSmeoU4YMMgxhskvQec8YSVFX1NhGcS5ywtbmC8khcZeKq+ZWJ4F8Sr2+ZCErjkJFEfcjAc/6/BMlfcz6xHdhRthYzIZhIHMcTVY1scUUiAphK8CMSPUbieTBhvD9Lj0vyV4wklEGzHpciKGOJoBp7XDcFs4kWxxM7Ey3iZ8JbzASAvMS7XLOJHTTvEkEZSeQl7DMuwVyCasqK5+XzQRYLUJlMbPXjFcn3m8eKBSjWZMJwvGIOvViAzCbUj1VEDoqFOEQGE3SyInJQLOQMJL4B7enP1UbLXJQAAAAASUVORK5CYII=";
 
 const DISCORD_FLAG_BADGES = [
   { flag: 1 << 0, icon: `${BADGE_BASE}/discord_employee.svg`, label: "Discord Staff" },
@@ -98,6 +102,7 @@ function getVisibleActivities(presence) {
 
   if (presence?.listening_to_spotify && presence.spotify) {
     activities.push({
+      activityKey: `spotify:${presence.spotify.track_id || presence.spotify.song}`,
       detail: presence.spotify.artist,
       icon: "spotify",
       image: presence.spotify.album_art_url,
@@ -115,6 +120,7 @@ function getVisibleActivities(presence) {
     if (activity.type === 4 || activity.name === "Spotify") continue;
 
     activities.push({
+      activityKey: activity.id ? `discord:${activity.id}` : `discord:${activity.type}:${activity.name}`,
       appIcon: getActivityAppIcon(activity),
       appIconAlt: activity.assets?.small_text || `${activity.name} icon`,
       createdAt: activity.created_at,
@@ -151,6 +157,23 @@ function useMobilePresenceLayout() {
   return isMobile;
 }
 
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() =>
+    typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const updatePreference = (event) => setPrefersReducedMotion(event.matches);
+
+    setPrefersReducedMotion(mediaQuery.matches);
+    mediaQuery.addEventListener("change", updatePreference);
+    return () => mediaQuery.removeEventListener("change", updatePreference);
+  }, []);
+
+  return prefersReducedMotion;
+}
+
 function getMobileActivities(activities) {
   const priorityActivity =
     activities.find((activity) => activity.type === 0) ||
@@ -158,6 +181,64 @@ function getMobileActivities(activities) {
     activities[0];
 
   return priorityActivity ? [priorityActivity] : [];
+}
+
+function useAnimatedActivities(nextActivities, prefersReducedMotion) {
+  const [renderedActivities, setRenderedActivities] = useState(() =>
+    nextActivities.map((activity) => ({ ...activity, motionState: "visible" }))
+  );
+
+  useEffect(() => {
+    const nextByKey = new Map(nextActivities.map((activity) => [activity.activityKey, activity]));
+
+    if (prefersReducedMotion) {
+      setRenderedActivities(nextActivities.map((activity) => ({ ...activity, motionState: "visible" })));
+      return undefined;
+    }
+
+    setRenderedActivities((current) => {
+      const currentKeys = new Set(current.map((activity) => activity.activityKey));
+      const merged = current.map((activity) => {
+        const nextActivity = nextByKey.get(activity.activityKey);
+
+        if (!nextActivity) return { ...activity, motionState: "exiting" };
+        return {
+          ...nextActivity,
+          motionState: activity.motionState === "exiting" ? "entering" : activity.motionState
+        };
+      });
+
+      nextActivities.forEach((activity, index) => {
+        if (currentKeys.has(activity.activityKey)) return;
+        merged.splice(Math.min(index, merged.length), 0, { ...activity, motionState: "entering" });
+      });
+
+      return merged;
+    });
+
+    let settleFrame;
+    const startFrame = window.requestAnimationFrame(() => {
+      settleFrame = window.requestAnimationFrame(() => {
+        setRenderedActivities((current) => current.map((activity) => (
+          nextByKey.has(activity.activityKey) && activity.motionState === "entering"
+            ? { ...activity, motionState: "visible" }
+            : activity
+        )));
+      });
+    });
+
+    const exitTimer = window.setTimeout(() => {
+      setRenderedActivities((current) => current.filter((activity) => nextByKey.has(activity.activityKey)));
+    }, ACTIVITY_EXIT_DURATION);
+
+    return () => {
+      window.cancelAnimationFrame(startFrame);
+      if (settleFrame) window.cancelAnimationFrame(settleFrame);
+      window.clearTimeout(exitTimer);
+    };
+  }, [nextActivities, prefersReducedMotion]);
+
+  return renderedActivities;
 }
 
 function formatDuration(ms) {
@@ -231,6 +312,303 @@ function ActivityIcon({ icon }) {
   return <Activity size={16} aria-hidden="true" />;
 }
 
+function drawIdleCactus(context, obstacle, groundY, colors) {
+  const { height, type, width, x } = obstacle;
+  const top = groundY - height;
+
+  context.save();
+  context.fillStyle = colors.phosphor;
+  context.shadowColor = colors.phosphor;
+  context.shadowBlur = 7;
+  context.fillRect(Math.round(x + width * 0.38), Math.round(top), 6, height);
+  context.fillRect(Math.round(x + width * 0.12), Math.round(top + height * 0.34), 6, height * 0.28);
+  context.fillRect(Math.round(x + width * 0.12), Math.round(top + height * 0.55), width * 0.38, 6);
+  context.fillRect(Math.round(x + width * 0.58), Math.round(top + height * 0.2), 6, height * 0.24);
+  context.fillRect(Math.round(x + width * 0.46), Math.round(top + height * 0.38), width * 0.38, 6);
+
+  if (type === "cluster") {
+    context.fillStyle = colors.cyan;
+    context.globalAlpha = 0.72;
+    context.fillRect(Math.round(x + width * 0.75), Math.round(top + height * 0.28), 5, height * 0.72);
+    context.fillRect(Math.round(x + width * 0.62), Math.round(top + height * 0.5), width * 0.36, 5);
+  }
+
+  context.restore();
+}
+
+function DiscordIdleRunner({ prefersReducedMotion }) {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    if (prefersReducedMotion) return undefined;
+
+    const canvas = canvasRef.current;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context) return undefined;
+
+    const trexPath = new Path2D(IDLE_TREX_PATH);
+    const trexSprite = new Image();
+    const obstacle = { height: 38, type: "single", width: 19, x: 0 };
+    let animationFrame = 0;
+    let dinoScale = 1.7;
+    let dinoX = 28;
+    let gameTime = 0;
+    let groundOffset = 0;
+    let groundY = 0;
+    let isGrounded = true;
+    let isVisible = false;
+    let jumpOffset = 0;
+    let jumpVelocity = 0;
+    let lastTime = 0;
+    let stageHeight = 0;
+    let stageWidth = 0;
+    let tintedTrexSprite = null;
+
+    const styles = getComputedStyle(canvas);
+    const colors = {
+      cabinet: styles.getPropertyValue("--color-cabinet").trim() || "#ffd45d",
+      cyan: styles.getPropertyValue("--color-cyan-arcade").trim() || "#45d8ff",
+      glitch: styles.getPropertyValue("--color-glitch").trim() || "#ff3ba7",
+      phosphor: styles.getPropertyValue("--color-phosphor").trim() || "#39ff9c"
+    };
+
+    trexSprite.onload = () => {
+      const spriteCanvas = document.createElement("canvas");
+      const spriteContext = spriteCanvas.getContext("2d", { willReadFrequently: true });
+      if (!spriteContext) return;
+
+      spriteCanvas.width = trexSprite.naturalWidth;
+      spriteCanvas.height = trexSprite.naturalHeight;
+      spriteContext.drawImage(trexSprite, 0, 0);
+
+      const resolveColor = (value) => {
+        const colorCanvas = document.createElement("canvas");
+        const colorContext = colorCanvas.getContext("2d", { willReadFrequently: true });
+        if (!colorContext) return [57, 255, 156];
+
+        colorCanvas.width = 1;
+        colorCanvas.height = 1;
+        colorContext.fillStyle = value;
+        colorContext.fillRect(0, 0, 1, 1);
+        return Array.from(colorContext.getImageData(0, 0, 1, 1).data.slice(0, 3));
+      };
+
+      const spritePixels = spriteContext.getImageData(
+        0,
+        0,
+        spriteCanvas.width,
+        spriteCanvas.height
+      );
+      const phosphorRgb = resolveColor(colors.phosphor);
+      const cyanRgb = resolveColor(colors.cyan);
+
+      for (let index = 0; index < spritePixels.data.length; index += 4) {
+        const alpha = spritePixels.data[index + 3];
+        if (alpha === 0) continue;
+
+        const red = spritePixels.data[index];
+        const green = spritePixels.data[index + 1];
+        const blue = spritePixels.data[index + 2];
+        const luminance = (red + green + blue) / 3;
+
+        if (luminance >= 252) {
+          spritePixels.data[index] = cyanRgb[0];
+          spritePixels.data[index + 1] = cyanRgb[1];
+          spritePixels.data[index + 2] = cyanRgb[2];
+          spritePixels.data[index + 3] = 255;
+        } else if (luminance > 180) {
+          spritePixels.data[index + 3] = 0;
+        } else {
+          spritePixels.data[index] = phosphorRgb[0];
+          spritePixels.data[index + 1] = phosphorRgb[1];
+          spritePixels.data[index + 2] = phosphorRgb[2];
+          spritePixels.data[index + 3] = 255;
+        }
+      }
+
+      spriteContext.clearRect(0, 0, spriteCanvas.width, spriteCanvas.height);
+      spriteContext.putImageData(spritePixels, 0, 0);
+      tintedTrexSprite = spriteCanvas;
+    };
+    trexSprite.src = IDLE_TREX_SPRITE;
+
+    function resetObstacle(initial = false) {
+      obstacle.type = Math.random() > 0.58 ? "cluster" : "single";
+      obstacle.width = obstacle.type === "cluster" ? 29 : 19;
+      obstacle.height = obstacle.type === "cluster" ? 44 : 37;
+      obstacle.x = initial
+        ? stageWidth * 0.78
+        : stageWidth + 46 + Math.random() * Math.max(50, stageWidth * 0.28);
+    }
+
+    function resizeCanvas() {
+      const bounds = canvas.getBoundingClientRect();
+      const density = Math.min(window.devicePixelRatio || 1, 2);
+      stageWidth = Math.max(1, bounds.width);
+      stageHeight = Math.max(1, bounds.height);
+      canvas.width = Math.round(stageWidth * density);
+      canvas.height = Math.round(stageHeight * density);
+      context.setTransform(density, 0, 0, density, 0, 0);
+      context.imageSmoothingEnabled = false;
+      dinoScale = Math.max(1.42, Math.min(1.9, stageWidth / 155));
+      dinoX = Math.max(22, stageWidth * 0.13);
+      groundY = stageHeight - Math.max(27, stageHeight * 0.14);
+      if (!obstacle.x) resetObstacle(true);
+    }
+
+    function drawScene() {
+      context.clearRect(0, 0, stageWidth, stageHeight);
+
+      context.save();
+      context.strokeStyle = colors.phosphor;
+      context.globalAlpha = 0.3;
+      context.setLineDash([7, 7]);
+      context.beginPath();
+      context.moveTo(12, Math.round(groundY) + 0.5);
+      context.lineTo(stageWidth - 12, Math.round(groundY) + 0.5);
+      context.stroke();
+      context.setLineDash([]);
+
+      for (let x = -groundOffset; x < stageWidth; x += 22) {
+        context.fillStyle = Math.round(x / 22) % 3 === 0 ? colors.glitch : colors.cyan;
+        context.globalAlpha = 0.72;
+        context.fillRect(Math.round(x), Math.round(groundY + 7), 4, 3);
+      }
+      context.restore();
+
+      drawIdleCactus(context, obstacle, groundY, colors);
+
+      const dinoHeight = 47 * dinoScale;
+      const dinoWidth = 44 * dinoScale;
+      const dinoY = groundY - dinoHeight + jumpOffset;
+      const spriteFrame = isGrounded ? (Math.floor(gameTime * 12) % 2 === 0 ? 2 : 3) : 0;
+
+      context.save();
+      context.shadowColor = colors.phosphor;
+      context.shadowBlur = 4;
+
+      if (tintedTrexSprite) {
+        context.imageSmoothingEnabled = false;
+        context.drawImage(
+          tintedTrexSprite,
+          spriteFrame * 44,
+          0,
+          44,
+          47,
+          Math.round(dinoX),
+          Math.round(dinoY),
+          Math.round(dinoWidth),
+          Math.round(dinoHeight)
+        );
+      } else {
+        context.translate(Math.round(dinoX), Math.round(dinoY));
+        context.scale(dinoScale, dinoScale);
+        context.fillStyle = colors.phosphor;
+        context.shadowBlur = 7 / dinoScale;
+        context.fill(trexPath);
+      }
+      context.restore();
+
+      context.save();
+      context.fillStyle = colors.cabinet;
+      context.font = "700 8px monospace";
+      context.globalAlpha = 0.7;
+      context.fillText(`AUTO_RUN // ${String(Math.floor(gameTime * 10)).padStart(5, "0")}`, 12, 17);
+      context.restore();
+    }
+
+    function update(timestamp) {
+      if (!isVisible) return;
+
+      const delta = lastTime ? Math.min((timestamp - lastTime) / 1000, 0.034) : 0;
+      lastTime = timestamp;
+      gameTime += delta;
+
+      const speed = Math.max(82, stageWidth * 0.33);
+      const gravity = Math.max(980, Math.min(1180, stageHeight * 3.1));
+      const launchSpeed = Math.max(400, Math.min(470, stageHeight * 1.25));
+      const dinoWidth = 44 * dinoScale;
+      const jumpPointX = dinoX + dinoWidth * 0.52;
+      const obstacleDistance = obstacle.x - jumpPointX;
+      const timeToObstacle = obstacleDistance / speed;
+      const requiredClearance = obstacle.height + 9;
+      const jumpDiscriminant = Math.max(0, launchSpeed ** 2 - 2 * gravity * requiredClearance);
+      const timeToClearObstacle = (launchSpeed - Math.sqrt(jumpDiscriminant)) / gravity;
+
+      obstacle.x -= speed * delta;
+      groundOffset = (groundOffset + speed * delta) % 22;
+
+      if (
+        isGrounded &&
+        timeToObstacle > 0 &&
+        timeToObstacle <= timeToClearObstacle + 0.055
+      ) {
+        isGrounded = false;
+        jumpVelocity = -launchSpeed;
+      }
+
+      if (!isGrounded) {
+        jumpOffset += jumpVelocity * delta;
+        jumpVelocity += gravity * delta;
+
+        if (jumpOffset >= 0) {
+          jumpOffset = 0;
+          jumpVelocity = 0;
+          isGrounded = true;
+        }
+      }
+
+      if (obstacle.x + obstacle.width < -8) resetObstacle();
+      drawScene();
+      animationFrame = window.requestAnimationFrame(update);
+    }
+
+    function startAnimation() {
+      if (animationFrame || !isVisible) return;
+      lastTime = 0;
+      animationFrame = window.requestAnimationFrame(update);
+    }
+
+    function stopAnimation() {
+      if (animationFrame) window.cancelAnimationFrame(animationFrame);
+      animationFrame = 0;
+    }
+
+    const resizeObserver = new ResizeObserver(resizeCanvas);
+    const intersectionObserver = new IntersectionObserver(([entry]) => {
+      isVisible = entry.isIntersecting;
+      if (isVisible) startAnimation();
+      else stopAnimation();
+    }, { threshold: 0.05 });
+
+    resizeCanvas();
+    drawScene();
+    resizeObserver.observe(canvas);
+    intersectionObserver.observe(canvas);
+
+    return () => {
+      stopAnimation();
+      trexSprite.onload = null;
+      resizeObserver.disconnect();
+      intersectionObserver.disconnect();
+    };
+  }, [prefersReducedMotion]);
+
+  return (
+    <div
+      className={cn("discord-idle-game", prefersReducedMotion && "is-static")}
+      role="img"
+      aria-label="Pixel T-Rex automatically running and jumping over signal obstacles"
+    >
+      {prefersReducedMotion ? (
+        <svg className="discord-idle-runner" viewBox="0 0 44 47" aria-hidden="true" shapeRendering="crispEdges">
+          <path fill="currentColor" d={IDLE_TREX_PATH} />
+        </svg>
+      ) : <canvas ref={canvasRef} aria-hidden="true" />}
+    </div>
+  );
+}
+
 function DiscordProfileFrame({ anchor, className, decorative = false, frame }) {
   if (!frame?.layers?.length || !frame.innerWidth) return null;
 
@@ -285,24 +663,34 @@ function DiscordProfileFrame({ anchor, className, decorative = false, frame }) {
 export function DiscordPresencePanel() {
   const { data: presence, error, loading, updatedAt } = useLanyardPresence(discord.userId);
   const isMobileLayout = useMobilePresenceLayout();
+  const prefersReducedMotion = usePrefersReducedMotion();
   const [activityImages, setActivityImages] = useState({});
   const [badgeTooltip, setBadgeTooltip] = useState(null);
   const [now, setNow] = useState(Date.now());
   const [profileFrame, setProfileFrame] = useState(null);
+  const [profileNameplate, setProfileNameplate] = useState(null);
   const [profileFrameOverflow, setProfileFrameOverflow] = useState(true);
   const [profileFrameOverflowAdmin, setProfileFrameOverflowAdmin] = useState(false);
   const [profileFrameOverflowBusy, setProfileFrameOverflowBusy] = useState(false);
   const [streak, setStreak] = useState(null);
   const user = presence?.discord_user;
   const displayName = getDiscordDisplayName(user);
+  const primaryGuild = user?.primary_guild;
+  const primaryGuildBadgeUrl = primaryGuild?.identity_enabled && primaryGuild?.identity_guild_id && primaryGuild?.badge
+    ? `https://cdn.discordapp.com/guild-tag-badges/${encodeURIComponent(primaryGuild.identity_guild_id)}/${encodeURIComponent(primaryGuild.badge)}.png?size=64`
+    : null;
   const statusKey = loading && !presence ? "syncing" : presence?.discord_status || "offline";
   const status = discordStatusMeta[statusKey] || discordStatusMeta.offline;
   const avatarUrl = getDiscordAvatarUrl(user, 512) || discord.fallbackAvatar || profile.avatar;
   const decorationUrl = getAvatarDecorationUrl(user);
   const customStatus = getCustomStatus(presence?.activities);
   const customEmojiUrl = getEmojiUrl(customStatus?.emoji);
-  const activities = getVisibleActivities(presence);
-  const displayedActivities = isMobileLayout ? getMobileActivities(activities) : activities;
+  const activities = useMemo(() => getVisibleActivities(presence), [presence]);
+  const displayedActivities = useMemo(
+    () => (isMobileLayout ? getMobileActivities(activities) : activities),
+    [activities, isMobileLayout]
+  );
+  const animatedActivities = useAnimatedActivities(displayedActivities, prefersReducedMotion);
   const badges = getUserBadges(user);
   const statusText = error ? "Lanyard signal lost" : customStatus?.state || customStatus?.name || profile.location;
   const isLoadingStatus = /^loading\.{3}$/i.test(statusText.trim());
@@ -336,9 +724,15 @@ export function DiscordPresencePanel() {
         if (!response.ok) throw new Error(`Discord profile frame returned ${response.status}`);
 
         const payload = await response.json();
-        if (!cancelled) setProfileFrame(payload.frame || null);
+        if (!cancelled) {
+          setProfileFrame(payload.frame || null);
+          setProfileNameplate(payload.nameplate || null);
+        }
       } catch {
-        if (!cancelled) setProfileFrame(null);
+        if (!cancelled) {
+          setProfileFrame(null);
+          setProfileNameplate(null);
+        }
       }
     }
 
@@ -559,8 +953,21 @@ export function DiscordPresencePanel() {
             <i className={statusKey === "offline" ? "discord-presence-offline-indicator" : status.colorClass} aria-hidden="true" />
           </a>
 
-          <div className="text-center">
-            <strong>{displayName}</strong>
+          <div className="discord-presence-identity text-center">
+            <div className="discord-presence-name-row">
+              <strong>{displayName}</strong>
+              {primaryGuildBadgeUrl ? (
+                <span
+                  className="discord-primary-guild-badge"
+                  aria-label={`${primaryGuild.tag || "Primary server"} server tag`}
+                  data-tooltip={`PRIMARY SERVER // ${(primaryGuild.tag || "TAG").toUpperCase()}`}
+                  tabIndex={0}
+                >
+                  <img src={primaryGuildBadgeUrl} alt="" aria-hidden="true" />
+                  {primaryGuild.tag ? <span>{primaryGuild.tag}</span> : null}
+                </span>
+              ) : null}
+            </div>
             <small>@{user?.username || "daivr"}</small>
           </div>
 
@@ -582,7 +989,35 @@ export function DiscordPresencePanel() {
           </div>
 
           {badges.length ? (
-            <div className="discord-presence-badges" aria-label="Discord badges">
+            <div
+              className={cn("discord-presence-badges", profileNameplate && "has-nameplate")}
+              data-nameplate-palette={profileNameplate?.palette || undefined}
+              aria-label="Discord badges"
+            >
+              {profileNameplate ? (
+                prefersReducedMotion ? (
+                  <img
+                    className="discord-nameplate-backdrop"
+                    src={profileNameplate.fallbackSrc}
+                    alt=""
+                    aria-hidden="true"
+                  />
+                ) : (
+                  <video
+                    className="discord-nameplate-backdrop"
+                    poster={profileNameplate.fallbackSrc}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    preload="metadata"
+                    aria-hidden="true"
+                    tabIndex={-1}
+                  >
+                    <source src={profileNameplate.animatedSrc} type="video/webm" />
+                  </video>
+                )
+              ) : null}
               {badges.map((badge) => (
                 <span
                   className="discord-presence-badge"
@@ -613,8 +1048,8 @@ export function DiscordPresencePanel() {
           </div>
 
           <div className="discord-presence-feed">
-            {displayedActivities.length ? (
-              displayedActivities.map((activity) => {
+            {animatedActivities.length ? (
+              animatedActivities.map((activity, activityIndex) => {
                 const sessionLabel = formatSessionDuration(getActivitySessionMs(activity, presence, now, mainGameName));
                 const partySize = getActivityPartySize(activity);
                 const hasGameStreak = Boolean(
@@ -630,7 +1065,11 @@ export function DiscordPresencePanel() {
                   : null;
 
                 return (
-                  <article className="discord-activity-card" key={`${activity.name}-${activity.detail}`}>
+                  <article
+                    className={cn("discord-activity-card", `is-${activity.motionState}`)}
+                    key={activity.activityKey}
+                    style={{ "--discord-activity-delay": `${activityIndex * 45}ms` }}
+                  >
                     <div className="discord-activity-art">
                       {activity.image || activityImages[activity.name] ? (
                         <img
@@ -698,8 +1137,27 @@ export function DiscordPresencePanel() {
               })
             ) : (
               <div className="discord-presence-empty">
-                <span>NO ACTIVITY SIGNAL</span>
-                <p>Ahora mismo no hay actividades visibles. El radar sigue escuchando juego, Spotify y estados de Discord.</p>
+                <div className="discord-presence-empty-compact">
+                  <span>NO ACTIVITY SIGNAL</span>
+                  <p>Ahora mismo no hay actividades visibles. El radar sigue escuchando juego, Spotify y estados de Discord.</p>
+                </div>
+
+                <div className="discord-idle-desktop">
+                  <div className="discord-idle-visual">
+                    <DiscordIdleRunner prefersReducedMotion={prefersReducedMotion} />
+                  </div>
+
+                  <div className="discord-idle-copy">
+                    <span className="discord-idle-kicker">PACKET_REX // SIGNAL HUNT</span>
+                    <h4>No activity to chase.</h4>
+                    <p>No hay juego ni música transmitiendo. El pequeño rastreador seguirá corriendo hasta encontrar una nueva señal.</p>
+                    <div className="discord-idle-readout" aria-label="Activity scanners are listening">
+                      <span><code>game.scan</code><b>listening</b></span>
+                      <span><code>spotify.port</code><b>listening</b></span>
+                      <span><code>discord.state</code><b>ready</b></span>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>

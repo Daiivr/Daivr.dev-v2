@@ -1,26 +1,22 @@
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
-const MAX_PARTICLES = 90;
-const EMIT_INTERVAL_MS = 22;
-const LIFE_MS = 460;
+const MAX_PARTICLES = 64;
+const EMIT_INTERVAL_MS = 24;
+const LIFE_MS = 420;
 
 const THEME_COLORS = {
   crt: ["#3fff97", "#45d8ff", "#b4ffcf"],
   glitch: ["#ff3d9d", "#b986ff", "#45d8ff"]
 };
 
-/*
-  Estela del cursor: pixeles de fosforo que decaen detras del puntero.
-  Canvas fijo a viewport (pointer-events: none), emision regulada por tiempo
-  y bucle rAF que solo corre mientras queden particulas vivas. Apagado en
-  tactil (hover: none) y con motion reducido.
-*/
 export function CursorTrail({ theme = "crt" }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return undefined;
-    if (window.matchMedia?.("(hover: none)").matches) return undefined;
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    const finePointer = window.matchMedia?.("(hover: hover) and (pointer: fine)");
+    if (reducedMotion?.matches || !finePointer?.matches) return undefined;
 
     const canvas = canvasRef.current;
     const context = canvas?.getContext("2d");
@@ -28,7 +24,7 @@ export function CursorTrail({ theme = "crt" }) {
 
     const colors = THEME_COLORS[theme] || THEME_COLORS.crt;
     const particles = [];
-    let rafId = 0;
+    let animationFrame = 0;
     let lastEmit = 0;
     let ratio = 1;
 
@@ -38,7 +34,7 @@ export function CursorTrail({ theme = "crt" }) {
       canvas.height = Math.round(window.innerHeight * ratio);
     }
 
-    function render(now) {
+    function paint(now) {
       context.clearRect(0, 0, canvas.width, canvas.height);
 
       for (let index = particles.length - 1; index >= 0; index -= 1) {
@@ -52,7 +48,7 @@ export function CursorTrail({ theme = "crt" }) {
 
         const fade = 1 - life;
         const size = Math.max(1, particle.size * fade) * ratio;
-        context.globalAlpha = fade * 0.8;
+        context.globalAlpha = fade * 0.72;
         context.fillStyle = particle.color;
         context.fillRect(
           Math.round((particle.x + particle.driftX * life) * ratio),
@@ -63,38 +59,39 @@ export function CursorTrail({ theme = "crt" }) {
       }
 
       context.globalAlpha = 1;
-      rafId = particles.length ? window.requestAnimationFrame(render) : 0;
+      animationFrame = particles.length ? window.requestAnimationFrame(paint) : 0;
     }
 
     function emit(event) {
+      if (event.pointerType === "touch") return;
       const now = performance.now();
       if (now - lastEmit < EMIT_INTERVAL_MS) return;
       lastEmit = now;
 
       if (particles.length >= MAX_PARTICLES) particles.shift();
       particles.push({
-        x: event.clientX + (Math.random() * 8 - 4),
-        y: event.clientY + (Math.random() * 8 - 4),
+        x: event.clientX + (Math.random() * 6 - 3),
+        y: event.clientY + (Math.random() * 6 - 3),
         born: now,
-        size: Math.random() > 0.6 ? 3 : 2,
-        driftX: Math.random() * 10 - 5,
-        driftY: 6 + Math.random() * 14,
+        size: Math.random() > 0.68 ? 3 : 2,
+        driftX: Math.random() * 8 - 4,
+        driftY: 5 + Math.random() * 12,
         color: colors[Math.floor(Math.random() * colors.length)]
       });
 
-      if (!rafId) rafId = window.requestAnimationFrame(render);
+      if (!animationFrame) animationFrame = window.requestAnimationFrame(paint);
     }
 
     resize();
     window.addEventListener("resize", resize);
-    window.addEventListener("pointermove", emit, { passive: true });
+    window.addEventListener("pointermove", emit, { passive: true, capture: true });
 
     return () => {
       window.removeEventListener("resize", resize);
-      window.removeEventListener("pointermove", emit);
-      window.cancelAnimationFrame(rafId);
+      window.removeEventListener("pointermove", emit, { capture: true });
+      window.cancelAnimationFrame(animationFrame);
     };
   }, [theme]);
 
-  return <canvas className="cursor-trail" ref={canvasRef} aria-hidden="true" />;
+  return createPortal(<canvas className="cursor-trail" ref={canvasRef} aria-hidden="true" />, document.body);
 }

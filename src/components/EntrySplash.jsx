@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { getLocalBuddyLevel } from "../hooks/useBuddyFriendship";
 import { BuddySprite } from "./BuddySprite";
 import { SeasonalSplashNotice } from "./SeasonalEvent";
@@ -23,6 +24,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   const progressRef = useRef(displayProgress);
   const closeTimerRef = useRef(0);
   const splashBuddyRef = useRef(null);
+  const splashRootRef = useRef(null);
   const [buddyLevel] = useState(() => getLocalBuddyLevel());
   const [buddyLine, setBuddyLine] = useState("");
   const maxVisibleCount = authChecked ? BOOT_STEPS.length : BOOT_STEPS.length - 1;
@@ -108,6 +110,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
     const body = document.body;
     root.classList.add("entry-splash-lock");
     body.classList.add("entry-splash-lock");
+    splashRootRef.current?.focus({ preventScroll: true });
 
     return () => {
       root.classList.remove("entry-splash-lock");
@@ -153,8 +156,16 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
     return () => window.removeEventListener("keydown", enterOnKey);
   }, [canEnter, ready]);
 
+  const introCopy = discordUser
+    ? "Discord signal recognized. Your cabinet is loaded and the arcade floor is waiting."
+    : "Guest channel established. Step inside for projects, experiments, and a few hidden games.";
+
   return (
-    <div className={`entry-splash ${closing ? "is-closing" : ""}`} role="dialog" aria-modal="true" aria-labelledby="entry-splash-title">
+    <div className={`entry-splash ${closing ? "is-closing" : ""}`} role="dialog" aria-modal="true" aria-labelledby="entry-splash-title" aria-describedby="entry-splash-description" ref={splashRootRef} tabIndex={-1}>
+      <div className="entry-splash-atmosphere" aria-hidden="true">
+        <i className="entry-splash-orbit" />
+        <i className="entry-splash-horizon" />
+      </div>
       <div className="entry-splash-marquee" aria-hidden="true">DAI.EXE</div>
       {seasonalEvent ? <SeasonalSplashNotice event={seasonalEvent} /> : null}
       {seasonalEvent === "winter" || seasonalEvent === "halloween" ? (
@@ -208,9 +219,21 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
             unlockedGear={unlockedGear}
           />
         </div>
-        <section className={`entry-splash-gate ${ready ? "is-ready" : ""} ${closing ? "is-closing" : ""}`} aria-live="polite">
+        <section className={`entry-splash-gate ${ready ? "is-ready" : ""} ${closing ? "is-closing" : ""}`} aria-busy={!ready}>
+        <header className="entry-splash-chrome">
+          <div className="entry-splash-lockup">
+            <strong>DAI.EXE</strong>
+            <span>interactive portfolio</span>
+          </div>
+          <div className={`entry-splash-channel ${ready ? "is-online" : ""}`}>
+            <i aria-hidden="true" />
+            <span>{ready ? "channel open" : "establishing channel"}</span>
+            <b>01</b>
+          </div>
+        </header>
+
         <div className="entry-splash-id">
-          <span className="pixel-label">WELCOME ACCESS PASS</span>
+          <span className="entry-splash-kicker"><i aria-hidden="true" /> visitor access granted</span>
           <div className="entry-splash-identity">
             <div className="entry-splash-avatar" aria-hidden="true">
               {discordUser?.avatarUrl ? <img src={discordUser.avatarUrl} alt="" /> : <span>{initial}</span>}
@@ -220,20 +243,19 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
                 <span aria-hidden="true">hi,</span>
                 <strong aria-hidden="true">{displayName}</strong>
               </h1>
-              <p>{discordUser ? "Discord signal recognized. Your cabinet session is warmed up." : "Guest signal recognized. The arcade cabinet is ready for a look around."}</p>
+              <p id="entry-splash-description">{introCopy}</p>
             </div>
           </div>
           <div className="entry-splash-tags" aria-label="Session status">
-            <span>{discordUser ? "discord linked" : "guest pass"}</span>
-            <span>{ready ? "gate open" : "checking signal"}</span>
-            <span>{progress}%</span>
+            <span><b>pass</b>{discordUser ? "discord linked" : "guest access"}</span>
+            <span><b>inside</b>projects + play</span>
             {seasonalEvent ? <span className="is-event">{seasonalEvent.replace("-", " ")} live</span> : null}
           </div>
         </div>
 
-        <div className="entry-splash-console">
+        <div className="entry-splash-console" role="status" aria-live="polite" aria-label="Cabinet startup status">
           <header>
-            <span>~/welcome.gate</span>
+            <span>system handshake</span>
             <strong>{ready ? "unlocked" : "handshake"}</strong>
           </header>
           <div>
@@ -250,11 +272,24 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
         </div>
 
         <footer className="entry-splash-actions">
-          <div className="entry-splash-progress" aria-hidden="true">
-            <span style={{ width: `${displayProgress}%` }} />
+          <div className="entry-splash-loader">
+            <div className="entry-splash-loader-meta">
+              <span>{ready ? "all systems online" : "waking the cabinet"}</span>
+              <strong>{progress}%</strong>
+            </div>
+            <div className="entry-splash-progress" role="progressbar" aria-label="Cabinet startup progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progress}>
+              <span style={{ width: `${displayProgress}%` }} />
+            </div>
+            <div className="entry-splash-nodes" aria-hidden="true">
+              {BOOT_STEPS.map((step, index) => <i className={index < visibleCount ? "is-active" : ""} key={step.text} />)}
+            </div>
           </div>
-          <button type="button" onClick={requestEnter} disabled={!canEnter}>
-            {closing ? "entering..." : ready ? "enter web" : "opening gate..."}
+          <button type="button" onClick={requestEnter} disabled={!canEnter} aria-label={ready ? "Enter the Dai.exe portfolio" : "Cabinet is still loading"}>
+            <span>
+              <strong>{closing ? "entering..." : ready ? "enter arcade" : "opening gate"}</strong>
+              <small>{ready ? "press enter" : "stand by"}</small>
+            </span>
+            <ArrowRight aria-hidden="true" size={20} />
           </button>
         </footer>
         </section>

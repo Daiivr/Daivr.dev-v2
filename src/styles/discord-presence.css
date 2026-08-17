@@ -29,16 +29,42 @@
     animation: player-card-scan 4.2s ease-in-out infinite;
   }
 
-  .discord-avatar-decoration {
+  .discord-player-avatar-viewport {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: block;
+    overflow: hidden;
+    clip-path: inset(0);
+    contain: paint;
+  }
+
+  .discord-player-avatar-image {
+    position: relative;
+    z-index: 10;
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 45%, transparent);
+    object-fit: cover;
+    transition: transform 200ms ease;
+  }
+
+  .discord-player-avatar:hover .discord-player-avatar-image,
+  .discord-player-avatar:focus-visible .discord-player-avatar-image {
+    transform: scale(1.035);
+  }
+
+  .discord-player-avatar .discord-avatar-decoration {
     position: absolute;
     z-index: 20;
-    inset: -8px;
-    width: calc(100% + 16px);
-    height: calc(100% + 16px);
-    max-width: none;
+    inset: -4px;
+    width: calc(100% + 8px);
+    height: calc(100% + 8px);
+    max-width: none !important;
     object-fit: contain;
     pointer-events: none;
-    transform: translateY(-2px);
+    transform: none;
     filter: drop-shadow(0 0 14px rgba(69, 216, 255, 0.32));
   }
 
@@ -146,6 +172,7 @@
     display: grid;
     gap: clamp(1rem, 2.4vw, 1.4rem);
     padding: var(--discord-presence-grid-padding);
+    padding-bottom: calc(var(--discord-presence-grid-padding) + 0.75rem);
   }
 
   .discord-presence-profile,
@@ -446,6 +473,138 @@
     font-weight: 900;
   }
 
+  .discord-presence-identity {
+    min-width: 0;
+  }
+
+  .discord-presence-name-row {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+  }
+
+  .discord-presence-name-row > strong {
+    min-width: 0;
+  }
+
+  .discord-primary-guild-badge {
+    position: relative;
+    z-index: 4;
+    display: inline-flex;
+    flex: 0 0 auto;
+    min-height: 22px;
+    align-items: center;
+    gap: 0.28rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 38%, transparent);
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--color-cyan-arcade) 12%, transparent), transparent 62%),
+      rgba(2, 6, 4, 0.82);
+    padding: 0.18rem 0.38rem;
+    color: var(--color-phosphor-soft);
+    font-family: var(--font-pixel);
+    font-size: 0.48rem;
+    line-height: 1;
+    text-transform: uppercase;
+    box-shadow:
+      inset 0 0 10px rgba(0, 0, 0, 0.46),
+      0 0 12px color-mix(in srgb, var(--color-cyan-arcade) 12%, transparent);
+  }
+
+  .discord-primary-guild-badge > span {
+    display: inline-flex;
+    height: 14px;
+    align-items: center;
+    line-height: 14px;
+    transform: translateY(1px);
+  }
+
+  .discord-primary-guild-badge img {
+    width: 14px;
+    height: 14px;
+    max-width: none;
+    object-fit: contain;
+  }
+
+  .discord-primary-guild-badge::before,
+  .discord-primary-guild-badge::after {
+    position: absolute;
+    left: 50%;
+    z-index: 30;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 150ms ease, transform 150ms ease, visibility 150ms ease;
+  }
+
+  .discord-primary-guild-badge::before {
+    bottom: calc(100% + 10px);
+    width: max-content;
+    max-width: min(190px, calc(100vw - 32px));
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 48%, transparent);
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.045) 50%, transparent 50%),
+      radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--color-cyan-arcade) 16%, transparent), transparent 70%),
+      rgba(2, 6, 4, 0.97);
+    background-size: 100% 4px, auto, auto;
+    box-shadow:
+      inset 3px 0 0 color-mix(in srgb, var(--color-cyan-arcade) 58%, transparent),
+      0 12px 28px rgba(0, 0, 0, 0.5),
+      0 0 18px color-mix(in srgb, var(--color-cyan-arcade) 18%, transparent);
+    color: color-mix(in srgb, var(--color-phosphor-soft) 88%, white);
+    content: attr(data-tooltip);
+    font-family: var(--font-pixel);
+    font-size: 0.5rem;
+    line-height: 1.45;
+    padding: 0.52rem 0.62rem;
+    text-align: center;
+    transform: translate(-50%, 6px);
+    white-space: nowrap;
+  }
+
+  .discord-primary-guild-badge::after {
+    bottom: calc(100% + 5px);
+    width: 9px;
+    height: 9px;
+    border-right: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 48%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 48%, transparent);
+    background: #020604;
+    content: "";
+    transform: translate(-50%, 6px) rotate(45deg);
+  }
+
+  .discord-primary-guild-badge:hover,
+  .discord-primary-guild-badge:focus-visible {
+    z-index: 34;
+    outline: none;
+  }
+
+  .discord-primary-guild-badge:focus-visible {
+    box-shadow:
+      0 0 0 2px #020604,
+      0 0 0 4px color-mix(in srgb, var(--color-cyan-arcade) 72%, transparent),
+      0 0 16px color-mix(in srgb, var(--color-cyan-arcade) 24%, transparent);
+  }
+
+  .discord-primary-guild-badge:hover::before,
+  .discord-primary-guild-badge:hover::after,
+  .discord-primary-guild-badge:focus-visible::before,
+  .discord-primary-guild-badge:focus-visible::after {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  .discord-primary-guild-badge:hover::before,
+  .discord-primary-guild-badge:focus-visible::before {
+    transform: translate(-50%, 0);
+  }
+
+  .discord-primary-guild-badge:hover::after,
+  .discord-primary-guild-badge:focus-visible::after {
+    transform: translate(-50%, 0) rotate(45deg);
+  }
+
   .discord-presence-profile small {
     color: var(--color-phosphor-soft);
     font-size: 0.8rem;
@@ -530,10 +689,12 @@
   .discord-presence-badges {
     position: relative;
     z-index: 1;
+    isolation: isolate;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.48rem;
+    overflow: hidden;
     border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 24%, transparent);
     background:
       linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent), transparent 70%),
@@ -541,8 +702,51 @@
     padding: 0.7rem;
   }
 
+  .discord-presence-badges.has-nameplate {
+    --discord-nameplate-base: rgba(7, 18, 15, 0.88);
+    --discord-nameplate-glow: color-mix(in srgb, var(--color-cyan-arcade) 22%, transparent);
+    border-color: color-mix(in srgb, var(--color-phosphor) 42%, transparent);
+    background:
+      radial-gradient(circle at 50% 48%, var(--discord-nameplate-glow), transparent 68%),
+      var(--discord-nameplate-base);
+    box-shadow:
+      inset 0 0 24px rgba(0, 0, 0, 0.72),
+      0 0 16px color-mix(in srgb, var(--color-cyan-arcade) 10%, transparent);
+  }
+
+  .discord-presence-badges.has-nameplate[data-nameplate-palette="bubble_gum"] {
+    --discord-nameplate-base: rgba(38, 17, 39, 0.92);
+    --discord-nameplate-glow: rgba(238, 118, 205, 0.28);
+  }
+
+  .discord-presence-badges.has-nameplate::before {
+    position: absolute;
+    z-index: 1;
+    inset: 0;
+    content: "";
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, rgba(2, 6, 4, 0.5), rgba(2, 6, 4, 0.12) 50%, rgba(2, 6, 4, 0.5)),
+      linear-gradient(rgba(2, 6, 4, 0.2), rgba(2, 6, 4, 0.42));
+  }
+
+  .discord-nameplate-backdrop {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    object-fit: cover;
+    object-position: right center;
+    pointer-events: none;
+    opacity: 0.92;
+    filter: saturate(1.08) contrast(1.04);
+  }
+
   .discord-presence-badge {
     position: relative;
+    z-index: 2;
     display: grid;
     width: 28px;
     height: 28px;
@@ -551,6 +755,12 @@
     background: rgba(2, 6, 4, 0.64);
     box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.42);
     transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .discord-presence-badges.has-nameplate .discord-presence-badge {
+    border-color: color-mix(in srgb, var(--color-phosphor) 32%, transparent);
+    background: rgba(2, 6, 4, 0.76);
+    backdrop-filter: blur(2px);
   }
 
   .discord-presence-badge::after {
@@ -720,6 +930,28 @@
     box-shadow:
       inset 3px 0 0 color-mix(in srgb, var(--color-phosphor) 58%, transparent),
       inset 0 1px 0 color-mix(in srgb, var(--color-cyan-arcade) 18%, transparent);
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    transform-origin: center top;
+    transition:
+      opacity 260ms ease-out var(--discord-activity-delay, 0ms),
+      transform 260ms cubic-bezier(0.16, 1, 0.3, 1) var(--discord-activity-delay, 0ms);
+  }
+
+  .discord-activity-card.is-entering {
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+    will-change: opacity, transform;
+  }
+
+  .discord-activity-card.is-exiting {
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(-8px) scale(0.985);
+    transition-duration: 180ms;
+    transition-delay: 0ms;
+    transition-timing-function: ease-in;
+    will-change: opacity, transform;
   }
 
   .discord-activity-card::before {
@@ -952,21 +1184,139 @@
   }
 
   .discord-presence-empty {
+    position: relative;
+    overflow: hidden;
     border: 1px dashed color-mix(in srgb, var(--color-phosphor) 20%, transparent);
     background: rgba(2, 6, 4, 0.46);
     padding: clamp(1rem, 3vw, 1.5rem);
+    animation: discord-activity-empty-enter 260ms ease-out both;
   }
 
-  .discord-presence-empty span {
+  .discord-presence-empty-compact > span {
     color: var(--color-cabinet);
     font-size: 0.68rem;
     font-weight: 900;
   }
 
-  .discord-presence-empty p {
+  .discord-presence-empty-compact > p {
     margin-top: 0.7rem;
     color: var(--color-phosphor-soft);
     opacity: 0.62;
+  }
+
+  .discord-idle-desktop {
+    display: none;
+  }
+
+  .discord-idle-visual {
+    position: relative;
+    display: grid;
+    min-height: 220px;
+    place-items: center;
+    overflow: hidden;
+    border-right: 1px solid color-mix(in srgb, var(--color-phosphor) 16%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 7%, transparent) 1px, transparent 1px),
+      linear-gradient(color-mix(in srgb, var(--color-phosphor) 7%, transparent) 1px, transparent 1px),
+      radial-gradient(circle at 50% 55%, color-mix(in srgb, var(--color-phosphor) 12%, transparent), transparent 52%);
+    background-size: 20px 20px, 20px 20px, auto;
+  }
+
+  .discord-idle-visual::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+    pointer-events: none;
+    background: linear-gradient(180deg, transparent 48%, color-mix(in srgb, var(--color-cyan-arcade) 16%, transparent) 50%, transparent 52%);
+    opacity: 0.52;
+  }
+
+  .discord-idle-game {
+    position: absolute;
+    z-index: 2;
+    inset: 0;
+    overflow: hidden;
+  }
+
+  .discord-idle-game canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .discord-idle-game.is-static {
+    display: grid;
+    place-items: center;
+  }
+
+  .discord-idle-runner {
+    position: relative;
+    z-index: 2;
+    width: clamp(78px, 42%, 106px);
+    margin-top: 1.4rem;
+    overflow: visible;
+    color: var(--color-phosphor);
+    filter: drop-shadow(0 0 10px color-mix(in srgb, var(--color-phosphor) 26%, transparent));
+    animation: discord-idle-runner-bob 0.68s steps(2, end) infinite;
+  }
+
+  .discord-idle-copy {
+    position: relative;
+    z-index: 2;
+    padding: clamp(1.4rem, 3vw, 2.2rem);
+  }
+
+  .discord-idle-kicker {
+    color: var(--color-cabinet);
+    font-family: var(--font-pixel);
+    font-size: 0.58rem;
+    line-height: 1.6;
+  }
+
+  .discord-idle-copy h4 {
+    margin-top: 0.8rem;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: clamp(1.5rem, 2.8vw, 2.15rem);
+    font-weight: 900;
+    line-height: 1.05;
+  }
+
+  .discord-idle-copy > p {
+    max-width: 46ch;
+    margin-top: 0.8rem;
+    color: var(--color-phosphor-soft);
+    font-size: 0.88rem;
+    line-height: 1.65;
+    opacity: 0.7;
+  }
+
+  .discord-idle-readout {
+    display: grid;
+    gap: 0.45rem;
+    margin-top: 1.15rem;
+    border-top: 1px solid color-mix(in srgb, var(--color-phosphor) 14%, transparent);
+    padding-top: 0.85rem;
+  }
+
+  .discord-idle-readout > span {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--color-phosphor-soft);
+    font-family: var(--font-pixel);
+    font-size: 0.5rem;
+    line-height: 1.5;
+  }
+
+  .discord-idle-readout code {
+    color: var(--color-cyan-arcade);
+  }
+
+  .discord-idle-readout b {
+    color: var(--color-phosphor);
+    font-weight: 900;
   }
 
   .discord-presence-footer {
@@ -1020,7 +1370,43 @@
   }
 }
 
+@keyframes discord-activity-empty-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes discord-idle-runner-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .discord-activity-card,
+  .discord-activity-card.is-entering,
+  .discord-activity-card.is-exiting {
+    pointer-events: auto;
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .discord-presence-empty {
+    animation: none;
+  }
+
   .discord-loading-dots i {
     animation: none;
     opacity: 1;
@@ -1028,6 +1414,10 @@
   }
 
   .discord-streak-chip svg {
+    animation: none;
+  }
+
+  .discord-idle-runner {
     animation: none;
   }
 
@@ -1046,6 +1436,30 @@
 @media (min-width: 981px) {
   .discord-presence-grid {
     grid-template-columns: minmax(260px, 0.62fr) minmax(0, 1.38fr);
+  }
+
+  .discord-presence-empty {
+    min-height: clamp(250px, 31vh, 310px);
+    border-style: solid;
+    background:
+      linear-gradient(110deg, color-mix(in srgb, var(--color-phosphor) 7%, transparent), transparent 48%),
+      rgba(2, 6, 4, 0.58);
+    padding: 0;
+  }
+
+  .discord-presence-empty-compact {
+    display: none;
+  }
+
+  .discord-idle-desktop {
+    display: grid;
+    min-height: inherit;
+    grid-template-columns: minmax(190px, 0.78fr) minmax(0, 1.22fr);
+    align-items: stretch;
+  }
+
+  .discord-idle-copy {
+    align-self: center;
   }
 }
 
