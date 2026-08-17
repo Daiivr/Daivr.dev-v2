@@ -102,7 +102,7 @@ function getVisibleActivities(presence) {
 
   if (presence?.listening_to_spotify && presence.spotify) {
     activities.push({
-      activityKey: `spotify:${presence.spotify.track_id || presence.spotify.song}`,
+      activityKey: "spotify",
       detail: presence.spotify.artist,
       icon: "spotify",
       image: presence.spotify.album_art_url,
