@@ -87,6 +87,20 @@
     padding: 0.75rem 0.9rem;
   }
 
+  @media (min-width: 761px) {
+    .patch-personality-readout {
+      height: 3.8rem;
+      overflow: hidden;
+    }
+
+    .patch-personality-readout p {
+      display: -webkit-box;
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+  }
+
   .patch-personality-readout span,
   .patch-personality-readout strong {
     font-size: 0.62rem;
@@ -413,9 +427,412 @@
     opacity: 0.4;
   }
 
+  .patch-swap-controller {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    align-items: stretch;
+    gap: 0.55rem;
+  }
+
+  .patch-swap-controller > button {
+    display: grid;
+    width: 2.7rem;
+    min-height: 2.7rem;
+    flex: 0 0 auto;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 40%, transparent);
+    background: color-mix(in srgb, var(--color-cyan-arcade) 7%, rgba(2, 6, 4, 0.9));
+    color: var(--color-cyan-arcade);
+    transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
+  }
+
+  .patch-swap-controller > button:hover,
+  .patch-swap-controller > button:focus-visible {
+    border-color: var(--color-phosphor);
+    background: color-mix(in srgb, var(--color-phosphor) 12%, rgba(2, 6, 4, 0.9));
+    color: var(--color-phosphor);
+  }
+
+  .patch-swap-controller > button:hover {
+    transform: translateY(-1px);
+  }
+
+  .patch-swap-controller label {
+    display: grid;
+    min-width: min(21rem, 60vw);
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.65rem;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 20%, transparent);
+    background: rgba(2, 6, 4, 0.78);
+    padding: 0.4rem 0.5rem 0.4rem 0.7rem;
+  }
+
+  .patch-swap-controller label > span {
+    color: var(--color-phosphor-soft);
+    font-size: 0.57rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    opacity: 0.64;
+  }
+
+  .patch-swap-controller select {
+    min-width: 0;
+    border: 1px solid color-mix(in srgb, var(--color-cabinet) 36%, transparent);
+    border-radius: 0;
+    outline: 0;
+    background: color-mix(in srgb, var(--color-cabinet) 7%, #030706);
+    padding: 0.48rem 0.65rem;
+    color: var(--color-phosphor);
+    font: inherit;
+    font-size: 0.64rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .patch-swap-controller select:focus-visible {
+    border-color: var(--color-cyan-arcade);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-cyan-arcade) 18%, transparent);
+  }
+
+  .patch-swap-mode {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-left: auto;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 18%, transparent);
+    background: rgba(2, 6, 4, 0.62);
+    padding: 0.55rem 0.7rem;
+    color: var(--color-phosphor-soft);
+    font-size: 0.57rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .patch-swap-mode i {
+    width: 0.42rem;
+    aspect-ratio: 1;
+    border-radius: 999px;
+    background: var(--color-phosphor);
+    box-shadow: 0 0 9px currentColor;
+    animation: status-meter-pulse 2.4s ease-in-out infinite;
+  }
+
+  .patch-swap-workspace {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: minmax(19rem, 0.78fr) minmax(0, 1.22fr);
+    gap: clamp(1rem, 2.6vw, 1.8rem);
+    height: 34rem;
+    min-height: 34rem;
+  }
+
+  .patch-swap-workspace.is-reading-full {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .patch-swap-deck {
+    --patch-swap-x-step: 0.86rem;
+    --patch-swap-y-step: 0.82rem;
+    position: relative;
+    height: 34rem;
+    min-height: 0;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 23%, transparent);
+    background:
+      linear-gradient(color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent) 1px, transparent 1px),
+      radial-gradient(circle at 52% 42%, color-mix(in srgb, var(--color-glitch) 13%, transparent), transparent 54%),
+      rgba(1, 7, 5, 0.76);
+    background-size: 24px 24px, 24px 24px, auto, auto;
+    perspective: 900px;
+    overscroll-behavior: none;
+    touch-action: pan-y;
+  }
+
+  .patch-swap-deck::before,
+  .patch-swap-deck::after {
+    position: absolute;
+    z-index: 0;
+    width: 4.5rem;
+    height: 1px;
+    background: var(--color-glitch);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--color-glitch) 45%, transparent);
+    content: "";
+  }
+
+  .patch-swap-deck::before {
+    top: 1rem;
+    left: 1rem;
+  }
+
+  .patch-swap-deck::after {
+    right: 1rem;
+    bottom: 1rem;
+    background: var(--color-phosphor);
+  }
+
+  .patch-swap-guide {
+    position: absolute;
+    right: 1rem;
+    bottom: 1.2rem;
+    left: 1rem;
+    z-index: 8;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    color: var(--color-phosphor-soft);
+    font-size: 0.56rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    pointer-events: none;
+    opacity: 0.72;
+  }
+
+  .patch-swap-guide strong {
+    color: var(--color-cyan-arcade);
+  }
+
+  .patch-swap-card {
+    position: absolute;
+    top: 47%;
+    left: 44%;
+    display: grid;
+    width: min(78%, 22rem);
+    min-height: 14.5rem;
+    align-content: start;
+    gap: 0.62rem;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 54%, transparent);
+    border-radius: 0.2rem;
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent), transparent 48%),
+      linear-gradient(180deg, rgba(3, 15, 12, 0.99), rgba(1, 6, 5, 0.99));
+    padding: 1.15rem;
+    color: var(--color-phosphor-soft);
+    text-align: left;
+    transform:
+      translate(-50%, -50%)
+      translateX(calc(var(--patch-swap-slot) * var(--patch-swap-x-step)))
+      translateY(calc(var(--patch-swap-slot) * var(--patch-swap-y-step)))
+      translateZ(calc(var(--patch-swap-slot) * -42px))
+      rotateY(calc(var(--patch-swap-slot) * -1.4deg))
+      rotateZ(calc(var(--patch-swap-slot) * 0.6deg))
+      scale(calc(1 - var(--patch-swap-slot) * 0.035));
+    transform-origin: 50% 100%;
+    box-shadow:
+      -0.55rem 0.75rem 0 rgba(0, 0, 0, 0.28),
+      0 0 24px color-mix(in srgb, var(--color-cyan-arcade) 7%, transparent);
+    transition: transform 560ms cubic-bezier(0.2, 0.78, 0.24, 1), opacity 420ms ease, border-color 180ms ease, box-shadow 180ms ease;
+    backface-visibility: hidden;
+    will-change: transform;
+  }
+
+  .patch-swap-card::before {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(color-mix(in srgb, var(--color-phosphor) 5%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 5%, transparent) 1px, transparent 1px);
+    background-size: 18px 18px;
+    content: "";
+    pointer-events: none;
+    opacity: 0.62;
+  }
+
+  .patch-swap-card:hover,
+  .patch-swap-card:focus-visible {
+    border-color: var(--color-phosphor);
+    box-shadow: -0.55rem 0.75rem 0 rgba(0, 0, 0, 0.28), 0 0 28px color-mix(in srgb, var(--color-phosphor) 16%, transparent);
+  }
+
+  .patch-swap-card.is-active {
+    border-color: var(--color-glitch);
+    box-shadow: -0.65rem 0.85rem 0 rgba(0, 0, 0, 0.34), 0 0 32px color-mix(in srgb, var(--color-glitch) 18%, transparent);
+  }
+
+  .patch-swap-card.is-exiting {
+    opacity: 0;
+    transform: translate(-50%, -50%) translateY(25rem) translateZ(60px) rotateZ(-5deg) scale(0.98);
+    pointer-events: none;
+  }
+
+  .patch-swap-card > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .patch-swap-card-index {
+    justify-self: end;
+    color: var(--color-glitch);
+    font-size: 0.58rem;
+    font-weight: 900;
+  }
+
+  .patch-swap-card-version {
+    width: max-content;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 50%, transparent);
+    padding: 0.3rem 0.48rem;
+    color: var(--color-cyan-arcade);
+    font-size: 0.66rem;
+    font-weight: 900;
+  }
+
+  .patch-swap-card strong {
+    overflow: hidden;
+    color: white;
+    font-family: var(--font-display);
+    font-size: clamp(1.15rem, 2.2vw, 1.55rem);
+    line-height: 1;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .patch-swap-card time {
+    color: var(--color-phosphor);
+    font-size: 0.58rem;
+    font-weight: 900;
+    opacity: 0.72;
+  }
+
+  .patch-swap-card-summary {
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--color-phosphor-soft);
+    font-size: 0.69rem;
+    line-height: 1.55;
+    opacity: 0.78;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+  }
+
+  .patch-swap-card-command {
+    align-self: end;
+    width: max-content;
+    margin-top: auto;
+    border-top: 1px solid color-mix(in srgb, var(--color-glitch) 38%, transparent);
+    padding-top: 0.45rem;
+    color: var(--color-glitch);
+    font-size: 0.56rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .patch-swap-detail {
+    height: 34rem;
+    min-height: 0;
+    max-height: 34rem;
+    align-self: stretch;
+    overflow-y: hidden;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+    clip-path: none;
+  }
+
+  .patch-swap-detail.is-full-log {
+    grid-column: 1 / -1;
+    overflow-y: auto;
+  }
+
+  .patch-swap-detail:not(.is-full-log) .patch-entry-summary {
+    margin-top: 0.4rem;
+    font-size: 0.7rem;
+    line-height: 1.4;
+  }
+
+  .patch-swap-detail:not(.is-full-log) .patch-entry-changes {
+    gap: 0.35rem;
+    margin-top: 0.55rem;
+  }
+
+  .patch-swap-detail:not(.is-full-log) .patch-entry-changes p {
+    font-size: 0.75rem;
+    line-height: 1.45;
+  }
+
+  .patch-swap-detail:not(.is-full-log) .patch-entry-read-more {
+    margin-top: 0.65rem;
+  }
+
+  .patch-full-log-back {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    display: flex;
+    width: max-content;
+    min-height: 2.7rem;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0 0 1rem auto;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 48%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 12%, transparent), transparent),
+      rgba(2, 8, 7, 0.96);
+    padding: 0.58rem 0.8rem;
+    color: var(--color-cyan-arcade);
+    font-size: 0.62rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    box-shadow: 0 0 18px rgba(0, 0, 0, 0.48);
+    transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+  }
+
+  .patch-full-log-back:hover,
+  .patch-full-log-back:focus-visible {
+    border-color: var(--color-phosphor);
+    background: color-mix(in srgb, var(--color-phosphor) 11%, rgba(2, 8, 7, 0.96));
+    color: var(--color-phosphor);
+  }
+
   @media (max-width: 760px) {
     .patch-personality-readout {
       grid-template-columns: 1fr;
+    }
+
+    .patch-swap-controller {
+      flex-wrap: wrap;
+    }
+
+    .patch-swap-controller label {
+      min-width: 0;
+      flex: 1 1 calc(100% - 6rem);
+      grid-template-columns: 1fr;
+      gap: 0.3rem;
+    }
+
+    .patch-swap-mode {
+      width: 100%;
+      justify-content: center;
+      margin-left: 0;
+    }
+
+    .patch-swap-workspace {
+      grid-template-columns: 1fr;
+      height: auto;
+      min-height: 0;
+    }
+
+    .patch-swap-deck {
+      height: 22rem;
+      min-height: 22rem;
+    }
+
+    .patch-swap-card {
+      top: 46%;
+      width: min(76vw, 18rem);
+      min-height: 12.8rem;
+      padding: 0.9rem;
+    }
+
+    .patch-swap-detail {
+      height: min(30rem, 68vh);
+      min-height: min(30rem, 68vh);
+      max-height: min(30rem, 68vh);
     }
 
     .patch-page-readout {
@@ -442,6 +859,10 @@
     .patch-page-arrow,
     .patch-page-button,
     .patch-entry-read-more,
+    .patch-full-log-back,
+    .patch-swap-controller > button,
+    .patch-swap-card,
+    .patch-swap-mode i,
     .patch-console-titlebar strong span,
     .patch-entry.is-latest .patch-entry-node,
     .patch-entry-badge {

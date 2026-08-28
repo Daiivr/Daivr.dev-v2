@@ -1,0 +1,613 @@
+@layer components {
+  .project-card.is-lanyard-selected {
+    border-color: color-mix(in srgb, var(--color-cabinet) 76%, transparent);
+    box-shadow:
+      0 0 0 2px color-mix(in srgb, var(--color-cabinet) 18%, transparent),
+      0 0 34px color-mix(in srgb, var(--color-cyan-arcade) 20%, transparent);
+  }
+
+  .project-card-footer strong svg {
+    transition: transform 180ms ease;
+  }
+
+  .project-card-footer strong svg.is-rotated {
+    transform: rotate(90deg);
+  }
+
+  .project-lanyard-dock {
+    --project-lanyard-accent: var(--color-phosphor);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    margin: 1rem;
+    scroll-margin-top: 5.25rem;
+    border: 1px solid color-mix(in srgb, var(--project-lanyard-accent) 54%, transparent);
+    background:
+      radial-gradient(circle at 24% 28%, color-mix(in srgb, var(--project-lanyard-accent) 12%, transparent), transparent 32%),
+      radial-gradient(circle at 92% 76%, color-mix(in srgb, var(--color-glitch) 9%, transparent), transparent 28%),
+      linear-gradient(135deg, rgba(2, 6, 4, 0.96), rgba(4, 13, 8, 0.93));
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, #fff 5%, transparent),
+      inset 0 0 52px color-mix(in srgb, var(--project-lanyard-accent) 7%, transparent),
+      0 24px 58px rgba(0, 0, 0, 0.38);
+    clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+    animation: project-lanyard-dock-in 440ms cubic-bezier(0.18, 0.82, 0.22, 1) both;
+  }
+
+  .project-lanyard-dock.is-tradedex {
+    --project-lanyard-accent: var(--color-glitch);
+  }
+
+  .project-lanyard-dock::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    content: "";
+    pointer-events: none;
+    background:
+      linear-gradient(color-mix(in srgb, var(--color-phosphor) 8%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 7%, transparent) 1px, transparent 1px),
+      repeating-linear-gradient(0deg, transparent 0 3px, rgba(255, 255, 255, 0.024) 3px 4px);
+    background-size: 32px 32px, 32px 32px, 100% 4px;
+    mask-image: linear-gradient(90deg, #000 0 62%, transparent 90%);
+    opacity: 0.78;
+  }
+
+  .project-lanyard-header {
+    position: relative;
+    z-index: 4;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 1rem;
+    min-height: 66px;
+    border-bottom: 1px solid color-mix(in srgb, var(--project-lanyard-accent) 24%, transparent);
+    background: rgba(2, 6, 4, 0.84);
+    padding: 0.8rem 1rem;
+  }
+
+  .project-lanyard-header > div {
+    display: grid;
+    gap: 0.3rem;
+    min-width: 0;
+  }
+
+  .project-lanyard-header > div > span,
+  .project-lanyard-info > span {
+    color: var(--project-lanyard-accent);
+    font-family: var(--font-pixel);
+    font-size: 0.5rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .project-lanyard-header > div > strong {
+    overflow: hidden;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: clamp(0.82rem, 1.5vw, 1.05rem);
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .project-lanyard-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--color-phosphor-soft);
+    font-size: 0.63rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .project-lanyard-live i {
+    width: 7px;
+    height: 7px;
+    background: var(--color-phosphor);
+    box-shadow: 0 0 12px var(--color-phosphor);
+    animation: project-lanyard-live 1.4s steps(2, end) infinite;
+  }
+
+  .project-lanyard-header > button {
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--project-lanyard-accent) 32%, transparent);
+    background: color-mix(in srgb, var(--project-lanyard-accent) 7%, rgba(2, 6, 4, 0.92));
+    color: var(--color-phosphor-soft);
+  }
+
+  .project-lanyard-header > button:hover,
+  .project-lanyard-header > button:focus-visible {
+    border-color: var(--color-danger-arcade);
+    color: #fff;
+  }
+
+  .project-lanyard-layout {
+    display: grid;
+    grid-template-columns: minmax(340px, 1.08fr) minmax(330px, 0.92fr);
+    min-height: 620px;
+  }
+
+  .project-lanyard-stage {
+    position: relative;
+    min-height: 620px;
+    overflow: hidden;
+    border-right: 1px solid color-mix(in srgb, var(--project-lanyard-accent) 22%, transparent);
+    background:
+      radial-gradient(circle at 50% 36%, color-mix(in srgb, var(--project-lanyard-accent) 13%, transparent), transparent 36%),
+      linear-gradient(180deg, rgba(2, 6, 4, 0.32), rgba(2, 6, 4, 0.82));
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .project-lanyard-stage:active {
+    cursor: grabbing;
+  }
+
+  .project-lanyard-stage canvas {
+    position: absolute;
+    inset: 0;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .project-lanyard-stage::before,
+  .project-lanyard-stage::after {
+    position: absolute;
+    z-index: 2;
+    content: "";
+    pointer-events: none;
+  }
+
+  .project-lanyard-stage::before {
+    inset: 1rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 16%, transparent);
+    clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
+  }
+
+  .project-lanyard-stage::after {
+    inset: auto 8% 4.4rem;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--project-lanyard-accent), transparent);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--project-lanyard-accent) 46%, transparent);
+  }
+
+  .project-lanyard-drag-hint,
+  .project-lanyard-loading {
+    position: absolute;
+    z-index: 3;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 64%, transparent);
+    font-family: var(--font-pixel);
+    font-size: 0.48rem;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+
+  .project-lanyard-drag-hint {
+    right: 1.4rem;
+    bottom: 1.5rem;
+  }
+
+  .project-lanyard-loading {
+    inset: 50% auto auto 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .project-lanyard-info {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 1rem;
+    background: rgba(2, 6, 4, 0.72);
+    padding: clamp(1.1rem, 2.5vw, 1.7rem);
+  }
+
+  .project-lanyard-identity {
+    display: grid;
+    grid-template-columns: 74px minmax(0, 1fr);
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--project-lanyard-accent) 18%, transparent);
+    padding-bottom: 1rem;
+  }
+
+  .project-lanyard-logo {
+    display: grid;
+    width: 74px;
+    height: 74px;
+    place-items: center;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--project-lanyard-accent) 46%, transparent);
+    background: color-mix(in srgb, var(--project-lanyard-accent) 7%, rgba(2, 6, 4, 0.92));
+    box-shadow: inset 0 0 20px color-mix(in srgb, var(--project-lanyard-accent) 11%, transparent);
+  }
+
+  .project-lanyard-logo img {
+    width: 82%;
+    height: 82%;
+    object-fit: contain;
+  }
+
+  .project-lanyard-identity > div {
+    display: grid;
+    gap: 0.24rem;
+    min-width: 0;
+  }
+
+  .project-lanyard-identity > div > span {
+    color: var(--project-lanyard-accent);
+    font-size: 0.58rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .project-lanyard-identity h3 {
+    margin: 0;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: clamp(1.45rem, 3vw, 2.35rem);
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .project-lanyard-identity p {
+    overflow: hidden;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 65%, transparent);
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .project-lanyard-summary {
+    margin: 0;
+    color: var(--color-phosphor-soft);
+    font-size: 0.84rem;
+    font-weight: 700;
+    line-height: 1.72;
+  }
+
+  .project-lanyard-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .project-lanyard-tags li {
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 30%, transparent);
+    background: color-mix(in srgb, var(--color-cyan-arcade) 6%, transparent);
+    padding: 0.4rem 0.5rem;
+    color: var(--color-cyan-arcade);
+    font-size: 0.58rem;
+    font-weight: 900;
+  }
+
+  .project-lanyard-facts {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    border-block: 1px solid color-mix(in srgb, var(--project-lanyard-accent) 16%, transparent);
+  }
+
+  .project-lanyard-facts > div {
+    display: grid;
+    grid-template-columns: minmax(88px, 0.4fr) minmax(0, 1fr);
+    gap: 0.8rem;
+    padding: 0.65rem 0;
+  }
+
+  .project-lanyard-facts > div + div {
+    border-top: 1px solid color-mix(in srgb, var(--color-phosphor) 9%, transparent);
+  }
+
+  .project-lanyard-facts dt {
+    color: var(--project-lanyard-accent);
+    font-size: 0.57rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .project-lanyard-facts dd {
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    color: #f4fff8;
+    font-size: 0.64rem;
+    font-weight: 800;
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .project-lanyard-scan {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.75rem;
+    border: 1px solid color-mix(in srgb, var(--color-cabinet) 38%, transparent);
+    background: color-mix(in srgb, var(--color-cabinet) 7%, transparent);
+    padding: 0.75rem;
+    color: var(--color-cabinet);
+  }
+
+  .project-lanyard-scan.is-clean {
+    border-color: color-mix(in srgb, var(--color-phosphor) 45%, transparent);
+    background: color-mix(in srgb, var(--color-phosphor) 7%, transparent);
+    color: var(--color-phosphor);
+  }
+
+  .project-lanyard-scan.is-flagged {
+    border-color: color-mix(in srgb, var(--color-danger-arcade) 52%, transparent);
+    background: color-mix(in srgb, var(--color-danger-arcade) 8%, transparent);
+    color: var(--color-danger-arcade);
+  }
+
+  .project-lanyard-scan > div {
+    display: grid;
+    gap: 0.18rem;
+  }
+
+  .project-lanyard-scan span {
+    font-family: var(--font-pixel);
+    font-size: 0.48rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .project-lanyard-scan strong {
+    color: #fff;
+    font-size: 0.7rem;
+    line-height: 1.45;
+  }
+
+  .project-lanyard-scan small {
+    color: color-mix(in srgb, currentColor 72%, transparent);
+    font-size: 0.58rem;
+    font-weight: 800;
+  }
+
+  .project-lanyard-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+    margin-top: auto;
+  }
+
+  .project-lanyard-actions a,
+  .project-lanyard-actions button,
+  .project-lanyard-action-disabled {
+    display: inline-flex;
+    min-height: 46px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 36%, transparent);
+    background: color-mix(in srgb, var(--color-cyan-arcade) 6%, rgba(2, 6, 4, 0.72));
+    padding: 0.65rem 0.75rem;
+    color: var(--color-cyan-arcade);
+    font-size: 0.66rem;
+    font-weight: 900;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .project-lanyard-actions a.is-primary {
+    border-color: color-mix(in srgb, var(--project-lanyard-accent) 52%, transparent);
+    background: color-mix(in srgb, var(--project-lanyard-accent) 12%, rgba(2, 6, 4, 0.76));
+    color: var(--color-phosphor-soft);
+  }
+
+  .project-lanyard-actions button.is-warning {
+    border-color: color-mix(in srgb, var(--color-cabinet) 52%, transparent);
+    color: var(--color-cabinet);
+  }
+
+  .project-lanyard-actions a:hover,
+  .project-lanyard-actions a:focus-visible,
+  .project-lanyard-actions button:hover,
+  .project-lanyard-actions button:focus-visible {
+    border-color: currentColor;
+    background: color-mix(in srgb, currentColor 14%, rgba(2, 6, 4, 0.74));
+    color: #fff;
+  }
+
+  .project-lanyard-action-disabled {
+    cursor: not-allowed;
+    opacity: 0.46;
+    filter: saturate(0.45);
+  }
+
+  .project-lanyard-warning {
+    display: grid;
+    gap: 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--color-cabinet) 52%, transparent);
+    background: color-mix(in srgb, var(--color-cabinet) 8%, rgba(2, 6, 4, 0.9));
+    padding: 0.8rem;
+  }
+
+  .project-lanyard-warning strong {
+    color: var(--color-cabinet);
+    font-family: var(--font-display);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+  }
+
+  .project-lanyard-warning p {
+    margin: 0;
+    color: var(--color-phosphor-soft);
+    font-size: 0.68rem;
+    line-height: 1.5;
+  }
+
+  .project-lanyard-warning > div {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+  }
+
+  .project-lanyard-warning button,
+  .project-lanyard-warning a {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid color-mix(in srgb, var(--color-cabinet) 42%, transparent);
+    background: rgba(2, 6, 4, 0.8);
+    padding: 0.6rem 0.72rem;
+    color: var(--color-cabinet);
+    font-size: 0.62rem;
+    font-weight: 900;
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+
+  .project-lanyard-static {
+    position: absolute;
+    left: 50%;
+    top: 48%;
+    display: grid;
+    width: min(280px, 72%);
+    min-height: 390px;
+    place-items: center;
+    gap: 1rem;
+    border: 1px solid color-mix(in srgb, var(--project-lanyard-accent) 58%, transparent);
+    background:
+      linear-gradient(rgba(63, 255, 151, 0.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(69, 216, 255, 0.05) 1px, transparent 1px),
+      rgba(2, 6, 4, 0.94);
+    background-size: 24px 24px;
+    padding: 1.25rem;
+    text-align: center;
+    transform: translate(-50%, -50%);
+  }
+
+  .project-lanyard-static::before {
+    position: absolute;
+    bottom: 100%;
+    width: 36px;
+    height: 130px;
+    border-inline: 6px solid var(--color-phosphor);
+    content: "";
+    opacity: 0.72;
+  }
+
+  .project-lanyard-static > span,
+  .project-lanyard-static > small {
+    color: var(--project-lanyard-accent);
+    font-family: var(--font-pixel);
+    font-size: 0.48rem;
+    text-transform: uppercase;
+  }
+
+  .project-lanyard-static img {
+    width: 74%;
+    height: 140px;
+    object-fit: contain;
+  }
+
+  .project-lanyard-static strong {
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 1.7rem;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 900px) {
+    .project-lanyard-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .project-lanyard-stage {
+      min-height: 540px;
+      border-right: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--project-lanyard-accent) 22%, transparent);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .project-lanyard-dock {
+      margin: 0.55rem;
+    }
+
+    .project-lanyard-header {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.6rem;
+      padding: 0.7rem;
+    }
+
+    .project-lanyard-live {
+      display: none;
+    }
+
+    .project-lanyard-stage {
+      min-height: 455px;
+    }
+
+    .project-lanyard-drag-hint {
+      display: none;
+    }
+
+    .project-lanyard-info {
+      padding: 1rem;
+    }
+
+    .project-lanyard-identity {
+      grid-template-columns: 62px minmax(0, 1fr);
+    }
+
+    .project-lanyard-logo {
+      width: 62px;
+      height: 62px;
+    }
+
+    .project-lanyard-actions {
+      grid-template-columns: 1fr;
+    }
+
+    .project-lanyard-warning > div {
+      align-items: stretch;
+      flex-direction: column;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .project-lanyard-dock,
+    .project-lanyard-live i {
+      animation: none;
+    }
+
+    .project-lanyard-drag-hint {
+      display: none;
+    }
+  }
+}
+
+@keyframes project-lanyard-dock-in {
+  from {
+    opacity: 0;
+    transform: translateY(-32px) scaleY(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scaleY(1);
+  }
+}
+
+@keyframes project-lanyard-live {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}

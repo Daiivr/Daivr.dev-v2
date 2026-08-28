@@ -51,7 +51,13 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
           ))}
         </div>
         <div className="hero-actions flex flex-wrap gap-3">
-          <ArcadeButton variant="primary" onClick={onRun} data-run-build>
+          <ArcadeButton
+            aria-label={hasRun ? "Dai.exe is already online" : isLaunching ? "Dai.exe is starting" : "Run Dai.exe"}
+            disabled={hasRun || isLaunching}
+            variant="primary"
+            onClick={onRun}
+            data-run-build
+          >
             <Play size={18} aria-hidden="true" />
             {isLaunching ? "Running..." : hasRun ? "Dai.exe Online" : "Run Dai.exe"}
           </ArcadeButton>

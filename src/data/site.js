@@ -330,6 +330,29 @@ export const stack = [
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.16.0",
+    codename: "PROJECT ARCHIVE",
+    date: "2026-08-28",
+    summary: "The project shelf is now a physical archive: a ReactBits-inspired folder reveals live project files, and each active build drops into a draggable lanyard with its own identity, links, and release information.",
+    entries: [
+      ["new", "The two flat project cartridges have been consolidated into an interactive PROJECTS.DIR folder that opens to reveal the available builds while preserving the existing two-active-slot telemetry."],
+      ["buff", "The folder now mirrors the ReactBits reference motion: the full object rises by eight pixels, three stacked sheets lift together, and the front flap folds open with opposing skews from one stable hover hitbox."],
+      ["new", "TradeDex and Palwatch fan out as selectable project files, with a centered FILE_03 card behind them reserving the next project slot as SOON... without pretending it is active."],
+      ["new", "Selecting an active project now deploys a physics-driven lanyard instead of the old detail modal, carrying the project logo, summary, technology stack, source links, release metadata, and security status."],
+      ["buff", "Project badges are larger and sharper, hang lower from a wider top-anchored strap and grip clip, and use separate faces: project identity on the front, with the daivr.dev logo and Daivr signature on the back."],
+      ["fix", "Lanyard startup now initializes the strap and badge in place before releasing the staged drop, preventing both the full-screen stretched-string flash and the later instant-drop regression."],
+      ["fix", "Selected projects no longer inherit hover scaling, and closing the folder no longer leaves its fold animation stuck through pointer focus; keyboard focus keeps its accessible visual state."],
+      ["fix", "Project files now render on fully opaque cabinet surfaces, and their hover scale can extend past the folder frame without clipping at the container edge."],
+      ["buff", "The supplied cyan-and-magenta archive-room artwork now fills the project-folder container beneath a restrained readability wash and the cabinet's fine grid texture."],
+      ["fix", "Discord activity streaks now appear only after an activity has been played more than once, avoiding a misleading one-play streak badge."],
+      ["fix", "The hero's Dai.exe control now becomes a truly disabled button while the boot sequence is running and after the runtime is online, preventing duplicate launch requests and removing misleading hover motion."],
+      ["buff", "The guestbook's Connect Discord control now uses a cabinet-adapted creepy-eye interaction: tracking pupils watch from beneath a hinged cyan cover, the pending OAuth state switches to gold, and keyboard focus and reduced-motion behavior remain intact."],
+      ["new", "PATCH.LOG now runs as a ReactBits-inspired 3D card-swap archive: wheel, swipe, arrows, stacked-card clicks, and a full version selector can load any build, while an idle auto-cycle drops the front card and promotes the next release before pausing for active readers."],
+      ["fix", "The PATCH.LOG release workspace now keeps one stable height across short and long builds, moves overflow into the selected release panel, and fully captures wheel input over the card deck so browsing versions never drags the surrounding page."],
+      ["buff", "PATCH.LOG previews now stop at three changes to keep the standard release panel scrollbar-free; Read Full Log opens a focused full-width archive view, removes the card stack while reading, pauses auto-cycling, and provides a persistent route back to version browsing."]
+    ]
+  },
+  {
     version: "v2.15.0",
     codename: "PACKET REX",
     date: "2026-08-16",

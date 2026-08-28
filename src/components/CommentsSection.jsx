@@ -168,6 +168,51 @@ function UserAvatar({ user }) {
   );
 }
 
+function DiscordEyeAuthLink({ configured, loginUrl }) {
+  const eyesRef = useRef(null);
+  const [eyeOffset, setEyeOffset] = useState({ x: 0, y: 0 });
+
+  const updateEyes = (event) => {
+    const eyesRect = eyesRef.current?.getBoundingClientRect();
+    if (!eyesRect) return;
+
+    const dx = event.clientX - (eyesRect.left + eyesRect.width / 2);
+    const dy = event.clientY - (eyesRect.top + eyesRect.height / 2);
+    setEyeOffset({
+      x: Math.max(-1, Math.min(1, dx / 110)),
+      y: Math.max(-1, Math.min(1, dy / 55))
+    });
+  };
+
+  const pupilStyle = {
+    transform: `translate(calc(-50% + ${eyeOffset.x * 4}px), calc(-50% + ${eyeOffset.y * 3}px))`
+  };
+
+  return (
+    <a
+      aria-disabled={!configured}
+      className={`comments-auth-btn comments-eye-auth-btn has-tooltip ${configured ? "" : "is-disabled"}`}
+      data-tooltip={configured ? "Use Discord identify to post and react." : "Add Discord OAuth env keys to enable login."}
+      href={configured ? loginUrl : undefined}
+      onClick={(event) => {
+        if (!configured) event.preventDefault();
+      }}
+      onPointerLeave={() => setEyeOffset({ x: 0, y: 0 })}
+      onPointerMove={updateEyes}
+      tabIndex={0}
+    >
+      <span className="comments-eye-auth-eyes" ref={eyesRef} aria-hidden="true">
+        <span className="comments-eye-auth-eye"><i style={pupilStyle} /></span>
+        <span className="comments-eye-auth-eye"><i style={pupilStyle} /></span>
+      </span>
+      <span className="comments-eye-auth-cover">
+        <LogIn size={15} aria-hidden="true" />
+        <span>connect Discord</span>
+      </span>
+    </a>
+  );
+}
+
 function safeMarkdownUrl(value) {
   try {
     const url = new URL(String(value || "").trim());
@@ -1029,10 +1074,7 @@ export function CommentsSection() {
               </>
             ) : (
               <>
-                <a className={`comments-auth-btn has-tooltip ${auth.configured ? "" : "is-disabled"}`} data-tooltip={auth.configured ? "Use Discord identify to post and react." : "Add Discord OAuth env keys to enable login."} href={auth.configured ? auth.loginUrl : undefined} aria-disabled={!auth.configured}>
-                  <LogIn size={15} aria-hidden="true" />
-                  connect Discord
-                </a>
+                <DiscordEyeAuthLink configured={auth.configured} loginUrl={auth.loginUrl} />
                 {!auth.configured ? <small>OAuth env keys pending</small> : null}
               </>
             )}

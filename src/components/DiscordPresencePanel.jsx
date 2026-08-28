@@ -1053,7 +1053,7 @@ export function DiscordPresencePanel() {
                 const sessionLabel = formatSessionDuration(getActivitySessionMs(activity, presence, now, mainGameName));
                 const partySize = getActivityPartySize(activity);
                 const hasGameStreak = Boolean(
-                  streak?.alive && streak.streak > 0 && activity.type === 0 && streak.game === activity.name
+                  streak?.alive && streak.streak > 1 && activity.type === 0 && streak.game === activity.name
                 );
                 const streakTooltip = hasGameStreak
                   ? {

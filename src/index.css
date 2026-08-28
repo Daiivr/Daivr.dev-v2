@@ -604,11 +604,18 @@
     white-space: nowrap;
   }
 
-  .crt-button:hover,
-  .crt-button:focus-visible {
+  .crt-button:not(:disabled):hover,
+  .crt-button:not(:disabled):focus-visible {
     transform: translateY(-2px);
     border-color: var(--color-phosphor);
     background-color: color-mix(in srgb, var(--color-phosphor) 10%, transparent);
+  }
+
+  .crt-button:disabled {
+    cursor: not-allowed;
+    filter: saturate(0.52) brightness(0.84);
+    opacity: 0.76;
+    transform: none;
   }
 
   .tag-chip {

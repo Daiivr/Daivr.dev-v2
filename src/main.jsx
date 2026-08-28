@@ -8,6 +8,8 @@ import "./styles/discord-presence.css";
 import "./styles/link-console.css";
 import "./styles/now-dashboard.css";
 import "./styles/project-console.css";
+import "./styles/project-folder.css";
+import "./styles/project-lanyard.css";
 import "./styles/toolbelt.css";
 import "./styles/comments-console.css";
 import "./styles/patch-notes.css";

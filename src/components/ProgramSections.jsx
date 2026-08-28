@@ -1,18 +1,15 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { ArrowRight, Bot, Check, Code2, Copy, Cpu, Download, ExternalLink, Gamepad2, GitFork, Github, Globe2, Lock, ShieldCheck, Star, Terminal, Twitch, X } from "lucide-react";
+import { ArrowRight, Bot, Check, Code2, Copy, Cpu, Download, ExternalLink, Gamepad2, Github, Globe2, Lock, ShieldCheck, Terminal, Twitch, X } from "lucide-react";
 import { FaDiscord, FaSteam } from "react-icons/fa6";
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { now, projects, roomStats, socialLinks, stack } from "../data/site";
 import { DecodeText } from "./DecodeText";
 import { DiscordPresencePanel } from "./DiscordPresencePanel";
 import { GameShelf } from "./GameShelf";
 import { PatchNotes } from "./PatchNotes";
+import { ProjectFolder } from "./ProjectFolder";
 
-const statIcons = {
-  forks: GitFork,
-  issues: Terminal,
-  stars: Star
-};
+const ProjectLanyard = lazy(() => import("./ProjectLanyard"));
 
 const socialIcons = {
   discord: FaDiscord,
@@ -374,6 +371,11 @@ function LinkConsole() {
 
 function ProjectConsole() {
   const [projectScanInfo, setProjectScanInfo] = useState({});
+  const [selectedProjectTitle, setSelectedProjectTitle] = useState("");
+  const [liveScan, setLiveScan] = useState(null);
+  const [scanError, setScanError] = useState("");
+  const lanyardDockRef = useRef(null);
+  const selectedProject = projects.find((project) => project.title === selectedProjectTitle) || null;
 
   useEffect(() => {
     let cancelled = false;
@@ -395,41 +397,12 @@ function ProjectConsole() {
     };
   }, []);
 
-  return (
-    <div className="project-console panel-strong">
-      <div className="project-console-header">
-        <div className="project-console-header-copy">
-          <h3>&gt; current-projects.sh</h3>
-          <p><span /> workspace feed · realtime build</p>
-        </div>
-        <div className="project-console-telemetry">
-          <span className="project-console-count">
-            <small>active slots</small>
-            <b>{String(projects.length).padStart(2, "0")}</b>
-          </span>
-          <strong><span /> building</strong>
-        </div>
-      </div>
-
-      <div className="project-console-grid">
-        {projects.map((project) => (
-          <ProjectCard project={project} scanInfo={projectScanInfo[project.title]} key={project.title} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ProjectCard({ project, scanInfo }) {
-  const [open, setOpen] = useState(false);
-  const [liveScan, setLiveScan] = useState(null);
-  const [scanError, setScanError] = useState("");
-  const effectiveScan = liveScan || scanInfo || null;
-
-  useEffect(() => () => unlockProjectPageWidth(), []);
-
   useEffect(() => {
-    if (!open || project.modal.type !== "download") return undefined;
+    if (selectedProject?.modal.type !== "download") {
+      setLiveScan(null);
+      setScanError("");
+      return undefined;
+    }
 
     let cancelled = false;
     let timer = null;
@@ -470,123 +443,242 @@ function ProjectCard({ project, scanInfo }) {
     }
 
     loadScan();
-
     return () => {
       cancelled = true;
       if (timer) window.clearTimeout(timer);
     };
-  }, [open, project.modal.type]);
+  }, [selectedProject]);
 
-  function handleOpenChange(nextOpen) {
-    if (nextOpen) {
-      lockProjectPageWidth();
-      window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
-        detail: { type: "cartridge", id: `project:${project.title}` }
-      }));
-    } else {
-      unlockProjectPageWidth();
-    }
+  useEffect(() => {
+    if (!selectedProject) return undefined;
+    const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const timer = window.setTimeout(() => {
+      lanyardDockRef.current?.scrollIntoView({
+        behavior: reduceMotion ? "auto" : "smooth",
+        block: "nearest"
+      });
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [selectedProject]);
 
-    setOpen(nextOpen);
+  function selectProject(project) {
+    setSelectedProjectTitle((current) => current === project.title ? "" : project.title);
+    window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
+      detail: { type: "cartridge", id: `project:${project.title}` }
+    }));
   }
 
-  return (
-    <Dialog.Root modal={false} open={open} onOpenChange={handleOpenChange}>
-      <Dialog.Trigger asChild>
-        <button className={`project-card arcade-focus project-card-${project.visual}`} type="button">
-          <ProjectCardContent project={project} scanData={effectiveScan} />
-        </button>
-      </Dialog.Trigger>
+  const selectedScanData = selectedProject?.modal.type === "download"
+    ? liveScan || projectScanInfo[selectedProject.title] || null
+    : projectScanInfo[selectedProject?.title] || null;
 
-      <ProjectModal project={project} scanData={effectiveScan} scanError={scanError} onClose={() => handleOpenChange(false)} />
-    </Dialog.Root>
+  return (
+    <div className="project-console panel-strong">
+      <div className="project-console-header">
+        <div className="project-console-header-copy">
+          <h3>&gt; current-projects.sh</h3>
+          <p><span /> workspace feed · realtime build</p>
+        </div>
+        <div className="project-console-telemetry">
+          <span className="project-console-count">
+            <small>active slots</small>
+            <b>{String(projects.length).padStart(2, "0")}</b>
+          </span>
+          <strong><span /> building</strong>
+        </div>
+      </div>
+
+      <ProjectFolder
+        items={projects}
+        onSelect={selectProject}
+        selectedProjectTitle={selectedProjectTitle}
+      />
+
+      {selectedProject ? (
+        <ProjectLanyardDock
+          dockRef={lanyardDockRef}
+          key={selectedProject.title}
+          onClose={() => setSelectedProjectTitle("")}
+          project={selectedProject}
+          scanData={selectedScanData}
+          scanError={scanError}
+        />
+      ) : null}
+    </div>
   );
 }
 
-function ProjectCardContent({ project, scanData }) {
+function getProjectLanyardScan(project, scanData, scanError) {
+  const state = getVirusTotalState(project, scanData);
+  const stats = scanData?.vt?.stats || scanData?.scan?.stats || null;
+  const detections = getDetectionsFromStats(stats);
+  const fileName = scanData?.asset?.name || "TradeDex latest release";
+  const fileSize = formatBytes(scanData?.asset?.size) || project.modal.asset;
+  const fullHash = scanData?.sha256 || "";
+  const hash = shortHash(fullHash) || project.modal.sha;
+  const virusTotalUrl = scanData?.vt?.permalink || (fullHash
+    ? `https://www.virustotal.com/gui/file/${fullHash}`
+    : null);
+  const complete = scanData?.status === "done";
+
+  return {
+    state,
+    detections,
+    engines: Number(stats?.total || 0),
+    fileName,
+    fileSize,
+    hash,
+    virusTotalUrl,
+    canOpenRelease: complete && state === "clean",
+    needsWarning: complete && state === "false-positive",
+    status: scanError || scanData?.error || (
+      state === "clean"
+        ? "VirusTotal reports no detections."
+        : state === "false-positive"
+          ? "One engine flagged the release; review before continuing."
+          : state === "flagged"
+            ? "Release access blocked by the safety gate."
+            : state === "scanning"
+              ? "Checking the latest release digest."
+              : "VirusTotal report is currently unavailable."
+    )
+  };
+}
+
+function ProjectLanyardDock({ project, scanData, scanError, onClose, dockRef }) {
+  const [showWarning, setShowWarning] = useState(false);
   const virusTotalBadge = getVirusTotalBadge(project, scanData);
-  const releaseBadge = scanData?.tag || project.badge || project.status;
+  const scan = project.modal.type === "download"
+    ? getProjectLanyardScan(project, scanData, scanError)
+    : null;
+  const projectFacts = project.modal.type === "site"
+    ? project.modal.systems
+    : [
+        ["release", scanData?.tag || project.badge],
+        ["asset", `${scan.fileName} · ${scan.fileSize}`],
+        ["sha-256", scan.hash]
+      ];
 
   return (
-    <>
-      <div className="project-card-media">
-        <span className="project-card-cartridge-top" aria-hidden="true">
-          <i />
-          <i />
-          <i />
-        </span>
-        <span className="project-card-grid" aria-hidden="true" />
-        <span className="project-card-glow" aria-hidden="true" />
-        <span className="project-card-scan" aria-hidden="true" />
-        <span className="project-card-corner project-card-corner-tl" aria-hidden="true" />
-        <span className="project-card-corner project-card-corner-tr" aria-hidden="true" />
-        <span className="project-card-corner project-card-corner-bl" aria-hidden="true" />
-        <span className="project-card-corner project-card-corner-br" aria-hidden="true" />
-        <span className="project-card-index">[ {project.kicker} ]</span>
-        <span className="project-card-release">{releaseBadge}</span>
+    <section
+      aria-label={`${project.title} interactive project lanyard`}
+      className={`project-lanyard-dock is-${project.visual}`}
+      id="project-lanyard-dock"
+      ref={dockRef}
+    >
+      <header className="project-lanyard-header">
+        <div>
+          <span>PROJECT.BADGE // SLOT_{project.kicker}</span>
+          <strong>{project.title} access lanyard</strong>
+        </div>
+        <span className="project-lanyard-live"><i /> physics online</span>
+        <button className="arcade-focus" type="button" onClick={onClose} aria-label="Retract project lanyard">
+          <X size={17} aria-hidden="true" />
+        </button>
+      </header>
 
-        {project.image ? (
-          <img className="project-card-logo" src={project.image} alt={`${project.title} preview`} loading="eager" decoding="async" fetchPriority="high" />
-        ) : (
-          <div className="project-card-placeholder">
-            <Cpu size={48} aria-hidden="true" />
+      <div className="project-lanyard-layout">
+        <div className="project-lanyard-stage" aria-label="Draggable physics lanyard preview">
+          <Suspense fallback={<div className="project-lanyard-loading">loading physics rig...</div>}>
+            <ProjectLanyard project={project} />
+          </Suspense>
+          <span className="project-lanyard-drag-hint">drag badge // release to swing</span>
+        </div>
+
+        <article className="project-lanyard-info">
+          <div className="project-lanyard-identity">
+            <span className="project-lanyard-logo">
+              <img src={project.image} alt="" aria-hidden="true" />
+            </span>
+            <div>
+              <span>{project.channel}</span>
+              <h3>{project.title}</h3>
+              <p>{project.meta}</p>
+            </div>
           </div>
-        )}
 
-        {project.icon ? <img className="project-card-emblem" src={project.icon} alt="" loading="eager" decoding="async" fetchPriority="high" aria-hidden="true" /> : null}
+          <p className="project-lanyard-summary">{project.description}</p>
 
-        <dl className="project-card-stats" aria-label={`${project.title} GitHub stats`}>
-          {project.stats.map(([label, value]) => {
-            const StatIcon = statIcons[label] || Github;
-            return (
-              <div className="project-card-stat" key={label}>
-                <StatIcon size={14} aria-hidden="true" />
+          <ul className="project-lanyard-tags" aria-label={`${project.title} technology stack`}>
+            {project.tags.map((tag) => <li key={tag}>{tag}</li>)}
+          </ul>
+
+          <dl className="project-lanyard-facts">
+            {projectFacts.map(([label, value]) => (
+              <div key={label}>
                 <dt>{label}</dt>
                 <dd>{value}</dd>
               </div>
-            );
-          })}
-        </dl>
-      </div>
-
-      <div className="project-card-body">
-        <div className="project-card-meta">
-          <span>cartridge // {project.kicker}</span>
-          <span>{project.channel}</span>
-        </div>
-
-        <div className="project-card-title-row">
-          <h3>{project.title}</h3>
-          <span className={virusTotalBadge ? `project-scan-badge ${virusTotalBadge.className}` : ""}>
-            {project.modal.type === "download" ? <ShieldCheck size={13} aria-hidden="true" /> : <Globe2 size={13} aria-hidden="true" />}
-            {virusTotalBadge?.label || project.status}
-          </span>
-        </div>
-
-        <div className="project-card-summary">
-          <span>system summary</span>
-          <p>{project.description}</p>
-        </div>
-
-        <div className="project-card-stack">
-          <span>runtime stack</span>
-          <ul className="project-card-tags">
-            {project.tags.map((tag) => (
-              <li key={tag}>{tag}</li>
             ))}
-          </ul>
-        </div>
+          </dl>
 
-        <div className="project-card-footer">
-          <span>{project.meta}</span>
-          <strong>
-            {project.modal.type === "download" ? <Download size={16} aria-hidden="true" /> : <Globe2 size={16} aria-hidden="true" />}
-            <span>{project.modal.type === "download" ? "Open gate" : "Open details"}</span>
-            <ArrowRight size={15} aria-hidden="true" />
-          </strong>
-        </div>
+          {scan ? (
+            <div className={`project-lanyard-scan is-${scan.state || "scanning"}`} role="status" aria-live="polite">
+              <ShieldCheck size={20} aria-hidden="true" />
+              <div>
+                <span>{virusTotalBadge?.label || "VT checking"}</span>
+                <strong>{scan.status}</strong>
+                {scan.engines ? <small>{scan.detections || 0}/{scan.engines} engine detections</small> : null}
+              </div>
+            </div>
+          ) : null}
+
+          <div className="project-lanyard-actions">
+            <a className="arcade-focus is-primary" href={project.repoHref} target="_blank" rel="noreferrer">
+              <Github size={17} aria-hidden="true" />
+              <span>{project.modal.type === "site" ? "Open repository" : "View source"}</span>
+              <ExternalLink size={14} aria-hidden="true" />
+            </a>
+
+            {project.modal.type === "site" ? (
+              <a className="arcade-focus" href={project.href} target="_blank" rel="noreferrer">
+                <Globe2 size={17} aria-hidden="true" />
+                <span>Project page</span>
+                <ExternalLink size={14} aria-hidden="true" />
+              </a>
+            ) : scan.canOpenRelease ? (
+              <a className="arcade-focus" href={project.href} target="_blank" rel="noreferrer">
+                <Download size={17} aria-hidden="true" />
+                <span>Verified release</span>
+                <ExternalLink size={14} aria-hidden="true" />
+              </a>
+            ) : scan.needsWarning ? (
+              <button className="arcade-focus is-warning" type="button" onClick={() => setShowWarning(true)}>
+                <ShieldCheck size={17} aria-hidden="true" />
+                <span>Review release</span>
+                <ArrowRight size={14} aria-hidden="true" />
+              </button>
+            ) : (
+              <span className="project-lanyard-action-disabled" aria-disabled="true">
+                <Lock size={17} aria-hidden="true" />
+                <span>Release locked</span>
+              </span>
+            )}
+
+            {scan?.virusTotalUrl ? (
+              <a className="arcade-focus" href={scan.virusTotalUrl} target="_blank" rel="noreferrer">
+                <ShieldCheck size={17} aria-hidden="true" />
+                <span>VT report</span>
+                <ExternalLink size={14} aria-hidden="true" />
+              </a>
+            ) : null}
+          </div>
+
+          {showWarning ? (
+            <div className="project-lanyard-warning" role="alert">
+              <strong>Single-detection review required</strong>
+              <p>Review the VirusTotal report before opening this GitHub release.</p>
+              <div>
+                <button className="arcade-focus" type="button" onClick={() => setShowWarning(false)}>Cancel</button>
+                <a className="arcade-focus" href={project.href} target="_blank" rel="noreferrer">
+                  Continue to release <ExternalLink size={13} aria-hidden="true" />
+                </a>
+              </div>
+            </div>
+          ) : null}
+        </article>
       </div>
-    </>
+    </section>
   );
 }
 

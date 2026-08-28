@@ -1,0 +1,557 @@
+@layer components {
+  .project-folder-console {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    min-height: 390px;
+    overflow: visible;
+    place-items: start center;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 24%, transparent);
+    background-color: #020604;
+    background-image:
+      linear-gradient(rgba(69, 216, 255, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(63, 255, 151, 0.03) 1px, transparent 1px),
+      linear-gradient(rgba(2, 6, 4, 0.08), rgba(2, 6, 4, 0.3)),
+      url("../assets/project-archive-background.png");
+    background-position: center, center, center, center;
+    background-repeat: repeat, repeat, no-repeat, no-repeat;
+    background-size: 18px 18px, 18px 18px, cover, cover;
+    padding: 0.85rem clamp(0.75rem, 3vw, 1.5rem) 1rem;
+    box-shadow:
+      inset 0 0 45px rgba(0, 0, 0, 0.38),
+      inset 0 1px 0 color-mix(in srgb, var(--color-phosphor) 11%, transparent);
+  }
+
+  .project-folder-console::after {
+    position: absolute;
+    inset: auto 8% 0;
+    height: 1px;
+    content: "";
+    background: linear-gradient(90deg, transparent, var(--color-phosphor), transparent);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--color-phosphor) 52%, transparent);
+    opacity: 0.72;
+  }
+
+  .project-folder-status {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    color: var(--color-phosphor-soft);
+    font-size: 0.62rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .project-folder-status span,
+  .project-folder-status strong {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .project-folder-status i {
+    width: 7px;
+    aspect-ratio: 1;
+    background: var(--color-cyan-arcade);
+    box-shadow: 0 0 10px var(--color-cyan-arcade);
+  }
+
+  .project-folder-status strong {
+    color: var(--color-glitch);
+  }
+
+  .project-folder-stage {
+    position: relative;
+    width: min(100%, 520px);
+    height: 310px;
+    margin-top: 0.35rem;
+  }
+
+  .project-folder-object {
+    position: absolute;
+    left: 50%;
+    bottom: 28px;
+    width: 220px;
+    height: 158px;
+    transform: translateX(-50%);
+    transition: transform 200ms ease-in;
+  }
+
+  .project-folder-console:not(.is-open) .project-folder-object:hover,
+  .project-folder-console:not(.is-open) .project-folder-object:has(.project-folder-front-button:focus-visible),
+  .project-folder-console.is-open .project-folder-object {
+    transform: translate(-50%, -8px);
+  }
+
+  .project-folder-back,
+  .project-folder-front-button {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .project-folder-back {
+    z-index: 1;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 58%, transparent);
+    border-radius: 2px 14px 14px 14px;
+    background:
+      linear-gradient(140deg, color-mix(in srgb, var(--color-cyan-arcade) 24%, transparent), transparent 48%),
+      #061713;
+    box-shadow:
+      inset 0 0 24px color-mix(in srgb, var(--color-phosphor) 8%, transparent),
+      0 18px 45px rgba(0, 0, 0, 0.54);
+  }
+
+  .project-folder-back::before {
+    position: absolute;
+    left: -1px;
+    bottom: calc(100% - 1px);
+    width: 76px;
+    height: 24px;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 58%, transparent);
+    border-bottom: 0;
+    border-radius: 8px 10px 0 0;
+    content: "";
+    background: #061713;
+  }
+
+  .project-folder-files {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  .project-folder-papers {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+  }
+
+  .project-folder-paper {
+    position: absolute;
+    left: 50%;
+    bottom: 10%;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 28%, transparent);
+    border-radius: 12px 12px 3px 3px;
+    background:
+      linear-gradient(rgba(69, 216, 255, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(63, 255, 151, 0.03) 1px, transparent 1px),
+      linear-gradient(180deg, #1a5140, #0b2b22);
+    background-size: 11px 11px, 11px 11px, auto;
+    box-shadow: inset 0 1px 0 color-mix(in srgb, white 10%, transparent);
+    transform: translate(-50%, 10%);
+    transform-origin: center bottom;
+    transition:
+      transform 300ms ease,
+      opacity 160ms ease;
+  }
+
+  .project-folder-paper.is-paper-one {
+    width: 70%;
+    height: 80%;
+    background-color: #143c31;
+  }
+
+  .project-folder-paper.is-paper-two {
+    width: 80%;
+    height: 70%;
+    background-color: #184838;
+  }
+
+  .project-folder-paper.is-paper-three {
+    width: 90%;
+    height: 60%;
+    background-color: #1c5541;
+  }
+
+  .project-folder-console:not(.is-open) .project-folder-object:hover .project-folder-paper,
+  .project-folder-console:not(.is-open) .project-folder-object:has(.project-folder-front-button:focus-visible) .project-folder-paper {
+    transform: translate(-50%, 0%);
+  }
+
+  .project-folder-console.is-open .project-folder-paper {
+    opacity: 0;
+    transform: translate(-50%, -18%);
+  }
+
+  .project-folder-file {
+    --folder-file-accent: var(--color-cyan-arcade);
+    position: absolute;
+    left: 50%;
+    bottom: 20px;
+    display: grid;
+    width: 152px;
+    height: 166px;
+    align-content: start;
+    justify-items: center;
+    gap: 0.4rem;
+    overflow: hidden;
+    appearance: none;
+    border: 1px solid color-mix(in srgb, var(--folder-file-accent) 58%, transparent);
+    border-radius: 10px;
+    background:
+      linear-gradient(rgba(69, 216, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(63, 255, 151, 0.04) 1px, transparent 1px),
+      linear-gradient(145deg, color-mix(in srgb, var(--folder-file-accent) 15%, #030c09), #030c09 58%);
+    background-color: #030c09;
+    background-size: 12px 12px, 12px 12px, auto;
+    padding: 0.7rem;
+    color: #f4fff8;
+    cursor: pointer;
+    font: inherit;
+    pointer-events: none;
+    touch-action: manipulation;
+    opacity: 0;
+    transform: translate(-50%, 12%) scale(0.86);
+    transform-origin: center bottom;
+    transition:
+      transform 360ms cubic-bezier(0.18, 0.82, 0.22, 1),
+      opacity 180ms ease,
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      filter 180ms ease;
+    box-shadow:
+      inset 0 0 20px rgba(0, 0, 0, 0.32),
+      0 12px 28px rgba(0, 0, 0, 0.42);
+    text-align: center;
+  }
+
+  .project-folder-file.is-tradedex {
+    --folder-file-accent: var(--color-glitch);
+  }
+
+  .project-folder-file.is-palwatch {
+    --folder-file-accent: var(--color-phosphor);
+  }
+
+  .project-folder-file.is-soon {
+    --folder-file-accent: var(--color-cyan-arcade);
+    z-index: 1;
+    align-content: start;
+    opacity: 0;
+    pointer-events: none !important;
+    filter: saturate(0.55) brightness(0.8);
+  }
+
+  .project-folder-file.is-tradedex,
+  .project-folder-file.is-palwatch {
+    z-index: 2;
+  }
+
+  .project-folder-file::before {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 4px;
+    content: "";
+    background: linear-gradient(90deg, var(--folder-file-accent), var(--color-cyan-arcade));
+    box-shadow: 0 0 12px color-mix(in srgb, var(--folder-file-accent) 48%, transparent);
+  }
+
+  .project-folder-console.is-open .project-folder-files {
+    pointer-events: auto;
+  }
+
+  .project-folder-console.is-open .project-folder-file {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .project-folder-console.is-open .project-folder-file:nth-child(1) {
+    transform: translate(-122%, -72%) rotate(-10deg);
+  }
+
+  .project-folder-console.is-open .project-folder-file:nth-child(2) {
+    transform: translate(22%, -72%) rotate(10deg);
+  }
+
+  .project-folder-console.is-open .project-folder-file.is-soon {
+    opacity: 1;
+    transform: translate(-50%, -96%) rotate(3deg) scale(0.9);
+  }
+
+  .project-folder-console.is-open .project-folder-file:hover,
+  .project-folder-console.is-open .project-folder-file:focus-visible {
+    z-index: 5;
+    border-color: var(--folder-file-accent);
+    filter: brightness(1.1);
+    box-shadow:
+      inset 0 0 24px color-mix(in srgb, var(--folder-file-accent) 11%, transparent),
+      0 18px 42px color-mix(in srgb, var(--folder-file-accent) 22%, rgba(0, 0, 0, 0.58));
+  }
+
+  .project-folder-console.is-open .project-folder-file:nth-child(1):hover,
+  .project-folder-console.is-open .project-folder-file:nth-child(1):focus-visible {
+    transform: translate(-122%, -76%) rotate(-10deg) scale(1.04);
+  }
+
+  .project-folder-console.is-open .project-folder-file:nth-child(2):hover,
+  .project-folder-console.is-open .project-folder-file:nth-child(2):focus-visible {
+    transform: translate(22%, -76%) rotate(10deg) scale(1.04);
+  }
+
+  .project-folder-file:focus-visible {
+    outline: 2px solid var(--folder-file-accent);
+    outline-offset: 4px;
+  }
+
+  .project-folder-file-slot {
+    justify-self: start;
+    color: var(--folder-file-accent);
+    font-size: 0.52rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+  }
+
+  .project-folder-file-logo {
+    display: grid;
+    width: 82px;
+    height: 72px;
+    place-items: center;
+  }
+
+  .project-folder-file-logo img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 12px color-mix(in srgb, var(--folder-file-accent) 38%, transparent));
+  }
+
+  .project-folder-soon-mark {
+    display: flex;
+    width: 82px;
+    height: 72px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.42rem;
+    border: 1px dashed color-mix(in srgb, var(--folder-file-accent) 42%, transparent);
+    background: color-mix(in srgb, var(--folder-file-accent) 5%, transparent);
+    box-shadow: inset 0 0 22px rgba(0, 0, 0, 0.46);
+  }
+
+  .project-folder-soon-mark i {
+    width: 6px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--folder-file-accent);
+    box-shadow: 0 0 10px var(--folder-file-accent);
+    opacity: 0.68;
+  }
+
+  .project-folder-file strong {
+    max-width: 100%;
+    overflow: hidden;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 0.88rem;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .project-folder-file small {
+    color: color-mix(in srgb, var(--folder-file-accent) 64%, white);
+    font-size: 0.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .project-folder-front-button {
+    z-index: 4;
+    appearance: none;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    filter:
+      drop-shadow(0 0 1px color-mix(in srgb, var(--color-phosphor) 74%, transparent))
+      drop-shadow(0 15px 24px rgba(0, 0, 0, 0.42));
+    font: inherit;
+    touch-action: manipulation;
+    transform: none;
+    transform-origin: center bottom;
+    transition: transform 320ms cubic-bezier(0.18, 0.82, 0.22, 1);
+  }
+
+  .project-folder-front-button:focus-visible {
+    outline: 2px solid var(--color-cabinet);
+    outline-offset: 6px;
+    border-radius: 14px;
+  }
+
+  .project-folder-front-piece {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    border-radius: 6px 14px 14px 14px;
+    background: linear-gradient(180deg, #103d2e, #071b16);
+    box-shadow: inset 0 0 28px color-mix(in srgb, var(--color-cyan-arcade) 9%, transparent);
+    transform-origin: center bottom;
+    transition: transform 320ms cubic-bezier(0.18, 0.82, 0.22, 1);
+  }
+
+  .project-folder-front-piece.is-left {
+    z-index: 1;
+  }
+
+  .project-folder-front-piece.is-right {
+    z-index: 2;
+  }
+
+  .project-folder-front-copy {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: 0.45rem;
+    pointer-events: none;
+    transition: opacity 160ms ease;
+  }
+
+  .project-folder-front-copy strong {
+    color: #f4fff8;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    font-weight: 900;
+    text-shadow: 0 0 18px color-mix(in srgb, var(--color-phosphor) 28%, transparent);
+  }
+
+  .project-folder-front-copy small {
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 38%, transparent);
+    background: rgba(2, 6, 4, 0.5);
+    padding: 0.35rem 0.5rem;
+    color: var(--color-cyan-arcade);
+    font-size: 0.55rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .project-folder-console.is-open .project-folder-front-button {
+    transform: scaleY(0.6);
+  }
+
+  .project-folder-console:not(.is-open) .project-folder-object:hover .project-folder-front-button,
+  .project-folder-console:not(.is-open) .project-folder-object:has(.project-folder-front-button:focus-visible) .project-folder-front-button {
+    transform: scaleY(0.6);
+  }
+
+  .project-folder-console.is-open .project-folder-front-piece.is-left,
+  .project-folder-console:not(.is-open) .project-folder-object:hover .project-folder-front-piece.is-left,
+  .project-folder-console:not(.is-open) .project-folder-object:has(.project-folder-front-button:focus-visible) .project-folder-front-piece.is-left {
+    transform: skewX(15deg);
+  }
+
+  .project-folder-console.is-open .project-folder-front-piece.is-right,
+  .project-folder-console:not(.is-open) .project-folder-object:hover .project-folder-front-piece.is-right,
+  .project-folder-console:not(.is-open) .project-folder-object:has(.project-folder-front-button:focus-visible) .project-folder-front-piece.is-right {
+    transform: skewX(-15deg);
+  }
+
+  .project-folder-console.is-open .project-folder-front-copy,
+  .project-folder-console:not(.is-open) .project-folder-object:hover .project-folder-front-copy,
+  .project-folder-console:not(.is-open) .project-folder-object:has(.project-folder-front-button:focus-visible) .project-folder-front-copy {
+    opacity: 0;
+  }
+
+  .project-folder-hint {
+    position: absolute;
+    right: 1rem;
+    bottom: 0.7rem;
+    color: var(--color-phosphor-soft);
+    font-size: 0.58rem;
+    font-weight: 900;
+    text-align: right;
+    text-transform: uppercase;
+    opacity: 0.66;
+  }
+}
+
+@media (max-width: 540px) {
+  .project-folder-console {
+    min-height: 370px;
+    padding-inline: 0.5rem;
+  }
+
+  .project-folder-status {
+    padding-inline: 0.25rem;
+  }
+
+  .project-folder-stage {
+    height: 292px;
+  }
+
+  .project-folder-object {
+    width: 184px;
+    height: 140px;
+  }
+
+  .project-folder-back::before {
+    width: 64px;
+    height: 21px;
+  }
+
+  .project-folder-file {
+    width: 132px;
+    height: 154px;
+    padding: 0.62rem;
+  }
+
+  .project-folder-console.is-open .project-folder-file:nth-child(1) {
+    transform: translate(-105%, -68%) rotate(-8deg);
+  }
+
+  .project-folder-console.is-open .project-folder-file:nth-child(2) {
+    transform: translate(5%, -68%) rotate(8deg);
+  }
+
+  .project-folder-console.is-open .project-folder-file.is-soon {
+    transform: translate(-50%, -91%) rotate(3deg) scale(0.82);
+  }
+
+  .project-folder-console.is-open .project-folder-file:nth-child(1):hover,
+  .project-folder-console.is-open .project-folder-file:nth-child(1):focus-visible {
+    transform: translate(-105%, -71%) rotate(-8deg) scale(1.02);
+  }
+
+  .project-folder-console.is-open .project-folder-file:nth-child(2):hover,
+  .project-folder-console.is-open .project-folder-file:nth-child(2):focus-visible {
+    transform: translate(5%, -71%) rotate(8deg) scale(1.02);
+  }
+
+  .project-folder-file-logo {
+    width: 70px;
+    height: 66px;
+  }
+
+  .project-folder-soon-mark {
+    width: 70px;
+    height: 66px;
+  }
+
+  .project-folder-front-copy strong {
+    font-size: 1rem;
+  }
+
+  .project-folder-hint {
+    right: 0.75rem;
+    max-width: calc(100% - 1.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .project-folder-file,
+  .project-folder-object,
+  .project-folder-paper,
+  .project-folder-front-button,
+  .project-folder-front-piece,
+  .project-folder-front-copy {
+    transition: none !important;
+  }
+}

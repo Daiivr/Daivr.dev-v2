@@ -17,6 +17,7 @@ import { handleVisitsRequest } from "./server/visits.mjs";
 loadLocalEnv();
 
 export default defineConfig({
+  assetsInclude: ["**/*.glb"],
   plugins: [
     react(),
     tailwindcss(),
