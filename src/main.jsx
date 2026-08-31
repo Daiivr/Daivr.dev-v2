@@ -25,6 +25,7 @@ import "./styles/konami-library.css";
 import "./styles/cursor.css";
 import "./styles/seasonal-events.css";
 import "./styles/mobile.css";
+import "./styles/entry-avatar.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>

@@ -234,6 +234,7 @@ body:has(.seasonal-update-takeover)>.page-perched-bird{display:none!important}
 @keyframes update-progress-shine{from{background-position:180% 0}to{background-position:-40% 0}}
 @keyframes update-loop-shake{0%,100%{transform:none}18%{transform:translateX(-8px) rotate(-.5deg)}38%{transform:translateX(7px)}58%{transform:translateX(-5px) rotate(.4deg)}78%{transform:translateX(3px)}}
 @keyframes splash-notice-in{from{opacity:0;transform:translateX(26px)}}
+@keyframes splash-notice-center-in{from{opacity:0}}
 @keyframes splash-notice-live{50%{opacity:.25}}
 @keyframes splash-spider-swing{from{transform:rotate(-7deg)}to{transform:rotate(7deg)}}
 @keyframes update-spin{to{transform:rotate(360deg)}}
@@ -244,3 +245,24 @@ body:has(.seasonal-update-takeover)>.page-perched-bird{display:none!important}
 @media(max-width:1023px){.seasonal-icicles,.seasonal-party-lights,.seasonal-corruption-band{left:0}.seasonal-birthday-watermark,.seasonal-anniversary-grid{left:5vw}}
 @media(max-width:700px){.splash-season-notice{left:0;right:0;top:0;display:flex;align-items:center;gap:9px;width:100%;border:0;border-bottom:1px solid color-mix(in srgb,var(--seasonal-accent,#3fff97) 45%,transparent);background:rgba(2,6,4,.96);padding:7px 12px}.splash-season-notice::before{border-left-width:2px}.splash-season-notice::after,.splash-season-notice-icon,.splash-season-notice small{display:none}.splash-season-notice div{display:flex;align-items:baseline;gap:9px;min-width:0}.splash-season-notice strong{margin-top:0;overflow:hidden;font-size:.54rem;text-overflow:ellipsis;white-space:nowrap}.splash-season-notice-kicker{flex:none;font-size:.34rem}.seasonal-moon,.seasonal-anniversary-mark{scale:.65;transform-origin:center}.seasonal-scene-cake{scale:.7;transform-origin:bottom right;right:4vw;bottom:4vh}.seasonal-bats i:nth-child(n+4),.seasonal-birthday-watermark,.seasonal-anniversary-grid,.seasonal-anniversary-watermark,.seasonal-balloons,.seasonal-april-dialog:nth-of-type(n+2){display:none}.seasonal-party-lights{opacity:.32}.seasonal-aurora{opacity:.25}}
 @media(prefers-reduced-motion:reduce){.seasonal-world *,.splash-season-notice,.splash-season-notice-kicker i,.seasonal-update-takeover,.seasonal-update-spinner,.entry-splash-season *,.update-hourglass,.seasonal-update-card.is-looping,.seasonal-update-progress::after,.season-april-fools .panel,.season-april-fools .panel-strong{animation:none!important}.seasonal-particles,.seasonal-fireworks,.seasonal-party-beam,.splash-flake,.splash-bats,.update-hourglass{display:none}}
+
+/* The avatar splash owns its event notice inside the title bar. */
+@media(min-width:801px){
+  .entry-splash-gate.is-avatar-desktop .entry-splash-chrome{display:grid;grid-template-columns:minmax(0,1fr) minmax(17rem,25rem) minmax(0,1fr)}
+  .entry-splash-gate.is-avatar-desktop .entry-splash-lockup{grid-column:1;justify-self:start}
+  .entry-splash-gate.is-avatar-desktop .entry-splash-channel{grid-column:3;justify-self:end}
+  .entry-splash-gate.is-avatar-desktop .splash-season-notice{position:relative;inset:auto;z-index:1;display:grid;grid-column:2;grid-template-columns:auto auto;justify-content:center;width:100%;min-width:0;border:0;background:none;padding:0;box-shadow:none;animation:splash-notice-center-in .3s .35s steps(4,end) both}
+  .entry-splash-gate.is-avatar-desktop .splash-season-notice::before,.entry-splash-gate.is-avatar-desktop .splash-season-notice::after{display:none}
+  .entry-splash-gate.is-avatar-desktop .splash-season-notice-icon{display:grid;width:24px;height:24px;border:1px solid color-mix(in srgb,var(--seasonal-accent,#ffd166) 70%,transparent);background:color-mix(in srgb,var(--seasonal-accent,#ffd166) 6%,transparent);font-size:.5rem;text-shadow:0 0 8px color-mix(in srgb,var(--seasonal-accent,#ffd166) 72%,transparent);box-shadow:inset 0 0 10px color-mix(in srgb,var(--seasonal-accent,#ffd166) 7%,transparent)}
+  .entry-splash-gate.is-avatar-desktop .splash-season-notice>div{display:grid;grid-template-columns:auto auto;align-items:baseline;column-gap:.55rem;min-width:0}
+  .entry-splash-gate.is-avatar-desktop .splash-season-notice-kicker{font-size:.35rem;letter-spacing:.15em;white-space:nowrap}
+  .entry-splash-gate.is-avatar-desktop .splash-season-notice-kicker i{width:5px;height:5px}
+  .entry-splash-gate.is-avatar-desktop .splash-season-notice strong{margin-top:0;font-size:.64rem;letter-spacing:.055em;white-space:nowrap}
+  .entry-splash-gate.is-avatar-desktop .splash-season-notice small{grid-column:1/-1;margin-top:3px;overflow:hidden;color:color-mix(in srgb,var(--seasonal-accent,#3fff97) 48%,rgba(180,255,207,.7));font-size:.5rem;line-height:1.25;text-align:center;text-overflow:ellipsis;white-space:nowrap}
+  .entry-splash-gate.is-avatar-desktop .entry-splash-tags .is-event{display:none}
+}
+
+@media(min-width:801px) and (max-width:1080px){
+  .entry-splash-gate.is-avatar-desktop .entry-splash-chrome{grid-template-columns:minmax(0,1fr) minmax(14rem,20rem) minmax(0,1fr)}
+  .entry-splash-gate.is-avatar-desktop .splash-season-notice small{display:none}
+}

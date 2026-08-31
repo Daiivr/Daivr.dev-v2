@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { getLocalBuddyLevel } from "../hooks/useBuddyFriendship";
+import { AvatarGreeting } from "./AvatarGreeting";
 import { BuddySprite } from "./BuddySprite";
 import { SeasonalSplashNotice } from "./SeasonalEvent";
 
@@ -16,6 +17,7 @@ const BOOT_STEPS = [
 const STEP_DELAY = 430;
 
 export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [] }) {
+  const [mobileLegacySplash, setMobileLegacySplash] = useState(() => window.matchMedia("(max-width: 800px)").matches);
   const [visibleCount, setVisibleCount] = useState(1);
   const [displayProgress, setDisplayProgress] = useState(Math.round((1 / BOOT_STEPS.length) * 100));
   const [discordUser, setDiscordUser] = useState(null);
@@ -24,6 +26,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   const progressRef = useRef(displayProgress);
   const closeTimerRef = useRef(0);
   const splashBuddyRef = useRef(null);
+  const characterRef = useRef(null);
   const splashRootRef = useRef(null);
   const [buddyLevel] = useState(() => getLocalBuddyLevel());
   const [buddyLine, setBuddyLine] = useState("");
@@ -33,10 +36,17 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   const displayName = discordUser?.username || "guest";
   const greeting = `hi, ${displayName}`;
   const greetingFit = Math.max(4.8, Math.min(22, 96 / Math.max(4, displayName.length)));
+  const initial = displayName.trim().charAt(0).toUpperCase() || "G";
   const targetProgress = Math.round((visibleCount / BOOT_STEPS.length) * 100);
   const progress = Math.round(displayProgress);
-  const initial = displayName.trim().charAt(0).toUpperCase() || "G";
   const canEnter = ready && !closing;
+
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 800px)");
+    const updateSplashVariant = () => setMobileLegacySplash(query.matches);
+    query.addEventListener?.("change", updateSplashVariant);
+    return () => query.removeEventListener?.("change", updateSplashVariant);
+  }, []);
 
   const lines = useMemo(() => {
     const identityLine = discordUser
@@ -47,6 +57,9 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
 
     return BOOT_STEPS.map((step) => (step.text.includes("discord.pass") ? { ...step, text: identityLine } : step));
   }, [authChecked, discordUser]);
+  const visibleLines = mobileLegacySplash
+    ? lines.slice(0, visibleCount)
+    : lines.slice(Math.max(0, visibleCount - 3), visibleCount);
 
   useEffect(() => {
     let cancelled = false;
@@ -124,26 +137,33 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
 
     window.dispatchEvent(new CustomEvent("daivr-splash-enter"));
 
-    // Relevo del buddy: entrega su posicion exacta en viewport para que la
-    // caida de bienvenida (BuddyDrop, a nivel App) arranque sin costura.
-    // Si el perchado esta oculto (pantallas bajas) no hay caida que hacer.
     const buddyRect = splashBuddyRef.current?.getBoundingClientRect();
-    onBuddyLaunch?.(buddyRect && buddyRect.width > 0 ? { x: buddyRect.left, y: buddyRect.top } : null);
+    const characterRect = characterRef.current?.getBoundingClientRect();
+    const perchedBuddyIsVisible = buddyRect && buddyRect.width > 0 && buddyRect.height > 0;
+    onBuddyLaunch?.({
+      x: perchedBuddyIsVisible
+        ? buddyRect.left
+        : characterRect
+          ? characterRect.left + characterRect.width * 0.68
+          : window.innerWidth * 0.68,
+      y: perchedBuddyIsVisible
+        ? buddyRect.top
+        : characterRect
+          ? Math.max(16, characterRect.top + 20)
+          : 20
+    });
 
     setClosing(true);
     window.clearTimeout(closeTimerRef.current);
     closeTimerRef.current = window.setTimeout(onEnter, 620);
   }
 
-  // El buddy saluda al abrirse la puerta: por nombre de Discord o como guest,
-  // y luego reta a la carrera hacia abajo.
   useEffect(() => {
     if (!ready) return undefined;
     setBuddyLine(`hi, ${displayName}.`);
     const raceTimer = window.setTimeout(() => setBuddyLine("race you down."), 3000);
     return () => window.clearTimeout(raceTimer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready]);
+  }, [displayName, ready]);
 
   useEffect(() => {
     if (!ready) return undefined;
@@ -167,7 +187,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
         <i className="entry-splash-horizon" />
       </div>
       <div className="entry-splash-marquee" aria-hidden="true">DAI.EXE</div>
-      {seasonalEvent ? <SeasonalSplashNotice event={seasonalEvent} /> : null}
+      {seasonalEvent && mobileLegacySplash ? <SeasonalSplashNotice event={seasonalEvent} /> : null}
       {seasonalEvent === "winter" || seasonalEvent === "halloween" ? (
         // Decorado estacional del splash: el evento se ve desde la puerta.
         <div className={`entry-splash-season is-${seasonalEvent}`} aria-hidden="true">
@@ -204,12 +224,9 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
           ) : null}
         </div>
       ) : null}
-      <div className="entry-splash-stage">
+      <div className={`entry-splash-stage ${mobileLegacySplash ? "is-mobile-legacy" : ""}`}>
         <div className={`splash-buddy ${closing ? "is-launched" : ""}`} aria-hidden="true" ref={splashBuddyRef}>
           <div className={`screen-buddy-bubble ${buddyLine && !closing ? "is-visible" : ""}`}>{buddyLine}</div>
-          {/* Mismo loadout que el footer: cosmeticos equipados (peluco, gorros,
-              gafas, botas, items) visibles ya en la puerta. buddyLevel local
-              evita el parpadeo del gear de amistad antes de que el hook cargue. */}
           <BuddySprite
             className="splash-buddy-sprite"
             expression={ready ? "happy" : "idle"}
@@ -219,12 +236,13 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
             unlockedGear={unlockedGear}
           />
         </div>
-        <section className={`entry-splash-gate ${ready ? "is-ready" : ""} ${closing ? "is-closing" : ""}`} aria-busy={!ready}>
+        <section className={`entry-splash-gate ${mobileLegacySplash ? "is-mobile-legacy" : "is-avatar-desktop"} ${ready ? "is-ready" : ""} ${closing ? "is-closing" : ""}`} aria-busy={!ready}>
         <header className="entry-splash-chrome">
           <div className="entry-splash-lockup">
             <strong>DAI.EXE</strong>
             <span>interactive portfolio</span>
           </div>
+          {seasonalEvent && !mobileLegacySplash ? <SeasonalSplashNotice event={seasonalEvent} /> : null}
           <div className={`entry-splash-channel ${ready ? "is-online" : ""}`}>
             <i aria-hidden="true" />
             <span>{ready ? "channel open" : "establishing channel"}</span>
@@ -235,9 +253,11 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
         <div className="entry-splash-id">
           <span className="entry-splash-kicker"><i aria-hidden="true" /> visitor access granted</span>
           <div className="entry-splash-identity">
-            <div className="entry-splash-avatar" aria-hidden="true">
-              {discordUser?.avatarUrl ? <img src={discordUser.avatarUrl} alt="" /> : <span>{initial}</span>}
-            </div>
+            {mobileLegacySplash ? (
+              <div className="entry-splash-avatar" aria-hidden="true">
+                {discordUser?.avatarUrl ? <img src={discordUser.avatarUrl} alt="" /> : <span>{initial}</span>}
+              </div>
+            ) : null}
             <div className="entry-splash-identity-copy" style={{ "--entry-name-fit": `${greetingFit}cqi` }}>
               <h1 id="entry-splash-title" aria-label={greeting}>
                 <span aria-hidden="true">hi,</span>
@@ -246,12 +266,22 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
               <p id="entry-splash-description">{introCopy}</p>
             </div>
           </div>
-          <div className="entry-splash-tags" aria-label="Session status">
+          <div className="entry-splash-tags" aria-label="Session status" role="group">
             <span><b>pass</b>{discordUser ? "discord linked" : "guest access"}</span>
             <span><b>inside</b>projects + play</span>
             {seasonalEvent ? <span className="is-event">{seasonalEvent.replace("-", " ")} live</span> : null}
           </div>
         </div>
+
+        {mobileLegacySplash ? null : (
+          <div className="entry-splash-character" ref={characterRef}>
+            <AvatarGreeting active={ready && !closing} displayName={displayName} />
+            <div className={`entry-avatar-caption ${ready ? "is-visible" : ""}`} aria-live="polite">
+              <span>live cabinet host</span>
+              <strong>{ready ? `${displayName}, your room is ready.` : "Preparing your host..."}</strong>
+            </div>
+          </div>
+        )}
 
         <div className="entry-splash-console" role="status" aria-live="polite" aria-label="Cabinet startup status">
           <header>
@@ -259,9 +289,9 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
             <strong>{ready ? "unlocked" : "handshake"}</strong>
           </header>
           <div>
-            {lines.slice(0, visibleCount).map((line, index) => (
+            {visibleLines.map((line, index) => (
               <span
-              className={`entry-splash-line is-${line.tone} ${index === visibleCount - 1 && !ready ? "is-typing" : ""} ${index === visibleCount - 1 && ready ? "is-final" : ""}`}
+              className={`entry-splash-line is-${line.tone} ${index === visibleLines.length - 1 && !ready ? "is-typing" : ""} ${index === visibleLines.length - 1 && ready ? "is-final" : ""}`}
                 key={`${line.tone}-${index}`}
                 style={{ "--type-chars": line.text.length }}
               >

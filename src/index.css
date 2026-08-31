@@ -746,10 +746,6 @@
     --console-impact-y: 0px;
   }
 
-  .hero-station.is-console-dragging {
-    z-index: var(--console-top-layer);
-  }
-
   .hero-copy {
     transition: transform 260ms ease, filter 260ms ease, opacity 260ms ease;
   }
@@ -762,12 +758,8 @@
 
   .hero-console-dock {
     position: relative;
-    z-index: 1;
-    isolation: isolate;
-  }
-
-  .hero-station.is-console-dragging .hero-console-dock {
-    z-index: var(--console-top-layer);
+    z-index: auto;
+    isolation: auto;
   }
 
   .hero-console-dock::before {

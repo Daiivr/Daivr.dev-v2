@@ -330,6 +330,31 @@ export const stack = [
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.17.0",
+    codename: "AVATAR LINK",
+    date: "2026-08-31",
+    summary: "The cabinet now opens with a live VRM host on desktop, a rebuilt command console, cleaner seasonal telemetry, and development controls that make the new greeting experience easier to test without disturbing the original mobile entrance.",
+    entries: [
+      ["new", "The desktop entry gate now features Dai's optimized VRM avatar as a full live cabinet host, driven by the supplied VRMA greeting motion and rendered inside the existing phosphor, cyan, gold, and glitch-pink visual system."],
+      ["buff", "The greeting begins concealed during the seated setup, reveals the avatar on the surprise rise, completes the authored welcome, and then moves into a continuous hand-wave signal instead of dropping into a static finish."],
+      ["fix", "The endless wave now alternates between two trimmed motion actions with a short crossfade, hiding the hard pose jump that previously exposed every animation restart."],
+      ["buff", "The desktop splash has been recomposed as a cinematic host scene: visitor identity remains readable on the left while the avatar, live-host caption, signal status, handshake output, and arcade entry control occupy one cohesive full-bleed stage."],
+      ["fix", "Avatar and greeting assets now load together, embedded avatar textures are optimized, and shader variants compile while the canvas is hidden to reduce the brief main-thread hitch when the host first appears."],
+      ["fix", "The splash reserves its avatar stage before WebGL is ready, so loading the host cannot enlarge the gate or shift the surrounding identity, status, and launch controls."],
+      ["buff", "The old circular 01 loading mark has been replaced by an AVATAR LINK signal meter that uses the site palette and now sits directly on the avatar's desktop staging position instead of floating in the center of the entire splash."],
+      ["fix", "Desktop greeting typography now gives HI, and the visitor name separate stable lines, preventing the comma from overlapping long identities such as LOCAL.ADMIN."],
+      ["fix", "Phones keep the original compact splash instead of loading the desktop VRM scene, while Buddy is restored on both layouts and hands off into the familiar page-entry drop when the gate opens."],
+      ["buff", "Seasonal event telemetry is now integrated into the desktop splash title bar as a centered, icon-led signal instead of appearing as another floating rectangle; its larger label stays stable as the splash finishes loading."],
+      ["fix", "When no seasonal event is active, the empty center slot collapses cleanly and the channel indicator returns to its intended header position without leaving an orphaned status element."],
+      ["buff", "The Halloween CORRUPTED CABINET signal now inherits the redesigned splash treatment while retaining the event's orange, violet, and acid-green cabinet palette."],
+      ["fix", "Desktop PASS and INSIDE session cards now keep a clear visual gap above the system-handshake panel instead of touching its upper frame."],
+      ["buff", "The command console has been rebuilt as an operator workspace with a compact branded title bar, command matrix, live buffer header, numbered output stream, session telemetry, and a dedicated command-input rail."],
+      ["fix", "Terminal framing, header seams, background lettering, panel lines, spacing, and contrast have been polished so the console feels distinct from the old full-width shell while still matching the website's established color tokens."],
+      ["fix", "The temporary localhost LOCAL.ADMIN bypass used during development has been removed; local and deployed visitors now share the normal Discord-authenticated permission path."],
+      ["fix", "The draggable ~/daivr/homebase.jsx workstation may cross above the sticky top bar again, but only the dragged panel receives the elevated layer—its dock, secret room, hero copy, and neighboring interface remain beneath the header."]
+    ]
+  },
+  {
     version: "v2.16.0",
     codename: "PROJECT ARCHIVE",
     date: "2026-08-28",

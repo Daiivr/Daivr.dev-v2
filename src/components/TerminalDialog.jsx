@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { Keyboard, Radio, Send, Sparkles, Terminal, X } from "lucide-react";
+import { Activity, ChevronRight, Command, FolderCode, Keyboard, Radio, Send, Sparkles, Terminal, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 const COMMAND_HINTS = [
@@ -186,8 +186,9 @@ export function TerminalDialog({ open, onOpenChange, onCommand, log }) {
           >
             <div className="terminal-window-id">
               <span className="terminal-window-dots" aria-hidden="true"><i /><i /><i /></span>
-              <Terminal size={17} aria-hidden="true" />
+              <span className="terminal-window-icon" aria-hidden="true"><Terminal size={18} /></span>
               <div>
+                <span className="terminal-window-kicker">node 01 / operator shell</span>
                 <Dialog.Title>DAI.EXE command console</Dialog.Title>
                 <Dialog.Description id="terminal-description">Interactive cabinet shell with history and command completion.</Dialog.Description>
               </div>
@@ -201,27 +202,51 @@ export function TerminalDialog({ open, onOpenChange, onCommand, log }) {
             </Dialog.Close>
           </header>
 
-          <div className="terminal-command-deck" aria-label="Quick terminal commands">
-            <span className="terminal-command-deck-label"><Sparkles size={12} aria-hidden="true" /> quick_exec</span>
-            <div>
-              {QUICK_COMMANDS.map((name) => (
-                <button className="terminal-command-chip arcade-focus" key={name} type="button" onClick={() => execute(name)} data-command={name}>
-                  <span>$</span> {name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="terminal-output" data-command-log ref={outputRef} role="log" aria-live="polite" aria-label="Terminal output">
-            {outputLines.map((line, index) => (
-              <div className={`terminal-output-line ${lineTone(line)}`} key={`${index}-${line.slice(0, 18)}`}>
-                <span className="terminal-line-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
-                <code>{line || " "}</code>
+          <div className="terminal-workspace">
+            <aside className="terminal-command-deck" aria-label="Quick terminal commands">
+              <header>
+                <span className="terminal-command-deck-label"><Sparkles size={12} aria-hidden="true" /> command matrix</span>
+                <em>{String(QUICK_COMMANDS.length).padStart(2, "0")}</em>
+              </header>
+              <div className="terminal-command-list">
+                {QUICK_COMMANDS.map((name, index) => {
+                  const hint = COMMAND_HINTS.find((item) => item.name === name);
+                  return (
+                    <button className="terminal-command-chip arcade-focus" key={name} type="button" onClick={() => execute(name)} data-command={name}>
+                      <span className="terminal-command-chip-index">{String(index + 1).padStart(2, "0")}</span>
+                      <span className="terminal-command-chip-copy"><b>{name}</b><small>{hint?.detail}</small></span>
+                      <ChevronRight size={14} aria-hidden="true" />
+                    </button>
+                  );
+                })}
               </div>
-            ))}
+              <footer className="terminal-deck-status">
+                <Activity size={14} aria-hidden="true" />
+                <span><small>session</small><strong>local link stable</strong></span>
+              </footer>
+            </aside>
+
+            <section className="terminal-buffer">
+              <header className="terminal-bufferbar">
+                <span><FolderCode size={13} aria-hidden="true" /> ~/daivr</span>
+                <div><i aria-hidden="true" /> live buffer <b>{String(outputLines.length).padStart(2, "0")} lines</b></div>
+              </header>
+              <div className="terminal-output" data-command-log ref={outputRef} role="log" aria-live="polite" aria-label="Terminal output">
+                {outputLines.map((line, index) => (
+                  <div className={`terminal-output-line ${lineTone(line)}`} key={`${index}-${line.slice(0, 18)}`}>
+                    <span className="terminal-line-number" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                    <code>{line || " "}</code>
+                  </div>
+                ))}
+              </div>
+            </section>
           </div>
 
           <form className="terminal-input-zone" onSubmit={submitCommand}>
+            <div className="terminal-input-head">
+              <span><Command size={12} aria-hidden="true" /> command input</span>
+              <em>Tab autocomplete enabled</em>
+            </div>
             <div className="terminal-prompt-row">
               <label htmlFor="terminal-input"><span className="sr-only">Terminal command</span><b>guest@daivr</b><i>:</i><strong>~$</strong></label>
               <input
