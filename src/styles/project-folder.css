@@ -1,9 +1,13 @@
 @layer components {
+  /* Cerrado, la carpeta ocupaba una quinta parte del ancho con 124px de vacio
+     encima esperando a unas fichas que aun no existen. La escena se ajusta al
+     estado: baja cuando esta cerrada y se abre cuando hay que dejar sitio al
+     abanico. */
   .project-folder-console {
     position: relative;
     z-index: 1;
     display: grid;
-    min-height: 390px;
+    min-height: 340px;
     overflow: visible;
     place-items: start center;
     border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 24%, transparent);
@@ -20,6 +24,15 @@
     box-shadow:
       inset 0 0 45px rgba(0, 0, 0, 0.38),
       inset 0 1px 0 color-mix(in srgb, var(--color-phosphor) 11%, transparent);
+  }
+
+  .project-folder-console::before {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    content: "";
+    pointer-events: none;
+    background: radial-gradient(ellipse 46% 62% at 50% 58%, transparent 30%, rgba(1, 4, 3, 0.72) 100%);
   }
 
   .project-folder-console::after {
@@ -62,21 +75,51 @@
     color: var(--color-glitch);
   }
 
+  .project-folder-console.is-open {
+    min-height: 424px;
+  }
+
+  .project-folder-console,
+  .project-folder-stage {
+    transition: min-height 380ms cubic-bezier(0.18, 0.82, 0.22, 1), height 380ms cubic-bezier(0.18, 0.82, 0.22, 1);
+  }
+
   .project-folder-stage {
     position: relative;
-    width: min(100%, 520px);
-    height: 310px;
+    width: min(100%, 640px);
+    height: 248px;
     margin-top: 0.35rem;
+  }
+
+  .project-folder-console.is-open .project-folder-stage {
+    height: 340px;
   }
 
   .project-folder-object {
     position: absolute;
     left: 50%;
-    bottom: 28px;
-    width: 220px;
-    height: 158px;
+    bottom: 26px;
+    width: 264px;
+    height: 188px;
     transform: translateX(-50%);
     transition: transform 200ms ease-in;
+  }
+
+  /* La carpeta flotaba sobre la foto de la sala. La sombra de contacto y el
+     charco de luz la apoyan en el escritorio. */
+  .project-folder-object::after {
+    position: absolute;
+    left: 50%;
+    bottom: -20px;
+    z-index: 0;
+    width: 132%;
+    height: 40px;
+    content: "";
+    background:
+      radial-gradient(ellipse at center, color-mix(in srgb, var(--color-cyan-arcade) 16%, transparent), transparent 62%),
+      radial-gradient(ellipse at center, rgba(0, 0, 0, 0.62), transparent 70%);
+    pointer-events: none;
+    transform: translateX(-50%);
   }
 
   .project-folder-console:not(.is-open) .project-folder-object:hover,
@@ -136,13 +179,16 @@
     position: absolute;
     left: 50%;
     bottom: 10%;
+    overflow: hidden;
     border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 28%, transparent);
     border-radius: 12px 12px 3px 3px;
     background:
+      repeating-linear-gradient(180deg, transparent 0 15px, color-mix(in srgb, var(--color-cyan-arcade) 11%, transparent) 15px 16px) 0 42px / 74% 100% no-repeat,
       linear-gradient(rgba(69, 216, 255, 0.035) 1px, transparent 1px),
       linear-gradient(90deg, rgba(63, 255, 151, 0.03) 1px, transparent 1px),
       linear-gradient(180deg, #1a5140, #0b2b22);
-    background-size: 11px 11px, 11px 11px, auto;
+    background-position: 13% 42px, 0 0, 0 0, 0 0;
+    background-size: 74% 100%, 11px 11px, 11px 11px, auto;
     box-shadow: inset 0 1px 0 color-mix(in srgb, white 10%, transparent);
     transform: translate(-50%, 10%);
     transform-origin: center bottom;
@@ -152,32 +198,63 @@
   }
 
   .project-folder-paper.is-paper-one {
-    width: 70%;
-    height: 80%;
+    width: 62%;
+    height: 94%;
     background-color: #143c31;
+    transform: translate(-72%, -2%) rotate(-3deg);
   }
 
   .project-folder-paper.is-paper-two {
-    width: 80%;
-    height: 70%;
+    width: 66%;
+    height: 100%;
     background-color: #184838;
+    transform: translate(-50%, -6%);
   }
 
   .project-folder-paper.is-paper-three {
-    width: 90%;
-    height: 60%;
+    width: 62%;
+    height: 96%;
     background-color: #1c5541;
+    transform: translate(-28%, -3%) rotate(3deg);
   }
 
-  .project-folder-console:not(.is-open) .project-folder-object:hover .project-folder-paper,
-  .project-folder-console:not(.is-open) .project-folder-object:has(.project-folder-front-button:focus-visible) .project-folder-paper {
-    transform: translate(-50%, 0%);
+  /* Cabecera impresa en cada hoja asomada. */
+  .project-folder-paper::after {
+    position: absolute;
+    left: 13%;
+    top: 14px;
+    width: 46%;
+    height: 7px;
+    content: "";
+    background: color-mix(in srgb, var(--color-cyan-arcade) 42%, transparent);
+    box-shadow:
+      0 12px 0 -2px color-mix(in srgb, var(--color-cyan-arcade) 20%, transparent),
+      26px 12px 0 -2px color-mix(in srgb, var(--color-cyan-arcade) 20%, transparent);
+  }
+
+  .project-folder-console:not(.is-open) .project-folder-object:hover .project-folder-paper.is-paper-one,
+  .project-folder-console:not(.is-open) .project-folder-object:has(.project-folder-front-button:focus-visible) .project-folder-paper.is-paper-one {
+    transform: translate(-74%, -9%) rotate(-5deg);
+  }
+
+  .project-folder-console:not(.is-open) .project-folder-object:hover .project-folder-paper.is-paper-two,
+  .project-folder-console:not(.is-open) .project-folder-object:has(.project-folder-front-button:focus-visible) .project-folder-paper.is-paper-two {
+    transform: translate(-50%, -14%);
+  }
+
+  .project-folder-console:not(.is-open) .project-folder-object:hover .project-folder-paper.is-paper-three,
+  .project-folder-console:not(.is-open) .project-folder-object:has(.project-folder-front-button:focus-visible) .project-folder-paper.is-paper-three {
+    transform: translate(-26%, -10%) rotate(5deg);
   }
 
   .project-folder-console.is-open .project-folder-paper {
     opacity: 0;
-    transform: translate(-50%, -18%);
+    transform: translate(-50%, 26%);
   }
+
+  .project-folder-console.is-open .project-folder-paper.is-paper-one { transition-delay: 0ms; }
+  .project-folder-console.is-open .project-folder-paper.is-paper-two { transition-delay: 50ms; }
+  .project-folder-console.is-open .project-folder-paper.is-paper-three { transition-delay: 100ms; }
 
   .project-folder-file {
     --folder-file-accent: var(--color-cyan-arcade);
@@ -185,8 +262,8 @@
     left: 50%;
     bottom: 20px;
     display: grid;
-    width: 152px;
-    height: 166px;
+    width: 168px;
+    height: 182px;
     align-content: start;
     justify-items: center;
     gap: 0.4rem;
@@ -210,8 +287,8 @@
     transform: translate(-50%, 12%) scale(0.86);
     transform-origin: center bottom;
     transition:
-      transform 360ms cubic-bezier(0.18, 0.82, 0.22, 1),
-      opacity 180ms ease,
+      transform 460ms cubic-bezier(0.22, 1.12, 0.3, 1),
+      opacity 200ms ease,
       border-color 180ms ease,
       box-shadow 180ms ease,
       filter 180ms ease;
@@ -261,17 +338,22 @@
     pointer-events: auto;
   }
 
+  /* Abanico mas abierto: las tres fichas se apinaban en el tercio central de
+     una escena mucho mas ancha que ellas. */
   .project-folder-console.is-open .project-folder-file:nth-child(1) {
-    transform: translate(-122%, -72%) rotate(-10deg);
-  }
-
-  .project-folder-console.is-open .project-folder-file:nth-child(2) {
-    transform: translate(22%, -72%) rotate(10deg);
+    transform: translate(-138%, -64%) rotate(-11deg);
+    transition-delay: 40ms;
   }
 
   .project-folder-console.is-open .project-folder-file.is-soon {
     opacity: 1;
-    transform: translate(-50%, -96%) rotate(3deg) scale(0.9);
+    transform: translate(-50%, -90%) rotate(2deg) scale(0.9);
+    transition-delay: 120ms;
+  }
+
+  .project-folder-console.is-open .project-folder-file:nth-child(2) {
+    transform: translate(38%, -64%) rotate(11deg);
+    transition-delay: 200ms;
   }
 
   .project-folder-console.is-open .project-folder-file:hover,
@@ -286,12 +368,12 @@
 
   .project-folder-console.is-open .project-folder-file:nth-child(1):hover,
   .project-folder-console.is-open .project-folder-file:nth-child(1):focus-visible {
-    transform: translate(-122%, -76%) rotate(-10deg) scale(1.04);
+    transform: translate(-138%, -68%) rotate(-11deg) scale(1.04);
   }
 
   .project-folder-console.is-open .project-folder-file:nth-child(2):hover,
   .project-folder-console.is-open .project-folder-file:nth-child(2):focus-visible {
-    transform: translate(22%, -76%) rotate(10deg) scale(1.04);
+    transform: translate(38%, -68%) rotate(11deg) scale(1.04);
   }
 
   .project-folder-file:focus-visible {
@@ -375,7 +457,7 @@
     touch-action: manipulation;
     transform: none;
     transform-origin: center bottom;
-    transition: transform 320ms cubic-bezier(0.18, 0.82, 0.22, 1);
+    transition: transform 420ms cubic-bezier(0.26, 1.16, 0.32, 1);
   }
 
   .project-folder-front-button:focus-visible {
@@ -389,8 +471,14 @@
     inset: 0;
     border: 0;
     border-radius: 6px 14px 14px 14px;
-    background: linear-gradient(180deg, #103d2e, #071b16);
-    box-shadow: inset 0 0 28px color-mix(in srgb, var(--color-cyan-arcade) 9%, transparent);
+    background:
+      linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px) 0 0 / 14px 100%,
+      linear-gradient(168deg, rgba(255, 255, 255, 0.07), transparent 34%),
+      linear-gradient(180deg, #17513c 0 5px, #103d2e 5px, #071b16);
+    box-shadow:
+      inset 0 2px 0 color-mix(in srgb, var(--color-cyan-arcade) 34%, transparent),
+      inset 0 14px 22px -12px rgba(0, 0, 0, 0.85),
+      inset 0 0 28px color-mix(in srgb, var(--color-cyan-arcade) 9%, transparent);
     transform-origin: center bottom;
     transition: transform 320ms cubic-bezier(0.18, 0.82, 0.22, 1);
   }
@@ -401,6 +489,17 @@
 
   .project-folder-front-piece.is-right {
     z-index: 2;
+  }
+
+  .project-folder-front-copy::before {
+    position: absolute;
+    left: 50%;
+    bottom: 0.85rem;
+    width: 58%;
+    height: 1px;
+    content: "";
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-cyan-arcade) 34%, transparent), transparent);
+    transform: translateX(-50%);
   }
 
   .project-folder-front-copy {
@@ -423,6 +522,9 @@
     text-shadow: 0 0 18px color-mix(in srgb, var(--color-phosphor) 28%, transparent);
   }
 
+  /* El unico aviso de que la carpeta se abre era una linea de texto en la
+     esquina. La chapa del recuento respira despacio para que el objeto se lea
+     como algo que se puede tocar. */
   .project-folder-front-copy small {
     border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 38%, transparent);
     background: rgba(2, 6, 4, 0.5);
@@ -431,6 +533,22 @@
     font-size: 0.55rem;
     font-weight: 900;
     text-transform: uppercase;
+  }
+
+  .project-folder-console:not(.is-open) .project-folder-front-copy small {
+    animation: project-folder-prompt 2.8s ease-in-out infinite;
+  }
+
+  @keyframes project-folder-prompt {
+    0%, 100% {
+      border-color: color-mix(in srgb, var(--color-cyan-arcade) 38%, transparent);
+      box-shadow: 0 0 0 color-mix(in srgb, var(--color-cyan-arcade) 0%, transparent);
+    }
+
+    50% {
+      border-color: color-mix(in srgb, var(--color-cyan-arcade) 82%, transparent);
+      box-shadow: 0 0 18px color-mix(in srgb, var(--color-cyan-arcade) 26%, transparent);
+    }
   }
 
   .project-folder-console.is-open .project-folder-front-button {
@@ -474,9 +592,15 @@
 }
 
 @media (max-width: 540px) {
+  /* Mismo trato que en escritorio: compacta cerrada, alta solo cuando el
+     abanico necesita el sitio. */
   .project-folder-console {
-    min-height: 370px;
+    min-height: 262px;
     padding-inline: 0.5rem;
+  }
+
+  .project-folder-console.is-open {
+    min-height: 370px;
   }
 
   .project-folder-status {
@@ -484,6 +608,10 @@
   }
 
   .project-folder-stage {
+    height: 184px;
+  }
+
+  .project-folder-console.is-open .project-folder-stage {
     height: 292px;
   }
 
@@ -551,7 +679,20 @@
   .project-folder-paper,
   .project-folder-front-button,
   .project-folder-front-piece,
-  .project-folder-front-copy {
+  .project-folder-front-copy,
+  .project-folder-console,
+  .project-folder-stage {
     transition: none !important;
+  }
+
+  /* Sin el escalonado tampoco: con transition:none los retardos no llegan a
+     correr, pero dejarlos declarados solo confunde al leer el archivo. */
+  .project-folder-console.is-open .project-folder-file,
+  .project-folder-console.is-open .project-folder-paper {
+    transition-delay: 0ms !important;
+  }
+
+  .project-folder-console:not(.is-open) .project-folder-front-copy small {
+    animation: none;
   }
 }

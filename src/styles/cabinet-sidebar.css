@@ -1,0 +1,277 @@
+/* Cabinet sidebar -----------------------------------------------------------
+   The rail was eight identical text rows taking up half the column, and at
+   900px tall the whole thing overflowed the screen with no way to reach the
+   theme switch. Denser rows with their own icon and a real active state fix
+   both at once. */
+
+@layer components {
+  /* Safety valve: on short screens the rail can still be scrolled instead of
+     silently cutting off whatever sits below the fold. */
+  .cabinet-sidebar {
+    scrollbar-width: none;
+  }
+
+  .cabinet-sidebar::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (min-width: 1024px) {
+    .cabinet-sidebar {
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+  }
+
+  /* El carril horizontal ya trae overflow-x:auto, pero sin min-width:0 el ancho
+     minimo de sus ocho columnas se propagaba hacia arriba y estiraba la barra
+     lateral entera: en tablet la pagina acababa mas ancha que el viewport en vez
+     de scrollear dentro del propio carril. */
+  .cabinet-nav {
+    min-width: 0;
+  }
+
+  .cabinet-nav-link {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.6rem 1.05rem minmax(0, 1fr) 0.45rem;
+    min-height: 2.45rem;
+    align-items: center;
+    gap: 0.5rem;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 12%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 5%, transparent), transparent 44%),
+      rgba(2, 6, 4, 0.52);
+    padding: 0 0.7rem;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 60%, transparent);
+    font-size: 0.78rem;
+    font-weight: 900;
+    transition:
+      border-color 180ms ease,
+      background 180ms ease,
+      color 180ms ease,
+      box-shadow 200ms ease;
+  }
+
+  /* Riel de acento: nace en el borde izquierdo y solo crece cuando la seccion
+     esta activa o el puntero encima. */
+  .cabinet-nav-link::before {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    content: "";
+    background: linear-gradient(180deg, var(--color-phosphor), var(--color-cyan-arcade));
+    opacity: 0;
+    transform: scaleY(0.25);
+    transform-origin: center;
+    transition: opacity 200ms ease, transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .cabinet-nav-index {
+    color: color-mix(in srgb, var(--color-phosphor) 62%, transparent);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+    transition: color 180ms ease;
+  }
+
+  .cabinet-nav-icon {
+    color: color-mix(in srgb, var(--color-phosphor-soft) 42%, transparent);
+    transition: color 180ms ease, transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .cabinet-nav-link strong {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Punta de flecha: aparece solo en la fila activa, para que la seleccion se
+     lea de un vistazo sin depender del color del borde. */
+  .cabinet-nav-marker {
+    justify-self: end;
+    width: 0;
+    height: 0;
+    border-top: 0.28rem solid transparent;
+    border-bottom: 0.28rem solid transparent;
+    border-left: 0.32rem solid var(--color-phosphor);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 200ms ease, transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .cabinet-nav-link:hover,
+  .cabinet-nav-link:focus-visible {
+    border-color: color-mix(in srgb, var(--color-phosphor) 42%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 11%, transparent), transparent 52%),
+      rgba(2, 8, 6, 0.7);
+    color: #fff;
+  }
+
+  .cabinet-nav-link:hover::before,
+  .cabinet-nav-link:focus-visible::before {
+    opacity: 0.55;
+    transform: scaleY(0.7);
+  }
+
+  .cabinet-nav-link:hover .cabinet-nav-icon,
+  .cabinet-nav-link:focus-visible .cabinet-nav-icon {
+    color: var(--color-phosphor);
+    transform: translateX(1px);
+  }
+
+  .cabinet-nav-link.is-active {
+    border-color: color-mix(in srgb, var(--color-phosphor) 58%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 16%, transparent), transparent 62%),
+      rgba(2, 10, 7, 0.82);
+    color: #fff;
+    box-shadow:
+      inset 0 0 22px color-mix(in srgb, var(--color-phosphor) 7%, transparent),
+      0 0 20px color-mix(in srgb, var(--color-phosphor) 9%, transparent);
+  }
+
+  .cabinet-nav-link.is-active::before {
+    opacity: 1;
+    transform: scaleY(1);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--color-phosphor) 52%, transparent);
+  }
+
+  .cabinet-nav-link.is-active .cabinet-nav-index {
+    color: var(--color-cabinet);
+  }
+
+  .cabinet-nav-link.is-active .cabinet-nav-icon {
+    color: var(--color-phosphor);
+  }
+
+  .cabinet-nav-link.is-active .cabinet-nav-marker {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  /* Buddy dock ------------------------------------------------------------*/
+  .buddy-nav-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .buddy-nav-level {
+    border: 1px solid color-mix(in srgb, var(--color-cabinet) 38%, transparent);
+    background: color-mix(in srgb, var(--color-cabinet) 10%, transparent);
+    padding: 0.12rem 0.36rem;
+    color: var(--color-cabinet);
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .buddy-nav-xp {
+    height: 4px;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 22%, transparent);
+    background: rgba(2, 6, 4, 0.8);
+  }
+
+  .buddy-nav-xp span {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-phosphor), var(--color-cyan-arcade));
+    box-shadow: 0 0 10px color-mix(in srgb, var(--color-phosphor) 46%, transparent);
+    transition: width 420ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .buddy-nav-xp-note {
+    margin-top: -0.15rem;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 48%, transparent);
+    font-size: 0.52rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* Valor arriba y etiqueta debajo: el numero es lo que se viene a mirar. */
+  .buddy-nav-card-stats span {
+    display: grid;
+    gap: 0.1rem;
+    padding: 0.4rem 0.35rem;
+    text-align: center;
+  }
+
+  .buddy-nav-card-stats b {
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    line-height: 1;
+  }
+
+  /* Theme switch ----------------------------------------------------------*/
+  .cabinet-theme-switch {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 24%, transparent);
+    background: rgba(2, 6, 4, 0.7);
+  }
+
+  .cabinet-theme-switch button {
+    display: inline-flex;
+    min-height: 2.4rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.42rem;
+    border: 0;
+    background: transparent;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 62%, transparent);
+    font-size: 0.68rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    transition: background 180ms ease, color 180ms ease;
+  }
+
+  .cabinet-theme-switch button + button {
+    border-left: 1px solid color-mix(in srgb, var(--color-phosphor) 18%, transparent);
+  }
+
+  .cabinet-theme-switch button:hover:not(.is-active) {
+    background: color-mix(in srgb, var(--color-phosphor) 9%, transparent);
+    color: #fff;
+  }
+
+  .cabinet-theme-switch button.is-active {
+    background: var(--color-phosphor);
+    color: var(--color-ink-950);
+    box-shadow: 0 0 22px color-mix(in srgb, var(--color-phosphor) 32%, transparent);
+  }
+
+  /* En la franja horizontal de movil no hay sitio para indice y flecha. */
+  @media (max-width: 1023px) {
+    .cabinet-nav-link {
+      grid-template-columns: 1.05rem minmax(0, 1fr);
+      min-height: 2.6rem;
+    }
+
+    .cabinet-nav-index,
+    .cabinet-nav-marker {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cabinet-nav-link,
+    .cabinet-nav-link::before,
+    .cabinet-nav-icon,
+    .cabinet-nav-marker,
+    .buddy-nav-xp span {
+      transition: none;
+    }
+  }
+}

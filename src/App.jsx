@@ -653,7 +653,12 @@ function CabinetApp() {
         Skip to content
       </a>
 
-      <div className="cabinet-layout relative grid min-h-screen lg:grid-cols-[292px_minmax(0,1fr)]" inert={entrySplashOpen ? true : undefined} aria-hidden={entrySplashOpen ? "true" : undefined}>
+      {/* grid-cols-1 (minmax(0,1fr)) explicito: sin el, bajo lg la unica
+          columna era implicita y por tanto auto, asi que se dimensionaba al
+          max-content de la barra lateral. El carril horizontal del nav pedia
+          mas ancho que el viewport y estiraba la pagina entera en vez de
+          scrollear dentro de si mismo. */}
+      <div className="cabinet-layout relative grid min-h-screen grid-cols-1 lg:grid-cols-[292px_minmax(0,1fr)]" inert={entrySplashOpen ? true : undefined} aria-hidden={entrySplashOpen ? "true" : undefined}>
         <Sidebar
           activeSection={activeSection}
           buddy={buddy}

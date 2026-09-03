@@ -143,7 +143,6 @@
 .entry-splash-season.is-winter{background:radial-gradient(120% 80% at -5% -5%,rgba(190,235,255,.12),transparent 34%),radial-gradient(130% 90% at 105% -8%,rgba(170,225,255,.09),transparent 32%)}
 .entry-splash-season.is-halloween{background:radial-gradient(120% 80% at -6% -4%,rgba(90,40,140,.2),transparent 36%),radial-gradient(130% 90% at 106% -8%,rgba(255,124,31,.09),transparent 30%)}
 .splash-flake{position:absolute;left:var(--left);top:-8%;color:rgba(233,247,255,.75);font-size:var(--size);font-style:normal;line-height:1;text-shadow:0 0 8px rgba(168,232,255,.55);animation:seasonal-fall var(--duration) var(--delay) linear infinite}
-.season-winter .entry-splash-gate::before{content:"";position:absolute;left:-2px;right:-2px;top:-7px;z-index:3;height:12px;pointer-events:none;background:radial-gradient(9px 7px at 10% 6px,#f4fbff 58%,transparent 60%),radial-gradient(11px 8px at 26% 5px,#eaf7ff 58%,transparent 60%),radial-gradient(8px 6px at 41% 7px,#f4fbff 58%,transparent 60%),radial-gradient(12px 8px at 58% 5px,#eef9ff 58%,transparent 60%),radial-gradient(9px 7px at 74% 6px,#f4fbff 58%,transparent 60%),radial-gradient(11px 8px at 90% 5px,#eaf7ff 58%,transparent 60%);filter:drop-shadow(0 2px 3px rgba(140,210,240,.35))}
 .splash-web{position:absolute;left:-6px;top:-6px;width:clamp(110px,14vw,180px);height:auto;color:rgba(224,214,255,.35)}
 .splash-spider{position:absolute;left:clamp(64px,9vw,120px);top:0;width:1px;height:74px;background:linear-gradient(rgba(224,214,255,.42),rgba(224,214,255,.22));transform-origin:top center;animation:splash-spider-swing 4.2s ease-in-out infinite alternate}
 .splash-spider i{position:absolute;left:50%;bottom:-8px;width:9px;height:12px;transform:translateX(-50%);background:radial-gradient(circle at 50% 30%,#241436 0 40%,transparent 41%),radial-gradient(circle at 50% 68%,#241436 0 52%,transparent 53%);filter:drop-shadow(0 0 3px rgba(185,134,255,.5))}
@@ -168,8 +167,6 @@
 .splash-season-notice-kicker i{width:6px;height:6px;background:var(--seasonal-accent,#3fff97);box-shadow:0 0 8px var(--seasonal-accent,#3fff97);animation:splash-notice-live 1.4s steps(2,end) infinite}
 .splash-season-notice strong{display:block;margin-top:5px;color:#fff;font-family:var(--font-display);font-size:.68rem;letter-spacing:.07em}
 .splash-season-notice small{display:block;margin-top:4px;color:rgba(180,255,207,.66);font-size:.57rem;line-height:1.45;white-space:normal}
-/* Chip extra en el pase de acceso del splash. */
-.entry-splash-tags .is-event{border-color:color-mix(in srgb,var(--seasonal-accent,#3fff97) 52%,transparent);background:color-mix(in srgb,var(--seasonal-accent,#3fff97) 10%,transparent);color:color-mix(in srgb,var(--seasonal-accent,#3fff97) 82%,#fff);text-shadow:0 0 9px color-mix(in srgb,var(--seasonal-accent,#3fff97) 45%,transparent)}
 
 /* April Fools takeover */
 .seasonal-update-takeover{position:fixed;inset:0;z-index:95;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle at center,#1687db,#0878d1 62%,#076bb9);color:#fff;font-family:"Segoe UI",Arial,sans-serif;animation:update-screen-in .3s steps(2,end) both}
@@ -234,7 +231,6 @@ body:has(.seasonal-update-takeover)>.page-perched-bird{display:none!important}
 @keyframes update-progress-shine{from{background-position:180% 0}to{background-position:-40% 0}}
 @keyframes update-loop-shake{0%,100%{transform:none}18%{transform:translateX(-8px) rotate(-.5deg)}38%{transform:translateX(7px)}58%{transform:translateX(-5px) rotate(.4deg)}78%{transform:translateX(3px)}}
 @keyframes splash-notice-in{from{opacity:0;transform:translateX(26px)}}
-@keyframes splash-notice-center-in{from{opacity:0}}
 @keyframes splash-notice-live{50%{opacity:.25}}
 @keyframes splash-spider-swing{from{transform:rotate(-7deg)}to{transform:rotate(7deg)}}
 @keyframes update-spin{to{transform:rotate(360deg)}}
@@ -245,24 +241,3 @@ body:has(.seasonal-update-takeover)>.page-perched-bird{display:none!important}
 @media(max-width:1023px){.seasonal-icicles,.seasonal-party-lights,.seasonal-corruption-band{left:0}.seasonal-birthday-watermark,.seasonal-anniversary-grid{left:5vw}}
 @media(max-width:700px){.splash-season-notice{left:0;right:0;top:0;display:flex;align-items:center;gap:9px;width:100%;border:0;border-bottom:1px solid color-mix(in srgb,var(--seasonal-accent,#3fff97) 45%,transparent);background:rgba(2,6,4,.96);padding:7px 12px}.splash-season-notice::before{border-left-width:2px}.splash-season-notice::after,.splash-season-notice-icon,.splash-season-notice small{display:none}.splash-season-notice div{display:flex;align-items:baseline;gap:9px;min-width:0}.splash-season-notice strong{margin-top:0;overflow:hidden;font-size:.54rem;text-overflow:ellipsis;white-space:nowrap}.splash-season-notice-kicker{flex:none;font-size:.34rem}.seasonal-moon,.seasonal-anniversary-mark{scale:.65;transform-origin:center}.seasonal-scene-cake{scale:.7;transform-origin:bottom right;right:4vw;bottom:4vh}.seasonal-bats i:nth-child(n+4),.seasonal-birthday-watermark,.seasonal-anniversary-grid,.seasonal-anniversary-watermark,.seasonal-balloons,.seasonal-april-dialog:nth-of-type(n+2){display:none}.seasonal-party-lights{opacity:.32}.seasonal-aurora{opacity:.25}}
 @media(prefers-reduced-motion:reduce){.seasonal-world *,.splash-season-notice,.splash-season-notice-kicker i,.seasonal-update-takeover,.seasonal-update-spinner,.entry-splash-season *,.update-hourglass,.seasonal-update-card.is-looping,.seasonal-update-progress::after,.season-april-fools .panel,.season-april-fools .panel-strong{animation:none!important}.seasonal-particles,.seasonal-fireworks,.seasonal-party-beam,.splash-flake,.splash-bats,.update-hourglass{display:none}}
-
-/* The avatar splash owns its event notice inside the title bar. */
-@media(min-width:801px){
-  .entry-splash-gate.is-avatar-desktop .entry-splash-chrome{display:grid;grid-template-columns:minmax(0,1fr) minmax(17rem,25rem) minmax(0,1fr)}
-  .entry-splash-gate.is-avatar-desktop .entry-splash-lockup{grid-column:1;justify-self:start}
-  .entry-splash-gate.is-avatar-desktop .entry-splash-channel{grid-column:3;justify-self:end}
-  .entry-splash-gate.is-avatar-desktop .splash-season-notice{position:relative;inset:auto;z-index:1;display:grid;grid-column:2;grid-template-columns:auto auto;justify-content:center;width:100%;min-width:0;border:0;background:none;padding:0;box-shadow:none;animation:splash-notice-center-in .3s .35s steps(4,end) both}
-  .entry-splash-gate.is-avatar-desktop .splash-season-notice::before,.entry-splash-gate.is-avatar-desktop .splash-season-notice::after{display:none}
-  .entry-splash-gate.is-avatar-desktop .splash-season-notice-icon{display:grid;width:24px;height:24px;border:1px solid color-mix(in srgb,var(--seasonal-accent,#ffd166) 70%,transparent);background:color-mix(in srgb,var(--seasonal-accent,#ffd166) 6%,transparent);font-size:.5rem;text-shadow:0 0 8px color-mix(in srgb,var(--seasonal-accent,#ffd166) 72%,transparent);box-shadow:inset 0 0 10px color-mix(in srgb,var(--seasonal-accent,#ffd166) 7%,transparent)}
-  .entry-splash-gate.is-avatar-desktop .splash-season-notice>div{display:grid;grid-template-columns:auto auto;align-items:baseline;column-gap:.55rem;min-width:0}
-  .entry-splash-gate.is-avatar-desktop .splash-season-notice-kicker{font-size:.35rem;letter-spacing:.15em;white-space:nowrap}
-  .entry-splash-gate.is-avatar-desktop .splash-season-notice-kicker i{width:5px;height:5px}
-  .entry-splash-gate.is-avatar-desktop .splash-season-notice strong{margin-top:0;font-size:.64rem;letter-spacing:.055em;white-space:nowrap}
-  .entry-splash-gate.is-avatar-desktop .splash-season-notice small{grid-column:1/-1;margin-top:3px;overflow:hidden;color:color-mix(in srgb,var(--seasonal-accent,#3fff97) 48%,rgba(180,255,207,.7));font-size:.5rem;line-height:1.25;text-align:center;text-overflow:ellipsis;white-space:nowrap}
-  .entry-splash-gate.is-avatar-desktop .entry-splash-tags .is-event{display:none}
-}
-
-@media(min-width:801px) and (max-width:1080px){
-  .entry-splash-gate.is-avatar-desktop .entry-splash-chrome{grid-template-columns:minmax(0,1fr) minmax(14rem,20rem) minmax(0,1fr)}
-  .entry-splash-gate.is-avatar-desktop .splash-season-notice small{display:none}
-}

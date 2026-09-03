@@ -14,6 +14,19 @@ export function levelForPets(pets) {
   return level;
 }
 
+// Avance hacia el proximo nivel. La barra de la barra lateral necesita algo
+// real que mover, y las caricias ya estan contadas; solo faltaba el tramo.
+export function friendshipProgress(pets) {
+  const level = levelForPets(pets);
+  const floor = LEVEL_THRESHOLDS[level - 1] ?? 0;
+  const next = LEVEL_THRESHOLDS[level];
+
+  if (next === undefined) return { level, pets, next: null, ratio: 1 };
+
+  const span = next - floor;
+  return { level, pets, next, ratio: span > 0 ? Math.min(1, Math.max(0, (pets - floor) / span)) : 1 };
+}
+
 function readLocalPets() {
   try {
     return Math.max(0, Math.floor(Number(window.localStorage.getItem(LOCAL_KEY)) || 0));

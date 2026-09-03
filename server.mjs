@@ -1,6 +1,6 @@
 import { createServer } from "node:http";
 import { extname, join, normalize } from "node:path";
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { handleArcadeXpRequest } from "./server/arcade-xp.mjs";
 import { handleBuddyRequest } from "./server/buddy.mjs";
 import { handleCommentsRequest } from "./server/comments.mjs";
@@ -39,16 +39,56 @@ const types = {
   ".jpeg": "image/jpeg",
   ".webp": "image/webp",
   ".ico": "image/x-icon",
-  ".svg": "image/svg+xml; charset=utf-8"
+  ".svg": "image/svg+xml; charset=utf-8",
+  ".avif": "image/avif",
+  ".gif": "image/gif",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+  ".ttf": "font/ttf",
+  ".otf": "font/otf",
+  ".glb": "model/gltf-binary",
+  ".gltf": "model/gltf+json",
+  ".vrm": "model/gltf-binary",
+  ".vrma": "model/gltf-binary",
+  ".mp3": "audio/mpeg",
+  ".ogg": "audio/ogg",
+  ".wav": "audio/wav",
+  ".mp4": "video/mp4",
+  ".webm": "video/webm"
 };
 
+// Los bundles de Vite llevan hash en el nombre, asi que pueden marcarse inmutables.
+const HASHED_TYPES = new Set([".css", ".js", ".png", ".jpg", ".jpeg", ".webp", ".ico", ".svg"]);
+
+// Binarios pesados que conservan su nombre entre builds (el VRM del avatar del
+// splash pesa 13 MB): se cachean y se revalidan por ETag en vez de descargarse
+// enteros en cada visita, que es lo que hacia el "no-store" por defecto.
+const REVALIDATED_TYPES = new Set([
+  ".avif", ".gif", ".woff", ".woff2", ".ttf", ".otf",
+  ".glb", ".gltf", ".vrm", ".vrma",
+  ".mp3", ".ogg", ".wav", ".mp4", ".webm"
+]);
+
 function getCacheControl(filePath) {
-  const extension = extname(filePath);
+  const extension = extname(filePath).toLowerCase();
   if (extension === ".html") return "no-store";
-  if ([".css", ".js", ".png", ".jpg", ".jpeg", ".webp", ".ico", ".svg"].includes(extension)) {
-    return "public, max-age=31536000, immutable";
-  }
+  if (HASHED_TYPES.has(extension)) return "public, max-age=31536000, immutable";
+  if (REVALIDATED_TYPES.has(extension)) return "public, max-age=86400, stale-while-revalidate=604800";
   return "no-store";
+}
+
+// ETag debil por tamano + mtime: basta para contestar 304 sin releer ni reenviar
+// el archivo completo cuando el navegador revalida.
+async function getEntityTag(filePath) {
+  if (getCacheControl(filePath) === "no-store") return "";
+
+  try {
+    const stats = await stat(filePath);
+    if (!stats.isFile()) return "";
+    return `W/"${stats.size.toString(16)}-${Math.trunc(stats.mtimeMs).toString(16)}"`;
+  } catch {
+    return "";
+  }
 }
 
 function resolvePath(url) {
@@ -181,8 +221,18 @@ const appServer = createServer(async (request, response) => {
 
     const filePath = resolvePath(request.url || "/");
     let data;
-    let contentType = types[extname(filePath)] || "application/octet-stream";
+    let contentType = types[extname(filePath).toLowerCase()] || "application/octet-stream";
     let spaFallback = false;
+
+    const entityTag = await getEntityTag(filePath);
+    if (entityTag && request.headers["if-none-match"] === entityTag) {
+      response.writeHead(304, {
+        "Cache-Control": getCacheControl(filePath),
+        ETag: entityTag
+      });
+      response.end();
+      return;
+    }
 
     try {
       data = await readFile(filePath);
@@ -203,7 +253,9 @@ const appServer = createServer(async (request, response) => {
 
     response.writeHead(responseStatus, {
       "Content-Type": contentType,
-      "Cache-Control": getCacheControl(filePath)
+      "Content-Length": data.byteLength,
+      "Cache-Control": spaFallback ? "no-store" : getCacheControl(filePath),
+      ...(entityTag && !spaFallback ? { ETag: entityTag } : {})
     });
     response.end(data);
   } catch (error) {

@@ -5,11 +5,39 @@ import { useElasticDrag } from "../hooks/useElasticDrag";
 import { ArcadeButton } from "./ui/ArcadeButton";
 import { ArcadeCanvas } from "./ArcadeCanvas";
 
+// Mismos seis nodos (y mismo orden) que dibuja el lienzo vectorial, para que
+// el checklist de arranque y la escena no cuenten cosas distintas.
+const BOOT_NODES = [
+  { glyph: "{}", label: "syntax" },
+  { glyph: "++", label: "build" },
+  { glyph: "AI", label: "agents" },
+  { glyph: "$", label: "shell" },
+  { glyph: "dx", label: "tooling" },
+  { glyph: "fn", label: "runtime" }
+];
+
+const BOOT_SCRIPT = [
+  { arg: "Dai", name: "player", type: "assign" },
+  { arg: "discord-bots", name: "load", type: "call" },
+  { arg: "sysbot-tools", name: "sync", type: "call" },
+  { arg: "game-night-ui", name: "queue", type: "call" },
+  { arg: "personal-site", name: "render", type: "call" }
+];
+
+// La cinta del bay secreto: sectores que se van bloqueando durante el escaneo.
+const SECRET_SECTORS = ["0xDA1", "CRT-A", "1997", "SECTOR-07", "NODE-06", "DAI-CORE"];
+
+// Altura fija del log en filas. La caja mide exactamente esto en CSS.
+const BUILD_LOG_ROWS = 4;
+
 export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun, onOpenTerminal }) {
   const stationRef = useRef(null);
   const { handleProps, isDragging, targetRef } = useElasticDrag({ scopeRef: stationRef });
   const [hasSecretArmed, setHasSecretArmed] = useState(false);
-  const visibleBuildLog = buildLog.split("\n").slice(-6).join("\n");
+  // El panel crecia y encogia con cada linea del arranque. La ventana es ahora
+  // fija de cuatro filas, ancladas abajo: lo viejo se sale por el borde
+  // superior y la caja no se mueve nunca.
+  const visibleBuildLog = buildLog.split("\n").slice(-BUILD_LOG_ROWS);
   const progress = isLaunching ? Math.min(100, ((launchPhase + 1) / 6) * 100) : 0;
   const progressWidth = isLaunching ? progress : hasRun ? 100 : 0;
   const activeCodeLine = hasRun ? 4 : isLaunching ? Math.min(4, launchPhase) : 0;
@@ -96,11 +124,21 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
               <span>ACCESS DENIED // NOT ALLOWED HERE</span>
             </div>
           </div>
+          <div className="secret-bay-scan">
+            <span className="secret-bay-scan-label">sector sweep</span>
+            <div className="secret-bay-scan-track">
+              {SECRET_SECTORS.map((sector, index) => (
+                <b key={sector} style={{ "--sector-delay": `${0.5 + index * 0.85}s` }}>{sector}</b>
+              ))}
+            </div>
+          </div>
+
           <div className="secret-bay-lines">
-            <span><b>01</b> save slot found</span>
-            <span><b>02</b> coffee_level: critical</span>
-            <span><b>03</b> arcade build: ok</span>
-            <span><b>04</b> keep exploring</span>
+            {["save slot found", "coffee_level: critical", "arcade build: ok", "keep exploring"].map((line, index) => (
+              <span key={line} style={{ "--line-delay": `${0.8 + index * 1.4}s` }}>
+                <b>{String(index + 1).padStart(2, "0")}</b> {line}
+              </span>
+            ))}
           </div>
         </div>
 
@@ -153,20 +191,26 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
                   </span>
                 </div>
                 <ol className="code-lines">
-                  {[
-                    ["const", "player", "=", "\"Dai\";"],
-                    ["load", "(\"discord-bots\");", "", ""],
-                    ["sync", "(\"sysbot-tools\");", "", ""],
-                    ["queue", "(\"game-night-ui\");", "", ""],
-                    ["render", "(\"personal-site\");", "", ""]
-                  ].map(([head, body, operator, value], index) => (
-                    <li className={index === activeCodeLine ? "is-active" : ""} key={`${head}-${index}`}>
+                  {BOOT_SCRIPT.map((line, index) => (
+                    <li className={index === activeCodeLine ? "is-active" : ""} key={line.name}>
                       <span className="select-none text-right text-phosphor-soft/30">{index + 1}</span>
                       <code className="min-w-0 break-words">
-                        <span className="text-cyan-arcade">{head}</span>
-                        {body ? <span className="text-phosphor-soft"> {body}</span> : null}
-                        {operator ? <span className="text-glitch"> {operator}</span> : null}
-                        {value ? <span className="text-cabinet"> {value}</span> : null}
+                        {line.type === "assign" ? (
+                          <>
+                            <span className="text-cyan-arcade">const</span>{" "}
+                            <span className="text-phosphor-soft">{line.name}</span>{" "}
+                            <span className="text-glitch">=</span>{" "}
+                            <span className="text-cabinet">&quot;{line.arg}&quot;</span>
+                            <span className="code-punct">;</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-cyan-arcade">{line.name}</span>
+                            <span className="code-punct">(</span>
+                            <span className="text-cabinet">&quot;{line.arg}&quot;</span>
+                            <span className="code-punct">);</span>
+                          </>
+                        )}
                       </code>
                     </li>
                   ))}
@@ -181,9 +225,24 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
                   </div>
                   <span className={`hero-build-state is-${systemState}`}>{isLaunching ? `${Math.round(progressWidth)}%` : systemState}</span>
                 </div>
-                <pre className="terminal-screen build-output-screen overflow-hidden whitespace-pre-wrap break-words p-3 text-[0.8rem] leading-6 text-phosphor" data-build-output>
-                  <code>{visibleBuildLog}</code>
+                <pre className="terminal-screen build-output-screen overflow-hidden p-3 text-[0.74rem] leading-6 text-phosphor" data-build-output>
+                  {visibleBuildLog.map((line, index) => (
+                    <code key={index}>
+                      {line}
+                      {index === visibleBuildLog.length - 1 ? <span className="build-output-caret" aria-hidden="true" /> : null}
+                    </code>
+                  ))}
                 </pre>
+
+                <div className="build-node-rail" aria-label={`Nodos en linea: ${onlineNodes} de ${BOOT_NODES.length}`}>
+                  {BOOT_NODES.map((node, index) => (
+                    <span className={`build-node ${index < onlineNodes ? "is-online" : ""}`} key={node.glyph}>
+                      <b>{node.glyph}</b>
+                      <i>{node.label}</i>
+                      <em>{index < onlineNodes ? "on" : "off"}</em>
+                    </span>
+                  ))}
+                </div>
                 <div className="mx-3 mb-3 h-3 border border-phosphor/25 bg-ink-950 p-0.5">
                   <span
                     className="block h-full bg-gradient-to-r from-phosphor via-cyan-arcade to-glitch shadow-[0_0_18px_rgba(63,255,151,.28)] transition-all duration-300"

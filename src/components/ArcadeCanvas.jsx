@@ -323,10 +323,17 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
 
     function resize() {
       const rect = canvas.getBoundingClientRect();
-      width = Math.max(rect.width, 320);
-      height = Math.max(rect.height, 360);
-      canvas.width = Math.floor(width * dpr);
-      canvas.height = Math.floor(height * dpr);
+      const nextWidth = Math.max(1, rect.width);
+      const nextHeight = Math.max(1, rect.height);
+
+      // Rehacer la escena es caro y el observer dispara en cada fotograma de un
+      // arrastre: solo se reconstruye cuando la caja cambia de verdad.
+      if (Math.abs(nextWidth - width) < 0.5 && Math.abs(nextHeight - height) < 0.5) return;
+
+      width = nextWidth;
+      height = nextHeight;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       sources = makeSources();
       layoutSources();
@@ -927,8 +934,12 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
     window.addEventListener("resize", resize);
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
+    const stageObserver = new ResizeObserver(resize);
+    stageObserver.observe(canvas);
+
     return () => {
       observer?.disconnect();
+      stageObserver.disconnect();
       redrawRef.current = null;
       canvas.removeEventListener("pointermove", handlePointerMove);
       canvas.removeEventListener("pointerleave", handlePointerLeave);

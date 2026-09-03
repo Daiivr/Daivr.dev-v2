@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { patchNotes } from "../data/site";
 
+// La vista previa se queda en tres entradas a proposito: quien quiera el resto
+// tiene el boton del log completo justo debajo.
 const PATCH_ENTRY_PREVIEW_LIMIT = 3;
 const VISIBLE_SWAP_CARDS = 5;
 const AUTO_SWAP_DELAY = 5200;
@@ -300,10 +302,14 @@ export function PatchNotes() {
           </header>
           {activePatch.summary ? <p className="patch-entry-summary">{activePatch.summary}</p> : null}
           <ul className="patch-entry-changes" id={changesId}>
+            {/* El tipo pasa a la fila entera y no solo a la etiqueta: cada
+                entrada era un parrafo desnudo sin caja, y en una lista de cinco
+                no habia forma de separar una de otra de un vistazo. */}
             {visibleEntries.map(([type, copy], entryIndex) => (
-              <li key={entryIndex}>
-                <span className={`patch-chip is-${type}`}>{PATCH_LABELS[type] || type}</span>
+              <li className={`is-${type}`} key={entryIndex}>
+                <span className="patch-chip">{PATCH_LABELS[type] || type}</span>
                 <p>{copy}</p>
+                <i className="patch-entry-index" aria-hidden="true">{String(entryIndex + 1).padStart(2, "0")}</i>
               </li>
             ))}
           </ul>

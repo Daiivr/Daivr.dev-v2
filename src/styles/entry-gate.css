@@ -1,0 +1,936 @@
+/* Entry gate ----------------------------------------------------------------
+   The welcome screen is one idea now: a host standing in front of a shut
+   cabinet gate. They greet you, they finish talking, the gate opens. Nothing
+   else shares the frame — no status card, no boot log, no progress dashboard.
+   Only the signal strip and the launch control at the bottom, which are the
+   two things a visitor can actually act on. */
+
+.entry-gate {
+  --gate-line: color-mix(in srgb, var(--color-phosphor) 46%, transparent);
+  --gate-ink: rgba(2, 9, 6, 0.94);
+  /* The host is the whole composition, so it takes every pixel between the top
+     of the stage and the HUD rail. The box stays narrow relative to that height
+     because the VRM camera frames vertically: extra width is only ever empty
+     canvas either side of the avatar. */
+  --host-h: min(52rem, calc(100dvh - 7.5rem));
+  --host-w: calc(var(--host-h) * 0.68);
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-width: 320px;
+  overflow: hidden;
+  background: transparent;
+  isolation: isolate;
+}
+
+.entry-gate:focus {
+  outline: none;
+}
+
+/* Screen-reader title. The greeting itself is announced line by line from the
+   bubble, so the heading only has to establish where the visitor landed. */
+.entry-gate-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Sky ---------------------------------------------------------------------
+   The opaque layer. Everything the gate hides sits behind this one element,
+   which is what lets it fade on its own while the doors are still moving.
+
+   It must never animate in. A fade from opacity 0 meant the page behind was
+   visible through it for the first few hundred milliseconds of every load,
+   which is exactly the flash of the site you used to get on reload. */
+.entry-gate-sky {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 44% 36% at 50% 32%, color-mix(in srgb, var(--color-phosphor) 15%, transparent), transparent 72%),
+    radial-gradient(circle at 5% 6%, color-mix(in srgb, var(--color-cyan-arcade) 20%, transparent), transparent 38%),
+    radial-gradient(circle at 96% 84%, color-mix(in srgb, var(--color-glitch) 15%, transparent), transparent 36%),
+    linear-gradient(180deg, #05190f 0%, #02100a 36%, #010704 70%, #000302 100%);
+}
+
+/* Corner falloff. Holds the eye in the middle of the frame instead of letting
+   the grid run flat to the edges of the screen. */
+.entry-gate-sky::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background: radial-gradient(ellipse 76% 70% at 50% 44%, transparent 40%, rgba(0, 0, 0, 0.66) 100%);
+}
+
+.entry-gate-grid,
+.entry-gate-horizon,
+.entry-gate-halo,
+.entry-gate-floor,
+.entry-gate-motes {
+  position: absolute;
+  pointer-events: none;
+}
+
+.entry-gate-grid {
+  inset: 0;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 9%, transparent) 1px, transparent 1px),
+    linear-gradient(color-mix(in srgb, var(--color-phosphor) 7%, transparent) 1px, transparent 1px);
+  background-position: center;
+  background-size: 56px 56px;
+  opacity: 0.55;
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 6%, rgba(0, 0, 0, 0.6) 46%, transparent 84%);
+  mask-image: radial-gradient(ellipse at center, #000 6%, rgba(0, 0, 0, 0.6) 46%, transparent 84%);
+}
+
+/* Perspective floor. It reads as the ground the host is standing on, so the
+   avatar stops looking like a cut-out pasted over a gradient. */
+.entry-gate-horizon {
+  left: -14%;
+  right: -14%;
+  bottom: -24%;
+  height: 54%;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 30%, transparent) 1px, transparent 1px),
+    linear-gradient(color-mix(in srgb, var(--color-phosphor) 24%, transparent) 1px, transparent 1px);
+  background-size: 74px 38px;
+  opacity: 0.3;
+  transform: perspective(400px) rotateX(61deg);
+  transform-origin: center top;
+  -webkit-mask-image: linear-gradient(#000, transparent 84%);
+  mask-image: linear-gradient(#000, transparent 84%);
+}
+
+/* Overhead stage light: a blurred trapezoid, which is the cheapest honest way
+   to draw a cone of light widening as it falls. */
+.entry-gate-halo {
+  left: 50%;
+  top: -16%;
+  width: min(84vw, 66rem);
+  height: 104%;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-phosphor) 17%, transparent),
+    color-mix(in srgb, var(--color-phosphor) 6%, transparent) 48%,
+    transparent 86%
+  );
+  clip-path: polygon(39% 0, 61% 0, 90% 100%, 10% 100%);
+  filter: blur(30px);
+  opacity: 0.8;
+  transform: translateX(-50%);
+}
+
+/* Pool of light where the cone lands, right where her legs meet the rail, plus
+   the lit edge of the floor itself. */
+.entry-gate-floor {
+  left: 50%;
+  bottom: 0;
+  width: min(68vw, 52rem);
+  height: 24%;
+  background: radial-gradient(ellipse 42% 66% at 50% 100%, color-mix(in srgb, var(--color-phosphor) 20%, transparent), transparent 72%);
+  filter: blur(8px);
+  transform: translateX(-50%);
+}
+
+.entry-gate-floor::after {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  content: "";
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-phosphor) 48%, transparent), transparent);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--color-phosphor) 22%, transparent);
+}
+
+/* Dust in the beam. Two tiled layers drifting at different rates, which is
+   enough to stop the air in the room reading as flat colour. */
+.entry-gate-motes {
+  inset: 0;
+  background:
+    radial-gradient(1.5px 1.5px at 18% 24%, rgba(180, 255, 207, 0.5), transparent),
+    radial-gradient(1px 1px at 62% 46%, rgba(180, 255, 207, 0.42), transparent),
+    radial-gradient(1.5px 1.5px at 81% 12%, rgba(69, 216, 255, 0.4), transparent),
+    radial-gradient(1px 1px at 37% 78%, rgba(180, 255, 207, 0.34), transparent),
+    radial-gradient(1px 1px at 8% 62%, rgba(69, 216, 255, 0.3), transparent);
+  background-size: 340px 420px, 260px 330px, 420px 500px, 300px 380px, 380px 460px;
+  opacity: 0.5;
+  -webkit-mask-image: radial-gradient(ellipse 52% 60% at 50% 40%, #000, transparent 78%);
+  mask-image: radial-gradient(ellipse 52% 60% at 50% 40%, #000, transparent 78%);
+  animation: entry-gate-motes 34s linear infinite;
+}
+
+/* Doors -------------------------------------------------------------------
+   Two shutter halves, dense at the outer edges and thin near the seam so the
+   stage light reads as glow escaping a closed gate. */
+.entry-gate-doors {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.entry-gate-door {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50.3%;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.016) 0 2px, transparent 2px 10px),
+    linear-gradient(var(--door-sweep), rgba(1, 6, 4, 0.14), rgba(1, 6, 4, 0.72) 46%, rgba(1, 4, 3, 0.95) 88%);
+  will-change: transform;
+}
+
+.entry-gate-door.is-left {
+  left: 0;
+  --door-sweep: 270deg;
+}
+
+.entry-gate-door.is-right {
+  right: 0;
+  --door-sweep: 90deg;
+}
+
+/* Hazard banding along the inner lip: the part of a shutter you are not
+   supposed to stand in front of. */
+.entry-gate-door::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 18px;
+  content: "";
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--color-phosphor) 20%, transparent) 0 9px,
+    transparent 9px 22px
+  );
+  opacity: 0.24;
+  /* Faded at both ends so the pair reads as banding on a shutter lip rather
+     than a dashed line ruled down the middle of the screen. */
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 22%, #000 78%, transparent);
+}
+
+.entry-gate-door.is-left::before {
+  right: 0;
+  border-right: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 24%, transparent);
+}
+
+.entry-gate-door.is-right::before {
+  left: 0;
+  border-left: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 24%, transparent);
+}
+
+.entry-gate-seam {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    color-mix(in srgb, var(--color-phosphor) 68%, transparent) 20%,
+    color-mix(in srgb, var(--color-cyan-arcade) 78%, transparent) 50%,
+    color-mix(in srgb, var(--color-phosphor) 68%, transparent) 80%,
+    transparent
+  );
+  box-shadow: 0 0 26px color-mix(in srgb, var(--color-phosphor) 34%, transparent);
+  opacity: 0.3;
+  transform: translateX(-50%);
+  transition: opacity 620ms ease;
+  animation: entry-gate-seam-breathe 4.6s ease-in-out infinite;
+}
+
+/* The host finished their piece: the gate acknowledges it before the visitor
+   touches anything. */
+.entry-gate.is-armed .entry-gate-seam {
+  opacity: 0.62;
+}
+
+/* Marquee -----------------------------------------------------------------*/
+.entry-gate-marquee {
+  position: absolute;
+  left: clamp(1.1rem, 5vw, 5rem);
+  top: clamp(0.7rem, 3vh, 2rem);
+  z-index: 2;
+  color: color-mix(in srgb, var(--color-phosphor-soft) 8%, transparent);
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 8vw, 7.5rem);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 0.78;
+  pointer-events: none;
+  text-transform: uppercase;
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--color-cyan-arcade) 14%, transparent);
+  text-shadow: 0 0 30px color-mix(in srgb, var(--color-cyan-arcade) 6%, transparent);
+  animation: entry-gate-fade-in 720ms 120ms ease-out both;
+}
+
+/* Seasonal decor keeps its own layer between the doors and the host. */
+.entry-gate .entry-splash-season {
+  z-index: 2;
+}
+
+.entry-gate .splash-season-notice {
+  z-index: 6;
+}
+
+/* Stage -------------------------------------------------------------------
+   place-content:center collapses the grid track down to the host, so the
+   speech bubble can be positioned off the middle of the stage using the same
+   host measurements the host box itself uses. */
+.entry-gate-scene {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  align-content: end;
+  justify-content: center;
+  justify-items: center;
+  min-height: 0;
+  padding: 0 clamp(1rem, 5vw, 4rem) 0;
+}
+
+/* Bottom-aligned and running into the HUD rail: the legs are cut by the bar the
+   visitor can see rather than by an invisible edge in mid-air, which was what
+   made the host look like she was standing inside a box. */
+.entry-gate-host {
+  position: relative;
+  width: var(--host-w);
+  height: var(--host-h);
+  max-height: 100%;
+  animation: entry-gate-host-in 760ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.entry-gate-host .entry-avatar-scene {
+  z-index: 1;
+}
+
+/* The CRT overlay used to paint the exact rectangle of the canvas, which read
+   as a frame drawn around the host. Masked to an ellipse it keeps the scanlines
+   on the avatar and leaves no edge anywhere. */
+.entry-gate .entry-avatar-scan {
+  opacity: 0.46;
+  -webkit-mask-image: radial-gradient(ellipse 58% 56% at 50% 46%, #000 8%, transparent 76%);
+  mask-image: radial-gradient(ellipse 58% 56% at 50% 46%, #000 8%, transparent 76%);
+}
+
+/* Buddy takes the host role wherever the VRM never loads: under 800px the
+   3D chunk is deliberately never fetched. */
+.entry-gate-buddy {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 100%;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 460ms ease-out, transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.entry-gate-buddy.is-awake {
+  opacity: 1;
+  transform: none;
+}
+
+.entry-gate-buddy-sprite {
+  position: relative;
+  z-index: 1;
+  animation: buddy-breathe 3.4s ease-in-out infinite;
+  filter: drop-shadow(0 0 16px color-mix(in srgb, var(--color-phosphor) 30%, transparent));
+}
+
+.entry-gate-buddy-pad {
+  position: absolute;
+  left: 50%;
+  bottom: 14%;
+  z-index: 0;
+  width: 13rem;
+  height: 3.2rem;
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--color-phosphor) 24%, transparent), transparent 68%);
+  transform: translateX(-50%);
+}
+
+/* Speech ------------------------------------------------------------------*/
+/* Anchored to her, not to her canvas. The box is wider than the figure, so
+   measuring from its edge parked the bubble a long way off her shoulder; both
+   offsets are fractions of --host-h instead, because the camera frames
+   vertically and every on-screen dimension of the avatar scales with it.
+   0.26 sits just outside her hair; 67% puts the tail at head height. */
+.entry-gate-speech {
+  position: absolute;
+  left: calc(50% + var(--host-h) * 0.26);
+  bottom: calc(67% - 1.7rem);
+  z-index: 4;
+  width: min(23rem, 32vw);
+  animation: entry-gate-bubble-in 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Tail on the wrapper, not the bubble: the bubble is clipped into a cabinet
+   corner and would eat it. */
+.entry-gate-speech::after {
+  position: absolute;
+  left: 0;
+  bottom: 1.3rem;
+  width: 0.8rem;
+  height: 0.8rem;
+  content: "";
+  border-left: 1px solid var(--gate-line);
+  border-bottom: 1px solid var(--gate-line);
+  background: var(--gate-ink);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.entry-gate-bubble {
+  position: relative;
+  display: block;
+  width: 100%;
+  border: 1px solid var(--gate-line);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.028) 50%, transparent 50%) 0 0 / 100% 4px,
+    var(--gate-ink);
+  padding: 0.92rem 1.05rem 1.15rem;
+  color: color-mix(in srgb, var(--color-phosphor-soft) 88%, #fff);
+  font-family: var(--font-display);
+  font-size: clamp(0.8rem, 1.05vw, 0.98rem);
+  letter-spacing: 0.015em;
+  line-height: 1.5;
+  text-align: left;
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+  box-shadow:
+    0 22px 58px rgba(0, 0, 0, 0.55),
+    0 0 34px color-mix(in srgb, var(--color-phosphor) 10%, transparent),
+    inset 0 0 26px color-mix(in srgb, var(--color-cyan-arcade) 5%, transparent);
+}
+
+.entry-gate-bubble.is-settled {
+  border-color: color-mix(in srgb, var(--color-phosphor) 58%, transparent);
+}
+
+.entry-gate-bubble:not(:disabled) {
+  cursor: pointer;
+}
+
+.entry-gate-bubble:not(:disabled):hover,
+.entry-gate-bubble:focus-visible {
+  border-color: color-mix(in srgb, var(--color-phosphor) 76%, transparent);
+  outline: none;
+}
+
+/* A hidden copy of the whole line holds the box open, so the bubble does not
+   grow a character at a time while the host is speaking. */
+.entry-gate-bubble-body {
+  position: relative;
+  display: block;
+  min-height: 3em;
+}
+
+.entry-gate-bubble-ghost {
+  visibility: hidden;
+}
+
+.entry-gate-bubble-text {
+  position: absolute;
+  inset: 0;
+}
+
+.entry-gate-bubble.is-typing .entry-gate-bubble-text::after {
+  display: inline-block;
+  width: 0.5ch;
+  height: 0.95em;
+  margin-left: 0.14ch;
+  content: "";
+  background: currentColor;
+  vertical-align: -0.12em;
+  animation: entry-gate-caret 760ms steps(1) infinite;
+}
+
+.entry-gate-bubble-read {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+/* Visual-novel prompt: the line is finished and the host has more to say. */
+.entry-gate-bubble-next {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.5rem;
+  width: 0;
+  height: 0;
+  border-top: 0.4rem solid var(--color-phosphor);
+  border-left: 0.35rem solid transparent;
+  border-right: 0.35rem solid transparent;
+  animation: entry-gate-next-bob 1.15s ease-in-out infinite;
+}
+
+.entry-gate-bubble.is-typing .entry-gate-bubble-next {
+  opacity: 0;
+}
+
+.entry-gate-bubble.is-thinking {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: auto;
+  padding: 0.9rem 1.05rem;
+  color: color-mix(in srgb, var(--color-phosphor) 70%, transparent);
+}
+
+.entry-gate-bubble.is-thinking i {
+  width: 0.42rem;
+  height: 0.42rem;
+  background: currentColor;
+  animation: entry-gate-think 1.25s ease-in-out infinite;
+}
+
+.entry-gate-bubble.is-thinking i:nth-child(2) { animation-delay: 0.16s; }
+.entry-gate-bubble.is-thinking i:nth-child(3) { animation-delay: 0.32s; }
+
+/* HUD ---------------------------------------------------------------------*/
+.entry-gate-hud {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(1rem, 3vw, 2.6rem);
+  border-top: 1px solid color-mix(in srgb, var(--color-phosphor) 22%, transparent);
+  background: linear-gradient(180deg, rgba(1, 8, 6, 0.16), rgba(1, 7, 5, 0.9));
+  padding: clamp(0.85rem, 2.2vh, 1.5rem) clamp(1.1rem, 5vw, 4rem);
+  animation: entry-gate-hud-in 560ms 100ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.entry-gate-brand strong {
+  display: block;
+  color: #f4fff8;
+  font-family: var(--font-display);
+  font-size: 0.86rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.entry-gate-brand span {
+  display: block;
+  margin-top: 0.28rem;
+  color: color-mix(in srgb, var(--color-phosphor-soft) 42%, transparent);
+  font-family: var(--font-pixel);
+  font-size: 0.36rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.entry-gate-signal {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.entry-gate-signal span {
+  overflow: hidden;
+  color: var(--color-cyan-arcade);
+  font-family: var(--font-pixel);
+  font-size: 0.4rem;
+  letter-spacing: 0.14em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.entry-gate-signal.is-open span {
+  color: var(--color-phosphor);
+}
+
+.entry-gate-signal-meter {
+  display: block;
+  height: 2px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--color-cyan-arcade) 16%, transparent);
+}
+
+.entry-gate-signal-meter b {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--color-cyan-arcade), var(--color-phosphor));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-phosphor) 40%, transparent);
+  transition: width 280ms ease-out;
+}
+
+.entry-gate-enter {
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid color-mix(in srgb, var(--color-phosphor) 56%, transparent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--color-phosphor) 15%, transparent), color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent)),
+    rgba(2, 10, 7, 0.92);
+  padding: 0.72rem 1.15rem;
+  color: #f4fff8;
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  transition:
+    transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 260ms ease,
+    box-shadow 260ms ease,
+    opacity 260ms ease;
+}
+
+.entry-gate-enter strong {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.entry-gate-enter small {
+  display: block;
+  margin-top: 0.22rem;
+  color: color-mix(in srgb, var(--color-phosphor-soft) 56%, transparent);
+  font-family: var(--font-pixel);
+  font-size: 0.35rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.entry-gate-enter svg {
+  flex: none;
+  color: var(--color-phosphor);
+}
+
+.entry-gate-enter:not(:disabled) {
+  cursor: pointer;
+}
+
+.entry-gate-enter:not(:disabled):hover,
+.entry-gate-enter:not(:disabled):focus-visible {
+  border-color: var(--color-phosphor);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45), 0 0 32px color-mix(in srgb, var(--color-phosphor) 24%, transparent);
+  outline: none;
+  transform: translateY(-2px);
+}
+
+.entry-gate-enter:disabled {
+  cursor: progress;
+  opacity: 0.42;
+}
+
+.entry-gate.is-armed .entry-gate-enter:not(:disabled) {
+  border-color: var(--color-phosphor);
+  animation: entry-gate-enter-armed 2.6s ease-in-out infinite;
+}
+
+/* The perched buddy now sits on the HUD rail instead of on a floating card,
+   so it survives short viewports that used to hide it. */
+.entry-gate .splash-buddy {
+  display: block;
+  position: absolute;
+  left: auto;
+  top: auto;
+  right: clamp(1.5rem, 9vw, 8rem);
+  bottom: calc(100% - 2px);
+  z-index: 6;
+}
+
+/* Opening -----------------------------------------------------------------
+   The host leaves first and the gate answers: she turns and walks off (that
+   part is driven on the VRM's own bones in AvatarGreeting), the seam flares,
+   the halves drive apart, and only then does the sky let go of the page. */
+.entry-gate.is-opening {
+  pointer-events: none;
+  animation: entry-gate-out 200ms 680ms ease-out forwards;
+}
+
+.entry-gate.is-opening .entry-gate-door.is-left {
+  animation: entry-gate-part-left 760ms 80ms cubic-bezier(0.66, 0, 0.2, 1) forwards;
+}
+
+.entry-gate.is-opening .entry-gate-door.is-right {
+  animation: entry-gate-part-right 760ms 80ms cubic-bezier(0.66, 0, 0.2, 1) forwards;
+}
+
+.entry-gate.is-opening .entry-gate-seam {
+  animation: entry-gate-seam-flare 760ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.entry-gate.is-opening .entry-gate-sky {
+  animation: entry-gate-sky-out 620ms 150ms ease-in forwards;
+}
+
+.entry-gate.is-opening .entry-gate-host {
+  animation: entry-gate-host-out 420ms 60ms cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.entry-gate.is-opening .entry-avatar-scene canvas {
+  filter: saturate(1.4) contrast(1.18) brightness(1.35);
+}
+
+.entry-gate.is-opening .entry-gate-speech,
+.entry-gate.is-opening .entry-gate-marquee {
+  animation: entry-gate-lift-out 280ms ease-in forwards;
+}
+
+.entry-gate.is-opening .entry-gate-hud {
+  animation: entry-gate-hud-out 320ms ease-in forwards;
+}
+
+/* Keyframes ---------------------------------------------------------------*/
+@keyframes entry-gate-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes entry-gate-host-in {
+  from { opacity: 0; transform: translateY(18px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes entry-gate-bubble-in {
+  from { opacity: 0; transform: translate(-8px, 6px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes entry-gate-hud-in {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes entry-gate-motes {
+  to { background-position: 40px -420px, -30px -330px, 55px -500px, -45px -380px, 25px -460px; }
+}
+
+@keyframes entry-gate-seam-breathe {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.5); }
+}
+
+@keyframes entry-gate-caret {
+  50% { opacity: 0; }
+}
+
+@keyframes entry-gate-next-bob {
+  0%, 100% { opacity: 0.3; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(3px); }
+}
+
+@keyframes entry-gate-think {
+  0%, 100% { opacity: 0.25; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-3px); }
+}
+
+@keyframes entry-gate-enter-armed {
+  0%, 100% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-phosphor) 22%, transparent), 0 0 22px color-mix(in srgb, var(--color-phosphor) 16%, transparent); }
+  50% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-phosphor) 46%, transparent), 0 0 40px color-mix(in srgb, var(--color-phosphor) 30%, transparent); }
+}
+
+@keyframes entry-gate-part-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-101%); }
+}
+
+@keyframes entry-gate-part-right {
+  from { transform: translateX(0); }
+  to { transform: translateX(101%); }
+}
+
+@keyframes entry-gate-seam-flare {
+  0% { opacity: 0.4; transform: translateX(-50%) scaleX(1); }
+  16% { opacity: 1; transform: translateX(-50%) scaleX(7); }
+  100% { opacity: 0; transform: translateX(-50%) scaleX(170); }
+}
+
+@keyframes entry-gate-sky-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes entry-gate-host-out {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: scale(1.07) translateY(-8px); }
+}
+
+@keyframes entry-gate-lift-out {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(-14px); }
+}
+
+@keyframes entry-gate-hud-out {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(18px); }
+}
+
+@keyframes entry-gate-out {
+  to { opacity: 0; }
+}
+
+/* Compact -----------------------------------------------------------------
+   Buddy greets from the middle of the frame and the bubble sits over their
+   head, which is the shape a phone can actually hold. */
+@media (max-width: 800px) {
+  .entry-gate {
+    --host-h: clamp(12rem, 34dvh, 17rem);
+    --host-w: min(20rem, calc(100vw - 3rem));
+  }
+
+  /* Buddy is a small sprite, not a figure standing on the rail, so down here the
+     stage goes back to centring its host. */
+  .entry-gate-scene {
+    align-content: center;
+    padding-top: clamp(0.5rem, 3vh, 2rem);
+  }
+
+  .entry-gate-marquee {
+    font-size: clamp(2.6rem, 15vw, 4.6rem);
+  }
+
+  /* `translate` rather than `transform`: the intro and exit animations own
+     `transform`, and their `both` fill would otherwise erase the centring. */
+  .entry-gate-speech {
+    left: 50%;
+    bottom: calc(50% + var(--host-h) * 0.44);
+    width: min(21rem, calc(100vw - 2.5rem));
+    translate: -50% 0;
+  }
+
+  .entry-gate-speech::after {
+    left: 50%;
+    bottom: -0.42rem;
+    border-left: 0;
+    border-bottom: 1px solid var(--gate-line);
+    border-right: 1px solid var(--gate-line);
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  .entry-gate-hud {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "brand enter"
+      "signal signal";
+    gap: 0.9rem clamp(0.8rem, 4vw, 1.6rem);
+  }
+
+  .entry-gate-brand { grid-area: brand; }
+  .entry-gate-signal { grid-area: signal; }
+  .entry-gate-enter { grid-area: enter; }
+
+  /* Buddy is the host down here, so the perch would be a second copy. */
+  .entry-gate .splash-buddy {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .entry-gate-enter {
+    gap: 0.6rem;
+    padding: 0.6rem 0.8rem;
+  }
+
+  .entry-gate-enter strong {
+    font-size: 0.76rem;
+  }
+
+  .entry-gate-bubble {
+    font-size: 0.78rem;
+    padding: 0.8rem 0.9rem 1.05rem;
+  }
+}
+
+/* Landscape phones and short laptops: the marquee is the first thing to go,
+   then the host gives up height rather than the greeting giving up room. */
+@media (max-height: 620px) {
+  .entry-gate.is-compact {
+    --host-h: clamp(10rem, 46dvh, 16rem);
+  }
+
+  .entry-gate-marquee {
+    display: none;
+  }
+
+  .entry-gate-hud {
+    padding-block: 0.6rem;
+  }
+
+  .entry-gate .splash-buddy {
+    display: none;
+  }
+}
+
+@media (max-width: 800px) and (max-height: 620px) and (orientation: landscape) {
+  .entry-gate {
+    --host-w: min(14rem, 34vw);
+  }
+
+  .entry-gate-speech {
+    left: calc(50% + var(--host-w) * 0.42);
+    bottom: calc(50% - 1rem);
+    width: min(19rem, 46vw);
+    translate: none;
+  }
+
+  .entry-gate-speech::after {
+    left: 0;
+    bottom: 1.3rem;
+    border-left: 1px solid var(--gate-line);
+    border-bottom: 1px solid var(--gate-line);
+    border-right: 0;
+    transform: translateX(-50%) rotate(45deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry-gate-motes,
+  .entry-gate-marquee,
+  .entry-gate-host,
+  .entry-gate-speech,
+  .entry-gate-hud,
+  .entry-gate-seam,
+  .entry-gate-bubble-next,
+  .entry-gate-buddy-sprite,
+  .entry-gate.is-armed .entry-gate-enter:not(:disabled),
+  .entry-gate-bubble.is-typing .entry-gate-bubble-text::after {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  /* The blanket opacity:1 above is for things that fade in; these two are
+     meant to sit under full strength. */
+  .entry-gate-motes {
+    opacity: 0.5;
+  }
+
+  .entry-gate-seam {
+    opacity: 0.3;
+    transform: translateX(-50%);
+  }
+
+  .entry-gate-speech,
+  .entry-gate-buddy {
+    transition: none;
+  }
+
+  /* The gate still opens, it just cuts instead of sliding. */
+  .entry-gate.is-opening {
+    animation: entry-gate-out 200ms ease-out forwards;
+  }
+
+  .entry-gate.is-opening .entry-gate-door.is-left,
+  .entry-gate.is-opening .entry-gate-door.is-right,
+  .entry-gate.is-opening .entry-gate-seam,
+  .entry-gate.is-opening .entry-gate-sky,
+  .entry-gate.is-opening .entry-gate-host,
+  .entry-gate.is-opening .entry-gate-buddy,
+  .entry-gate.is-opening .entry-gate-speech,
+  .entry-gate.is-opening .entry-gate-marquee,
+  .entry-gate.is-opening .entry-gate-hud {
+    animation: none;
+  }
+}

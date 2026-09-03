@@ -182,6 +182,12 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.75rem;
+    margin: -0.9rem -0.9rem 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--tool-accent) 24%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--tool-accent) 15%, transparent), transparent 72%),
+      rgba(2, 6, 4, 0.5);
+    padding: 0.62rem 0.9rem;
     color: color-mix(in srgb, var(--tool-accent) 74%, white);
     font-size: 0.54rem;
     font-weight: 900;
@@ -196,6 +202,24 @@
     color: var(--tool-accent);
   }
 
+  .toolbelt-card-header span:first-child {
+    display: inline-flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .toolbelt-card-header b {
+    flex: none;
+    border: 1px solid color-mix(in srgb, var(--tool-accent) 30%, transparent);
+    background: color-mix(in srgb, var(--tool-accent) 9%, transparent);
+    padding: 0.1rem 0.34rem;
+    color: var(--tool-accent);
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    letter-spacing: 0.06em;
+  }
+
   .toolbelt-card-icon {
     position: relative;
     display: grid;
@@ -206,12 +230,13 @@
     border: 1px solid color-mix(in srgb, var(--tool-accent) 42%, transparent);
     clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
     background:
-      radial-gradient(circle, color-mix(in srgb, var(--tool-accent) 14%, transparent), transparent 66%),
+      linear-gradient(rgba(255, 255, 255, 0.05) 50%, transparent 50%) 0 0 / 100% 4px,
+      radial-gradient(circle, color-mix(in srgb, var(--tool-accent) 30%, transparent), transparent 70%),
       rgba(2, 6, 4, 0.72);
     color: var(--tool-accent);
     box-shadow:
-      inset 0 0 18px color-mix(in srgb, var(--tool-accent) 10%, transparent),
-      0 0 20px color-mix(in srgb, var(--tool-accent) 9%, transparent);
+      inset 0 0 18px color-mix(in srgb, var(--tool-accent) 18%, transparent),
+      0 0 26px color-mix(in srgb, var(--tool-accent) 18%, transparent);
   }
 
   .toolbelt-card-icon::after {
@@ -227,18 +252,28 @@
   }
 
   .toolbelt-card-copy {
+    position: relative;
     align-self: start;
     margin-top: 1rem;
   }
 
-  .toolbelt-card-copy > p:first-child {
-    margin-bottom: 0.38rem;
-    color: var(--tool-accent);
-    font-size: 0.54rem;
+  .toolbelt-card-copy::before {
+    position: absolute;
+    right: -0.15rem;
+    bottom: -3.1rem;
+    z-index: -1;
+    color: color-mix(in srgb, var(--tool-accent) 9%, transparent);
+    content: "01";
+    font-family: var(--font-display);
+    font-size: 5.4rem;
     font-weight: 900;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
+    line-height: 0.7;
+    pointer-events: none;
   }
+
+  .toolbelt-card.is-module-2 .toolbelt-card-copy::before { content: "02"; }
+  .toolbelt-card.is-module-3 .toolbelt-card-copy::before { content: "03"; }
+  .toolbelt-card.is-module-4 .toolbelt-card-copy::before { content: "04"; }
 
   .toolbelt-card-copy h3 {
     color: #fff;
@@ -249,7 +284,7 @@
     text-shadow: 0 0 18px color-mix(in srgb, var(--tool-accent) 12%, transparent);
   }
 
-  .toolbelt-card-copy > p:last-child {
+  .toolbelt-card-copy > p {
     margin-top: 0.75rem;
     color: color-mix(in srgb, var(--color-phosphor-soft) 72%, #aab7b0);
     font-size: 0.8rem;
@@ -275,18 +310,21 @@
     display: flex;
     flex: 0 0 auto;
     gap: 3px;
+    border: 1px solid color-mix(in srgb, var(--tool-accent) 20%, transparent);
+    background: rgba(2, 6, 4, 0.6);
+    padding: 2px;
   }
 
   .toolbelt-card-meter i {
-    width: 12px;
-    height: 4px;
+    width: 9px;
+    height: 5px;
     background: var(--tool-accent);
-    box-shadow: 0 0 6px color-mix(in srgb, var(--tool-accent) 42%, transparent);
-    opacity: 0.38;
+    opacity: 0.18;
   }
 
-  .toolbelt-card-meter i:nth-child(-n + 3) {
-    opacity: 0.9;
+  .toolbelt-card-meter i:nth-child(-n + 6) {
+    box-shadow: 0 0 7px color-mix(in srgb, var(--tool-accent) 42%, transparent);
+    opacity: 0.92;
   }
 }
 

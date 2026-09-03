@@ -1,4 +1,4 @@
-import { Activity, Gamepad2, Headphones, Maximize2, Minimize2, Radio, Users, WifiOff, Zap } from "lucide-react";
+import { Activity, BarChart3, Gamepad2, Globe, Headphones, Maximize2, Minimize2, Monitor, Radio, Smartphone, Users, WifiOff, X, Zap } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { discord, profile } from "../data/site";
@@ -250,6 +250,60 @@ function formatDuration(ms) {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
+// Lanyard dice en que clientes esta conectado; la tarjeta tiraba ese dato.
+function getActivePlatforms(presence) {
+  const platforms = [
+    { active: !!presence?.active_on_discord_desktop, id: "desktop", label: "desktop" },
+    { active: !!presence?.active_on_discord_mobile, id: "mobile", label: "mobile" },
+    { active: !!presence?.active_on_discord_web, id: "web", label: "web" }
+  ];
+
+  if (presence?.active_on_discord_embedded) platforms.push({ active: true, id: "embedded", label: "consola" });
+  if (presence?.active_on_discord_vr) platforms.push({ active: true, id: "vr", label: "vr" });
+
+  return platforms;
+}
+
+function PlatformIcon({ id }) {
+  if (id === "mobile") return <Smartphone size={12} aria-hidden="true" />;
+  if (id === "web") return <Globe size={12} aria-hidden="true" />;
+  if (id === "vr" || id === "embedded") return <Gamepad2 size={12} aria-hidden="true" />;
+  return <Monitor size={12} aria-hidden="true" />;
+}
+
+// Total acumulado en formato humano: el panel de estadisticas habla de horas,
+// no de milisegundos.
+function formatPlaytime(ms) {
+  if (!Number.isFinite(ms) || ms <= 0) return "0m";
+
+  const totalMinutes = Math.floor(ms / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours >= 1) return `${hours}h ${String(minutes).padStart(2, "0")}m`;
+  if (totalMinutes >= 1) return `${totalMinutes}m`;
+  return "<1m";
+}
+
+// Las estadisticas por juego viven en la biblioteca del endpoint; el juego en
+// curso ademas trae la racha ya filtrada por si sigue viva.
+function getGameStats(streak, name) {
+  if (!streak || !name) return null;
+
+  const entry = (streak.library || []).find((game) => game.name === name);
+  const isCurrent = streak.game === name;
+
+  if (!entry && !isCurrent) return null;
+
+  return {
+    bestStreak: entry?.bestStreak ?? streak.bestStreak ?? 0,
+    days: entry?.days ?? streak.days ?? 0,
+    firstDay: entry?.firstDay ?? streak.firstDay ?? null,
+    streak: isCurrent ? (streak.streak ?? 0) : (entry?.streak ?? 0),
+    totalMs: entry?.totalMs ?? streak.totalMs ?? 0
+  };
+}
+
 function getSpotifyProgress(timestamps, now) {
   const start = Number(timestamps?.start);
   const end = Number(timestamps?.end);
@@ -262,6 +316,7 @@ function getSpotifyProgress(timestamps, now) {
   return {
     currentLabel: formatDuration(current),
     percent: (current / total) * 100,
+    remainingLabel: formatDuration(total - current),
     totalLabel: formatDuration(total)
   };
 }
@@ -336,6 +391,75 @@ function drawIdleCactus(context, obstacle, groundY, colors) {
   context.restore();
 }
 
+function drawIdleCloud(context, x, y, scale) {
+  // Nube pixelada del runner clasico, rehecha con bloques para el cabinet.
+  const block = (offsetX, offsetY, width, height) => context.fillRect(
+    Math.round(x + offsetX * scale),
+    Math.round(y + offsetY * scale),
+    Math.max(1, Math.round(width * scale)),
+    Math.max(1, Math.round(height * scale))
+  );
+
+  block(5, 0, 10, 2);
+  block(2, 2, 16, 2);
+  block(0, 4, 21, 3);
+  block(4, 7, 13, 2);
+}
+
+function drawIdleSkylineBlock(context, item, baseY, colors) {
+  context.fillRect(
+    Math.round(item.x),
+    Math.round(baseY - item.height),
+    Math.round(item.width),
+    Math.round(item.height)
+  );
+
+  if (!item.mast) return;
+
+  const mastX = Math.round(item.x + item.width * 0.5);
+  const mastTop = Math.round(baseY - item.height - item.mastHeight);
+  context.fillRect(mastX, mastTop, 1, item.mastHeight);
+  context.fillRect(mastX - 2, mastTop + 4, 5, 1);
+
+  if (!item.lit) return;
+
+  context.save();
+  context.fillStyle = colors.glitch;
+  context.globalAlpha = 0.5 + Math.sin(item.blinkPhase) * 0.34;
+  context.fillRect(mastX - 1, mastTop - 3, 3, 2);
+  context.restore();
+}
+
+function drawIdleDrone(context, drone, groundY, colors) {
+  const bodyX = Math.round(drone.x);
+  const bodyY = Math.round(groundY - drone.altitude - drone.bob);
+
+  context.save();
+  context.fillStyle = drone.blocking ? colors.glitch : colors.cyan;
+  context.shadowColor = context.fillStyle;
+  context.shadowBlur = 6;
+  // Paquete con dos fotogramas de aleteo: la senal que el rastreador persigue.
+  context.fillRect(bodyX + 5, bodyY, 12, 6);
+  context.fillRect(bodyX + 2, bodyY + 2, 3, 2);
+  context.fillRect(bodyX + 17, bodyY + 1, 3, 3);
+  context.fillRect(bodyX + 6, drone.wing ? bodyY - 4 : bodyY + 6, 9, 3);
+  context.restore();
+}
+
+function drawIdleBlip(context, blip, groundY, colors) {
+  const centerX = Math.round(blip.x);
+  const centerY = Math.round(groundY - blip.y - Math.sin(blip.phase) * 3);
+
+  context.save();
+  context.fillStyle = colors.cabinet;
+  context.shadowColor = colors.cabinet;
+  context.shadowBlur = 8;
+  context.globalAlpha = 0.58 + Math.sin(blip.phase * 2) * 0.3;
+  context.fillRect(centerX - 1, centerY - 4, 3, 9);
+  context.fillRect(centerX - 4, centerY - 1, 9, 3);
+  context.restore();
+}
+
 function DiscordIdleRunner({ prefersReducedMotion }) {
   const canvasRef = useRef(null);
 
@@ -348,10 +472,27 @@ function DiscordIdleRunner({ prefersReducedMotion }) {
 
     const trexPath = new Path2D(IDLE_TREX_PATH);
     const trexSprite = new Image();
-    const obstacle = { height: 38, type: "single", width: 19, x: 0 };
+
+    // La escena se arma por capas de parallax para que el cielo del panel deje
+    // de ser un rectangulo vacio: nubes al fondo, horizonte de cabinas a media
+    // distancia y el carril del rastreador delante.
+    const blips = [];
+    const clouds = [];
+    const obstacles = [];
+    const pebbles = [];
+    const skyline = [];
+    const sparks = [];
+    const stars = [];
+
     let animationFrame = 0;
+    let blipTimer = 2.4;
+    let laneSlots = 4;
     let dinoScale = 1.7;
     let dinoX = 28;
+    let distance = 0;
+    let distanceFlash = 0;
+    let drone = null;
+    let skyDroneTimer = 5.5;
     let gameTime = 0;
     let groundOffset = 0;
     let groundY = 0;
@@ -360,6 +501,11 @@ function DiscordIdleRunner({ prefersReducedMotion }) {
     let jumpOffset = 0;
     let jumpVelocity = 0;
     let lastTime = 0;
+    let manualClock = null;
+    let spawnCooldown = 160;
+    let sceneSpan = 320;
+    let signalFlash = 0;
+    let signals = 0;
     let stageHeight = 0;
     let stageWidth = 0;
     let tintedTrexSprite = null;
@@ -432,20 +578,96 @@ function DiscordIdleRunner({ prefersReducedMotion }) {
     };
     trexSprite.src = IDLE_TREX_SPRITE;
 
-    function resetObstacle(initial = false) {
-      obstacle.type = Math.random() > 0.58 ? "cluster" : "single";
-      obstacle.width = obstacle.type === "cluster" ? 29 : 19;
-      obstacle.height = obstacle.type === "cluster" ? 44 : 37;
-      obstacle.x = initial
-        ? stageWidth * 0.78
-        : stageWidth + 46 + Math.random() * Math.max(50, stageWidth * 0.28);
+    function randomBetween(min, max) {
+      return min + Math.random() * (max - min);
+    }
+
+    function seedScenery() {
+      sceneSpan = Math.max(stageWidth * 2, 360);
+      clouds.length = 0;
+      skyline.length = 0;
+      pebbles.length = 0;
+      stars.length = 0;
+
+      const starCount = Math.max(26, Math.round(stageWidth / 5));
+      for (let index = 0; index < starCount; index += 1) {
+        stars.push({
+          ping: index % 6 === 0,
+          phase: randomBetween(0, Math.PI * 2),
+          twinkle: randomBetween(0.5, 1.9),
+          x: randomBetween(0, sceneSpan),
+          y: randomBetween(stageHeight * 0.04, stageHeight * 0.64)
+        });
+      }
+
+      const cloudCount = Math.max(5, Math.round(stageWidth / 62));
+      for (let index = 0; index < cloudCount; index += 1) {
+        clouds.push({
+          scale: randomBetween(0.65, 1.4),
+          x: randomBetween(0, sceneSpan),
+          y: randomBetween(stageHeight * 0.06, stageHeight * 0.52)
+        });
+      }
+
+      let cursor = randomBetween(0, 24);
+      while (cursor < sceneSpan) {
+        const width = randomBetween(13, 32);
+        skyline.push({
+          blinkPhase: randomBetween(0, Math.PI * 2),
+          height: randomBetween(stageHeight * 0.06, stageHeight * 0.19),
+          lit: Math.random() > 0.6,
+          mast: Math.random() > 0.52,
+          mastHeight: randomBetween(7, 16),
+          width,
+          x: cursor
+        });
+        cursor += width + randomBetween(5, 18);
+      }
+
+      const pebbleCount = Math.max(8, Math.round(stageWidth / 24));
+      for (let index = 0; index < pebbleCount; index += 1) {
+        pebbles.push({
+          size: Math.random() > 0.72 ? 3 : 2,
+          x: randomBetween(0, sceneSpan),
+          y: randomBetween(6, 16)
+        });
+      }
+    }
+
+    function spawnObstacle(spawnX) {
+      const cluster = Math.random() > 0.58;
+      obstacles.push({
+        height: cluster ? randomBetween(38, 45) : randomBetween(29, 37),
+        type: cluster ? "cluster" : "single",
+        width: cluster ? 29 : 19,
+        x: spawnX
+      });
+    }
+
+    function spawnDrone(high) {
+      drone = {
+        altitude: high
+          ? randomBetween(47 * dinoScale + 14, 47 * dinoScale + 38)
+          : randomBetween(9, 21),
+        blocking: !high,
+        bob: 0,
+        height: 12,
+        phase: 0,
+        width: 22,
+        wing: false,
+        x: stageWidth + 6
+      };
     }
 
     function resizeCanvas() {
       const bounds = canvas.getBoundingClientRect();
       const density = Math.min(window.devicePixelRatio || 1, 2);
-      stageWidth = Math.max(1, bounds.width);
-      stageHeight = Math.max(1, bounds.height);
+      const nextWidth = Math.max(1, bounds.width);
+      const nextHeight = Math.max(1, bounds.height);
+      const resized = Math.abs(nextWidth - stageWidth) > 0.5 || Math.abs(nextHeight - stageHeight) > 0.5;
+
+      stageWidth = nextWidth;
+      stageHeight = nextHeight;
       canvas.width = Math.round(stageWidth * density);
       canvas.height = Math.round(stageHeight * density);
       context.setTransform(density, 0, 0, density, 0, 0);
@@ -453,12 +675,45 @@ function DiscordIdleRunner({ prefersReducedMotion }) {
       dinoScale = Math.max(1.42, Math.min(1.9, stageWidth / 155));
       dinoX = Math.max(22, stageWidth * 0.13);
       groundY = stageHeight - Math.max(27, stageHeight * 0.14);
-      if (!obstacle.x) resetObstacle(true);
+      if (resized || !stars.length) seedScenery();
+
+      if (!obstacles.length) {
+        spawnObstacle(stageWidth * 0.82);
+        spawnCooldown = Math.max(150, stageWidth * 0.6);
+        laneSlots = Math.round(randomBetween(3, 6));
+      }
     }
 
-    function drawScene() {
-      context.clearRect(0, 0, stageWidth, stageHeight);
+    function drawSky() {
+      context.save();
+      for (const star of stars) {
+        // Unos pocos puntos son "pings" mas marcados: dan lectura al cielo sin
+        // convertirlo en un campo de estrellas denso.
+        context.fillStyle = star.ping ? colors.cabinet : colors.phosphor;
+        context.globalAlpha = star.ping
+          ? 0.18 + Math.abs(Math.sin(star.phase)) * 0.42
+          : 0.1 + Math.abs(Math.sin(star.phase)) * 0.2;
+        const size = star.ping ? 2 : 1;
+        context.fillRect(Math.round(star.x), Math.round(star.y), size, size);
+      }
 
+      context.fillStyle = colors.cyan;
+      context.globalAlpha = 0.2;
+      for (const cloud of clouds) drawIdleCloud(context, cloud.x, cloud.y, cloud.scale);
+      context.restore();
+    }
+
+    function drawSkyline() {
+      const baseY = groundY - 5;
+
+      context.save();
+      context.fillStyle = colors.phosphor;
+      context.globalAlpha = 0.16;
+      for (const item of skyline) drawIdleSkylineBlock(context, item, baseY, colors);
+      context.restore();
+    }
+
+    function drawGround() {
       context.save();
       context.strokeStyle = colors.phosphor;
       context.globalAlpha = 0.3;
@@ -474,9 +729,41 @@ function DiscordIdleRunner({ prefersReducedMotion }) {
         context.globalAlpha = 0.72;
         context.fillRect(Math.round(x), Math.round(groundY + 7), 4, 3);
       }
-      context.restore();
 
-      drawIdleCactus(context, obstacle, groundY, colors);
+      context.fillStyle = colors.phosphor;
+      context.globalAlpha = 0.26;
+      for (const pebble of pebbles) {
+        context.fillRect(Math.round(pebble.x), Math.round(groundY + pebble.y), pebble.size, 1);
+      }
+      context.restore();
+    }
+
+    function drawHud() {
+      const runLabel = `AUTO_RUN // ${String(Math.floor(distance)).padStart(5, "0")}`;
+      const signalLabel = `SIG x${String(signals).padStart(2, "0")}`;
+
+      context.save();
+      context.font = "700 8px monospace";
+      context.fillStyle = colors.cabinet;
+      context.globalAlpha = distanceFlash > 0 && Math.floor(distanceFlash * 12) % 2 === 0 ? 1 : 0.7;
+      context.fillText(runLabel, 12, 17);
+
+      context.fillStyle = signalFlash > 0 ? colors.cabinet : colors.phosphor;
+      context.globalAlpha = signalFlash > 0 ? 1 : 0.62;
+      context.fillText(signalLabel, stageWidth - 12 - context.measureText(signalLabel).width, 17);
+      context.restore();
+    }
+
+    function drawScene() {
+      context.clearRect(0, 0, stageWidth, stageHeight);
+
+      drawSky();
+      drawSkyline();
+      drawGround();
+
+      for (const blip of blips) drawIdleBlip(context, blip, groundY, colors);
+      for (const item of obstacles) drawIdleCactus(context, item, groundY, colors);
+      if (drone) drawIdleDrone(context, drone, groundY, colors);
 
       const dinoHeight = 47 * dinoScale;
       const dinoWidth = 44 * dinoScale;
@@ -511,40 +798,126 @@ function DiscordIdleRunner({ prefersReducedMotion }) {
 
       context.save();
       context.fillStyle = colors.cabinet;
-      context.font = "700 8px monospace";
-      context.globalAlpha = 0.7;
-      context.fillText(`AUTO_RUN // ${String(Math.floor(gameTime * 10)).padStart(5, "0")}`, 12, 17);
+      context.shadowColor = colors.cabinet;
+      context.shadowBlur = 6;
+      for (const spark of sparks) {
+        context.globalAlpha = Math.max(0, spark.life / spark.maxLife);
+        context.fillRect(Math.round(spark.x), Math.round(spark.y), 2, 2);
+      }
       context.restore();
+
+      drawHud();
     }
 
     function update(timestamp) {
-      if (!isVisible) return;
-
       const delta = lastTime ? Math.min((timestamp - lastTime) / 1000, 0.034) : 0;
       lastTime = timestamp;
       gameTime += delta;
+      distanceFlash = Math.max(0, distanceFlash - delta);
+      signalFlash = Math.max(0, signalFlash - delta);
 
-      const speed = Math.max(82, stageWidth * 0.33);
+      // La carrera acelera despacio y con tope, como el runner original.
+      const speed = Math.max(82, stageWidth * 0.33) * (1 + Math.min(0.52, gameTime / 145));
       const gravity = Math.max(980, Math.min(1180, stageHeight * 3.1));
-      const launchSpeed = Math.max(400, Math.min(470, stageHeight * 1.25));
+      const dinoHeight = 47 * dinoScale;
       const dinoWidth = 44 * dinoScale;
-      const jumpPointX = dinoX + dinoWidth * 0.52;
-      const obstacleDistance = obstacle.x - jumpPointX;
-      const timeToObstacle = obstacleDistance / speed;
-      const requiredClearance = obstacle.height + 9;
-      const jumpDiscriminant = Math.max(0, launchSpeed ** 2 - 2 * gravity * requiredClearance);
-      const timeToClearObstacle = (launchSpeed - Math.sqrt(jumpDiscriminant)) / gravity;
+      const bodyLeft = dinoX + dinoWidth * 0.22;
+      const bodyRight = dinoX + dinoWidth * 0.74;
 
-      obstacle.x -= speed * delta;
+      const previousHundreds = Math.floor(distance / 100);
+      distance += speed * delta * 0.09;
+      if (Math.floor(distance / 100) > previousHundreds) distanceFlash = 0.75;
+
       groundOffset = (groundOffset + speed * delta) % 22;
 
-      if (
-        isGrounded &&
-        timeToObstacle > 0 &&
-        timeToObstacle <= timeToClearObstacle + 0.055
-      ) {
-        isGrounded = false;
-        jumpVelocity = -launchSpeed;
+      for (const star of stars) {
+        star.x -= speed * 0.05 * delta;
+        star.phase += delta * star.twinkle;
+        if (star.x < -2) star.x += sceneSpan;
+      }
+
+      for (const cloud of clouds) {
+        cloud.x -= speed * 0.11 * delta;
+        if (cloud.x < -24) cloud.x += sceneSpan;
+      }
+
+      for (const item of skyline) {
+        item.x -= speed * 0.34 * delta;
+        item.blinkPhase += delta * 2.1;
+        if (item.x + item.width < 0) item.x += sceneSpan;
+      }
+
+      for (const pebble of pebbles) {
+        pebble.x -= speed * delta;
+        if (pebble.x < -4) pebble.x += sceneSpan;
+      }
+
+      for (let index = obstacles.length - 1; index >= 0; index -= 1) {
+        obstacles[index].x -= speed * delta;
+        if (obstacles[index].x + obstacles[index].width < -10) obstacles.splice(index, 1);
+      }
+
+      // Carril unico: cada hueco lo ocupa un cactus o un dron bajo, nunca los
+      // dos. El hueco se mide desde la aparicion anterior (no desde lo que hay
+      // en pista), asi que dos amenazas nunca pueden quedar pegadas.
+      spawnCooldown -= speed * delta;
+      if (spawnCooldown <= 0) {
+        laneSlots -= 1;
+
+        if (laneSlots <= 0 && !drone) {
+          spawnDrone(false);
+          laneSlots = Math.round(randomBetween(3, 6));
+        } else {
+          spawnObstacle(stageWidth + 6);
+        }
+
+        spawnCooldown = speed * randomBetween(1.85, 3.6);
+      }
+
+      // Los drones altos pasan por encima del rastreador, asi que no consumen
+      // hueco de carril: son solo trafico de fondo.
+      skyDroneTimer -= delta;
+      if (!drone && skyDroneTimer <= 0) {
+        spawnDrone(true);
+        skyDroneTimer = randomBetween(8, 16);
+      }
+
+      if (drone) {
+        drone.x -= speed * delta;
+        drone.phase += delta;
+        drone.bob = Math.sin(drone.phase * 3.2) * (drone.blocking ? 1.5 : 4);
+        drone.wing = Math.floor(drone.phase * 7) % 2 === 0;
+        if (drone.x + drone.width < -24) drone = null;
+      }
+
+      let threat = null;
+      for (const item of obstacles) {
+        if (item.x + item.width <= bodyRight) continue;
+        if (!threat || item.x < threat.x) threat = { clearance: item.height + 9, width: item.width, x: item.x };
+      }
+      if (drone?.blocking && drone.x + drone.width > bodyRight) {
+        const clearance = drone.altitude + drone.height + 10;
+        if (!threat || drone.x < threat.x) threat = { clearance, width: drone.width, x: drone.x };
+      }
+
+      if (isGrounded && threat) {
+        // El impulso se dimensiona por obstaculo: el rastreador tiene que seguir
+        // por encima mientras el cactus cruza todo el cuerpo, no solo cuando
+        // llega al morro. Con impulso fijo el sprite se colaba por los altos.
+        const traversal = (threat.width + bodyRight - bodyLeft) / speed;
+        const needed = Math.sqrt(2 * gravity * threat.clearance + (gravity * traversal * 0.5) ** 2);
+        // Techo duro: el salto nunca puede salirse por arriba del lienzo.
+        const headroom = Math.max(40, groundY - dinoHeight - 6);
+        const maxLaunch = Math.min(Math.max(430, stageHeight * 1.75), Math.sqrt(2 * gravity * headroom));
+        const launchSpeed = Math.min(maxLaunch, needed * 1.05);
+        const timeToThreat = (threat.x - bodyRight) / speed;
+        const discriminant = Math.max(0, launchSpeed ** 2 - 2 * gravity * threat.clearance);
+        const timeToClear = (launchSpeed - Math.sqrt(discriminant)) / gravity;
+
+        if (timeToThreat > 0 && timeToThreat <= timeToClear + 0.02) {
+          isGrounded = false;
+          jumpVelocity = -launchSpeed;
+        }
       }
 
       if (!isGrounded) {
@@ -558,15 +931,78 @@ function DiscordIdleRunner({ prefersReducedMotion }) {
         }
       }
 
-      if (obstacle.x + obstacle.width < -8) resetObstacle();
+      blipTimer -= delta;
+      if (blipTimer <= 0) {
+        blips.push({
+          phase: randomBetween(0, Math.PI * 2),
+          x: stageWidth + randomBetween(12, 70),
+          y: randomBetween(24, 68)
+        });
+        blipTimer = randomBetween(2.6, 5.4);
+      }
+
+      const dinoTop = groundY - dinoHeight + jumpOffset;
+      const boxTop = dinoTop + dinoHeight * 0.12;
+      const boxBottom = dinoTop + dinoHeight * 0.94;
+
+      for (let index = blips.length - 1; index >= 0; index -= 1) {
+        const blip = blips[index];
+        blip.x -= speed * delta;
+        blip.phase += delta * 3.4;
+
+        const blipY = groundY - blip.y - Math.sin(blip.phase) * 3;
+        const caught = blip.x + 4 >= bodyLeft
+          && blip.x - 4 <= bodyRight
+          && blipY + 4 >= boxTop
+          && blipY - 4 <= boxBottom;
+
+        if (caught) {
+          signals += 1;
+          signalFlash = 0.6;
+          for (let particle = 0; particle < 7; particle += 1) {
+            sparks.push({
+              life: randomBetween(0.26, 0.48),
+              maxLife: 0.48,
+              vx: randomBetween(-46, 40),
+              vy: randomBetween(-70, 10),
+              x: blip.x,
+              y: blipY
+            });
+          }
+          blips.splice(index, 1);
+          continue;
+        }
+
+        if (blip.x < -14) blips.splice(index, 1);
+      }
+
+      for (let index = sparks.length - 1; index >= 0; index -= 1) {
+        const spark = sparks[index];
+        spark.life -= delta;
+
+        if (spark.life <= 0) {
+          sparks.splice(index, 1);
+          continue;
+        }
+
+        spark.x += (spark.vx - speed) * delta;
+        spark.y += spark.vy * delta;
+        spark.vy += 150 * delta;
+      }
+
       drawScene();
-      animationFrame = window.requestAnimationFrame(update);
+    }
+
+    function loop(timestamp) {
+      if (!isVisible) return;
+      update(timestamp);
+      animationFrame = window.requestAnimationFrame(loop);
     }
 
     function startAnimation() {
       if (animationFrame || !isVisible) return;
       lastTime = 0;
-      animationFrame = window.requestAnimationFrame(update);
+      animationFrame = window.requestAnimationFrame(loop);
     }
 
     function stopAnimation() {
@@ -586,11 +1022,63 @@ function DiscordIdleRunner({ prefersReducedMotion }) {
     resizeObserver.observe(canvas);
     intersectionObserver.observe(canvas);
 
+    if (import.meta.env.DEV) {
+      // Gancho de depuracion: avanza la escena sin rAF ni observers, igual que
+      // los motores estacionales, para poder inspeccionarla sin repintado.
+      window.__daivrPacketRex = {
+        step(ms = 16) {
+          stopAnimation();
+          manualClock = (manualClock ?? (lastTime || performance.now())) + ms;
+          update(manualClock);
+          return this.summary();
+        },
+        resume() {
+          manualClock = null;
+          isVisible = true;
+          lastTime = 0;
+          startAnimation();
+        },
+        summary() {
+          return {
+            airborne: !isGrounded,
+            blips: blips.length,
+            clouds: clouds.length,
+            distance: Math.floor(distance),
+            lift: Math.round(-jumpOffset),
+            drone: drone ? { altitude: Math.round(drone.altitude), blocking: drone.blocking, x: Math.round(drone.x) } : null,
+            obstacles: obstacles.map((item) => ({
+              height: Math.round(item.height),
+              width: item.width,
+              x: Math.round(item.x)
+            })),
+            pebbles: pebbles.length,
+            signals,
+            skyline: skyline.length,
+            stars: stars.length,
+            sparks: sparks.length,
+            rig: {
+              bottom: Math.round(groundY),
+              height: Math.round(47 * dinoScale),
+              left: Math.round(dinoX + 44 * dinoScale * 0.22),
+              right: Math.round(dinoX + 44 * dinoScale * 0.74)
+            },
+            stage: { height: Math.round(stageHeight), width: Math.round(stageWidth) }
+          };
+        },
+        sync() {
+          resizeCanvas();
+          drawScene();
+          return this.summary();
+        }
+      };
+    }
+
     return () => {
       stopAnimation();
       trexSprite.onload = null;
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
+      if (import.meta.env.DEV) delete window.__daivrPacketRex;
     };
   }, [prefersReducedMotion]);
 
@@ -598,7 +1086,7 @@ function DiscordIdleRunner({ prefersReducedMotion }) {
     <div
       className={cn("discord-idle-game", prefersReducedMotion && "is-static")}
       role="img"
-      aria-label="Pixel T-Rex automatically running and jumping over signal obstacles"
+      aria-label="Pixel T-Rex running past a cabinet skyline, jumping obstacles and collecting signal markers"
     >
       {prefersReducedMotion ? (
         <svg className="discord-idle-runner" viewBox="0 0 44 47" aria-hidden="true" shapeRendering="crispEdges">
@@ -663,6 +1151,7 @@ function DiscordProfileFrame({ anchor, className, decorative = false, frame }) {
 export function DiscordPresencePanel() {
   const { data: presence, error, loading, updatedAt } = useLanyardPresence(discord.userId);
   const isMobileLayout = useMobilePresenceLayout();
+  const [openStatsKey, setOpenStatsKey] = useState(null);
   const prefersReducedMotion = usePrefersReducedMotion();
   const [activityImages, setActivityImages] = useState({});
   const [badgeTooltip, setBadgeTooltip] = useState(null);
@@ -694,6 +1183,8 @@ export function DiscordPresencePanel() {
   const badges = getUserBadges(user);
   const statusText = error ? "Lanyard signal lost" : customStatus?.state || customStatus?.name || profile.location;
   const isLoadingStatus = /^loading\.{3}$/i.test(statusText.trim());
+  const platforms = getActivePlatforms(presence);
+  const activePlatforms = platforms.filter((platform) => platform.active);
   const mainGameName = activities.find((activity) => activity.type === 0)?.name || null;
   const hasTimedActivity = Boolean(
     presence?.listening_to_spotify ||
@@ -709,6 +1200,9 @@ export function DiscordPresencePanel() {
     .join("|");
 
   useEffect(() => {
+    // `now` solo lo consumen el progreso de Spotify y el cronometro de sesion.
+    // El tic de reposo existia por el reloj local; sin el, sin actividad
+    // cronometrada no hay nada que refrescar y el panel deja de repintarse solo.
     if (!hasTimedActivity) return undefined;
 
     const interval = window.setInterval(() => setNow(Date.now()), 1000);
@@ -942,8 +1436,13 @@ export function DiscordPresencePanel() {
         <aside className="discord-presence-profile">
           <DiscordProfileFrame className="discord-profile-frame-profile" frame={profileFrame} />
 
+          {/* En movil el adorno del marco cae justo sobre el centro de la barra
+              de titulo y se come la ruta. Como esta fila dice lo mismo y queda
+              por debajo del adorno, alli baja la ruta y el rotulo generico se
+              retira: no se pierde el dato ni se gana altura. */}
           <div className="flex items-center justify-between gap-3">
-            <p className="pixel-label">DISCORD.PRESENCE</p>
+            <p className="pixel-label discord-presence-eyebrow">DISCORD.PRESENCE</p>
+            <code className="discord-presence-path">~/daivr/discord.presence</code>
             <span className={cn("discord-presence-led", status.colorClass)} aria-hidden="true" />
           </div>
 
@@ -972,7 +1471,10 @@ export function DiscordPresencePanel() {
           </div>
 
           <div className="discord-presence-status">
-            <span className={status.textClass}>{status.label}</span>
+            <span className={status.textClass}>
+              <i className={cn("discord-status-dot", status.colorClass)} aria-hidden="true" />
+              {status.label}
+            </span>
             <span>{error ? "fallback" : "lanyard.live"}</span>
           </div>
 
@@ -987,6 +1489,36 @@ export function DiscordPresencePanel() {
               </span>
             ) : <span>{statusText}</span>}
           </div>
+
+          {/* La telemetria era el unico bloque de tres filas apiladas en una
+              tarjeta donde todo lo demas es una fila por caja, y sus etiquetas
+              de 0.34rem no se leian. Ahora los clientes son fichas con nombre
+              propio y la hora local baja a su propia fila. */}
+          <div className="discord-device-bay" aria-label="Clientes de Discord conectados">
+            <div className="discord-device-bay-head">
+              <code>devices</code>
+              <span className={cn("discord-device-tally", activePlatforms.length && "is-live")}>
+                <i aria-hidden="true" />
+                {activePlatforms.length ? `${String(activePlatforms.length).padStart(2, "0")} online` : "sin cliente"}
+              </span>
+            </div>
+
+            <div className="discord-device-grid">
+              {platforms.map((platform) => (
+                <span
+                  className={cn("discord-device-tile", platform.active && "is-active")}
+                  key={platform.id}
+                  aria-label={`${platform.label}: ${platform.active ? "conectado" : "sin conexión"}`}
+                  data-tooltip={`${platform.label}\n${platform.active ? "conectado" : "sin conexión"}`}
+                  tabIndex={0}
+                >
+                  <PlatformIcon id={platform.id} />
+                  <b>{platform.label}</b>
+                </span>
+              ))}
+            </div>
+          </div>
+
 
           {badges.length ? (
             <div
@@ -1063,6 +1595,28 @@ export function DiscordPresencePanel() {
                       tooltipWidth: 240
                     }
                   : null;
+                const spotifyProgress = activity.isSpotify ? getSpotifyProgress(activity.timestamps, now) : null;
+                const gameStats = activity.type === 0 ? getGameStats(streak, activity.name) : null;
+                // El desplegable de estadisticas es cosa de escritorio: en movil
+                // la tarjeta ya va apilada y no queda esquina donde ponerlo.
+                const canShowStats = Boolean(gameStats && !isMobileLayout);
+                const statsOpen = canShowStats && openStatsKey === activity.activityKey;
+                const statsPanelId = `discord-activity-stats-${activity.activityKey.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+                // El reloj se saca al raíl derecho, que antes solo repetía la
+                // etiqueta del tipo de actividad y dejaba media tarjeta vacía.
+                const railClock = activity.isSpotify
+                  ? (spotifyProgress ? { label: "left", value: `-${spotifyProgress.remainingLabel}` } : null)
+                  : (sessionLabel ? { label: "session", value: sessionLabel } : null);
+                const railMeta = activity.meta && activity.meta.toLowerCase() !== String(activity.typeLabel).toLowerCase()
+                  ? activity.meta
+                  : null;
+                // En Spotify state es el album, que en los singles llega con el
+                // mismo texto que la cancion: la tarjeta acababa imprimiendo el
+                // titulo dos veces y ocupando el doble de alto.
+                const stateText = activity.state
+                  && activity.state.trim().toLowerCase() !== String(activity.name || "").trim().toLowerCase()
+                  ? activity.state
+                  : "";
 
                 return (
                   <article
@@ -1087,29 +1641,25 @@ export function DiscordPresencePanel() {
                         </span>
                       ) : null}
                     </div>
-                    <div className="min-w-0">
+                    <div className="discord-activity-main min-w-0">
                       <span>{activity.typeLabel}</span>
                       <strong>{activity.name}</strong>
                       {activity.detail ? <p>{activity.detail}</p> : null}
-                      {activity.state ? <small>{activity.state}</small> : null}
+                      {stateText ? <small>{stateText}</small> : null}
                       {activity.isSpotify ? (
                         <SpotifyProgress now={now} timestamps={activity.timestamps} />
                       ) : null}
-                      {sessionLabel || partySize || hasGameStreak ? (
+                      {partySize || hasGameStreak ? (
                         <div className="discord-activity-session" aria-label="Game session details">
                           {partySize ? (
                             <span
                               className="discord-party-chip"
-                              title={`${partySize.current} de ${partySize.maximum} jugadores`}
+                              aria-label={`${partySize.current} de ${partySize.maximum} jugadores`}
+                              data-tooltip={`party\n${partySize.current} de ${partySize.maximum} jugadores`}
+                              tabIndex={0}
                             >
                               <Users size={12} aria-hidden="true" />
                               {partySize.current} de {partySize.maximum}
-                            </span>
-                          ) : null}
-                          {sessionLabel ? (
-                            <span className="discord-session-chip">
-                              <Gamepad2 size={12} aria-hidden="true" />
-                              {sessionLabel}
                             </span>
                           ) : null}
                           {hasGameStreak ? (
@@ -1131,7 +1681,69 @@ export function DiscordPresencePanel() {
                         </div>
                       ) : null}
                     </div>
-                    <em>{activity.meta}</em>
+
+                    <div className="discord-activity-rail">
+                      {/* El raíl sirve para dos relojes distintos: el restante
+                          de Spotify y el cronometro de sesion de un juego. El
+                          modificador permite retirar solo el primero en movil,
+                          donde la barra de progreso ya dice lo mismo. */}
+                      {railClock ? (
+                        <span className={`discord-activity-clock${activity.isSpotify ? " is-remaining" : ""}`}>
+                          <b>{railClock.value}</b>
+                          <i>{railClock.label}</i>
+                        </span>
+                      ) : null}
+                      {railMeta ? <em>{railMeta}</em> : null}
+                    </div>
+
+                    {canShowStats ? (
+                      <button
+                        aria-controls={statsPanelId}
+                        aria-expanded={statsOpen}
+                        aria-label={statsOpen ? `Cerrar estadísticas de ${activity.name}` : `Ver estadísticas de ${activity.name}`}
+                        className={cn("discord-activity-stats-toggle", statsOpen && "is-open")}
+                        onClick={() => setOpenStatsKey(statsOpen ? null : activity.activityKey)}
+                        type="button"
+                      >
+                        {statsOpen ? <X size={13} aria-hidden="true" /> : <BarChart3 size={13} aria-hidden="true" />}
+                      </button>
+                    ) : null}
+
+                    {statsOpen ? (
+                      <div className="discord-activity-stats" id={statsPanelId}>
+                        <div className="discord-activity-stats-grid">
+                          <span>
+                            <i>horas jugadas</i>
+                            <b>{formatPlaytime(gameStats.totalMs)}</b>
+                          </span>
+                          <span>
+                            <i>racha actual</i>
+                            <b>{gameStats.streak}d</b>
+                          </span>
+                          <span>
+                            <i>mejor racha</i>
+                            <b>{gameStats.bestStreak}d</b>
+                          </span>
+                          <span>
+                            <i>días vistos</i>
+                            <b>{gameStats.days}</b>
+                          </span>
+                        </div>
+                        {streak?.library?.length > 1 ? (
+                          <ol className="discord-activity-stats-library">
+                            {streak.library.slice(0, 3).map((game) => (
+                              <li className={cn(game.name === activity.name && "is-current")} key={game.name}>
+                                <span>{game.name}</span>
+                                <b>{formatPlaytime(game.totalMs)}</b>
+                              </li>
+                            ))}
+                          </ol>
+                        ) : null}
+                        {gameStats.firstDay ? (
+                          <p className="discord-activity-stats-since">seguimiento desde {gameStats.firstDay}</p>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </article>
                 );
               })

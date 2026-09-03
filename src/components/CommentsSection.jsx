@@ -52,17 +52,19 @@ const REACTION_ASSETS = [
 ];
 const FALLBACK_REACTIONS = REACTION_ASSETS.map((reaction) => reaction.id);
 const REACTION_ASSET_MAP = Object.fromEntries(REACTION_ASSETS.map((reaction) => [reaction.id, reaction]));
+// Cada celda enseñaba la sintaxis y nada mas. Con su nombre al lado la
+// chuleta sirve para algo mas que recordar cuantos asteriscos van.
 const MARKDOWN_HELP_LINES = [
-  "**bold**",
-  "*italic*",
-  "~~strike~~",
-  "`inline code`",
-  "==highlight==",
-  "^^glow text^^",
-  "||spoiler||",
-  "> quote",
-  "- list item",
-  "[link](https://example.com)"
+  ["**bold**", "bold"],
+  ["*italic*", "italic"],
+  ["~~strike~~", "strike"],
+  ["`code`", "inline code"],
+  ["==mark==", "highlight"],
+  ["^^glow^^", "glow text"],
+  ["||spoiler||", "spoiler"],
+  ["> quote", "quote"],
+  ["- item", "list"],
+  ["[text](url)", "link"]
 ];
 let gifScrollUnlockTimer = null;
 let gifScrollGuardCleanup = null;
@@ -970,7 +972,7 @@ export function CommentsSection() {
           const reactionKey = `${targetKey}:${reactionId}`;
           return (
             <button className={`reaction-chip has-tooltip ${mine ? "is-mine" : ""} ${isHeart ? "is-heart" : ""}`} data-tooltip={mine ? `Remove ${reaction.label} reaction.` : `React with ${reaction.label}.`} type="button" key={reactionId} onClick={() => toggleReaction(commentId, reactionId, replyId)} disabled={!!reactionBusyId && reactionBusyId !== reactionKey}>
-              {reaction.src ? <img className="reaction-emoji" src={reaction.src} alt="" aria-hidden="true" /> : <span className="reaction-emoji">{reaction.label}</span>}
+              {reaction.src ? <img className="reaction-emoji" src={reaction.src} alt="" aria-hidden="true" width="96" height="96" decoding="async" /> : <span className="reaction-emoji">{reaction.label}</span>}
               <b>{ids.length}</b>
             </button>
           );
@@ -1010,7 +1012,7 @@ export function CommentsSection() {
                   const reactionKey = `${targetKey}:${reactionId}`;
                   return (
                     <button className={`reaction-picker-item ${active ? "is-active" : ""}`} type="button" key={reactionId} onClick={() => chooseReaction(commentId, reactionId, replyId)} aria-label={`React with ${reaction.label}`} disabled={!!reactionBusyId && reactionBusyId !== reactionKey}>
-                      {reaction.src ? <img className="reaction-emoji" src={reaction.src} alt="" aria-hidden="true" /> : reaction.label}
+                      {reaction.src ? <img className="reaction-emoji" src={reaction.src} alt="" aria-hidden="true" width="96" height="96" decoding="async" /> : reaction.label}
                     </button>
                   );
                 })}
@@ -1053,9 +1055,23 @@ export function CommentsSection() {
           <div className="comments-console-summary">
             <p>Discord-auth messages, pinned signals, GIF drops, replies, and quick reactions from the arcade cabinet.</p>
             <div className="comments-console-meta">
-              <span className="has-tooltip" data-tooltip="Messages are stored in the local guestbook stream." tabIndex="0"><MessageSquare size={13} aria-hidden="true" /> {comments.length} comments</span>
-              <span className="has-tooltip" data-tooltip="Pinned messages stay at the top of the stream." tabIndex="0"><Pin size={13} aria-hidden="true" /> {pinnedCount} pinned</span>
-              <span className={`has-tooltip ${auth.user ? "is-online" : ""}`} data-tooltip={auth.user ? "Discord session is linked." : "Read-only until Discord is connected."} tabIndex="0">{auth.user ? "discord linked" : "guest mode"}</span>
+              {/* Los dos contadores compartian estilo con el boton de conectar,
+                  asi que una lectura de solo lectura se veia igual que algo
+                  pulsable. Ahora llevan el numero al frente y su propia caja. */}
+              <span className="comments-stat has-tooltip" data-tooltip="Messages are stored in the local guestbook stream." tabIndex="0">
+                <MessageSquare size={13} aria-hidden="true" />
+                <b>{comments.length}</b>
+                comments
+              </span>
+              <span className="comments-stat has-tooltip" data-tooltip="Pinned messages stay at the top of the stream." tabIndex="0">
+                <Pin size={13} aria-hidden="true" />
+                <b>{pinnedCount}</b>
+                pinned
+              </span>
+              <span className={`comments-mode has-tooltip ${auth.user ? "is-online" : ""}`} data-tooltip={auth.user ? "Discord session is linked." : "Read-only until Discord is connected."} tabIndex="0">
+                <i aria-hidden="true" />
+                {auth.user ? "discord linked" : "guest mode"}
+              </span>
             </div>
           </div>
 
@@ -1100,9 +1116,15 @@ export function CommentsSection() {
                 </button>
                 {markdownHelpOpen ? (
                   <div className="comments-markdown-help" id="comments-markdown-help" role="tooltip" tabIndex="-1">
-                    {MARKDOWN_HELP_LINES.map((line) => (
-                      <code key={line}>{line}</code>
-                    ))}
+                    <p className="comments-markdown-help-head">markdown // syntax</p>
+                    <div className="comments-markdown-help-grid">
+                      {MARKDOWN_HELP_LINES.map(([syntax, label]) => (
+                        <span key={syntax}>
+                          <code>{syntax}</code>
+                          <b>{label}</b>
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 ) : null}
               </div>
@@ -1146,7 +1168,7 @@ export function CommentsSection() {
         {deleteModal}
 
         <div className="comments-stream" aria-live="polite">
-          {visibleComments.map((comment) => {
+          {visibleComments.map((comment, signalIndex) => {
             const canDeleteComment = !!auth.user && (auth.user.isAdmin || comment.mine);
             const canReplyComment = canReplyToComment(comment, auth.user);
             const isReplying = replyingTo === comment.id;
@@ -1161,7 +1183,10 @@ export function CommentsSection() {
             return (
               <article className={`comment-card is-terminal-transmission ${comment.pinned ? "is-pinned" : ""}`} key={comment.id}>
                 {comment.pinned ? <span className="comment-pinned-badge"><Pin size={12} aria-hidden="true" /> pinned</span> : null}
-                <span className="comment-transmission-badge" aria-hidden="true">incoming transmission</span>
+                {/* Era la misma frase, "incoming transmission", clavada en el
+                    borde de cada tarjeta del hilo. La pestana se queda, pero
+                    numerada: asi identifica su mensaje en vez de repetirse. */}
+                <span className="comment-transmission-badge" aria-hidden="true">sig_{String(signalIndex + 1).padStart(2, "0")}</span>
                 <div className="comment-avatar">
                   <UserAvatar user={comment.author} />
                 </div>

@@ -197,23 +197,20 @@ export function GameShelf() {
   const totalHours = games.reduce((sum, game) => sum + getGameHourValue(game), 0);
   const maxHours = Math.max(...games.map(getGameHourValue), 1);
   const topGame = games.reduce((top, game) => (getGameHourValue(game) > getGameHourValue(top) ? game : top), games[0]);
-  const favoriteStack = games
+  // Los rangos iban unidos por " // " en una sola cadena que se salia de la
+  // caja; sueltos son tres fichas legibles.
+  const favoriteRanks = games
     .map((game) => game.favoriteRank || game.kicker || game.title)
-    .filter(Boolean)
-    .join(" // ");
+    .filter(Boolean);
   const badgePool = [...new Set(games.flatMap((game) => game.badges || []))];
-  const steamStatusLabel =
+  // Antes eran dos fichas separadas ("local hours" y "sync // local") diciendo
+  // la misma mitad de la historia cada una. Una sola lo dice entero.
+  const syncReadout =
     steamPlaytime.status === "syncing"
       ? "steam sync..."
       : hasLiveSteamHours
-        ? "steam hours live"
+        ? `steam live ${syncedCount}/${games.length}`
         : "local hours";
-  const syncReadout =
-    steamPlaytime.status === "syncing"
-      ? "sync // pending"
-      : hasLiveSteamHours
-        ? `sync // ${syncedCount}/${games.length}`
-        : "sync // local";
 
   return (
     <section className="py-16 md:py-24" id="games">
@@ -233,9 +230,8 @@ export function GameShelf() {
           <p>Covers, worlds, and playtime signals pulled from the cabinet while the shelf syncs.</p>
           <div className="game-shelf-stats">
             <span><Gamepad2 size={13} aria-hidden="true" /> {String(games.length).padStart(2, "0")} cartridges</span>
-            <span className={hasLiveSteamHours ? "is-live" : ""}><RadioTower size={13} aria-hidden="true" /> {steamStatusLabel}</span>
             <span><Clock3 size={13} aria-hidden="true" /> {formatHours(totalHours)} logged</span>
-            <span>{syncReadout}</span>
+            <span className={hasLiveSteamHours ? "is-live" : ""}><RadioTower size={13} aria-hidden="true" /> {syncReadout}</span>
           </div>
         </header>
 
@@ -243,12 +239,16 @@ export function GameShelf() {
           <div className="game-shelf-upgrade">
             <Trophy size={16} aria-hidden="true" />
             <span>top cartridge</span>
-            <strong>{topGame.title}</strong>
+            <strong>{topGame.title}<b>{getGameHours(topGame)}</b></strong>
           </div>
           <div className="game-shelf-upgrade">
             <Star size={16} aria-hidden="true" />
             <span>favorite stack</span>
-            <strong>{favoriteStack || "favorites pending"}</strong>
+            {favoriteRanks.length ? (
+              <div className="game-shelf-rank-chips">
+                {favoriteRanks.map((rank) => <i key={rank}>{rank}</i>)}
+              </div>
+            ) : <strong>favorites pending</strong>}
           </div>
           <div className="game-shelf-upgrade">
             <BadgeCheck size={16} aria-hidden="true" />
@@ -341,10 +341,15 @@ export function GameShelf() {
                       <i aria-hidden="true" />
                     </div>
                     <small>{game.genre}</small>
-                    <small className={steamPlaytime.games?.[game.appId] ? "game-card-hours is-live" : "game-card-hours"}>
-                      steam_app {game.appId}
-                    </small>
-                    <span className="game-card-serial">{game.serial}</span>
+                    {/* steam_app 524220 y SN//0524220 eran el mismo numero dos
+                        veces. Queda el serial, y el hueco lo ocupa algo que no
+                        se sabia por tarjeta: si esas horas vienen de Steam. */}
+                    <div className="game-card-id">
+                      <span className="game-card-serial">{game.serial}</span>
+                      <b className={steamPlaytime.games?.[game.appId] ? "is-live" : ""}>
+                        {steamPlaytime.games?.[game.appId] ? "steam live" : "local"}
+                      </b>
+                    </div>
                   </div>
                 </article>
               );

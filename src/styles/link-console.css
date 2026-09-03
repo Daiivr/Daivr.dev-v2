@@ -241,9 +241,15 @@
     --link-accent: #a970ff;
   }
 
+  /* El panel se anuncia como un selector de rutas, asi que la tarjeta se lee
+     como una: direccion monoespaciada, cable de parcheo y puerto. */
   .link-console-index {
+    border: 1px solid color-mix(in srgb, var(--link-accent) 26%, transparent);
+    background: color-mix(in srgb, var(--link-accent) 8%, transparent);
+    padding: 0.16rem 0.42rem;
     color: var(--link-accent);
-    font-size: 0.62rem;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
     font-weight: 900;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -276,13 +282,27 @@
   }
 
   .link-console-identity {
+    position: relative;
     display: grid;
     grid-template-columns: 3.6rem minmax(0, 1fr);
     align-items: center;
     gap: 1rem;
   }
 
+  /* Cable de parcheo del borde de la tarjeta al puerto. */
+  .link-console-identity::before {
+    position: absolute;
+    left: -1rem;
+    top: 50%;
+    width: 1rem;
+    height: 1px;
+    content: "";
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--link-accent) 62%, transparent));
+    transition: background 220ms ease, box-shadow 220ms ease;
+  }
+
   .link-console-icon {
+    position: relative;
     display: grid;
     width: 3.55rem;
     aspect-ratio: 1;
@@ -292,10 +312,52 @@
       linear-gradient(rgba(255, 255, 255, 0.035) 50%, transparent 50%),
       color-mix(in srgb, var(--link-accent) 10%, transparent);
     background-size: 100% 4px, auto;
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
     color: var(--link-accent);
     box-shadow:
       inset 0 0 18px rgba(0, 0, 0, 0.22),
       0 0 22px color-mix(in srgb, var(--link-accent) 8%, transparent);
+    transition: border-color 220ms ease, background 220ms ease, box-shadow 220ms ease;
+  }
+
+  .link-console-icon::before {
+    position: absolute;
+    inset: 5px;
+    content: "";
+    border: 1px solid color-mix(in srgb, var(--link-accent) 20%, transparent);
+    pointer-events: none;
+  }
+
+  /* Pines del conector: lo que separa un puerto de un cuadrado con un icono. */
+  .link-console-icon::after {
+    position: absolute;
+    left: 50%;
+    bottom: 0;
+    width: 1.45rem;
+    height: 2px;
+    content: "";
+    background: repeating-linear-gradient(90deg, var(--link-accent) 0 3px, transparent 3px 6px);
+    opacity: 0.75;
+    pointer-events: none;
+    transform: translateX(-50%);
+  }
+
+  .link-console-card:hover .link-console-identity::before,
+  .link-console-card:focus-visible .link-console-identity::before {
+    background: linear-gradient(90deg, color-mix(in srgb, var(--link-accent) 22%, transparent), var(--link-accent));
+    box-shadow: 0 0 10px color-mix(in srgb, var(--link-accent) 44%, transparent);
+  }
+
+  .link-console-card:hover .link-console-icon,
+  .link-console-card:focus-visible .link-console-icon {
+    border-color: color-mix(in srgb, var(--link-accent) 74%, transparent);
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.05) 50%, transparent 50%),
+      color-mix(in srgb, var(--link-accent) 17%, transparent);
+    background-size: 100% 4px, auto;
+    box-shadow:
+      inset 0 0 18px rgba(0, 0, 0, 0.22),
+      0 0 30px color-mix(in srgb, var(--link-accent) 20%, transparent);
   }
 
   .link-console-copy {
@@ -344,6 +406,7 @@
     align-items: center;
     gap: 0.38rem;
     color: var(--color-phosphor-soft);
+    font-family: var(--font-mono);
     font-size: 0.56rem;
     font-weight: 900;
     letter-spacing: 0.05em;
@@ -361,10 +424,29 @@
     display: inline-flex;
     align-items: center;
     gap: 0.38rem;
+    border: 1px solid color-mix(in srgb, var(--link-accent) 24%, transparent);
+    background: color-mix(in srgb, var(--link-accent) 7%, transparent);
+    padding: 0.24rem 0.5rem;
     color: var(--link-accent);
     font-size: 0.58rem;
     font-weight: 900;
     text-transform: uppercase;
+    transition: border-color 220ms ease, background 220ms ease;
+  }
+
+  .link-console-action svg {
+    transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .link-console-card:hover .link-console-action,
+  .link-console-card:focus-visible .link-console-action {
+    border-color: color-mix(in srgb, var(--link-accent) 62%, transparent);
+    background: color-mix(in srgb, var(--link-accent) 14%, transparent);
+  }
+
+  .link-console-card:hover .link-console-action svg,
+  .link-console-card:focus-visible .link-console-action svg {
+    transform: translate(3px, -3px);
   }
 
   @media (max-width: 760px) {

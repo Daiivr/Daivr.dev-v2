@@ -1,65 +1,114 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { getLocalBuddyLevel } from "../hooks/useBuddyFriendship";
-import { AvatarGreeting } from "./AvatarGreeting";
+import { AvatarScenePlaceholder } from "./AvatarLinkSignal";
 import { BuddySprite } from "./BuddySprite";
 import { SeasonalSplashNotice } from "./SeasonalEvent";
 
-const BOOT_STEPS = [
-  { tone: "command", text: "$ knock --cabinet-gate" },
-  { tone: "ok", text: "gate.signal........accepted" },
-  { tone: "ok", text: "room.lights........awake" },
-  { tone: "active", text: "discord.pass.......scanning" },
-  { tone: "ok", text: "arcade.floor.......open" },
-  { tone: "online", text: "session............ready" }
-];
+// El anfitrion VRM arrastra three.js + @pixiv/three-vrm. Cargarlo aparte deja
+// que la puerta pinte sin esperar a ese chunk, y el splash movil (que nunca
+// monta la escena) deja de descargarlo del todo.
+const AvatarGreeting = lazy(() => import("./AvatarGreeting").then((module) => ({ default: module.AvatarGreeting })));
 
-const STEP_DELAY = 430;
+const SPLASH_SEEN_KEY = "daivr.splashSeen.v1";
+
+// Ritmo de la conversacion. Al volver dentro de la misma pestana el visitante
+// ya vio la ceremonia entera, asi que el guion se acelera en vez de repetirse
+// a velocidad completa.
+const TYPE_SPEED = 54;
+const FAST_TYPE_SPEED = 26;
+const LINE_HOLD = 1500;
+const FAST_LINE_HOLD = 700;
+// Duracion total de la apertura; debe cubrir la animacion mas larga de
+// entry-gate.css, que es el fundido de la raiz (680ms de retardo + 200ms).
+const GATE_OPEN_MS = 880;
+// Si el VRM no llega (red lenta, GPU sin WebGL) el anfitrion habla igual: el
+// saludo nunca puede quedarse esperando a trece megas de descarga.
+const HOST_PATIENCE_MS = 9000;
+
+const SEASON_ASIDES = {
+  halloween: "ignore the spiders. they pay rent.",
+  winter: "mind the ice. it snows indoors here.",
+  birthday: "good week to show up. it's dai's birthday.",
+  anniversary: "the cabinet turns another year old this week.",
+  "april-fools": "everything you see today is completely trustworthy."
+};
+
+function buildScript({ hostName, linked, seasonalEvent, visitorName }) {
+  const lines = linked
+    ? [`oh — ${visitorName}!`, "discord pass checks out. good to have you back."]
+    : ["oh — hey. didn't hear you walk up.", `i'm ${hostName}. i keep dai's cabinet running.`];
+
+  lines.push(linked
+    ? "floor's still warm. everything's where you left it."
+    : "projects, experiments, and a few games nobody mentions.");
+
+  const aside = SEASON_ASIDES[seasonalEvent];
+  if (aside) lines.push(aside);
+
+  lines.push("gate's yours whenever you want it.");
+  return lines;
+}
 
 export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [] }) {
-  const [mobileLegacySplash, setMobileLegacySplash] = useState(() => window.matchMedia("(max-width: 800px)").matches);
-  const [visibleCount, setVisibleCount] = useState(1);
-  const [displayProgress, setDisplayProgress] = useState(Math.round((1 / BOOT_STEPS.length) * 100));
+  // Bajo 800px no se monta la escena 3D: ahi el anfitrion es Buddy, el mismo
+  // sprite que luego vive en el footer.
+  const [compact, setCompact] = useState(() => window.matchMedia("(max-width: 800px)").matches);
+  const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const [discordUser, setDiscordUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const [closing, setClosing] = useState(false);
-  const progressRef = useRef(displayProgress);
-  const closeTimerRef = useRef(0);
-  const splashBuddyRef = useRef(null);
-  const characterRef = useRef(null);
-  const splashRootRef = useRef(null);
+  const [hostStage, setHostStage] = useState("loading");
+  const [hostOverdue, setHostOverdue] = useState(false);
+  const [buddyAwake, setBuddyAwake] = useState(false);
+  const [avatarProgress, setAvatarProgress] = useState(0);
+  const [lineIndex, setLineIndex] = useState(0);
+  const [typed, setTyped] = useState(0);
+  const [opening, setOpening] = useState(false);
   const [buddyLevel] = useState(() => getLocalBuddyLevel());
-  const [buddyLine, setBuddyLine] = useState("");
-  const maxVisibleCount = authChecked ? BOOT_STEPS.length : BOOT_STEPS.length - 1;
-  const bootComplete = visibleCount >= BOOT_STEPS.length;
-  const ready = bootComplete && authChecked;
-  const displayName = discordUser?.username || "guest";
-  const greeting = `hi, ${displayName}`;
-  const greetingFit = Math.max(4.8, Math.min(22, 96 / Math.max(4, displayName.length)));
-  const initial = displayName.trim().charAt(0).toUpperCase() || "G";
-  const targetProgress = Math.round((visibleCount / BOOT_STEPS.length) * 100);
-  const progress = Math.round(displayProgress);
-  const canEnter = ready && !closing;
+  const [fastBoot] = useState(() => {
+    try {
+      return window.sessionStorage.getItem(SPLASH_SEEN_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+
+  const rootRef = useRef(null);
+  const hostRef = useRef(null);
+  const perchRef = useRef(null);
+  const typeTimerRef = useRef(0);
+  const openTimerRef = useRef(0);
+
+  const visitorName = discordUser?.username || "guest";
+  const hostName = compact ? "buddy" : "the host";
+  const script = useMemo(
+    () => buildScript({ hostName, linked: Boolean(discordUser), seasonalEvent, visitorName }),
+    [discordUser, hostName, seasonalEvent, visitorName]
+  );
+
+  const hostPresent = compact
+    ? buddyAwake
+    : hostOverdue || hostStage === "greeting" || hostStage === "waving" || hostStage === "error";
+  const talking = hostPresent && authChecked && !opening;
+  const line = script[lineIndex] ?? "";
+  const lineComplete = typed >= line.length;
+  const lastLine = lineIndex >= script.length - 1;
+  const scriptDone = talking && lastLine && lineComplete;
+  const canEnter = authChecked && !opening;
 
   useEffect(() => {
-    const query = window.matchMedia("(max-width: 800px)");
-    const updateSplashVariant = () => setMobileLegacySplash(query.matches);
-    query.addEventListener?.("change", updateSplashVariant);
-    return () => query.removeEventListener?.("change", updateSplashVariant);
+    const compactQuery = window.matchMedia("(max-width: 800px)");
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const syncCompact = () => setCompact(compactQuery.matches);
+    const syncMotion = () => setReducedMotion(motionQuery.matches);
+
+    compactQuery.addEventListener?.("change", syncCompact);
+    motionQuery.addEventListener?.("change", syncMotion);
+    return () => {
+      compactQuery.removeEventListener?.("change", syncCompact);
+      motionQuery.removeEventListener?.("change", syncMotion);
+    };
   }, []);
-
-  const lines = useMemo(() => {
-    const identityLine = discordUser
-      ? `discord.pass.......${discordUser.username}`
-      : authChecked
-        ? "discord.pass.......guest"
-        : "discord.pass.......scanning";
-
-    return BOOT_STEPS.map((step) => (step.text.includes("discord.pass") ? { ...step, text: identityLine } : step));
-  }, [authChecked, discordUser]);
-  const visibleLines = mobileLegacySplash
-    ? lines.slice(0, visibleCount)
-    : lines.slice(Math.max(0, visibleCount - 3), visibleCount);
 
   useEffect(() => {
     let cancelled = false;
@@ -69,10 +118,18 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
       const timeout = window.setTimeout(() => controller.abort(), 2200);
 
       try {
-        const response = await fetch("/api/comments", { credentials: "include", signal: controller.signal });
+        // /api/comments devuelve el hilo entero y rehidrata cada autor contra la
+        // API de Discord. Aqui solo hace falta la sesion, y /me la resuelve sin
+        // salir del proceso.
+        const response = await fetch("/api/comments/me", {
+          credentials: "include",
+          cache: "no-store",
+          headers: { Accept: "application/json" },
+          signal: controller.signal
+        });
         if (!response.ok) throw new Error(`auth returned ${response.status}`);
         const payload = await response.json();
-        if (!cancelled) setDiscordUser(payload.auth?.user || null);
+        if (!cancelled) setDiscordUser(payload.user || null);
       } catch {
         if (!cancelled) setDiscordUser(null);
       } finally {
@@ -89,105 +146,154 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   }, []);
 
   useEffect(() => {
-    if (visibleCount >= maxVisibleCount) return undefined;
-    const timer = window.setTimeout(() => {
-      setVisibleCount((value) => Math.min(maxVisibleCount, value + 1));
-    }, authChecked && visibleCount === BOOT_STEPS.length - 1 ? 180 : STEP_DELAY);
-
-    return () => window.clearTimeout(timer);
-  }, [authChecked, maxVisibleCount, visibleCount]);
-
-  useEffect(() => {
-    let frame = 0;
-    const start = progressRef.current;
-    const delta = targetProgress - start;
-    const duration = targetProgress === 100 ? 980 : 520;
-    const startedAt = performance.now();
-
-    function tick(now) {
-      const elapsed = Math.min(1, (now - startedAt) / duration);
-      const eased = 1 - (1 - elapsed) ** 3;
-      const next = start + delta * eased;
-      progressRef.current = next;
-      setDisplayProgress(next);
-
-      if (elapsed < 1) frame = window.requestAnimationFrame(tick);
-    }
-
-    frame = window.requestAnimationFrame(tick);
-    return () => window.cancelAnimationFrame(frame);
-  }, [targetProgress]);
-
-  useEffect(() => {
     const root = document.documentElement;
     const body = document.body;
     root.classList.add("entry-splash-lock");
     body.classList.add("entry-splash-lock");
-    splashRootRef.current?.focus({ preventScroll: true });
+    rootRef.current?.focus({ preventScroll: true });
+
+    try {
+      window.sessionStorage.setItem(SPLASH_SEEN_KEY, "1");
+    } catch {
+      // sessionStorage bloqueado: la ceremonia se queda en su ritmo largo.
+    }
 
     return () => {
       root.classList.remove("entry-splash-lock");
       body.classList.remove("entry-splash-lock");
-      window.clearTimeout(closeTimerRef.current);
+      window.clearTimeout(openTimerRef.current);
+      window.clearInterval(typeTimerRef.current);
     };
   }, []);
 
-  function requestEnter() {
+  useEffect(() => {
+    const timer = window.setTimeout(() => setHostOverdue(true), HOST_PATIENCE_MS);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!compact) return undefined;
+    const timer = window.setTimeout(() => setBuddyAwake(true), fastBoot ? 420 : 900);
+    return () => window.clearTimeout(timer);
+  }, [compact, fastBoot]);
+
+  // Una linea, un intervalo. El efecto se reinicia con cada frase, asi que el
+  // contador local nunca sobrevive al cambio de linea.
+  useEffect(() => {
+    if (!talking) return undefined;
+
+    window.clearInterval(typeTimerRef.current);
+    if (reducedMotion || !line) {
+      setTyped(line.length);
+      return undefined;
+    }
+
+    setTyped(0);
+    let count = 0;
+    typeTimerRef.current = window.setInterval(() => {
+      count += 1;
+      setTyped(count);
+      if (count >= line.length) window.clearInterval(typeTimerRef.current);
+    }, fastBoot ? FAST_TYPE_SPEED : TYPE_SPEED);
+
+    return () => window.clearInterval(typeTimerRef.current);
+  }, [fastBoot, line, reducedMotion, talking]);
+
+  useEffect(() => {
+    if (!talking || !lineComplete || lastLine) return undefined;
+    const timer = window.setTimeout(() => setLineIndex((index) => index + 1), fastBoot ? FAST_LINE_HOLD : LINE_HOLD);
+    return () => window.clearTimeout(timer);
+  }, [fastBoot, lastLine, lineComplete, lineIndex, talking]);
+
+  // Toque en la burbuja: completa la frase en curso o pasa a la siguiente, el
+  // gesto de siempre en una novela visual.
+  const advanceScript = useCallback(() => {
+    if (!talking) return;
+    if (!lineComplete) {
+      window.clearInterval(typeTimerRef.current);
+      setTyped(line.length);
+      return;
+    }
+    if (!lastLine) setLineIndex((index) => index + 1);
+  }, [lastLine, line.length, lineComplete, talking]);
+
+  const requestEnter = useCallback(() => {
     if (!canEnter) return;
 
     window.dispatchEvent(new CustomEvent("daivr-splash-enter"));
 
-    const buddyRect = splashBuddyRef.current?.getBoundingClientRect();
-    const characterRect = characterRef.current?.getBoundingClientRect();
-    const perchedBuddyIsVisible = buddyRect && buddyRect.width > 0 && buddyRect.height > 0;
+    const perchRect = perchRef.current?.getBoundingClientRect();
+    const hostRect = hostRef.current?.getBoundingClientRect();
+    const perchedBuddyIsVisible = perchRect && perchRect.width > 0 && perchRect.height > 0;
     onBuddyLaunch?.({
       x: perchedBuddyIsVisible
-        ? buddyRect.left
-        : characterRect
-          ? characterRect.left + characterRect.width * 0.68
+        ? perchRect.left
+        : hostRect
+          ? hostRect.left + hostRect.width * 0.68
           : window.innerWidth * 0.68,
       y: perchedBuddyIsVisible
-        ? buddyRect.top
-        : characterRect
-          ? Math.max(16, characterRect.top + 20)
+        ? perchRect.top
+        : hostRect
+          ? Math.max(16, hostRect.top + 20)
           : 20
     });
 
-    setClosing(true);
-    window.clearTimeout(closeTimerRef.current);
-    closeTimerRef.current = window.setTimeout(onEnter, 620);
-  }
+    setOpening(true);
+    window.clearInterval(typeTimerRef.current);
+    window.clearTimeout(openTimerRef.current);
+    openTimerRef.current = window.setTimeout(onEnter, reducedMotion ? 220 : GATE_OPEN_MS);
+  }, [canEnter, onBuddyLaunch, onEnter, reducedMotion]);
 
   useEffect(() => {
-    if (!ready) return undefined;
-    setBuddyLine(`hi, ${displayName}.`);
-    const raceTimer = window.setTimeout(() => setBuddyLine("race you down."), 3000);
-    return () => window.clearTimeout(raceTimer);
-  }, [displayName, ready]);
-
-  useEffect(() => {
-    if (!ready) return undefined;
-
     function enterOnKey(event) {
-      if (event.key === "Enter") requestEnter();
+      if (event.key !== "Enter" && event.key !== " " && event.key !== "Spacebar") return;
+      // Los botones (la burbuja incluida) ya responden a su propio teclado; sin
+      // esto el espacio dispararia dos acciones a la vez.
+      if (event.target instanceof HTMLButtonElement) return;
+      event.preventDefault();
+      requestEnter();
     }
 
     window.addEventListener("keydown", enterOnKey);
     return () => window.removeEventListener("keydown", enterOnKey);
-  }, [canEnter, ready]);
+  }, [requestEnter]);
 
-  const introCopy = discordUser
-    ? "Discord signal recognized. Your cabinet is loaded and the arcade floor is waiting."
-    : "Guest channel established. Step inside for projects, experiments, and a few hidden games.";
+  const streaming = !compact && !hostPresent;
+  const signalCopy = streaming
+    ? avatarProgress > 0
+      ? `streaming host // ${Math.round(avatarProgress)}%`
+      : "linking host signal"
+    : hostStage === "error" && !compact
+      ? "host offline // gate still open"
+      : "channel open";
+
+  const buttonLabel = !authChecked ? "warming up" : "open the gate";
+  const buttonHint = !authChecked ? "stand by" : opening ? "gate opening" : "press enter";
+  const moreToSay = talking && (!lineComplete || !lastLine);
 
   return (
-    <div className={`entry-splash ${closing ? "is-closing" : ""}`} role="dialog" aria-modal="true" aria-labelledby="entry-splash-title" aria-describedby="entry-splash-description" ref={splashRootRef} tabIndex={-1}>
-      <div className="entry-splash-atmosphere" aria-hidden="true">
-        <i className="entry-splash-orbit" />
-        <i className="entry-splash-horizon" />
+    <div
+      className={`entry-gate ${compact ? "is-compact" : "is-immersive"} ${opening ? "is-opening" : ""} ${scriptDone ? "is-armed" : ""}`}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="entry-gate-title"
+      ref={rootRef}
+      tabIndex={-1}
+    >
+      <div className="entry-gate-sky" aria-hidden="true">
+        <i className="entry-gate-grid" />
+        <i className="entry-gate-horizon" />
+        <i className="entry-gate-halo" />
+        <i className="entry-gate-floor" />
+        <i className="entry-gate-motes" />
       </div>
-      <div className="entry-splash-marquee" aria-hidden="true">DAI.EXE</div>
-      {seasonalEvent && mobileLegacySplash ? <SeasonalSplashNotice event={seasonalEvent} /> : null}
+
+      <div className="entry-gate-doors" aria-hidden="true">
+        <i className="entry-gate-door is-left" />
+        <i className="entry-gate-door is-right" />
+        <i className="entry-gate-seam" />
+      </div>
+
       {seasonalEvent === "winter" || seasonalEvent === "halloween" ? (
         // Decorado estacional del splash: el evento se ve desde la puerta.
         <div className={`entry-splash-season is-${seasonalEvent}`} aria-hidden="true">
@@ -224,106 +330,107 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
           ) : null}
         </div>
       ) : null}
-      <div className={`entry-splash-stage ${mobileLegacySplash ? "is-mobile-legacy" : ""}`}>
-        <div className={`splash-buddy ${closing ? "is-launched" : ""}`} aria-hidden="true" ref={splashBuddyRef}>
-          <div className={`screen-buddy-bubble ${buddyLine && !closing ? "is-visible" : ""}`}>{buddyLine}</div>
+
+      {seasonalEvent ? <SeasonalSplashNotice event={seasonalEvent} /> : null}
+
+      <span className="entry-gate-marquee" aria-hidden="true">DAI.EXE</span>
+
+      <h1 className="entry-gate-title" id="entry-gate-title">
+        {`Dai.exe — ${visitorName === "guest" ? "welcome" : `welcome back, ${visitorName}`}. The host greets you before the gate opens.`}
+      </h1>
+
+      <div className="entry-gate-scene">
+        <div className={`entry-gate-host ${hostPresent ? "is-present" : ""}`} ref={hostRef}>
+          {compact ? (
+            <div className={`entry-gate-buddy ${buddyAwake ? "is-awake" : ""}`}>
+              <BuddySprite
+                className="entry-gate-buddy-sprite"
+                expression={buddyAwake ? "happy" : "idle"}
+                friendshipLevel={Math.max(friendshipLevel, buddyLevel)}
+                inventory={inventory}
+                hiddenGear={hiddenGear}
+                unlockedGear={unlockedGear}
+                width={172}
+                height={165}
+              />
+              <i className="entry-gate-buddy-pad" aria-hidden="true" />
+            </div>
+          ) : (
+            <Suspense fallback={<AvatarScenePlaceholder displayName={visitorName} />}>
+              <AvatarGreeting
+                active={!opening}
+                displayName={visitorName}
+                onLoadProgress={setAvatarProgress}
+                onStage={setHostStage}
+              />
+            </Suspense>
+          )}
+        </div>
+
+        <div className="entry-gate-speech">
+          {talking ? (
+            <button
+              className={`entry-gate-bubble ${lineComplete ? "is-settled" : "is-typing"}`}
+              type="button"
+              onClick={advanceScript}
+              aria-label={moreToSay ? "Continue the greeting" : "Greeting finished"}
+              disabled={!moreToSay}
+            >
+              <span className="entry-gate-bubble-body">
+                {/* Copia invisible de la frase entera: sostiene la caja para que
+                    la burbuja no crezca letra a letra mientras se escribe. */}
+                <span className="entry-gate-bubble-ghost" aria-hidden="true">{line}</span>
+                <span className="entry-gate-bubble-text" aria-hidden="true">{line.slice(0, typed)}</span>
+              </span>
+              <span className="entry-gate-bubble-read" aria-live="polite">{lineComplete ? line : ""}</span>
+              {moreToSay ? <i className="entry-gate-bubble-next" aria-hidden="true" /> : null}
+            </button>
+          ) : (
+            <span className="entry-gate-bubble is-thinking" aria-hidden="true">
+              <i /><i /><i />
+            </span>
+          )}
+        </div>
+      </div>
+
+      <footer className="entry-gate-hud">
+        <div className="entry-gate-brand">
+          <strong>DAI.EXE</strong>
+          <span>interactive portfolio</span>
+        </div>
+
+        <div className={`entry-gate-signal ${streaming ? "is-streaming" : "is-open"}`}>
+          <span>{signalCopy}</span>
+          <i className="entry-gate-signal-meter">
+            <b style={{ width: streaming ? `${Math.max(4, Math.round(avatarProgress))}%` : "100%" }} />
+          </i>
+        </div>
+
+        <button
+          className="entry-gate-enter"
+          type="button"
+          onClick={requestEnter}
+          disabled={!canEnter}
+          aria-label={canEnter ? "Open the gate and enter the Dai.exe portfolio" : "The host is still waking up"}
+        >
+          <span>
+            <strong>{opening ? "opening..." : buttonLabel}</strong>
+            <small>{buttonHint}</small>
+          </span>
+          <ArrowRight aria-hidden="true" size={20} />
+        </button>
+
+        <div className={`splash-buddy ${opening ? "is-launched" : ""}`} aria-hidden="true" ref={perchRef}>
           <BuddySprite
             className="splash-buddy-sprite"
-            expression={ready ? "happy" : "idle"}
+            expression={hostPresent ? "happy" : "idle"}
             friendshipLevel={Math.max(friendshipLevel, buddyLevel)}
             inventory={inventory}
             hiddenGear={hiddenGear}
             unlockedGear={unlockedGear}
           />
         </div>
-        <section className={`entry-splash-gate ${mobileLegacySplash ? "is-mobile-legacy" : "is-avatar-desktop"} ${ready ? "is-ready" : ""} ${closing ? "is-closing" : ""}`} aria-busy={!ready}>
-        <header className="entry-splash-chrome">
-          <div className="entry-splash-lockup">
-            <strong>DAI.EXE</strong>
-            <span>interactive portfolio</span>
-          </div>
-          {seasonalEvent && !mobileLegacySplash ? <SeasonalSplashNotice event={seasonalEvent} /> : null}
-          <div className={`entry-splash-channel ${ready ? "is-online" : ""}`}>
-            <i aria-hidden="true" />
-            <span>{ready ? "channel open" : "establishing channel"}</span>
-            <b>01</b>
-          </div>
-        </header>
-
-        <div className="entry-splash-id">
-          <span className="entry-splash-kicker"><i aria-hidden="true" /> visitor access granted</span>
-          <div className="entry-splash-identity">
-            {mobileLegacySplash ? (
-              <div className="entry-splash-avatar" aria-hidden="true">
-                {discordUser?.avatarUrl ? <img src={discordUser.avatarUrl} alt="" /> : <span>{initial}</span>}
-              </div>
-            ) : null}
-            <div className="entry-splash-identity-copy" style={{ "--entry-name-fit": `${greetingFit}cqi` }}>
-              <h1 id="entry-splash-title" aria-label={greeting}>
-                <span aria-hidden="true">hi,</span>
-                <strong aria-hidden="true">{displayName}</strong>
-              </h1>
-              <p id="entry-splash-description">{introCopy}</p>
-            </div>
-          </div>
-          <div className="entry-splash-tags" aria-label="Session status" role="group">
-            <span><b>pass</b>{discordUser ? "discord linked" : "guest access"}</span>
-            <span><b>inside</b>projects + play</span>
-            {seasonalEvent ? <span className="is-event">{seasonalEvent.replace("-", " ")} live</span> : null}
-          </div>
-        </div>
-
-        {mobileLegacySplash ? null : (
-          <div className="entry-splash-character" ref={characterRef}>
-            <AvatarGreeting active={ready && !closing} displayName={displayName} />
-            <div className={`entry-avatar-caption ${ready ? "is-visible" : ""}`} aria-live="polite">
-              <span>live cabinet host</span>
-              <strong>{ready ? `${displayName}, your room is ready.` : "Preparing your host..."}</strong>
-            </div>
-          </div>
-        )}
-
-        <div className="entry-splash-console" role="status" aria-live="polite" aria-label="Cabinet startup status">
-          <header>
-            <span>system handshake</span>
-            <strong>{ready ? "unlocked" : "handshake"}</strong>
-          </header>
-          <div>
-            {visibleLines.map((line, index) => (
-              <span
-              className={`entry-splash-line is-${line.tone} ${index === visibleLines.length - 1 && !ready ? "is-typing" : ""} ${index === visibleLines.length - 1 && ready ? "is-final" : ""}`}
-                key={`${line.tone}-${index}`}
-                style={{ "--type-chars": line.text.length }}
-              >
-                {line.text}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <footer className="entry-splash-actions">
-          <div className="entry-splash-loader">
-            <div className="entry-splash-loader-meta">
-              <span>{ready ? "all systems online" : "waking the cabinet"}</span>
-              <strong>{progress}%</strong>
-            </div>
-            <div className="entry-splash-progress" role="progressbar" aria-label="Cabinet startup progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progress}>
-              <span style={{ width: `${displayProgress}%` }} />
-            </div>
-            <div className="entry-splash-nodes" aria-hidden="true">
-              {BOOT_STEPS.map((step, index) => <i className={index < visibleCount ? "is-active" : ""} key={step.text} />)}
-            </div>
-          </div>
-          <button type="button" onClick={requestEnter} disabled={!canEnter} aria-label={ready ? "Enter the Dai.exe portfolio" : "Cabinet is still loading"}>
-            <span>
-              <strong>{closing ? "entering..." : ready ? "enter arcade" : "opening gate"}</strong>
-              <small>{ready ? "press enter" : "stand by"}</small>
-            </span>
-            <ArrowRight aria-hidden="true" size={20} />
-          </button>
-        </footer>
-        </section>
-      </div>
+      </footer>
     </div>
   );
 }

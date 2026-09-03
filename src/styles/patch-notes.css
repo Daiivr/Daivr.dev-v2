@@ -258,6 +258,8 @@
     flex-wrap: wrap;
     align-items: baseline;
     gap: 0.6rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-phosphor) 20%, transparent);
+    padding-bottom: 0.6rem;
   }
 
   .patch-entry-version {
@@ -318,11 +320,47 @@
     margin-top: 0.75rem;
   }
 
+  /* Cada entrada es ahora su propia tarjeta con el color de su tipo: riel
+     izquierdo, fondo tenido y numero al margen. Antes eran cinco parrafos
+     sueltos sobre el mismo fondo, indistinguibles entre si. */
   .patch-entry-changes li {
+    --patch-accent: var(--color-phosphor);
+    position: relative;
     display: grid;
     grid-template-columns: 3.4rem minmax(0, 1fr);
     align-items: start;
-    gap: 0.6rem;
+    gap: 0.7rem;
+    border: 1px solid color-mix(in srgb, var(--patch-accent) 22%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--patch-accent) 9%, transparent), transparent 48%),
+      rgba(2, 6, 4, 0.45);
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+    padding: 0.58rem 0.7rem;
+    box-shadow: inset 2px 0 0 color-mix(in srgb, var(--patch-accent) 60%, transparent);
+    transition: border-color 180ms ease, background 180ms ease;
+  }
+
+  .patch-entry-changes li:hover {
+    border-color: color-mix(in srgb, var(--patch-accent) 48%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--patch-accent) 14%, transparent), transparent 54%),
+      rgba(2, 9, 7, 0.6);
+  }
+
+  .patch-entry-changes li.is-buff { --patch-accent: var(--color-cyan-arcade); }
+  .patch-entry-changes li.is-fix { --patch-accent: var(--color-cabinet); }
+  .patch-entry-changes li.is-nerf { --patch-accent: var(--color-glitch); }
+  .patch-entry-changes li.is-known { --patch-accent: var(--color-danger-arcade); }
+
+  .patch-entry-index {
+    position: absolute;
+    right: 0.5rem;
+    top: 0.42rem;
+    color: color-mix(in srgb, var(--patch-accent) 34%, transparent);
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    font-style: normal;
+    font-weight: 900;
   }
 
   .patch-entry-changes p {
@@ -332,7 +370,6 @@
   }
 
   .patch-chip {
-    --patch-accent: var(--color-phosphor);
     display: inline-grid;
     place-items: center;
     margin-top: 0.1rem;
@@ -344,22 +381,6 @@
     font-weight: 900;
     text-align: center;
     text-transform: uppercase;
-  }
-
-  .patch-chip.is-buff {
-    --patch-accent: var(--color-cyan-arcade);
-  }
-
-  .patch-chip.is-fix {
-    --patch-accent: var(--color-cabinet);
-  }
-
-  .patch-chip.is-nerf {
-    --patch-accent: var(--color-glitch);
-  }
-
-  .patch-chip.is-known {
-    --patch-accent: var(--color-danger-arcade);
   }
 
   .patch-entry-read-more {
@@ -553,6 +574,25 @@
     touch-action: pan-y;
   }
 
+  /* Ranuras de estante en el borde izquierdo y un foco tras el mazo: el vacio
+     alrededor de las cartas pasa a leerse como un archivo iluminado en vez de
+     como una caja a medio llenar. */
+  .patch-swap-deck {
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent) 1px, transparent 1px),
+      repeating-linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--color-phosphor) 16%, transparent) 0 1px,
+        transparent 1px 3rem
+      ),
+      radial-gradient(circle at 52% 42%, color-mix(in srgb, var(--color-glitch) 13%, transparent), transparent 54%),
+      radial-gradient(ellipse 46% 40% at 46% 50%, color-mix(in srgb, var(--color-cyan-arcade) 10%, transparent), transparent 72%);
+    background-position: 0 0, 0 0, 0 0, 0 0, 0 0;
+    background-repeat: repeat, repeat, no-repeat, no-repeat, no-repeat;
+    background-size: 24px 24px, 24px 24px, 1.6rem 100%, auto, auto;
+  }
+
   .patch-swap-deck::before,
   .patch-swap-deck::after {
     position: absolute;
@@ -596,13 +636,15 @@
     color: var(--color-cyan-arcade);
   }
 
+  /* La carta ocupaba menos de la mitad del alto de la baraja, asi que el resto
+     de la caja quedaba en blanco arriba y abajo del mazo. */
   .patch-swap-card {
     position: absolute;
     top: 47%;
-    left: 44%;
+    left: 45%;
     display: grid;
-    width: min(78%, 22rem);
-    min-height: 14.5rem;
+    width: min(84%, 23.5rem);
+    min-height: 23.5rem;
     align-content: start;
     gap: 0.62rem;
     overflow: hidden;
@@ -722,15 +764,27 @@
     text-transform: uppercase;
   }
 
+  /* Columna en flex para que el boton de log completo se ancle abajo en vez de
+     dejar un hueco muerto entre la ultima entrada y el pie del panel. */
+  /* auto y no hidden: con las entradas convertidas en tarjetas la altura
+     depende del largo del texto, y recortar en seco escondia el enlace al log
+     completo sin decirlo. */
   .patch-swap-detail {
+    display: flex;
+    flex-direction: column;
     height: 34rem;
     min-height: 0;
     max-height: 34rem;
     align-self: stretch;
-    overflow-y: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
     overscroll-behavior: contain;
     scrollbar-gutter: stable;
     clip-path: none;
+  }
+
+  .patch-swap-detail:not(.is-full-log) .patch-entry-changes {
+    flex: none;
   }
 
   .patch-swap-detail.is-full-log {
@@ -754,8 +808,11 @@
     line-height: 1.45;
   }
 
+  /* Anclarlo abajo dejaba el hueco entre la ultima entrada y el boton, que se
+     lee como algo roto. Pegado al contenido, el aire sobrante queda al final
+     del panel, donde pasa por margen. */
   .patch-swap-detail:not(.is-full-log) .patch-entry-read-more {
-    margin-top: 0.65rem;
+    margin-top: 0.85rem;
   }
 
   .patch-full-log-back {
@@ -794,18 +851,24 @@
       grid-template-columns: 1fr;
     }
 
+    /* Era flex-wrap con el label reservando calc(100% - 6rem) para los dos
+       botones, pero entre botones y huecos suman 6.5rem: se pasaba de ancho y
+       la flecha de siguiente caia sola a la fila de abajo, dejando el hueco a
+       su derecha. En rejilla de tres columnas cada uno tiene su sitio. */
     .patch-swap-controller {
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: 2.7rem minmax(0, 1fr) 2.7rem;
+      align-items: stretch;
     }
 
     .patch-swap-controller label {
       min-width: 0;
-      flex: 1 1 calc(100% - 6rem);
       grid-template-columns: 1fr;
       gap: 0.3rem;
     }
 
     .patch-swap-mode {
+      grid-column: 1 / -1;
       width: 100%;
       justify-content: center;
       margin-left: 0;
@@ -823,16 +886,21 @@
     }
 
     .patch-swap-card {
-      top: 46%;
-      width: min(76vw, 18rem);
-      min-height: 12.8rem;
+      top: 48%;
+      width: min(80vw, 19rem);
+      min-height: 15rem;
       padding: 0.9rem;
     }
 
+    /* En movil la columna es fija y recortaba en seco: una entrada larga
+       desaparecia sin aviso y el enlace al log completo podia quedar fuera.
+       Que scrollee es preferible a esconder texto. */
     .patch-swap-detail {
       height: min(30rem, 68vh);
       min-height: min(30rem, 68vh);
       max-height: min(30rem, 68vh);
+      overflow-y: auto;
+      overscroll-behavior: contain;
     }
 
     .patch-page-readout {

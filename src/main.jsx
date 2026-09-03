@@ -26,6 +26,8 @@ import "./styles/cursor.css";
 import "./styles/seasonal-events.css";
 import "./styles/mobile.css";
 import "./styles/entry-avatar.css";
+import "./styles/entry-gate.css";
+import "./styles/cabinet-sidebar.css";
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>

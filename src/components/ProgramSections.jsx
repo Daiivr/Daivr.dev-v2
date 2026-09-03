@@ -175,20 +175,25 @@ export function ProgramSections() {
                   <article className={`interactive-card now-card is-now-${index + 1}`} key={item.title}>
                     <div className="now-card-rail">
                       <span className="now-card-index">{String(index + 1).padStart(2, "0")}</span>
+                      <i className="now-card-spine" aria-hidden="true" />
                       <span className="now-card-icon"><Icon size={20} aria-hidden="true" /></span>
                     </div>
 
                     <div className="now-card-copy">
+                      {/* El codigo de modulo vive en la misma linea que la
+                          etiqueta: era una fila propia que solo separaba el
+                          titulo de su encabezado. */}
                       <div className="now-card-topline">
-                        <p>{item.label}</p>
+                        <p>{item.label}<b>{module.code}</b></p>
                         <span><i /> synced</span>
                       </div>
-                      <small>{module.code}</small>
                       <h3>{item.title}</h3>
                       <p>{item.body}</p>
                       <div className="now-card-footer" aria-hidden="true">
-                        <span>save slot active</span>
-                        <span><i /><i /><i /><i /></span>
+                        <span>slot integrity</span>
+                        <span className="now-card-meter">
+                          {Array.from({ length: 8 }, (_, cell) => <i key={cell} />)}
+                        </span>
                       </div>
                     </div>
                     <span className="now-card-corner" aria-hidden="true" />
@@ -263,8 +268,11 @@ export function ProgramSections() {
 
               return (
                 <article className={`interactive-card toolbelt-card is-module-${index + 1}`} key={item.title}>
+                  {/* El codigo de modulo sube a la cabecera: era una linea
+                      propia que solo separaba el titulo de su encabezado, igual
+                      que pasaba en las tarjetas de NOW. */}
                   <div className="toolbelt-card-header">
-                    <span>MOD.{String(index + 1).padStart(2, "0")}</span>
+                    <span>MOD.{String(index + 1).padStart(2, "0")}<b>{module.code}</b></span>
                     <span><i /> ready</span>
                   </div>
 
@@ -273,14 +281,19 @@ export function ProgramSections() {
                   </div>
 
                   <div className="toolbelt-card-copy">
-                    <p>{module.code}</p>
                     <h3>{item.title}</h3>
                     <p>{item.body}</p>
                   </div>
 
+                  {/* "capability online" repetia lo que ya dice el chip READY
+                      de la cabecera en las cuatro tarjetas. Queda la lectura de
+                      carga, con el mismo medidor de ocho segmentos que usan las
+                      tarjetas de NOW. */}
                   <div className="toolbelt-card-footer">
-                    <span>capability online</span>
-                    <span className="toolbelt-card-meter" aria-hidden="true"><i /><i /><i /><i /></span>
+                    <span>capability</span>
+                    <span className="toolbelt-card-meter" aria-hidden="true">
+                      {Array.from({ length: 8 }, (_, cell) => <i key={cell} />)}
+                    </span>
                   </div>
                 </article>
               );

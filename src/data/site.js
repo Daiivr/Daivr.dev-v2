@@ -2,6 +2,7 @@ export const profile = {
   name: "Dai",
   handle: "daivr.dev",
   location: "Alaska // night-shift build mode",
+  timezone: "America/Anchorage",
   email: "hello@daivr.dev",
   avatar: "/assets/reference/dai-peach-card.png",
   eyebrow: "DAIVR://ARCADE-CODING-STATION",
@@ -329,6 +330,158 @@ export const stack = [
 // Tipos de cambio: new (verde), buff (cian), fix (dorado), nerf (rosa).
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
+  {
+    version: "v2.24.0",
+    codename: "PANEL BEAT",
+    date: "2026-09-02",
+    summary: "The workstation's build log stopped resizing the panel around it, and three panels that were reading as flat rectangles — the NOW slots, the route selector, and the release archive — got their dead space put to work.",
+    entries: [
+      ["fix", "RUNTIME // BUILD OUTPUT holds a fixed four-line window. The log grew a line at a time during a boot and shoved everything below it down the page; it now scrolls inside a box that stays exactly the same height from idle to online, with the oldest line fading off the top."],
+      ["buff", "NOW cards read as one unit instead of two: the slot number and its icon are joined by a lit trace down the rail, and the module code moved up beside the label instead of taking a line of its own between the header and the title."],
+      ["buff", "The save-slot footer is a real eight-segment meter rather than four loose dashes, and the room profile's graph scales with its card — the bars were measured in fixed units while the panel stretched, which is what left a hole in the middle of it."],
+      ["buff", "LINKS.SH looks like the route selector it claims to be: each card runs a patch cable from its edge into a bevelled port with connector pins, addresses are monospaced, and hovering lights the cable and nudges the launch arrow."],
+      ["fix", "The release archive stopped being a mostly empty box. The card stack fills two thirds of its frame instead of two fifths, shelf slots and a backlight fill the space around it, and READ FULL LOG anchors to the bottom of the column rather than floating in the middle."],
+      ["fix", "The sidebar no longer runs off the bottom of the screen. On a 900px-tall display its contents came to 932px with nothing to scroll, so the theme switch was simply unreachable — the nav is denser now and the rail scrolls if it ever needs to."],
+      ["buff", "Every nav row carries its own icon and a proper selected state: an accent rail down the left edge, a gold slot number, and an arrow on the active row, instead of eight identical text boxes distinguished only by a slightly brighter border."],
+      ["new", "The buddy dock shows friendship progress. Pets were already counted toward the next level and never displayed, so the panel repeated the level twice; there is a real bar and a pets-to-next-level readout now, plus a pets counter alongside gear and quests."],
+      ["buff", "CRT and GLITCH became one segmented switch rather than two separate buttons that happened to sit next to each other."],
+      ["buff", "The device readout on the Discord card matches the rest of it. It was the one block stacking three rows inside a box on a card where every other value gets its own row, with labels small enough to be unreadable — desktop, mobile and web are named tiles now, the online count sits in the header, and Alaska time moved to its own row in the same shape as the status line."],
+      ["fix", "Hovering a device no longer pops the browser's own grey tooltip. Those icons were the last thing on the card still using a plain title attribute; they now use the same arcade tooltip as the server tag badge, with the client name and its connection state on separate lines."],
+      ["fix", "The window path stopped hiding behind the profile frame. Whenever the panel drops to one column the profile card goes full width, which puts the frame's top ornament dead centre — exactly where the title bar prints ~/daivr/discord.presence, and the ornament crosses that whole band so there was nowhere to move it to. The path drops down to the label row underneath instead, and the generic DISCORD.PRESENCE tag it replaces there was saying the same thing anyway."],
+      ["nerf", "The Alaska clock is off the presence card. It was the only thing on the panel that needed the clock ticking while nothing was playing, so taking it out also retires a thirty-second timer that was repainting the whole panel forever on an idle page — the seconds hand now runs only when Spotify or a timed game session is actually using it."],
+      ["nerf", "Phones no longer carry the device tiles either. The card is tall enough on a narrow screen without them, and who is holding which client is a detail worth having at a desk, not on the way somewhere."],
+      ["fix", "The buddy modals stopped reserving a window they were not filling. Inventory and the journal were pinned to 780 pixels tall no matter what was in them, so a half-empty loadout left a quarter of the panel blank under the loot grid — 249 empty pixels measured. They size to their contents now and only scroll once there is genuinely more."],
+      ["fix", "The loot grid was falling out of its own panel on phones. Both the panel and its scroller carry a zero minimum height for the desktop layout, and once the modal switched to stacked rows on a narrow screen that let them collapse — 909 pixels of items rendering inside a 4-pixel box, spilling past the panel border."],
+      ["buff", "Quests read at a glance. Each one has a progress bar in the dead strip between its description and its counter, completed ones fill solid, and a summary above the list says how many of the six are done instead of leaving you to count."],
+      ["buff", "Empty equipment slots are drawn as hatched sockets rather than the word EMPTY in grey, and a filled slot is marked on its edge so the column can be read without going label by label."],
+      ["buff", "The catch journal stopped printing the same sentence twenty-eight times. Every unscanned silhouette carried an identical line of instructions; it now sits once in the section header, the blank entries are quieter and shorter, and the two counters that track progress have bars."],
+      ["fix", "The whole page stopped growing wider than the screen on tablets. Below the desktop breakpoint the layout's single column was implicit, which means auto, which means it sized itself to the sidebar's widest content — so the nav's horizontal rail dragged the entire page out past the viewport instead of scrolling inside itself. At 820px the layout measured 1130px against an 810px window; it measures 810 now and the rail scrolls the way it always meant to."],
+      ["fix", "Game cards stopped saying the same number twice. Every card printed steam_app 524220 and then SN//0524220 directly underneath — the serial is the app id with a zero in front. The serial stays and the line it freed up now shows something no card knew before: whether those hours came from Steam or the local cache."],
+      ["buff", "The shelf header lost a chip and gained a row. Four stats in a 2x2 block had two of them describing the same sync state from different angles; there are three across one line now, and the cover art sits tight against its label plate with the game's colour running along the seam instead of the two floating apart."],
+      ["buff", "TOP CARTRIDGE says how many hours earned it the spot, and FAVORITE STACK lists its three ranks as separate chips rather than gluing them into one long slash-separated string."],
+      ["buff", "The projects folder stopped reserving a room it was not using. Closed, it was a small folder marooned in a frame five times its width with 124 pixels of empty air overhead, held open for files that had not been dealt yet. The scene is short while it is sealed and grows when you open it, the folder is bigger, and it casts a contact shadow so it sits on the desk instead of hovering over the photo of one."],
+      ["fix", "The fanned project files no longer poke out through the top of their own panel. The reserved SOON slot was drawn fourteen pixels above the console's border; every card now lands inside the frame, and the fan spreads more than twice as wide instead of bunching into the middle third of the stage."],
+      ["buff", "The closed folder admits it can be clicked. The only invitation was a line of text in the far corner, so the file-count plate now breathes slowly on its own."],
+      ["fix", "The command console stopped looking like a tool borrowed from another website. Every panel in the cabinet cuts its corners on a diagonal and not one of them is rounded — the console was the exception, carrying ten rounded corners and no cuts at all, which is why it read as foreign no matter how well the colours matched. Title bar, buffer, command matrix, chips, input and close button are all bevelled now."],
+      ["buff", "The console picked up the rest of the cabinet's tells: the accent rail down the left edge that every card here has, scanlines across the title bar and buffer, and the pixel typeface on its small labels instead of the body font."],
+      ["buff", "Toolbelt modules are built out of parts instead of being one flat sheet. The header is its own banded strip running edge to edge, each card carries its slot number as a large ghosted watermark behind the copy, and the icon plate turned its accent up rather than sitting there at a tenth of its own colour — so the four modules stop reading as one grey rectangle repeated four times."],
+      ["buff", "Toolbelt cards also stopped saying READY at the top and CAPABILITY ONLINE at the bottom. The module code moved up beside its slot number the way the NOW cards do, so the title leads its own block, and the footer keeps one status line with the site's eight-segment meter."],
+      ["fix", "Guestbook messages no longer all wear the same nameplate. Every card in the thread had INCOMING TRANSMISSION stamped on its top edge — identical on all of them, so it labelled nothing. The tab is still there, numbered, so it identifies its message instead of repeating itself."],
+      ["fix", "The guestbook's counters stopped impersonating a button. Comments, pinned and the session mode were sharing their entire look with CONNECT DISCORD, so three read-only numbers were dressed as something you could press. They are data tiles now, number first, and the session chip carries a status light of its own."],
+      ["buff", "The comment box reads as a terminal field rather than a black rectangle: faint grid, cut corner, and a focus glow that stays inside the frame."],
+      ["fix", "The markdown cheat sheet stopped falling off the side of the screen on phones. It centres itself on the MARKDOWN button, and that button sits hard against the left edge of the composer, so half the panel hung off the display — the mobile rule that was supposed to handle this just repeated the desktop values and fixed nothing. It opens rightward from the button's edge now, narrow enough to stay on screen down to a 320px display, and it still scrolls with the page instead of hanging over the comments."],
+      ["fix", "The Spotify card stopped printing the song title twice. Discord sends the album in the same field the card uses for its third line, and on a single that album is the track name — so a long title wrapped over two lines and then did it again underneath the artist, which is what stretched the activity column past the profile beside it and opened that gap against the frame. A matching album is dropped now, and the title is capped at two lines so it cannot stretch the card on its own either."],
+      ["nerf", "Phones drop the countdown from the Spotify card. The progress bar and the two timestamps under it already say how much of the track is left, and on a narrow card that big -0:00 LEFT block was the single largest thing on it. The session timer on game cards stays, since those have no bar to read instead."],
+      ["fix", "The version stepper stopped breaking apart on phones. Its layout reserved six rem for the two arrow buttons, but the arrows and the gaps between them come to six and a half, so the forward arrow was pushed onto a line of its own with a stretch of empty space beside it. Prev, the dropdown and next now share a row properly, with the cycling status underneath."],
+      ["buff", "The cheat sheet also says what each thing does. It listed ten pieces of raw syntax and left you to infer the rest; every row now pairs the syntax with its name, under a header, in a bevelled panel like the rest of the cabinet."],
+      ["fix", "The frame rate no longer collapses when the reaction picker is open. Every one of the twenty-three emoji was a 512x512 animated WebP — monocle alone ran 98 frames at 1.1 MB — and the picker mounts all of them at once to draw them 38 pixels wide. That is six million animated pixels being decoded and resampled every frame for a grid the size of a postage stamp. They are 96x96 now, every frame of every animation intact: the whole set went from 9.2 MB to 2.3 MB and the per-frame pixel work dropped by a factor of twenty-eight."],
+      ["new", "Patch entries are cards instead of loose paragraphs. Each line in the changelog was a label followed by naked text on the panel background — five of them in a row with nothing telling them apart. Every entry now sits in its own box tinted with the colour of its type: gold for a hotfix, green for a new drop, cyan for a buff, pink for a nerf, with a rail down its left edge and its number in the margin."],
+      ["fix", "The reader stopped hiding what did not fit. The preview stays at three entries on purpose — the full log is one button away — but when a build's three run long the column scrolls instead of clipping that button out of existence, which is what used to happen."],
+      ["buff", "The release archive card grew again to fill its frame: the stack now covers three quarters of the deck with even margins above and below, instead of floating in the middle of it."],
+      ["new", "The projects folder has paper in it. Closed, it was a smooth slab that gave no hint there was anything inside — three sheets now stick out above its top edge, fanned and staggered, each printed with a header block and ruled lines instead of being a blank rectangle. They lift further when you hover it."],
+      ["buff", "The folder reads as a pocket rather than a plank: a lit lip along its front edge with the shadow of the opening falling behind it, ribbing down the face, and an engraved label line under its name. The room dims toward the corners so the eye lands on the folder rather than the filing cabinets."],
+      ["buff", "Opening it is choreographed instead of instant. The three files used to appear together in one move; they now come out one after another — left, then the reserved slot, then right — riding a curve that overshoots slightly and settles, while the loose sheets sink back into the folder behind them. Closing skips the stagger so the folder swallows them in one go."]
+    ]
+  },
+  {
+    version: "v2.23.0",
+    codename: "DOORMAN",
+    date: "2026-09-02",
+    summary: "The welcome screen stopped being a dashboard you had to read. It is one host standing in front of a shut gate: she greets you by name, says her piece, and the gate opens when you say so.",
+    entries: [
+      ["new", "The host talks. A speech bubble types out a short greeting one line at a time — different lines depending on whether your Discord pass is recognised — and the visitor can tap the bubble to rush a line or move to the next, the way a visual novel does."],
+      ["new", "The gate is an actual gate: two shutter halves with a lit seam down the middle. The seam brightens when she finishes her last line, and pressing OPEN THE GATE flares it and drives the halves apart, instead of the whole screen dissolving at once."],
+      ["nerf", "The boot log, the progress meter with its six nodes, the identity card, the session tags and the channel readout are gone. What is left is the host, one line of signal status, and the button."],
+      ["fix", "She is no longer standing in a box. The CRT overlay was painting the exact rectangle of the canvas, and the camera cut her off at mid-thigh in open space — the overlay is masked to an ellipse now and the framing reaches below the knee, so her legs run into the bottom rail instead of ending in mid-air."],
+      ["buff", "The avatar is roughly twice the size it was: the stage hands the host every pixel between the top of the screen and the rail."],
+      ["buff", "Phones get the same ceremony rather than the old fallback screen. Buddy greets in the avatar's place, with the same bubble and the same gate, and the 13 MB avatar download is still never fetched down there."],
+      ["fix", "The gate can always be opened, even if the avatar never arrives. If the model is still streaming after nine seconds the host starts talking anyway, and the button is live as soon as the session check returns."],
+      ["fix", "Reloading no longer flashes the site before the splash appears. The backdrop was animating in from fully transparent, so for the first few hundred milliseconds of every load you were looking straight through it at the page behind."],
+      ["buff", "The room behind her is an actual room: a light cone falling from overhead, a pool of light on the floor where it lands, a lit floor edge, drifting dust in the beam, and corner falloff holding the eye in the middle of the frame."],
+      ["fix", "The speech bubble sits by her head instead of out in the dark. It was measuring from the edge of her canvas, which is wider than she is, so it parked itself a long way off her shoulder."],
+      ["fix", "Removed about 2,300 lines of stylesheet belonging to three earlier versions of this screen that were still being shipped to every visitor."]
+    ]
+  },
+  {
+    version: "v2.22.0",
+    codename: "COLD START",
+    date: "2026-09-02",
+    summary: "The workstation's build panel stopped ending in a blank rectangle and the dev-room easter egg stopped showing its whole hand at once. Both of them now play out as a sequence instead of sitting there finished.",
+    entries: [
+      ["fix", "The vector canvas is no longer squashed. It forced its drawing surface to a minimum of 320px wide and then let the browser squeeze that back into the 281px it actually gets, so every ring came out as an oval and every node glyph was drawn about 12% too narrow — most visible once the modules were fully loaded."],
+      ["fix", "The canvas also watches its own box now. It only listened for window resizes, so when the build log filled up and pushed the panel taller, the scene kept the old proportions until something else happened to resize the window."],
+      ["new", "RUNTIME // BUILD OUTPUT carries a boot checklist of the same six nodes the vector canvas lights up, in the same order, so the gap under a four-line log is now the part that shows what is actually coming online."],
+      ["buff", "The build log ends in a blinking cursor instead of stopping mid-sentence, and no longer stretches itself to fill space it has nothing to put in."],
+      ["buff", "SOURCE // BOOT SCRIPT is coloured like real code: the call, its parentheses and the string inside are all separate now, instead of the whole line after the first word sharing one colour."],
+      ["new", "The hidden dev room runs a sector sweep between the core and the status lines, locking 0xDA1 through DAI-CORE one at a time and turning them red the moment access is denied."],
+      ["buff", "The four status lines reveal one by one as the sweep runs rather than being there from the first frame, so the scan reads as something happening rather than a poster."],
+      ["fix", "That reveal is composed with the drag glitch the lines already had, so both effects run instead of the newer one silently cancelling the older."]
+    ]
+  },
+  {
+    version: "v2.21.0",
+    codename: "NIGHT SHIFT",
+    date: "2026-09-02",
+    summary: "The profile column stopped being a portrait with dead space under it. Lanyard was already reporting which clients Dai is connected from, and the profile already claimed Alaska — both of those are on the card now.",
+    entries: [
+      ["new", "A device readout shows which Discord clients are live: desktop, mobile and web, with the connected ones lit. Lanyard has been sending that the whole time and the card threw it away."],
+      ["new", "The card carries Dai's local Alaska time, ticking, so the night-shift line in the profile finally has something backing it up."],
+      ["buff", "The status row leads with a pulsing dot in the status colour, so DO NOT DISTURB reads at a glance instead of only as text."],
+      ["buff", "With the new readout the profile column fills its side of the panel evenly instead of stopping halfway and leaving a gap under the badges."]
+    ]
+  },
+  {
+    version: "v2.20.0",
+    codename: "PLAY COUNTER",
+    date: "2026-09-02",
+    summary: "The activity stream stopped wasting half its width: games and Spotify both get a proper telemetry rail, games get a stats drawer with hours and streaks, and the streak itself finally survives a deploy.",
+    entries: [
+      ["fix", "The play streak no longer resets on every deploy. The streak was the one server module that resolved its own storage path instead of using the shared helper, and its lookup skipped RENDER_DATA_DIR — so while everything else wrote to the persistent disk, the streak landed in the repo's own data folder, which Render rebuilds from scratch each time."],
+      ["new", "Playtime is tracked per game. Each poll only banks the part of the session it had not counted yet, so the total is right no matter how often the page is open or refreshed."],
+      ["new", "A stats button sits in the top-right corner of a game card on desktop. It opens a drawer with hours played, current streak, best streak, days seen, and a ranking of the most-played titles."],
+      ["new", "Playtime keeps accruing through a background poll instead of only advancing while somebody happens to be looking at the site."],
+      ["buff", "Game and Spotify cards now use the empty right-hand side as a telemetry rail: a large session clock for games, a live countdown to the end of the track for Spotify."],
+      ["fix", "Game cards no longer print PLAYING twice. The right-hand label repeated the activity type whenever Discord gave no asset text of its own, and now it only shows when it has something different to say."],
+      ["buff", "Cover art is larger and framed in the cabinet's corner-cut style, and the Spotify progress bar is taller with monospaced timings that stop shifting as the seconds tick."],
+      ["buff", "Best streak is remembered per game, so a broken run leaves a record behind instead of vanishing."]
+    ]
+  },
+  {
+    version: "v2.19.0",
+    codename: "SIGNAL HUNT",
+    date: "2026-09-02",
+    summary: "PACKET_REX finally has somewhere to run. The empty-activity channel is a full parallax scene now, with a skyline to cross, signals to collect, and a runner that stops clipping through the tall cacti.",
+    entries: [
+      ["buff", "The idle channel is built in layers instead of one runner on a black rectangle: a drifting signal field, pixel clouds, a cabinet skyline with blinking masts, and grit scrolling along the floor. The upper half of the panel used to be entirely empty."],
+      ["new", "Signal markers drift down the track and PACKET_REX collects them on the way past, with a spark burst and a SIG counter in the corner, so the scene reads as an actual hunt rather than a loop."],
+      ["new", "Packet drones pass through the channel. High ones sail over the runner's head; low ones come in at jumping height and have to be cleared."],
+      ["buff", "Obstacles arrive as a spaced queue with a slow speed ramp and a distance readout that flashes every hundred, instead of one lonely cactus crossing an empty floor."],
+      ["fix", "The runner's jump is now measured against each obstacle it meets. The old fixed hop only cleared the leading edge, so the tall cacti clipped straight through its tail on the way down."],
+      ["fix", "A single track slot can hold one threat at a time, so a drone can no longer land on top of a cactus and leave nowhere to touch down between them."],
+      ["fix", "The jump is capped to the panel's own height, so a tall channel can never launch the runner out of frame."],
+      ["buff", "The scanner readout carries live pulsing indicators, so GAME.SCAN and SPOTIFY.PORT look like they are actually listening rather than three lines of static text."]
+    ]
+  },
+  {
+    version: "v2.18.0",
+    codename: "COLD BOOT",
+    date: "2026-09-02",
+    summary: "The entry gate now paints long before the 3D host is anywhere near ready: the avatar's WebGL stack loads on its own, the host model is cached between visits instead of re-downloaded whole, and the AVATAR LINK meter finally reports the real transfer.",
+    entries: [
+      ["buff", "The VRM host and its WebGL stack now load as their own chunk, so the gate paints from a main bundle 1.1 MB lighter instead of waiting for three.js to arrive and parse first."],
+      ["buff", "Phones no longer download the 3D host at all. The compact mobile splash never mounted the avatar scene, but it was still paying for the entire WebGL runtime on every visit."],
+      ["fix", "The cabinet host is cached between visits. Model, motion, and font files were being served with no-store, which meant re-downloading 13 MB of avatar on every single page load; they now revalidate against an ETag and come back as an empty 304."],
+      ["fix", "Static responses carry a Content-Length again instead of streaming as chunked, so the browser can size and track what it is downloading."],
+      ["new", "The AVATAR LINK panel reports the real transfer with a live percentage and a fill meter driven by the host download, instead of holding on ACQUIRING HOST SIGNAL through a 13 MB wait."],
+      ["fix", "The gate's identity check now asks the session endpoint instead of the full guestbook, which used to rehydrate every comment author against Discord before the splash could finish its handshake."],
+      ["buff", "The arcade backdrop pauses while the gate covers it. Its grid, code rain, circuit traces, and packets were animating at full cost behind an opaque overlay, competing with the host for frames."],
+      ["fix", "The handshake log animates every line again. The sliding desktop window was reusing the previous line's element, so entries quietly swapped text in place instead of typing themselves in."],
+      ["buff", "Returning to the cabinet in the same tab runs a shortened startup instead of replaying the full ceremony from the top."],
+      ["new", "SPACE opens the gate alongside ENTER."],
+      ["fix", "The gate and its handshake log now respect reduced-motion preferences instead of animating regardless of the setting."],
+      ["fix", "Cleared the dead access-card stylesheet left behind by the pre-gate splash, plus a full-screen backdrop blur on exit that nothing could see through the splash's own opaque background."]
+    ]
+  },
   {
     version: "v2.17.0",
     codename: "AVATAR LINK",

@@ -5,6 +5,7 @@ import { createVRMAnimationClip, VRMAnimationLoaderPlugin } from "@pixiv/three-v
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { AvatarLinkSignal } from "./AvatarLinkSignal";
 
 const AVATAR_URL = "/models/dai-greeter-optimized.vrm";
 const GREETING_URL = "/motions/greeting.vrma";
@@ -14,7 +15,18 @@ const WAVE_LOOP_END = 6.53;
 const SOURCE_FPS = 60;
 const WAVE_BLEND_DURATION = 0.28;
 
-function AvatarRig({ active, onError, onPhaseChange, onReady, onReveal, reducedMotion }) {
+// Encuadre de la camara. El fov es vertical y fijo, asi que la altura de cuerpo
+// visible la fija la distancia (span = 2 * dist * tan(fov/2)), no el tamano del
+// lienzo: alargar la caja solo escalaba el mismo recorte. Con estos valores el
+// plano va de ~0.30 a ~1.90 en unidades del VRM, o sea de bajo las rodillas a
+// por encima de las orejas, y las piernas mueren en la barra inferior de la
+// puerta en vez de cortarse en el aire.
+const CAMERA_FOV = 25;
+const CAMERA_DISTANCE = 3.61;
+const CAMERA_HEIGHT = 1.24;
+const CAMERA_TARGET_Y = 1.1;
+
+function AvatarRig({ active, onError, onPhaseChange, onProgress, onReady, onReveal, reducedMotion }) {
   const { camera, gl, scene } = useThree();
   const [vrm, setVrm] = useState(null);
   const idleGroupRef = useRef(null);
@@ -29,11 +41,13 @@ function AvatarRig({ active, onError, onPhaseChange, onReady, onReveal, reducedM
   const wasActiveRef = useRef(false);
   const onErrorRef = useRef(onError);
   const onPhaseChangeRef = useRef(onPhaseChange);
+  const onProgressRef = useRef(onProgress);
   const onReadyRef = useRef(onReady);
   const onRevealRef = useRef(onReveal);
 
   onErrorRef.current = onError;
   onPhaseChangeRef.current = onPhaseChange;
+  onProgressRef.current = onProgress;
   onReadyRef.current = onReady;
   onRevealRef.current = onReveal;
 
@@ -51,10 +65,17 @@ function AvatarRig({ active, onError, onPhaseChange, onReady, onReveal, reducedM
 
     async function loadAvatarAndGreeting() {
       try {
+        // El VRM es el 94% de la descarga: su progreso alimenta el medidor
+        // AVATAR LINK para que la espera deje de ser una barra inventada.
         const [avatarGltf, animationGltf] = await Promise.all([
-          avatarLoader.loadAsync(AVATAR_URL),
+          avatarLoader.loadAsync(AVATAR_URL, (event) => {
+            if (disposed || !event.lengthComputable || !event.total) return;
+            onProgressRef.current?.((event.loaded / event.total) * 100);
+          }),
           animationLoader.loadAsync(GREETING_URL)
         ]);
+
+        if (!disposed) onProgressRef.current?.(100);
         const nextVrm = avatarGltf.userData.vrm;
         const vrmAnimation = animationGltf.userData.vrmAnimations?.[0];
 
@@ -228,11 +249,28 @@ function AvatarRig({ active, onError, onPhaseChange, onReady, onReveal, reducedM
   );
 }
 
-export function AvatarGreeting({ active, displayName }) {
+export function AvatarGreeting({ active, displayName, onLoadProgress, onStage }) {
   const [status, setStatus] = useState("loading");
   const [motionPhase, setMotionPhase] = useState("concealed");
   const [reducedMotion, setReducedMotion] = useState(false);
   const [revealed, setRevealed] = useState(false);
+  const [loadProgress, setLoadProgress] = useState(0);
+  const onLoadProgressRef = useRef(onLoadProgress);
+  const onStageRef = useRef(onStage);
+  const reportedPercentRef = useRef(-1);
+
+  onLoadProgressRef.current = onLoadProgress;
+  onStageRef.current = onStage;
+
+  // El loader emite un evento por chunk; solo re-renderizamos cuando cambia el
+  // entero que se pinta, para no repintar la escena decenas de veces por segundo.
+  function reportProgress(value) {
+    const percent = Math.round(value);
+    if (percent === reportedPercentRef.current) return;
+    reportedPercentRef.current = percent;
+    setLoadProgress(percent);
+    onLoadProgressRef.current?.(percent);
+  }
 
   useEffect(() => {
     const query = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -242,27 +280,31 @@ export function AvatarGreeting({ active, displayName }) {
     return () => query.removeEventListener?.("change", updatePreference);
   }, []);
 
-  const statusCopy = status === "loading"
-    ? "syncing avatar + greeting"
-    : status === "error"
-      ? "avatar signal unavailable"
+  // La puerta arranca su saludo cuando el anfitrion ya esta en pantalla, asi
+  // que necesita la fase de la escena y no solo el porcentaje de descarga.
+  const stage = status === "error"
+    ? "error"
+    : status !== "ready"
+      ? "loading"
       : motionPhase === "waving"
-        ? "wave signal looping"
-        : motionPhase === "resting"
-          ? "greeting pose linked"
-        : motionPhase === "greeting"
-          ? "surprise greeting online"
-          : "surprise sequence armed";
+        ? "waving"
+        : revealed
+          ? "greeting"
+          : "arriving";
+
+  useEffect(() => {
+    onStageRef.current?.(stage);
+  }, [stage]);
 
   return (
     <div className={`entry-avatar-scene is-${status} is-${motionPhase} ${revealed ? "is-revealed" : ""}`} aria-label={`3D avatar greeting ${displayName}`} role="img">
       <Canvas
-        camera={{ fov: 25, near: 0.1, far: 20, position: [0, 1.32, 3.15] }}
+        camera={{ fov: CAMERA_FOV, near: 0.1, far: 20, position: [0, CAMERA_HEIGHT, CAMERA_DISTANCE] }}
         dpr={[1, 1.5]}
         frameloop={reducedMotion ? "demand" : "always"}
         gl={{ alpha: true, antialias: true, powerPreference: "high-performance" }}
         onCreated={({ camera, gl }) => {
-          camera.lookAt(0, 1.25, 0);
+          camera.lookAt(0, CAMERA_TARGET_Y, 0);
           gl.outputColorSpace = THREE.SRGBColorSpace;
           gl.setClearColor(0x000000, 0);
         }}
@@ -275,25 +317,14 @@ export function AvatarGreeting({ active, displayName }) {
           active={active}
           onError={() => setStatus("error")}
           onPhaseChange={setMotionPhase}
+          onProgress={reportProgress}
           onReady={() => setStatus("ready")}
           onReveal={() => setRevealed(true)}
           reducedMotion={reducedMotion}
         />
       </Canvas>
       <div className="entry-avatar-scan" aria-hidden="true" />
-      <div className="entry-avatar-status" aria-hidden="true">
-        <i />
-        <span>{statusCopy}</span>
-      </div>
-      {status !== "ready" ? (
-        <div className="entry-avatar-fallback" aria-hidden="true">
-          <div className="entry-avatar-link">
-            <span className="entry-avatar-link-bars"><i /><i /><i /><i /><i /></span>
-            <strong>{status === "error" ? "HOST OFFLINE" : "AVATAR LINK"}</strong>
-            <small>{status === "error" ? "manual greeting ready" : "acquiring host signal"}</small>
-          </div>
-        </div>
-      ) : null}
+      {status !== "ready" ? <AvatarLinkSignal progress={loadProgress} status={status} /> : null}
     </div>
   );
 }

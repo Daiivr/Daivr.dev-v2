@@ -230,20 +230,47 @@ function BuddyInventoryView({ buddy }) {
 }
 
 function BuddyQuestView({ buddy }) {
+  const quests = buddy.adventure.quests;
+  const done = quests.filter((quest) => quest.complete).length;
+  const overall = quests.length ? Math.round((done / quests.length) * 100) : 0;
+
   return (
     <div className="buddy-modal-quests">
-      {buddy.adventure.quests.map((quest) => (
-        <article className={`buddy-modal-quest ${quest.complete ? "is-complete" : ""}`} key={quest.id}>
-          <div>
-            <span>{quest.complete ? <Check size={15} aria-hidden="true" /> : <ScrollText size={15} aria-hidden="true" />}</span>
+      {/* El contador por mision existia pero no habia ninguna lectura del
+          conjunto: habia que sumar a ojo cuantas quedaban. */}
+      <div className="buddy-quest-summary">
+        <div>
+          <span>quest log</span>
+          <strong>{String(done).padStart(2, "0")} / {String(quests.length).padStart(2, "0")} complete</strong>
+        </div>
+        <div className="buddy-quest-summary-meter" role="img" aria-label={`${done} de ${quests.length} misiones completadas`}>
+          <i style={{ width: `${overall}%` }} />
+        </div>
+      </div>
+
+      {quests.map((quest) => {
+        const ratio = quest.goal ? Math.min(1, quest.progress / quest.goal) : 0;
+
+        return (
+          <article className={`buddy-modal-quest ${quest.complete ? "is-complete" : ""}`} key={quest.id}>
             <div>
-              <strong>{quest.title}</strong>
-              <p>{quest.detail}</p>
+              <span>{quest.complete ? <Check size={15} aria-hidden="true" /> : <ScrollText size={15} aria-hidden="true" />}</span>
+              <div>
+                <strong>{quest.title}</strong>
+                <p>{quest.detail}</p>
+              </div>
             </div>
-          </div>
-          <b>{quest.progress}/{quest.goal}</b>
-        </article>
-      ))}
+            {/* El hueco entre la descripcion y el contador estaba muerto; la
+                barra lo usa para decir de un vistazo cuanto falta. */}
+            <div className="buddy-quest-track">
+              <i className="buddy-quest-bar" aria-hidden="true">
+                <b style={{ width: `${Math.round(ratio * 100)}%` }} />
+              </i>
+              <b>{quest.progress}/{quest.goal}</b>
+            </div>
+          </article>
+        );
+      })}
     </div>
   );
 }

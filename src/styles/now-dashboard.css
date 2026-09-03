@@ -177,15 +177,33 @@
       0 22px 58px rgba(0, 0, 0, 0.42);
   }
 
+  /* Indice y icono estaban sueltos en los extremos de la columna. La traza
+     entre ambos los lee como una sola espina de datos. */
   .now-card-rail {
     display: grid;
-    align-content: space-between;
+    grid-template-rows: auto minmax(0.75rem, 1fr) auto;
+    /* La tarjeta alinea sus hijos a start, asi que el rail se quedaba a la
+       altura de su contenido y la traza no llegaba a ninguna parte. */
+    align-self: stretch;
+    align-content: stretch;
     justify-items: center;
+    gap: 0.5rem;
     border-right: 1px solid color-mix(in srgb, var(--now-accent) 18%, transparent);
     background:
       linear-gradient(180deg, color-mix(in srgb, var(--now-accent) 10%, transparent), transparent 72%),
       rgba(2, 6, 4, 0.5);
     padding: 0.9rem 0.65rem;
+  }
+
+  .now-card-spine {
+    width: 1px;
+    height: 100%;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--now-accent) 55%, transparent),
+      color-mix(in srgb, var(--now-accent) 14%, transparent)
+    );
+    box-shadow: 0 0 8px color-mix(in srgb, var(--now-accent) 22%, transparent);
   }
 
   .now-card-index {
@@ -228,10 +246,26 @@
   }
 
   .now-card-topline > p {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.5rem;
     color: var(--color-cabinet);
     font-size: 0.62rem;
     font-weight: 900;
     text-transform: uppercase;
+  }
+
+  .now-card-topline > p b {
+    flex: none;
+    border: 1px solid color-mix(in srgb, var(--now-accent) 30%, transparent);
+    background: color-mix(in srgb, var(--now-accent) 9%, transparent);
+    padding: 0.1rem 0.34rem;
+    color: var(--now-accent);
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
   }
 
   .now-card-topline span {
@@ -242,18 +276,8 @@
     text-transform: uppercase;
   }
 
-  .now-card-copy > small {
-    margin-top: 0.42rem;
-    color: var(--now-accent);
-    font-size: 0.5rem;
-    font-weight: 900;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    opacity: 0.74;
-  }
-
   .now-card-copy h3 {
-    margin-block: 0.22rem 0.42rem;
+    margin-block: 0.55rem 0.42rem;
     color: #fff;
     font-family: var(--font-display);
     font-size: clamp(1.08rem, 1.8vw, 1.35rem);
@@ -280,20 +304,27 @@
     text-transform: uppercase;
   }
 
-  .now-card-footer > span:last-child {
+  /* Cuatro guiones sueltos no decian nada. Ocho segmentos con seis encendidos
+     se leen como un medidor, que es lo que la etiqueta promete. */
+  .now-card-meter {
+    display: flex;
+    flex: none;
     gap: 3px;
+    border: 1px solid color-mix(in srgb, var(--now-accent) 20%, transparent);
+    background: rgba(2, 6, 4, 0.6);
+    padding: 2px;
   }
 
-  .now-card-footer > span:last-child i {
-    width: 13px;
-    height: 3px;
+  .now-card-meter i {
+    width: 9px;
+    height: 5px;
     background: var(--now-accent);
-    box-shadow: 0 0 6px color-mix(in srgb, var(--now-accent) 36%, transparent);
-    opacity: 0.28;
+    opacity: 0.18;
   }
 
-  .now-card-footer > span:last-child i:nth-child(-n + 3) {
-    opacity: 0.9;
+  .now-card-meter i:nth-child(-n + 6) {
+    box-shadow: 0 0 7px color-mix(in srgb, var(--now-accent) 42%, transparent);
+    opacity: 0.92;
   }
 
   .now-card-corner {
@@ -328,9 +359,46 @@
     font-size: 0.78rem;
   }
 
+  /* La grafica estiraba con la tarjeta pero las barras seguian midiendo en rem,
+     asi que el hueco sobre ellas crecia solo. Ahora escalan con la caja y el
+     panel deja de tener un vacio en medio. */
   .now-console .status-sidecar-graph {
-    min-height: 6.8rem;
+    position: relative;
+    min-height: 8.5rem;
     margin: 0.25rem 0.85rem 0.75rem;
+    padding: 1.55rem 0.72rem 0.85rem;
+  }
+
+  .now-console .status-sidecar-graph span {
+    height: calc(14% + (var(--bar, 4) * 9%));
+    min-height: 0.4rem;
+  }
+
+  .now-console .status-sidecar-graph::before {
+    position: absolute;
+    left: 0.72rem;
+    top: 0.5rem;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 40%, transparent);
+    content: "load // 24h";
+    font-family: var(--font-pixel);
+    font-size: 0.3rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  /* Linea de base: sin ella las barras flotan sobre el fondo. */
+  .now-console .status-sidecar-graph::after {
+    position: absolute;
+    left: 0.72rem;
+    right: 0.72rem;
+    bottom: 0.68rem;
+    height: 1px;
+    content: "";
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--color-phosphor) 34%, transparent),
+      color-mix(in srgb, var(--color-cyan-arcade) 16%, transparent)
+    );
   }
 
   .now-console .status-sidecar-footer {

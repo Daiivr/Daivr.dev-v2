@@ -528,7 +528,11 @@
   }
 
   .discord-primary-guild-badge::before,
-  .discord-primary-guild-badge::after {
+  .discord-primary-guild-badge::after,
+  .discord-device-tile::before,
+  .discord-device-tile::after,
+  .discord-party-chip::before,
+  .discord-party-chip::after {
     position: absolute;
     left: 50%;
     z-index: 30;
@@ -538,7 +542,9 @@
     transition: opacity 150ms ease, transform 150ms ease, visibility 150ms ease;
   }
 
-  .discord-primary-guild-badge::before {
+  .discord-primary-guild-badge::before,
+  .discord-device-tile::before,
+  .discord-party-chip::before {
     bottom: calc(100% + 10px);
     width: max-content;
     max-width: min(190px, calc(100vw - 32px));
@@ -563,7 +569,9 @@
     white-space: nowrap;
   }
 
-  .discord-primary-guild-badge::after {
+  .discord-primary-guild-badge::after,
+  .discord-device-tile::after,
+  .discord-party-chip::after {
     bottom: calc(100% + 5px);
     width: 9px;
     height: 9px;
@@ -590,18 +598,34 @@
   .discord-primary-guild-badge:hover::before,
   .discord-primary-guild-badge:hover::after,
   .discord-primary-guild-badge:focus-visible::before,
-  .discord-primary-guild-badge:focus-visible::after {
+  .discord-primary-guild-badge:focus-visible::after,
+  .discord-device-tile:hover::before,
+  .discord-party-chip:hover::before,
+  .discord-device-tile:hover::after,
+  .discord-party-chip:hover::after,
+  .discord-device-tile:focus-visible::before,
+  .discord-party-chip:focus-visible::before,
+  .discord-device-tile:focus-visible::after,
+  .discord-party-chip:focus-visible::after {
     opacity: 1;
     visibility: visible;
   }
 
   .discord-primary-guild-badge:hover::before,
-  .discord-primary-guild-badge:focus-visible::before {
+  .discord-primary-guild-badge:focus-visible::before,
+  .discord-device-tile:hover::before,
+  .discord-party-chip:hover::before,
+  .discord-device-tile:focus-visible::before,
+  .discord-party-chip:focus-visible::before {
     transform: translate(-50%, 0);
   }
 
   .discord-primary-guild-badge:hover::after,
-  .discord-primary-guild-badge:focus-visible::after {
+  .discord-primary-guild-badge:focus-visible::after,
+  .discord-device-tile:hover::after,
+  .discord-party-chip:hover::after,
+  .discord-device-tile:focus-visible::after,
+  .discord-party-chip:focus-visible::after {
     transform: translate(-50%, 0) rotate(45deg);
   }
 
@@ -621,12 +645,30 @@
 
   .discord-presence-status {
     display: flex;
+    align-items: center;
     justify-content: space-between;
     gap: 1rem;
     padding: 0.75rem 0.85rem;
     font-size: 0.72rem;
     font-weight: 900;
     text-transform: uppercase;
+  }
+
+  .discord-presence-status > span:first-child {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* El estado solo se leia como texto; el punto lo hace reconocible de un
+     vistazo, con el mismo color que ya usa el LED de la cabecera. */
+  .discord-status-dot {
+    flex: none;
+    width: 0.52rem;
+    height: 0.52rem;
+    border-radius: 999px;
+    box-shadow: 0 0 10px currentColor;
+    animation: discord-status-dot-pulse 2.4s ease-in-out infinite;
   }
 
   .discord-presence-custom {
@@ -684,6 +726,134 @@
 
   .discord-loading-dots i:nth-child(3) {
     animation-delay: 0.32s;
+  }
+
+  /* Bandeja de dispositivos. Lanyard dice en que clientes esta conectado, pero
+     el bloque anterior apilaba tres filas dentro de una caja en una tarjeta
+     donde cada dato tiene la suya, y sus etiquetas de 0.34rem no se leian. Aqui
+     cada cliente es una ficha con nombre, en la misma reja que los badges. */
+  .discord-device-bay {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    gap: 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 20%, transparent);
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.02) 50%, transparent 50%),
+      rgba(2, 6, 4, 0.52);
+    background-size: 100% 4px, auto;
+    padding: 0.7rem 0.8rem 0.75rem;
+  }
+
+  /* Solo movil: en escritorio la ruta sigue viviendo en la barra de titulo. */
+  .discord-presence-path {
+    display: none;
+  }
+
+  .discord-device-bay-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+
+  .discord-device-bay-head code {
+    color: var(--color-cyan-arcade);
+    font-family: var(--font-pixel);
+    font-size: 0.4rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .discord-device-tally {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.36rem;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 52%, transparent);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .discord-device-tally i {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 999px;
+    background: currentColor;
+  }
+
+  .discord-device-tally.is-live {
+    color: var(--color-phosphor);
+  }
+
+  .discord-device-tally.is-live i {
+    box-shadow: 0 0 9px currentColor;
+    animation: discord-status-dot-pulse 2.4s ease-in-out infinite;
+  }
+
+  .discord-device-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+  }
+
+  .discord-device-tile {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    gap: 0.28rem;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor-soft) 14%, transparent);
+    background: rgba(2, 6, 4, 0.62);
+    padding: 0.5rem 0.3rem 0.45rem;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 34%, transparent);
+    clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+    transition:
+      background 220ms ease,
+      border-color 220ms ease,
+      box-shadow 220ms ease,
+      color 220ms ease;
+  }
+
+  .discord-device-tile b {
+    max-width: 100%;
+    overflow: hidden;
+    font-family: var(--font-pixel);
+    font-size: 0.36rem;
+    letter-spacing: 0.08em;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .discord-device-tile:hover,
+  .discord-device-tile:focus-visible {
+    border-color: color-mix(in srgb, var(--color-phosphor-soft) 38%, transparent);
+    color: color-mix(in srgb, var(--color-phosphor-soft) 66%, transparent);
+    outline: none;
+    z-index: 34;
+  }
+
+  .discord-device-tile.is-active {
+    border-color: color-mix(in srgb, var(--color-phosphor) 52%, transparent);
+    background: color-mix(in srgb, var(--color-phosphor) 11%, rgba(2, 6, 4, 0.62));
+    color: var(--color-phosphor);
+    box-shadow:
+      inset 0 -2px 0 color-mix(in srgb, var(--color-phosphor) 46%, transparent),
+      0 0 12px color-mix(in srgb, var(--color-phosphor) 20%, transparent);
+  }
+
+  /* El tooltip compartido con el badge de servidor va en una sola linea; el de
+     los clientes trae nombre y estado, asi que necesita respetar el salto. */
+  .discord-party-chip::before {
+    max-width: min(170px, calc(100vw - 32px));
+    white-space: pre-line;
+  }
+
+  .discord-device-tile::before {
+    max-width: min(150px, calc(100vw - 32px));
+    white-space: pre-line;
   }
 
   .discord-presence-badges {
@@ -918,8 +1088,11 @@
   .discord-activity-card {
     position: relative;
     display: grid;
-    grid-template-columns: 88px minmax(0, 1fr) auto;
-    gap: 1rem;
+    grid-template-columns: 96px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "art main rail"
+      "stats stats stats";
+    gap: 0 1.1rem;
     align-items: center;
     border: 1px solid color-mix(in srgb, var(--color-phosphor) 18%, transparent);
     clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
@@ -987,14 +1160,46 @@
 
   .discord-activity-art {
     position: relative;
+    grid-area: art;
     display: grid;
-    width: 88px;
+    width: 96px;
     aspect-ratio: 1;
     place-items: center;
     border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 30%, transparent);
-    background: rgba(69, 216, 255, 0.08);
-    color: var(--color-cyan-arcade);
+    background:
+      linear-gradient(rgba(255, 255, 255, 0.03) 50%, transparent 50%),
+      radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--color-cyan-arcade) 18%, transparent), transparent 62%),
+      rgba(69, 216, 255, 0.08);
+    background-size: 100% 4px, auto, auto;
+    box-shadow:
+      inset 0 0 0 1px rgba(2, 6, 4, 0.72),
+      0 0 22px color-mix(in srgb, var(--color-cyan-arcade) 14%, transparent);
+    clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
     overflow: visible;
+  }
+
+  /* Topes de lineas: sin ellos un titulo largo estiraba la tarjeta y la
+     columna de actividad dejaba de casar con la del perfil, que es el hueco
+     que aparecia junto al marco. */
+  .discord-activity-main strong {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow-wrap: anywhere;
+  }
+
+  .discord-activity-main > p,
+  .discord-activity-main > small {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    overflow-wrap: anywhere;
+  }
+
+  .discord-activity-main {
+    grid-area: main;
   }
 
   .discord-activity-main-art {
@@ -1076,6 +1281,196 @@
     opacity: 0.62;
   }
 
+  /* El raíl derecho antes solo repetía la etiqueta del tipo de actividad y
+     dejaba medio ancho de tarjeta vacío. Ahora lleva la telemetría. */
+  .discord-activity-rail {
+    grid-area: rail;
+    display: grid;
+    align-content: center;
+    justify-items: end;
+    gap: 0.3rem;
+    text-align: right;
+  }
+
+  .discord-activity-card:has(.discord-activity-stats-toggle) .discord-activity-rail {
+    padding-top: 1.35rem;
+  }
+
+  .discord-activity-rail em {
+    align-self: end;
+  }
+
+  .discord-activity-clock {
+    display: grid;
+    justify-items: end;
+    gap: 0.18rem;
+  }
+
+  .discord-activity-clock b {
+    color: var(--color-phosphor);
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    text-shadow: 0 0 18px color-mix(in srgb, var(--color-phosphor) 32%, transparent);
+  }
+
+  .discord-activity-clock i {
+    color: var(--color-cyan-arcade);
+    font-family: var(--font-pixel);
+    font-size: 0.36rem;
+    font-style: normal;
+    letter-spacing: 0.14em;
+    line-height: 1.4;
+    opacity: 0.82;
+    text-transform: uppercase;
+  }
+
+  /* Botón de estadísticas: esquina superior derecha, solo en escritorio. */
+  .discord-activity-stats-toggle {
+    position: absolute;
+    right: 0.5rem;
+    top: 0.5rem;
+    z-index: 3;
+    display: inline-grid;
+    width: 1.75rem;
+    aspect-ratio: 1;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 36%, transparent);
+    background: rgba(2, 8, 6, 0.86);
+    color: var(--color-cyan-arcade);
+    clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+    cursor: pointer;
+    transition:
+      background 180ms ease,
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      color 180ms ease;
+  }
+
+  .discord-activity-stats-toggle:hover,
+  .discord-activity-stats-toggle:focus-visible {
+    border-color: var(--color-phosphor);
+    background: color-mix(in srgb, var(--color-phosphor) 18%, rgba(2, 8, 6, 0.9));
+    color: var(--color-phosphor);
+    outline: none;
+    box-shadow: 0 0 14px color-mix(in srgb, var(--color-phosphor) 32%, transparent);
+  }
+
+  .discord-activity-stats-toggle.is-open {
+    border-color: var(--color-phosphor);
+    background: var(--color-phosphor);
+    color: #021108;
+    box-shadow: 0 0 18px color-mix(in srgb, var(--color-phosphor) 38%, transparent);
+  }
+
+  .discord-activity-stats {
+    grid-area: stats;
+    display: grid;
+    gap: 0.7rem;
+    margin-top: 0.9rem;
+    border-top: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 20%, transparent);
+    padding-top: 0.85rem;
+    animation: discord-activity-stats-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .discord-activity-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .discord-activity-stats-grid > span {
+    display: grid;
+    gap: 0.3rem;
+    border-left: 2px solid color-mix(in srgb, var(--color-phosphor) 42%, transparent);
+    background: color-mix(in srgb, var(--color-phosphor) 5%, transparent);
+    padding: 0.5rem 0.62rem;
+  }
+
+  .discord-activity-stats-grid i {
+    color: var(--color-cyan-arcade);
+    font-family: var(--font-pixel);
+    font-size: 0.34rem;
+    font-style: normal;
+    letter-spacing: 0.12em;
+    line-height: 1.5;
+    opacity: 0.88;
+    text-transform: uppercase;
+  }
+
+  .discord-activity-stats-grid b {
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  .discord-activity-stats-library {
+    display: grid;
+    gap: 0.32rem;
+    margin: 0;
+    padding: 0;
+    counter-reset: discord-library;
+    list-style: none;
+  }
+
+  .discord-activity-stats-library li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.9rem;
+    border-bottom: 1px dashed color-mix(in srgb, var(--color-phosphor) 14%, transparent);
+    padding-bottom: 0.3rem;
+    color: var(--color-phosphor-soft);
+    counter-increment: discord-library;
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    opacity: 0.66;
+  }
+
+  .discord-activity-stats-library li.is-current {
+    color: var(--color-phosphor);
+    opacity: 1;
+  }
+
+  .discord-activity-stats-library li span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .discord-activity-stats-library li span::before {
+    margin-right: 0.5rem;
+    color: var(--color-cabinet);
+    content: counter(discord-library, decimal-leading-zero);
+    font-family: var(--font-pixel);
+    font-size: 0.34rem;
+  }
+
+  .discord-activity-stats-library li b {
+    flex: none;
+    color: inherit;
+    font-family: var(--font-mono);
+    font-size: 0.64rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .discord-activity-card p.discord-activity-stats-since {
+    margin: 0;
+    color: var(--color-phosphor-soft);
+    font-family: var(--font-pixel);
+    font-size: 0.34rem;
+    letter-spacing: 0.1em;
+    opacity: 0.5;
+    text-transform: uppercase;
+  }
+
   .discord-activity-session {
     display: flex;
     flex-wrap: wrap;
@@ -1151,11 +1546,12 @@
   .discord-spotify-progress {
     display: grid;
     gap: 0.35rem;
-    margin-top: 0.65rem;
+    max-width: 26rem;
+    margin-top: 0.7rem;
   }
 
   .discord-spotify-progress-track {
-    height: 7px;
+    height: 9px;
     border: 1px solid color-mix(in srgb, var(--color-phosphor) 28%, transparent);
     background:
       linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 8%, transparent) 1px, transparent 1px),
@@ -1178,7 +1574,9 @@
     justify-content: space-between;
     gap: 1rem;
     color: var(--color-phosphor-soft);
+    font-family: var(--font-mono);
     font-size: 0.62rem;
+    font-variant-numeric: tabular-nums;
     font-weight: 900;
     opacity: 0.56;
   }
@@ -1315,8 +1713,28 @@
   }
 
   .discord-idle-readout b {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.42rem;
     color: var(--color-phosphor);
     font-weight: 900;
+  }
+
+  .discord-idle-readout b::before {
+    width: 0.3rem;
+    height: 0.3rem;
+    content: "";
+    background: currentColor;
+    box-shadow: 0 0 6px currentColor;
+    animation: discord-idle-scan-pulse 1.6s ease-in-out infinite;
+  }
+
+  .discord-idle-readout > span:nth-child(2) b::before {
+    animation-delay: 0.28s;
+  }
+
+  .discord-idle-readout > span:nth-child(3) b::before {
+    animation-delay: 0.56s;
   }
 
   .discord-presence-footer {
@@ -1382,6 +1800,44 @@
   }
 }
 
+@keyframes discord-status-dot-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.55;
+    transform: scale(0.82);
+  }
+}
+
+@keyframes discord-activity-stats-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes discord-idle-scan-pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.72);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 @keyframes discord-idle-runner-bob {
   0%,
   100% {
@@ -1403,7 +1859,8 @@
     transition: none;
   }
 
-  .discord-presence-empty {
+  .discord-presence-empty,
+  .discord-activity-stats {
     animation: none;
   }
 
@@ -1413,12 +1870,32 @@
     transform: none;
   }
 
-  .discord-streak-chip svg {
+  .discord-streak-chip svg,
+  .discord-status-dot {
     animation: none;
   }
 
-  .discord-idle-runner {
+  .discord-status-dot {
+    opacity: 1;
+    transform: none;
+  }
+
+  .discord-device-tile {
+    transition: none;
+  }
+
+  .discord-device-tally.is-live i {
     animation: none;
+  }
+
+  .discord-idle-runner,
+  .discord-idle-readout b::before {
+    animation: none;
+  }
+
+  .discord-idle-readout b::before {
+    opacity: 1;
+    transform: none;
   }
 
   .discord-frame-overflow-toggle,
@@ -1431,6 +1908,28 @@
 @media (max-width: 980px) {
   .discord-presence-grid {
     grid-template-columns: 1fr;
+  }
+
+  /* En una sola columna la tarjeta de perfil ocupa todo el ancho, asi que el
+     adorno del marco queda centrado exactamente donde va la ruta de la barra de
+     titulo y se la come. No hay hueco libre en esa banda — el adorno la cruza
+     de lado a lado — asi que la ruta baja a la fila del rotulo, que cae por
+     debajo del adorno, y el rotulo generico se retira porque decia lo mismo.
+     Sin altura extra y sin perder el dato. */
+  .discord-presence-titlebar code,
+  .discord-presence-eyebrow {
+    display: none;
+  }
+
+  .discord-presence-path {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    color: var(--color-phosphor-soft);
+    font-size: 0.68rem;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 @media (min-width: 981px) {
@@ -1494,11 +1993,10 @@
     padding-inline: 0.65rem;
   }
 
-  .discord-presence-titlebar code {
-    max-width: 140px;
-    overflow: hidden;
-    font-size: 0.62rem;
-    text-overflow: ellipsis;
+  /* Los clientes son detalle de escritorio; en movil la tarjeta ya es alta y lo
+     que importa es identidad y estado. */
+  .discord-device-bay {
+    display: none;
   }
 
   .discord-frame-overflow-toggle {
@@ -1522,13 +2020,47 @@
 
   .discord-activity-card {
     grid-template-columns: 72px minmax(0, 1fr);
+    grid-template-areas:
+      "art main"
+      "art rail"
+      "stats stats";
   }
 
   .discord-activity-art {
     width: 72px;
+    align-self: start;
   }
 
-  .discord-activity-card em {
-    grid-column: 2;
+  .discord-activity-rail {
+    align-content: start;
+    justify-items: start;
+    padding-top: 0.5rem;
+    text-align: left;
+  }
+
+  .discord-activity-clock {
+    justify-items: start;
+  }
+
+  /* El restante de Spotify se va en movil: la barra de progreso y las dos
+     marcas de tiempo que tiene debajo ya cuentan lo mismo, y en una tarjeta
+     estrecha ese bloque grande era el elemento que mas sitio ocupaba. El
+     cronometro de sesion de los juegos se queda, que ahi no hay barra. */
+  .discord-activity-clock.is-remaining {
+    display: none;
+  }
+
+  /* Si el raíl solo llevaba ese reloj, se retira entero para no dejar una
+     franja vacia bajo la tarjeta. */
+  .discord-activity-rail:has(.is-remaining):not(:has(em)) {
+    display: none;
+  }
+
+  .discord-activity-clock b {
+    font-size: 1.15rem;
+  }
+
+  .discord-activity-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
