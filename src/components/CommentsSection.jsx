@@ -3,6 +3,7 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
+  CornerDownRight,
   Image as ImageIcon,
   LogIn,
   LogOut,
@@ -1230,29 +1231,35 @@ export function CommentsSection() {
                       </div>
                       {visibleReplies.map((reply, replyIndex) => {
                         const canDeleteReply = !!auth.user && (auth.user.isAdmin || reply.mine);
-                        const replyTarget = replyIndex > 0 ? replies[replyIndex - 1]?.author : comment.author;
-                        const replyTargetName = replyTarget?.username || (replyIndex > 0 ? "previous reply" : "original post");
+                        const isFollowUp = replyIndex > 0;
+                        const replyTarget = isFollowUp ? replies[replyIndex - 1]?.author : comment.author;
+                        const replyTargetName = replyTarget?.username || (isFollowUp ? "previous reply" : "original post");
+                        const replyFromThreadAuthor = !!reply.author?.id && reply.author.id === comment.author?.id;
                         return (
                           <article
-                            className={`comment-reply ${replyIndex > 0 ? "is-follow-up" : "is-direct-reply"}`}
+                            className={`comment-reply ${isFollowUp ? "is-follow-up" : "is-direct-reply"}`}
                             key={reply.id}
                             aria-label={`Reply from ${reply.author?.username || "Unknown signal"} to ${replyTargetName}`}
                           >
-                            <span className="comment-reply-index" aria-hidden="true">
-                              reply {String(replyIndex + 1).padStart(2, "0")}
-                            </span>
                             <div className="comment-reply-avatar">
                               <UserAvatar user={reply.author} />
+                              {/* El indice ya no flota sobre el borde: baja al avatar como
+                                  matricula del puesto, igual que el sig_NN del comentario. */}
+                              <span className="comment-reply-index" aria-hidden="true">{String(replyIndex + 1).padStart(2, "0")}</span>
                             </div>
                             <div className="comment-reply-content">
-                              <div className="comment-reply-context">
-                                <Reply size={11} aria-hidden="true" />
-                                <span>replying to</span>
-                                <b>@{replyTargetName}</b>
-                              </div>
                               <header>
                                 <strong>{reply.author?.username || "Unknown signal"}</strong>
                                 {reply.author?.isAdmin ? <em className="comment-admin-badge"><ShieldCheck size={10} aria-hidden="true" /> admin</em> : null}
+                                {replyFromThreadAuthor ? <em className="comment-op-badge">op</em> : null}
+                                {/* El "replying to" ocupaba una linea propia encima del nombre, o
+                                    sea que leias el destino antes de saber quien hablaba. Ahora es
+                                    una miga inline detras del autor: "Dai -> @Nena". El aria-label
+                                    del article ya dice lo mismo en largo, asi que aqui sobra. */}
+                                <span className="comment-reply-context" aria-hidden="true">
+                                  <CornerDownRight size={10} />
+                                  <b>@{replyTargetName}</b>
+                                </span>
                                 <span className="comment-time has-tooltip" data-tooltip={formatFullTimestamp(reply.createdAt)} tabIndex="0">{formatTimestamp(reply.createdAt)}</span>
                                 {canDeleteReply ? (
                                   <button className="has-tooltip" data-tooltip={reply.mine ? "Delete your reply." : "Admin delete reply."} type="button" onClick={() => openDeleteReply(comment, reply)} aria-label="Delete reply">
@@ -1267,26 +1274,30 @@ export function CommentsSection() {
                           </article>
                         );
                       })}
+                      {/* El pie va envuelto porque el boton ya usa ::before/::after para su
+                          tooltip: el codo que cierra el rail necesita pseudos libres. */}
                       {collapsibleReplies ? (
-                        <button
-                          className="comment-replies-toggle has-tooltip"
-                          data-tooltip={threadExpanded ? "Collapse the thread." : "Show the rest of this thread."}
-                          type="button"
-                          onClick={() => toggleThread(comment.id)}
-                          aria-expanded={threadExpanded}
-                        >
-                          {threadExpanded ? (
-                            <>
-                              <ChevronUp size={13} aria-hidden="true" />
-                              show less
-                            </>
-                          ) : (
-                            <>
-                              <ChevronDown size={13} aria-hidden="true" />
-                              show more ({hiddenReplyCount})
-                            </>
-                          )}
-                        </button>
+                        <div className="comment-replies-foot">
+                          <button
+                            className="comment-replies-toggle has-tooltip"
+                            data-tooltip={threadExpanded ? "Collapse the thread." : "Show the rest of this thread."}
+                            type="button"
+                            onClick={() => toggleThread(comment.id)}
+                            aria-expanded={threadExpanded}
+                          >
+                            {threadExpanded ? (
+                              <>
+                                <ChevronUp size={13} aria-hidden="true" />
+                                show less
+                              </>
+                            ) : (
+                              <>
+                                <ChevronDown size={13} aria-hidden="true" />
+                                show more ({hiddenReplyCount})
+                              </>
+                            )}
+                          </button>
+                        </div>
                       ) : null}
                     </div>
                   ) : null}

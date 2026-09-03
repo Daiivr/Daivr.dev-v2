@@ -1691,12 +1691,25 @@
     opacity: 0;
   }
 
+  /* Hilo de respuestas. Antes cada respuesta era otra caja con el mismo
+     peso visual que el comentario original, asi que un hilo parecia tres
+     comentarios sueltos y el segundo nivel solo se notaba por 1rem de
+     sangria. Ahora las respuestas cuelgan de un rail continuo: la
+     respuesta directa engancha con un codo solido en cian, y la
+     respuesta a la respuesta entra un escalon mas con codo punteado y
+     acento fosforo. */
   .comment-replies {
+    --thread-gap: 0.7rem;
+    --thread-indent: 1.6rem;
+    --thread-step: 1.05rem;
+    --thread-rail-x: 0.42rem;
+    --thread-lead: calc(var(--thread-indent) - var(--thread-rail-x));
+    --thread-rail: color-mix(in srgb, var(--color-cyan-arcade) 34%, transparent);
     position: relative;
     display: grid;
-    gap: 0.9rem;
-    margin-top: 1.05rem;
-    padding-left: 0.75rem;
+    gap: var(--thread-gap);
+    margin-top: 1.15rem;
+    padding-left: var(--thread-indent);
   }
 
   .comment-thread-heading {
@@ -1720,6 +1733,20 @@
     text-transform: uppercase;
   }
 
+  /* El rail nace en la cabecera del hilo: codo hacia la izquierda y
+     bajada hasta la primera respuesta. */
+  .comment-thread-heading::before {
+    position: absolute;
+    top: 50%;
+    left: calc(-1 * var(--thread-lead) - 3px);
+    width: var(--thread-lead);
+    height: calc(50% + var(--thread-gap));
+    border-top: 1px solid var(--thread-rail);
+    border-left: 1px solid var(--thread-rail);
+    content: "";
+    pointer-events: none;
+  }
+
   .comment-thread-heading::after {
     position: absolute;
     top: 50%;
@@ -1740,132 +1767,258 @@
   }
 
   .comment-reply {
+    --reply-accent: var(--color-cyan-arcade);
+    --reply-elbow-y: 1.6rem;
     position: relative;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    justify-self: start;
-    gap: 0.65rem;
+    align-items: start;
+    gap: 0.6rem;
     box-sizing: border-box;
-    width: fit-content;
-    min-width: min(25rem, 100%);
-    max-width: 100%;
-    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 20%, transparent);
-    border-top-color: color-mix(in srgb, var(--color-cyan-arcade) 42%, transparent);
+    min-width: 0;
+    border: 1px solid color-mix(in srgb, var(--reply-accent) 15%, transparent);
+    border-left: 2px solid color-mix(in srgb, var(--reply-accent) 52%, transparent);
     background:
-      linear-gradient(135deg, color-mix(in srgb, var(--color-cyan-arcade) 6%, transparent), transparent 34%),
-      rgba(2, 6, 4, 0.66);
-    box-shadow:
-      inset 0 1px color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent),
-      0 7px 18px rgba(0, 0, 0, 0.12);
-    padding: 0.95rem 0.75rem 0.75rem;
+      linear-gradient(90deg, color-mix(in srgb, var(--reply-accent) 7%, transparent), transparent 42%),
+      rgba(2, 6, 4, 0.5);
+    padding: 0.85rem 0.8rem 0.7rem;
+    transition: border-color 160ms ease, background 160ms ease;
   }
 
+  .comment-reply:hover {
+    border-color: color-mix(in srgb, var(--reply-accent) 26%, transparent);
+    border-left-color: color-mix(in srgb, var(--reply-accent) 82%, white);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--reply-accent) 12%, transparent), transparent 46%),
+      rgba(2, 6, 4, 0.62);
+  }
+
+  /* Tramo de rail: tapa el hueco de arriba y baja por el costado, asi la
+     linea queda continua sin depender de la altura del grupo. */
   .comment-reply::before {
     position: absolute;
-    top: -1px;
-    left: -1px;
-    width: 4.5rem;
-    height: 2px;
-    background: linear-gradient(90deg, var(--color-cyan-arcade), color-mix(in srgb, var(--color-cyan-arcade) 36%, transparent), transparent);
+    top: calc(-1 * var(--thread-gap) - 2px);
+    bottom: -1px;
+    left: calc(-1 * var(--thread-lead) - 2px);
+    width: 1px;
+    background: var(--thread-rail);
     content: "";
+    pointer-events: none;
   }
 
+  /* La ultima respuesta corta el rail en su propio codo: nada cuelga. */
+  .comment-reply:last-of-type::before {
+    bottom: auto;
+    height: calc(var(--thread-gap) + var(--reply-elbow-y) + 2px);
+  }
+
+  /* ...salvo que debajo quede el boton de plegado, que cierra el hilo. */
+  .comment-replies:has(.comment-replies-foot) .comment-reply:last-of-type::before {
+    bottom: -1px;
+    height: auto;
+  }
+
+  /* Codo horizontal rail -> tarjeta, a la altura del avatar. */
   .comment-reply::after {
     position: absolute;
-    top: 0;
-    right: 0;
-    width: 0.65rem;
-    height: 0.65rem;
-    border-top: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 42%, transparent);
-    border-right: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 42%, transparent);
+    top: var(--reply-elbow-y);
+    left: calc(-1 * var(--thread-lead) - 2px);
+    width: var(--thread-lead);
+    height: 1px;
+    background: linear-gradient(90deg, var(--thread-rail), color-mix(in srgb, var(--reply-accent) 62%, transparent));
     content: "";
+    pointer-events: none;
   }
 
+  .comment-reply.is-follow-up {
+    --reply-accent: var(--color-phosphor);
+    --reply-elbow-y: 1.47rem;
+    margin-left: var(--thread-step);
+    padding: 0.78rem 0.75rem 0.65rem;
+  }
+
+  /* Segundo nivel: el rail sigue siendo el del hilo, pero el codo se
+     alarga y se vuelve punteado para marcar el escalon. */
+  .comment-reply.is-follow-up::before {
+    left: calc(-1 * (var(--thread-lead) + var(--thread-step)) - 2px);
+  }
+
+  .comment-reply.is-follow-up::after {
+    left: calc(-1 * (var(--thread-lead) + var(--thread-step)) - 2px);
+    width: calc(var(--thread-lead) + var(--thread-step));
+    background: repeating-linear-gradient(90deg, var(--thread-rail) 0 3px, transparent 3px 6px);
+  }
+
+  .comment-reply-avatar {
+    display: grid;
+    justify-items: center;
+    gap: 0.24rem;
+  }
+
+  .comment-reply-avatar > img,
+  .comment-reply-avatar > span:not(.comment-reply-index) {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border: 1px solid color-mix(in srgb, var(--reply-accent) 36%, transparent);
+    background: color-mix(in srgb, var(--reply-accent) 10%, transparent);
+    color: color-mix(in srgb, var(--reply-accent) 88%, white);
+    font-size: 0.6rem;
+    font-weight: 900;
+    object-fit: cover;
+  }
+
+  .comment-reply.is-follow-up .comment-reply-avatar > img,
+  .comment-reply.is-follow-up .comment-reply-avatar > span:not(.comment-reply-index) {
+    width: 22px;
+    height: 22px;
+  }
+
+  /* El indice era un badge flotando sobre el borde superior; ahora es la
+     matricula del puesto, debajo del avatar y fuera del texto. */
   .comment-reply-index {
-    position: absolute;
-    top: -0.58rem;
-    left: 0.65rem;
-    z-index: 1;
-    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 42%, transparent);
-    background: #020604;
-    padding: 0.18rem 0.42rem;
-    color: color-mix(in srgb, var(--color-cyan-arcade) 76%, white);
+    color: color-mix(in srgb, var(--reply-accent) 72%, transparent);
+    font-family: var(--font-mono);
     font-size: 0.48rem;
     font-weight: 900;
-    letter-spacing: 0.07em;
+    letter-spacing: 0.08em;
     line-height: 1;
-    text-transform: uppercase;
-  }
-
-  /* Follow-ups step inward like a stacked transmission. Only this short local
-     bridge remains; there is no full-height rail competing with the cards. */
-  .comment-reply.is-follow-up {
-    margin-left: 1.15rem;
-    max-width: calc(100% - 1.15rem);
-    border-top-color: color-mix(in srgb, var(--color-phosphor) 40%, transparent);
-    background:
-      linear-gradient(135deg, color-mix(in srgb, var(--color-phosphor) 5%, transparent), transparent 34%),
-      rgba(2, 6, 4, 0.66);
-  }
-
-  .comment-reply.is-follow-up::before {
-    top: -0.92rem;
-    left: -0.78rem;
-    width: 0.78rem;
-    height: 0.92rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--color-phosphor) 42%, transparent);
-    border-left: 1px solid color-mix(in srgb, var(--color-phosphor) 42%, transparent);
-    background: none;
-  }
-
-  .comment-reply.is-follow-up .comment-reply-index {
-    border-color: color-mix(in srgb, var(--color-phosphor) 38%, transparent);
-    color: color-mix(in srgb, var(--color-phosphor) 74%, white);
   }
 
   .comment-reply-content {
     min-width: 0;
   }
 
-  .comment-reply-context {
+  .comment-reply header {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 0.28rem;
-    margin-bottom: 0.35rem;
-    color: color-mix(in srgb, var(--color-cyan-arcade) 58%, transparent);
-    font-size: 0.54rem;
+    gap: 0.36rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .comment-reply header strong {
+    color: #fff;
+    font-size: 0.76rem;
     font-weight: 900;
-    letter-spacing: 0.05em;
-    line-height: 1;
+    overflow-wrap: anywhere;
+  }
+
+  .comment-reply header em,
+  .comment-reply header span {
+    color: color-mix(in srgb, var(--color-phosphor-soft) 58%, transparent);
+    font-size: 0.58rem;
+    font-style: normal;
+    font-weight: 900;
     text-transform: uppercase;
   }
 
-  .comment-reply-context svg {
-    flex: 0 0 auto;
+  .comment-reply header .comment-admin-badge {
+    border-color: color-mix(in srgb, var(--color-phosphor) 48%, transparent);
+    color: var(--color-phosphor);
+    font-size: 0.54rem;
+    line-height: 1;
+    padding: 0.16rem 0.34rem;
   }
 
+  /* Marca al autor del comentario original cuando vuelve a su propio
+     hilo: sin esto parecia un tercero cualquiera. */
+  .comment-reply header .comment-op-badge {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid color-mix(in srgb, var(--color-cabinet) 44%, transparent);
+    background: color-mix(in srgb, var(--color-cabinet) 10%, rgba(2, 6, 4, 0.72));
+    color: var(--color-cabinet);
+    font-size: 0.52rem;
+    letter-spacing: 0.06em;
+    line-height: 1;
+    padding: 0.16rem 0.32rem;
+  }
+
+  .comment-reply header .comment-reply-context {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    min-width: 0;
+    color: color-mix(in srgb, var(--reply-accent) 64%, white);
+    font-size: 0.55rem;
+    letter-spacing: 0.03em;
+  }
+
+  .comment-reply header .comment-reply-context svg {
+    flex: 0 0 auto;
+    opacity: 0.72;
+  }
+
+  /* El nombre va como lo escribio su duena: el resto de la miga si va en
+     mayusculas de consola, pero un @usuario gritado al lado del autor en
+     caja normal se leia como otra etiqueta del sistema. */
   .comment-reply-context b {
-    max-width: 14rem;
     overflow: hidden;
-    color: color-mix(in srgb, var(--color-cyan-arcade) 78%, white);
+    max-width: 11rem;
     text-overflow: ellipsis;
+    text-transform: none;
     white-space: nowrap;
   }
 
-  /* Colapsa el hilo: tras la primera respuesta, el resto se oculta detras de
-     este boton (show more / show less). */
+  .comment-reply header button {
+    margin-left: auto;
+    min-height: 1.65rem;
+    padding-inline: 0.45rem;
+  }
+
+  .comment-reply p {
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .comment-reply.is-follow-up p {
+    font-size: 0.8rem;
+  }
+
+  .comment-reply .comment-gif {
+    width: min(240px, 100%);
+  }
+
+  .comment-reply.is-follow-up .comment-gif {
+    width: min(215px, 100%);
+  }
+
+  /* Colapsa el hilo: tras la primera respuesta, el resto se oculta detras
+     de este boton (show more / show less). El envoltorio existe solo para
+     cerrar el rail con un codo, porque el boton gasta sus pseudos en el
+     tooltip. */
+  .comment-replies-foot {
+    position: relative;
+    display: flex;
+    justify-self: start;
+  }
+
+  .comment-replies-foot::before {
+    position: absolute;
+    top: calc(-1 * var(--thread-gap) - 1px);
+    left: calc(-1 * var(--thread-lead));
+    width: var(--thread-lead);
+    height: calc(50% + var(--thread-gap) + 1px);
+    border-bottom: 1px solid var(--thread-rail);
+    border-left: 1px solid var(--thread-rail);
+    content: "";
+    pointer-events: none;
+  }
+
   .comment-replies-toggle {
     display: inline-flex;
     align-items: center;
     justify-self: start;
     gap: 0.35rem;
-    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 34%, transparent);
-    background: color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent);
-    padding: 0.36rem 0.62rem;
-    color: var(--color-cyan-arcade);
-    font-size: 0.62rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 30%, transparent);
+    background: color-mix(in srgb, var(--color-cyan-arcade) 7%, rgba(2, 6, 4, 0.66));
+    padding: 0.34rem 0.6rem;
+    color: color-mix(in srgb, var(--color-cyan-arcade) 88%, white);
+    font-size: 0.58rem;
     font-weight: 900;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
     text-transform: uppercase;
     cursor: pointer;
     transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
@@ -1883,73 +2036,35 @@
     height: 13px;
   }
 
-  .comment-reply-avatar img,
-  .comment-reply-avatar span {
-    display: grid;
-    place-items: center;
-    width: 24px;
-    height: 24px;
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 32%, transparent);
-    background: rgba(63, 255, 151, 0.1);
-    color: var(--color-phosphor);
-    font-size: 0.6rem;
-    font-weight: 900;
-    object-fit: cover;
-  }
-
-  .comment-reply header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.4rem;
-    margin-bottom: 0.25rem;
-  }
-
-  .comment-reply header strong {
-    color: #fff;
-    font-size: 0.78rem;
-    font-weight: 900;
-  }
-
-  .comment-reply header em,
-  .comment-reply header span {
-    color: color-mix(in srgb, var(--color-phosphor-soft) 58%, transparent);
-    font-size: 0.58rem;
-    font-style: normal;
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-
-  .comment-reply header .comment-admin-badge {
-    border-color: color-mix(in srgb, var(--color-phosphor) 48%, transparent);
-    color: var(--color-phosphor);
-    font-size: 0.56rem;
-    line-height: 1;
-    padding: 0.16rem 0.34rem;
-  }
-
-  .comment-reply header button {
-    margin-left: auto;
-    min-height: 1.65rem;
-    padding-inline: 0.45rem;
-  }
-
-  .comment-reply p {
-    font-size: 0.82rem;
-    line-height: 1.45;
-  }
-
-  .comment-reply .comment-gif {
-    width: min(240px, 100%);
-  }
-
   .comment-reply-form {
+    position: relative;
     display: grid;
     gap: 0.65rem;
-    margin-top: 0.85rem;
-    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 22%, transparent);
-    background: rgba(48, 221, 255, 0.035);
-    padding: 0.75rem;
+    margin-top: 1.05rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 20%, transparent);
+    border-left: 2px solid color-mix(in srgb, var(--color-cyan-arcade) 58%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent), transparent 48%),
+      rgba(2, 6, 4, 0.52);
+    padding: 0.85rem 0.75rem 0.75rem;
+  }
+
+  .comment-reply-form::before {
+    position: absolute;
+    top: 0;
+    left: 0.55rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 42%, transparent);
+    background: #020604;
+    padding: 0.16rem 0.4rem;
+    color: color-mix(in srgb, var(--color-cyan-arcade) 84%, white);
+    font-family: var(--font-mono);
+    font-size: 0.46rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    line-height: 1;
+    text-transform: uppercase;
+    transform: translateY(-50%);
+    content: "new reply";
   }
 
   .comment-reply-form .comments-input-frame textarea {
@@ -2150,6 +2265,29 @@
 
     .comment-card {
       grid-template-columns: 1fr;
+    }
+
+    /* El hilo mantiene rail y escalon, solo que mas estrechos: en movil
+       cada rem de sangria se come el ancho util de la respuesta. */
+    .comment-replies {
+      --thread-gap: 0.6rem;
+      --thread-indent: 1.05rem;
+      --thread-step: 0.65rem;
+      --thread-rail-x: 0.28rem;
+    }
+
+    .comment-reply {
+      --reply-elbow-y: 1.5rem;
+      padding: 0.75rem 0.65rem 0.6rem;
+    }
+
+    .comment-reply.is-follow-up {
+      --reply-elbow-y: 1.39rem;
+      padding: 0.7rem 0.6rem 0.58rem;
+    }
+
+    .comment-reply-context b {
+      max-width: 7.5rem;
     }
 
     .comments-gif-search {
