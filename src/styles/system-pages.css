@@ -1,435 +1,766 @@
+/* Paginas de recuperacion (404 / 403).
+
+   Antes eran un tablero: numeral gigante a la izquierda y una tarjeta de radar
+   a la derecha, con media pagina en blanco debajo. Ahora la pagina es el mueble
+   arcade averiado: marquesina que corre arriba, el monitor CRT enseñando la
+   falla, el panel de control debajo, y la estanteria de cartuchos con las rutas
+   que si responden. */
 @layer components {
   .system-gate-page {
-    --gate-accent: var(--color-cyan-arcade);
-    --gate-accent-2: var(--color-glitch);
+    --gate-accent: var(--color-phosphor);
+    --gate-accent-2: var(--color-cyan-arcade);
+    --gate-accent-3: var(--color-glitch);
+    --gate-ink: #020604;
+    --gate-px: 0;
+    --gate-py: 0;
     position: relative;
     isolation: isolate;
     display: grid;
+    grid-template-rows: auto auto 1fr auto auto;
     min-height: 100dvh;
     overflow: hidden auto;
-    background: #020705;
+    background: var(--gate-ink);
     color: var(--color-phosphor-soft);
     font-family: var(--font-mono);
   }
 
-  .system-gate-page.is-denied {
-    --gate-accent: #ff4f78;
-    --gate-accent-2: #ffc857;
-    background:
-      radial-gradient(ellipse at 50% 44%, #0b0908 0 26%, #090504 54%, #030202 100%);
-  }
-
   .system-gate-page.is-missing {
-    background:
-      radial-gradient(ellipse at 68% 16%, rgba(45, 196, 255, 0.14), transparent 28%),
-      radial-gradient(ellipse at 18% 82%, rgba(238, 48, 145, 0.08), transparent 34%),
-      linear-gradient(145deg, #031215 0%, #020a0c 38%, #050509 72%, #09030a 100%);
+    background: linear-gradient(180deg, #01100b 0%, #010a09 42%, #02060a 72%, #04030a 100%);
   }
 
-  .system-gate-page::before,
-  .system-gate-page::after {
+  .system-gate-page.is-denied {
+    --gate-accent: var(--color-glitch);
+    --gate-accent-2: var(--color-cabinet);
+    --gate-accent-3: var(--color-danger-arcade);
+    --gate-ink: #0a0308;
+    background: linear-gradient(180deg, #14040c 0%, #0b0308 44%, #070206 74%, #050104 100%);
+  }
+
+  /* ── Fondo ──────────────────────────────────────────────────────────
+     Cada pagina tiene su mundo. El 404 esta perdido en el vacio: campo de
+     estrellas, mapa de sectores girando y el limbo de un planeta abajo. El 403
+     esta encerrado: chevrones de peligro cayendo, faro rotatorio desde arriba
+     y barras de contencion. Solo la estructura de capas es comun.
+
+     La linea recta que cruzaba la pantalla era el horizonte: 2px a todo lo
+     ancho, sin nada debajo que lo justificara porque el mueble tapaba el suelo.
+     Ninguna de las dos variantes usa ya una recta de lado a lado. */
+
+  .gate-bg {
     position: fixed;
     inset: 0;
-    z-index: -3;
-    content: "";
+    z-index: 0;
+    overflow: hidden;
     pointer-events: none;
   }
 
-  .system-gate-page.is-missing::before {
-    background-image:
-      radial-gradient(circle, rgba(109, 225, 255, .72) 0 1px, transparent 1.5px),
-      radial-gradient(circle, rgba(255, 108, 191, .44) 0 1px, transparent 1.4px),
-      radial-gradient(circle, rgba(170, 255, 215, .36) 0 1px, transparent 1.3px);
-    background-position: 8px 13px, 46px 71px, 91px 31px;
-    background-size: 113px 109px, 173px 157px, 211px 193px;
-    opacity: .34;
-    animation: system-gate-star-drift 40s linear infinite;
-  }
-
-  .system-gate-page.is-missing::after {
-    z-index: -2;
-    inset: -18%;
-    background:
-      linear-gradient(118deg, transparent 25%, rgba(45, 216, 255, .04) 41%, rgba(45, 216, 255, .14) 48%, rgba(255, 59, 164, .07) 54%, transparent 68%);
-    filter: blur(34px);
-    opacity: .76;
-    transform: translate3d(-3%, -1%, 0) rotate(-2deg);
-    animation: system-gate-void-rift 16s ease-in-out infinite alternate;
-  }
-
-  .system-gate-page.is-denied::before {
-    background: repeating-linear-gradient(135deg, rgba(255, 79, 120, .13) 0 12px, transparent 12px 28px);
-    opacity: .26;
-    mask-image: linear-gradient(90deg, black, transparent 22%, transparent 78%, black);
-  }
-
-  .system-gate-page.is-denied::after {
-    z-index: -2;
-    background:
-      linear-gradient(90deg, rgba(255, 79, 120, .08), transparent 18% 82%, rgba(255, 79, 120, .08)),
-      radial-gradient(ellipse at center, transparent 0 38%, rgba(255, 37, 86, .035) 64%, rgba(255, 37, 86, .11) 100%);
-    box-shadow: inset 0 0 180px rgba(255, 44, 88, .08);
-  }
-
-  .system-gate-grid,
-  .system-gate-glow,
-  .system-gate-scanline,
-  .system-gate-noise {
-    position: fixed;
+  .gate-bg > span {
+    position: absolute;
     inset: 0;
-    z-index: -1;
-    pointer-events: none;
   }
 
-  .system-gate-grid {
-    background-image:
-      linear-gradient(color-mix(in srgb, var(--gate-accent) 8%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in srgb, var(--gate-accent) 8%, transparent) 1px, transparent 1px),
-      linear-gradient(color-mix(in srgb, var(--gate-accent) 3%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in srgb, var(--gate-accent) 3%, transparent) 1px, transparent 1px);
-    background-size: 80px 80px, 80px 80px, 16px 16px, 16px 16px;
-    mask-image: linear-gradient(to bottom, black, rgba(0, 0, 0, 0.3));
+  /* El parallax va en `translate`, que es propiedad aparte de `transform`, asi
+     que se compone con los keyframes en vez de pelearse con ellos. */
+  .gate-bg-aurora {
+    filter: blur(58px);
+    opacity: 0.72;
+    translate: calc(var(--gate-px, 0) * -20px) calc(var(--gate-py, 0) * -12px);
+    animation: gate-aurora 26s ease-in-out infinite alternate;
+    will-change: transform, opacity;
   }
 
-  .system-gate-page.is-missing .system-gate-grid {
-    inset: 20% -16% -48%;
-    background-size: 96px 96px, 96px 96px, 19px 19px, 19px 19px;
-    mask-image: linear-gradient(to top, black, transparent 84%);
-    opacity: .8;
-    transform: perspective(680px) rotateX(58deg) scale(1.18);
-    transform-origin: center bottom;
+  .gate-bg-scan {
+    z-index: 3;
+    background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 4px);
+    mix-blend-mode: screen;
+    opacity: 0.34;
   }
 
-  .system-gate-page.is-denied .system-gate-grid {
-    background-image:
-      linear-gradient(rgba(255, 79, 120, .075) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 79, 120, .075) 1px, transparent 1px),
-      linear-gradient(rgba(255, 200, 87, .018) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 200, 87, .018) 1px, transparent 1px);
-    background-size: 64px 64px, 64px 64px, 8px 8px, 8px 8px;
-    mask-image: radial-gradient(ellipse at center, black 16%, rgba(0,0,0,.68) 62%, transparent 100%);
-  }
-
-  .system-gate-glow {
-    inset: 7% 5%;
-    border: 1px solid color-mix(in srgb, var(--gate-accent) 12%, transparent);
-    transform: skewX(-14deg);
-    box-shadow: inset 0 0 140px color-mix(in srgb, var(--gate-accent) 6%, transparent);
-  }
-
-  .system-gate-scanline {
-    inset: -18vh 0 auto;
+  .gate-bg-sweep {
     z-index: 4;
-    height: 18vh;
-    background: linear-gradient(transparent, color-mix(in srgb, var(--gate-accent) 5%, transparent), transparent);
-    opacity: 0.58;
-    animation: system-gate-scan 8s linear infinite;
+    inset: -24vh 0 auto;
+    height: 24vh;
+    background: linear-gradient(transparent, color-mix(in srgb, var(--gate-accent) 8%, transparent), transparent);
+    animation: gate-sweepdown 9s linear infinite;
     will-change: transform;
   }
 
-  .system-gate-noise {
+  .gate-bg-vignette {
     z-index: 5;
-    background: repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 4px);
+    background: radial-gradient(ellipse at 50% 46%, transparent 40%, rgba(0, 0, 0, 0.26) 78%, rgba(0, 0, 0, 0.6) 100%);
+  }
+
+  /* ── 404 // el vacio ────────────────────────────────────────────────── */
+
+  .system-gate-page.is-missing .gate-bg-aurora {
+    background:
+      radial-gradient(36% 44% at 20% 16%, color-mix(in srgb, var(--gate-accent) 28%, transparent), transparent 70%),
+      radial-gradient(42% 38% at 80% 10%, color-mix(in srgb, var(--gate-accent-2) 24%, transparent), transparent 72%),
+      radial-gradient(54% 46% at 52% 96%, color-mix(in srgb, var(--gate-accent-3) 15%, transparent), transparent 74%);
+  }
+
+  /* Tres tamanos de punto a tres velocidades: distancia sin pintar de mas. */
+  .system-gate-page.is-missing .gate-bg-stars {
+    background-image:
+      radial-gradient(circle, color-mix(in srgb, var(--gate-accent) 85%, white) 0 1.1px, transparent 1.6px),
+      radial-gradient(circle, color-mix(in srgb, var(--gate-accent-2) 72%, white) 0 1px, transparent 1.4px),
+      radial-gradient(circle, color-mix(in srgb, var(--gate-accent-3) 60%, white) 0 0.9px, transparent 1.3px);
+    background-position: 12px 24px, 68px 96px, 140px 44px;
+    background-size: 210px 190px, 330px 290px, 470px 410px;
+    opacity: 0.46;
+    translate: calc(var(--gate-px, 0) * 16px) calc(var(--gate-py, 0) * 11px);
+    animation: gate-stars 52s linear infinite;
+  }
+
+  /* Mapa de sectores: anillos concentricos girando muy despacio detras del
+     mueble, que es de lo que el 404 dice haberse salido. */
+  .system-gate-page.is-missing .gate-bg-floor {
+    inset: -26%;
+    background:
+      repeating-radial-gradient(
+        ellipse 42% 30% at 50% 50%,
+        transparent 0 54px,
+        color-mix(in srgb, var(--gate-accent) 20%, transparent) 54px 55px
+      ),
+      conic-gradient(
+        from 0deg at 50% 50%,
+        transparent 0 24%,
+        color-mix(in srgb, var(--gate-accent) 7%, transparent) 32%,
+        transparent 40% 100%
+      );
+    mask-image: radial-gradient(ellipse 46% 40% at 50% 50%, #000 26%, transparent 82%);
+    opacity: 0.5;
+    translate: calc(var(--gate-px, 0) * 8px) calc(var(--gate-py, 0) * 6px);
+    animation: gate-sectors 110s linear infinite;
+  }
+
+  /* Limbo de un planeta asomando por abajo. Es la curva que sustituye a la
+     recta: nunca cruza el mueble de lado a lado. */
+  .system-gate-page.is-missing .gate-bg-horizon {
+    inset: auto -34% -82% -34%;
+    height: 115%;
+    border-radius: 50%;
+    border-top: 1px solid color-mix(in srgb, var(--gate-accent) 46%, transparent);
+    background: radial-gradient(ellipse at 50% 0, color-mix(in srgb, var(--gate-accent) 15%, transparent), transparent 44%);
+    box-shadow: 0 -22px 70px color-mix(in srgb, var(--gate-accent) 16%, transparent);
+    opacity: 0.62;
+    translate: 0 calc(var(--gate-py, 0) * 10px);
+    animation: gate-limb 7.5s ease-in-out infinite alternate;
+  }
+
+  /* Restos a la deriva. */
+  .system-gate-page.is-missing .gate-bg-pillars i {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    border: 1px solid color-mix(in srgb, var(--gate-accent-2) 60%, transparent);
+    opacity: 0.3;
+    animation: gate-debris 17s ease-in-out infinite alternate;
+  }
+
+  .system-gate-page.is-missing .gate-bg-pillars i:nth-child(1) { left: 8%; top: 26%; animation-delay: -1.2s; }
+  .system-gate-page.is-missing .gate-bg-pillars i:nth-child(2) { left: 17%; top: 68%; animation-delay: -6.4s; }
+  .system-gate-page.is-missing .gate-bg-pillars i:nth-child(3) { right: 12%; top: 32%; animation-delay: -3.1s; }
+  .system-gate-page.is-missing .gate-bg-pillars i:nth-child(4) { right: 7%; top: 74%; animation-delay: -9.8s; }
+  .system-gate-page.is-missing .gate-bg-pillars i:nth-child(5) { left: 46%; top: 12%; animation-delay: -12.5s; }
+
+  /* ── 403 // la celda ────────────────────────────────────────────────── */
+
+  .system-gate-page.is-denied .gate-bg-aurora {
+    background:
+      radial-gradient(46% 34% at 50% 4%, color-mix(in srgb, var(--gate-accent) 34%, transparent), transparent 72%),
+      radial-gradient(38% 40% at 8% 82%, color-mix(in srgb, var(--gate-accent-2) 18%, transparent), transparent 74%),
+      radial-gradient(38% 40% at 92% 82%, color-mix(in srgb, var(--gate-accent-3) 20%, transparent), transparent 74%);
+    animation: gate-aurora 26s ease-in-out infinite alternate, gate-alarm 3.4s ease-in-out infinite;
+  }
+
+  /* Chevrones de peligro cayendo por toda la sala. */
+  .system-gate-page.is-denied .gate-bg-stars {
+    background-image: repeating-linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--gate-accent) 20%, transparent) 0 14px,
+      transparent 14px 44px
+    );
     opacity: 0.24;
-    mix-blend-mode: screen;
+    translate: calc(var(--gate-px, 0) * 10px) 0;
+    animation: gate-hazard 7s linear infinite;
   }
 
-  .system-gate-personality {
-    position: fixed;
+  /* Rejilla de contencion: solo en el borde, nunca por detras del mueble. */
+  .system-gate-page.is-denied .gate-bg-floor {
     inset: 0;
-    z-index: -1;
-    pointer-events: none;
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--gate-accent) 26%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--gate-accent) 22%, transparent) 1px, transparent 1px);
+    background-size: 62px 62px, 62px 62px;
+    mask-image: radial-gradient(ellipse 48% 44% at 50% 46%, transparent 38%, #000 92%);
+    opacity: 0.4;
+    translate: calc(var(--gate-px, 0) * 6px) calc(var(--gate-py, 0) * 5px);
+    animation: gate-cell 9s linear infinite;
   }
 
-  .system-gate-page.is-missing .system-gate-personality span {
+  /* Faro rotatorio colgado del techo: el cono barre la sala. */
+  .system-gate-page.is-denied .gate-bg-horizon {
+    inset: -40% -20%;
+    background: conic-gradient(
+      from 0deg at 50% 34%,
+      transparent 0 82%,
+      color-mix(in srgb, var(--gate-accent) 10%, transparent) 88%,
+      color-mix(in srgb, var(--gate-accent) 26%, transparent) 95%,
+      transparent 100%
+    );
+    filter: blur(14px);
+    mask-image: radial-gradient(ellipse at 50% 34%, #000 10%, transparent 76%);
+    opacity: 0.7;
+    animation: gate-beacon 8s linear infinite;
+    will-change: transform;
+  }
+
+  /* Barrotes de contencion. */
+  .system-gate-page.is-denied .gate-bg-pillars i {
     position: absolute;
-    color: var(--gate-accent);
-    font-size: 0.55rem;
-    font-weight: 900;
-    letter-spacing: 0.16em;
-    opacity: 0.18;
-    animation: system-gate-drift 13s ease-in-out infinite alternate;
+    top: -4%;
+    bottom: -4%;
+    width: 5px;
+    background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--gate-accent) 34%, transparent) 30% 70%, transparent);
+    box-shadow: 0 0 22px color-mix(in srgb, var(--gate-accent) 22%, transparent);
+    opacity: 0.32;
+    translate: calc(var(--gate-px, 0) * 12px) 0;
+    animation: gate-bar 5.2s ease-in-out infinite alternate;
   }
 
-  .system-gate-page.is-missing .system-gate-personality span:nth-child(1) { left: 3%; top: 31%; }
-  .system-gate-page.is-missing .system-gate-personality span:nth-child(2) { right: 4%; top: 26%; animation-delay: -3s; }
-  .system-gate-page.is-missing .system-gate-personality span:nth-child(3) { left: 8%; bottom: 9%; animation-delay: -7s; }
-  .system-gate-page.is-missing .system-gate-personality span:nth-child(4) { right: 8%; bottom: 14%; animation-delay: -10s; }
+  .system-gate-page.is-denied .gate-bg-pillars i:nth-child(1) { left: 5%; animation-delay: -0.4s; }
+  .system-gate-page.is-denied .gate-bg-pillars i:nth-child(2) { left: 13%; animation-delay: -2.3s; }
+  .system-gate-page.is-denied .gate-bg-pillars i:nth-child(3) { right: 13%; animation-delay: -1.1s; }
+  .system-gate-page.is-denied .gate-bg-pillars i:nth-child(4) { right: 5%; animation-delay: -3.6s; }
+  .system-gate-page.is-denied .gate-bg-pillars i:nth-child(5) { left: 50%; opacity: .12; animation-delay: -2.9s; }
 
-  .system-gate-page.is-denied .system-gate-personality span {
-    position: absolute;
-    right: -2vw;
-    top: 49%;
-    color: var(--gate-accent);
-    font-family: var(--font-display);
-    font-size: clamp(5rem, 15vw, 13rem);
-    font-weight: 900;
-    letter-spacing: 0.08em;
-    opacity: 0.025;
-    transform: rotate(-90deg) translateX(50%);
-    transform-origin: right center;
+  .system-gate-page.is-denied .gate-bg-vignette {
+    background: radial-gradient(ellipse at 50% 46%, transparent 38%, rgba(0, 0, 0, 0.3) 76%, rgba(0, 0, 0, 0.68) 100%);
+    animation: gate-alarm 3.4s ease-in-out infinite;
   }
 
-  .system-gate-page.is-denied .system-gate-personality i {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background: linear-gradient(transparent, color-mix(in srgb, var(--gate-accent) 22%, transparent), transparent);
-    opacity: 0.38;
-  }
+  /* ── Cabecera ───────────────────────────────────────────────────────── */
 
-  .system-gate-page.is-denied .system-gate-personality i:nth-of-type(1) { left: 8%; }
-  .system-gate-page.is-denied .system-gate-personality i:nth-of-type(2) { left: 9%; }
-  .system-gate-page.is-denied .system-gate-personality i:nth-of-type(3) { right: 8%; }
-  .system-gate-page.is-denied .system-gate-personality i:nth-of-type(4) { right: 9%; }
-
-  .system-gate-header {
+  .gate-topbar {
     position: relative;
-    z-index: 6;
+    z-index: 3;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    width: min(1180px, calc(100% - 2rem));
+    width: min(1080px, calc(100% - 3rem));
     margin: 0 auto;
-    padding: clamp(1rem, 3vw, 1.7rem) 0;
+    padding: clamp(0.7rem, 2vw, 1.1rem) 0 0.8rem;
   }
 
-  .system-gate-brand {
+  .gate-brand {
     display: grid;
-    grid-template-columns: 3rem auto;
+    grid-template-columns: 2.7rem auto;
     align-items: center;
-    column-gap: 0.8rem;
+    column-gap: 0.75rem;
     color: #fff;
     text-decoration: none;
   }
 
-  .system-gate-brand > span {
+  .gate-brand > span {
     grid-row: span 2;
     display: grid;
-    width: 3rem;
+    width: 2.7rem;
     aspect-ratio: 1;
     place-items: center;
     border: 1px solid color-mix(in srgb, var(--gate-accent) 55%, transparent);
-    background: color-mix(in srgb, var(--gate-accent) 9%, #020705);
+    background: color-mix(in srgb, var(--gate-accent) 10%, var(--gate-ink));
+    clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
     color: var(--gate-accent);
     font-family: var(--font-display);
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 900;
-    box-shadow: inset 0 0 18px color-mix(in srgb, var(--gate-accent) 8%, transparent), 0 0 22px rgba(0,0,0,.6);
   }
 
-  .system-gate-brand strong {
+  .gate-brand strong {
     align-self: end;
     font-family: var(--font-display);
-    font-size: 1.05rem;
+    font-size: 1rem;
   }
 
-  .system-gate-brand small {
+  .gate-brand small {
     align-self: start;
     color: var(--gate-accent);
-    font-size: 0.55rem;
+    font-size: 0.5rem;
     font-weight: 900;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
   }
 
-  .system-gate-header-status {
+  .gate-topbar-status {
     display: flex;
     align-items: center;
-    gap: 1rem;
+    gap: 0.9rem;
   }
 
-  .system-gate-header-status span {
+  .gate-topbar-status span {
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
-    color: var(--color-phosphor-soft);
-    font-size: 0.6rem;
+    font-size: 0.55rem;
     font-weight: 900;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
+    opacity: 0.75;
   }
 
-  .system-gate-header-status i {
-    width: 0.4rem;
+  .gate-topbar-status i {
+    width: 0.38rem;
     aspect-ratio: 1;
-    border-radius: 50%;
     background: var(--color-phosphor);
-    box-shadow: 0 0 10px var(--color-phosphor);
+    box-shadow: 0 0 9px var(--color-phosphor);
+    animation: gate-blink 1.5s steps(2, end) infinite;
   }
 
-  .system-gate-header-status strong {
-    border: 1px solid color-mix(in srgb, var(--gate-accent) 38%, transparent);
-    padding: 0.55rem 0.7rem;
+  .gate-topbar-status strong {
+    border: 1px solid color-mix(in srgb, var(--gate-accent) 44%, transparent);
+    background: color-mix(in srgb, var(--gate-accent) 8%, transparent);
+    padding: 0.42rem 0.62rem;
     color: var(--gate-accent);
-    font-size: 0.65rem;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
   }
 
-  .system-gate-shell {
+  /* ── Marquesina ─────────────────────────────────────────────────────── */
+
+  .gate-marquee {
     position: relative;
-    z-index: 2;
-    align-self: center;
-    width: min(1180px, calc(100% - 2rem));
-    margin: 0 auto clamp(1rem, 4vw, 2.5rem);
+    z-index: 3;
     overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--gate-accent) 52%, transparent);
-    clip-path: polygon(18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%, 0 18px);
-    background: rgba(2, 8, 6, 0.88);
-    box-shadow:
-      inset 4px 0 0 var(--gate-accent),
-      inset 0 0 90px color-mix(in srgb, var(--gate-accent) 5%, transparent),
-      0 36px 100px rgba(0,0,0,.72),
-      0 0 48px color-mix(in srgb, var(--gate-accent) 9%, transparent);
-    backdrop-filter: blur(14px);
+    width: min(1080px, calc(100% - 3rem));
+    margin: 0 auto;
+    border-block: 1px solid color-mix(in srgb, var(--gate-accent) 34%, transparent);
+    background:
+      repeating-linear-gradient(90deg, color-mix(in srgb, var(--gate-accent) 9%, transparent) 0 2px, transparent 2px 7px),
+      rgba(0, 0, 0, 0.5);
+    padding: 0.42rem 0;
+    mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
   }
 
-  .system-gate-shellbar,
-  .system-gate-footer {
+  .gate-marquee-track {
+    display: flex;
+    width: max-content;
+    animation: gate-marquee 26s linear infinite;
+    will-change: transform;
+  }
+
+  .gate-marquee-track span {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--gate-accent) 18%, transparent);
-    background: color-mix(in srgb, var(--gate-accent) 3%, rgba(0,0,0,.4));
-    padding: 0.8rem 1rem;
-    color: color-mix(in srgb, var(--gate-accent) 72%, white 10%);
-    font-size: 0.58rem;
-    font-weight: 900;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
   }
 
-  .system-gate-lights {
-    display: flex;
-    gap: 0.35rem;
-  }
-
-  .system-gate-lights i {
-    width: 0.45rem;
-    aspect-ratio: 1;
-    background: var(--color-danger-arcade);
-    box-shadow: 0 0 8px currentColor;
-  }
-
-  .system-gate-lights i:nth-child(2) { background: var(--color-cabinet); }
-  .system-gate-lights i:nth-child(3) { background: var(--gate-accent); }
-
-  .system-gate-content {
-    display: grid;
-    grid-template-columns: minmax(0, 1.25fr) minmax(18rem, .75fr);
-    gap: clamp(1.5rem, 5vw, 4.5rem);
-    align-items: center;
-    min-height: clamp(30rem, 68vh, 43rem);
-    padding: clamp(1.5rem, 5vw, 4.5rem);
-  }
-
-  .system-gate-copy {
-    min-width: 0;
-  }
-
-  .system-gate-eyebrow {
+  .gate-marquee-track b {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    border-left: 2px solid var(--gate-accent);
-    padding-left: 0.65rem;
-    color: var(--gate-accent);
-    font-size: 0.65rem;
+    gap: 1.15rem;
+    padding-inline: 1.15rem;
+    color: color-mix(in srgb, var(--gate-accent) 76%, white);
+    font-size: 0.6rem;
     font-weight: 900;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    text-shadow: 0 0 12px color-mix(in srgb, var(--gate-accent) 45%, transparent);
   }
 
-  .system-gate-code {
+  .gate-marquee-track i {
+    width: 0.34rem;
+    aspect-ratio: 1;
+    background: var(--gate-accent-2);
+    box-shadow: 0 0 8px var(--gate-accent-2);
+    animation: gate-bulb 1.2s steps(2, end) infinite;
+  }
+
+  .gate-marquee-track b:nth-child(2n) i { animation-delay: -0.3s; }
+  .gate-marquee-track b:nth-child(3n) i { animation-delay: -0.6s; background: var(--gate-accent); box-shadow: 0 0 8px var(--gate-accent); }
+  .gate-marquee-track b:nth-child(5n) i { animation-delay: -0.9s; }
+
+  /* ── Monitor ────────────────────────────────────────────────────────── */
+
+  .gate-monitor {
     position: relative;
-    width: fit-content;
-    margin-top: 0.4rem;
-    color: #f6fff9;
-    font-family: var(--font-display);
-    font-size: clamp(6.5rem, 15vw, 12.5rem);
+    z-index: 3;
+    display: grid;
+    align-content: start;
+    width: min(1080px, calc(100% - 3rem));
+    margin: clamp(0.8rem, 2.2vw, 1.4rem) auto 0;
+  }
+
+  .gate-monitor-hood {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.9rem;
+    border: 1px solid color-mix(in srgb, var(--gate-accent) 30%, transparent);
+    border-bottom: 0;
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--gate-accent) 9%, transparent), rgba(0, 0, 0, 0.55)),
+      rgba(0, 0, 0, 0.5);
+    clip-path: polygon(16px 0, calc(100% - 16px) 0, 100% 100%, 0 100%);
+    padding: 0.5rem clamp(1rem, 3vw, 1.8rem);
+  }
+
+  .gate-monitor-vent {
+    width: 3.4rem;
+    height: 0.7rem;
+    background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--gate-accent) 34%, transparent) 0 2px, transparent 2px 5px);
+    opacity: 0.6;
+  }
+
+  .gate-monitor-plate {
+    justify-self: center;
+    color: color-mix(in srgb, var(--gate-accent) 72%, white);
+    font-size: 0.56rem;
     font-weight: 900;
-    letter-spacing: -0.07em;
-    line-height: 0.9;
-    text-shadow: 4px 0 color-mix(in srgb, var(--gate-accent-2) 60%, transparent), -4px 0 color-mix(in srgb, var(--gate-accent) 48%, transparent);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
   }
 
-  .system-gate-page.is-missing .system-gate-code {
-    text-shadow: none;
-    animation: system-gate-code-flicker 8s steps(1, end) infinite;
+  .gate-monitor-led {
+    display: flex;
+    gap: 0.32rem;
   }
 
-  .system-gate-page.is-denied .system-gate-code {
-    text-shadow: 3px 0 color-mix(in srgb, var(--gate-accent) 48%, transparent), -2px 0 color-mix(in srgb, var(--gate-accent-2) 34%, transparent);
-    animation: system-gate-denied-code 3.6s ease-in-out infinite;
+  .gate-monitor-led i {
+    width: 0.4rem;
+    aspect-ratio: 1;
+    background: color-mix(in srgb, var(--gate-accent) 24%, transparent);
   }
 
-  .system-gate-code::before,
-  .system-gate-code::after {
+  .gate-monitor-led i:first-child {
+    background: var(--gate-accent);
+    box-shadow: 0 0 9px var(--gate-accent);
+    animation: gate-blink 1.1s steps(2, end) infinite;
+  }
+
+  .gate-screen {
+    position: relative;
+    isolation: isolate;
+    animation: gate-power-on 780ms cubic-bezier(0.2, 0.85, 0.25, 1) both;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    min-height: clamp(19rem, 40vh, 27rem);
+    border: 1px solid color-mix(in srgb, var(--gate-accent) 40%, transparent);
+    border-radius: 22px / 34px;
+    background:
+      radial-gradient(ellipse at 50% 42%, color-mix(in srgb, var(--gate-accent) 9%, transparent), transparent 62%),
+      #010405;
+    box-shadow:
+      inset 0 0 90px rgba(0, 0, 0, 0.9),
+      inset 0 0 0 1px color-mix(in srgb, var(--gate-accent) 14%, transparent),
+      0 40px 110px rgba(0, 0, 0, 0.75),
+      0 0 60px color-mix(in srgb, var(--gate-accent) 12%, transparent);
+  }
+
+  /* Carta de ajuste: barras de color en el 404 (la pantalla que sale cuando no
+     hay señal) y trama de peligro en el 403. */
+  .gate-screen-card {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .system-gate-page.is-missing .gate-screen-card {
+    background: linear-gradient(
+      90deg,
+      #c3d2d8 0 12.5%,
+      #d8d85a 12.5% 25%,
+      #45d8ff 25% 37.5%,
+      #3fff97 37.5% 50%,
+      #ff3d9d 50% 62.5%,
+      #ff5f68 62.5% 75%,
+      #5b6bff 75% 87.5%,
+      #10202a 87.5% 100%
+    );
+    mask-image: linear-gradient(180deg, #000 0 62%, rgba(0, 0, 0, 0.25) 74%, transparent 92%);
+    opacity: 0.09;
+  }
+
+  .system-gate-page.is-denied .gate-screen-card {
+    background: repeating-linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--gate-accent) 15%, transparent) 0 20px,
+      transparent 20px 40px
+    );
+    opacity: 0.7;
+  }
+
+  .gate-screen-static {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+      repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 2px);
+    mix-blend-mode: screen;
+    opacity: 0.5;
+    animation: gate-static 260ms steps(3, end) infinite;
+  }
+
+  /* Barra de sincronismo vertical: el fallo de imagen que arrastra la señal. */
+  .gate-screen-hold {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    z-index: 2;
+    height: 16%;
+    background: linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in srgb, var(--gate-accent) 10%, transparent) 40%,
+      rgba(255, 255, 255, 0.06) 50%,
+      color-mix(in srgb, var(--gate-accent) 10%, transparent) 60%,
+      transparent
+    );
+    mix-blend-mode: screen;
+    opacity: 0.7;
+    animation: gate-hold 7.5s linear infinite;
+  }
+
+  .gate-screen-body {
+    position: relative;
+    z-index: 4;
+    animation: gate-jolt 7.4s steps(1, end) 900ms infinite;
+    display: grid;
+    justify-items: center;
+    width: min(56rem, 100%);
+    gap: 0.55rem;
+    padding: clamp(1.5rem, 3.6vw, 2.2rem) clamp(1.2rem, 4vw, 3rem);
+    text-align: center;
+  }
+
+  .gate-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    border: 1px solid color-mix(in srgb, var(--gate-accent) 40%, transparent);
+    background: color-mix(in srgb, var(--gate-accent) 10%, rgba(0, 0, 0, 0.5));
+    padding: 0.28rem 0.55rem;
+    color: var(--gate-accent);
+    font-size: 0.58rem;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .gate-code {
+    position: relative;
+    color: #f4fbff;
+    font-family: var(--font-display);
+    font-size: clamp(5.5rem, 17vw, 13rem);
+    font-weight: 900;
+    letter-spacing: -0.06em;
+    line-height: 0.86;
+    text-shadow: 0 0 60px color-mix(in srgb, var(--gate-accent) 34%, transparent);
+  }
+
+  /* Desdoble RGB: las dos capas existian y estaban apagadas con display:none
+     para las dos variantes, o sea que el glitch era codigo muerto. */
+  .gate-code::before,
+  .gate-code::after {
     position: absolute;
     inset: 0;
     overflow: hidden;
     content: attr(data-code);
+    mix-blend-mode: screen;
     pointer-events: none;
   }
 
-  .system-gate-code::before {
-    height: 34%;
+  .gate-code::before {
+    height: 36%;
     color: var(--gate-accent);
-    transform: translate(4px, -2px);
-    opacity: 0.26;
-    animation: system-gate-glitch-a 6.8s steps(1, end) infinite;
+    opacity: 0.55;
+    transform: translate(5px, -2px);
+    animation: gate-tear-a 6.8s steps(1, end) infinite;
   }
 
-  .system-gate-code::after {
-    inset-block-start: 55%;
-    height: 18%;
+  .gate-code::after {
+    inset-block-start: 56%;
+    height: 20%;
     color: var(--gate-accent-2);
-    transform: translate(-5px, 2px);
-    opacity: 0.32;
-    animation: system-gate-glitch-b 7.6s steps(1, end) infinite;
+    opacity: 0.45;
+    transform: translate(-6px, 2px);
+    animation: gate-tear-b 7.6s steps(1, end) infinite;
   }
 
-  .system-gate-page.is-denied .system-gate-code::before,
-  .system-gate-page.is-denied .system-gate-code::after,
-  .system-gate-page.is-missing .system-gate-code::before,
-  .system-gate-page.is-missing .system-gate-code::after {
-    display: none;
-  }
-
-  .system-gate-copy h1 {
-    max-width: 15ch;
-    margin-top: 1rem;
+  .gate-screen-body h1 {
+    max-width: 22ch;
     color: #fff;
     font-family: var(--font-display);
-    font-size: clamp(1.65rem, 4vw, 3rem);
+    font-size: clamp(1.4rem, 3.4vw, 2.5rem);
     font-weight: 900;
-    line-height: 1.02;
+    line-height: 1.04;
   }
 
-  .system-gate-description {
+  .gate-desc {
     max-width: 62ch;
-    margin-top: 1rem;
     color: var(--color-phosphor-soft);
-    font-size: clamp(0.86rem, 1.2vw, 1rem);
+    font-size: clamp(0.8rem, 1.1vw, 0.94rem);
     font-weight: 700;
-    line-height: 1.65;
-    opacity: 0.82;
+    line-height: 1.62;
+    opacity: 0.76;
   }
 
-  .system-gate-path {
-    display: grid;
-    grid-template-columns: auto auto minmax(0, 1fr);
+  /* Idents en las cuatro esquinas, como el OSD de un monitor de verdad. */
+  .gate-screen-osd span {
+    position: absolute;
+    z-index: 4;
+    display: inline-flex;
     align-items: center;
-    gap: 0.55rem;
-    max-width: 42rem;
-    margin-top: 1.25rem;
-    border: 1px solid color-mix(in srgb, var(--gate-accent) 20%, transparent);
-    background: rgba(0,0,0,.34);
-    padding: 0.75rem 0.85rem;
+    gap: 0.35rem;
+    color: color-mix(in srgb, var(--gate-accent) 62%, transparent);
+    font-size: 0.5rem;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .gate-screen-osd i {
+    width: 0.32rem;
+    aspect-ratio: 1;
+    background: var(--gate-accent);
+    box-shadow: 0 0 8px var(--gate-accent);
+    animation: gate-blink 1.3s steps(2, end) infinite;
+  }
+
+  .gate-screen-osd .is-tl { left: 1.35rem; top: 1.1rem; }
+  .gate-screen-osd .is-tr { right: 1.35rem; top: 1.1rem; }
+  .gate-screen-osd .is-bl { left: 1.35rem; bottom: 1.1rem; }
+  .gate-screen-osd .is-br { right: 1.35rem; bottom: 1.1rem; }
+
+  /* Curvatura y reflejo del cristal. */
+  .gate-screen-glass {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    background:
+      linear-gradient(118deg, rgba(255, 255, 255, 0.05) 0 18%, transparent 34%),
+      radial-gradient(ellipse at 50% 50%, transparent 42%, rgba(0, 0, 0, 0.5) 84%, rgba(0, 0, 0, 0.82) 100%);
+  }
+
+  /* 404: el icono de señal perdida late detras del numeral. */
+  .gate-lost {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+  }
+
+  .gate-lost-icon {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    color: var(--gate-accent);
+    opacity: 0.2;
+    transform: scale(3.4);
+    animation: gate-watermark 4.2s ease-in-out infinite;
+  }
+
+  .gate-lost-ring {
+    position: absolute;
+    width: 12rem;
+    aspect-ratio: 1;
+    border: 1px solid color-mix(in srgb, var(--gate-accent) 40%, transparent);
+    border-radius: 50%;
+    opacity: 0;
+    animation: gate-ping 3.4s ease-out infinite;
+  }
+
+  /* 403: la persiana blindada baja sobre la pantalla y no termina de cerrar. */
+  .gate-shutter {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+  }
+
+  .gate-shutter i {
+    position: absolute;
+    inset-inline: 0;
+    height: 22%;
+    background:
+      repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.55) 0 8px, rgba(255, 255, 255, 0.03) 8px 10px),
+      linear-gradient(180deg, rgba(24, 6, 11, 0.96), rgba(10, 3, 5, 0.9));
+    box-shadow: 0 0 26px rgba(0, 0, 0, 0.7);
+  }
+
+  .gate-shutter i.is-top {
+    top: 0;
+    border-bottom: 2px solid color-mix(in srgb, var(--gate-accent) 62%, transparent);
+    animation: gate-shutter-top 5.2s ease-in-out infinite;
+  }
+
+  .gate-shutter i.is-bottom {
+    bottom: 0;
+    border-top: 2px solid color-mix(in srgb, var(--gate-accent) 62%, transparent);
+    animation: gate-shutter-bottom 5.2s ease-in-out infinite;
+  }
+
+  .gate-shutter-lock {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    display: grid;
+    width: 5.4rem;
+    aspect-ratio: 1;
+    place-items: center;
+    border: 2px solid color-mix(in srgb, var(--gate-accent) 70%, transparent);
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--gate-accent) 16%, transparent), rgba(6, 2, 4, 0.9) 70%);
+    color: var(--gate-accent);
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(2.05);
+    animation: gate-watermark 4.2s ease-in-out infinite;
+  }
+
+  /* ── Panel de control ───────────────────────────────────────────────── */
+
+  .gate-deck {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: clamp(1rem, 3vw, 2rem);
+    border: 1px solid color-mix(in srgb, var(--gate-accent) 30%, transparent);
+    border-top: 0;
+    background:
+      repeating-linear-gradient(135deg, color-mix(in srgb, var(--gate-accent) 6%, transparent) 0 10px, transparent 10px 20px),
+      rgba(2, 6, 4, 0.44);
+    backdrop-filter: blur(10px);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 16px 100%, 0 calc(100% - 16px));
+    padding: clamp(0.9rem, 2.6vw, 1.5rem) clamp(1rem, 3vw, 1.8rem);
+  }
+
+  .gate-deck-main {
+    display: grid;
+    align-content: start;
+    gap: 0.85rem;
+    min-width: 0;
+  }
+
+  .gate-cmd {
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid color-mix(in srgb, var(--gate-accent) 24%, transparent);
+    border-left: 3px solid var(--gate-accent);
+    background: rgba(0, 0, 0, 0.5);
+    padding: 0.72rem 0.8rem;
     color: var(--gate-accent);
     font-size: 0.68rem;
+    font-weight: 900;
   }
 
-  .system-gate-path code {
+  .gate-cmd code {
     min-width: 0;
     overflow: hidden;
     color: #fff;
@@ -437,492 +768,513 @@
     white-space: nowrap;
   }
 
-  .system-gate-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-top: 1.5rem;
+  .gate-cmd-caret {
+    width: 0.48rem;
+    height: 0.95rem;
+    background: var(--gate-accent);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--gate-accent) 60%, transparent);
+    animation: gate-blink 1.05s steps(2, end) infinite;
   }
 
-  .system-gate-action {
+  .gate-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .gate-btn {
+    position: relative;
+    overflow: hidden;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    min-height: 2.8rem;
-    border: 1px solid color-mix(in srgb, var(--gate-accent) 38%, transparent);
-    background: rgba(0,0,0,.35);
-    padding: 0.75rem 1rem;
+    min-height: 2.7rem;
+    border: 1px solid color-mix(in srgb, var(--gate-accent) 40%, transparent);
+    background: rgba(0, 0, 0, 0.4);
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+    padding: 0.7rem 1rem;
     color: var(--gate-accent);
     font: inherit;
-    font-size: 0.65rem;
+    font-size: 0.64rem;
     font-weight: 900;
+    letter-spacing: 0.06em;
     text-decoration: none;
     text-transform: uppercase;
-    transition: transform 150ms ease, background 150ms ease, box-shadow 150ms ease;
+    cursor: pointer;
+    transition: transform 150ms ease, background 150ms ease, box-shadow 150ms ease, color 150ms ease;
   }
 
-  .system-gate-action.is-primary {
-    background: var(--gate-accent);
-    color: #021009;
-    box-shadow: 0 0 22px color-mix(in srgb, var(--gate-accent) 15%, transparent);
-  }
-
-  .system-gate-action:hover,
-  .system-gate-action:focus-visible {
-    transform: translateY(-2px);
-    box-shadow: 0 0 28px color-mix(in srgb, var(--gate-accent) 18%, transparent);
-  }
-
-  .system-gate-diagnostic {
-    position: relative;
-    overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--gate-accent) 28%, transparent);
-    background:
-      linear-gradient(color-mix(in srgb, var(--gate-accent) 4%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in srgb, var(--gate-accent) 4%, transparent) 1px, transparent 1px),
-      rgba(0,0,0,.34);
-    background-size: 18px 18px;
-    padding: clamp(1rem, 3vw, 1.5rem);
-    box-shadow: inset 0 0 44px rgba(0,0,0,.42);
-  }
-
-  .system-gate-radar {
-    position: relative;
-    display: grid;
-    width: min(100%, 18rem);
-    aspect-ratio: 1;
-    margin: 0 auto 1.25rem;
-    place-items: center;
-    overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--gate-accent) 28%, transparent);
-    border-radius: 50%;
-    background:
-      linear-gradient(transparent 49.7%, color-mix(in srgb, var(--gate-accent) 16%, transparent) 50%, transparent 50.3%),
-      linear-gradient(90deg, transparent 49.7%, color-mix(in srgb, var(--gate-accent) 16%, transparent) 50%, transparent 50.3%),
-      radial-gradient(circle, color-mix(in srgb, var(--gate-accent) 8%, transparent), transparent 67%);
-  }
-
-  .system-gate-radar-ring,
-  .system-gate-radar-core,
-  .system-gate-radar-ping,
-  .system-gate-radar-sweep {
-    position: absolute;
-    border-radius: 50%;
-  }
-
-  .system-gate-radar-ring { border: 1px solid color-mix(in srgb, var(--gate-accent) 20%, transparent); }
-  .system-gate-radar-ring.is-outer { inset: 16%; }
-  .system-gate-radar-ring.is-inner { inset: 32%; }
-
-  .system-gate-radar-sweep {
-    inset: 0;
-    background: conic-gradient(from 0deg, transparent 0 76%, color-mix(in srgb, var(--gate-accent) 32%, transparent) 96%, var(--gate-accent) 100%);
-    opacity: 0.36;
-    animation: system-gate-radar 4s linear infinite;
-  }
-
-  .system-gate-radar-core {
-    z-index: 2;
-    display: grid;
-    width: 4.8rem;
-    aspect-ratio: 1;
-    place-items: center;
-    border: 1px solid var(--gate-accent);
-    background: color-mix(in srgb, var(--gate-accent) 12%, #020705);
-    color: var(--gate-accent);
-    box-shadow: 0 0 28px color-mix(in srgb, var(--gate-accent) 24%, transparent);
-  }
-
-  .system-gate-radar-ping {
-    inset: 41%;
-    border: 1px solid var(--gate-accent);
-    animation: system-gate-ping 2.4s ease-out infinite;
-  }
-
-  .system-gate-orbit,
-  .system-gate-lock-brackets {
+  .gate-btn::after {
     position: absolute;
     inset: 0;
-    border-radius: 50%;
+    content: "";
+    background: linear-gradient(105deg, transparent 36%, rgba(255, 255, 255, 0.42) 50%, transparent 64%);
+    opacity: 0;
     pointer-events: none;
+    transform: translateX(-130%);
   }
 
-  .system-gate-orbit {
-    animation: system-gate-orbit 9s linear infinite;
+  .gate-btn:hover::after,
+  .gate-btn:focus-visible::after {
+    opacity: 1;
+    animation: gate-sheen 680ms ease-out;
   }
 
-  .system-gate-orbit i {
-    position: absolute;
-    width: 0.42rem;
-    aspect-ratio: 1;
+  .gate-btn.is-primary {
     background: var(--gate-accent);
-    box-shadow: 0 0 12px var(--gate-accent);
+    color: #041014;
+    box-shadow: 0 0 26px color-mix(in srgb, var(--gate-accent) 22%, transparent);
   }
 
-  .system-gate-orbit i:nth-child(1) { left: 21%; top: 20%; }
-  .system-gate-orbit i:nth-child(2) { right: 11%; top: 48%; opacity: .55; }
-  .system-gate-orbit i:nth-child(3) { left: 31%; bottom: 9%; opacity: .32; }
-
-  .system-gate-lock-brackets i {
-    position: absolute;
-    width: 2.1rem;
-    height: 2.1rem;
-    border-color: var(--gate-accent);
-    opacity: .72;
+  .gate-btn:hover,
+  .gate-btn:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 0 30px color-mix(in srgb, var(--gate-accent) 26%, transparent);
+    color: #fff;
   }
 
-  .system-gate-lock-brackets i:nth-child(1) { left: 16%; top: 16%; border-left: 2px solid; border-top: 2px solid; }
-  .system-gate-lock-brackets i:nth-child(2) { right: 16%; top: 16%; border-right: 2px solid; border-top: 2px solid; }
-  .system-gate-lock-brackets i:nth-child(3) { left: 16%; bottom: 16%; border-left: 2px solid; border-bottom: 2px solid; }
-  .system-gate-lock-brackets i:nth-child(4) { right: 16%; bottom: 16%; border-right: 2px solid; border-bottom: 2px solid; }
-
-  .system-gate-page.is-denied .system-gate-radar-sweep {
-    background: conic-gradient(from 0deg, transparent 0 92%, color-mix(in srgb, var(--gate-accent) 36%, transparent) 100%);
-    opacity: .17;
-    animation-duration: 12s;
+  .gate-btn.is-primary:hover,
+  .gate-btn.is-primary:focus-visible {
+    color: #041014;
   }
 
-  .system-gate-page.is-denied .system-gate-radar-core {
-    border-width: 2px;
-    animation: system-gate-lock-core 2.8s ease-in-out infinite;
+  .gate-deck-readout {
+    display: grid;
+    align-content: start;
+    gap: 0.75rem;
+    min-width: 0;
+    border-left: 1px solid color-mix(in srgb, var(--gate-accent) 16%, transparent);
+    padding-left: clamp(1rem, 3vw, 1.8rem);
   }
 
-  .system-gate-page.is-denied .system-gate-radar-ping {
-    animation: system-gate-lock-ping 2.8s ease-out infinite;
+  /* Cada aguja lleva LED y guionado hasta su valor: antes eran tres filas del
+     mismo color donde no se distinguia la buena noticia de la mala. */
+  .gate-gauges {
+    display: grid;
+    gap: 0.5rem;
   }
 
-  .system-gate-diagnostic-title {
-    display: flex;
+  .gate-gauges > div {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--gate-accent) 18%, transparent);
-    padding-bottom: 0.75rem;
+    gap: 0.5rem;
+    font-size: 0.62rem;
   }
 
-  .system-gate-diagnostic-title span {
+  .gate-gauges > div::after {
+    grid-column: 2;
+    height: 1px;
+    content: "";
+    background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor-soft) 24%, transparent) 0 2px, transparent 2px 6px);
+    opacity: 0.55;
+  }
+
+  .gate-gauges dt {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
+    gap: 0.4rem;
     color: var(--color-phosphor-soft);
-    font-size: 0.58rem;
+    opacity: 0.6;
+    text-transform: lowercase;
+  }
+
+  .gate-gauges dt::before {
+    width: 0.34rem;
+    aspect-ratio: 1;
+    background: currentColor;
+    content: "";
+  }
+
+  .gate-gauges dd {
+    grid-column: 3;
     font-weight: 900;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
   }
 
-  .system-gate-diagnostic-title strong {
-    color: var(--gate-accent);
-    font-size: 0.6rem;
+  .gate-gauges .is-ok dt,
+  .gate-gauges .is-ok dd { color: var(--color-phosphor); }
+  .gate-gauges .is-ok dt::before { box-shadow: 0 0 8px var(--color-phosphor); }
+
+  .gate-gauges .is-warn dt,
+  .gate-gauges .is-warn dd { color: var(--color-cabinet); }
+
+  .gate-gauges .is-bad dt,
+  .gate-gauges .is-bad dd { color: var(--color-danger-arcade); }
+
+  .gate-gauges .is-bad dd { text-shadow: 0 0 10px color-mix(in srgb, var(--color-danger-arcade) 44%, transparent); }
+
+  .gate-gauges .is-bad dt::before {
+    box-shadow: 0 0 8px var(--color-danger-arcade);
+    animation: gate-blink 1.4s steps(2, end) infinite;
   }
 
-  .system-gate-status-list {
+  .gate-gauges .is-ok dt,
+  .gate-gauges .is-warn dt,
+  .gate-gauges .is-bad dt { opacity: 0.72; }
+
+  .gate-deck-meter {
     display: grid;
-    gap: 0.65rem;
-    margin-top: 0.85rem;
-  }
-
-  .system-gate-status-list div {
-    display: flex;
-    justify-content: space-between;
-    gap: 1rem;
-    font-size: 0.64rem;
-  }
-
-  .system-gate-status-list dt { color: var(--color-phosphor-soft); opacity: .58; }
-  .system-gate-status-list dd { color: var(--gate-accent); font-weight: 900; text-transform: uppercase; }
-
-  .system-gate-coordinates,
-  .system-gate-clearance {
-    margin-top: 0.9rem;
-    border-top: 1px solid color-mix(in srgb, var(--gate-accent) 16%, transparent);
-    padding-top: 0.75rem;
-  }
-
-  .system-gate-coordinates {
-    display: flex;
-    justify-content: space-between;
     gap: 0.5rem;
-    color: var(--gate-accent);
+  }
+
+  .gate-wave {
+    display: flex;
+    height: 2.4rem;
+    align-items: end;
+    gap: 0.18rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--gate-accent) 32%, transparent);
+  }
+
+  .gate-wave i {
+    flex: 1;
+    height: 18%;
+    background: linear-gradient(to top, color-mix(in srgb, var(--gate-accent) 44%, transparent), var(--gate-accent));
+    opacity: 0.4;
+    transform-origin: center bottom;
+    animation: gate-bars 3.8s cubic-bezier(0.45, 0, 0.25, 1) infinite both;
+    animation-delay: calc(var(--route-step, 0) * -0.11s);
+  }
+
+  .gate-wave i:nth-child(2n) { height: 34%; }
+  .gate-wave i:nth-child(3n) { height: 58%; }
+  .gate-wave i:nth-child(5n) { height: 84%; }
+  .gate-wave i:nth-child(7n) { height: 96%; }
+
+  .gate-coords {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem;
+    color: color-mix(in srgb, var(--gate-accent) 72%, transparent);
     font-size: 0.52rem;
     font-weight: 900;
-    opacity: .56;
+    letter-spacing: 0.08em;
   }
 
-  .system-gate-clearance {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 0.5rem 1rem;
-  }
-
-  .system-gate-clearance > span {
-    color: var(--color-phosphor-soft);
-    font-size: 0.54rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    opacity: .65;
-  }
-
-  .system-gate-clearance > div {
-    grid-column: 1;
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 0.3rem;
-  }
-
-  .system-gate-clearance i {
-    height: 0.32rem;
-    border: 1px solid color-mix(in srgb, var(--gate-accent) 30%, transparent);
-    background: color-mix(in srgb, var(--gate-accent) 7%, transparent);
-  }
-
-  .system-gate-clearance i:first-child {
-    background: var(--gate-accent-2);
-    box-shadow: 0 0 8px color-mix(in srgb, var(--gate-accent-2) 60%, transparent);
-  }
-
-  .system-gate-clearance strong {
-    grid-column: 2;
-    grid-row: 1 / span 2;
-    color: var(--gate-accent);
-    font-size: 0.68rem;
-  }
-
-  .system-gate-wave {
+  .gate-coords.is-clearance b {
     display: flex;
-    height: 2.2rem;
-    align-items: end;
-    gap: 0.22rem;
-    margin-top: 1rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--gate-accent) 30%, transparent);
-  }
-
-  .system-gate-wave i {
-    --route-step: 0;
     flex: 1;
-    height: 15%;
-    background: var(--gate-accent);
-    opacity: .36;
-    transform-origin: center bottom;
-    will-change: transform, opacity, filter;
-    animation: system-gate-route-bars 3.8s cubic-bezier(.45, 0, .25, 1) infinite both;
-    animation-delay: calc(var(--route-step) * -0.13s);
+    gap: 0.24rem;
   }
 
-  .system-gate-wave i:nth-child(3n) { height: 76%; }
-  .system-gate-wave i:nth-child(4n) { height: 42%; }
-  .system-gate-wave i:nth-child(5n) { height: 95%; }
+  .gate-coords.is-clearance i {
+    flex: 1;
+    height: 0.34rem;
+    border: 1px solid color-mix(in srgb, var(--gate-accent) 32%, transparent);
+    background: color-mix(in srgb, var(--gate-accent) 8%, transparent);
+  }
 
-  .system-gate-page.is-missing .system-gate-wave {
+  .gate-coords.is-clearance i:first-child {
+    background: var(--gate-accent-2);
+    box-shadow: 0 0 9px color-mix(in srgb, var(--gate-accent-2) 60%, transparent);
+  }
+
+  /* ── Estanteria de cartuchos ────────────────────────────────────────── */
+
+  .gate-rack {
     position: relative;
-    height: 2.7rem;
+    z-index: 3;
+    display: grid;
+    gap: 0.6rem;
+    width: min(1080px, calc(100% - 3rem));
+    margin: clamp(0.9rem, 2.4vw, 1.35rem) auto 0;
+  }
+
+  .gate-rack-label {
+    color: color-mix(in srgb, var(--color-phosphor-soft) 54%, transparent);
+    font-size: 0.52rem;
+    font-weight: 900;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .gate-rack-slots {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+    gap: 0.6rem;
+  }
+
+  .gate-cart {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.55rem;
     overflow: hidden;
-    border-bottom: 1px solid color-mix(in srgb, var(--gate-accent) 34%, transparent);
+    border: 1px solid color-mix(in srgb, var(--gate-accent) 24%, transparent);
     background:
-      linear-gradient(color-mix(in srgb, var(--gate-accent) 4%, transparent) 1px, transparent 1px) 0 0 / 100% 8px;
-    opacity: 1;
+      linear-gradient(180deg, color-mix(in srgb, var(--gate-accent) 10%, transparent), transparent 60%),
+      rgba(2, 6, 4, 0.36);
+    backdrop-filter: blur(8px);
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%);
+    padding: 0.85rem 0.75rem 0.9rem;
+    color: var(--color-phosphor-soft);
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: transform 170ms ease, border-color 170ms ease, background 170ms ease, color 170ms ease;
   }
 
-  .system-gate-page.is-missing .system-gate-wave i {
-    display: block;
-    height: 14%;
-    background: linear-gradient(to top, color-mix(in srgb, var(--gate-accent) 58%, transparent), var(--gate-accent));
-  }
-
-  .system-gate-wave i:nth-child(1) { --route-step: 0; }
-  .system-gate-wave i:nth-child(2) { --route-step: 1; }
-  .system-gate-wave i:nth-child(3) { --route-step: 2; }
-  .system-gate-wave i:nth-child(4) { --route-step: 3; }
-  .system-gate-wave i:nth-child(5) { --route-step: 4; }
-  .system-gate-wave i:nth-child(6) { --route-step: 5; }
-  .system-gate-wave i:nth-child(7) { --route-step: 6; }
-  .system-gate-wave i:nth-child(8) { --route-step: 7; }
-  .system-gate-wave i:nth-child(9) { --route-step: 8; }
-  .system-gate-wave i:nth-child(10) { --route-step: 9; }
-  .system-gate-wave i:nth-child(11) { --route-step: 10; }
-  .system-gate-wave i:nth-child(12) { --route-step: 11; }
-  .system-gate-wave i:nth-child(13) { --route-step: 12; }
-  .system-gate-wave i:nth-child(14) { --route-step: 13; }
-  .system-gate-wave i:nth-child(15) { --route-step: 14; }
-  .system-gate-wave i:nth-child(16) { --route-step: 15; }
-  .system-gate-wave i:nth-child(17) { --route-step: 16; }
-  .system-gate-wave i:nth-child(18) { --route-step: 17; }
-
-  .system-gate-page.is-missing .system-gate-wave i:nth-child(2n) { height: 28%; }
-  .system-gate-page.is-missing .system-gate-wave i:nth-child(3n) { height: 52%; }
-  .system-gate-page.is-missing .system-gate-wave i:nth-child(5n) { height: 78%; }
-  .system-gate-page.is-missing .system-gate-wave i:nth-child(7n) { height: 92%; opacity: .72; }
-  .system-gate-page.is-missing .system-gate-wave i:nth-child(11n) { height: 38%; }
-
-  .system-gate-page.is-missing .system-gate-wave::after {
+  /* La muesca de contactos del cartucho, abajo del todo. */
+  .gate-cart em {
     position: absolute;
-    inset: 0 auto 0 0;
-    width: 22%;
-    content: "";
-    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--gate-accent) 28%, transparent), transparent);
-    mix-blend-mode: screen;
-    transform: translateX(-120%);
-    animation: system-gate-route-sweep 4.8s linear infinite;
+    inset-inline: 0.75rem;
+    bottom: 0.28rem;
+    height: 3px;
+    background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--gate-accent) 44%, transparent) 0 6px, transparent 6px 10px);
+    opacity: 0.55;
   }
 
-  .system-gate-page.is-denied .system-gate-wave {
+  .gate-cart b {
+    color: color-mix(in srgb, var(--gate-accent) 66%, transparent);
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+  }
+
+  .gate-cart svg {
+    color: color-mix(in srgb, var(--gate-accent) 52%, transparent);
+    transition: transform 170ms ease, color 170ms ease;
+  }
+
+  .gate-cart:hover,
+  .gate-cart:focus-visible {
+    border-color: color-mix(in srgb, var(--gate-accent) 66%, transparent);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--gate-accent) 18%, transparent), transparent 66%),
+      rgba(0, 0, 0, 0.5);
+    color: #fff;
+    transform: translateY(-4px);
+  }
+
+  .gate-cart:hover svg,
+  .gate-cart:focus-visible svg {
+    color: var(--gate-accent);
+    transform: translateX(3px);
+  }
+
+  .gate-cart:hover em,
+  .gate-cart:focus-visible em { opacity: 1; }
+
+  /* ── Pie ────────────────────────────────────────────────────────────── */
+
+  .gate-footer {
     position: relative;
-    overflow: hidden;
-    background: linear-gradient(rgba(255, 79, 120, .045) 1px, transparent 1px) 0 0 / 100% 8px;
-  }
-
-  .system-gate-page.is-denied .system-gate-wave i {
-    background: linear-gradient(to top, color-mix(in srgb, var(--gate-accent) 48%, transparent), var(--gate-accent));
-  }
-
-  .system-gate-page.is-denied .system-gate-wave::after {
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 18%;
-    content: "";
-    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--gate-accent-2) 22%, transparent), transparent);
-    mix-blend-mode: screen;
-    transform: translateX(-120%);
-    animation: system-gate-route-sweep 5.2s linear infinite;
-  }
-
-  .system-gate-footer {
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    width: min(1080px, calc(100% - 3rem));
+    margin: clamp(0.8rem, 2.4vw, 1.2rem) auto 0;
     border-top: 1px solid color-mix(in srgb, var(--gate-accent) 18%, transparent);
-    border-bottom: 0;
-    opacity: .7;
+    padding: 0.65rem 0 clamp(0.8rem, 2.4vw, 1.2rem);
+    color: color-mix(in srgb, var(--color-phosphor-soft) 46%, transparent);
+    font-size: 0.52rem;
+    font-weight: 900;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
   }
 
-  @media (max-width: 760px) {
-    .system-gate-header-status span,
-    .system-gate-shellbar > span:last-child { display: none; }
+  /* ── Responsive ─────────────────────────────────────────────────────── */
 
-    .system-gate-content {
+  @media (max-width: 900px) {
+    .gate-deck {
       grid-template-columns: 1fr;
-      min-height: 0;
-      gap: 1.5rem;
-      padding: 1.25rem;
     }
 
-    .system-gate-code { font-size: clamp(6rem, 35vw, 9rem); }
-    .system-gate-copy h1 { font-size: clamp(1.6rem, 8vw, 2.25rem); }
-    .system-gate-path { grid-template-columns: auto minmax(0, 1fr); }
-    .system-gate-path span { display: none; }
-    .system-gate-actions { display: grid; grid-template-columns: 1fr; }
-    .system-gate-radar { width: min(72vw, 14rem); }
-    .system-gate-footer span:last-child { display: none; }
+    .gate-deck-readout {
+      border-left: 0;
+      border-top: 1px solid color-mix(in srgb, var(--gate-accent) 16%, transparent);
+      padding-left: 0;
+      padding-top: 1rem;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .gate-topbar-status span,
+    .gate-monitor-plate,
+    .gate-screen-osd .is-br,
+    .gate-footer span:last-child { display: none; }
+
+    .gate-screen { min-height: 19rem; border-radius: 14px / 20px; }
+    .gate-screen-osd span { font-size: 0.44rem; }
+    .gate-screen-osd .is-tl { left: 0.8rem; top: 0.7rem; }
+    .gate-screen-osd .is-tr { right: 0.8rem; top: 0.7rem; }
+    .gate-screen-osd .is-bl { left: 0.8rem; bottom: 0.7rem; }
+    .gate-actions { display: grid; grid-template-columns: 1fr; }
+    .gate-cmd { grid-template-columns: auto minmax(0, 1fr) auto; }
+    .gate-cmd > span { display: none; }
+    .gate-rack-slots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .system-gate-scanline,
-    .system-gate-code,
-    .system-gate-code::before,
-    .system-gate-code::after,
-    .system-gate-radar-sweep,
-    .system-gate-radar-ping,
-    .system-gate-wave i,
-    .system-gate-orbit,
-    .system-gate-page.is-missing .system-gate-personality span,
-    .system-gate-page.is-denied .system-gate-radar-core,
-    .system-gate-page.is-missing::before,
-    .system-gate-page.is-missing::after,
-    .system-gate-page.is-missing .system-gate-wave::after,
-    .system-gate-page.is-denied .system-gate-wave::after { animation: none; }
+    .gate-bg-aurora,
+    .gate-bg-stars,
+    .gate-bg-floor,
+    .gate-bg-horizon,
+    .gate-bg-pillars i,
+    .gate-bg-vignette,
+    .gate-bg-sweep,
+    .gate-screen,
+    .gate-screen-body,
+    .gate-btn::after,
+    .gate-marquee-track,
+    .gate-screen-static,
+    .gate-screen-hold,
+    .gate-code::before,
+    .gate-code::after,
+    .gate-lost-ring,
+    .gate-lost-icon,
+    .gate-shutter-lock,
+    .gate-shutter i,
+    .gate-wave i,
+    .gate-topbar-status i,
+    .gate-screen-osd i,
+    .gate-monitor-led i,
+    .gate-cmd-caret,
+    .gate-gauges .is-bad dt::before { animation: none; }
   }
 }
 
-@keyframes system-gate-scan {
+@keyframes gate-marquee {
   from { transform: translate3d(0, 0, 0); }
-  to { transform: translate3d(0, 136vh, 0); }
+  to { transform: translate3d(-25%, 0, 0); }
 }
 
-@keyframes system-gate-code-flicker {
-  0%, 89%, 92%, 100% { opacity: 1; transform: translateX(0); }
-  90% { opacity: .72; transform: translateX(2px); }
-  91% { opacity: .92; transform: translateX(-3px); }
+@keyframes gate-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0.2; }
 }
 
-@keyframes system-gate-glitch-a {
-  0%, 84%, 88%, 100% { transform: translate(4px, -2px); }
-  85% { transform: translate(14px, -2px); }
-  87% { transform: translate(-8px, -2px); }
+@keyframes gate-sweepdown {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(0, 140vh, 0); }
 }
 
-@keyframes system-gate-glitch-b {
-  0%, 72%, 76%, 100% { transform: translate(-5px, 2px); }
-  73% { transform: translate(-16px, 2px); }
-  75% { transform: translate(9px, 2px); }
+@keyframes gate-beam {
+  from { opacity: .5; transform: translateX(-2%) rotate(-1deg); }
+  to { opacity: .85; transform: translateX(2%) rotate(1deg); }
 }
 
-@keyframes system-gate-radar { to { transform: rotate(1turn); } }
-
-@keyframes system-gate-orbit { to { transform: rotate(-1turn); } }
-
-@keyframes system-gate-drift {
-  from { transform: translate3d(-8px, -5px, 0); opacity: .08; }
-  to { transform: translate3d(10px, 7px, 0); opacity: .25; }
+@keyframes gate-static {
+  0% { transform: translate3d(0, 0, 0); }
+  33% { transform: translate3d(-1px, 1px, 0); }
+  66% { transform: translate3d(1px, -1px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
 }
 
-@keyframes system-gate-denied-code {
-  0%, 100% { filter: brightness(.94); }
-  50% { filter: brightness(1.07); }
+@keyframes gate-hold {
+  0% { transform: translate3d(0, -120%, 0); }
+  100% { transform: translate3d(0, 760%, 0); }
 }
 
-@keyframes system-gate-lock-core {
-  0%, 100% { box-shadow: 0 0 22px color-mix(in srgb, var(--gate-accent) 20%, transparent); }
-  50% { box-shadow: 0 0 40px color-mix(in srgb, var(--gate-accent) 34%, transparent); }
+@keyframes gate-tear-a {
+  0%, 84%, 88%, 100% { transform: translate(5px, -2px); }
+  85% { transform: translate(18px, -2px); }
+  87% { transform: translate(-10px, -2px); }
 }
 
-@keyframes system-gate-lock-ping {
-  0% { opacity: .52; transform: scale(.8); }
-  72%, 100% { opacity: 0; transform: scale(2.35); }
+@keyframes gate-tear-b {
+  0%, 72%, 76%, 100% { transform: translate(-6px, 2px); }
+  73% { transform: translate(-20px, 2px); }
+  75% { transform: translate(11px, 2px); }
 }
 
-@keyframes system-gate-ping {
-  0% { opacity: .8; transform: scale(.4); }
-  100% { opacity: 0; transform: scale(5.4); }
+@keyframes gate-ping {
+  0% { opacity: .55; transform: scale(.35); }
+  100% { opacity: 0; transform: scale(2.6); }
 }
 
-@keyframes system-gate-wave {
-  from { transform: scaleY(.35); opacity: .24; }
-  to { transform: scaleY(1); opacity: .64; }
+@keyframes gate-shutter-top {
+  0%, 100% { transform: translateY(-14%); }
+  50% { transform: translateY(0); }
 }
 
-@keyframes system-gate-star-drift {
-  to { background-position: 121px 122px, -127px 228px, 302px -162px; }
+@keyframes gate-shutter-bottom {
+  0%, 100% { transform: translateY(14%); }
+  50% { transform: translateY(0); }
 }
 
-@keyframes system-gate-void-rift {
-  from { transform: translate3d(-4%, -2%, 0) rotate(-3deg) scale(1); opacity: .58; }
-  to { transform: translate3d(4%, 2%, 0) rotate(1deg) scale(1.05); opacity: .82; }
+@keyframes gate-bars {
+  0%, 100% { opacity: .26; filter: brightness(.7); transform: scaleY(.34); }
+  24% { opacity: .44; filter: brightness(.92); transform: scaleY(.64); }
+  46% { opacity: .86; filter: brightness(1.35); transform: scaleY(1); }
+  68% { opacity: .5; filter: brightness(.98); transform: scaleY(.72); }
 }
 
-@keyframes system-gate-route-sweep {
-  to { transform: translateX(560%); }
+@keyframes gate-watermark {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.6); }
 }
 
-@keyframes system-gate-route-bars {
-  0%, 100% {
-    opacity: .24;
-    filter: brightness(.72);
-    transform: scaleY(.34);
-  }
+@keyframes gate-aurora {
+  from { opacity: .42; transform: translate3d(-2.5%, -1.5%, 0) scale(1); }
+  to { opacity: .72; transform: translate3d(2.5%, 1.5%, 0) scale(1.08); }
+}
 
-  24% {
-    opacity: .4;
-    filter: brightness(.9);
-    transform: scaleY(.62);
-  }
+@keyframes gate-stars {
+  to { background-position: 210px 190px, -330px 290px, 470px -410px; }
+}
 
-  46% {
-    opacity: .82;
-    filter: brightness(1.35);
-    transform: scaleY(1);
-  }
+@keyframes gate-hazard {
+  to { background-position: 68px 68px; }
+}
 
-  68% {
-    opacity: .46;
-    filter: brightness(.96);
-    transform: scaleY(.7);
-  }
+/* El suelo avanza exactamente una celda, asi que el bucle es invisible. */
+/* Encendido de tubo: linea horizontal que se abre en vertical. */
+@keyframes gate-power-on {
+  0% { opacity: 0; filter: brightness(4); transform: scale(.55, .004); }
+  26% { opacity: 1; filter: brightness(3.2); transform: scale(1, .006); }
+  62% { filter: brightness(1.5); transform: scale(1, 1); }
+  100% { opacity: 1; filter: none; transform: none; }
+}
+
+@keyframes gate-jolt {
+  0%, 90%, 100% { transform: translate3d(0, 0, 0); }
+  91% { transform: translate3d(-7px, 2px, 0); }
+  92% { transform: translate3d(6px, -3px, 0); }
+  93% { transform: translate3d(-2px, 1px, 0); }
+}
+
+@keyframes gate-sheen {
+  from { transform: translateX(-130%); }
+  to { transform: translateX(130%); }
+}
+
+@keyframes gate-bulb {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: .18; }
+}
+
+@keyframes gate-sectors {
+  to { transform: rotate(1turn); }
+}
+
+@keyframes gate-limb {
+  from { opacity: .44; }
+  to { opacity: .74; }
+}
+
+@keyframes gate-debris {
+  from { opacity: .14; transform: translate3d(-14px, 10px, 0) rotate(0deg); }
+  to { opacity: .42; transform: translate3d(16px, -12px, 0) rotate(140deg); }
+}
+
+/* Faro colgado del techo de la celda. */
+@keyframes gate-beacon {
+  to { transform: rotate(1turn); }
+}
+
+@keyframes gate-alarm {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.35); }
+}
+
+@keyframes gate-cell {
+  to { background-position: 62px 0, 0 62px; }
 }

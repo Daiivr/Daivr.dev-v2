@@ -30,6 +30,20 @@ const SECRET_SECTORS = ["0xDA1", "CRT-A", "1997", "SECTOR-07", "NODE-06", "DAI-C
 // Altura fija del log en filas. La caja mide exactamente esto en CSS.
 const BUILD_LOG_ROWS = 4;
 
+// El log salia como cuatro frases planas del mismo verde. Partirlo en glifo,
+// cuerpo y comentario deja leer de un vistazo cual linea es una orden, cual un
+// nodo que ya entro y cual sigue esperando.
+function readBuildLine(line) {
+  const [head, ...rest] = line.split("//");
+  const note = rest.join("//").trim();
+  const body = head.trim();
+
+  if (body.startsWith("$")) return { tone: "cmd", glyph: "$", body: body.replace(/^\$\s*/, ""), note };
+  if (/online/i.test(body)) return { tone: "ok", glyph: "ok", body, note };
+  if (/offline|waiting|idle/i.test(body)) return { tone: "idle", glyph: "··", body, note };
+  return { tone: "run", glyph: ">", body, note };
+}
+
 export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun, onOpenTerminal }) {
   const stationRef = useRef(null);
   const { handleProps, isDragging, targetRef } = useElasticDrag({ scopeRef: stationRef });
@@ -116,6 +130,9 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
             <span />
           </div>
           <div className="secret-bay-core">
+            {/* El nucleo era un rectangulo negro flotando en medio de la nada.
+                Con chapa arriba lee como la ventana restringida que dice ser. */}
+            <span className="secret-bay-tab">dev-room.sys // restricted</span>
             <span className="secret-bay-badge">subroutine unlocked</span>
             <strong>DEV ROOM // 1997</strong>
             <code>&gt; drag_window.unlock("dai-core")</code>
@@ -211,6 +228,9 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
                             <span className="code-punct">);</span>
                           </>
                         )}
+                        {/* La linea activa solo se marcaba con un borde a la
+                            izquierda; el cursor dice cual se esta ejecutando. */}
+                        {index === activeCodeLine ? <span className="code-caret" aria-hidden="true" /> : null}
                       </code>
                     </li>
                   ))}
@@ -226,12 +246,19 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
                   <span className={`hero-build-state is-${systemState}`}>{isLaunching ? `${Math.round(progressWidth)}%` : systemState}</span>
                 </div>
                 <pre className="terminal-screen build-output-screen overflow-hidden p-3 text-[0.74rem] leading-6 text-phosphor" data-build-output>
-                  {visibleBuildLog.map((line, index) => (
-                    <code key={index}>
-                      {line}
-                      {index === visibleBuildLog.length - 1 ? <span className="build-output-caret" aria-hidden="true" /> : null}
-                    </code>
-                  ))}
+                  {visibleBuildLog.map((line, index) => {
+                    const entry = readBuildLine(line);
+                    return (
+                      <code className={`build-output-line is-${entry.tone}`} key={index}>
+                        <b aria-hidden="true">{entry.glyph}</b>
+                        <span>
+                          {entry.body}
+                          {entry.note ? <i> // {entry.note}</i> : null}
+                          {index === visibleBuildLog.length - 1 ? <span className="build-output-caret" aria-hidden="true" /> : null}
+                        </span>
+                      </code>
+                    );
+                  })}
                 </pre>
 
                 <div className="build-node-rail" aria-label={`Nodos en linea: ${onlineNodes} de ${BOOT_NODES.length}`}>
@@ -243,11 +270,21 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
                     </span>
                   ))}
                 </div>
-                <div className="mx-3 mb-3 h-3 border border-phosphor/25 bg-ink-950 p-0.5">
-                  <span
-                    className="block h-full bg-gradient-to-r from-phosphor via-cyan-arcade to-glitch shadow-[0_0_18px_rgba(63,255,151,.28)] transition-all duration-300"
-                    style={{ width: `${progressWidth}%` }}
-                  />
+                {/* La barra era un degradado liso de 12px; en una cabina la carga
+                    se cuenta por bloques encendidos, y el numero al lado ahorra
+                    tener que medirla a ojo. */}
+                <div className="build-progress-row">
+                  <div
+                    className="build-progress"
+                    role="progressbar"
+                    aria-label="Boot progress"
+                    aria-valuemin="0"
+                    aria-valuemax="100"
+                    aria-valuenow={Math.round(progressWidth)}
+                  >
+                    <span style={{ width: `${progressWidth}%` }} />
+                  </div>
+                  <b>{Math.round(progressWidth)}%</b>
                 </div>
               </div>
             </div>
@@ -267,10 +304,12 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
             </div>
           </div>
 
-          <div className="hero-console-telemetry relative z-10" aria-label="Workstation telemetry">
-            <span><b>SESSION</b> {hasRun ? "STABLE" : isLaunching ? "BOOTING" : "STANDBY"}</span>
-            <span><b>NODES</b> {String(onlineNodes).padStart(2, "0")}/06</span>
-            <span><b>ROUTE</b> /HOME</span>
+          {/* Etiqueta y valor iban del mismo gris apagado, asi que la barra se
+              leia como una sola tira de texto. El valor ahora es el que brilla. */}
+          <div className={`hero-console-telemetry relative z-10 is-${systemState}`} aria-label="Workstation telemetry">
+            <span><b>SESSION</b> <i>{hasRun ? "STABLE" : isLaunching ? "BOOTING" : "STANDBY"}</i></span>
+            <span><b>NODES</b> <i>{String(onlineNodes).padStart(2, "0")}/06</i></span>
+            <span><b>ROUTE</b> <i>/HOME</i></span>
             <strong><Activity size={12} aria-hidden="true" /> {signalState}</strong>
           </div>
         </div>
