@@ -1,57 +1,39 @@
-import { ArrowLeft, ChevronRight, Home, LockKeyhole, ShieldAlert, Terminal, WifiOff } from "lucide-react";
+import { ArrowLeft, Check, ChevronRight, Home, Lock, MessageSquare, Minus, Radar, ShieldX, Slash, X } from "lucide-react";
 import { useEffect, useMemo, useRef } from "react";
+import { recordGateReturn } from "../lib/gateReturn";
 
 // Las rutas vivas del cabinet. Una pagina de error que solo sabe decir que la
 // ruta no existe deja al visitante en un callejon; estas son las salidas.
-const LIVE_ROUTES = [
-  ["/#home", "Dai.exe", "01"],
-  ["/#builds", "Carts", "03"],
-  ["/#games", "Games", "05"],
-  ["/#contact", "Comments", "08"]
+// En el 404 son nodos del mapa, asi que cada una lleva su posicion polar.
+const SECTORS = [
+  { href: "/#home", label: "Dai.exe", id: "01", x: 27, y: 31 },
+  { href: "/#builds", label: "Carts", id: "03", x: 73, y: 23 },
+  { href: "/#games", label: "Games", id: "05", x: 79, y: 64 },
+  { href: "/#contact", label: "Comments", id: "08", x: 36, y: 77 }
 ];
 
-const PAGE_CONFIG = {
-  missing: {
-    code: "404",
-    eyebrow: "navigation fault",
-    title: "You drifted off the map.",
-    description: "No cartridge lives at this coordinate. The cabinet is sweeping nearby sectors, but this route has no signal, save slot, or recoverable node.",
-    command: "$ sweep --lost-sector",
-    file: "lost-sector.map",
-    signal: "no signal",
-    channel: "ch 404",
-    ident: "sector ??",
-    footer: "search beacon // active",
-    ticker: ["err_404", "sector unmapped", "no cartridge in bay", "search beacon active", "signal lost"],
-    // El tercer campo es el tono: los tres valores salian del mismo color, asi
-    // que "armed" (buena noticia) pesaba igual que "not found".
-    gauges: [
-      ["route.map", "not found", "bad"],
-      ["signal.bus", "disconnected", "bad"],
-      ["fallback", "armed", "ok"]
-    ],
-    Icon: WifiOff
-  },
-  denied: {
-    code: "403",
-    eyebrow: "security lockdown",
-    title: "Clearance rejected.",
-    description: "The cabinet recognizes your session, but this archive is sealed above your access tier. The route has been quarantined and no protected data was exposed.",
-    command: "$ auth --challenge",
-    file: "quarantine.lock",
-    signal: "gate sealed",
-    channel: "tier 03",
-    ident: "quarantine",
-    footer: "security bus // holding",
-    ticker: ["err_403", "auth gate sealed", "clearance insufficient", "route quarantined", "no data exposed"],
-    gauges: [
-      ["identity", "recognized", "ok"],
-      ["clearance", "insufficient", "bad"],
-      ["data.lock", "engaged", "warn"]
-    ],
-    Icon: LockKeyhole
-  }
-};
+// Posiciones donde puede caer el blip perdido. Un angulo al azar acaba
+// tapando un nodo segun la URL — las pastillas de sector son anchas, asi que
+// la distancia entre centros no basta. Estas seis estan medidas contra las
+// cajas reales de los nodos a 375px, que es donde las pastillas ocupan mayor
+// proporcion del mapa; en pantallas grandes solo sobra sitio.
+const LOST_SLOTS = [
+  { left: 15, top: 15 },
+  { left: 45, top: 15 },
+  { left: 85, top: 45 },
+  { left: 70, top: 85 },
+  { left: 10, top: 85 },
+  { left: 15, top: 55 }
+];
+
+// El handshake del 403: una secuencia que se para en un escalon concreto, en
+// vez de tres agujas sueltas que no cuentan donde fallo la autorizacion.
+const HANDSHAKE = [
+  { key: "session.token", value: "recognized", state: "pass" },
+  { key: "access.tier", value: "insufficient", state: "fail" },
+  { key: "archive.lock", value: "engaged", state: "held" },
+  { key: "payload", value: "never transmitted", state: "held" }
+];
 
 function getRouteCoordinates(pathname = "/unknown") {
   let hash = 2166136261;
@@ -66,36 +48,85 @@ function getRouteCoordinates(pathname = "/unknown") {
   const z = ((unsigned ^ (unsigned >>> 11)) & 0xff).toString(16).toUpperCase().padStart(2, "0");
   const formatAxis = (value) => `${value >= 0 ? "+" : "-"}${Math.abs(value).toFixed(3).padStart(7, "0")}`;
 
-  return { x: formatAxis(x), y: formatAxis(y), z: `0x${z}` };
+  // La misma semilla elige el hueco donde cae el blip perdido.
+  const slot = LOST_SLOTS[(unsigned >>> 7) % LOST_SLOTS.length];
+
+  return {
+    x: formatAxis(x),
+    y: formatAxis(y),
+    z: `0x${z}`,
+    blip: slot
+  };
 }
 
-export function SystemGatePage({ requestedPath, variant = "missing" }) {
-  const config = PAGE_CONFIG[variant] || PAGE_CONFIG.missing;
-  const { Icon } = config;
-  const pageRef = useRef(null);
-  const traceId = useMemo(() => Math.random().toString(16).slice(2, 10).toUpperCase().padEnd(8, "0"), []);
-  const routeCoordinates = useMemo(() => getRouteCoordinates(requestedPath), [requestedPath]);
-
+function useGateTitle(code, subtitle) {
   useEffect(() => {
     const previousTitle = document.title;
-    document.title = `${config.code} // ${config.eyebrow} · daivr.dev`;
+    document.title = `${code} // ${subtitle} · daivr.dev`;
     return () => {
       document.title = previousTitle;
     };
-  }, [config.code, config.eyebrow]);
+  }, [code, subtitle]);
+}
 
-  // Parallax de puntero: las capas del fondo se separan en profundidad cuando
-  // mueves el raton. Va en variables CSS y a una escritura por frame, asi que
-  // React no re-renderiza nada.
+// Deja constancia del choque para que la anfitriona lo mencione cuando el
+// visitante vuelva a la puerta, en vez de saludarle como si acabara de llegar.
+function useGateReturnNote(variant, requestedPath) {
   useEffect(() => {
-    if (typeof window === "undefined") return undefined;
+    recordGateReturn(variant, requestedPath);
+  }, [variant, requestedPath]);
+}
 
+function goBack() {
+  if (window.history.length > 1) {
+    window.history.back();
+    return;
+  }
+  window.location.assign("/");
+}
+
+function GateTopbar({ code, status }) {
+  return (
+    <header className="gate-topbar">
+      <a className="gate-brand arcade-focus" href="/" aria-label="Return to daivr.dev">
+        <span>DV</span>
+        <strong>daivr.dev</strong>
+        <small>arcade recovery system</small>
+      </a>
+      <div className="gate-topbar-status">
+        <span><i /> {status}</span>
+        <strong>ERR_{code}</strong>
+      </div>
+    </header>
+  );
+}
+
+function GateFooter({ note }) {
+  return (
+    <footer className="gate-footer">
+      <span>{note}</span>
+      <span>DAI.EXE · {new Date().getFullYear()}</span>
+    </footer>
+  );
+}
+
+/* ── 404 ─────────────────────────────────────────────────────────────────
+   Carta de navegacion. La pagina esta abierta y es ancha: el texto vive a la
+   izquierda y a la derecha hay un mapa que barre el sector. Las salidas no son
+   una lista debajo del pliegue, son los nodos del propio mapa, porque el
+   trabajo de un 404 es llevarte a otro sitio. */
+function LostSectorPage({ requestedPath }) {
+  const pageRef = useRef(null);
+  const coordinates = useMemo(() => getRouteCoordinates(requestedPath), [requestedPath]);
+  useGateTitle("404", "navigation fault");
+  useGateReturnNote("missing", requestedPath);
+
+  // Parallax de puntero: solo aqui. Una carta estelar deriva; una puerta
+  // blindada no. Va por variables CSS y una escritura por frame.
+  useEffect(() => {
     const root = pageRef.current;
     if (!root) return undefined;
 
-    // La consulta se hace por movimiento y no al montar: si se comprueba una
-    // sola vez en el mount y el navegador aun no ha resuelto la preferencia,
-    // el parallax se queda muerto para toda la sesion.
     const stillMedia = window.matchMedia("(prefers-reduced-motion: reduce)");
     let frame = 0;
     let pending = { x: 0, y: 0 };
@@ -116,181 +147,196 @@ export function SystemGatePage({ requestedPath, variant = "missing" }) {
     }
 
     window.addEventListener("pointermove", onMove, { passive: true });
-
     return () => {
       window.removeEventListener("pointermove", onMove);
       window.cancelAnimationFrame(frame);
-      root.style.removeProperty("--gate-px");
-      root.style.removeProperty("--gate-py");
     };
   }, []);
 
-  function goBack() {
-    if (window.history.length > 1) {
-      window.history.back();
-      return;
-    }
-    window.location.assign("/");
-  }
-
   return (
-    <main className={`system-gate-page is-${variant}`} ref={pageRef}>
-      {/* Cada variante pinta este mismo juego de capas con un mundo
-          distinto: el 404 en el vacio (estrellas, mapa de sectores girando,
-          limbo de un planeta) y el 403 encerrado (chevrones de peligro, faro
-          rotatorio, barrotes). Las capas se separan con el puntero. */}
-      <div className="gate-bg" aria-hidden="true">
-        <span className="gate-bg-aurora" />
-        <span className="gate-bg-stars" />
-        <span className="gate-bg-floor" />
-        <span className="gate-bg-horizon" />
-        <span className="gate-bg-pillars"><i /><i /><i /><i /><i /></span>
-        <span className="gate-bg-scan" />
-        <span className="gate-bg-sweep" />
-        <span className="gate-bg-vignette" />
+    <main className="gate-page is-lost" ref={pageRef}>
+      <div className="lost-void" aria-hidden="true">
+        <span className="lost-void-stars" />
+        <span className="lost-void-dust" />
+        <span className="lost-void-glow" />
       </div>
 
-      <header className="gate-topbar">
-        <a className="gate-brand arcade-focus" href="/" aria-label="Return to daivr.dev">
-          <span>DV</span>
-          <strong>daivr.dev</strong>
-          <small>arcade recovery system</small>
-        </a>
-        <div className="gate-topbar-status">
-          <span><i /> cabinet online</span>
-          <strong>ERR_{config.code}</strong>
-        </div>
-      </header>
+      <GateTopbar code="404" status="cabinet online" />
 
-      {/* Marquesina de bombillas: la cinta que corre por encima de un mueble
-          arcade real, y lo primero que dice que esto es una averia. */}
-      <div className="gate-marquee" aria-hidden="true">
-        <div className="gate-marquee-track">
-          {[0, 1, 2, 3].map((pass) => (
-            <span key={pass}>
-              {config.ticker.map((word) => (
-                <b key={`${pass}-${word}`}>{word}<i /></b>
-              ))}
-            </span>
-          ))}
-        </div>
-      </div>
+      <div className="lost-body">
+        <section className="lost-copy">
+          <p className="lost-tag"><Radar size={13} aria-hidden="true" /> navigation fault · err_404</p>
+          <h1>You drifted off the map.</h1>
+          <p className="lost-desc">
+            No cartridge lives at this coordinate. The beacon is still sweeping,
+            but this route has no signal and no save slot to recover.
+          </p>
 
-      <section className="gate-monitor" aria-labelledby="gate-title">
-        <div className="gate-monitor-hood" aria-hidden="true">
-          <span className="gate-monitor-vent" />
-          <span className="gate-monitor-plate">~/daivr/recovery/{config.file}</span>
-          <span className="gate-monitor-led"><i /><i /><i /></span>
-        </div>
+          <p className="lost-path">
+            <span aria-hidden="true">$ sweep --lost-sector</span>
+            <code>{requestedPath || "/unknown"}</code>
+          </p>
 
-        <div className="gate-screen">
-          <div className="gate-screen-card" aria-hidden="true" />
-          <div className="gate-screen-static" aria-hidden="true" />
-          <div className="gate-screen-hold" aria-hidden="true" />
-
-          {variant === "denied" ? (
-            <div className="gate-shutter" aria-hidden="true">
-              <i className="is-top" />
-              <i className="is-bottom" />
-              <span className="gate-shutter-lock"><Icon size={28} /></span>
+          <dl className="lost-fix">
+            <div>
+              <dt>last known</dt>
+              <dd>X {coordinates.x} · Y {coordinates.y} · Z {coordinates.z}</dd>
             </div>
-          ) : (
-            <div className="gate-lost" aria-hidden="true">
-              <span className="gate-lost-icon"><Icon size={30} /></span>
-              <span className="gate-lost-ring" />
+            <div>
+              <dt>signal</dt>
+              <dd className="is-lost">lost</dd>
             </div>
-          )}
+          </dl>
 
-          <div className="gate-screen-osd" aria-hidden="true">
-            <span className="is-tl"><i /> {config.signal}</span>
-            <span className="is-tr">{config.channel}</span>
-            <span className="is-bl">{config.ident}</span>
-            <span className="is-br">trace_{traceId}</span>
-          </div>
-
-          <div className="gate-screen-body">
-            <p className="gate-eyebrow"><ShieldAlert size={13} aria-hidden="true" /> {config.eyebrow}</p>
-            <div className="gate-code" data-code={config.code}>{config.code}</div>
-            <h1 id="gate-title">{config.title}</h1>
-            <p className="gate-desc">{config.description}</p>
-          </div>
-
-          <div className="gate-screen-glass" aria-hidden="true" />
-        </div>
-
-        {/* Panel de control del mueble: comando, botones y agujas en una sola
-            banda horizontal, en vez de la tarjeta lateral de diagnostico. */}
-        <div className="gate-deck">
-          <div className="gate-deck-main">
-            <div className="gate-cmd">
-              <Terminal size={14} aria-hidden="true" />
-              <span>{config.command}</span>
-              <code>{requestedPath || "/unknown"}</code>
-              <i className="gate-cmd-caret" aria-hidden="true" />
-            </div>
-
-            <div className="gate-actions">
-              <a className="gate-btn is-primary arcade-focus" href="/">
-                <Home size={15} aria-hidden="true" /> Return home
-              </a>
-              <button className="gate-btn arcade-focus" type="button" onClick={goBack}>
-                <ArrowLeft size={15} aria-hidden="true" /> Previous screen
-              </button>
-            </div>
-          </div>
-
-          <div className="gate-deck-readout">
-            <dl className="gate-gauges">
-              {config.gauges.map(([label, value, tone]) => (
-                <div className={`is-${tone}`} key={label}>
-                  <dt>{label}</dt>
-                  <dd>{value}</dd>
-                </div>
-              ))}
-            </dl>
-
-            <div className="gate-deck-meter">
-              <div className="gate-wave" aria-hidden="true">
-                {Array.from({ length: 22 }, (_, index) => <i key={index} style={{ "--route-step": index }} />)}
-              </div>
-              {variant === "missing" ? (
-                <div className="gate-coords" aria-hidden="true">
-                  <span>X {routeCoordinates.x}</span>
-                  <span>Y {routeCoordinates.y}</span>
-                  <span>Z {routeCoordinates.z}</span>
-                </div>
-              ) : (
-                <div className="gate-coords is-clearance" aria-label="Clearance handshake failed at step one of five">
-                  <span>handshake</span>
-                  <b aria-hidden="true"><i /><i /><i /><i /><i /></b>
-                  <span>01 / 05</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Estanteria de cartuchos: la mitad inferior de la pagina estaba en
-          blanco y no ofrecia ni una salida. */}
-      <nav className="gate-rack" aria-label="Live sectors">
-        <span className="gate-rack-label">nearest live sectors</span>
-        <div className="gate-rack-slots">
-          {LIVE_ROUTES.map(([href, label, id]) => (
-            <a className="gate-cart arcade-focus" href={href} key={href}>
-              <b>{id}</b>
-              <span>{label}</span>
-              <ChevronRight size={13} aria-hidden="true" />
-              <em aria-hidden="true" />
+          <div className="lost-actions">
+            <a className="gate-btn is-primary arcade-focus" href="/">
+              <Home size={15} aria-hidden="true" /> Return home
             </a>
-          ))}
-        </div>
-      </nav>
+            <button className="gate-btn arcade-focus" type="button" onClick={goBack}>
+              <ArrowLeft size={15} aria-hidden="true" /> Previous screen
+            </button>
+          </div>
+        </section>
 
-      <footer className="gate-footer">
-        <span>{config.footer}</span>
-        <span>DAI.EXE · {new Date().getFullYear()}</span>
-      </footer>
+        {/* El mapa es la navegacion: cada nodo es un enlace real, el SVG que
+            hay debajo es decorativo. */}
+        <section className="lost-chart" aria-labelledby="lost-chart-title">
+          <h2 className="sr-only" id="lost-chart-title">Live sectors you can jump to</h2>
+
+          <div className="lost-chart-frame">
+            <svg className="lost-chart-grid" viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+              <defs>
+                <radialGradient id="lost-sweep-fade">
+                  <stop offset="0%" stopColor="currentColor" stopOpacity=".38" />
+                  <stop offset="100%" stopColor="currentColor" stopOpacity="0" />
+                </radialGradient>
+              </defs>
+              <g className="lost-chart-rings">
+                <circle cx="100" cy="100" r="30" />
+                <circle cx="100" cy="100" r="55" />
+                <circle cx="100" cy="100" r="80" />
+                <circle cx="100" cy="100" r="95" />
+              </g>
+              <g className="lost-chart-cross">
+                <line x1="100" y1="4" x2="100" y2="196" />
+                <line x1="4" y1="100" x2="196" y2="100" />
+              </g>
+              <g className="lost-chart-sweep">
+                <path d="M100 100 L100 2 A98 98 0 0 1 169 31 Z" fill="url(#lost-sweep-fade)" />
+              </g>
+            </svg>
+
+            <span className="lost-chart-you" style={{ left: `${coordinates.blip.left}%`, top: `${coordinates.blip.top}%` }}>
+              <i aria-hidden="true" />
+              <em>you</em>
+            </span>
+
+            {SECTORS.map((sector) => (
+              <a
+                className="lost-node arcade-focus"
+                href={sector.href}
+                key={sector.href}
+                style={{ left: `${sector.x}%`, top: `${sector.y}%` }}
+              >
+                <i aria-hidden="true" />
+                <span><b>{sector.id}</b>{sector.label}</span>
+              </a>
+            ))}
+          </div>
+
+          <p className="lost-chart-hint">
+            <Radar size={12} aria-hidden="true" /> four sectors still reporting — pick one
+          </p>
+        </section>
+      </div>
+
+      <GateFooter note="search beacon // sweeping" />
     </main>
   );
+}
+
+/* ── 403 ─────────────────────────────────────────────────────────────────
+   Puerta sellada. Todo lo contrario del 404: una columna estrecha y centrada
+   que no se mueve con el raton, sin mapa y sin estanteria de salidas. Lo que
+   manda es el sello y la escalera de autorizacion, que se ve pararse en el
+   escalon exacto que fallo. */
+function SealedGatePage({ requestedPath }) {
+  useGateTitle("403", "security lockdown");
+  useGateReturnNote("denied", requestedPath);
+
+  return (
+    <main className="gate-page is-sealed">
+      <div className="sealed-walls" aria-hidden="true">
+        <span className="sealed-walls-hazard" />
+        <span className="sealed-walls-vignette" />
+      </div>
+
+      <GateTopbar code="403" status="session recognized" />
+
+      <div className="sealed-body">
+        <div className="sealed-door">
+          <span className="sealed-door-hazard" aria-hidden="true" />
+          <span className="sealed-stamp">
+            <b>403</b>
+            <i aria-hidden="true"><Lock size={15} /></i>
+          </span>
+          <span className="sealed-door-seam" aria-hidden="true" />
+        </div>
+
+        <section className="sealed-copy">
+          <p className="sealed-tag"><ShieldX size={13} aria-hidden="true" /> security lockdown</p>
+          <h1>Clearance rejected.</h1>
+          <p className="sealed-desc">
+            The cabinet knows who you are. This archive just sits above your
+            access tier, so the route was quarantined before anything opened.
+          </p>
+        </section>
+
+        {/* La escalera para donde para la autorizacion: los dos ultimos
+            escalones quedan en gris porque nunca llegaron a ejecutarse. */}
+        <ol className="sealed-ladder">
+          {HANDSHAKE.map((step, index) => (
+            <li className={`is-${step.state}`} key={step.key}>
+              <span className="sealed-step-rail" aria-hidden="true" />
+              <span className="sealed-step-mark" aria-hidden="true">
+                {step.state === "pass" ? <Check size={12} /> : step.state === "fail" ? <X size={12} /> : <Minus size={12} />}
+              </span>
+              <span className="sealed-step-copy">
+                <b>{step.key}</b>
+                <em>{step.value}</em>
+              </span>
+              <span className="sealed-step-index" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+            </li>
+          ))}
+        </ol>
+
+        <p className="sealed-path">
+          <Slash size={12} aria-hidden="true" />
+          <span aria-hidden="true">$ auth --challenge</span>
+          <code>{requestedPath || "/unknown"}</code>
+        </p>
+
+        <div className="sealed-actions">
+          <a className="gate-btn is-primary arcade-focus" href="/">
+            <Home size={15} aria-hidden="true" /> Return home
+          </a>
+          <button className="gate-btn arcade-focus" type="button" onClick={goBack}>
+            <ArrowLeft size={15} aria-hidden="true" /> Previous screen
+          </button>
+        </div>
+
+        <p className="sealed-note">
+          <MessageSquare size={12} aria-hidden="true" />
+          Think this tier should be yours? <a className="arcade-focus" href="/#contact">Leave a note<ChevronRight size={12} aria-hidden="true" /></a>
+        </p>
+      </div>
+
+      <GateFooter note="security bus // holding" />
+    </main>
+  );
+}
+
+export function SystemGatePage({ requestedPath, variant = "missing" }) {
+  if (variant === "denied") return <SealedGatePage requestedPath={requestedPath} />;
+  return <LostSectorPage requestedPath={requestedPath} />;
 }

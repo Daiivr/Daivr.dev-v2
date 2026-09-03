@@ -934,3 +934,74 @@
     animation: none;
   }
 }
+
+/* Waiting stage -------------------------------------------------------------
+   Mientras el anfitrion baja, la escena era un agujero: el medidor AVATAR LINK
+   flotaba en el centro geometrico de una caja alta y vacia, la burbuja "..."
+   colgaba sola a un lado y el resto de la composicion estaba pegado a las
+   cuatro esquinas. Estas reglas solo actuan antes de que la anfitriona
+   aparezca, y desaparecen solas cuando entra. */
+
+/* El medidor baja hasta la plataforma donde se materializa, en vez de quedarse
+   suspendido a media altura. */
+.entry-gate.is-immersive .entry-avatar-fallback {
+  align-content: end;
+  padding-bottom: 15%;
+}
+
+/* Plataforma de materializacion: da un foco al centro del encuadre y explica
+   que el hueco es donde va a aparecer alguien. */
+.entry-gate.is-immersive .entry-gate-host::before {
+  position: absolute;
+  left: 50%;
+  bottom: 7%;
+  z-index: 0;
+  width: min(19rem, 78%);
+  aspect-ratio: 3.3;
+  border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 30%, transparent);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--color-phosphor) 16%, transparent), transparent 68%);
+  content: "";
+  opacity: 1;
+  pointer-events: none;
+  transform: translateX(-50%);
+  transition: opacity 620ms ease-out;
+  animation: entry-gate-pad 3.6s ease-in-out infinite;
+}
+
+.entry-gate.is-host-present .entry-gate-host::before,
+.entry-gate.is-opening .entry-gate-host::before {
+  opacity: 0;
+  animation: none;
+}
+
+/* La burbuja solo tiene sentido cuando hay alguien a quien pertenece: hasta
+   entonces se quedaba flotando en mitad del vacio, apuntando a nada.
+   Hay que cancelar la animacion de entrada, no solo bajar la opacidad: se
+   declara con fill "both" y una animacion rellenada gana a una declaracion
+   normal, asi que al terminar sus 420ms volveria a ponerse visible sola.
+   Con animation:none la burbuja espera apagada y la entrada se reproduce
+   entera justo cuando aparece la anfitriona. */
+.entry-gate.is-host-waiting .entry-gate-speech {
+  animation: none;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-8px, 6px) scale(0.97);
+}
+
+/* La marca de fondo estaba tan apagada que se leia como una mancha. Sigue
+   siendo fondo, pero ahora es una decision visible. */
+.entry-gate-marquee {
+  color: color-mix(in srgb, var(--color-phosphor-soft) 13%, transparent);
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--color-cyan-arcade) 24%, transparent);
+}
+
+@keyframes entry-gate-pad {
+  0%, 100% { opacity: 0.62; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry-gate.is-immersive .entry-gate-host::before { animation: none; }
+  .entry-gate.is-host-waiting .entry-gate-speech { transition: none; }
+}

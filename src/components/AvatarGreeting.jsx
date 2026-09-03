@@ -10,6 +10,14 @@ import { AvatarLinkSignal } from "./AvatarLinkSignal";
 const AVATAR_URL = "/models/dai-greeter-optimized.vrm";
 const GREETING_URL = "/motions/greeting.vrma";
 const REVEAL_TIME = 1.82;
+// Reparto del medidor AVATAR LINK. Antes marcaba 100% al terminar la descarga,
+// pero despues quedaban tres fases invisibles — compilar shaders, montar la
+// escena y el arranque oculto de la animacion — asi que el contador llegaba al
+// final y el anfitrion tardaba segundos en aparecer. Ahora cada tramo tiene su
+// peso y el 100% cae exactamente cuando el avatar se ve.
+const PROGRESS_DOWNLOAD = 86;
+const PROGRESS_COMPILED = 96;
+const PROGRESS_READY = 97;
 const WAVE_LOOP_START = 5.33;
 const WAVE_LOOP_END = 6.53;
 const SOURCE_FPS = 60;
@@ -70,12 +78,12 @@ function AvatarRig({ active, onError, onPhaseChange, onProgress, onReady, onReve
         const [avatarGltf, animationGltf] = await Promise.all([
           avatarLoader.loadAsync(AVATAR_URL, (event) => {
             if (disposed || !event.lengthComputable || !event.total) return;
-            onProgressRef.current?.((event.loaded / event.total) * 100);
+            onProgressRef.current?.((event.loaded / event.total) * PROGRESS_DOWNLOAD);
           }),
           animationLoader.loadAsync(GREETING_URL)
         ]);
 
-        if (!disposed) onProgressRef.current?.(100);
+        if (!disposed) onProgressRef.current?.(PROGRESS_DOWNLOAD);
         const nextVrm = avatarGltf.userData.vrm;
         const vrmAnimation = animationGltf.userData.vrmAnimations?.[0];
 
@@ -119,6 +127,8 @@ function AvatarRig({ active, onError, onPhaseChange, onProgress, onReady, onReve
           scene.remove(nextVrm.scene);
         }
 
+        if (!disposed) onProgressRef.current?.(PROGRESS_COMPILED);
+
         if (disposed) {
           mixer.stopAllAction();
           VRMUtils.deepDispose(nextVrm.scene);
@@ -134,6 +144,7 @@ function AvatarRig({ active, onError, onPhaseChange, onProgress, onReady, onReve
         waveDurationRef.current = firstWaveClip.duration;
         clipDurationRef.current = clip.duration;
         setVrm(nextVrm);
+        onProgressRef.current?.(PROGRESS_READY);
         onReadyRef.current?.();
       } catch {
         if (!disposed) onErrorRef.current?.();
@@ -179,6 +190,7 @@ function AvatarRig({ active, onError, onPhaseChange, onProgress, onReady, onReve
         action.paused = true;
         phaseRef.current = "resting";
         revealSentRef.current = true;
+        onProgressRef.current?.(100);
         onRevealRef.current?.();
         onPhaseChangeRef.current?.("resting");
       }
@@ -192,9 +204,19 @@ function AvatarRig({ active, onError, onPhaseChange, onProgress, onReady, onReve
     if (!reducedMotion && active) {
       mixer.update(delta);
 
+      if (!revealSentRef.current) {
+        // El saludo arranca oculto: ese tramo tambien es espera, asi que lo
+        // cuenta el medidor en vez de dejarlo clavado en 97%.
+        // Tope en 99: el 100% lo escribe solo el reveal, para que el contador
+        // no cante el final unas decimas antes de que el avatar se vea.
+        const preroll = Math.min(1, Math.max(0, action.time / REVEAL_TIME));
+        onProgressRef.current?.(Math.min(99, PROGRESS_READY + (100 - PROGRESS_READY) * preroll));
+      }
+
       if (!revealSentRef.current && action.time >= REVEAL_TIME) {
         revealSentRef.current = true;
         phaseRef.current = "greeting";
+        onProgressRef.current?.(100);
         onRevealRef.current?.();
         onPhaseChangeRef.current?.("greeting");
       }
@@ -324,7 +346,7 @@ export function AvatarGreeting({ active, displayName, onLoadProgress, onStage })
         />
       </Canvas>
       <div className="entry-avatar-scan" aria-hidden="true" />
-      {status !== "ready" ? <AvatarLinkSignal progress={loadProgress} status={status} /> : null}
+      {revealed ? null : <AvatarLinkSignal progress={loadProgress} status={status} />}
     </div>
   );
 }

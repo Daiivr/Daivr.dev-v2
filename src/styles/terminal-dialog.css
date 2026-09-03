@@ -736,112 +736,133 @@
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Desktop cockpit: intentionally breaks the single-window terminal silhouette. */
+/* Desktop cockpit: one cabinet frame, one accent system.
+   phosphor = primary/content, cyan = chrome/structure, cabinet = live state only. */
 @layer components {
   @media (min-width: 761px) {
     .terminal-overlay {
       background:
-        radial-gradient(circle at 36% 68%, color-mix(in srgb, var(--color-cyan-arcade) 10%, transparent), transparent 34%),
-        radial-gradient(circle at 74% 28%, color-mix(in srgb, var(--color-cabinet) 5.5%, transparent), transparent 28%),
-        rgba(0, 3, 8, .82);
-      backdrop-filter: blur(13px) saturate(.8);
+        radial-gradient(circle at 50% 62%, color-mix(in srgb, var(--color-phosphor) 8%, transparent), transparent 46%),
+        rgba(0, 3, 6, .86);
+      backdrop-filter: blur(14px) saturate(.78);
     }
 
     .terminal-window {
-      width: min(1220px, calc(100vw - clamp(2rem, 6vw, 6rem)));
-      max-height: min(90dvh, 850px);
+      --t-ground: #01070a;
+      --t-raised: rgba(6, 17, 20, .62);
+      --t-line: color-mix(in srgb, var(--color-cyan-arcade) 17%, transparent);
+      --t-line-strong: color-mix(in srgb, var(--color-cyan-arcade) 30%, transparent);
+      --t-label: color-mix(in srgb, var(--color-phosphor-soft) 52%, transparent);
+
+      width: min(1180px, calc(100vw - clamp(2rem, 6vw, 6rem)));
+      max-height: min(88dvh, 840px);
       grid-template-rows: auto minmax(0, 1fr) auto;
-      gap: .8rem;
-      overflow: visible;
-      border: 0;
-      background: transparent;
-      box-shadow: none;
+      gap: 0;
+      overflow: hidden;
+      border: 1px solid color-mix(in srgb, var(--color-phosphor) 40%, transparent);
+      clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+      background: var(--t-ground);
+      box-shadow:
+        inset 0 0 0 1px rgba(69, 216, 255, .06),
+        inset 0 0 90px rgba(0, 0, 0, .55),
+        0 0 60px color-mix(in srgb, var(--color-phosphor) 12%, transparent),
+        0 40px 120px rgba(0, 0, 0, .8);
     }
 
-    .terminal-window::before { display: none; }
+    /* CRT scanlines belong to the whole cabinet, not to each panel */
+    .terminal-window::before {
+      display: block;
+      background: repeating-linear-gradient(180deg, transparent 0 3px, rgba(69, 216, 255, .022) 3px 4px);
+    }
 
-    .terminal-window::after { display: none; }
+    .terminal-window::after {
+      display: block;
+      inset: 10px;
+      width: 26px;
+      height: 26px;
+      border-color: color-mix(in srgb, var(--color-phosphor) 70%, transparent);
+      opacity: .42;
+    }
 
+    /* ---------- header ---------- */
     .terminal-windowbar {
-      min-height: 78px;
-      border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 26%, transparent);
-      clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+      min-height: 60px;
+      border: 0;
+      border-bottom: 1px solid var(--t-line-strong);
+      clip-path: none;
       background:
-        linear-gradient(rgba(255, 255, 255, .022) 50%, transparent 50%) 0 0 / 100% 4px,
-        radial-gradient(circle at 4% 50%, color-mix(in srgb, var(--color-cyan-arcade) 11%, transparent), transparent 20%),
-        linear-gradient(90deg, rgba(3, 13, 20, .98), rgba(1, 7, 10, .97));
-      padding: .8rem .9rem .8rem 1rem;
-      box-shadow:
-        inset 3px 0 0 color-mix(in srgb, var(--color-cyan-arcade) 62%, transparent),
-        inset 0 1px 0 rgba(255, 255, 255, .035),
-        inset 0 0 34px color-mix(in srgb, var(--color-cyan-arcade) 1.8%, transparent);
+        linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 7%, transparent), transparent 34%),
+        rgba(3, 11, 14, .9);
+      padding: .55rem .75rem .55rem .9rem;
+      box-shadow: none;
     }
 
     .terminal-windowbar::before { display: none; }
 
-    .terminal-windowbar::after { display: none; }
+    .terminal-windowbar::after {
+      display: block;
+      background: linear-gradient(90deg, var(--color-phosphor), var(--color-cyan-arcade) 28%, transparent 70%);
+      opacity: .5;
+    }
 
     .terminal-window-icon {
-      width: 44px;
-      height: 44px;
+      width: 36px;
+      height: 36px;
       border: 0;
-      clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
-      background: var(--color-cyan-arcade);
-      color: #031016;
-      box-shadow: 0 0 24px color-mix(in srgb, var(--color-cyan-arcade) 16%, transparent);
+      clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+      background: var(--color-phosphor);
+      color: #01120a;
+      box-shadow: 0 0 20px color-mix(in srgb, var(--color-phosphor) 22%, transparent);
     }
 
-    .terminal-window-dots {
-      align-items: center;
-      gap: 4px;
-    }
-
-    .terminal-window-dots i {
-      width: 4px;
-      height: 24px;
-    }
-
-    .terminal-window-dots i:nth-child(2) { height: 15px; }
-    .terminal-window-dots i:nth-child(3) { height: 8px; }
+    .terminal-window-dots { align-items: center; gap: 3px; }
+    .terminal-window-dots i { width: 3px; height: 18px; }
+    .terminal-window-dots i:nth-child(2) { height: 12px; }
+    .terminal-window-dots i:nth-child(3) { height: 7px; }
 
     .terminal-window-kicker {
-      color: var(--color-cyan-arcade);
-      letter-spacing: .18em;
+      color: color-mix(in srgb, var(--color-cyan-arcade) 76%, transparent);
+      letter-spacing: .16em;
     }
 
     .terminal-window-id h2 {
-      font-size: clamp(1rem, 1.65vw, 1.28rem);
-      letter-spacing: -.035em;
+      font-size: clamp(.92rem, 1.35vw, 1.08rem);
+      letter-spacing: -.02em;
     }
 
     .terminal-window-id p {
-      color: color-mix(in srgb, var(--color-phosphor-soft) 60%, transparent);
+      color: var(--t-label);
+      font-size: .52rem;
     }
 
     .terminal-window-meta span {
-      min-height: 38px;
-      border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 10%, transparent);
-      clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
-      background: color-mix(in srgb, var(--color-cyan-arcade) 4.5%, transparent);
+      min-height: 30px;
+      border: 1px solid var(--t-line);
+      clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+      background: rgba(255, 255, 255, .022);
+      padding-inline: .5rem;
     }
 
     .terminal-window-meta span:first-child {
-      border: 1px solid color-mix(in srgb, var(--color-phosphor) 20%, transparent);
-      background: color-mix(in srgb, var(--color-phosphor) 5.5%, transparent);
+      border-color: color-mix(in srgb, var(--color-phosphor) 26%, transparent);
+      background: color-mix(in srgb, var(--color-phosphor) 6%, transparent);
     }
 
     .terminal-close {
-      border: 1px solid color-mix(in srgb, var(--color-glitch) 34%, transparent);
-      clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
-      background: color-mix(in srgb, var(--color-glitch) 7%, transparent);
+      width: 36px;
+      height: 36px;
+      border: 1px solid color-mix(in srgb, var(--color-glitch) 30%, transparent);
+      clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+      background: color-mix(in srgb, var(--color-glitch) 8%, transparent);
     }
 
+    /* ---------- workspace: buffer leads, deck supports ---------- */
     .terminal-workspace {
-      min-height: 370px;
-      grid-template-columns: minmax(0, 1fr) clamp(310px, 28vw, 350px);
+      min-height: 300px;
+      grid-template-columns: minmax(0, 1fr) clamp(228px, 19vw, 262px);
       grid-template-areas: "buffer deck";
-      gap: .8rem;
-      overflow: visible;
+      gap: 0;
+      overflow: hidden;
       background: transparent;
     }
 
@@ -849,225 +870,204 @@
       position: relative;
       grid-area: buffer;
       overflow: hidden;
-      border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 28%, transparent);
-      clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+      border: 0;
+      clip-path: none;
       background:
-        linear-gradient(rgba(255, 255, 255, .025) 50%, transparent 50%) 0 0 / 100% 4px,
-        radial-gradient(circle at 78% 24%, color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent), transparent 34%),
-        rgba(0, 7, 11, .95);
-      box-shadow:
-        inset 3px 0 0 color-mix(in srgb, var(--color-cyan-arcade) 54%, transparent),
-        inset 0 1px 0 rgba(255, 255, 255, .025),
-        inset 0 0 65px color-mix(in srgb, var(--color-cyan-arcade) 2.5%, transparent);
+        linear-gradient(rgba(255, 255, 255, .016) 50%, transparent 50%) 0 0 / 100% 4px,
+        rgba(0, 5, 7, .55);
+      box-shadow: none;
     }
 
-    .terminal-buffer::before {
-      position: absolute;
-      right: 1.5rem;
-      bottom: -1.1rem;
-      z-index: 0;
-      color: color-mix(in srgb, var(--color-cyan-arcade) 2.5%, transparent);
-      content: "01";
-      font-family: var(--font-display);
-      font-size: clamp(9rem, 15vw, 13rem);
-      font-weight: 950;
-      letter-spacing: -.12em;
-      line-height: 1;
-      pointer-events: none;
-    }
+    /* the oversized "01" competed with the log sitting on top of it */
+    .terminal-buffer::before { content: none; }
 
     .terminal-bufferbar,
-    .terminal-output {
-      position: relative;
-      z-index: 1;
-    }
+    .terminal-output { position: relative; z-index: 1; }
 
     .terminal-bufferbar {
-      min-height: 50px;
-      border-bottom-color: color-mix(in srgb, var(--color-cyan-arcade) 20%, transparent);
-      background: linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 5.5%, transparent), color-mix(in srgb, var(--color-cyan-arcade) 1.8%, transparent));
-      padding-inline: 1rem;
+      min-height: 40px;
+      border-bottom: 1px solid var(--t-line);
+      background: transparent;
+      padding-inline: .85rem;
     }
 
+    /* fills its grid row instead of a fixed height that left dead space */
     .terminal-output {
-      height: clamp(320px, 47dvh, 470px);
-      background:
-        linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 2.5%, transparent), transparent 45%),
-        repeating-linear-gradient(90deg, transparent 0 95px, color-mix(in srgb, var(--color-cyan-arcade) 1.8%, transparent) 96px);
-      padding-block: 1.15rem 1.35rem;
+      height: auto;
+      background: linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 2.2%, transparent), transparent 40%);
+      padding-block: .7rem 1rem;
     }
 
     .terminal-output-line {
-      grid-template-columns: 58px minmax(0, 1fr);
-      border-left-width: 3px;
-      padding-right: 1.45rem;
+      grid-template-columns: 40px minmax(0, 1fr);
+      border-left-width: 2px;
+      padding-right: 1.1rem;
+    }
+
+    .terminal-line-number {
+      border-right: 0;
+      margin-right: .6rem;
+      padding-right: .35rem;
     }
 
     .terminal-output-line.is-command {
       border-left-color: var(--color-cabinet);
-      background: linear-gradient(90deg, color-mix(in srgb, var(--color-cabinet) 7.5%, transparent), transparent 58%);
+      background: linear-gradient(90deg, color-mix(in srgb, var(--color-cabinet) 8%, transparent), transparent 46%);
     }
 
+    /* ---------- command deck ---------- */
     .terminal-command-deck {
       grid-area: deck;
       overflow: hidden;
-      border: 1px solid color-mix(in srgb, var(--color-cabinet) 22%, transparent);
-      clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
-      background:
-        radial-gradient(circle at 100% 0, color-mix(in srgb, var(--color-cabinet) 9%, transparent), transparent 34%),
-        rgba(10, 9, 5, .94);
-      box-shadow:
-        inset 3px 0 0 color-mix(in srgb, var(--color-cabinet) 54%, transparent),
-        inset 0 1px 0 rgba(255, 255, 255, .025);
+      border: 0;
+      border-left: 1px solid var(--t-line-strong);
+      clip-path: none;
+      background: var(--t-raised);
+      box-shadow: none;
     }
 
     .terminal-command-deck > header {
-      min-height: 50px;
-      border-bottom-color: color-mix(in srgb, var(--color-cabinet) 16%, transparent);
-      background: color-mix(in srgb, var(--color-cabinet) 4.5%, transparent);
-      padding-inline: .9rem;
+      min-height: 40px;
+      border-bottom: 1px solid var(--t-line);
+      background: transparent;
+      padding-inline: .75rem;
     }
 
-    .terminal-command-deck-label { color: var(--color-cabinet); }
+    .terminal-command-deck-label { color: color-mix(in srgb, var(--color-cyan-arcade) 82%, transparent); }
 
+    /* dense single-column rows: all six commands read in one scan */
     .terminal-command-list {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      grid-auto-rows: minmax(84px, 1fr);
-      gap: .48rem;
-      padding: .7rem;
+      grid-template-columns: minmax(0, 1fr);
+      grid-auto-rows: minmax(46px, 60px);
+      align-content: start;
+      gap: .5rem;
+      padding: .6rem;
     }
 
     .terminal-command-chip {
       position: relative;
       min-width: 0;
-      min-height: 84px;
-      grid-template-columns: minmax(0, 1fr) auto;
-      grid-template-rows: 1fr auto;
-      grid-template-areas:
-        "copy index"
-        "copy arrow";
-      align-items: end;
-      border: 1px solid rgba(255, 255, 255, .065);
-      clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
-      background:
-        linear-gradient(145deg, color-mix(in srgb, var(--color-cabinet) 5.5%, transparent), transparent 55%),
-        rgba(4, 8, 8, .88);
-      padding: .72rem;
+      min-height: 46px;
+      grid-template-columns: 22px minmax(0, 1fr) auto;
+      grid-template-rows: auto;
+      grid-template-areas: "index copy arrow";
+      align-items: center;
+      gap: .5rem;
+      border: 1px solid rgba(255, 255, 255, .06);
+      clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+      background: rgba(3, 10, 12, .72);
+      padding: .4rem .55rem;
       transform: none;
     }
 
-    .terminal-command-chip:nth-child(3n + 2) {
-      background:
-        linear-gradient(145deg, color-mix(in srgb, var(--color-cyan-arcade) 6%, transparent), transparent 55%),
-        rgba(4, 8, 8, .88);
-    }
+    .terminal-command-chip:nth-child(3n + 2) { background: rgba(3, 10, 12, .72); }
 
     .terminal-command-chip-index {
       grid-area: index;
-      align-self: start;
-      color: color-mix(in srgb, var(--color-cabinet) 55%, transparent);
-      font-size: .5rem;
+      align-self: center;
+      color: color-mix(in srgb, var(--color-phosphor) 42%, transparent);
+      font-size: .48rem;
     }
 
     .terminal-command-chip-copy {
       grid-area: copy;
-      align-self: stretch;
-      align-content: end;
-      gap: .3rem;
+      align-self: center;
+      align-content: center;
+      gap: .1rem;
     }
 
     .terminal-command-chip-copy b {
-      color: #f3fbff;
-      font-size: .66rem;
+      color: #eafff3;
+      font-size: .62rem;
     }
 
     .terminal-command-chip-copy small {
-      color: rgba(182, 217, 220, .46);
-      line-height: 1.3;
-      white-space: normal;
+      color: var(--t-label);
+      line-height: 1.25;
+      white-space: nowrap;
     }
 
     .terminal-command-chip > svg {
       grid-area: arrow;
-      color: color-mix(in srgb, var(--color-cabinet) 42%, transparent);
+      align-self: center;
+      color: color-mix(in srgb, var(--color-phosphor) 32%, transparent);
     }
 
     .terminal-command-chip:hover,
     .terminal-command-chip:focus-visible {
-      border-color: color-mix(in srgb, var(--color-cabinet) 58%, transparent);
-      background: color-mix(in srgb, var(--color-cabinet) 9%, transparent);
-      transform: translateY(-2px);
-      box-shadow: inset 0 0 22px color-mix(in srgb, var(--color-cabinet) 12%, transparent);
+      border-color: color-mix(in srgb, var(--color-phosphor) 55%, transparent);
+      background: color-mix(in srgb, var(--color-phosphor) 8%, transparent);
+      transform: translateX(2px);
+      box-shadow: inset 0 0 18px color-mix(in srgb, var(--color-phosphor) 9%, transparent);
     }
 
     .terminal-deck-status {
-      min-height: 58px;
-      border-top-color: color-mix(in srgb, var(--color-cabinet) 16%, transparent);
-      background: color-mix(in srgb, var(--color-cabinet) 3.5%, transparent);
-      padding-inline: .9rem;
+      min-height: 46px;
+      border-top: 1px solid var(--t-line);
+      background: transparent;
+      padding-inline: .75rem;
     }
 
+    /* ---------- input ---------- */
     .terminal-input-zone {
-      border: 1px solid color-mix(in srgb, var(--color-cabinet) 30%, transparent);
-      clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
-      background:
-        linear-gradient(90deg, color-mix(in srgb, var(--color-cabinet) 5.5%, transparent), transparent 28%),
-        rgba(7, 8, 7, .97);
-      padding: .65rem .8rem .58rem;
-      box-shadow:
-        inset 3px 0 0 color-mix(in srgb, var(--color-cabinet) 58%, transparent),
-        inset 0 1px 0 rgba(255, 255, 255, .02);
+      border: 0;
+      border-top: 1px solid var(--t-line-strong);
+      clip-path: none;
+      background: rgba(3, 11, 14, .9);
+      padding: .55rem .8rem .5rem;
+      box-shadow: none;
     }
 
-    .terminal-input-head span { color: var(--color-cabinet); }
+    .terminal-input-head span { color: color-mix(in srgb, var(--color-cyan-arcade) 82%, transparent); }
 
     .terminal-prompt-row {
-      border-color: color-mix(in srgb, var(--color-cabinet) 34%, transparent);
-      clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+      border-color: color-mix(in srgb, var(--color-phosphor) 26%, transparent);
+      clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
       overflow: hidden;
-      background: rgba(0, 4, 6, .88);
+      background: rgba(0, 4, 6, .9);
     }
 
     .terminal-prompt-row:focus-within {
-      border-color: var(--color-cabinet);
-      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-cabinet) 42%, transparent), inset 0 0 26px color-mix(in srgb, var(--color-cabinet) 10%, transparent);
+      border-color: var(--color-phosphor);
+      box-shadow:
+        inset 0 0 0 1px color-mix(in srgb, var(--color-phosphor) 38%, transparent),
+        inset 0 0 24px color-mix(in srgb, var(--color-phosphor) 9%, transparent);
     }
 
     .terminal-prompt-row label {
-      border-right-color: color-mix(in srgb, var(--color-cabinet) 18%, transparent);
-      background: color-mix(in srgb, var(--color-cabinet) 6.5%, transparent);
+      border-right-color: color-mix(in srgb, var(--color-phosphor) 16%, transparent);
+      background: color-mix(in srgb, var(--color-phosphor) 6%, transparent);
     }
 
     .terminal-prompt-row label strong { color: var(--color-cabinet); }
 
     .terminal-run-button {
-      border-left-color: color-mix(in srgb, var(--color-cabinet) 22%, transparent);
-      background: var(--color-cabinet);
-      color: #0c0901;
+      border-left-color: color-mix(in srgb, var(--color-phosphor) 26%, transparent);
+      background: var(--color-phosphor);
+      color: #01130a;
     }
 
     .terminal-run-button:disabled {
-      background: color-mix(in srgb, var(--color-cabinet) 4.5%, transparent);
-      color: color-mix(in srgb, var(--color-cabinet) 30%, white);
+      background: color-mix(in srgb, var(--color-phosphor) 5%, transparent);
+      color: color-mix(in srgb, var(--color-phosphor) 34%, white);
     }
 
     .terminal-prompt-row input::placeholder {
-      color: color-mix(in srgb, var(--color-phosphor-soft) 36%, transparent);
+      color: color-mix(in srgb, var(--color-phosphor-soft) 32%, transparent);
     }
 
-    .terminal-hints em { color: var(--color-cyan-arcade); }
+    .terminal-hints em { color: var(--color-phosphor); }
   }
 
   @media (min-width: 761px) and (max-height: 650px) {
-    .terminal-window { gap: .5rem; }
-    .terminal-windowbar { min-height: 66px; }
-    .terminal-window-icon { width: 38px; height: 38px; }
-    .terminal-workspace { min-height: 280px; }
-    .terminal-output { height: min(39dvh, 300px); }
-    .terminal-command-list { grid-auto-rows: minmax(66px, 1fr); gap: .35rem; padding: .5rem; }
-    .terminal-command-chip { min-height: 66px; padding: .55rem; }
+    .terminal-windowbar { min-height: 52px; }
+    .terminal-window-icon { width: 32px; height: 32px; }
+    .terminal-window-id p { display: none; }
+    .terminal-workspace { min-height: 220px; }
+    .terminal-command-list { grid-auto-rows: minmax(44px, 48px); gap: .35rem; padding: .5rem; }
+    .terminal-command-chip { min-height: 44px; padding: .35rem .5rem; }
     .terminal-command-chip-copy small { font-size: .44rem; }
-    .terminal-deck-status { min-height: 46px; }
+    .terminal-deck-status { min-height: 40px; }
     .terminal-input-zone { padding-block: .48rem .4rem; }
   }
 

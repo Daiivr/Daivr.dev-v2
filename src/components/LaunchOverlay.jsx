@@ -4,6 +4,14 @@ import { Check, LoaderCircle } from "lucide-react";
 // El mapa de nodos vive aqui y no en el CSS: las trazas SVG y las fichas
 // tienen que salir de las mismas coordenadas o la linea apunta a un sitio
 // donde no hay nodo.
+// Cada nodo que entra deja un digito de la combinacion de la boveda, y la
+// linea final los junta. Seis nodos, seis digitos: no hay que repartir nada a
+// mano, el indice del modulo es el indice del digito.
+//
+// Deliberadamente fuera del patch.log: el aliciente es dar con esto arrancando
+// Dai.exe y mirando el registro, y una nota de version lo regalaria.
+const VAULT_SHARDS = "071990";
+
 const phases = [
   {
     label: "mounting cartridges",
@@ -118,13 +126,21 @@ export function LaunchOverlay({ active, closing = false, complete = false, phase
   const progress = displayProgress;
   const bootLines = [
     { key: "run", tone: "command", text: "$ run Dai.exe --boot" },
-    ...phases.slice(0, completedCount).map((item, index) => ({
-      key: item.module,
-      tone: !complete && index === currentIndex ? "active" : "ok",
-      typing: !complete && index === currentIndex,
-      text: `[${!complete && index === currentIndex ? "run" : " ok"}] ${item.module} ${item.route} :: ${!complete && index === currentIndex ? item.label : "online"}`
-    })),
-    ...(complete ? [{ key: "online", tone: "online", typing: true, text: "[online] Dai.exe online // all modules loaded" }] : [])
+    ...phases.slice(0, completedCount).map((item, index) => {
+      const running = !complete && index === currentIndex;
+      // El fragmento solo aparece cuando el nodo ya esta arriba: mientras
+      // arranca no ha soltado nada todavia.
+      const shard = running ? "" : ` :: key ${VAULT_SHARDS[index] ?? ""}`;
+      return {
+        key: item.module,
+        tone: running ? "active" : "ok",
+        typing: running,
+        text: `[${running ? "run" : " ok"}] ${item.module} ${item.route} :: ${running ? item.label : "online"}${shard}`
+      };
+    }),
+    ...(complete
+      ? [{ key: "online", tone: "online", typing: true, text: `[online] Dai.exe online // all modules loaded // key ${VAULT_SHARDS}` }]
+      : [])
   ];
   const visibleBootLines = bootLines.slice(-4);
   const progressAngle = `${Math.max(3, progress * 3.6)}deg`;

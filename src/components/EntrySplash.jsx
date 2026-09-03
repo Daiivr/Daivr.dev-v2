@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { getLocalBuddyLevel } from "../hooks/useBuddyFriendship";
+import { consumeGateReturn } from "../lib/gateReturn";
 import { AvatarScenePlaceholder } from "./AvatarLinkSignal";
 import { BuddySprite } from "./BuddySprite";
 import { SeasonalSplashNotice } from "./SeasonalEvent";
@@ -34,14 +35,46 @@ const SEASON_ASIDES = {
   "april-fools": "everything you see today is completely trustworthy."
 };
 
-function buildScript({ hostName, linked, seasonalEvent, visitorName }) {
-  const lines = linked
-    ? [`oh — ${visitorName}!`, "discord pass checks out. good to have you back."]
-    : ["oh — hey. didn't hear you walk up.", `i'm ${hostName}. i keep dai's cabinet running.`];
+// El visitante que vuelve de una pagina de sistema no acaba de llegar: acaba de
+// estrellarse. Repetirle la bienvenida de siempre suena a que nadie estaba
+// mirando, asi que la anfitriona lo comenta y sigue.
+function buildReturnLines({ gateReturn, hostName, linked, visitorName }) {
+  const who = linked ? visitorName : "you";
+  const greeting = linked ? `oh — ${visitorName}. you made it back.` : "oh — you're back.";
 
-  lines.push(linked
-    ? "floor's still warm. everything's where you left it."
-    : "projects, experiments, and a few games nobody mentions.");
+  if (gateReturn.variant === "denied") {
+    return [
+      greeting,
+      `${gateReturn.path} is sealed above your tier. that one's not on me.`,
+      linked
+        ? "your pass is fine — that shelf just answers to someone else."
+        : `i'm ${hostName}, and i don't hold that key either.`,
+      "nothing leaked, for what it's worth. door held."
+    ];
+  }
+
+  return [
+    greeting,
+    `${gateReturn.path} was never on the map. i checked twice.`,
+    linked
+      ? "the index is older than some of the carts. it happens."
+      : `i'm ${hostName}. i keep dai's cabinet running — mostly.`,
+    `let's get ${who} somewhere that actually exists.`
+  ];
+}
+
+function buildScript({ gateReturn, hostName, linked, seasonalEvent, visitorName }) {
+  const lines = gateReturn
+    ? buildReturnLines({ gateReturn, hostName, linked, visitorName })
+    : linked
+      ? [`oh — ${visitorName}!`, "discord pass checks out. good to have you back."]
+      : ["oh — hey. didn't hear you walk up.", `i'm ${hostName}. i keep dai's cabinet running.`];
+
+  if (!gateReturn) {
+    lines.push(linked
+      ? "floor's still warm. everything's where you left it."
+      : "projects, experiments, and a few games nobody mentions.");
+  }
 
   const aside = SEASON_ASIDES[seasonalEvent];
   if (aside) lines.push(aside);
@@ -61,6 +94,9 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   const [hostOverdue, setHostOverdue] = useState(false);
   const [buddyAwake, setBuddyAwake] = useState(false);
   const [avatarProgress, setAvatarProgress] = useState(0);
+  // Se consume en el primer render: el guion especial sale una vez, y una
+  // recarga posterior de la portada vuelve a la bienvenida normal.
+  const [gateReturn] = useState(() => consumeGateReturn());
   const [lineIndex, setLineIndex] = useState(0);
   const [typed, setTyped] = useState(0);
   const [opening, setOpening] = useState(false);
@@ -82,8 +118,8 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   const visitorName = discordUser?.username || "guest";
   const hostName = compact ? "buddy" : "the host";
   const script = useMemo(
-    () => buildScript({ hostName, linked: Boolean(discordUser), seasonalEvent, visitorName }),
-    [discordUser, hostName, seasonalEvent, visitorName]
+    () => buildScript({ gateReturn, hostName, linked: Boolean(discordUser), seasonalEvent, visitorName }),
+    [discordUser, gateReturn, hostName, seasonalEvent, visitorName]
   );
 
   const hostPresent = compact
@@ -94,7 +130,11 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   const lineComplete = typed >= line.length;
   const lastLine = lineIndex >= script.length - 1;
   const scriptDone = talking && lastLine && lineComplete;
-  const canEnter = authChecked && !opening;
+  // La puerta no se abre hasta que la barra del HUD esta llena. hostPresent ya
+  // cubre las salidas de emergencia (host caido, WebGL ausente, los 9s de
+  // HOST_PATIENCE_MS), asi que esperar aqui no puede dejar a nadie encerrado.
+  const gateReady = authChecked && hostPresent;
+  const canEnter = gateReady && !opening;
 
   useEffect(() => {
     const compactQuery = window.matchMedia("(max-width: 800px)");
@@ -267,13 +307,15 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
       ? "host offline // gate still open"
       : "channel open";
 
-  const buttonLabel = !authChecked ? "warming up" : "open the gate";
-  const buttonHint = !authChecked ? "stand by" : opening ? "gate opening" : "press enter";
+  const buttonLabel = gateReady ? "open the gate" : "warming up";
+  const buttonHint = !gateReady
+    ? (streaming ? "linking host" : "stand by")
+    : opening ? "gate opening" : "press enter";
   const moreToSay = talking && (!lineComplete || !lastLine);
 
   return (
     <div
-      className={`entry-gate ${compact ? "is-compact" : "is-immersive"} ${opening ? "is-opening" : ""} ${scriptDone ? "is-armed" : ""}`}
+      className={`entry-gate ${compact ? "is-compact" : "is-immersive"} ${opening ? "is-opening" : ""} ${scriptDone ? "is-armed" : ""} ${hostPresent ? "is-host-present" : "is-host-waiting"}`}
       role="dialog"
       aria-modal="true"
       aria-labelledby="entry-gate-title"
@@ -411,7 +453,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
           type="button"
           onClick={requestEnter}
           disabled={!canEnter}
-          aria-label={canEnter ? "Open the gate and enter the Dai.exe portfolio" : "The host is still waking up"}
+          aria-label={canEnter ? "Open the gate and enter the Dai.exe portfolio" : "The host is still arriving"}
         >
           <span>
             <strong>{opening ? "opening..." : buttonLabel}</strong>

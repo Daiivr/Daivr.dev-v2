@@ -4,6 +4,7 @@ import { profile } from "../data/site";
 import { useElasticDrag } from "../hooks/useElasticDrag";
 import { ArcadeButton } from "./ui/ArcadeButton";
 import { ArcadeCanvas } from "./ArcadeCanvas";
+import { DevRoomVault } from "./DevRoomVault";
 
 // Mismos seis nodos (y mismo orden) que dibuja el lienzo vectorial, para que
 // el checklist de arranque y la escena no cuenten cosas distintas.
@@ -23,6 +24,11 @@ const BOOT_SCRIPT = [
   { arg: "game-night-ui", name: "queue", type: "call" },
   { arg: "personal-site", name: "render", type: "call" }
 ];
+
+// Radio de enganche de la chincheta, en px. Una sola fuente: el hook decide
+// con el, y el aro lo dibuja a tamano real, para que lo que se ve sea
+// exactamente lo que engancha.
+const HANG_RADIUS = 54;
 
 // La cinta del bay secreto: sectores que se van bloqueando durante el escaneo.
 const SECRET_SECTORS = ["0xDA1", "CRT-A", "1997", "SECTOR-07", "NODE-06", "DAI-CORE"];
@@ -46,7 +52,12 @@ function readBuildLine(line) {
 
 export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun, onOpenTerminal }) {
   const stationRef = useRef(null);
-  const { handleProps, isDragging, targetRef } = useElasticDrag({ scopeRef: stationRef });
+  const nailRef = useRef(null);
+  const { handleProps, hangArmed, hangLanded, isDragging, isHung, targetRef } = useElasticDrag({
+    hangRef: nailRef,
+    hangRadius: HANG_RADIUS,
+    scopeRef: stationRef
+  });
   const [hasSecretArmed, setHasSecretArmed] = useState(false);
   // El panel crecia y encogia con cada linea del arranque. La ventana es ahora
   // fija de cuatro filas, ancladas abajo: lo viejo se sale por el borde
@@ -65,7 +76,7 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
       : ["queue offline", "nodes asleep", "canvas idle"];
 
   useEffect(() => {
-    if (isDragging) {
+    if (isDragging || isHung) {
       setHasSecretArmed(true);
       return;
     }
@@ -73,14 +84,26 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
     window.dispatchEvent(new CustomEvent("random-glitch-clear-scope", {
       detail: { scope: "console-secret-bay" }
     }));
-  }, [isDragging]);
+  }, [isDragging, isHung]);
 
   return (
     <section
-      className={`hero-station relative grid min-h-[min(820px,calc(100svh-68px))] items-center gap-6 py-10 lg:grid-cols-[minmax(0,.82fr)_minmax(380px,1.05fr)] ${isDragging ? "is-console-dragging" : ""} ${hasSecretArmed ? "is-secret-armed" : ""}`}
+      className={`hero-station relative grid min-h-[min(820px,calc(100svh-68px))] items-center gap-6 py-10 lg:grid-cols-[minmax(0,.82fr)_minmax(380px,1.05fr)] ${isDragging ? "is-console-dragging" : ""} ${isHung ? "is-console-hung" : ""} ${hangLanded ? "is-hang-landing" : ""} ${hangArmed ? "is-hang-armed" : ""} ${hasSecretArmed ? "is-secret-armed" : ""}`}
       id="home"
       ref={stationRef}
     >
+      {/* El clavo de la pared: solo se cuelga arrastrando el panel hasta aqui.
+          Es un blanco de soltado, no un control, asi que no responde al clic
+          y no entra en el orden de tabulacion. Para descolgarlo se vuelve a
+          arrastrar el panel fuera del clavo. */}
+      <span className="hero-nail" ref={nailRef} aria-hidden="true" style={{ "--hang-radius": `${HANG_RADIUS}px` }}>
+        <span className="hero-nail-head" />
+        <span className="hero-nail-shadow" />
+        <span className="hero-nail-ring" />
+        <span className="hero-nail-shock" />
+        <span className="hero-nail-hint">{isHung ? "drag off to unhook" : "hang it here"}</span>
+      </span>
+
       <div className="hero-copy relative grid gap-5">
         <p className="pixel-label text-cyan-arcade">{profile.eyebrow}</p>
         <h1 className="max-w-[11.2ch] font-display text-[clamp(2.35rem,5vw,4.9rem)] font-black uppercase leading-[.94] text-white text-balance">
@@ -111,51 +134,46 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
       </div>
 
       <div className="hero-console-dock">
+        {/* La boveda solo es alcanzable con el panel colgado: hasta entonces
+            vive detras de la ventana, asi que inert la saca del orden de
+            tabulacion y bloquea el raton. Sin esto habria botones enfocables
+            escondidos debajo de otro elemento. */}
         <div
           className="console-secret-bay"
-          aria-hidden="true"
           {...(!isDragging ? { "data-no-random-glitch": true } : {})}
+          inert={!isHung}
         >
-          <span className="secret-bay-corner secret-bay-corner-tl" />
-          <span className="secret-bay-corner secret-bay-corner-tr" />
-          <span className="secret-bay-corner secret-bay-corner-bl" />
-          <span className="secret-bay-corner secret-bay-corner-br" />
-          <div className="secret-bay-sweeps">
+          <span className="secret-bay-corner secret-bay-corner-tl" aria-hidden="true" />
+          <span className="secret-bay-corner secret-bay-corner-tr" aria-hidden="true" />
+          <span className="secret-bay-corner secret-bay-corner-bl" aria-hidden="true" />
+          <span className="secret-bay-corner secret-bay-corner-br" aria-hidden="true" />
+          <div className="secret-bay-sweeps" aria-hidden="true">
             <span />
             <span />
-          </div>
-          <div className="secret-bay-orbit">
-            <span />
-            <span />
-            <span />
-          </div>
-          <div className="secret-bay-core">
-            {/* El nucleo era un rectangulo negro flotando en medio de la nada.
-                Con chapa arriba lee como la ventana restringida que dice ser. */}
-            <span className="secret-bay-tab">dev-room.sys // restricted</span>
-            <span className="secret-bay-badge">subroutine unlocked</span>
-            <strong>DEV ROOM // 1997</strong>
-            <code>&gt; drag_window.unlock("dai-core")</code>
-            <div className="secret-bay-meter">
-              <i />
-              <span>ACCESS DENIED // NOT ALLOWED HERE</span>
-            </div>
-          </div>
-          <div className="secret-bay-scan">
-            <span className="secret-bay-scan-label">sector sweep</span>
-            <div className="secret-bay-scan-track">
-              {SECRET_SECTORS.map((sector, index) => (
-                <b key={sector} style={{ "--sector-delay": `${0.5 + index * 0.85}s` }}>{sector}</b>
-              ))}
-            </div>
           </div>
 
-          <div className="secret-bay-lines">
-            {["save slot found", "coffee_level: critical", "arcade build: ok", "keep exploring"].map((line, index) => (
-              <span key={line} style={{ "--line-delay": `${0.8 + index * 1.4}s` }}>
-                <b>{String(index + 1).padStart(2, "0")}</b> {line}
-              </span>
-            ))}
+          <DevRoomVault active={isHung} />
+
+          {/* Barrido y registro: la telemetria de la puerta, debajo del
+              mecanismo. */}
+          <div className="secret-bay-readout" aria-hidden="true">
+            <div className="secret-bay-scan">
+              <span className="secret-bay-scan-label">sector sweep</span>
+              <div className="secret-bay-scan-track">
+                {SECRET_SECTORS.map((sector, index) => (
+                  <b key={sector} style={{ "--sector-delay": `${0.5 + index * 0.85}s` }}>{sector}</b>
+                ))}
+              </div>
+            </div>
+
+            <div className="secret-bay-lines">
+              <span className="secret-bay-lines-label">trace log</span>
+              {["save slot found", "coffee_level: critical", "arcade build: ok", "keep exploring"].map((line, index) => (
+                <span key={line} style={{ "--line-delay": `${0.24 + index * 0.16}s` }}>
+                  <b>{String(index + 1).padStart(2, "0")}</b> {line}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
