@@ -25,10 +25,8 @@ const TYPE_SPEED = 58;
 const FAST_TYPE_SPEED = 44;
 const LINE_HOLD = 1800;
 const FAST_LINE_HOLD = 1300;
-// Duracion total de la apertura; debe cubrir la animacion mas larga de
-// entry-gate.css, que es la hoja derecha (300ms de retardo + 600ms) mas el
-// fundido final del marco.
-const GATE_OPEN_MS = 920;
+// Shared with CSS so the overlay stays mounted through the entire reveal.
+const GATE_OPEN_MS = 1200;
 // Si el VRM no llega (red lenta, GPU sin WebGL) el anfitrion habla igual: el
 // saludo nunca puede quedarse esperando a trece megas de descarga.
 const HOST_PATIENCE_MS = 9000;
@@ -322,6 +320,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   return (
     <div
       className={`entry-gate ${compact ? "is-compact" : "is-immersive"} ${opening ? "is-opening" : ""} ${scriptDone ? "is-armed" : ""} ${hostPresent ? "is-host-present" : "is-host-waiting"}`}
+      style={{ "--gate-open-duration": `${GATE_OPEN_MS}ms` }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="entry-gate-title"
@@ -337,8 +336,8 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
       </div>
 
       <div className="entry-gate-doors" aria-hidden="true">
-        <i className="entry-gate-door is-left" />
-        <i className="entry-gate-door is-right" />
+        <i className="entry-gate-door is-left"><i className="entry-gate-door-shade" /></i>
+        <i className="entry-gate-door is-right"><i className="entry-gate-door-shade" /></i>
         <i className="entry-gate-seam" />
       </div>
 
