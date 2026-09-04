@@ -82,6 +82,19 @@ export default defineConfig({
       }
     }
   ],
+  build: {
+    // Los tres chunks que pasan de 500 kB son motores 3D detras de imports
+    // perezosos: react-three-fiber+three (avatar VRM del splash) y
+    // ProjectLanyard (rapier, que en su build -compat lleva el WASM en base64 y
+    // no adelgaza sin cambiar de motor de fisica). El arranque real es solo
+    // index (~250 kB gzip) y no lleva nada de 3D.
+    //
+    // Probado y descartado: manualChunks por paquete. Trocear a mano mete
+    // three/drei en los modulepreload del index.html (arranque de 812 kB a
+    // 1888 kB) o funde three+drei+rapier en un chunk de 3.2 MB que tambien
+    // tendria que bajar el avatar. El troceo automatico de Rollup es mejor.
+    chunkSizeWarningLimit: 2500
+  },
   server: {
     host: "0.0.0.0",
     port: 5173,
