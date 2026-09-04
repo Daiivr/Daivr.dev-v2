@@ -16,13 +16,19 @@ const SPLASH_SEEN_KEY = "daivr.splashSeen.v1";
 // Ritmo de la conversacion. Al volver dentro de la misma pestana el visitante
 // ya vio la ceremonia entera, asi que el guion se acelera en vez de repetirse
 // a velocidad completa.
-const TYPE_SPEED = 54;
-const FAST_TYPE_SPEED = 26;
-const LINE_HOLD = 1500;
-const FAST_LINE_HOLD = 700;
+// El ritmo acelerado iba a 26ms por letra (unos 38 caracteres por segundo,
+// bastante por encima de lo que se lee comodamente) y solo dejaba 700ms de
+// pausa: al recargar en la misma pestana la frase se escribia y desaparecia
+// antes de poder leerla. Ahora sigue siendo mas rapido que la primera visita,
+// pero se puede seguir con la vista.
+const TYPE_SPEED = 58;
+const FAST_TYPE_SPEED = 44;
+const LINE_HOLD = 1800;
+const FAST_LINE_HOLD = 1300;
 // Duracion total de la apertura; debe cubrir la animacion mas larga de
-// entry-gate.css, que es el fundido de la raiz (680ms de retardo + 200ms).
-const GATE_OPEN_MS = 880;
+// entry-gate.css, que es la hoja derecha (300ms de retardo + 600ms) mas el
+// fundido final del marco.
+const GATE_OPEN_MS = 920;
 // Si el VRM no llega (red lenta, GPU sin WebGL) el anfitrion habla igual: el
 // saludo nunca puede quedarse esperando a trece megas de descarga.
 const HOST_PATIENCE_MS = 9000;

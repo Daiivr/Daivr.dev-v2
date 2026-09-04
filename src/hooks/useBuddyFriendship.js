@@ -56,12 +56,15 @@ function writeLocalPets(pets) {
   via "merge" para no perder caricias previas.
 */
 export function useBuddyFriendship({ onMilestone } = {}) {
-  const [pets, setPets] = useState(0);
+  // El espejo local esta disponible antes del primer render, asi que se lee
+  // aqui y no en un efecto: sembrarlo despues obligaba a re-renderizar el
+  // arbol entero justo mientras la puerta de entrada se esta animando.
+  const [pets, setPets] = useState(readLocalPets);
   const [isSynced, setIsSynced] = useState(false);
 
-  const petsRef = useRef(0);
+  const petsRef = useRef(pets);
   const syncedRef = useRef(false);
-  const lastMilestoneRef = useRef(1);
+  const lastMilestoneRef = useRef(levelForPets(pets));
   const onMilestoneRef = useRef(onMilestone);
 
   useEffect(() => {
@@ -82,11 +85,6 @@ export function useBuddyFriendship({ onMilestone } = {}) {
 
   useEffect(() => {
     let cancelled = false;
-
-    const local = readLocalPets();
-    petsRef.current = local;
-    lastMilestoneRef.current = levelForPets(local);
-    setPets(local);
 
     async function loadServerState() {
       try {

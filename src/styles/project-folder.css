@@ -161,6 +161,26 @@
     background: #061713;
   }
 
+  /* La pestana ya existia, pero iba en blanco. Rotularla es lo que convierte
+     la forma en una carpeta archivada en vez de un recorte verde. */
+  .project-folder-tab {
+    position: absolute;
+    left: -1px;
+    bottom: calc(100% - 1px);
+    z-index: 2;
+    display: grid;
+    width: 76px;
+    height: 24px;
+    place-items: center;
+    color: color-mix(in srgb, var(--color-cyan-arcade) 76%, white);
+    font-size: 0.48rem;
+    font-weight: 900;
+    letter-spacing: 0.26em;
+    pointer-events: none;
+    text-indent: 0.26em;
+    text-shadow: 0 0 10px color-mix(in srgb, var(--color-cyan-arcade) 40%, transparent);
+  }
+
   .project-folder-files {
     position: absolute;
     inset: 0;
@@ -345,9 +365,12 @@
     transition-delay: 40ms;
   }
 
+  /* El hueco reservado pesaba lo mismo que los dos proyectos reales y se
+     plantaba en el centro del abanico. Retrocede: mas pequeno, mas apagado y
+     mas al fondo, para que la vista caiga primero en lo que si se abre. */
   .project-folder-console.is-open .project-folder-file.is-soon {
-    opacity: 1;
-    transform: translate(-50%, -90%) rotate(2deg) scale(0.9);
+    opacity: 0.6;
+    transform: translate(-50%, -86%) rotate(2deg) scale(0.78);
     transition-delay: 120ms;
   }
 
@@ -366,14 +389,46 @@
       0 18px 42px color-mix(in srgb, var(--folder-file-accent) 22%, rgba(0, 0, 0, 0.58));
   }
 
+  /* La ficha abierta en el lanyard no tenia mas senal que cambiar una linea de
+     texto de 8px. Se queda medio sacada y marcada mientras lo este. */
+  .project-folder-console.is-open .project-folder-file.is-selected {
+    border-color: var(--folder-file-accent);
+    box-shadow:
+      inset 0 0 26px color-mix(in srgb, var(--folder-file-accent) 13%, transparent),
+      0 0 0 1px color-mix(in srgb, var(--folder-file-accent) 40%, transparent),
+      0 20px 44px color-mix(in srgb, var(--folder-file-accent) 16%, rgba(0, 0, 0, 0.52));
+  }
+
+  .project-folder-file.is-selected::after {
+    position: absolute;
+    right: 0.55rem;
+    top: 0.62rem;
+    width: 7px;
+    aspect-ratio: 1;
+    content: "";
+    background: var(--folder-file-accent);
+    box-shadow: 0 0 10px var(--folder-file-accent);
+  }
+
+  .project-folder-console.is-open .project-folder-file:nth-child(1).is-selected {
+    transform: translate(-136%, -72%) rotate(-7deg) scale(1.02);
+  }
+
+  .project-folder-console.is-open .project-folder-file:nth-child(2).is-selected {
+    transform: translate(36%, -72%) rotate(7deg) scale(1.02);
+  }
+
+  /* Sacar una ficha de la carpeta, no agrandarla en el sitio: sube y se
+     endereza. Deshacer el giro que la mantenia en el abanico es justo lo que
+     hace que parezca que se tira de ella. */
   .project-folder-console.is-open .project-folder-file:nth-child(1):hover,
   .project-folder-console.is-open .project-folder-file:nth-child(1):focus-visible {
-    transform: translate(-138%, -68%) rotate(-11deg) scale(1.04);
+    transform: translate(-134%, -80%) rotate(-3deg) scale(1.06);
   }
 
   .project-folder-console.is-open .project-folder-file:nth-child(2):hover,
   .project-folder-console.is-open .project-folder-file:nth-child(2):focus-visible {
-    transform: translate(38%, -68%) rotate(11deg) scale(1.04);
+    transform: translate(34%, -80%) rotate(3deg) scale(1.06);
   }
 
   .project-folder-file:focus-visible {
@@ -483,12 +538,34 @@
     transition: transform 320ms cubic-bezier(0.18, 0.82, 0.22, 1);
   }
 
+  /* El frontal es UNA superficie, no dos.
+
+     Estaba hecho de dos hojas del tamano de la caja que se sesgaban 15 grados
+     en sentidos contrarios. Todo lo que llevan pintado dentro -- el rayado
+     diagonal, la reticula de lineas, las sombras interiores -- se sesga con
+     ellas, asi que las dos texturas quedan en espejo y en la costura no casan
+     jamas. Con la derecha encima tapandolo todo, ese desajuste asomaba por la
+     izquierda como una cuna en V; recortando cada hoja a su mitad, el desajuste
+     se mudaba al centro y salia una raya vertical. No es un defecto del corte:
+     dos hojas sesgadas al reves no pueden juntarse sin que se note.
+
+     Ahora dibuja el frontal una sola hoja. Se ensancha 50px por lado al abrirse
+     -- que es justo lo que el sesgo sacaba fuera -- y el recorte le devuelve el
+     ancho del cuerpo por abajo. Misma silueta, una sola textura, sin costura
+     posible. */
   .project-folder-front-piece.is-left {
-    z-index: 1;
+    display: none;
   }
 
   .project-folder-front-piece.is-right {
     z-index: 2;
+    /* Seis puntos tambien cerrada, aunque cuatro sobren: la forma solo
+       interpola si las dos tienen el mismo numero de vertices. */
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 100% 100%, 0 100%, 0 100%);
+    transition:
+      left 320ms cubic-bezier(0.18, 0.82, 0.22, 1),
+      right 320ms cubic-bezier(0.18, 0.82, 0.22, 1),
+      clip-path 320ms cubic-bezier(0.18, 0.82, 0.22, 1);
   }
 
   .project-folder-front-copy::before {
@@ -560,22 +637,66 @@
     transform: scaleY(0.6);
   }
 
-  .project-folder-console.is-open .project-folder-front-piece.is-left,
-  .project-folder-console:not(.is-open) .project-folder-object:hover .project-folder-front-piece.is-left,
-  .project-folder-console:not(.is-open) .project-folder-object:has(.project-folder-front-button:focus-visible) .project-folder-front-piece.is-left {
-    transform: skewX(15deg);
-  }
-
+  /* Abierta: la hoja se ensancha 50px por lado (188px de alto por la tangente
+     de 15 grados = 50.4px, lo mismo que sacaba el sesgo) y el recorte estrecha
+     la base al ancho del cuerpo. Las dos esquinas de abajo van achaflanadas
+     para no perder el redondeo que tenian. */
   .project-folder-console.is-open .project-folder-front-piece.is-right,
   .project-folder-console:not(.is-open) .project-folder-object:hover .project-folder-front-piece.is-right,
   .project-folder-console:not(.is-open) .project-folder-object:has(.project-folder-front-button:focus-visible) .project-folder-front-piece.is-right {
-    transform: skewX(-15deg);
+    left: -50px;
+    right: -50px;
+    clip-path: polygon(0 0, 100% 0, 86.3% 92.5%, 82.4% 100%, 17.6% 100%, 13.7% 92.5%);
   }
 
   .project-folder-console.is-open .project-folder-front-copy,
   .project-folder-console:not(.is-open) .project-folder-object:hover .project-folder-front-copy,
   .project-folder-console:not(.is-open) .project-folder-object:has(.project-folder-front-button:focus-visible) .project-folder-front-copy {
     opacity: 0;
+  }
+
+  /* Abierta, el frontal perdia el rotulo entero y se quedaba en un trapecio
+     verde vacio: el objeto mas grande de la escena sin nada escrito. El canto
+     recupera la etiqueta a tamano de archivo. */
+  .project-folder-edge {
+    position: absolute;
+    left: 50%;
+    bottom: 16px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 30%, transparent);
+    background: rgba(2, 6, 4, 0.6);
+    padding: 0.26rem 0.55rem;
+    color: color-mix(in srgb, var(--color-cyan-arcade) 74%, white);
+    font-size: 0.46rem;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    opacity: 0;
+    pointer-events: none;
+    text-transform: uppercase;
+    transform: translate(-50%, 6px);
+    transition:
+      opacity 200ms ease 150ms,
+      transform 280ms cubic-bezier(0.18, 0.82, 0.22, 1) 150ms;
+  }
+
+  .project-folder-console.is-open .project-folder-edge {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  .project-folder-edge i {
+    width: 5px;
+    aspect-ratio: 1;
+    background: var(--color-phosphor);
+    box-shadow: 0 0 8px var(--color-phosphor);
+  }
+
+  .project-folder-edge em {
+    color: var(--color-phosphor-soft);
+    font-style: normal;
   }
 
   .project-folder-hint {
@@ -680,6 +801,7 @@
   .project-folder-front-button,
   .project-folder-front-piece,
   .project-folder-front-copy,
+  .project-folder-edge,
   .project-folder-console,
   .project-folder-stage {
     transition: none !important;

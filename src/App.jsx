@@ -5,10 +5,10 @@ import { useBuddyAdventure } from "./hooks/useBuddyAdventure";
 import { useBuddyFriendship } from "./hooks/useBuddyFriendship";
 import { useBuddyLoadout } from "./hooks/useBuddyLoadout";
 import { useCartridgeSwap } from "./hooks/useCartridgeSwap";
-import { useClock } from "./hooks/useClock";
-import { useFps } from "./hooks/useFps";
+import { getLatestFps } from "./hooks/useFps";
 import { useRandomGlitchWords } from "./hooks/useRandomGlitchWords";
 import { ArcadeBackground } from "./components/ArcadeBackground";
+import { CabinetTelemetry } from "./components/CabinetTelemetry";
 import { ArcadeEmbedModal } from "./components/ArcadeEmbedModal";
 import { AttractMode } from "./components/AttractMode";
 import { BuddyDrop } from "./components/BuddyDrop";
@@ -89,8 +89,6 @@ function CabinetApp() {
   const achievementTimerRef = useRef(0);
   const konamiIndexRef = useRef(0);
   const shellRef = useRef(null);
-  const time = useClock();
-  const fps = useFps();
   const friendship = useBuddyFriendship({ onMilestone: handleBuddyMilestone });
   const adventure = useBuddyAdventure({ onQuestComplete: handleBuddyQuestComplete });
   const loadout = useBuddyLoadout({ friendship, adventure });
@@ -113,14 +111,29 @@ function CabinetApp() {
     };
   }, [seasonalOverride]);
 
+  // La precarga marca una veintena de imagenes como fetchPriority high. Hecha
+  // al montar, competia con la propia puerta de entrada por ancho de banda y
+  // por decodificaciones, y todas esas imagenes ya estan en el DOM montado:
+  // se descargarian igual, solo que sin adelantar a lo que si se esta viendo.
+  // Se calienta cuando el visitante ya ha entrado y el hilo esta libre.
   useEffect(() => {
-    preloadImages([
+    if (entrySplashOpen) return undefined;
+
+    const warm = () => preloadImages([
       profile.avatar,
       discord.fallbackAvatar,
       ...games.flatMap((game) => [game.image, game.logo]),
       ...projects.flatMap((project) => [project.image, project.icon])
     ]);
-  }, []);
+
+    if (typeof window.requestIdleCallback !== "function") {
+      const timer = window.setTimeout(warm, 600);
+      return () => window.clearTimeout(timer);
+    }
+
+    const idle = window.requestIdleCallback(warm, { timeout: 2500 });
+    return () => window.cancelIdleCallback(idle);
+  }, [entrySplashOpen]);
 
   useEffect(() => {
     if (!import.meta.env.DEV || entrySplashOpen) return undefined;
@@ -510,7 +523,7 @@ function CabinetApp() {
         `  dai.exe       ${hasRun ? "ONLINE" : isLaunching ? "BOOTING" : "OFFLINE"}`,
         `  theme         ${theme.toUpperCase()}`,
         `  score         ${String(score).padStart(3, "0")}`,
-        `  fps           ${fps}`,
+        `  fps           ${getLatestFps()}`,
         `  active_node   ${activeSection}`,
         `  buddy_level   ${String(friendship.level).padStart(2, "0")}`,
         `  power_bus     ${powerOutage || "nominal"}`,
@@ -675,8 +688,7 @@ function CabinetApp() {
             </div>
             <div className="flex flex-wrap gap-2 text-xs">
               <span className="border border-phosphor/25 px-3 py-2 text-phosphor-soft">XP <b data-score>{String(score).padStart(3, "0")}</b></span>
-              <span className="border border-phosphor/25 px-3 py-2 text-phosphor-soft">FPS <b className="tabular-nums">{fps}</b></span>
-              <span className="border border-phosphor/25 px-3 py-2 text-phosphor-soft">{time}</span>
+              <CabinetTelemetry />
             </div>
           </header>
 

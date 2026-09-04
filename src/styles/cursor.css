@@ -232,6 +232,79 @@
   transform: translate(1.4px, 1.4px) scale(0.64);
 }
 
+/* Reticulo de enganche: cuatro escuadras sobre el objetivo apuntado, con el
+   mismo lenguaje de esquinas cortadas que los marcos del gabinete. */
+.signal-cursor__lock {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: var(--lock-w, 0px);
+  height: var(--lock-h, 0px);
+  color: currentColor;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate3d(var(--lock-x, -200px), var(--lock-y, -200px), 0) rotate(var(--lock-angle, 0deg));
+  transition: opacity 110ms ease;
+  will-change: transform, width, height;
+}
+
+/* La geometria solo transiciona mientras hay enganche: asi el reticulo
+   aparece ya colocado sobre el primer objetivo y vuela entre los siguientes
+   en lugar de llegar desde el que se acaba de soltar. */
+.signal-cursor.is-locked .signal-cursor__lock {
+  opacity: 0.92;
+  transition:
+    opacity 110ms ease,
+    transform 150ms cubic-bezier(0.22, 0.9, 0.24, 1),
+    width 150ms cubic-bezier(0.22, 0.9, 0.24, 1),
+    height 150ms cubic-bezier(0.22, 0.9, 0.24, 1);
+}
+
+.signal-cursor__lock-corner {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 1px solid currentColor;
+  box-shadow: 0 0 6px color-mix(in srgb, currentColor 40%, transparent);
+  transition: margin 90ms ease;
+}
+
+.signal-cursor__lock-corner.is-tl {
+  left: 0;
+  top: 0;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.signal-cursor__lock-corner.is-tr {
+  right: 0;
+  top: 0;
+  border-left: 0;
+  border-bottom: 0;
+}
+
+.signal-cursor__lock-corner.is-bl {
+  left: 0;
+  bottom: 0;
+  border-right: 0;
+  border-top: 0;
+}
+
+.signal-cursor__lock-corner.is-br {
+  right: 0;
+  bottom: 0;
+  border-left: 0;
+  border-top: 0;
+}
+
+.signal-cursor.is-locked .signal-cursor__lock-corner {
+  animation: signal-cursor-snap 160ms steps(3, end);
+}
+
+.signal-cursor.is-locked.is-pressed .signal-cursor__lock-corner {
+  margin: 2px;
+}
+
 .signal-cursor__pulse {
   position: fixed;
   left: 0;
@@ -246,6 +319,18 @@
 
 @keyframes signal-cursor-sync {
   50% { opacity: 0.22; }
+}
+
+@keyframes signal-cursor-snap {
+  from {
+    margin: -5px;
+    opacity: 0.3;
+  }
+
+  to {
+    margin: 0;
+    opacity: 1;
+  }
 }
 
 @keyframes signal-cursor-pulse {

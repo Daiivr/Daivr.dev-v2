@@ -12,6 +12,7 @@ export function ProjectFolder({ items, selectedProjectTitle, onSelect }) {
 
       <div className="project-folder-stage">
         <div className="project-folder-object">
+          <span className="project-folder-tab" aria-hidden="true">PRJ</span>
           <span className="project-folder-back" aria-hidden="true" />
 
           <div className="project-folder-papers" aria-hidden="true">
@@ -76,6 +77,14 @@ export function ProjectFolder({ items, selectedProjectTitle, onSelect }) {
               <small>{String(items.length + 1).padStart(2, "0")} project files</small>
             </span>
           </button>
+
+          {/* Abierta, el frontal se quedaba en blanco: el objeto mas grande de
+              la escena sin nada escrito. El canto conserva la etiqueta. */}
+          <span className="project-folder-edge" aria-hidden="true">
+            <b>PROJECTS.DIR</b>
+            <i />
+            <em>{String(items.length + 1).padStart(2, "0")} FILES</em>
+          </span>
         </div>
       </div>
 

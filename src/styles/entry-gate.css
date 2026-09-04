@@ -175,6 +175,12 @@
   inset: 0;
   z-index: 1;
   pointer-events: none;
+  /* Una cancela de verdad no se desplaza: gira. Toda la apertura son dos giros
+     sobre sus goznes, y sin profundidad esos giros no se ven -- se quedarian en
+     un estrechamiento plano. */
+  perspective: 900px;
+  perspective-origin: 50% 50%;
+  transform-style: preserve-3d;
 }
 
 .entry-gate-door {
@@ -188,14 +194,50 @@
   will-change: transform;
 }
 
+/* El gozne es el canto exterior. Es lo unico que se mueve en toda la
+   apertura: nada se desplaza de lado. */
 .entry-gate-door.is-left {
   left: 0;
   --door-sweep: 270deg;
+  transform-origin: left center;
 }
 
 .entry-gate-door.is-right {
   right: 0;
   --door-sweep: 90deg;
+  transform-origin: right center;
+}
+
+/* Pernios sobre el gozne. Estan puestos tambien con la cancela cerrada: es lo
+   que hace que se lea como algo con bisagras antes incluso de moverse, y lo
+   que explica de donde sale el giro cuando llega. */
+.entry-gate-door::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 15px;
+  content: "";
+  background:
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 68px,
+      color-mix(in srgb, var(--color-phosphor) 30%, transparent) 68px 74px,
+      color-mix(in srgb, var(--color-cyan-arcade) 34%, transparent) 74px 104px,
+      color-mix(in srgb, var(--color-phosphor) 30%, transparent) 104px 110px,
+      transparent 110px 178px
+    );
+  opacity: 0.62;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
+}
+
+.entry-gate-door.is-left::after {
+  left: 0;
+}
+
+.entry-gate-door.is-right::after {
+  right: 0;
 }
 
 /* Hazard banding along the inner lip: the part of a shutter you are not
@@ -641,32 +683,44 @@
 }
 
 /* Opening -----------------------------------------------------------------
-   The host leaves first and the gate answers: she turns and walks off (that
-   part is driven on the VRM's own bones in AvatarGreeting), the seam flares,
-   the halves drive apart, and only then does the sky let go of the page. */
+   Cuatro tiempos, en este orden y no a la vez, que era el problema: la
+   anfitriona se apaga, el marco se tensa un instante, la junta carga hasta
+   blanco, y solo entonces las hojas se rompen hacia los lados. Antes la
+   anfitriona se desvanecia creciendo y subiendo mientras las puertas ya
+   estaban abriendose 20ms despues, asi que las dos cosas pasaban encima. */
+/* Una cancela. Nada se desliza y la camara no se mueve: las dos hojas giran
+   sobre sus goznes y se abren hacia dentro, el fondo de la puerta se disuelve
+   detras de ellas y lo que queda al otro lado es el gabinete. El desfase de
+   60ms entre hoja y hoja es la mitad del asunto -- dos hojas que abren
+   exactamente a la vez son un telon, no una cancela. */
 .entry-gate.is-opening {
   pointer-events: none;
-  animation: entry-gate-out 200ms 680ms ease-out forwards;
+  animation: entry-gate-out 150ms 770ms ease-out forwards;
 }
 
 .entry-gate.is-opening .entry-gate-door.is-left {
-  animation: entry-gate-part-left 760ms 80ms cubic-bezier(0.66, 0, 0.2, 1) forwards;
+  animation: entry-gate-swing-left 600ms 240ms cubic-bezier(0.62, 0.015, 0.27, 1) forwards;
 }
 
 .entry-gate.is-opening .entry-gate-door.is-right {
-  animation: entry-gate-part-right 760ms 80ms cubic-bezier(0.66, 0, 0.2, 1) forwards;
+  animation: entry-gate-swing-right 600ms 300ms cubic-bezier(0.62, 0.015, 0.27, 1) forwards;
 }
 
-.entry-gate.is-opening .entry-gate-seam {
-  animation: entry-gate-seam-flare 760ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
+/* Lo que hay detras de la cancela es el decorado de la puerta, no la pagina:
+   se retira mientras las hojas se abren, si no el hueco daria a otra pared. */
 .entry-gate.is-opening .entry-gate-sky {
-  animation: entry-gate-sky-out 620ms 150ms ease-in forwards;
+  animation: entry-gate-sky-recede 400ms 380ms ease-in forwards;
 }
 
-.entry-gate.is-opening .entry-gate-host {
-  animation: entry-gate-host-out 420ms 60ms cubic-bezier(0.4, 0, 1, 1) forwards;
+.entry-gate.is-opening .entry-gate-hud {
+  animation: entry-gate-hud-out 260ms 180ms ease-in forwards;
+}
+
+/* Se va sin mas: nada de escalar ni de derivar por el aire. El sitio queda
+   vacio antes de que el tubo empiece a cerrarse. */
+.entry-gate.is-opening .entry-gate-host,
+.entry-gate.is-opening .entry-gate-buddy {
+  animation: entry-gate-host-vanish 240ms ease-in forwards;
 }
 
 .entry-gate.is-opening .entry-avatar-scene canvas {
@@ -675,11 +729,13 @@
 
 .entry-gate.is-opening .entry-gate-speech,
 .entry-gate.is-opening .entry-gate-marquee {
-  animation: entry-gate-lift-out 280ms ease-in forwards;
+  animation: entry-gate-lift-out 220ms ease-in forwards;
 }
 
-.entry-gate.is-opening .entry-gate-hud {
-  animation: entry-gate-hud-out 320ms ease-in forwards;
+/* La junta es lo ultimo que se ve con forma: se enciende justo antes de que
+   el barrido se lleve el cuadro por delante. */
+.entry-gate.is-opening .entry-gate-seam {
+  animation: entry-gate-seam-surge 260ms 200ms ease-out forwards;
 }
 
 /* Keyframes ---------------------------------------------------------------*/
@@ -731,40 +787,73 @@
   50% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-phosphor) 46%, transparent), 0 0 40px color-mix(in srgb, var(--color-phosphor) 30%, transparent); }
 }
 
-@keyframes entry-gate-part-left {
-  from { transform: translateX(0); }
-  to { transform: translateX(-101%); }
+/* El giro de una hoja, y nada mas que el giro. El primer tramo va al reves --
+   dos grados hacia fuera -- porque un pestillo empuja la hoja contra el marco
+   un instante antes de soltarla. Despues abre hasta pasarse de perfil, y el
+   brillo cae con el angulo: una cara que se va girando deja de recibir luz, y
+   ese apagado progresivo es lo unico que convence de que hay volumen. */
+@keyframes entry-gate-swing-left {
+  0% {
+    transform: rotateY(0deg);
+    filter: brightness(1);
+    animation-timing-function: cubic-bezier(0.3, 0, 0.5, 1);
+  }
+
+  11% {
+    transform: rotateY(-2.2deg);
+    filter: brightness(1.1);
+    animation-timing-function: cubic-bezier(0.58, 0, 0.3, 1);
+  }
+
+  100% {
+    transform: rotateY(103deg);
+    filter: brightness(0.26);
+  }
 }
 
-@keyframes entry-gate-part-right {
-  from { transform: translateX(0); }
-  to { transform: translateX(101%); }
+@keyframes entry-gate-swing-right {
+  0% {
+    transform: rotateY(0deg);
+    filter: brightness(1);
+    animation-timing-function: cubic-bezier(0.3, 0, 0.5, 1);
+  }
+
+  11% {
+    transform: rotateY(2.2deg);
+    filter: brightness(1.1);
+    animation-timing-function: cubic-bezier(0.58, 0, 0.3, 1);
+  }
+
+  100% {
+    transform: rotateY(-103deg);
+    filter: brightness(0.26);
+  }
 }
 
-@keyframes entry-gate-seam-flare {
-  0% { opacity: 0.4; transform: translateX(-50%) scaleX(1); }
-  16% { opacity: 1; transform: translateX(-50%) scaleX(7); }
-  100% { opacity: 0; transform: translateX(-50%) scaleX(170); }
-}
-
-@keyframes entry-gate-sky-out {
-  from { opacity: 1; }
-  to { opacity: 0; }
-}
-
-@keyframes entry-gate-host-out {
-  from { opacity: 1; transform: none; }
-  to { opacity: 0; transform: scale(1.07) translateY(-8px); }
-}
-
-@keyframes entry-gate-lift-out {
-  from { opacity: 1; transform: none; }
-  to { opacity: 0; transform: translateY(-14px); }
+@keyframes entry-gate-sky-recede {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(1.05); }
 }
 
 @keyframes entry-gate-hud-out {
   from { opacity: 1; transform: none; }
   to { opacity: 0; transform: translateY(18px); }
+}
+
+/* Subida de tension en la junta antes del apagon. */
+@keyframes entry-gate-seam-surge {
+  from { opacity: 0.3; transform: translateX(-50%) scaleX(1); }
+  to { opacity: 1; transform: translateX(-50%) scaleX(2.6); }
+}
+
+@keyframes entry-gate-host-vanish {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes entry-gate-lift-out {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateY(-14px); }
 }
 
 @keyframes entry-gate-out {

@@ -2,6 +2,14 @@ import { useEffect, useState } from "react";
 
 const SAMPLE_MS = 750;
 
+// Ultima lectura publicada. La consola la consulta al vuelo para imprimir
+// telemetria, y asi no tiene que suscribirse a un valor que cambia solo.
+let latestFps = 60;
+
+export function getLatestFps() {
+  return latestFps;
+}
+
 export function useFps() {
   const [fps, setFps] = useState(60);
 
@@ -21,6 +29,7 @@ export function useFps() {
           windowStart = now;
         } else {
           const next = Math.round((frames * 1000) / elapsed);
+          latestFps = next;
           setFps((value) => (value === next ? value : next));
           frames = 0;
           windowStart = now;

@@ -206,8 +206,11 @@ function resolveQuestRewards(state) {
 }
 
 export function useBuddyAdventure({ onQuestComplete } = {}) {
-  const [state, setState] = useState(createInitialState);
-  const stateRef = useRef(createInitialState());
+  // Igual que en useBuddyFriendship: el progreso guardado se lee en el
+  // inicializador, no en un efecto, para no re-renderizar el arbol entero
+  // nada mas montar. readState ya cae a createInitialState si no hay nada.
+  const [state, setState] = useState(readState);
+  const stateRef = useRef(state);
   const onQuestCompleteRef = useRef(onQuestComplete);
   const storageKeyRef = useRef(STORAGE_KEY);
   const syncedRef = useRef(false);
@@ -217,10 +220,6 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
   }, [onQuestComplete]);
 
   useEffect(() => {
-    const saved = readState();
-    stateRef.current = saved;
-    setState(saved);
-
     let cancelled = false;
 
     async function loadServerState() {
