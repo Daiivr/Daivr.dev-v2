@@ -5,7 +5,6 @@ import { createVRMAnimationClip, VRMAnimationLoaderPlugin } from "@pixiv/three-v
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { AvatarLinkSignal } from "./AvatarLinkSignal";
 
 const AVATAR_URL = "/models/dai-greeter-optimized.vrm";
 const GREETING_URL = "/motions/greeting.vrma";
@@ -271,12 +270,11 @@ function AvatarRig({ active, onError, onPhaseChange, onProgress, onReady, onReve
   );
 }
 
-export function AvatarGreeting({ active, displayName, onLoadProgress, onStage }) {
+export function AvatarGreeting({ active, displayName, onLoadProgress, onStage, lampOn = true }) {
   const [status, setStatus] = useState("loading");
   const [motionPhase, setMotionPhase] = useState("concealed");
   const [reducedMotion, setReducedMotion] = useState(false);
   const [revealed, setRevealed] = useState(false);
-  const [loadProgress, setLoadProgress] = useState(0);
   const onLoadProgressRef = useRef(onLoadProgress);
   const onStageRef = useRef(onStage);
   const reportedPercentRef = useRef(-1);
@@ -290,7 +288,6 @@ export function AvatarGreeting({ active, displayName, onLoadProgress, onStage })
     const percent = Math.round(value);
     if (percent === reportedPercentRef.current) return;
     reportedPercentRef.current = percent;
-    setLoadProgress(percent);
     onLoadProgressRef.current?.(percent);
   }
 
@@ -331,10 +328,10 @@ export function AvatarGreeting({ active, displayName, onLoadProgress, onStage })
           gl.setClearColor(0x000000, 0);
         }}
       >
-        <ambientLight intensity={1.65} />
-        <directionalLight color="#f4fff8" intensity={2.4} position={[1.5, 3.6, 3]} />
-        <directionalLight color="#45d8ff" intensity={2.7} position={[-3, 2.2, 1]} />
-        <pointLight color="#ff3d9d" intensity={7} position={[2, 1.25, 0.3]} distance={4.5} />
+        <ambientLight intensity={lampOn ? .65 : .55} />
+        <directionalLight color="#f4fff8" intensity={lampOn ? .45 : 0} position={[1.5, 3.6, 3]} />
+        <directionalLight color="#45d8ff" intensity={lampOn ? 1.35 : 1.2} position={[-3, 2.2, 1]} />
+        <pointLight color="#ff3d9d" intensity={lampOn ? 3.5 : 3} position={[2, 1.25, 0.3]} distance={4.5} />
         <AvatarRig
           active={active}
           onError={() => setStatus("error")}
@@ -346,7 +343,6 @@ export function AvatarGreeting({ active, displayName, onLoadProgress, onStage })
         />
       </Canvas>
       <div className="entry-avatar-scan" aria-hidden="true" />
-      {revealed ? null : <AvatarLinkSignal progress={loadProgress} status={status} />}
     </div>
   );
 }

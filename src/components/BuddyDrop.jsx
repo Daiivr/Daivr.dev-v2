@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { getLocalBuddyLevel } from "../hooks/useBuddyFriendship";
 import { BuddyChuteCanopy, BuddySprite } from "./BuddySprite";
 
@@ -46,7 +46,7 @@ function clamp(value, min, max) {
   (el ScreenBuddy del footer no aparece mientras tanto) y {phase:"land", x}
   al tocar el riel para que el ScreenBuddy tome el control justo ahi.
 */
-export function BuddyDrop({ start, onDone, friendshipLevel, inventory = [], hiddenGear = [], unlockedGear = [] }) {
+export function BuddyDrop({ start, aboveSplash = false, onDone, friendshipLevel, inventory = [], hiddenGear = [], unlockedGear = [] }) {
   const [geometry, setGeometry] = useState(null);
   const [mode, setMode] = useState("boarding"); // boarding | fall | held
   const [anchorTop, setAnchorTop] = useState(0);
@@ -253,7 +253,9 @@ export function BuddyDrop({ start, onDone, friendshipLevel, inventory = [], hidd
 
   // --- Vuelo + comentarios ---------------------------------------------------
 
-  useEffect(() => {
+  // Measure and paint the replacement before the launched perch disappears
+  // on screen, so the click never leaves a blank frame between the two sprites.
+  useLayoutEffect(() => {
     const shell = document.querySelector(".app-shell");
     const zone = document.querySelector(".app-footer-zone");
     const footer = zone?.querySelector(".app-footer");
@@ -330,7 +332,7 @@ export function BuddyDrop({ start, onDone, friendshipLevel, inventory = [], hidd
 
   return (
     <div
-      className={`buddy-drop ${mode === "held" ? "is-held" : ""} ${hasRocketBoots ? "has-rocket-boots" : ""} ${hasMikuCostume ? "has-miku-costume" : ""}`}
+      className={`buddy-drop ${aboveSplash ? "is-above-splash" : ""} ${mode === "held" ? "is-held" : ""} ${hasRocketBoots ? "has-rocket-boots" : ""} ${hasMikuCostume ? "has-miku-costume" : ""}`}
       ref={rootRef}
       style={{
         left: `${geometry.left}px`,

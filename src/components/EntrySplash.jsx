@@ -2,8 +2,10 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { ArrowRight } from "lucide-react";
 import { getLocalBuddyLevel } from "../hooks/useBuddyFriendship";
 import { consumeGateReturn } from "../lib/gateReturn";
-import { AvatarScenePlaceholder } from "./AvatarLinkSignal";
+import { AvatarScenePlaceholder } from "./AvatarScenePlaceholder";
 import { BuddySprite } from "./BuddySprite";
+import { GatePatina } from "./GatePatina";
+import { GateLamp } from "./GateLamp";
 import { SeasonalSplashNotice } from "./SeasonalEvent";
 
 // El anfitrion VRM arrastra three.js + @pixiv/three-vrm. Cargarlo aparte deja
@@ -104,6 +106,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   const [lineIndex, setLineIndex] = useState(0);
   const [typed, setTyped] = useState(0);
   const [opening, setOpening] = useState(false);
+  const [lampOn, setLampOn] = useState(true);
   const [buddyLevel] = useState(() => getLocalBuddyLevel());
   const [fastBoot] = useState(() => {
     try {
@@ -319,7 +322,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
 
   return (
     <div
-      className={`entry-gate ${compact ? "is-compact" : "is-immersive"} ${opening ? "is-opening" : ""} ${scriptDone ? "is-armed" : ""} ${hostPresent ? "is-host-present" : "is-host-waiting"}`}
+      className={`entry-gate ${compact ? "is-compact" : "is-immersive"} ${opening ? "is-opening" : ""} ${scriptDone ? "is-armed" : ""} ${hostPresent ? "is-host-present" : "is-host-waiting"} ${lampOn ? "is-lamp-on" : "is-lamp-off"}`}
       style={{ "--gate-open-duration": `${GATE_OPEN_MS}ms` }}
       role="dialog"
       aria-modal="true"
@@ -336,10 +339,12 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
       </div>
 
       <div className="entry-gate-doors" aria-hidden="true">
-        <i className="entry-gate-door is-left"><i className="entry-gate-door-shade" /></i>
-        <i className="entry-gate-door is-right"><i className="entry-gate-door-shade" /></i>
+        <i className="entry-gate-door is-left"><i className="entry-gate-door-shade" /><i className="entry-gate-door-texture" /><GatePatina side="left" /></i>
+        <i className="entry-gate-door is-right"><i className="entry-gate-door-shade" /><i className="entry-gate-door-texture" /><GatePatina side="right" /></i>
         <i className="entry-gate-seam" />
       </div>
+
+      <GateLamp on={lampOn} onToggle={() => setLampOn((value) => !value)} disabled={opening} reducedMotion={reducedMotion} />
 
       {seasonalEvent === "winter" || seasonalEvent === "halloween" ? (
         // Decorado estacional del splash: el evento se ve desde la puerta.
@@ -406,6 +411,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
             <Suspense fallback={<AvatarScenePlaceholder displayName={visitorName} />}>
               <AvatarGreeting
                 active={!opening}
+                lampOn={lampOn}
                 displayName={visitorName}
                 onLoadProgress={setAvatarProgress}
                 onStage={setHostStage}

@@ -1,5 +1,5 @@
 /* Avatar scene ---------------------------------------------------------------
-   The VRM host and its AVATAR LINK meter. Layout of the frame around it belongs
+   The VRM host and its scan effect. Layout of the frame around it belongs
    to entry-gate.css; this file only paints what lives inside the canvas box, so
    the scene can be dropped into any container that gives it a size. */
 
@@ -46,107 +46,17 @@
   animation: avatar-scan 4.2s ease-in-out infinite;
 }
 
-.entry-avatar-fallback {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  display: grid;
-  place-items: center;
-}
-
-.entry-avatar-link {
-  display: grid;
-  justify-items: center;
-  gap: 0.6rem;
-  min-width: clamp(9rem, 30%, 12rem);
-  padding: 1.1rem 1.35rem;
-  color: var(--color-cyan-arcade);
-}
-
-.entry-avatar-link-bars {
-  display: flex;
-  height: 3.1rem;
-  align-items: flex-end;
-  gap: 0.32rem;
-}
-
-.entry-avatar-link-bars i {
-  width: 0.28rem;
-  height: var(--link-bar-height, 62%);
-  background: currentColor;
-  box-shadow: 0 0 10px color-mix(in srgb, currentColor 46%, transparent);
-  transform-origin: bottom;
-  animation: avatar-link-signal 0.85s ease-in-out infinite alternate;
-}
-
-.entry-avatar-link-bars i:nth-child(1) { --link-bar-height: 34%; animation-delay: -0.48s; }
-.entry-avatar-link-bars i:nth-child(2) { --link-bar-height: 72%; animation-delay: -0.22s; color: var(--color-phosphor); }
-.entry-avatar-link-bars i:nth-child(3) { --link-bar-height: 100%; animation-delay: -0.64s; color: var(--color-cabinet); }
-.entry-avatar-link-bars i:nth-child(4) { --link-bar-height: 64%; animation-delay: -0.34s; color: var(--color-phosphor); }
-.entry-avatar-link-bars i:nth-child(5) { --link-bar-height: 42%; animation-delay: -0.12s; }
-
-.entry-avatar-link strong {
-  color: color-mix(in srgb, var(--color-cyan-arcade) 82%, white);
-  font-family: var(--font-pixel);
-  font-size: 0.46rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  text-shadow: 0 0 14px color-mix(in srgb, var(--color-cyan-arcade) 28%, transparent);
-}
-
-.entry-avatar-link small {
-  color: color-mix(in srgb, var(--color-phosphor-soft) 48%, transparent);
-  font-size: 0.52rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.entry-avatar-link-meter {
-  justify-self: stretch;
-  height: 2px;
-  overflow: hidden;
-  background: color-mix(in srgb, var(--color-cyan-arcade) 16%, transparent);
-}
-
-.entry-avatar-link-meter i {
-  display: block;
-  height: 100%;
-  background: linear-gradient(90deg, var(--color-cyan-arcade), var(--color-phosphor));
-  box-shadow: 0 0 10px color-mix(in srgb, var(--color-phosphor) 42%, transparent);
-  transition: width 240ms ease-out;
-}
-
-.entry-avatar-scene.is-error .entry-avatar-link-bars i {
-  color: var(--color-cabinet);
-  animation: none;
-}
-
-.entry-avatar-scene.is-error .entry-avatar-link strong {
-  color: var(--color-cabinet);
-}
-
-@keyframes avatar-link-signal {
-  from { opacity: 0.38; transform: scaleY(0.38); }
-  to { opacity: 1; transform: scaleY(1); }
-}
-
 @keyframes avatar-scan {
   0%, 100% { background-position: 0 0, 0 -58vh; }
   50% { background-position: 0 0, 0 58vh; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .entry-avatar-scan,
-  .entry-avatar-link-bars i {
+  .entry-avatar-scan {
     animation: none;
   }
 
   .entry-avatar-scene canvas {
-    transition: none;
-  }
-
-  .entry-avatar-link-meter i {
     transition: none;
   }
 }

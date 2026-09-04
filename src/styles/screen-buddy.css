@@ -335,6 +335,16 @@
     will-change: transform;
   }
 
+  /* The launch starts at the perch while the gate (z-index: 1300) is opening.
+     Return to the normal page layer after the splash leaves. */
+  .buddy-drop.is-above-splash {
+    z-index: 1301;
+  }
+
+  .buddy-drop.is-above-splash .buddy-drop-body {
+    pointer-events: none;
+  }
+
   .buddy-drop-body {
     position: relative;
     animation: buddy-chute-sway 1.15s ease-in-out infinite;

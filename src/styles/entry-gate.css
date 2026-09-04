@@ -8,6 +8,9 @@
 .entry-gate {
   --gate-line: color-mix(in srgb, var(--color-phosphor) 46%, transparent);
   --gate-ink: rgba(2, 9, 6, 0.94);
+  --gate-panel-inset: clamp(24px, 6vh, 64px) clamp(20px, 3vw, 58px) clamp(100px, 18vh, 180px);
+  --gate-lamp-x: calc(50% + clamp(100px, 12vw, 180px));
+  --gate-lamp-drop: clamp(14px, 3vh, 30px);
   /* The host is the whole composition, so it takes every pixel between the top
      of the stage and the HUD rail. The box stays narrow relative to that height
      because the VRM camera frames vertically: extra width is only ever empty
@@ -49,6 +52,8 @@
    which is exactly the flash of the site you used to get on reload. */
 .entry-gate-sky {
   position: absolute;
+  grid-row: 1 / 2;
+  grid-column: 1 / 2;
   inset: 0;
   z-index: 0;
   overflow: hidden;
@@ -108,23 +113,155 @@
   mask-image: linear-gradient(#000, transparent 84%);
 }
 
-/* Overhead stage light: a blurred trapezoid, which is the cheapest honest way
-   to draw a cone of light widening as it falls. */
+/* Light spills from the hanging fixture, with a soft falloff rather than a
+   hard trapezoid extending from outside the screen. */
 .entry-gate-halo {
-  left: 50%;
-  top: -16%;
-  width: min(84vw, 66rem);
-  height: 104%;
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--color-phosphor) 17%, transparent),
-    color-mix(in srgb, var(--color-phosphor) 6%, transparent) 48%,
-    transparent 86%
-  );
-  clip-path: polygon(39% 0, 61% 0, 90% 100%, 10% 100%);
-  filter: blur(30px);
-  opacity: 0.8;
+  left: var(--gate-lamp-x);
+  top: calc(var(--gate-lamp-drop) + 54px);
+  width: min(84vw, 64rem);
+  height: 90%;
+  background: radial-gradient(ellipse 48% 80% at 50% 0%, rgba(174, 245, 175, .19), rgba(105, 225, 152, .06) 48%, transparent 76%);
+  filter: blur(16px);
+  opacity: 1;
   transform: translateX(-50%);
+}
+
+.entry-gate-halo,
+.entry-gate-floor,
+.entry-gate-motes { transition: opacity 220ms ease; }
+
+.entry-gate.is-lamp-off .entry-gate-halo,
+.entry-gate.is-lamp-off .entry-gate-floor,
+.entry-gate.is-lamp-off .entry-gate-motes { opacity: 0; }
+
+.entry-gate.is-lamp-off .entry-gate-doors { filter: brightness(.68); }
+.entry-gate.is-lamp-off .entry-gate-buddy-sprite { filter: brightness(.6); }
+.entry-gate.is-lamp-off .entry-avatar-scene canvas { filter: saturate(.85) brightness(.7); }
+
+/* The fixture hangs independently of the moving panels. Only the chain is
+   interactive; its full 44px-wide hit area also works with touch and keyboard. */
+.entry-gate-lamp {
+  --chain-length: 76px;
+  --chain-x: 34px;
+  --socket-y: 40px;
+  position: absolute;
+  left: var(--gate-lamp-x);
+  top: 0;
+  z-index: 4;
+  width: 144px;
+  height: calc(var(--gate-lamp-drop) + 70px);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.gate-lamp-cable {
+  position: absolute;
+  left: calc(50% - 2px);
+  top: 0;
+  width: 4px;
+  height: calc(var(--gate-lamp-drop) + 4px);
+  background: linear-gradient(90deg, #020705, #597565 50%, #0a160f);
+}
+
+.gate-lamp-fixture {
+  position: absolute;
+  z-index: 2;
+  top: var(--gate-lamp-drop);
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, .5));
+}
+
+.gate-lamp-bulb,
+.gate-lamp-reflector { transition: opacity 180ms ease, fill 180ms ease; }
+.is-on .gate-lamp-bulb { filter: drop-shadow(0 0 9px #c9ffac); }
+.is-off .gate-lamp-bulb { fill: #526151; }
+.is-off .gate-lamp-reflector { opacity: .12; }
+
+.gate-lamp-pull {
+  position: absolute;
+  z-index: 1;
+  left: calc(50% + var(--chain-x));
+  top: calc(var(--gate-lamp-drop) + var(--socket-y));
+  width: 44px;
+  height: calc(var(--chain-length) + 40px + var(--chain-pull, 0px));
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #a8b9a3;
+  transform: translateX(-50%);
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.gate-lamp-pull:active,
+.gate-lamp-pull.is-pulling { cursor: grabbing; }
+.gate-lamp-pull:disabled { pointer-events: none; }
+.gate-lamp-pull:focus-visible { outline: 1px dashed var(--color-cyan-arcade); outline-offset: 4px; }
+
+.gate-lamp-chain {
+  position: absolute;
+  left: 20px;
+  top: 0;
+  width: 4px;
+  height: calc(var(--chain-length) + var(--chain-stretch, 0px));
+  background:
+    radial-gradient(circle, #afbd9f 0 1.3px, transparent 1.6px) center top / 4px 6px repeat-y,
+    linear-gradient(#566651, #566651) center / 1px 100% no-repeat;
+  transform: rotate(var(--chain-angle, 0rad));
+  transform-origin: 50% 0;
+}
+
+.gate-lamp-grip {
+  position: absolute;
+  left: calc(16px + var(--chain-drift, 0px));
+  top: calc(var(--chain-length) + var(--chain-pull, 0px));
+  width: 12px;
+  height: 22px;
+  border: 1px solid #8da18d;
+  border-radius: 3px 3px 5px 5px;
+  background: repeating-linear-gradient(0deg, transparent 0 4px, rgba(0, 0, 0, .6) 4px 5px), linear-gradient(90deg, #263c2b, #617a53 45%, #2a412b);
+  box-shadow: 0 3px 7px #000;
+  transform: rotate(var(--chain-angle, 0rad));
+  transform-origin: 50% 0;
+  transition: border-color 180ms ease;
+}
+
+.gate-lamp-pull:hover .gate-lamp-grip,
+.gate-lamp-pull:focus-visible .gate-lamp-grip { border-color: #d7ffbd; }
+
+.gate-lamp-hint {
+  position: absolute;
+  top: calc(var(--chain-length) + 29px + var(--chain-pull, 0px));
+  left: calc(50% + var(--chain-drift, 0px));
+  transform: translateX(-50%);
+  font-family: var(--font-pixel);
+  font-size: .35rem;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  opacity: .65;
+}
+
+.entry-gate.is-opening .entry-gate-lamp { animation: entry-gate-host-vanish 180ms ease-in forwards; }
+
+@media (max-width: 800px) {
+  .entry-gate { --gate-lamp-x: calc(100% - 62px); --gate-lamp-drop: 12px; }
+  .entry-gate-lamp { width: 100px; --chain-length: 46px; --chain-x: 23px; --socket-y: 26px; }
+}
+
+@media (max-height: 620px) and (min-width: 801px) {
+  .entry-gate-lamp { --chain-length: 42px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry-gate-lamp *,
+  .entry-gate-halo,
+  .entry-gate-floor,
+  .entry-gate-motes { transition: none !important; }
 }
 
 /* Pool of light where the cone lands, right where her legs meet the rail, plus
@@ -172,15 +309,19 @@
    stage light reads as glow escaping a closed gate. */
 .entry-gate-doors {
   position: absolute;
+  grid-row: 1 / 2;
+  grid-column: 1 / 2;
   inset: 0;
   z-index: 1;
+  overflow: hidden;
   pointer-events: none;
 }
 
 .entry-gate-door {
   position: absolute;
   top: 0;
-  bottom: 0;
+  /* Preserve the artwork's placement; the wrapper clips it at the HUD rail. */
+  height: 100dvh;
   width: 50%;
   background:
     radial-gradient(ellipse at var(--door-light-x) 48%, rgba(63, 255, 151, .045), transparent 68%),
@@ -220,14 +361,118 @@
    The old repeating hinge blocks on the viewport edges are gone. */
 .entry-gate-door::after {
   position: absolute;
-  inset: clamp(24px, 6vh, 64px) clamp(20px, 3vw, 58px) clamp(100px, 18vh, 180px);
+  inset: var(--gate-panel-inset);
   z-index: 2;
   content: "";
-  border: 1px solid color-mix(in srgb, var(--color-phosphor) 12%, transparent);
-  border-radius: 3px;
+  border: 1px solid rgba(112, 173, 143, .32);
+  border-top-color: rgba(134, 203, 171, .46);
+  border-bottom-color: rgba(83, 145, 111, .27);
+  border-radius: 2px;
   background:
+    linear-gradient(rgba(167, 227, 193, .34), rgba(167, 227, 193, .34)) 6px 6px / 25px 1px no-repeat,
+    linear-gradient(rgba(167, 227, 193, .22), rgba(167, 227, 193, .22)) calc(100% - 6px) calc(100% - 6px) / 25px 1px no-repeat,
     linear-gradient(180deg, rgba(180, 255, 207, .025), transparent 24%, rgba(0, 0, 0, .14));
-  box-shadow: inset 0 0 0 5px rgba(0, 0, 0, .16), 0 1px rgba(180, 255, 207, .025);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, .8),
+    inset 0 0 0 4px rgba(0, 0, 0, .4),
+    inset 0 0 0 5px rgba(112, 173, 143, .1),
+    0 2px 6px rgba(0, 0, 0, .28);
+}
+
+/* Scuffed paint lives on each panel, above its darkening layer. Keep the
+   title, center seam, and host silhouette clear of the larger tags. */
+.entry-gate-patina {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Grain is inset below the machined border and the painted marks. Keeping
+   noise off the frame preserves crisp outlines at every viewport size. */
+.entry-gate-door-texture {
+  position: absolute;
+  inset: var(--gate-panel-inset);
+  z-index: 1;
+  border: 6px solid transparent;
+  background:
+    url("/textures/gate-metal.svg") 0 0 / 384px 384px repeat,
+    repeating-linear-gradient(90deg, transparent 0 39px, rgba(157, 181, 158, .16) 40px, transparent 41px 113px),
+    radial-gradient(ellipse at 22% 30%, rgba(119, 146, 111, .45), transparent 43%),
+    radial-gradient(ellipse at 76% 66%, rgba(0, 0, 0, .8), transparent 48%),
+    linear-gradient(180deg, rgba(133, 150, 119, .25), transparent 18%, transparent 78%, rgba(0, 0, 0, .8));
+  background-clip: padding-box;
+  opacity: .12;
+}
+
+.entry-gate-door.is-right .entry-gate-door-texture {
+  background-position: 173px 91px, 29px 0, 0 0, 0 0, 0 0;
+  transform: scaleX(-1);
+}
+
+.gate-scratches {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  color: #b0c7b9;
+  opacity: .3;
+}
+
+.gate-scratches path {
+  vector-effect: non-scaling-stroke;
+}
+
+.gate-scratches g:first-child {
+  stroke-width: 1;
+}
+
+.gate-paint-tag {
+  position: absolute;
+  width: clamp(120px, 19vw, 300px);
+  height: auto;
+  opacity: .46;
+}
+
+.entry-gate-patina.is-left .gate-paint-tag {
+  left: 16%;
+  top: 30%;
+  color: #b7869d;
+  transform: rotate(-9deg);
+}
+
+.entry-gate-patina.is-right .gate-paint-tag {
+  right: 15%;
+  top: 49%;
+  color: #8cbbb0;
+  transform: rotate(8deg);
+}
+
+.gate-paint-doodle {
+  position: absolute;
+  width: clamp(48px, 6.5vw, 100px);
+  height: auto;
+  color: #c3b58e;
+  opacity: .4;
+}
+
+.entry-gate-patina.is-left .gate-paint-doodle {
+  left: 28%;
+  top: 65%;
+  transform: rotate(7deg);
+}
+
+.entry-gate-patina.is-right .gate-paint-doodle {
+  right: 24%;
+  top: 19%;
+  transform: rotate(-12deg);
+}
+
+@media (max-width: 800px) {
+  .gate-paint-tag { width: 70%; opacity: .36; }
+  .entry-gate-patina.is-left .gate-paint-tag { left: 12%; top: 26%; }
+  .entry-gate-patina.is-right .gate-paint-tag { right: 10%; top: 61%; }
+  .gate-paint-doodle { opacity: .34; }
 }
 
 /* Narrow metal lips and a light strip travel with the panels as they retract. */
@@ -236,9 +481,9 @@
   z-index: 1;
   top: 0;
   bottom: 0;
-  width: 6px;
+  width: 8px;
   content: "";
-  background: linear-gradient(var(--door-sweep), rgba(69, 216, 255, .16), rgba(0, 0, 0, .7) 42%, rgba(180, 255, 207, .06));
+  background: linear-gradient(var(--door-sweep), rgba(69, 216, 255, .28), rgba(0, 0, 0, .85) 42%, rgba(180, 255, 207, .12));
   opacity: .55;
   -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
   mask-image: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
@@ -281,11 +526,40 @@
   opacity: 0.62;
 }
 
+/* Loading belongs to the gate itself. A soft highlight travels along the
+   seam until the host arrives; the HUD carries the actual progress value. */
+.entry-gate.is-host-waiting .entry-gate-seam {
+  opacity: .7;
+  animation: none;
+}
+
+.entry-gate-seam::after {
+  position: absolute;
+  inset: 0 -3px;
+  content: "";
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent, var(--color-cyan-arcade) 45%, var(--color-phosphor-soft) 50%, var(--color-phosphor) 55%, transparent) center / 100% 24% no-repeat;
+  filter: drop-shadow(0 0 9px var(--color-cyan-arcade));
+  transition: opacity 350ms ease-out;
+}
+
+.entry-gate.is-host-waiting:not(.is-opening) .entry-gate-seam::after {
+  opacity: .85;
+  animation: entry-gate-seam-loading 2.8s cubic-bezier(.45, 0, .55, 1) infinite;
+}
+
+@keyframes entry-gate-seam-loading {
+  0% { transform: translateY(-42%); opacity: 0; }
+  18%, 72% { opacity: .85; }
+  100% { transform: translateY(42%); opacity: 0; }
+}
+
 /* Marquee -----------------------------------------------------------------*/
 .entry-gate-marquee {
   position: absolute;
   left: clamp(1.1rem, 5vw, 5rem);
-  top: clamp(0.7rem, 3vh, 2rem);
+  top: calc(clamp(24px, 6vh, 64px) + 1rem);
   z-index: 2;
   color: color-mix(in srgb, var(--color-phosphor-soft) 8%, transparent);
   font-family: var(--font-display);
@@ -302,6 +576,8 @@
 
 /* Seasonal decor keeps its own layer between the doors and the host. */
 .entry-gate .entry-splash-season {
+  grid-row: 1 / 2;
+  grid-column: 1 / 2;
   z-index: 2;
 }
 
@@ -521,18 +797,20 @@
 .entry-gate-bubble.is-thinking i:nth-child(2) { animation-delay: 0.16s; }
 .entry-gate-bubble.is-thinking i:nth-child(3) { animation-delay: 0.32s; }
 
-/* HUD ---------------------------------------------------------------------*/
+/* HUD: paint the opaque bar on the first frame, with no entrance fade or
+   offset that could expose the page below. Gate artwork stays clipped above
+   it; overflow remains visible for Buddy's perch and launch. */
 .entry-gate-hud {
   position: relative;
   z-index: 5;
+  isolation: isolate;
   display: grid;
   grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto;
   align-items: center;
   gap: clamp(1rem, 3vw, 2.6rem);
   border-top: 1px solid color-mix(in srgb, var(--color-phosphor) 22%, transparent);
-  background: linear-gradient(180deg, rgba(1, 8, 6, 0.16), rgba(1, 7, 5, 0.9));
+  background: linear-gradient(180deg, #020d09, #010705);
   padding: clamp(0.85rem, 2.2vh, 1.5rem) clamp(1.1rem, 5vw, 4rem);
-  animation: entry-gate-hud-in 560ms 100ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .entry-gate-brand strong {
@@ -666,6 +944,10 @@
   z-index: 6;
 }
 
+.entry-gate .splash-buddy.is-launched {
+  visibility: hidden;
+}
+
 /* Opening: the host clears the opening, then both panels slide apart together
    and ease into their stops. Keep the frame until both are clear.
    Every beat derives from the same duration as the React unmount timer. */
@@ -734,11 +1016,6 @@
 
 @keyframes entry-gate-bubble-in {
   from { opacity: 0; transform: translate(-8px, 6px) scale(0.97); }
-  to { opacity: 1; transform: none; }
-}
-
-@keyframes entry-gate-hud-in {
-  from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: none; }
 }
 
@@ -990,46 +1267,6 @@
   }
 }
 
-/* Waiting stage -------------------------------------------------------------
-   Mientras el anfitrion baja, la escena era un agujero: el medidor AVATAR LINK
-   flotaba en el centro geometrico de una caja alta y vacia, la burbuja "..."
-   colgaba sola a un lado y el resto de la composicion estaba pegado a las
-   cuatro esquinas. Estas reglas solo actuan antes de que la anfitriona
-   aparezca, y desaparecen solas cuando entra. */
-
-/* El medidor baja hasta la plataforma donde se materializa, en vez de quedarse
-   suspendido a media altura. */
-.entry-gate.is-immersive .entry-avatar-fallback {
-  align-content: end;
-  padding-bottom: 15%;
-}
-
-/* Plataforma de materializacion: da un foco al centro del encuadre y explica
-   que el hueco es donde va a aparecer alguien. */
-.entry-gate.is-immersive .entry-gate-host::before {
-  position: absolute;
-  left: 50%;
-  bottom: 7%;
-  z-index: 0;
-  width: min(19rem, 78%);
-  aspect-ratio: 3.3;
-  border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 30%, transparent);
-  border-radius: 50%;
-  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--color-phosphor) 16%, transparent), transparent 68%);
-  content: "";
-  opacity: 1;
-  pointer-events: none;
-  transform: translateX(-50%);
-  transition: opacity 620ms ease-out;
-  animation: entry-gate-pad 3.6s ease-in-out infinite;
-}
-
-.entry-gate.is-host-present .entry-gate-host::before,
-.entry-gate.is-opening .entry-gate-host::before {
-  opacity: 0;
-  animation: none;
-}
-
 /* La burbuja solo tiene sentido cuando hay alguien a quien pertenece: hasta
    entonces se quedaba flotando en mitad del vacio, apuntando a nada.
    Hay que cancelar la animacion de entrada, no solo bajar la opacidad: se
@@ -1048,15 +1285,15 @@
    siendo fondo, pero ahora es una decision visible. */
 .entry-gate-marquee {
   color: color-mix(in srgb, var(--color-phosphor-soft) 13%, transparent);
-  -webkit-text-stroke: 1px color-mix(in srgb, var(--color-cyan-arcade) 24%, transparent);
-}
-
-@keyframes entry-gate-pad {
-  0%, 100% { opacity: 0.62; }
-  50% { opacity: 1; }
+  -webkit-text-stroke: 1px color-mix(in srgb, var(--color-cyan-arcade) 34%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .entry-gate.is-immersive .entry-gate-host::before { animation: none; }
+  .entry-gate.is-host-waiting:not(.is-opening) .entry-gate-seam::after {
+    animation: none;
+    opacity: .45;
+  }
+
+  .entry-gate-seam::after { transition: none; }
   .entry-gate.is-host-waiting .entry-gate-speech { transition: none; }
 }

@@ -650,6 +650,7 @@ function CabinetApp() {
       {buddyDrop ? (
         <BuddyDrop
           start={buddyDrop}
+          aboveSplash={entrySplashOpen}
           onDone={() => setBuddyDrop(null)}
           friendshipLevel={buddy.friendship.level}
           inventory={buddy.adventure.inventoryIds}
