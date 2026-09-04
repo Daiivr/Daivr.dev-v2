@@ -6,7 +6,7 @@ import { handleBuddyRequest } from "./server/buddy.mjs";
 import { handleCommentsRequest } from "./server/comments.mjs";
 import { handleCrossRoadRequest } from "./server/cross-road.mjs";
 import { handleDiscordProfileFrameRequest } from "./server/discord-profile-frame.mjs";
-import { handleDiscordStreakRequest } from "./server/discord-streak.mjs";
+import { handleDiscordStreakRequest, startDiscordStreakPolling } from "./server/discord-streak.mjs";
 import { handleMadraceRequest } from "./server/madrace.mjs";
 import { loadLocalEnv } from "./server/env.mjs";
 import { handleSteamPlaytimeRequest } from "./server/steam-playtime.mjs";
@@ -24,6 +24,8 @@ export default defineConfig({
     {
       name: "daivr-local-api",
       configureServer(server) {
+        startDiscordStreakPolling();
+
         server.middlewares.use("/api/tradedex", (request, response, next) => {
           if (request.url?.startsWith("/info") || request.url?.startsWith("/scan")) {
             request.url = `/api/tradedex${request.url}`;

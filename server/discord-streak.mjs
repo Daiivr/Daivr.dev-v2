@@ -272,6 +272,9 @@ export async function handleDiscordStreakRequest(_request, response) {
 }
 
 // Sin sondeo de fondo las horas solo avanzaban mientras alguien miraba la web.
+// Lo arranca cada servidor real (server.mjs y el dev server de Vite). Antes se
+// llamaba al importar el modulo, asi que "vite build" tambien sondeaba y trataba
+// de escribir en /var/data, que en Render solo esta montado en runtime.
 export function startDiscordStreakPolling() {
   if (pollTimer) return pollTimer;
 
@@ -283,5 +286,3 @@ export function startDiscordStreakPolling() {
 
   return pollTimer;
 }
-
-startDiscordStreakPolling();
