@@ -1,5 +1,5 @@
 import { Activity, BarChart3, Gamepad2, Globe, Headphones, Maximize2, Minimize2, Monitor, Radio, Smartphone, Users, WifiOff, X, Zap } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { discord, profile } from "../data/site";
 import {
@@ -11,6 +11,10 @@ import {
   useLanyardPresence
 } from "../hooks/useLanyardPresence";
 import { cn } from "../lib/cn";
+
+// Un Set vacio y estable: sirve de estado inicial a los dos marcos que se
+// pintan, sin crear uno nuevo en cada render.
+const EMPTY_LAYERS = new Set();
 
 const BADGE_BASE = "https://raw.githubusercontent.com/merlinfuchs/discord-badges/main/SVG";
 const ACTIVITY_EXIT_DURATION = 220;
@@ -1098,6 +1102,14 @@ function DiscordIdleRunner({ prefersReducedMotion }) {
 }
 
 function DiscordProfileFrame({ anchor, className, decorative = false, frame }) {
+  // Las capas vienen del CDN de Discord y pesan lo suyo: hasta que cada una no
+  // esta decodificada se deja transparente, para que aparezca entrando en vez
+  // de aterrizar de golpe sobre el avatar.
+  const [loaded, setLoaded] = useState(EMPTY_LAYERS);
+  const markLoaded = useCallback((id) => {
+    setLoaded((current) => (current.has(id) ? current : new Set(current).add(id)));
+  }, []);
+
   if (!frame?.layers?.length || !frame.innerWidth) return null;
 
   const layers = anchor ? frame.layers.filter((layer) => layer.anchor === anchor) : frame.layers;
@@ -1126,13 +1138,17 @@ function DiscordProfileFrame({ anchor, className, decorative = false, frame }) {
             `is-${layer.anchor}`,
             `is-${layer.order}`,
             `is-${layer.type}`,
-            layer.responsive && "is-responsive"
+            layer.responsive && "is-responsive",
+            loaded.has(layer.id) && "is-ready"
           )}
           src={layer.src}
           alt=""
           aria-hidden="true"
           decoding="async"
-          loading="lazy"
+          loading="eager"
+          fetchPriority="low"
+          ref={(node) => { if (node?.complete && node.naturalWidth > 0) markLoaded(layer.id); }}
+          onLoad={() => markLoaded(layer.id)}
           />
         );
 

@@ -22,6 +22,10 @@
     <link rel="preload" as="image" href="/games/rdr2-cover-card.webp" fetchpriority="high" />
     <link rel="preload" as="image" href="/projects/tradedex-card.webp" fetchpriority="high" />
     <link rel="preload" as="image" href="/projects/fallout-terminal-frame-card.webp" fetchpriority="high" />
+    <!-- El avatar de Discord y las capas del marco del perfil salen todas de
+         este host. Abrir la conexion aqui ahorra el DNS y el TLS de la primera
+         peticion, que hasta ahora se pagaban al llegar la tarjeta. -->
+    <link rel="preconnect" href="https://cdn.discordapp.com" crossorigin />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

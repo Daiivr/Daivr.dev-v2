@@ -2,6 +2,8 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { Delete, FileDown, Fingerprint, HelpCircle, Lock, LockOpen, ShieldAlert, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { preloadImages } from "../lib/preloadImages";
+
 // La boveda del dev room. Vive detras del panel arrastrable: solo se llega a
 // ella colgando la ventana del clavo, y solo se abre con el codigo.
 const VAULT_CODE = "071990";
@@ -28,6 +30,17 @@ const BOLTS = [0, 1, 2, 3, 4, 5];
 // La pista: un mapa dibujado a mano con la combinacion anotada encima. No dice
 // el numero por si mismo — hay que reconocer el sitio que dibuja.
 const HINT_MAP = "/assets/vault/hint-map.webp";
+
+// El tamano real del papel. Viaja en el <img> como atributos para que el hueco
+// exista antes que el fichero: sin esto la figura se montaba a cero, el panel
+// entraba corto y por debajo del centro, y pegaba un salto hacia arriba de
+// ciento veinte pixeles en cuanto llegaba el plano.
+const HINT_MAP_W = 597;
+const HINT_MAP_H = 418;
+
+// Colgar y descolgar el panel repetiria la precarga y dejaria un <link> nuevo
+// en la cabecera cada vez. Con una sola pasada basta.
+let hintMapWarmed = false;
 
 // Lupa del plano. El papel se enseña a ~88% de su tamano real, asi que lo que
 // hay escrito a mano se lee justo; la lente da el aumento sin abrir otra vista.
@@ -118,6 +131,27 @@ export function DevRoomVault({ active }) {
   }, [active, status]);
 
   useEffect(() => () => clearDenyTimer(), []);
+
+  // El plano se pedia en el mismo instante en que se abria la nota, asi que la
+  // primera vez el dialogo se veia antes que la imagen. Colgado el panel, la
+  // pista ya esta a un clic: se calienta en cuanto la boveda es alcanzable, en
+  // hueco libre para no competir con lo que se este viendo.
+  useEffect(() => {
+    if (!active || hintMapWarmed) return undefined;
+
+    const warm = () => {
+      hintMapWarmed = true;
+      preloadImages([HINT_MAP]);
+    };
+
+    if (typeof window.requestIdleCallback !== "function") {
+      const timer = window.setTimeout(warm, 200);
+      return () => window.clearTimeout(timer);
+    }
+
+    const idle = window.requestIdleCallback(warm, { timeout: 1200 });
+    return () => window.cancelIdleCallback(idle);
+  }, [active]);
 
   // El modal se abre solo al ceder la puerta, y se puede volver a abrir desde
   // el boton de la boveda ya abierta.
@@ -268,6 +302,7 @@ export function DevRoomVault({ active }) {
    explicandolo: o reconoces el sitio o te quedas mirando un plano. */
 function VaultHint({ open, onOpenChange }) {
   const [mapFailed, setMapFailed] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
   const [lens, setLens] = useState(null);
   const mapRef = useRef(null);
   const wrapRef = useRef(null);
@@ -277,6 +312,15 @@ function VaultHint({ open, onOpenChange }) {
   // vieja en cuanto se volvia a abrir la nota.
   useEffect(() => {
     if (!open) setLens(null);
+  }, [open]);
+
+  // El contenido se remonta en cada apertura. Si el plano ya esta en cache el
+  // navegador lo tiene resuelto antes de que React enganche el onLoad, y sin
+  // esto la imagen se quedaria en el estado de carga para siempre.
+  useEffect(() => {
+    if (!open) return;
+    const img = mapRef.current;
+    if (img?.complete && img.naturalWidth > 0) setMapReady(true);
   }, [open]);
 
   function trackLens(event) {
@@ -329,16 +373,21 @@ function VaultHint({ open, onOpenChange }) {
               </div>
             ) : (
               <div
-                className={`hint-map-wrap ${lens ? "is-magnifying" : ""}`}
+                className={`hint-map-wrap ${lens ? "is-magnifying" : ""} ${mapReady ? "" : "is-loading"}`}
                 ref={wrapRef}
                 onPointerMove={trackLens}
                 onPointerLeave={() => setLens(null)}
               >
                 <img
                   alt="A hand-drawn floor plan on stained paper, marked with an entrance, several crossed-out rooms, a circled cage and a scrawled cage code."
-                  className="hint-map"
+                  className={`hint-map ${mapReady ? "is-ready" : ""}`}
                   ref={mapRef}
                   src={HINT_MAP}
+                  width={HINT_MAP_W}
+                  height={HINT_MAP_H}
+                  decoding="async"
+                  fetchPriority="high"
+                  onLoad={() => setMapReady(true)}
                   onError={() => setMapFailed(true)}
                 />
                 {lens ? (

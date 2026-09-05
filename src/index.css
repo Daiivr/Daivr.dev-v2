@@ -6907,6 +6907,20 @@
 
   .hint-map-wrap.is-magnifying { cursor: none; }
 
+  /* Mientras el papel viaja, su hueco ya esta reservado por los atributos del
+     <img>: se rellena con el tono del propio plano para que la nota se abra
+     con algo dentro en vez de con un agujero. */
+  .hint-map-wrap.is-loading::before {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border: 1px solid color-mix(in srgb, var(--color-cabinet) 22%, transparent);
+    background: linear-gradient(150deg, rgba(38, 31, 20, 0.85), rgba(22, 18, 11, 0.85));
+    content: "";
+    pointer-events: none;
+    animation: hint-map-wait 1.4s ease-in-out infinite;
+  }
+
   /* La lente: un disco que pinta el mismo papel a mas aumento. */
   .hint-lens {
     position: absolute;
@@ -6936,16 +6950,28 @@
     pointer-events: none;
   }
 
+  /* Los atributos del <img> estan por la proporcion, no por el tamano: sin
+     estos dos auto el navegador se queda con los 597px escritos y recorta solo
+     el alto, asi que el marco dejaba de ceñir el papel y la lupa apuntaba a
+     coordenadas que ya no eran las del plano. */
   .hint-map {
+    position: relative;
+    z-index: 2;
+    width: auto;
+    height: auto;
     max-width: 100%;
     max-height: 100%;
     min-height: 0;
     border: 1px solid color-mix(in srgb, var(--color-cabinet) 30%, transparent);
+    opacity: 0;
     object-fit: contain;
     box-shadow:
       0 0 0 4px rgba(0, 0, 0, 0.5),
       0 18px 44px rgba(0, 0, 0, 0.7);
+    transition: opacity 240ms ease-out;
   }
+
+  .hint-map.is-ready { opacity: 1; }
 
   .hint-map-missing {
     display: grid;
@@ -7036,5 +7062,14 @@
 
   @media (prefers-reduced-motion: reduce) {
     .vault-hint { transition: none; }
+    .hint-map { transition: none; }
+    .hint-map-wrap.is-loading::before { animation: none; }
   }
+}
+
+/* El papel esperando: un latido muy corto de brillo, lo justo para que se lea
+   como algo que esta llegando y no como un rectangulo muerto. */
+@keyframes hint-map-wait {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 0.8; }
 }

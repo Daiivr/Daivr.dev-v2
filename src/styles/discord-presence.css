@@ -246,16 +246,22 @@
     display: contents;
   }
 
+  /* Transparente hasta que su fichero esta decodificado: la capa entra sola
+     en vez de aparecer de golpe cuando el CDN termina de servirla. */
   .discord-profile-frame-layer {
     position: absolute;
     left: var(--discord-frame-left-offset);
     width: var(--discord-frame-width);
     height: auto;
     max-width: none;
+    opacity: 0;
     object-fit: contain;
     pointer-events: none;
     user-select: none;
+    transition: opacity 260ms ease-out;
   }
+
+  .discord-profile-frame-layer.is-ready { opacity: 1; }
 
   .discord-profile-frame-layer.is-top {
     /* Discord's native anchor plus one container-relative optical correction at every size. */
@@ -1862,6 +1868,10 @@
   .discord-presence-empty,
   .discord-activity-stats {
     animation: none;
+  }
+
+  .discord-profile-frame-layer {
+    transition: none;
   }
 
   .discord-loading-dots i {
