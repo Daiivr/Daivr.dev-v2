@@ -339,8 +339,8 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
       </div>
 
       <div className="entry-gate-doors" aria-hidden="true">
-        <i className="entry-gate-door is-left"><i className="entry-gate-door-shade" /><i className="entry-gate-door-texture" /><GatePatina side="left" /></i>
-        <i className="entry-gate-door is-right"><i className="entry-gate-door-shade" /><i className="entry-gate-door-texture" /><GatePatina side="right" /></i>
+        <i className="entry-gate-door is-left"><i className="entry-gate-door-shade" /><i className="entry-gate-door-texture" /><GatePatina side="left" seasonalEvent={seasonalEvent} /></i>
+        <i className="entry-gate-door is-right"><i className="entry-gate-door-shade" /><i className="entry-gate-door-texture" /><GatePatina side="right" seasonalEvent={seasonalEvent} /></i>
         <i className="entry-gate-seam" />
       </div>
 

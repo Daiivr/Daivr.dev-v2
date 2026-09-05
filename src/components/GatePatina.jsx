@@ -1,12 +1,39 @@
+import { GATE_MARKER_GLYPHS, GATE_PATINA_THEMES } from "./gatePatinaThemes";
+
+function SeasonalTag({ lines }) {
+  return (
+    <>
+      {lines.map((line, row) => {
+        const scale = Math.min(1.5, 222 / (line.length * 34));
+        return (
+          <g key={row} transform={`translate(16 ${row ? 84 : 12}) scale(${scale} 1.3)`} strokeWidth="3.2">
+            {[...line].map((letter, index) => (
+              <path key={index} d={GATE_MARKER_GLYPHS[letter]} transform={`translate(${index * 34} ${index % 2 ? -1 : 1}) rotate(${index % 2 ? 2 : -2} 13 20)`} />
+            ))}
+          </g>
+        );
+      })}
+      <path d="m10 144 228-8m-213 15 167-5m-151-14-1 6m171-8-1 12" strokeWidth="2" />
+    </>
+  );
+}
+
 // Decorative paint and scoring stay attached to their respective sliding panel.
-export function GatePatina({ side }) {
+export function GatePatina({ side, seasonalEvent }) {
   const left = side === "left";
+  const theme = GATE_PATINA_THEMES[seasonalEvent];
+  const panel = left ? 0 : 1;
 
   return (
-    <span className={`entry-gate-patina is-${side}`} aria-hidden="true">
+    <span className={`entry-gate-patina is-${side}`} data-season={theme ? seasonalEvent : "default"} style={theme ? {
+      "--gate-tag-color": theme.colors[panel],
+      "--gate-mark-color": theme.colors[2],
+    } : undefined} aria-hidden="true">
       <svg className="gate-scratches" viewBox="0 0 600 800" preserveAspectRatio="none" fill="none">
         <g stroke="currentColor" strokeWidth=".8">
-          {left ? (
+          {theme ? (
+            <path d={theme.marks} transform={left ? undefined : "translate(600 0) scale(-1 1)"} />
+          ) : left ? (
             <>
               <path d="m72 185 39-12m-32 20 62-25m-48 33 20-9M436 290l34-47m-29 57 50-62m-32 41 22-29M80 577l76-9m-58 15 31-6M366 681l47-15m-35 21 25-9M44 358l3 49m-1 13 1 17M544 536l-3 42m-2 9-1 14" />
               <path d="m211 233 12-3m125 194 9-5m-75 218 18-6m172-240 7-10M123 711l28-2" opacity=".5" />
@@ -24,7 +51,7 @@ export function GatePatina({ side }) {
       </svg>
 
       <svg className="gate-paint-tag" viewBox="0 0 260 155" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
-        {left ? (
+        {theme ? <SeasonalTag lines={theme.tags[panel]} /> : left ? (
           <>
             {/* Uneven hand-lettered STAY / WEIRD, with dry-brush gaps. */}
             <g strokeWidth="4.5">
@@ -55,7 +82,7 @@ export function GatePatina({ side }) {
       </svg>
 
       <svg className="gate-paint-doodle" viewBox="0 0 120 110" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-        {left ? (
+        {theme ? <path d={theme.doodles[panel]} /> : left ? (
           <>
             <path d="m27 33 66-3 2 48-69 3Zm30-1 1-13m-6-1 11-1M39 48l10-1 1 9-11 1Zm29-2 11-1 1 9-11 1ZM48 66l25-2M34 82l-1 14 13-1m32-15 2 13 12-1M17 45l-6 2 1 18 6-1m84-22 7-1 1 19-7 1" />
             <path d="m8 87 7-6m-5 18 10-7M98 17l8-6m-5 17 12-2" opacity=".6" />
