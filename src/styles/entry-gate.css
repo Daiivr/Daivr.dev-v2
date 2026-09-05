@@ -416,22 +416,66 @@
   width: 100%;
   height: 100%;
   color: var(--gate-mark-color, #b0c7b9);
-  opacity: .3;
+  opacity: .56;
 }
 
-.gate-scratches path {
+.gate-scratches path,
+.gate-scratches use {
   vector-effect: non-scaling-stroke;
 }
 
-.gate-scratches g:first-child {
+.gate-scratch-groove {
+  stroke: #000704;
+  stroke-width: 3.6;
+  opacity: .85;
+}
+
+.gate-scratch-edge {
+  stroke: currentColor;
+  stroke-width: 1.7;
+  opacity: .62;
+}
+
+.gate-scratch-core {
+  stroke: #6b8275;
   stroke-width: 1;
+  stroke-dasharray: 13 1.5 5 2 19 3;
+}
+
+.gate-scratch-fragments {
+  stroke: currentColor;
+  stroke-width: .8;
+  stroke-dasharray: .6 7 2 13 1 4;
+  opacity: .6;
+}
+
+.gate-scratch-scuff {
+  stroke: currentColor;
+  stroke-width: 4;
+  stroke-dasharray: 9 3 2 5;
+  opacity: .07;
 }
 
 .gate-paint-tag {
   position: absolute;
   width: clamp(120px, 19vw, 300px);
   height: auto;
-  opacity: .46;
+  opacity: .63;
+  overflow: visible;
+}
+
+.gate-tag-shadow {
+  color: #010805;
+  opacity: .9;
+}
+
+.gate-tag-overspray {
+  filter: blur(2px);
+  opacity: .2;
+}
+
+.gate-tag-highlight {
+  color: color-mix(in srgb, currentColor 55%, #e5ddba);
 }
 
 .entry-gate-patina.is-left .gate-paint-tag {
@@ -453,7 +497,7 @@
   width: clamp(48px, 6.5vw, 100px);
   height: auto;
   color: var(--gate-mark-color, #c3b58e);
-  opacity: .4;
+  opacity: .5;
 }
 
 .entry-gate-patina.is-left .gate-paint-doodle {
@@ -469,7 +513,7 @@
 }
 
 @media (max-width: 800px) {
-  .gate-paint-tag { width: 70%; opacity: .36; }
+  .gate-paint-tag { width: 70%; opacity: .5; }
   .entry-gate-patina.is-left .gate-paint-tag { left: 12%; top: 26%; }
   .entry-gate-patina.is-right .gate-paint-tag { right: 10%; top: 61%; }
   .gate-paint-doodle { opacity: .34; }
