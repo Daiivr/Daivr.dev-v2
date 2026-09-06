@@ -331,6 +331,53 @@ export const stack = [
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.29.1",
+    codename: "WARM DISKS",
+    date: "2026-09-05",
+    summary: "The cartridge art in the secret library used to arrive a beat after the library did.",
+    entries: [
+      ["fix", "The five cartridge covers are the only images on the site that appear nowhere except inside that dialog, so nothing had ever asked for them and they were requested at the exact moment it opened — which is why the first look at the shelf was five empty labels. They are fetched now once you are four keys into the code, which is far enough in to be sure and still leaves six keystrokes to pull them down. Type anything else and nothing is downloaded: it is an easter egg, and it should not cost the rest of the site any bandwidth."],
+      ["fix", "The unlock toast had been claiming 2 disks found since back when there were two. It counts them."]
+    ]
+  },
+  {
+    version: "v2.29.0",
+    codename: "LAST BALL",
+    date: "2026-09-05",
+    summary: "The last thing Space Cadet showed you was a grey Windows dialog with an Ok button. It now ends the way the rest of the cabinet looks: the final score, whether it beat your own, and a way straight back onto the table.",
+    entries: [
+      ["new", "A game-over panel in the cabinet’s own skin — final score, time on the table, your Discord rank and whether the run is a new personal best, over the table it just closed. New Game puts you straight back in, Ranking opens the leaderboard, Exit closes the cabinet."],
+      ["new", "The Windows High Scores dialog no longer appears. It could not simply be switched off: it is an ImGui popup drawn inside the canvas, and once open its state lives in ImGui’s own stack rather than in any flag the game keeps — nothing to reach for after the fact. What does work is upstream of it. The game only raises the dialog when your score finds a free slot in its five-entry table, so the table is filled at boot with scores nothing can beat and the slot is never found. The real record is the Discord ranking either way."],
+      ["fix", "The score announced at the end was the one from the previous poll, roughly half a second stale, and it also missed the end-of-game bonus, which the table adds after the game is already over. The panel waits for the table to finish counting before it reads the number, so what it announces is what gets sent to the ranking."]
+    ]
+  },
+  {
+    version: "v2.28.0",
+    codename: "TILT SENSOR",
+    date: "2026-09-05",
+    summary: "Space Cadet lost its Windows menu bar, gained a volume slider, and now knows who is playing it. The Discord name sits in the box the table used to fill with “Player 1”, and the score the table is keeping goes to a leaderboard next to Cross Road’s. None of that was in the build — the port exports nothing but main, malloc and free — so all three read and write the game’s own memory from JavaScript.",
+    entries: [
+      ["new", "The Game/Options/Help bar is gone. The build predates the port’s ShowMenu option, and that bar is drawn by ImGui inside the canvas, so there is no flag to turn it off: the canvas is pushed up by its exact height inside a box that clips, which hides it and hands the nineteen pixels back to the table. The clipped strip stops taking clicks too, so there is no invisible menu left to open by accident."],
+      ["new", "A volume slider in the cabinet’s bottom bar. This build also predates the port’s Sound Volume option, so the slider does not talk to the game at all — every AudioContext SDL opens is handed a gain node wearing its speakers’ name, and the slider moves that. It remembers where you left it."],
+      ["new", "Your Discord name replaces “Player 1” on the table. The text box caches the pixels it drew and only repaints when the game itself calls Display, so swapping the message text does nothing visible; what works is rewriting the game’s translation table — the Msg-to-string map — and asking for a new game so the box paints again. It only does that when no ball is in play, so it cannot eat a run in progress."],
+      ["new", "A Discord leaderboard, ranked on the best table score. Finding the score meant walking the wasm heap: pb::MainTable is a static pointer at a fixed address, the table’s live score sits eighty-four bytes into it, and the player count and current-player fields next to it are checked on every read so a bad pointer reports nothing instead of nonsense. Confirmed identical across reloads before it was trusted."],
+      ["nerf", "Scores are sent when a scoring burst settles rather than on every bumper, and never more than once every eight seconds. The endpoint takes eight a minute, and a ball loose in the bumpers changes the score about twice a second."],
+      ["fix", "The cartridge chip in the top-right corner of the frame is gone. With the menu bar cropped away, the table grew into that corner and the chip landed on top of the ball counter — and the cabinet header says SPACE.CADET two centimetres above it anyway."]
+    ]
+  },
+  {
+    version: "v2.27.0",
+    codename: "FULL TILT",
+    date: "2026-09-05",
+    summary: "The Konami library has a fifth disk in it, and this one is a whole pinball table. 3D Pinball for Windows — Space Cadet, the one that shipped with every copy of Windows from 95 to XP, decompiled from the original binary by k4zmu2a and cross-compiled to WebAssembly by alula. It runs the real physics and the real table, in the cabinet, at whatever resolution the cabinet happens to be.",
+    entries: [
+      ["new", "DISK 05 // SPACE.CADET. Z and / work the flippers, space pulls the plunger, X and . nudge the table and F2 starts a fresh game. The in-game menu bar is real — Game, Options, Help, all of it, including the player count and the table resolution."],
+      ["new", "The table renders at the size of the cabinet screen rather than at a fixed resolution scaled up to fit. The port syncs its SDL window to the canvas's CSS size on every resize, so the canvas is stretched with a stylesheet rule and the game adopts that as its native resolution — no blur from upscaling a 600-pixel-wide table, and no offset on the menu clicks, which is what object-fit would have cost: the letterboxed bars sit inside the element's box but the pointer maths divides by the whole box."],
+      ["new", "A violet accent joined the four the library already had, so the new disk is not a second cyan card sitting next to Madrace."],
+      ["fix", "The production server had no MIME type for .wasm, which meant the 4.5 MB module came back as application/octet-stream and the streaming compiler refused it — the loader falls back to buffering the whole thing before it starts compiling, so the table booted a beat later than it needed to. It also had no cache policy for it: the module and its 2.3 MB of table data keep their names between builds, so they now revalidate by ETag like the avatar's VRM instead of being re-downloaded in full on every visit."]
+    ]
+  },
+  {
     version: "v2.26.0",
     codename: "TARGET LOCK",
     date: "2026-09-03",

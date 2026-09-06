@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+	<title>Space Cadet Pinball // DAIVR Arcade</title>
+	<link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+	<div class="pinball-stage" id="stage">
+		<div class="pinball-screen">
+			<canvas id="canvas" tabindex="-1" oncontextmenu="event.preventDefault()"></canvas>
+		</div>
+	</div>
+
+	<div class="pinball-touch" id="touch">
+		<button type="button" data-key="z" data-code="KeyZ" data-keycode="90" aria-label="Left flipper">LEFT</button>
+		<button type="button" data-key=" " data-code="Space" data-keycode="32" aria-label="Plunger">PLUNGER</button>
+		<button type="button" data-key="/" data-code="Slash" data-keycode="191" aria-label="Right flipper">RIGHT</button>
+	</div>
+
+	<div class="pinball-boot" id="boot">
+		<span>TABLE.SYS // LOADING CARTRIDGE</span>
+		<strong>3D PINBALL &mdash; SPACE CADET</strong>
+		<i class="pinball-boot-bar"><b id="boot-bar"></b></i>
+		<p id="boot-status">DOWNLOADING TABLE DATA...</p>
+	</div>
+
+	<script>
+		(function () {
+			var canvas = document.getElementById("canvas");
+			var boot = document.getElementById("boot");
+			var bootBar = document.getElementById("boot-bar");
+			var bootStatus = document.getElementById("boot-status");
+			var parentOrigin = window.location.origin;
+
+			// El puerto SDL escucha el resize del iframe y ajusta su ventana al tamano
+			// CSS del canvas, asi que el canvas se estira por CSS y el juego adopta esa
+			// resolucion. La barra de menu de ImGui se recorta con overflow desde el
+			// stage (ver style.css): este build es anterior a la opcion ShowMenu.
+			function syncSize() { window.dispatchEvent(new Event("resize")); }
+
+			// El teclado de SDL cuelga del document del iframe: sin foco la mesa no
+			// responde a los flippers hasta el primer click dentro del marco.
+			function grabFocus() { try { window.focus(); canvas.focus(); } catch (error) { /* iframe sin foco disponible */ } }
+			window.addEventListener("pointerdown", grabFocus);
+			window.addEventListener("load", grabFocus);
+
+			function sendKey(type, key, code, keyCode) {
+				document.dispatchEvent(new KeyboardEvent(type, { key: key, code: code, keyCode: keyCode, which: keyCode, bubbles: true, cancelable: true }));
+			}
+
+			window.addEventListener("keydown", function (event) {
+				if (event.key !== "Escape") return;
+				if (window.parent === window) return;
+				event.preventDefault();
+				event.stopImmediatePropagation();
+				window.parent.postMessage({ type: "daivr:arcade-close" }, parentOrigin);
+			}, true);
+
+			// Sin teclado la mesa es injugable en movil, asi que los tres pads tactiles
+			// sintetizan las teclas reales del juego contra el document, que es donde
+			// SDL escucha (mismo camino que valida el flipper fisico).
+			var touch = document.getElementById("touch");
+			touch.addEventListener("contextmenu", function (event) { event.preventDefault(); });
+			Array.prototype.forEach.call(touch.querySelectorAll("button"), function (pad) {
+				var options = { key: pad.dataset.key, code: pad.dataset.code, keyCode: Number(pad.dataset.keycode), which: Number(pad.dataset.keycode), bubbles: true, cancelable: true };
+				var held = false;
+				function press(event) {
+					event.preventDefault();
+					if (held) return;
+					held = true;
+					pad.classList.add("is-held");
+					document.dispatchEvent(new KeyboardEvent("keydown", options));
+				}
+				function release() {
+					if (!held) return;
+					held = false;
+					pad.classList.remove("is-held");
+					document.dispatchEvent(new KeyboardEvent("keyup", options));
+				}
+				pad.addEventListener("pointerdown", press);
+				pad.addEventListener("pointerup", release);
+				pad.addEventListener("pointercancel", release);
+				pad.addEventListener("pointerleave", release);
+			});
+
+			// --- Volumen ---------------------------------------------------------
+			// Este build es anterior a las opciones "Sound Volume"/"Music Volume", asi
+			// que el control se hace fuera del juego: cada AudioContext que crea SDL
+			// recibe un GainNode maestro disfrazado de destination.
+			var masterGains = [];
+			var volume = 0.7;
+			try {
+				var stored = window.localStorage.getItem("daivr.pinballVolume.v1");
+				if (stored !== null && Number.isFinite(Number(stored))) volume = Math.min(1, Math.max(0, Number(stored)));
+			} catch (error) { /* almacenamiento bloqueado */ }
+
+			function patchAudioContext(Native) {
+				if (!Native) return Native;
+				function Patched(options) {
+					var context = new Native(options);
+					try {
+						var speakers = context.destination;
+						var gain = context.createGain();
+						gain.gain.value = volume;
+						gain.connect(speakers);
+						Object.defineProperty(context, "destination", { get: function () { return gain; }, configurable: true });
+						masterGains.push(gain);
+					} catch (error) { /* sin Web Audio utilizable */ }
+					return context;
+				}
+				Patched.prototype = Native.prototype;
+				return Patched;
+			}
+			window.AudioContext = patchAudioContext(window.AudioContext);
+			window.webkitAudioContext = patchAudioContext(window.webkitAudioContext);
+
+			function setVolume(value) {
+				volume = Math.min(1, Math.max(0, Number(value) || 0));
+				masterGains.forEach(function (gain) { try { gain.gain.value = volume; } catch (error) { /* nodo cerrado */ } });
+				try { window.localStorage.setItem("daivr.pinballVolume.v1", String(volume)); } catch (error) { /* almacenamiento bloqueado */ }
+			}
+
+			// --- Lectura del estado del juego ------------------------------------
+			// El build no exporta nada util (solo _main/_malloc/_free), pero deja FS y
+			// los HEAP* accesibles y sus direcciones estaticas son deterministas: se
+			// verificaron identicas entre recargas. MAIN_TABLE_PTR es el estatico
+			// pb::MainTable; los offsets salen de TPinballTable (CurScore en +84,
+			// PlayerCount en +216, CurrentPlayer en +220) y se validan antes de usarse.
+			var MAIN_TABLE_PTR = 3410532;
+			var CUR_SCORE_OFFSET = 84;
+			var PLAYER_COUNT_OFFSET = 216;
+			var CURRENT_PLAYER_OFFSET = 220;
+			var GAME_MODE = 189388;              // pb::game_mode: 1 InGame, 2 GameOver
+			var HIGHSCORE_TABLE = 3412960;       // high_score::highscore_table, 5 x {char[32], int}
+			var HIGHSCORE_STRIDE = 36;
+			var HIGHSCORE_SCORE_OFFSET = 32;
+
+			function readScore() {
+				var M = window.Module;
+				if (!M || !M.calledRun || !M.HEAPU32) return null;
+				var table = M.HEAPU32[MAIN_TABLE_PTR >> 2];
+				if (!table || table < 1048576 || table + 256 >= M.HEAPU8.length) return null;
+				var players = M.HEAP32[(table + PLAYER_COUNT_OFFSET) >> 2];
+				var current = M.HEAP32[(table + CURRENT_PLAYER_OFFSET) >> 2];
+				if (players < 1 || players > 4 || current < 0 || current > 3) return null;
+				var score = M.HEAP32[(table + CUR_SCORE_OFFSET) >> 2];
+				if (!Number.isFinite(score) || score < 0 || score > 100000000) return null;
+				return score;
+			}
+
+			function readMode() {
+				var M = window.Module;
+				if (!M || !M.calledRun) return 0;
+				var mode = M.HEAP32[GAME_MODE >> 2];
+				return mode === 1 || mode === 2 ? mode : 0;
+			}
+
+			// El dialogo "High Scores" de ImGui se dibuja dentro del canvas y su
+			// visibilidad vive en la pila de popups de ImGui, no en un booleano
+			// estatico: no hay nada que apagar despues. Pero solo se lanza cuando
+			// get_score_position() encuentra hueco en la tabla, asi que llenandola
+			// con INT_MAX nunca hay hueco y el dialogo no llega a abrirse. El
+			// marcador de verdad es el ranking de Discord, no esta tabla local.
+			var highScoresBlocked = false;
+			function blockHighScoreDialog() {
+				var M = window.Module;
+				if (highScoresBlocked || !M || !M.calledRun) return;
+				for (var i = 0; i < 5; i++) {
+					M.HEAP32[(HIGHSCORE_TABLE + i * HIGHSCORE_STRIDE + HIGHSCORE_SCORE_OFFSET) >> 2] = 2147483647;
+				}
+				highScoresBlocked = true;
+			}
+
+			// --- Nombre del jugador ----------------------------------------------
+			// El recuadro "Player 1" cachea su bitmap y solo se redibuja cuando el juego
+			// llama a Display(), asi que no basta con tocar el TTextBoxMessage: se
+			// reescribe la tabla de traducciones (Msg -> const char*) y se pide partida
+			// nueva para que el texto se vuelva a pintar.
+			var playerName = "";
+			var namePatched = false;
+
+			function cstring(pointer, max) {
+				var U8 = window.Module.HEAPU8;
+				if (!pointer || pointer + max >= U8.length) return null;
+				var out = "";
+				for (var i = 0; i < max; i++) {
+					var code = U8[pointer + i];
+					if (!code) break;
+					if (code < 32 || code > 126) return null;
+					out += String.fromCharCode(code);
+				}
+				return out || null;
+			}
+
+			function allocString(text) {
+				var U8 = window.Module.HEAPU8;
+				var pointer = window.Module._malloc(text.length + 1);
+				for (var i = 0; i < text.length; i++) U8[pointer + i] = text.charCodeAt(i);
+				U8[pointer + text.length] = 0;
+				return pointer;
+			}
+
+			function patchPlayerName() {
+				var M = window.Module;
+				if (namePatched || !playerName || !M || !M.calledRun) return;
+				var U8 = M.HEAPU8, U32 = M.HEAPU32;
+				var literals = [];
+				for (var p = 1024; p < 4 * 1024 * 1024; p++) {
+					if (U8[p] !== 80) continue;                 // 'P'
+					var text = cstring(p, 10);
+					if (text && /^Player [1-4]$/.test(text)) literals.push(p);
+				}
+				if (!literals.length) return;
+				var replacement = allocString(playerName);
+				var slots = 0;
+				for (var l = 0; l < literals.length; l++) {
+					for (var i = (4 * 1024 * 1024) >> 2; i < U32.length; i++) {
+						if (U32[i] !== literals[l]) continue;
+						U32[i] = replacement;                     // el buffer viejo queda huerfano: 9 bytes
+						slots++;
+						break;
+					}
+				}
+				if (!slots) return;
+				namePatched = true;
+				// Solo se reinicia si no hay partida en curso, para no tirar un marcador.
+				if (!readScore()) { sendKey("keydown", "F2", "F2", 113); sendKey("keyup", "F2", "F2", 113); }
+			}
+
+			// --- Envio de marcadores ---------------------------------------------
+			var runStartedAt = 0;
+			var runBest = 0;
+			var lastChangeAt = 0;
+			var lastSent = 0;
+			var lastSendAt = 0;
+
+			// Se envia cuando la tanda de puntos se asienta, no en cada rebote, y nunca
+			// mas de una vez cada ocho segundos: el limite del endpoint son ocho por minuto.
+			function flushScore(force) {
+				if (window.parent === window) return;
+				if (runBest <= lastSent || !runStartedAt) return;
+				var now = Date.now();
+				if (!force && (now - lastSendAt < 8000 || now - lastChangeAt < 2500)) return;
+				lastSent = runBest;
+				lastSendAt = now;
+				window.parent.postMessage({ type: "daivr:pinball-score", score: runBest, durationMs: now - runStartedAt }, parentOrigin);
+			}
+
+			var lastMode = 0;
+			var gameOverTimer = 0;
+
+			function trackScore(score) {
+				if (score < runBest) {
+					// El marcador solo baja al empezar otra partida: cerrar la anterior.
+					flushScore(true);
+					runStartedAt = 0; runBest = 0; lastSent = 0; lastChangeAt = 0;
+				}
+				if (score > 0 && !runStartedAt) runStartedAt = Date.now();
+				if (score > runBest) { runBest = score; lastChangeAt = Date.now(); }
+			}
+
+			// El aviso espera un momento: la bonificacion de fin de partida entra
+			// despues de que game_mode cambie, y sin esa pausa el marcador que se
+			// anuncia (y se envia al ranking) se queda corto.
+			function announceGameOver() {
+				gameOverTimer = 0;
+				trackScore(readScore() || 0);
+				flushScore(true);
+				if (window.parent === window) return;
+				window.parent.postMessage({ type: "daivr:pinball-gameover", score: runBest, durationMs: runStartedAt ? Date.now() - runStartedAt : 0 }, parentOrigin);
+			}
+
+			function pollGame() {
+				blockHighScoreDialog();
+				var score = readScore();
+				if (score === null) return;
+				trackScore(score);
+				var mode = readMode();
+				if (mode && mode !== lastMode) {
+					lastMode = mode;
+					if (mode === 2) {
+						if (!gameOverTimer) gameOverTimer = window.setTimeout(announceGameOver, 1800);
+					} else {
+						if (gameOverTimer) { window.clearTimeout(gameOverTimer); gameOverTimer = 0; }
+						if (window.parent !== window) window.parent.postMessage({ type: "daivr:pinball-playing" }, parentOrigin);
+					}
+				}
+				flushScore(false);
+				patchPlayerName();
+			}
+
+			window.setInterval(pollGame, 600);
+			window.addEventListener("pagehide", function () { flushScore(true); });
+			document.addEventListener("visibilitychange", function () { if (document.visibilityState === "hidden") flushScore(true); });
+
+			window.addEventListener("message", function (event) {
+				if (event.origin !== parentOrigin) return;
+				var data = event.data || {};
+				if (data.type === "daivr:pinball-volume") { setVolume(data.value); return; }
+				if (data.type === "daivr:pinball-newgame") { grabFocus(); sendKey("keydown", "F2", "F2", 113); sendKey("keyup", "F2", "F2", 113); return; }
+				if (data.type === "daivr:pinball-player") {
+					// La fuente del juego es un bitmap ASCII y el recuadro son dos lineas.
+					var name = String(data.name || "").replace(/[^\x20-\x7e]/g, "").trim().slice(0, 16);
+					if (!name || name === playerName) return;
+					playerName = name;
+					namePatched = false;
+					patchPlayerName();
+				}
+			});
+
+			window.Module = {
+				canvas: canvas,
+				preRun: [],
+				postRun: [syncSize],
+				print: function (text) { console.log(text); },
+				printErr: function (text) { console.error(text); },
+				setStatus: function (text) {
+					var progress = text.match(/([^(]+)\((\d+(\.\d+)?)\/(\d+)\)/);
+					if (progress) {
+						bootStatus.textContent = progress[1].trim().toUpperCase();
+						bootBar.style.width = (100 * parseInt(progress[2], 10) / parseInt(progress[4], 10)) + "%";
+						return;
+					}
+					if (!text) {
+						boot.classList.add("is-done");
+						syncSize();
+						grabFocus();
+						if (window.parent !== window) window.parent.postMessage({ type: "daivr:pinball-ready" }, parentOrigin);
+						return;
+					}
+					bootStatus.textContent = text.toUpperCase();
+					bootBar.style.width = "100%";
+				},
+				totalDependencies: 0,
+				monitorRunDependencies: function (left) {
+					this.totalDependencies = Math.max(this.totalDependencies, left);
+					window.Module.setStatus(left ? "PREPARING TABLE (" + (this.totalDependencies - left) + "/" + this.totalDependencies + ")" : "");
+				}
+			};
+
+			window.onerror = function () {
+				boot.classList.remove("is-done");
+				boot.classList.add("is-error");
+				bootStatus.textContent = "CARTRIDGE FAULT // SEE CONSOLE";
+			};
+		})();
+	</script>
+	<script async src="./SpaceCadetPinball.js"></script>
+</body>
+
+</html>

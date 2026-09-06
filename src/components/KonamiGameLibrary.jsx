@@ -1,7 +1,7 @@
 import { LockKeyhole, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-const GAMES = [
+export const KONAMI_GAMES = [
   {
     id: "madrace",
     title: "Madrace",
@@ -37,6 +37,15 @@ const GAMES = [
     meta: "PUZZLE // POINTER CONTROLS",
     color: "magenta",
     image: "/arcade-library/rubiks-cube-cover.webp"
+  },
+  {
+    id: "space-cadet-pinball",
+    title: "Space Cadet",
+    program: "SPACE.CADET",
+    description: "The Windows table, decompiled to WebAssembly. Flip, ramp, and rank up to Fleet Admiral.",
+    meta: "PINBALL // Z + / FLIPPERS",
+    color: "violet",
+    image: "/arcade-library/space-cadet-pinball-cover.webp"
   }
 ];
 
@@ -52,7 +61,7 @@ function GameCartridge({ game, className = "" }) {
     <span className={`konami-cartridge ${className}`} aria-hidden="true">
       <i className="konami-cartridge-grip"><b /><b /><b /><b /><b /></i>
       <span className="konami-cartridge-label">
-        <img src={game.image} alt="" />
+        <img src={game.image} alt="" loading="eager" decoding="async" fetchPriority="high" />
         <em>{game.program}</em>
         <strong>{game.title}</strong>
       </span>
@@ -124,7 +133,7 @@ export function KonamiGameLibrary({ open, onClose, onSelect }) {
   }
 
   if (!open) return null;
-  const mountedGame = GAMES.find((game) => game.id === mountingGame);
+  const mountedGame = KONAMI_GAMES.find((game) => game.id === mountingGame);
 
   return (
     <div className="konami-library-backdrop">
@@ -139,7 +148,7 @@ export function KonamiGameLibrary({ open, onClose, onSelect }) {
         </header>
 
         <div className="konami-library-grid">
-          {GAMES.map((game, index) => (
+          {KONAMI_GAMES.map((game, index) => (
             <button className={`konami-game-disk is-${game.color} ${mountingGame === game.id ? "is-selected" : ""} ${mountingGame && mountingGame !== game.id ? "is-standby" : ""}`} type="button" onClick={() => mountGame(game.id)} disabled={Boolean(mountingGame)} key={game.id}>
               <span className="konami-disk-index">DISK {String(index + 1).padStart(2, "0")}</span>
               <GameCartridge game={game} />
@@ -181,7 +190,7 @@ export function KonamiGameLibrary({ open, onClose, onSelect }) {
           </div>
         ) : null}
 
-        <footer><span /> {GAMES.length} PROGRAMS FOUND <i>•</i> SELECT DISK TO BOOT <b>KONAMI.SYS</b></footer>
+        <footer><span /> {KONAMI_GAMES.length} PROGRAMS FOUND <i>•</i> SELECT DISK TO BOOT <b>KONAMI.SYS</b></footer>
       </section>
     </div>
   );

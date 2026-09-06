@@ -5,6 +5,7 @@ import { handleArcadeXpRequest } from "./server/arcade-xp.mjs";
 import { handleBuddyRequest } from "./server/buddy.mjs";
 import { handleCommentsRequest } from "./server/comments.mjs";
 import { handleCrossRoadRequest } from "./server/cross-road.mjs";
+import { handleSpaceCadetPinballRequest } from "./server/space-cadet-pinball.mjs";
 import { handleDiscordProfileFrameRequest } from "./server/discord-profile-frame.mjs";
 import { handleDiscordStreakRequest, startDiscordStreakPolling } from "./server/discord-streak.mjs";
 import { handleMadraceRequest } from "./server/madrace.mjs";
@@ -54,19 +55,23 @@ const types = {
   ".ogg": "audio/ogg",
   ".wav": "audio/wav",
   ".mp4": "video/mp4",
-  ".webm": "video/webm"
+  ".webm": "video/webm",
+  ".wasm": "application/wasm",
+  ".data": "application/octet-stream"
 };
 
 // Los bundles de Vite llevan hash en el nombre, asi que pueden marcarse inmutables.
 const HASHED_TYPES = new Set([".css", ".js", ".png", ".jpg", ".jpeg", ".webp", ".ico", ".svg"]);
 
 // Binarios pesados que conservan su nombre entre builds (el VRM del avatar del
-// splash pesa 13 MB): se cachean y se revalidan por ETag en vez de descargarse
-// enteros en cada visita, que es lo que hacia el "no-store" por defecto.
+// splash pesa 13 MB; el wasm + .data de la mesa de pinball, 6,8 MB): se cachean
+// y se revalidan por ETag en vez de descargarse enteros en cada visita, que es
+// lo que hacia el "no-store" por defecto.
 const REVALIDATED_TYPES = new Set([
   ".avif", ".gif", ".woff", ".woff2", ".ttf", ".otf",
   ".glb", ".gltf", ".vrm", ".vrma",
-  ".mp3", ".ogg", ".wav", ".mp4", ".webm"
+  ".mp3", ".ogg", ".wav", ".mp4", ".webm",
+  ".wasm", ".data"
 ]);
 
 function getCacheControl(filePath) {
@@ -194,6 +199,11 @@ const appServer = createServer(async (request, response) => {
 
     if (requestUrl.pathname.startsWith("/api/cross-road/")) {
       await handleCrossRoadRequest(request, response);
+      return;
+    }
+
+    if (requestUrl.pathname.startsWith("/api/space-cadet-pinball/")) {
+      await handleSpaceCadetPinballRequest(request, response);
       return;
     }
 

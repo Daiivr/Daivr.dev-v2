@@ -1,0 +1,89 @@
+@import url("https://fonts.googleapis.com/css?family=Press+Start+2P");
+
+* { box-sizing: border-box; }
+
+body {
+	display: flex;
+	overflow: hidden;
+	width: 100%;
+	height: 100dvh;
+	margin: 0;
+	background: radial-gradient(circle at 50% 34%, #0b1030 0%, #04060f 48%, #010206 100%);
+	color: #fff;
+	font-family: "Press Start 2P", monospace;
+}
+
+body::after { content:""; position:fixed; z-index:9; inset:0; background:linear-gradient(rgba(255,255,255,.028) 50%,transparent 50%); background-size:100% 4px; mix-blend-mode:screen; pointer-events:none; }
+
+/* La barra Game/Options/Help la dibuja ImGui dentro del canvas y este build es
+   anterior a la opcion ShowMenu, asi que se recorta: el canvas se sube --menu-h
+   y crece otro tanto, y el overflow del stage se la come. El raton sigue
+   cuadrando porque Emscripten lo mapea contra el rect del canvas, que se mueve
+   con el, y la franja recortada tampoco recibe eventos. */
+.pinball-stage {
+	--menu-h: 19px;
+	--inset: 12px;
+	--inset-bottom: 12px;
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	padding: var(--inset) var(--inset) var(--inset-bottom);
+}
+
+/* Esta caja es la que recorta, no el stage: el borde visible tiene que quedar
+   por debajo de la franja escondida, no por encima. */
+.pinball-screen {
+	position: relative;
+	width: min(100%, calc((100dvh - var(--inset) - var(--inset-bottom)) * 600 / 416));
+	aspect-ratio: 600 / 416;
+	overflow: hidden;
+	border: 1px solid rgba(169,123,255,.32);
+	box-shadow: 0 0 60px rgba(169,123,255,.18);
+}
+
+/* Emscripten borra los estilos inline del canvas en cada resize, pero no las
+   reglas de hoja: el tamano sobrevive y el juego adopta esa resolucion, sin
+   reescalado borroso ni desfase en los clicks. El canvas ocupa todo el marco a
+   proposito: el juego escala la mesa a partir de ese tamano y rellena de negro
+   lo que sobra, y cinendo la caja a la proporcion de la mesa (probado con
+   aspect-ratio 600/416) la dibuja MAS pequena, no mayor. */
+#canvas {
+	position: absolute;
+	display: block;
+	top: calc(-1 * var(--menu-h));
+	left: 0;
+	width: 100%;
+	height: calc(100% + var(--menu-h));
+	background: #000;
+	image-rendering: pixelated;
+	outline: 0;
+	touch-action: none;
+}
+
+.pinball-boot { position:fixed; z-index:10; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:24px; background:radial-gradient(circle at 50% 42%,rgba(169,123,255,.1),transparent 40%),#04060f; text-align:center; transition:opacity .35s ease,visibility .35s ease; }
+.pinball-boot.is-done { visibility:hidden; opacity:0; }
+.pinball-boot span { color:#a97bff; font-size:8px; letter-spacing:.14em; }
+.pinball-boot strong { max-width:22ch; font-size:15px; line-height:1.7; }
+.pinball-boot p { margin:0; color:rgba(255,255,255,.55); font-size:8px; letter-spacing:.1em; }
+.pinball-boot.is-error p { color:#ff3d9d; }
+.pinball-boot-bar { display:block; overflow:hidden; width:min(320px,72vw); height:9px; border:1px solid rgba(169,123,255,.4); background:rgba(3,6,18,.9); }
+.pinball-boot-bar b { display:block; width:0; height:100%; background:linear-gradient(90deg,#6a4ecf,#a97bff); box-shadow:0 0 14px rgba(169,123,255,.6); transition:width .25s ease; }
+
+/* Solo en punteros gruesos: con raton el teclado ya cubre flippers y muelle. */
+.pinball-touch { display: none; }
+
+@media (pointer: coarse) {
+	.pinball-touch { position:fixed; z-index:7; right:10px; bottom:10px; left:10px; display:flex; gap:8px; }
+	.pinball-touch button { flex:1 1 0; padding:16px 4px; border:1px solid rgba(169,123,255,.45); background:rgba(8,6,26,.62); color:#d9ccff; font-family:inherit; font-size:8px; letter-spacing:.12em; -webkit-tap-highlight-color:transparent; touch-action:none; }
+	.pinball-touch button:nth-child(2) { flex:0 0 34%; border-color:rgba(255,209,102,.45); color:#ffd166; }
+	.pinball-touch button.is-held { border-color:#a97bff; background:rgba(169,123,255,.28); color:#fff; }
+	.pinball-touch button:nth-child(2).is-held { border-color:#ffd166; background:rgba(255,209,102,.26); }
+	.pinball-stage { --inset-bottom: 66px; }
+}
+
+@media (max-width: 720px) {
+	.pinball-stage { --inset: 4px; }
+}

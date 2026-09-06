@@ -19,7 +19,7 @@ import { CursorTrail } from "./components/CursorTrail";
 import { EntrySplash } from "./components/EntrySplash";
 import { HeroStation } from "./components/HeroStation";
 import { LaunchOverlay } from "./components/LaunchOverlay";
-import { KonamiGameLibrary } from "./components/KonamiGameLibrary";
+import { KONAMI_GAMES, KonamiGameLibrary } from "./components/KonamiGameLibrary";
 import { MadraceModal } from "./components/MadraceModal";
 import { PerchedBirds } from "./components/PerchedBirds";
 import { ProgramSections } from "./components/ProgramSections";
@@ -88,6 +88,7 @@ function CabinetApp() {
   const [seasonalOverride, setSeasonalOverride] = useState(null);
   const achievementTimerRef = useRef(0);
   const konamiIndexRef = useRef(0);
+  const konamiCoversWarmedRef = useRef(false);
   const shellRef = useRef(null);
   const friendship = useBuddyFriendship({ onMilestone: handleBuddyMilestone });
   const adventure = useBuddyAdventure({ onQuestComplete: handleBuddyQuestComplete });
@@ -263,10 +264,19 @@ function CabinetApp() {
       if (key === sequence[index]) {
         event.preventDefault();
         const next = index + 1;
+        // Las portadas de los cartuchos solo se citan dentro de la biblioteca, asi
+        // que hasta ahora se pedian en el mismo instante en que se montaba el
+        // dialogo y entraban un segundo tarde. A mitad de secuencia ya no hay duda
+        // de que van a hacer falta, y quedan seis teclas de margen para bajarlas;
+        // fuera de aqui no se descarga nada, que es un huevo de pascua.
+        if (next >= 4 && !konamiCoversWarmedRef.current) {
+          konamiCoversWarmedRef.current = true;
+          preloadImages(KONAMI_GAMES.map((game) => game.image));
+        }
         if (next === sequence.length) {
           konamiIndexRef.current = 0;
           setKonamiView("library");
-          showAchievement("SECRET GAME LIBRARY UNLOCKED // 2 DISKS FOUND", 3000);
+          showAchievement(`SECRET GAME LIBRARY UNLOCKED // ${KONAMI_GAMES.length} DISKS FOUND`, 3000);
         } else {
           konamiIndexRef.current = next;
         }
@@ -720,7 +730,7 @@ function CabinetApp() {
       <KonamiGameLibrary open={konamiView === "library"} onClose={closeKonami} onSelect={selectKonamiGame} />
       <MadraceModal open={konamiView === "madrace"} onBack={openKonamiLibrary} onClose={closeKonami} />
       <TowerBlockModal open={konamiView === "tower-block"} onBack={openKonamiLibrary} onClose={closeKonami} />
-      <ArcadeEmbedModal game={konamiView} open={["cross-road", "rubiks-cube"].includes(konamiView)} onBack={openKonamiLibrary} onClose={closeKonami} />
+      <ArcadeEmbedModal game={konamiView} open={["cross-road", "rubiks-cube", "space-cadet-pinball"].includes(konamiView)} onBack={openKonamiLibrary} onClose={closeKonami} />
 
       <BuddyModal
         buddy={buddy}

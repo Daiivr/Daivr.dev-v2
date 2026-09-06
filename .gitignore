@@ -13,3 +13,4 @@ data/cross-road-leaderboard.json
 .env.*.local
 .codex-*.log
 .codex-*.log
+data/space-cadet-pinball-leaderboard.json

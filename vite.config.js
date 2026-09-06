@@ -5,6 +5,7 @@ import { defineConfig } from "vite";
 import { handleBuddyRequest } from "./server/buddy.mjs";
 import { handleCommentsRequest } from "./server/comments.mjs";
 import { handleCrossRoadRequest } from "./server/cross-road.mjs";
+import { handleSpaceCadetPinballRequest } from "./server/space-cadet-pinball.mjs";
 import { handleDiscordProfileFrameRequest } from "./server/discord-profile-frame.mjs";
 import { handleDiscordStreakRequest, startDiscordStreakPolling } from "./server/discord-streak.mjs";
 import { handleMadraceRequest } from "./server/madrace.mjs";
@@ -66,6 +67,11 @@ export default defineConfig({
         server.middlewares.use("/api/cross-road", (request, response) => {
           request.url = `/api/cross-road${request.url}`;
           handleCrossRoadRequest(request, response);
+        });
+
+        server.middlewares.use("/api/space-cadet-pinball", (request, response) => {
+          request.url = `/api/space-cadet-pinball${request.url}`;
+          handleSpaceCadetPinballRequest(request, response);
         });
 
         server.middlewares.use("/api/comments", (request, response) => {
