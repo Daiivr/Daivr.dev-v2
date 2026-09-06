@@ -334,10 +334,11 @@ export const patchNotes = [
     version: "v2.29.1",
     codename: "WARM DISKS",
     date: "2026-09-05",
-    summary: "The cartridge art in the secret library used to arrive a beat after the library did.",
+    summary: "Two small things about the secret library: the cartridge art used to arrive a beat after the library did, and Space Cadet opened loud.",
     entries: [
       ["fix", "The five cartridge covers are the only images on the site that appear nowhere except inside that dialog, so nothing had ever asked for them and they were requested at the exact moment it opened — which is why the first look at the shelf was five empty labels. They are fetched now once you are four keys into the code, which is far enough in to be sure and still leaves six keystrokes to pull them down. Type anything else and nothing is downloaded: it is an easter egg, and it should not cost the rest of the site any bandwidth."],
-      ["fix", "The unlock toast had been claiming 2 disks found since back when there were two. It counts them."]
+      ["fix", "The unlock toast had been claiming 2 disks found since back when there were two. It counts them."],
+      ["nerf", "Space Cadet starts at volume 10 instead of 70. It is a loud cartridge that opens without warning, and the slider is right there for anyone who wants it back. Whatever you set is still remembered."]
     ]
   },
   {

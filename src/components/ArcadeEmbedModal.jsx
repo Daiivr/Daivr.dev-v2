@@ -3,6 +3,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { RankingAvatar } from "./RankingAvatar";
 
 const VOLUME_KEY = "daivr.pinballVolume.v1";
+// La mesa es ruidosa y el cartucho se abre sin avisar: arranca bajo y el que
+// quiera mas lo sube. Tiene que coincidir con el del shell del juego, que lee
+// la misma clave de localStorage.
+const DEFAULT_VOLUME = 0.1;
 
 const GAME_CONFIG = {
   "cross-road": {
@@ -37,8 +41,8 @@ function readStoredVolume() {
   try {
     const stored = window.localStorage.getItem(VOLUME_KEY);
     const value = Number(stored);
-    return stored !== null && Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0.7;
-  } catch { return 0.7; }
+    return stored !== null && Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : DEFAULT_VOLUME;
+  } catch { return DEFAULT_VOLUME; }
 }
 
 export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
