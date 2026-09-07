@@ -188,3 +188,54 @@
     .konami-mount-progress i { animation-timing-function:linear; }
   }
 }
+
+@layer components {
+  .konami-library { width: min(1120px, 100%); }
+  .konami-library > header { padding: 18px 20px; }
+  .konami-library h2 { font-size: clamp(1.3rem, 2.6vw, 2rem); letter-spacing: 0.025em; }
+  .konami-library-grid { gap: 12px; padding: 16px; align-content: start; }
+  .konami-game-disk { --disk-accent: #45d8ff; grid-template-columns: 136px minmax(0, 1fr); gap: 16px; min-height: 198px; padding: 22px 14px 30px; }
+  .konami-game-disk.is-green { --disk-accent: #3fff97; }
+  .konami-game-disk.is-amber { --disk-accent: #ffd166; }
+  .konami-game-disk.is-magenta { --disk-accent: #ff3d9d; }
+  .konami-game-disk.is-violet { --disk-accent: #a97bff; }
+  .konami-game-disk > .konami-cartridge { width: 136px; height: 154px; grid-template-rows: 13px minmax(0, 1fr) 18px; }
+  .konami-game-disk .konami-cartridge-label { margin: 5px 7px; }
+  .konami-game-disk .konami-cartridge-label strong { font-size: 0.73rem; letter-spacing: 0; }
+  .konami-game-disk .konami-cartridge-label em { font-size: 0.35rem; bottom: 24px; }
+  .konami-disk-copy strong { font-size: 1.2rem; line-height: 1.15; letter-spacing: 0; }
+  .konami-disk-copy p { font-size: 0.7rem; }
+  .konami-disk-copy em { color: var(--disk-accent); line-height: 1.6; margin-top: 8px; letter-spacing: 0.045em; }
+  .konami-game-disk > b { display: flex; align-items: center; justify-content: space-between; gap: 1rem; left: 166px; right: 14px; bottom: 12px; border-top: 1px solid color-mix(in srgb, var(--disk-accent) 28%, transparent); padding-top: 7px; color: var(--disk-accent); font-size: 0.55rem; }
+  .konami-game-disk > b span { color: inherit; transition: transform 200ms; }
+  .konami-game-disk:is(:hover, :focus-visible) > b span { transform: translateX(3px); }
+  .konami-game-disk:is(:hover, :focus-visible) { border-color: var(--disk-accent); box-shadow: 0 8px 24px color-mix(in srgb, var(--disk-accent) 15%, transparent); }
+  .konami-library header > button { width: 42px; height: 42px; }
+
+  @media (min-width: 1100px) {
+    .konami-library-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .konami-game-disk { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; gap: 15px; padding: 26px 14px 46px; }
+    .konami-game-disk > .konami-cartridge { justify-self: center; width: 156px; height: 174px; }
+    .konami-disk-copy { justify-content: start; }
+    .konami-disk-copy strong { font-size: 1.08rem; }
+    .konami-disk-copy em { margin-top: auto; padding-top: 10px; }
+    .konami-game-disk > b { left: 14px; }
+  }
+  @media (max-width: 720px) {
+    .konami-library > header { padding: 14px; gap: 10px; }
+    .konami-library header span { font-size: 0.48rem; letter-spacing: 0.12em; }
+    .konami-library-grid { padding: 10px; }
+    .konami-game-disk { grid-template-columns: 110px minmax(0, 1fr); gap: 12px; padding-inline: 10px; }
+    .konami-game-disk > .konami-cartridge { width: 110px; height: 136px; }
+    .konami-game-disk .konami-cartridge-label strong { font-size: 0.61rem; left: 5px; }
+    .konami-game-disk .konami-cartridge-label em { left: 5px; font-size: 0.3rem; }
+    .konami-game-disk > b { left: 132px; right: 10px; }
+    .konami-disk-copy strong { font-size: 1.03rem; }
+    .konami-disk-copy p { font-size: 0.66rem; }
+    .konami-library > footer { font-size: 0.43rem; letter-spacing: 0.04em; padding-inline: 10px; gap: 5px; }
+    .konami-library > footer b { display: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .konami-game-disk, .konami-game-disk > b span, .konami-game-disk .konami-cartridge { transition: none; }
+  }
+}

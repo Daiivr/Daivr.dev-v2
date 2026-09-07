@@ -142,14 +142,14 @@ export function KonamiGameLibrary({ open, onClose, onSelect }) {
           <div>
             <span><LockKeyhole size={12} /> KONAMI CLEARANCE ACCEPTED</span>
             <h2 id="konami-library-title">SECRET GAME LIBRARY</h2>
-            <p>Select a disk and mount its program.</p>
+            <p>Five little escapes from the mainframe. Pick a cartridge to play.</p>
           </div>
           <button type="button" onClick={onClose} ref={closeRef} aria-label="Close secret game library"><X size={19} /></button>
         </header>
 
         <div className="konami-library-grid">
           {KONAMI_GAMES.map((game, index) => (
-            <button className={`konami-game-disk is-${game.color} ${mountingGame === game.id ? "is-selected" : ""} ${mountingGame && mountingGame !== game.id ? "is-standby" : ""}`} type="button" onClick={() => mountGame(game.id)} disabled={Boolean(mountingGame)} key={game.id}>
+            <button className={`konami-game-disk is-${game.color} ${mountingGame === game.id ? "is-selected" : ""} ${mountingGame && mountingGame !== game.id ? "is-standby" : ""}`} type="button" aria-label={`Play ${game.title}`} onClick={() => mountGame(game.id)} disabled={Boolean(mountingGame)} key={game.id}>
               <span className="konami-disk-index">DISK {String(index + 1).padStart(2, "0")}</span>
               <GameCartridge game={game} />
               <span className="konami-disk-copy">
@@ -158,7 +158,7 @@ export function KonamiGameLibrary({ open, onClose, onSelect }) {
                 <p>{game.description}</p>
                 <em>{game.meta}</em>
               </span>
-              <b>MOUNT <span>→</span></b>
+              <b>PLAY GAME <span>→</span></b>
             </button>
           ))}
         </div>

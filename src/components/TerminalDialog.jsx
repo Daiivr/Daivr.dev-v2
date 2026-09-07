@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { Activity, ChevronRight, Command, FolderCode, Keyboard, Radio, Send, Sparkles, Terminal, X } from "lucide-react";
+import { Activity, ChevronRight, Command, FolderCode, GripHorizontal, Radio, Send, Sparkles, Terminal, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 const COMMAND_HINTS = [
@@ -128,6 +128,7 @@ export function TerminalDialog({ open, onOpenChange, onCommand, log, theme }) {
     setHistoryIndex(-1);
     onCommand(next);
     setValue("");
+    inputRef.current?.focus({ preventScroll: true });
   }
 
   function submitCommand(event) {
@@ -200,7 +201,7 @@ export function TerminalDialog({ open, onOpenChange, onCommand, log, theme }) {
             </div>
             <div className="terminal-window-meta" aria-hidden="true">
               <span><Radio size={12} /> signal linked</span>
-              <span><Keyboard size={12} /> / to open</span>
+              <span><GripHorizontal size={12} /> drag to move</span>
             </div>
             <Dialog.Close className="terminal-close arcade-focus" aria-label="Close terminal">
               <X size={18} aria-hidden="true" />
@@ -210,7 +211,7 @@ export function TerminalDialog({ open, onOpenChange, onCommand, log, theme }) {
           <div className="terminal-workspace">
             <aside className="terminal-command-deck" aria-label="Quick terminal commands">
               <header>
-                <span className="terminal-command-deck-label"><Sparkles size={12} aria-hidden="true" /> command matrix</span>
+                <span className="terminal-command-deck-label"><Sparkles size={12} aria-hidden="true" /> quick commands</span>
                 <em>{String(QUICK_COMMANDS.length).padStart(2, "0")}</em>
               </header>
               <div className="terminal-command-list">
@@ -227,14 +228,14 @@ export function TerminalDialog({ open, onOpenChange, onCommand, log, theme }) {
               </div>
               <footer className="terminal-deck-status">
                 <Activity size={14} aria-hidden="true" />
-                <span><small>session</small><strong>local link stable</strong></span>
+                <span><small>{history.length ? "last command" : "session"}</small><strong>{history[0] || "ready for input"}</strong></span>
               </footer>
             </aside>
 
             <section className="terminal-buffer">
               <header className="terminal-bufferbar">
                 <span><FolderCode size={13} aria-hidden="true" /> ~/daivr</span>
-                <div><i aria-hidden="true" /> live buffer <b>{String(outputLines.length).padStart(2, "0")} lines</b></div>
+                <div><i aria-hidden="true" /><b>{String(outputLines.length).padStart(2, "0")} lines</b><button className="terminal-clear arcade-focus" type="button" onClick={() => execute("clear")} aria-label="Clear terminal output" title="Clear output (Ctrl+L)"><Trash2 size={13} aria-hidden="true" /> clear</button></div>
               </header>
               <div className="terminal-output" data-command-log ref={outputRef} role="log" aria-live="polite" aria-label="Terminal output">
                 {outputLines.map((line, index) => (
@@ -278,7 +279,7 @@ export function TerminalDialog({ open, onOpenChange, onCommand, log, theme }) {
 
             <div className={`terminal-suggestions ${suggestions.length ? "is-visible" : ""}`} aria-live="polite">
               {suggestions.map((item) => (
-                <button key={item.name} type="button" onClick={() => setValue(item.name)}>
+                <button key={item.name} type="button" onClick={() => { setValue(item.name); inputRef.current?.focus({ preventScroll: true }); }}>
                   <b>{item.name}</b><span>{item.detail}</span>
                 </button>
               ))}
