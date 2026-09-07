@@ -4,7 +4,10 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  FileClock
+  FileClock,
+  Pause,
+  Play,
+  ArrowUpRight
 } from "lucide-react";
 import { patchNotes } from "../data/site";
 
@@ -52,6 +55,7 @@ export function PatchNotes() {
   const [fullLogMode, setFullLogMode] = useState(false);
   const [hoverPaused, setHoverPaused] = useState(false);
   const [manualPaused, setManualPaused] = useState(false);
+  const [cyclePaused, setCyclePaused] = useState(false);
   const reducedMotion = useReducedMotion();
   const promoteTimerRef = useRef(null);
   const cleanupTimerRef = useRef(null);
@@ -60,6 +64,9 @@ export function PatchNotes() {
   const pointerStartRef = useRef(null);
   const deckRef = useRef(null);
   const detailRef = useRef(null);
+  const readMoreRef = useRef(null);
+  const backRef = useRef(null);
+  const restoreReadFocusRef = useRef(false);
   const activePatch = patchNotes[activeIndex];
   const hiddenEntryCount = Math.max(activePatch.entries.length - PATCH_ENTRY_PREVIEW_LIMIT, 0);
   const visibleEntries = fullLogMode
@@ -103,14 +110,14 @@ export function PatchNotes() {
   );
 
   useEffect(() => {
-    if (reducedMotion || hoverPaused || manualPaused || outgoingIndex !== null || fullLogMode) return undefined;
+    if (reducedMotion || cyclePaused || hoverPaused || manualPaused || outgoingIndex !== null || fullLogMode) return undefined;
 
     const autoTimer = window.setTimeout(() => {
       selectPatch(activeIndex + 1, "auto");
     }, AUTO_SWAP_DELAY);
 
     return () => window.clearTimeout(autoTimer);
-  }, [activeIndex, fullLogMode, hoverPaused, manualPaused, outgoingIndex, reducedMotion, selectPatch]);
+  }, [activeIndex, cyclePaused, fullLogMode, hoverPaused, manualPaused, outgoingIndex, reducedMotion, selectPatch]);
 
   useEffect(
     () => () => {
@@ -127,13 +134,22 @@ export function PatchNotes() {
   };
 
   const closeFullLog = () => {
+    restoreReadFocusRef.current = true;
     setFullLogMode(false);
     holdAutoCycle();
   };
 
   useEffect(() => {
     if (detailRef.current) detailRef.current.scrollTop = 0;
-  }, [activeIndex, fullLogMode]);
+    if (fullLogMode) {
+      detailRef.current?.scrollIntoView({ block: "start", behavior: reducedMotion ? "instant" : "smooth" });
+      backRef.current?.focus({ preventScroll: true });
+    }
+    else if (restoreReadFocusRef.current) {
+      readMoreRef.current?.focus({ preventScroll: true });
+      restoreReadFocusRef.current = false;
+    }
+  }, [activeIndex, fullLogMode, reducedMotion]);
 
   const handleWheel = useCallback((event) => {
     event.preventDefault();
@@ -202,10 +218,9 @@ export function PatchNotes() {
         </strong>
       </header>
 
-      <div className="patch-personality-readout">
-        <span>selected build</span>
-        <strong>{activePatch.codename}</strong>
-        <p>{activePatch.summary}</p>
+      <div className="patch-archive-intro">
+        <div><span>RELEASE ARCHIVE / {String(patchNotes.length).padStart(2, "0")} BUILDS</span><h3>The cabinet keeps evolving<span aria-hidden="true">_</span></h3><p>New experiments, small fixes, and the story behind every build.</p></div>
+        <button type="button" className="patch-latest-link" onClick={() => selectPatch(0)}><span>Latest release<strong>{latest.version}</strong></span><ArrowUpRight size={18} aria-hidden="true" /></button>
       </div>
 
       <nav className="patch-swap-controller" aria-label="Patch version controls">
@@ -225,10 +240,10 @@ export function PatchNotes() {
         <button type="button" onClick={() => selectPatch(activeIndex + 1)} aria-label="Next patch version">
           <ChevronRight size={15} aria-hidden="true" />
         </button>
-        <span className="patch-swap-mode">
-          <i aria-hidden="true" />
-          {reducedMotion ? "manual mode" : hoverPaused || manualPaused ? "auto paused" : "auto cycling"}
-        </span>
+        <button type="button" className="patch-swap-mode patch-cycle-toggle" aria-pressed={cyclePaused} aria-label={cyclePaused ? "Resume automatic release cycling" : "Pause automatic release cycling"} disabled={reducedMotion} onClick={() => setCyclePaused((current) => !current)}>
+          {cyclePaused || reducedMotion ? <Play size={13} aria-hidden="true" /> : <Pause size={13} aria-hidden="true" />}
+          {reducedMotion ? "manual mode" : cyclePaused ? "resume cycle" : fullLogMode ? "reading / on hold" : hoverPaused || manualPaused ? "cycle on hold" : "auto cycling"}
+        </button>
       </nav>
 
       <div className={`patch-swap-workspace${fullLogMode ? " is-reading-full" : ""}`}>
@@ -252,6 +267,7 @@ export function PatchNotes() {
               const isOutgoing = index === outgoingIndex;
               const isVisible = slot < VISIBLE_SWAP_CARDS || isOutgoing;
               const isActive = index === activeIndex && !isOutgoing;
+              const changeCounts = Object.entries(PATCH_LABELS).map(([type, label]) => ({ type, label, count: patch.entries.filter(([entryType]) => entryType === type).length })).filter(({ count }) => count > 0);
 
               return (
                 <button
@@ -273,7 +289,11 @@ export function PatchNotes() {
                   <span className="patch-swap-card-version">{patch.version}</span>
                   <strong>{patch.codename}</strong>
                   <time dateTime={patch.date || undefined}>{formatPatchDate(patch.date)}</time>
-                  <span className="patch-swap-card-summary">{patch.summary}</span>
+                  <span className="patch-card-manifest">
+                    <span className="patch-manifest-title">RELEASE MANIFEST <b>{String(patch.entries.length).padStart(2, "0")} CHANGES</b></span>
+                    <span className="patch-manifest-meter" aria-hidden="true">{patch.entries.map(([type], entryIndex) => <i className={`is-${type}`} key={entryIndex} />)}</span>
+                    <span className="patch-manifest-types">{changeCounts.map(({ type, label, count }) => <span className={`is-${type}`} key={type}><i aria-hidden="true" />{label}<b>{String(count).padStart(2, "0")}</b></span>)}</span>
+                  </span>
                   <span className="patch-swap-card-command">{isActive ? "build loaded" : "select build"}</span>
                 </button>
               );
@@ -286,7 +306,7 @@ export function PatchNotes() {
           className={`patch-entry patch-swap-detail${fullLogMode ? " is-full-log" : ""}${activeIndex === 0 ? " is-latest" : ""}`}
         >
           {fullLogMode ? (
-            <button className="patch-full-log-back" type="button" onClick={closeFullLog}>
+            <button ref={backRef} className="patch-full-log-back" type="button" onClick={closeFullLog}>
               <ChevronLeft size={14} aria-hidden="true" />
               back to version stack
             </button>
@@ -301,6 +321,7 @@ export function PatchNotes() {
             <time dateTime={activePatch.date || undefined}>{formatPatchDate(activePatch.date)}</time>
           </header>
           {activePatch.summary ? <p className="patch-entry-summary">{activePatch.summary}</p> : null}
+          <div className="patch-detail-label"><span>{fullLogMode ? "COMPLETE CHANGELOG" : "RELEASE HIGHLIGHTS"}</span><span>{visibleEntries.length} / {activePatch.entries.length} ENTRIES</span></div>
           <ul className="patch-entry-changes" id={changesId}>
             {/* El tipo pasa a la fila entera y no solo a la etiqueta: cada
                 entrada era un parrafo desnudo sin caja, y en una lista de cinco
@@ -316,6 +337,7 @@ export function PatchNotes() {
           {!fullLogMode && hiddenEntryCount > 0 ? (
             <button
               className="patch-entry-read-more"
+              ref={readMoreRef}
               type="button"
               onClick={openFullLog}
               aria-expanded={false}

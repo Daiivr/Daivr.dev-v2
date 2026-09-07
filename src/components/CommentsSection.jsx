@@ -7,6 +7,7 @@ import {
   Image as ImageIcon,
   LogIn,
   LogOut,
+  LockKeyhole,
   MessageSquare,
   Pin,
   RadioTower,
@@ -195,7 +196,7 @@ function DiscordEyeAuthLink({ configured, loginUrl }) {
     <a
       aria-disabled={!configured}
       className={`comments-auth-btn comments-eye-auth-btn has-tooltip ${configured ? "" : "is-disabled"}`}
-      data-tooltip={configured ? "Use Discord identify to post and react." : "Add Discord OAuth env keys to enable login."}
+      data-tooltip={configured ? "Sign in with Discord to post and react." : "Discord sign-in is currently unavailable. You can still read the guestbook."}
       href={configured ? loginUrl : undefined}
       onClick={(event) => {
         if (!configured) event.preventDefault();
@@ -443,6 +444,7 @@ export function CommentsSection() {
   const [gifResults, setGifResults] = useState([]);
   const [gifBusy, setGifBusy] = useState(false);
   const [status, setStatus] = useState("booting guestbook stream...");
+  const [streamState, setStreamState] = useState("connecting");
   const [busy, setBusy] = useState(false);
   const [reactionBusyId, setReactionBusyId] = useState("");
   const [page, setPage] = useState(1);
@@ -547,10 +549,12 @@ export function CommentsSection() {
     }
 
     function handleStreamOpen() {
+      setStreamState("live");
       setStatus("guestbook stream live");
     }
 
     function handleStreamError() {
+      setStreamState("reconnecting");
       setStatus("live stream reconnecting...");
     }
 
@@ -745,7 +749,7 @@ export function CommentsSection() {
     const targetKey = replyId ? `${commentId}:reply:${replyId}` : commentId;
     const reactionKey = `${targetKey}:${emoji}`;
     if (!auth.user) {
-      setStatus(auth.configured ? "connect Discord to react" : "Discord OAuth needs env keys");
+      setStatus(auth.configured ? "connect Discord to react" : "Discord sign-in is currently unavailable");
       return;
     }
     if (reactionBusyId) return;
@@ -805,7 +809,7 @@ export function CommentsSection() {
 
   function startReply(comment) {
     if (!auth.user) {
-      setStatus(auth.configured ? "connect Discord to reply" : "Discord OAuth needs env keys");
+      setStatus(auth.configured ? "connect Discord to reply" : "Discord sign-in is currently unavailable");
       return;
     }
     if (!canReplyToComment(comment, auth.user)) {
@@ -820,7 +824,7 @@ export function CommentsSection() {
 
   function openGifPicker(target, commentId = "") {
     if (!auth.user) {
-      setStatus(auth.configured ? "connect Discord to attach GIFs" : "Discord OAuth needs env keys");
+      setStatus(auth.configured ? "connect Discord to attach GIFs" : "Discord sign-in is currently unavailable");
       return;
     }
     setGifQuery("");
@@ -985,7 +989,7 @@ export function CommentsSection() {
             type="button"
             onClick={(event) => {
               if (!auth.user) {
-                setStatus(auth.configured ? "connect Discord to react" : "Discord OAuth needs env keys");
+                setStatus(auth.configured ? "connect Discord to react" : "Discord sign-in is currently unavailable");
                 return;
               }
               const nextStyle = isMobileViewport() ? getReactionPickerStyle(event.currentTarget) : undefined;
@@ -1048,13 +1052,15 @@ export function CommentsSection() {
           </div>
           <span>~/daivr/guestbook.stream</span>
           <div className="comments-titlebar-actions">
-            <span className="has-tooltip" data-tooltip="Updates after each comment action without reloading the page." tabIndex="0"><RadioTower size={13} aria-hidden="true" /> live</span>
+            <span className={`comments-connection is-${streamState}`}><RadioTower size={13} aria-hidden="true" /> {streamState}</span>
           </div>
         </header>
 
         <div className="comments-console-head">
           <div className="comments-console-summary">
-            <p>Discord-auth messages, pinned signals, GIF drops, replies, and quick reactions from the arcade cabinet.</p>
+            <span className="comments-invite-label">PLAYER MESSAGES // GUESTBOOK</span>
+            <h3 className="comments-invite-title">Leave a signal<span aria-hidden="true">_</span></h3>
+            <p>A build idea, a game recommendation, or just a hello. Leave something for the next player.</p>
             <div className="comments-console-meta">
               {/* Los dos contadores compartian estilo con el boton de conectar,
                   asi que una lectura de solo lectura se veia igual que algo
@@ -1092,13 +1098,13 @@ export function CommentsSection() {
             ) : (
               <>
                 <DiscordEyeAuthLink configured={auth.configured} loginUrl={auth.loginUrl} />
-                {!auth.configured ? <small>OAuth env keys pending</small> : null}
+                <small>{auth.configured ? "Your Discord name. Your signal." : "Sign-in temporarily unavailable"}</small>
               </>
             )}
           </div>
         </div>
 
-        <form className="comments-composer" onSubmit={submitComment}>
+        {auth.user && auth.configured ? <form className="comments-composer" onSubmit={submitComment}>
           <div className="comments-composer-top">
             <span>$ comment --discord-auth</span>
             <div className="comments-composer-tools">
@@ -1129,12 +1135,13 @@ export function CommentsSection() {
                   </div>
                 ) : null}
               </div>
-              <span>{status}</span>
+              <span role="status">{status}</span>
             </div>
           </div>
           <label className="comments-input-frame">
             <span aria-hidden="true">&gt;</span>
             <textarea
+              aria-label="Your guestbook message"
               value={draft}
               maxLength={MAX_COMMENT_LENGTH}
               onChange={(event) => setDraft(event.target.value)}
@@ -1162,12 +1169,23 @@ export function CommentsSection() {
               send
             </button>
           </div>
-        </form>
+        </form> : (
+          <div className="comments-guest-panel">
+            <span className="comments-guest-icon" aria-hidden="true"><LockKeyhole size={23} /><i /></span>
+            <div>
+              <span className="comments-guest-label">{auth.configured ? "JOIN THE CONVERSATION" : "READ-ONLY CHANNEL"}</span>
+              <strong>{auth.configured ? "Connect Discord to leave your mark." : "The guestbook is open for reading."}</strong>
+              <p>{auth.configured ? "Post a message, drop a GIF, and react with your Discord profile." : "Sign-in is currently unavailable. You can still explore the messages below."}</p>
+            </div>
+            <div className="comments-guest-wave" aria-hidden="true">{Array.from({ length: 13 }, (_, i) => <i key={i} style={{ "--wave-step": i }} />)}</div>
+          </div>
+        )}
 
         {gifModal}
 
         {deleteModal}
 
+        <div className="comments-stream-heading"><h3><MessageSquare size={14} aria-hidden="true" /> The message board</h3><span>PINNED FIRST / LATEST NEXT</span></div>
         <div className="comments-stream" aria-live="polite">
           {visibleComments.map((comment, signalIndex) => {
             const canDeleteComment = !!auth.user && (auth.user.isAdmin || comment.mine);
@@ -1378,6 +1396,7 @@ export function CommentsSection() {
             </nav>
           ) : null}
         </div>
+        <footer className="comments-channel-footer"><span role={auth.user ? undefined : "status"}><i aria-hidden="true" />{auth.user ? `guestbook stream ${streamState}` : status}</span><span>{String(comments.length).padStart(2, "0")} SIGNALS STORED</span></footer>
       </div>
     </section>
   );

@@ -1,4 +1,5 @@
 @layer components {
+  #contact { scroll-margin-top: 80px; }
   .comments-section-heading {
     margin-bottom: clamp(1.5rem, 3vw, 2rem);
     max-width: 820px;
@@ -2462,6 +2463,74 @@
     }
   }
 }
+
+@layer components {
+  .comments-console-head { padding-block: 1.8rem; gap: 2rem; }
+  .comments-console-summary { gap: 0.8rem; }
+  .comments-invite-label { color: var(--color-cyan-arcade); font-size: 0.6rem; font-weight: 900; letter-spacing: 0.12em; }
+  .comments-invite-title { font-family: var(--font-display); font-size: clamp(1.8rem, 3vw, 2.7rem); font-weight: 900; color: #f4fff9; line-height: 1.15; }
+  .comments-invite-title > span { color: var(--color-phosphor); animation: guestbook-caret 1.2s steps(2, jump-none) infinite; }
+  .comments-console-summary > p { max-width: 58ch; font-size: 0.91rem; line-height: 1.75; font-weight: 500; }
+  .comments-console-meta { margin-top: 0.35rem; }
+  .comments-auth-panel { padding: 1.25rem; border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 22%, transparent); background: linear-gradient(135deg, color-mix(in srgb, var(--color-cyan-arcade) 7%, transparent), transparent); }
+  .comments-auth-panel small { max-width: 25ch; text-align: center; font-size: 0.6rem; line-height: 1.6; }
+  .comments-titlebar-actions .comments-connection.is-reconnecting,
+  .comments-titlebar-actions .comments-connection.is-connecting { color: var(--color-cabinet); border-color: color-mix(in srgb, var(--color-cabinet) 32%, transparent); }
+  .comments-titlebar-actions .comments-connection.is-live svg { filter: drop-shadow(0 0 5px var(--color-phosphor)); }
+  .comments-guest-panel { position: relative; z-index: 2; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 1.2rem; margin: 1.5rem clamp(1rem, 3.4vw, 2.6rem) 0; padding: 1.25rem; border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 25%, transparent); border-left: 3px solid var(--color-cyan-arcade); background: linear-gradient(100deg, color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent), rgba(2, 6, 4, 0.7) 75%); }
+  .comments-guest-icon { position: relative; display: grid; place-items: center; width: 3.2rem; height: 3.2rem; border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 35%, transparent); color: var(--color-cyan-arcade); box-shadow: inset 0 0 20px color-mix(in srgb, var(--color-cyan-arcade) 9%, transparent); }
+  .comments-guest-icon i { position: absolute; bottom: -3px; right: -3px; width: 7px; height: 7px; background: var(--color-cabinet); box-shadow: 0 0 9px color-mix(in srgb, var(--color-cabinet) 50%, transparent); }
+  .comments-guest-label { display: block; color: var(--color-cyan-arcade); font-size: 0.57rem; font-weight: 900; letter-spacing: 0.08em; margin-bottom: 0.45rem; }
+  .comments-guest-panel strong { display: block; color: #f0fff6; font-size: 0.92rem; }
+  .comments-guest-panel p { max-width: 65ch; color: var(--color-phosphor-soft); font-size: 0.76rem; line-height: 1.7; margin-top: 0.4rem; }
+  .comments-guest-wave { display: flex; align-items: center; gap: 4px; height: 40px; padding-inline: 1rem; }
+  .comments-guest-wave i { width: 3px; height: 28px; background: var(--color-cyan-arcade); opacity: 0.45; transform: scaleY(0.3); animation: guestbook-wave 2.8s ease-in-out infinite; animation-delay: calc(var(--wave-step) * -0.17s); box-shadow: 0 0 8px color-mix(in srgb, var(--color-cyan-arcade) 30%, transparent); }
+  .comments-stream-heading { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: 1.8rem clamp(1rem, 3.4vw, 2.6rem) 0.7rem; }
+  .comments-stream-heading h3 { display: flex; align-items: center; gap: 0.5rem; font-size: 0.74rem; font-weight: 900; color: var(--color-phosphor-soft); }
+  .comments-stream-heading h3 svg { color: var(--color-phosphor); }
+  .comments-stream-heading > span { color: var(--color-cyan-arcade); font-size: 0.54rem; letter-spacing: 0.07em; }
+  .comments-stream { gap: 1.35rem; padding-bottom: 1.6rem; }
+  .comments-stream .comment-card { padding: 1.35rem; grid-template-columns: 42px minmax(0, 1fr); gap: 1rem; transition: filter 180ms ease; }
+  .comments-stream .comment-card:hover { --comment-card-glow: color-mix(in srgb, var(--comment-card-accent) 12%, transparent); }
+  .comments-stream .comment-card.is-pinned { --comment-card-edge: color-mix(in srgb, var(--color-cabinet) 65%, transparent); }
+  .comments-stream .comment-avatar img,
+  .comments-stream .comment-avatar > span { width: 42px; height: 42px; padding: 3px; background: rgba(2, 6, 4, 0.8); }
+  .comments-stream .comment-card-head { margin-bottom: 0.8rem; }
+  .comments-stream .comment-card-head strong { font-size: 0.92rem; }
+  .comments-stream .comment-card-head .comment-time { color: color-mix(in srgb, var(--color-phosphor-soft) 78%, transparent); margin-left: 0.35rem; font-size: 0.62rem; }
+  .comments-stream .comment-card p { font-weight: 500; line-height: 1.8; max-width: 85ch; }
+  .comments-stream .comment-reactions { margin-top: 1rem; }
+  .comments-stream .reaction-chip,
+  .comments-stream .reaction-add-btn { min-height: 36px; min-width: 38px; }
+  .comments-channel-footer { position: relative; z-index: 2; display: flex; justify-content: space-between; gap: 1rem; padding: 0.9rem clamp(1rem, 3.4vw, 2.6rem); border-top: 1px solid color-mix(in srgb, var(--color-phosphor) 20%, transparent); background: color-mix(in srgb, var(--color-phosphor) 4%, transparent); color: var(--color-phosphor-soft); font-size: 0.58rem; font-weight: 800; text-transform: uppercase; }
+  .comments-channel-footer > span:first-child { display: flex; align-items: center; gap: 0.6rem; }
+  .comments-channel-footer i { flex-shrink: 0; width: 5px; height: 5px; background: var(--color-cyan-arcade); box-shadow: 0 0 8px var(--color-cyan-arcade); }
+}
+
+@media (max-width: 760px) {
+  #contact { scroll-margin-top: 112px; }
+  .comments-console .comments-console-head { gap: 1.2rem; padding-block: 1.3rem; }
+  .comments-console .comments-console-meta { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .comments-console .comments-console-meta > span { width: auto; padding: 0.4rem 0.5rem; }
+  .comments-console .comments-auth-panel { padding: 0.85rem; }
+  .comments-console .comments-auth-panel small { max-width: none; }
+  .comments-guest-panel { grid-template-columns: 1fr; gap: 0.9rem; margin-inline: 0.85rem; padding: 1rem; }
+  .comments-guest-icon { width: 2.4rem; height: 2.4rem; }
+  .comments-guest-wave { position: absolute; top: 1rem; right: 0.6rem; height: 2.4rem; }
+  .comments-stream-heading { margin-inline: 0.85rem; align-items: flex-start; flex-direction: column; gap: 0.45rem; }
+  .comments-console .comments-stream { padding-inline: 0.85rem; }
+  .comments-console .comments-stream .comment-avatar img,
+  .comments-console .comments-stream .comment-avatar > span { width: 30px; height: 30px; padding: 1px; }
+  .comments-console .comment-card-head .comment-time { margin-left: 0; flex-basis: 100%; font-size: 0.57rem; }
+  .comments-console .comment-card p { font-size: 0.86rem; line-height: 1.75; }
+  .comments-console .reaction-chip,
+  .comments-console .reaction-add-btn { min-height: 44px; min-width: 44px; }
+  .comments-channel-footer { flex-wrap: wrap; gap: 0.6rem; padding-inline: 0.85rem; line-height: 1.6; }
+}
+
+@keyframes guestbook-caret { to { opacity: 0; } }
+@keyframes guestbook-wave { 0%, 100% { transform: scaleY(0.25); opacity: 0.3; } 50% { transform: scaleY(1); opacity: 0.8; } }
+@media (prefers-reduced-motion: reduce) { .comments-invite-title > span, .comments-guest-wave i { animation: none; } }
 
 @keyframes comment-transmission-in {
   from {
