@@ -11,8 +11,8 @@ export function CabinetTelemetry() {
 
   return (
     <>
-      <span className="border border-phosphor/25 px-3 py-2 text-phosphor-soft">FPS <b className="tabular-nums">{fps}</b></span>
-      <span className="border border-phosphor/25 px-3 py-2 text-phosphor-soft">{time}</span>
+      <span className="cabinet-telemetry-cell"><small>FPS</small><b>{fps}</b></span>
+      <span className="cabinet-telemetry-cell"><small>LOCAL</small><b>{time}</b></span>
     </>
   );
 }

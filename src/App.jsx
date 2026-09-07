@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { commands, discord, games, profile, projects } from "./data/site";
+import { commands, discord, games, navItems, profile, projects } from "./data/site";
 import { preloadImages } from "./lib/preloadImages";
 import { useBuddyAdventure } from "./hooks/useBuddyAdventure";
 import { useBuddyFriendship } from "./hooks/useBuddyFriendship";
@@ -8,7 +8,7 @@ import { useCartridgeSwap } from "./hooks/useCartridgeSwap";
 import { getLatestFps } from "./hooks/useFps";
 import { useRandomGlitchWords } from "./hooks/useRandomGlitchWords";
 import { ArcadeBackground } from "./components/ArcadeBackground";
-import { CabinetTelemetry } from "./components/CabinetTelemetry";
+import { CabinetTopbar } from "./components/CabinetTopbar";
 import { ArcadeEmbedModal } from "./components/ArcadeEmbedModal";
 import { AttractMode } from "./components/AttractMode";
 import { BuddyDrop } from "./components/BuddyDrop";
@@ -291,7 +291,8 @@ function CabinetApp() {
 
   useEffect(() => {
     const shell = shellRef.current;
-    const sections = [...document.querySelectorAll("main section[id]")];
+    const destinations = new Set(navItems.map(([, href]) => href.slice(1)));
+    const sections = [...document.querySelectorAll("main section[id]")].filter((section) => destinations.has(section.id));
     if (!shell || !sections.length) return undefined;
 
     let ticking = false;
@@ -692,16 +693,7 @@ function CabinetApp() {
         />
 
         <div className="min-w-0">
-          <header className={`cart-slot sticky top-0 z-40 flex min-h-[68px] flex-col gap-3 border-b border-phosphor/20 bg-ink-950/85 px-4 py-3 backdrop-blur md:flex-row md:items-center md:justify-between lg:px-10 ${cartPhase === "insert" ? "is-cart-seat" : ""}`}>
-            <div>
-              <span className="pixel-label text-phosphor-soft/60">ACTIVE PROGRAM</span>
-              <strong className="ml-2 font-display text-white">Dai.exe</strong>
-            </div>
-            <div className="flex flex-wrap gap-2 text-xs">
-              <span className="border border-phosphor/25 px-3 py-2 text-phosphor-soft">XP <b data-score>{String(score).padStart(3, "0")}</b></span>
-              <CabinetTelemetry />
-            </div>
-          </header>
+          <CabinetTopbar activeSection={activeSection} score={score} cartPhase={cartPhase} onOpenTerminal={openTerminal} />
 
           <main className={`cart-stage mx-auto w-[min(1180px,calc(100%-clamp(28px,6vw,76px)))] ${cartPhase ? `is-cart-${cartPhase}` : ""}`} id="main" tabIndex={-1}>
             <HeroStation

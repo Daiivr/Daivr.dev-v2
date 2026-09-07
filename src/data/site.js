@@ -311,19 +311,23 @@ export const systems = [
 export const stack = [
   {
     title: "Front-end craft",
-    body: "Responsive layouts, accessible states, dark UI, animation polish, and project pages that feel designed instead of assembled."
+    body: "Custom interfaces that feel good to use, from the first click to the smallest animation.",
+    tags: ["Responsive UI", "Accessibility", "Motion"]
   },
   {
     title: "Bots + tooling",
-    body: "Discord automation, queue flows, command surfaces, status displays, and utility panels for real community workflows."
+    body: "Discord bots and control panels that keep queues moving and communities running.",
+    tags: ["Discord", "Queue flows", "Automation"]
   },
   {
     title: "Game-adjacent UX",
-    body: "Interfaces inspired by terminals, launchers, inventories, scoreboards, and game rooms, translated into usable web products."
+    body: "The personality of a game menu, built into practical tools for the web.",
+    tags: ["Inventories", "Launchers", "Terminals"]
   },
   {
     title: "Shipping hygiene",
-    body: "Semantic HTML, modular JavaScript, clear data files, small static deployment surface, and verification in the browser."
+    body: "Small, maintainable builds with clear structure and a final check in the browser.",
+    tags: ["Semantic HTML", "Modular JS", "Browser QA"]
   }
 ];
 

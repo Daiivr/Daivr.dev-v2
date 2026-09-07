@@ -52,12 +52,13 @@ export function Sidebar({ activeSection, buddy, onOpenBuddyModal, theme, onTheme
         </span>
         <span className="grid min-w-0 gap-0.5">
           <strong className="font-display text-lg leading-none text-white">{profile.handle}</strong>
-          <small className="text-xs font-black uppercase text-phosphor-soft/60">React cabinet</small>
+          <small className="cabinet-brand-caption">Dai's personal cabinet</small>
         </span>
       </a>
 
       <DiscordPlayerCard />
 
+      <div className="cabinet-rail-label" aria-hidden="true"><span>DIRECTORY</span><span>{String(displayNavItems.length).padStart(2, "0")} DESTINATIONS</span></div>
       <nav
         className="cabinet-nav grid grid-flow-col auto-cols-[minmax(132px,1fr)] gap-1.5 overflow-x-auto pb-2 lg:grid-flow-row lg:grid-cols-1 lg:overflow-visible"
         aria-label="Primary navigation"
@@ -123,7 +124,8 @@ export function Sidebar({ activeSection, buddy, onOpenBuddyModal, theme, onTheme
 
       {/* Interruptor de un solo cuerpo: dos botones sueltos no decian que eran
           las dos caras de la misma opcion. */}
-      <div className="cabinet-theme-switch mt-3" role="group" aria-label="Cabinet theme">
+      <div className="cabinet-rail-label is-theme-label" aria-hidden="true"><span>DISPLAY MODE</span><span>CRT / GLITCH</span></div>
+      <div className="cabinet-theme-switch" role="group" aria-label="Cabinet theme">
         {THEME_MODES.map((mode) => (
           <button
             className={cn("arcade-focus", theme === mode && "is-active")}

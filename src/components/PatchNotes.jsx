@@ -64,6 +64,7 @@ export function PatchNotes() {
   const pointerStartRef = useRef(null);
   const deckRef = useRef(null);
   const detailRef = useRef(null);
+  const detailScrollRef = useRef(null);
   const readMoreRef = useRef(null);
   const backRef = useRef(null);
   const restoreReadFocusRef = useRef(false);
@@ -140,7 +141,7 @@ export function PatchNotes() {
   };
 
   useEffect(() => {
-    if (detailRef.current) detailRef.current.scrollTop = 0;
+    if (detailScrollRef.current) detailScrollRef.current.scrollTop = 0;
     if (fullLogMode) {
       detailRef.current?.scrollIntoView({ block: "start", behavior: reducedMotion ? "instant" : "smooth" });
       backRef.current?.focus({ preventScroll: true });
@@ -312,6 +313,7 @@ export function PatchNotes() {
             </button>
           ) : null}
           <span className="patch-entry-node" aria-hidden="true" />
+          <div className="patch-detail-scroll" ref={detailScrollRef} tabIndex={0} role="region" aria-label={`${activePatch.version} release notes`}>
           <header className="patch-entry-head">
             <div className="patch-entry-version">
               <strong>{activePatch.version}</strong>
@@ -334,7 +336,9 @@ export function PatchNotes() {
               </li>
             ))}
           </ul>
+          </div>
           {!fullLogMode && hiddenEntryCount > 0 ? (
+            <footer className="patch-detail-actions">
             <button
               className="patch-entry-read-more"
               ref={readMoreRef}
@@ -347,6 +351,7 @@ export function PatchNotes() {
               <span>{`read full log (+${hiddenEntryCount})`}</span>
               <ChevronDown size={14} aria-hidden="true" />
             </button>
+            </footer>
           ) : null}
         </article>
       </div>

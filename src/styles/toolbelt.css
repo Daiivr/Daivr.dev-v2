@@ -123,7 +123,7 @@
     position: relative;
     display: grid;
     min-width: 0;
-    min-height: 320px;
+    min-height: 306px;
     grid-template-rows: auto auto minmax(0, 1fr) auto;
     overflow: hidden;
     border: 1px solid color-mix(in srgb, var(--tool-accent) 25%, transparent);
@@ -223,10 +223,10 @@
   .toolbelt-card-icon {
     position: relative;
     display: grid;
-    width: 54px;
-    height: 54px;
+    width: 44px;
+    height: 44px;
     place-items: center;
-    margin-top: 1.15rem;
+    margin-top: 0.85rem;
     border: 1px solid color-mix(in srgb, var(--tool-accent) 42%, transparent);
     clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
     background:
@@ -254,7 +254,7 @@
   .toolbelt-card-copy {
     position: relative;
     align-self: start;
-    margin-top: 1rem;
+    margin-top: 0.75rem;
   }
 
   .toolbelt-card-copy::before {
@@ -285,11 +285,30 @@
   }
 
   .toolbelt-card-copy > p {
-    margin-top: 0.75rem;
+    margin-top: 0.6rem;
     color: color-mix(in srgb, var(--color-phosphor-soft) 72%, #aab7b0);
     font-size: 0.8rem;
     font-weight: 650;
     line-height: 1.55;
+  }
+
+  .toolbelt-card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    margin: 0.75rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .toolbelt-card-tags li {
+    border: 1px solid color-mix(in srgb, var(--tool-accent) 23%, transparent);
+    background: color-mix(in srgb, var(--tool-accent) 5%, transparent);
+    padding: 0.2rem 0.35rem;
+    color: color-mix(in srgb, var(--tool-accent) 55%, white);
+    font-size: 0.56rem;
+    font-weight: 800;
+    line-height: 1.4;
   }
 
   .toolbelt-card-footer {

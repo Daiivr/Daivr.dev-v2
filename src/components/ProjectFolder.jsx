@@ -7,8 +7,23 @@ export function ProjectFolder({ items, selectedProjectTitle, onSelect }) {
     <section className={`project-folder-console${open ? " is-open" : ""}`} aria-label="Project directory">
       <header className="project-folder-status">
         <span><i /> /workspace/projects</span>
-        <strong>{open ? "directory open" : "directory sealed"}</strong>
+        <strong>{open ? "directory open" : "ready to explore"}</strong>
       </header>
+
+      <div className="project-folder-intro">
+        <span>FROM THE WORKBENCH</span>
+        <h3>Small builds. Real use.</h3>
+        <p>Community bots and tools for the worlds I spend time in. Open a file to take a closer look.</p>
+        <ul aria-label="Projects in this directory">
+          {items.map((project) => (
+            <li key={project.title}>
+              <img src={project.image} alt="" decoding="async" />
+              <span>{project.title}</span>
+              <small>{project.visual === "tradedex" ? "Discord automation" : "Live server map"}</small>
+            </li>
+          ))}
+        </ul>
+      </div>
 
       <div className="project-folder-stage">
         <div className="project-folder-object">
@@ -74,7 +89,7 @@ export function ProjectFolder({ items, selectedProjectTitle, onSelect }) {
             <span className="project-folder-front-piece is-right" aria-hidden="true" />
             <span className="project-folder-front-copy">
               <strong>PROJECTS.DIR</strong>
-              <small>{String(items.length + 1).padStart(2, "0")} project files</small>
+              <small>{open ? "close directory" : "open directory ↗"}</small>
             </span>
           </button>
 
@@ -83,7 +98,7 @@ export function ProjectFolder({ items, selectedProjectTitle, onSelect }) {
           <span className="project-folder-edge" aria-hidden="true">
             <b>PROJECTS.DIR</b>
             <i />
-            <em>{String(items.length + 1).padStart(2, "0")} FILES</em>
+            <em>{String(items.length).padStart(2, "0")} PROJECTS</em>
           </span>
         </div>
       </div>

@@ -1,0 +1,92 @@
+@layer components {
+  main > section[id] { scroll-margin-top: 76px; }
+  .cabinet-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    display: flex;
+    min-height: 64px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-phosphor) 25%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 7%, transparent), transparent 45%),
+      color-mix(in srgb, var(--color-ink-950) 94%, transparent);
+    padding: 0.6rem clamp(1rem, 2.5vw, 2.5rem);
+    backdrop-filter: blur(16px);
+    box-shadow: 0 5px 22px rgba(0, 0, 0, 0.22);
+  }
+
+  .cabinet-topbar-location,
+  .cabinet-topbar-controls {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .cabinet-topbar-slot {
+    display: grid;
+    width: 34px;
+    height: 34px;
+    flex: none;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 38%, transparent);
+    background: color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent);
+    color: var(--color-cyan-arcade);
+    font: 900 0.86rem var(--font-display);
+    clip-path: polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 6px);
+  }
+
+  .cabinet-topbar-route { display: grid; gap: 0.2rem; min-width: 0; animation: cabinet-route-in 240ms ease-out; }
+  .cabinet-topbar-route > span { color: var(--color-phosphor-soft); font-size: 0.56rem; white-space: nowrap; }
+  .cabinet-topbar-route b { color: var(--color-cyan-arcade); font-weight: 700; }
+  .cabinet-topbar-route > strong { display: flex; align-items: baseline; gap: 0.3rem; color: white; font: 900 0.94rem / 1.1 var(--font-display); white-space: nowrap; }
+  .cabinet-topbar-route i { width: 5px; height: 3px; background: var(--color-phosphor); box-shadow: 0 0 8px var(--color-phosphor); }
+  .cabinet-topbar-track { display: flex; gap: 4px; margin-left: 0.65rem; }
+  .cabinet-topbar-track i { width: 10px; height: 3px; background: color-mix(in srgb, var(--color-phosphor) 18%, transparent); transition: background 220ms, box-shadow 220ms; }
+  .cabinet-topbar-track i.is-active { background: var(--color-phosphor); box-shadow: 0 0 8px var(--color-phosphor); }
+
+  .cabinet-terminal-button {
+    display: inline-flex;
+    min-height: 40px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 32%, transparent);
+    background: color-mix(in srgb, var(--color-cyan-arcade) 6%, transparent);
+    padding: 0.5rem 0.7rem;
+    color: var(--color-cyan-arcade);
+    font-size: 0.65rem;
+    font-weight: 900;
+    transition: border-color 180ms, background 180ms, box-shadow 180ms;
+  }
+  .cabinet-terminal-button:hover,
+  .cabinet-terminal-button:focus-visible { border-color: var(--color-cyan-arcade); background: color-mix(in srgb, var(--color-cyan-arcade) 14%, transparent); box-shadow: 0 0 18px color-mix(in srgb, var(--color-cyan-arcade) 12%, transparent); }
+  .cabinet-telemetry { display: flex; align-items: center; }
+  .cabinet-telemetry-cell { display: grid; min-width: 54px; gap: 0.2rem; padding: 0.15rem 0.65rem; text-align: right; }
+  .cabinet-telemetry-cell + .cabinet-telemetry-cell { border-left: 1px solid color-mix(in srgb, var(--color-phosphor) 20%, transparent); }
+  .cabinet-telemetry-cell small { color: var(--color-phosphor-soft); font-size: 0.48rem; letter-spacing: 0.07em; }
+  .cabinet-telemetry-cell b { color: var(--color-phosphor-soft); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
+  .cabinet-telemetry-cell.is-score b { color: var(--color-cabinet); }
+
+  @media (max-width: 1279px) { .cabinet-topbar-track { display: none; } }
+  @media (max-width: 600px) {
+    main > section[id] { scroll-margin-top: 112px; }
+    .cabinet-topbar { flex-wrap: wrap; gap: 0.5rem; padding: 0.6rem 1rem; }
+    .cabinet-topbar-controls { width: 100%; justify-content: space-between; }
+    .cabinet-terminal-button { min-height: 36px; }
+    .cabinet-telemetry-cell { padding-inline: 0.55rem; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cabinet-topbar-route { animation: none; }
+    .cabinet-topbar-track i,
+    .cabinet-terminal-button { transition: none; }
+  }
+}
+
+@keyframes cabinet-route-in {
+  from { opacity: 0.35; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}

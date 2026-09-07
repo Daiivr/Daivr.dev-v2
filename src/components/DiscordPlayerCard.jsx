@@ -69,9 +69,9 @@ export function DiscordPlayerCard() {
       data-discord-status={statusKey}
       aria-label="Discord player status"
     >
-      <div className="relative grid grid-cols-[76px_minmax(0,1fr)] items-center gap-3">
+      <div className="discord-player-identity relative grid grid-cols-[64px_minmax(0,1fr)] items-center gap-3">
         <a
-          className="discord-player-avatar arcade-focus group relative block h-[76px] w-[76px]"
+          className="discord-player-avatar arcade-focus group relative block h-16 w-16"
           href={discord.profileUrl}
           rel="noreferrer"
           target="_blank"
@@ -117,7 +117,7 @@ export function DiscordPlayerCard() {
         </div>
       </div>
 
-      <div className="relative z-10 mt-3 border-t border-phosphor/15 pt-3">
+      <div className="discord-player-details relative z-10 mt-2 border-t border-phosphor/15 pt-2">
         <div className="flex min-w-0 items-center gap-2 text-xs font-black text-phosphor-soft/75">
           {customEmojiUrl ? (
             <img className="h-4 w-4 shrink-0" src={customEmojiUrl} alt={customStatus?.emoji?.name || ""} />

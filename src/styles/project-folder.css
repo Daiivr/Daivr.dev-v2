@@ -7,7 +7,10 @@
     position: relative;
     z-index: 1;
     display: grid;
-    min-height: 340px;
+    min-height: 310px;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    grid-template-rows: auto auto;
+    align-content: start;
     overflow: visible;
     place-items: start center;
     border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 24%, transparent);
@@ -46,6 +49,8 @@
   }
 
   .project-folder-status {
+    grid-column: 1 / -1;
+    position: relative;
     display: flex;
     width: 100%;
     align-items: center;
@@ -72,7 +77,69 @@
   }
 
   .project-folder-status strong {
-    color: var(--color-glitch);
+    color: var(--color-phosphor);
+  }
+
+  .project-folder-intro {
+    position: relative;
+    grid-column: 1;
+    grid-row: 2;
+    align-self: center;
+    justify-self: start;
+    max-width: 370px;
+    padding: 0.75rem 0 1.5rem clamp(0rem, 2vw, 1.25rem);
+    transition:
+      opacity 240ms ease 260ms,
+      transform 480ms cubic-bezier(0.22, 1, 0.36, 1),
+      visibility 0s linear;
+  }
+
+  .project-folder-intro > span {
+    color: var(--color-cyan-arcade);
+    font-size: 0.57rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+  }
+
+  .project-folder-intro h3 {
+    margin: 0.5rem 0;
+    color: #f4fff8;
+    font: 900 clamp(1.15rem, 2vw, 1.55rem) / 1.15 var(--font-display);
+  }
+
+  .project-folder-intro p {
+    color: var(--color-phosphor-soft);
+    font-size: 0.76rem;
+    line-height: 1.6;
+  }
+
+  .project-folder-intro ul {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0.9rem 0 0;
+    padding: 0.7rem 0 0;
+    border-top: 1px solid color-mix(in srgb, var(--color-phosphor) 20%, transparent);
+    list-style: none;
+  }
+
+  .project-folder-intro li {
+    display: grid;
+    grid-template-columns: 22px auto 1fr;
+    align-items: center;
+    gap: 0.5rem;
+    color: #f4fff8;
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+
+  .project-folder-intro img { width: 22px; height: 22px; object-fit: contain; }
+  .project-folder-intro small { justify-self: end; color: var(--color-phosphor-soft); font-size: 0.56rem; }
+
+  .project-folder-console.is-open .project-folder-intro {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-18px);
+    transition-delay: 0s, 0s, 240ms;
   }
 
   .project-folder-console.is-open {
@@ -81,14 +148,22 @@
 
   .project-folder-console,
   .project-folder-stage {
-    transition: min-height 380ms cubic-bezier(0.18, 0.82, 0.22, 1), height 380ms cubic-bezier(0.18, 0.82, 0.22, 1);
+    transition:
+      min-height 640ms cubic-bezier(0.22, 1, 0.36, 1),
+      height 640ms cubic-bezier(0.22, 1, 0.36, 1),
+      margin-top 640ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .project-folder-stage {
     position: relative;
-    width: min(100%, 640px);
+    /* Keep the same grid area in both states so the folder can travel instead
+       of jumping between columns when the intro fades out. */
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
     height: 248px;
     margin-top: 0.35rem;
+    pointer-events: none;
   }
 
   .project-folder-console.is-open .project-folder-stage {
@@ -97,12 +172,19 @@
 
   .project-folder-object {
     position: absolute;
-    left: 50%;
+    left: 72.5%;
     bottom: 26px;
     width: 264px;
     height: 188px;
     transform: translateX(-50%);
-    transition: transform 200ms ease-in;
+    pointer-events: auto;
+    transition:
+      left 640ms cubic-bezier(0.22, 1, 0.36, 1),
+      transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .project-folder-console.is-open .project-folder-object {
+    left: 50%;
   }
 
   /* La carpeta flotaba sobre la foto de la sala. La sombra de contacto y el
@@ -697,6 +779,7 @@
   .project-folder-edge em {
     color: var(--color-phosphor-soft);
     font-style: normal;
+    white-space: nowrap;
   }
 
   .project-folder-hint {
@@ -710,6 +793,17 @@
     text-transform: uppercase;
     opacity: 0.66;
   }
+}
+
+@media (max-width: 760px) {
+  .project-folder-console { grid-template-columns: minmax(0, 1fr); }
+  .project-folder-intro { align-self: start; justify-self: center; padding: 0.75rem 0 0; text-align: center; }
+  .project-folder-stage { height: 282px; }
+  .project-folder-object { left: 50%; }
+  .project-folder-intro > span,
+  .project-folder-intro p,
+  .project-folder-intro ul { display: none; }
+  .project-folder-intro h3 { margin: 0; font-size: 1.1rem; }
 }
 
 @media (max-width: 540px) {
@@ -729,11 +823,12 @@
   }
 
   .project-folder-stage {
-    height: 184px;
+    height: 218px;
   }
 
   .project-folder-console.is-open .project-folder-stage {
     height: 292px;
+    margin-top: 1.8rem;
   }
 
   .project-folder-object {
@@ -803,6 +898,7 @@
   .project-folder-front-copy,
   .project-folder-edge,
   .project-folder-console,
+  .project-folder-intro,
   .project-folder-stage {
     transition: none !important;
   }

@@ -283,6 +283,9 @@ export function ProgramSections() {
                   <div className="toolbelt-card-copy">
                     <h3>{item.title}</h3>
                     <p>{item.body}</p>
+                    <ul className="toolbelt-card-tags" aria-label={`${item.title} capabilities`}>
+                      {item.tags?.map((tag) => <li key={tag}>{tag}</li>)}
+                    </ul>
                   </div>
 
                   {/* "capability online" repetia lo que ya dice el chip READY
