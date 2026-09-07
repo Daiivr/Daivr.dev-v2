@@ -160,7 +160,7 @@ export function ProgramSections() {
           <div className="now-console-header">
             <div>
               <span className="now-console-lights" aria-hidden="true"><i /><i /><i /></span>
-              <code>~/daivr/now.log</code>
+              <code>~/daivr/now.log<span className="now-console-caret" aria-hidden="true">_</span></code>
             </div>
             <span className="now-console-state"><i /> {String(now.length).padStart(2, "0")} slots loaded</span>
           </div>
@@ -192,7 +192,7 @@ export function ProgramSections() {
                       <div className="now-card-footer" aria-hidden="true">
                         <span>slot integrity</span>
                         <span className="now-card-meter">
-                          {Array.from({ length: 8 }, (_, cell) => <i key={cell} />)}
+                          {Array.from({ length: 8 }, (_, cell) => <i key={cell} style={{ "--cell": cell }} />)}
                         </span>
                       </div>
                     </div>
@@ -326,6 +326,10 @@ function SectionHeading({ eyebrow, title }) {
 }
 
 function LinkConsole() {
+  const [hoveredRoute, setHoveredRoute] = useState(null);
+  const [focusedRoute, setFocusedRoute] = useState(null);
+  const selectedRoute = hoveredRoute ?? focusedRoute;
+
   return (
     <div className="link-console" id="links">
       <div className="link-console-titlebar">
@@ -355,7 +359,13 @@ function LinkConsole() {
               key={link.href}
               rel="noreferrer"
               target="_blank"
+              aria-label={`${link.label} (opens in a new tab)`}
+              onMouseEnter={() => setHoveredRoute(link)}
+              onMouseLeave={() => setHoveredRoute(null)}
+              onFocus={() => setFocusedRoute(link)}
+              onBlur={() => setFocusedRoute(null)}
             >
+              <span className="link-console-watermark" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
               <span className="link-console-card-topline">
                 <span className="link-console-index">route_{String(index + 1).padStart(2, "0")}</span>
                 <span className="link-console-verified"><Check size={11} aria-hidden="true" /> verified</span>
@@ -377,6 +387,11 @@ function LinkConsole() {
             </a>
           );
         })}
+      </div>
+      <div className={`link-console-prompt${selectedRoute ? " is-selected" : ""}`}>
+        <Terminal size={15} aria-hidden="true" />
+        <code><span>$ </span>{selectedRoute ? `open ${selectedRoute.host}` : "select a route"}<i aria-hidden="true" /></code>
+        <span className="link-console-prompt-hint">{selectedRoute ? "launch in new tab" : "hover / focus to connect"}<ArrowRight size={13} aria-hidden="true" /></span>
       </div>
     </div>
   );

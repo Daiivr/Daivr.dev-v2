@@ -1,4 +1,4 @@
-import { Activity, BarChart3, Gamepad2, Globe, Headphones, Maximize2, Minimize2, Monitor, Radio, Smartphone, Users, WifiOff, X, Zap } from "lucide-react";
+import { Activity, BarChart3, ExternalLink, Gamepad2, Globe, Headphones, Maximize2, Minimize2, Monitor, Radio, Smartphone, Users, WifiOff, X, Zap } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { discord, profile } from "../data/site";
@@ -1494,16 +1494,19 @@ export function DiscordPresencePanel() {
             <span>{error ? "fallback" : "lanyard.live"}</span>
           </div>
 
-          <div className="discord-presence-custom">
-            {customEmojiUrl ? <img src={customEmojiUrl} alt={customStatus?.emoji?.name || ""} /> : <Gamepad2 size={16} aria-hidden="true" />}
-            {isLoadingStatus ? (
-              <span className="discord-loading-label" aria-label="Loading...">
-                Loading
-                <span className="discord-loading-dots" aria-hidden="true">
-                  <i>.</i><i>.</i><i>.</i>
+          <div className="discord-presence-custom-block">
+            <span className="discord-presence-custom-label">{error ? "connection status" : customStatus ? "custom status" : "room status"}</span>
+            <div className="discord-presence-custom">
+              {customEmojiUrl ? <img src={customEmojiUrl} alt={customStatus?.emoji?.name || ""} /> : <Gamepad2 size={16} aria-hidden="true" />}
+              {isLoadingStatus ? (
+                <span className="discord-loading-label" aria-label="Loading...">
+                  Loading
+                  <span className="discord-loading-dots" aria-hidden="true">
+                    <i>.</i><i>.</i><i>.</i>
+                  </span>
                 </span>
-              </span>
-            ) : <span>{statusText}</span>}
+              ) : <span>{statusText}</span>}
+            </div>
           </div>
 
           {/* La telemetria era el unico bloque de tres filas apiladas en una
@@ -1581,9 +1584,15 @@ export function DiscordPresencePanel() {
               ))}
             </div>
           ) : null}
+          <a className="discord-profile-link arcade-focus" href={discord.profileUrl} target="_blank" rel="noreferrer">
+            <Radio size={14} aria-hidden="true" />
+            Open Discord profile
+            <ExternalLink size={14} aria-hidden="true" />
+            <span className="sr-only"> (opens in a new tab)</span>
+          </a>
         </aside>
 
-        <div className="discord-presence-activity">
+        <div className={cn("discord-presence-activity", !animatedActivities.length && "has-idle-monitor", error && "is-signal-lost")}>
           <div className="discord-presence-activity-head">
             <div>
               <p className="pixel-label">ACTIVITY.STREAM</p>
@@ -1591,7 +1600,7 @@ export function DiscordPresencePanel() {
             </div>
             <span className="discord-presence-live">
               {error ? <WifiOff size={14} aria-hidden="true" /> : <Radio size={14} aria-hidden="true" />}
-              {displayedActivities.length} {displayedActivities.length === 1 ? "activa" : "activas"}
+              {error ? "signal lost" : loading && !presence ? "syncing" : `${displayedActivities.length} ${displayedActivities.length === 1 ? "activa" : "activas"}`}
             </span>
           </div>
 
@@ -1765,25 +1774,24 @@ export function DiscordPresencePanel() {
               })
             ) : (
               <div className="discord-presence-empty">
-                <div className="discord-presence-empty-compact">
-                  <span>NO ACTIVITY SIGNAL</span>
-                  <p>Ahora mismo no hay actividades visibles. El radar sigue escuchando juego, Spotify y estados de Discord.</p>
-                </div>
-
                 <div className="discord-idle-desktop">
+                  <div className="discord-idle-monitor-bar">
+                    <span><Gamepad2 size={14} aria-hidden="true" /> PACKET_REX</span>
+                    <span><i aria-hidden="true" /> AUTOPILOT</span>
+                  </div>
                   <div className="discord-idle-visual">
                     <DiscordIdleRunner prefersReducedMotion={prefersReducedMotion} />
                   </div>
 
                   <div className="discord-idle-copy">
-                    <span className="discord-idle-kicker">PACKET_REX // SIGNAL HUNT</span>
-                    <h4>No activity to chase.</h4>
-                    <p>No hay juego ni música transmitiendo. El pequeño rastreador seguirá corriendo hasta encontrar una nueva señal.</p>
-                    <div className="discord-idle-readout" aria-label="Activity scanners are listening">
-                      <span><code>game.scan</code><b>listening</b></span>
-                      <span><code>spotify.port</code><b>listening</b></span>
-                      <span><code>discord.state</code><b>ready</b></span>
-                    </div>
+                    <span className="discord-idle-kicker">{error ? "CONNECTION INTERRUPTED" : loading && !presence ? "ESTABLISHING UPLINK" : "SIGNAL HUNT // STANDBY"}</span>
+                    <h4>{error ? "Signal out of range." : loading && !presence ? "Tuning into the room." : "No activity to chase."}</h4>
+                    <p>{error ? "La conexión se ha interrumpido. El rastreador sigue corriendo mientras vuelve la señal." : loading && !presence ? "Conectando con Discord para recibir la actividad de la sala." : "Sin juego ni música por ahora. Rex sigue explorando hasta que llegue la próxima señal."}</p>
+                  </div>
+                  <div className="discord-idle-readout" aria-label="Activity signal status">
+                    <span><Gamepad2 size={16} aria-hidden="true" /><code>game.scan</code><b>{error ? "no signal" : "listening"}</b></span>
+                    <span><Headphones size={16} aria-hidden="true" /><code>spotify.port</code><b>{error ? "no signal" : "listening"}</b></span>
+                    <span><Radio size={16} aria-hidden="true" /><code>discord.state</code><b>{error ? "retrying" : loading && !presence ? "syncing" : "ready"}</b></span>
                   </div>
                 </div>
               </div>
@@ -1792,7 +1800,7 @@ export function DiscordPresencePanel() {
 
           <div className="discord-presence-footer">
             <span>{loading ? "syncing lanyard..." : `last sync // ${formatUpdatedAt(updatedAt)}`}</span>
-            <span>{error ? "api fallback mode" : "presence online"}</span>
+            <span className="discord-presence-connection"><i aria-hidden="true" />{error ? "api fallback mode" : loading && !presence ? "connecting" : "presence online"}</span>
           </div>
         </div>
 

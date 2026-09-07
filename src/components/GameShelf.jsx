@@ -1,4 +1,4 @@
-import { BadgeCheck, Clock3, Gamepad2, RadioTower, Star, Trophy } from "lucide-react";
+import { ArrowUpRight, BadgeCheck, BookOpen, Clock3, Gamepad2, RadioTower, RotateCcw, Star, Trophy } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { games } from "../data/site";
 import { DecodeText } from "./DecodeText";
@@ -97,36 +97,41 @@ export function GameShelf() {
   }
 
   function toggleCardFlip(title) {
+    const wasFlipped = flippedCards.has(title);
     setFlippedCards((current) => {
       const next = new Set(current);
-      if (next.has(title)) {
+      if (wasFlipped) {
         next.delete(title);
-        setClosingCards((closing) => new Set(closing).add(title));
-        window.clearTimeout(closingTimers.current.get(title));
-        const timer = window.setTimeout(() => {
-          setClosingCards((closing) => {
-            const nextClosing = new Set(closing);
-            nextClosing.delete(title);
-            return nextClosing;
-          });
-          closingTimers.current.delete(title);
-        }, 260);
-        closingTimers.current.set(title, timer);
       } else {
         next.add(title);
-        window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
-          detail: { type: "cartridge", id: `game:${title}` }
-        }));
+      }
+      return next;
+    });
+
+    // Timers and quest events belong to the interaction, not React's state updater.
+    window.clearTimeout(closingTimers.current.get(title));
+    if (wasFlipped) {
+      setClosingCards((closing) => new Set(closing).add(title));
+      const timer = window.setTimeout(() => {
         setClosingCards((closing) => {
           const nextClosing = new Set(closing);
           nextClosing.delete(title);
           return nextClosing;
         });
-        window.clearTimeout(closingTimers.current.get(title));
         closingTimers.current.delete(title);
-      }
-      return next;
-    });
+      }, 260);
+      closingTimers.current.set(title, timer);
+    } else {
+      window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
+        detail: { type: "cartridge", id: `game:${title}` }
+      }));
+      setClosingCards((closing) => {
+        const nextClosing = new Set(closing);
+        nextClosing.delete(title);
+        return nextClosing;
+      });
+      closingTimers.current.delete(title);
+    }
   }
 
   function returnToCover(event, title) {
@@ -135,6 +140,19 @@ export function GameShelf() {
     card?.classList.remove("is-active");
     resetCardPointer({ currentTarget: card });
     toggleCardFlip(title);
+    card?.querySelector(".game-card-review-toggle")?.focus({ preventScroll: true });
+  }
+
+  function openReview(event, title) {
+    const card = event.currentTarget.closest(".game-card");
+    toggleCardFlip(title);
+    window.requestAnimationFrame(() => {
+      card?.querySelector(".game-card-review-copy")?.focus({ preventScroll: true });
+      card?.querySelector(".game-card-scene")?.scrollIntoView({
+        block: "center",
+        behavior: reduceMotionQuery?.matches ? "auto" : "smooth"
+      });
+    });
   }
 
   function setCardPointer(event) {
@@ -195,7 +213,6 @@ export function GameShelf() {
   const syncedCount = games.filter((game) => steamPlaytime.games?.[game.appId]).length;
   const hasLiveSteamHours = steamPlaytime.status === "online" && syncedCount > 0;
   const totalHours = games.reduce((sum, game) => sum + getGameHourValue(game), 0);
-  const maxHours = Math.max(...games.map(getGameHourValue), 1);
   const topGame = games.reduce((top, game) => (getGameHourValue(game) > getGameHourValue(top) ? game : top), games[0]);
   // Los rangos iban unidos por " // " en una sola cadena que se salia de la
   // caja; sueltos son tres fichas legibles.
@@ -226,8 +243,16 @@ export function GameShelf() {
       </div>
 
       <div className="game-shelf panel-strong overflow-visible p-4 md:p-6">
+        <div className="game-shelf-titlebar">
+          <span className="game-shelf-lights" aria-hidden="true"><i /><i /><i /></span>
+          <code>~/daivr/favorites.archive<span aria-hidden="true">_</span></code>
+          <span className="game-shelf-titlebar-mode"><BookOpen size={13} aria-hidden="true" /> personal collection</span>
+        </div>
         <header className="game-shelf-toolbar">
-          <p>Covers, worlds, and playtime signals pulled from the cabinet while the shelf syncs.</p>
+          <div className="game-shelf-intro">
+            <p>The worlds I keep coming back to.</p>
+            <span>Explore a cartridge. Flip it for my review.</span>
+          </div>
           <div className="game-shelf-stats">
             <span><Gamepad2 size={13} aria-hidden="true" /> {String(games.length).padStart(2, "0")} cartridges</span>
             <span><Clock3 size={13} aria-hidden="true" /> {formatHours(totalHours)} logged</span>
@@ -268,7 +293,8 @@ export function GameShelf() {
               const isFlipped = flippedCards.has(game.title);
               const isClosing = closingCards.has(game.title);
               const hours = getGameHourValue(game);
-              const hourPercent = Math.max(8, Math.min(100, (hours / maxHours) * 100));
+              const hourPercent = totalHours > 0 ? Math.min(100, (hours / totalHours) * 100) : 0;
+              const reviewId = `game-review-${game.appId}`;
 
               return (
                 <article
@@ -294,17 +320,24 @@ export function GameShelf() {
                           type="button"
                           aria-label={`Show review for ${game.title}`}
                           aria-pressed={isFlipped}
-                          onClick={() => toggleCardFlip(game.title)}
+                          aria-controls={reviewId}
+                          tabIndex={isFlipped ? -1 : 0}
+                          onClick={(event) => openReview(event, game.title)}
                         >
                           <img className="game-card-cover" src={game.image} alt={`Cover art for ${game.title}`} loading="eager" decoding="async" fetchPriority="high" />
                           <span className="game-card-foil" aria-hidden="true" />
                         </button>
                       </div>
                     </div>
-                    <div className="game-card-review" onPointerMove={setCardPointer}>
-                      <span className="game-card-review-kicker">review slot</span>
+                    <div className="game-card-review" id={reviewId} inert={!isFlipped} onPointerMove={setCardPointer} onKeyDown={(event) => {
+                      if (event.key === "Escape") {
+                        event.stopPropagation();
+                        returnToCover(event, game.title);
+                      }
+                    }}>
+                      <span className="game-card-review-kicker"><BookOpen size={13} aria-hidden="true" /> Dai's field notes</span>
                       <strong>{game.title}</strong>
-                      <div className="game-card-review-copy" tabIndex="0">
+                      <div className="game-card-review-copy" tabIndex="0" role="region" aria-label={`Review of ${game.title}`}>
                         {game.review || "Review pending. Your notes for this game will live here once they are ready."}
                       </div>
                       <button
@@ -334,10 +367,11 @@ export function GameShelf() {
                       ))}
                     </div>
                     <div className="game-card-playtime" style={{ "--game-hours-progress": `${hourPercent}%` }}>
-                      <span>
-                        <Clock3 size={12} aria-hidden="true" />
-                        {getGameHours(game)}
-                      </span>
+                      <div className="game-card-hours-head">
+                        <span><Clock3 size={13} aria-hidden="true" /> time in world</span>
+                        <span>{Math.round(hourPercent)}% of shelf</span>
+                      </div>
+                      <b className="game-card-hours-value">{Math.round(hours).toLocaleString("en-US")}<span>HRS</span></b>
                       <i aria-hidden="true" />
                     </div>
                     <small>{game.genre}</small>
@@ -350,6 +384,18 @@ export function GameShelf() {
                         {steamPlaytime.games?.[game.appId] ? "steam live" : "local"}
                       </b>
                     </div>
+                    <button
+                      className="game-card-review-toggle arcade-focus"
+                      type="button"
+                      aria-label={`${isFlipped ? "Close" : "Read"} review for ${game.title}`}
+                      aria-expanded={isFlipped}
+                      aria-controls={reviewId}
+                      onClick={(event) => isFlipped ? returnToCover(event, game.title) : openReview(event, game.title)}
+                    >
+                      {isFlipped ? <RotateCcw size={15} aria-hidden="true" /> : <BookOpen size={15} aria-hidden="true" />}
+                      {isFlipped ? "Back to cover" : "Read my review"}
+                      <ArrowUpRight size={15} aria-hidden="true" />
+                    </button>
                   </div>
                 </article>
               );

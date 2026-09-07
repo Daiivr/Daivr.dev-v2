@@ -479,7 +479,8 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
           ? index === 1 ? "rgba(69, 216, 255, 0.28)" : "rgba(63, 255, 151, 0.18)"
           : "rgba(180, 255, 207, 0.08)";
         ctx.beginPath();
-        ctx.arc(0, 0, radius + pulse, 0, Math.PI * 2);
+        // A responsive breakpoint can briefly collapse the canvas while a pulse is contracting.
+        ctx.arc(0, 0, Math.max(0, radius + pulse), 0, Math.PI * 2);
         ctx.stroke();
       });
 

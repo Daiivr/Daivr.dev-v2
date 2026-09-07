@@ -16,7 +16,10 @@ const rainLines = [
 export function ArcadeBackground() {
   return (
     <div className="arcade-bg" aria-hidden="true">
-      <div className="arcade-bg-grid" />
+      <div className="arcade-bg-nebula" />
+      <div className="arcade-bg-stars" />
+      {/* Las trazas pasan a ser constelaciones: el span es el segmento y sus
+          pseudos las dos estrellas que une. */}
       <div className="arcade-bg-circuit">
         {Array.from({ length: 10 }, (_, index) => (
           <span key={`trace-${index}`} style={{ "--i": index }} />

@@ -1,4 +1,4 @@
-import { Activity, Cpu, Grip, Play, RadioTower, Terminal } from "lucide-react";
+import { Activity, ArrowDownRight, ArrowUpRight, Cpu, Grip, Play, RadioTower, Terminal } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { profile } from "../data/site";
 import { useElasticDrag } from "../hooks/useElasticDrag";
@@ -88,7 +88,7 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
 
   return (
     <section
-      className={`hero-station relative grid min-h-[min(820px,calc(100svh-68px))] items-center gap-6 py-10 lg:grid-cols-[minmax(0,.82fr)_minmax(380px,1.05fr)] ${isDragging ? "is-console-dragging" : ""} ${isHung ? "is-console-hung" : ""} ${hangLanded ? "is-hang-landing" : ""} ${hangArmed ? "is-hang-armed" : ""} ${hasSecretArmed ? "is-secret-armed" : ""}`}
+      className={`hero-station relative grid items-center ${isDragging ? "is-console-dragging" : ""} ${isHung ? "is-console-hung" : ""} ${hangLanded ? "is-hang-landing" : ""} ${hangArmed ? "is-hang-armed" : ""} ${hasSecretArmed ? "is-secret-armed" : ""}`}
       id="home"
       ref={stationRef}
     >
@@ -104,15 +104,20 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
         <span className="hero-nail-hint">{isHung ? "drag off to unhook" : "hang it here"}</span>
       </span>
 
-      <div className="hero-copy relative grid gap-5">
-        <p className="pixel-label text-cyan-arcade">{profile.eyebrow}</p>
-        <h1 className="max-w-[11.2ch] font-display text-[clamp(2.35rem,5vw,4.9rem)] font-black uppercase leading-[.94] text-white text-balance">
-          {profile.headline}
+      <div className={`hero-copy relative grid gap-5 is-${systemState}`}>
+        <div className="hero-identity">
+          <p className="pixel-label text-cyan-arcade">{profile.eyebrow}</p>
+          <p className="hero-greeting">Hey, I'm <strong>{profile.name}.</strong><span aria-hidden="true">_</span></p>
+        </div>
+        <h1 className="hero-headline font-display font-black uppercase text-white" aria-label={profile.headline}>
+          {profile.headline.split(/(?<=\.)\s+/).map((line, index) => (
+            <span className={`hero-headline-line is-line-${index + 1}`} key={line}>{line}</span>
+          ))}
         </h1>
-        <p className="max-w-2xl text-base leading-8 text-phosphor-soft md:text-lg">{profile.lede}</p>
-        <div className="grid gap-2 sm:grid-cols-3">
+        <p className="hero-introduction">I build Discord bots, SysBot tools, and playful web interfaces. Welcome to my personal cabinet: part terminal, part arcade, part late-night dev room.</p>
+        <div className="hero-signals grid gap-2 sm:grid-cols-3" aria-label="Cabinet status">
           {heroChips.map((item) => (
-            <span className="status-chip" key={item}>{item}</span>
+            <span className="status-chip" key={item}><i aria-hidden="true" />{item}</span>
           ))}
         </div>
         <div className="hero-actions flex flex-wrap gap-3">
@@ -131,9 +136,13 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
             Terminal
           </ArcadeButton>
         </div>
+        <div className="hero-explore">
+          <a className="hero-builds-link arcade-focus" href="#builds"><ArrowDownRight size={18} aria-hidden="true" /><span>Explore my builds<small>bots, tools & experiments</small></span><ArrowUpRight size={17} aria-hidden="true" /></a>
+        </div>
       </div>
 
       <div className="hero-console-dock">
+        <div className="hero-workstation-caption" aria-hidden="true"><span>01 / THE WORKSTATION</span><span>interactive · draggable</span></div>
         {/* La boveda solo es alcanzable con el panel colgado: hasta entonces
             vive detras de la ventana, asi que inert la saca del orden de
             tabulacion y bloquea el raton. Sin esto habria botones enfocables

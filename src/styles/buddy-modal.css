@@ -47,7 +47,7 @@
     font-size: 0.62rem;
     font-weight: 900;
     text-transform: uppercase;
-    transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
+    transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease, box-shadow 160ms ease, text-shadow 160ms ease;
   }
 
   .buddy-nav-actions button svg {
@@ -65,150 +65,176 @@
     transform: translateY(-1px);
   }
 
+
+  /* The companion panels share one frame and a restrained surface palette. */
   .buddy-modal-backdrop {
     position: fixed;
     inset: 0;
-    z-index: 120;
+    z-index: 260;
     display: grid;
     place-items: center;
-    overflow: auto;
+    padding: 24px;
     background:
-      linear-gradient(rgba(63, 255, 151, 0.04) 50%, transparent 50%),
-      rgba(2, 6, 4, 0.78);
-    background-size: 100% 4px, auto;
-    padding: clamp(1rem, 3vw, 2rem);
-    backdrop-filter: blur(8px);
+      radial-gradient(circle at 50% 74%, color-mix(in srgb, var(--color-phosphor) 15%, transparent), transparent 46%),
+      radial-gradient(circle at 50% 8%, color-mix(in srgb, var(--color-cyan-arcade) 9%, transparent), transparent 42%),
+      linear-gradient(135deg, rgba(0, 8, 5, .74), rgba(0, 0, 0, .9));
+    backdrop-filter: blur(10px) saturate(.72);
   }
-
+  /* Toda la paleta cuelga de los tokens del sitio, asi que el modal cambia de
+     color con el tema en vez de quedarse verde cuando el resto se vuelve rosa. */
   .buddy-modal {
+    --buddy-cut: 15px;
+    --buddy-surface: color-mix(in srgb, var(--color-phosphor) 5%, #020604);
+    --buddy-raise: color-mix(in srgb, var(--color-phosphor) 8%, #030907);
+    --buddy-sunken: color-mix(in srgb, var(--color-phosphor) 3%, #010504);
+    --buddy-panel: color-mix(in srgb, var(--color-phosphor) 6%, #060f0c);
+    --buddy-hover: color-mix(in srgb, var(--color-phosphor) 10%, #0a1c15);
+    --buddy-border: color-mix(in srgb, var(--color-phosphor) 20%, transparent);
+    --buddy-edge: color-mix(in srgb, var(--color-phosphor) 46%, transparent);
+    --buddy-frame: color-mix(in srgb, var(--color-phosphor) 62%, transparent);
+    --buddy-muted: color-mix(in srgb, var(--color-phosphor-soft) 50%, #7e9188);
+    --buddy-dim: color-mix(in srgb, var(--color-phosphor-soft) 32%, #6b7d74);
+    --buddy-text: color-mix(in srgb, var(--color-phosphor-soft) 26%, #ffffff);
+    --buddy-scroll-thumb: color-mix(in srgb, var(--color-phosphor) 34%, #33463d);
+    /* Escala de neon: el tubo (--buddy-neon) tine el marco y los estados
+       activos, el halo es la difusion ancha y el cian marca lo secundario. */
+    --buddy-neon: color-mix(in srgb, var(--color-phosphor) 55%, transparent);
+    --buddy-halo: color-mix(in srgb, var(--color-phosphor) 20%, transparent);
+    --buddy-neon-cyan: color-mix(in srgb, var(--color-cyan-arcade) 46%, transparent);
     position: relative;
-    width: min(1120px, 100%);
-    max-height: min(780px, calc(100vh - 2rem));
-    overflow: auto;
-    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 62%, transparent);
-    background:
-      linear-gradient(rgba(255, 255, 255, 0.035) 50%, transparent 50%),
-      radial-gradient(circle at 84% 12%, color-mix(in srgb, var(--color-cyan-arcade) 18%, transparent), transparent 30%),
-      linear-gradient(135deg, color-mix(in srgb, var(--color-phosphor) 10%, transparent), rgba(2, 6, 4, 0.96) 42%),
-      var(--color-ink-950);
-    background-size: 100% 4px, auto, auto, auto;
-    box-shadow:
-      inset 0 0 0 1px color-mix(in srgb, #fff 7%, transparent),
-      0 28px 90px rgba(0, 0, 0, 0.68),
-      0 0 42px color-mix(in srgb, var(--color-cyan-arcade) 16%, transparent);
-    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
-  }
-
-  /* max-height, no height: con la altura fija el modal reservaba 780px pasara
-     lo que pasara, asi que un inventario a medio llenar dejaba un cuarto de
-     ventana en blanco bajo la reja. Ahora encoge hasta su contenido y solo
-     scrollea cuando de verdad se pasa. */
-  .buddy-modal.is-journal {
-    display: grid;
-    max-height: min(780px, calc(100vh - 2rem));
-    grid-template-rows: auto minmax(0, 1fr);
-    overflow: hidden;
-  }
-
-  .buddy-modal.is-inventory {
-    display: grid;
-    max-height: min(780px, calc(100dvh - 2rem));
-    grid-template-rows: auto minmax(0, 1fr);
-    overflow: hidden;
-  }
-
-  .buddy-modal-header {
-    position: sticky;
-    top: 0;
-    z-index: 3;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--color-phosphor) 20%, transparent);
-    background: rgba(2, 6, 4, 0.93);
-    padding: 1rem;
-  }
-
-  .buddy-modal-kicker {
-    color: var(--color-cyan-arcade);
-    font-size: 0.58rem;
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-
-  .buddy-modal-header h2 {
-    margin: 0.2rem 0 0;
-    color: #fff;
-    font-family: var(--font-display);
-    font-size: clamp(1.15rem, 2.8vw, 1.65rem);
-    font-weight: 900;
-    letter-spacing: 0;
-  }
-
-  .buddy-modal-actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 0.45rem;
-  }
-
-  .buddy-modal-actions .buddy-modal-close {
-    width: 2.35rem;
-    padding-inline: 0;
-    color: var(--color-glitch);
-  }
-
-  .buddy-modal-inventory {
-    display: grid;
+    flex-direction: column;
+    width: min(1160px, 100%);
+    height: min(850px, calc(100dvh - 48px));
     min-height: 0;
-    grid-template-rows: auto minmax(0, 1fr);
-    gap: 1rem;
     overflow: hidden;
-    padding: 1rem;
+    border: 0;
+    background: transparent;
+    color: var(--buddy-text);
+    font-family: var(--font-mono);
+    isolation: isolate;
+    box-shadow:
+      0 32px 100px #000a,
+      0 0 42px color-mix(in srgb, var(--color-phosphor) 18%, transparent),
+      0 0 120px color-mix(in srgb, var(--color-cyan-arcade) 10%, transparent);
   }
 
-  .buddy-inventory-stage {
-    display: grid;
-    grid-template-columns: minmax(180px, 0.72fr) minmax(0, 1.28fr);
-    align-items: start;
-    gap: 1rem;
-  }
-
-  .buddy-preview-card,
-  .buddy-equip-slot,
-  .buddy-loot-cell,
-  .buddy-modal-quest,
-  .buddy-loot-empty {
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 18%, transparent);
-    background: rgba(2, 6, 4, 0.72);
-  }
-
-  .buddy-preview-card {
-    display: grid;
-    align-self: start;
-    align-content: start;
-    gap: 0.75rem;
-    padding: 0.9rem;
-  }
-
-  .buddy-preview-screen {
-    display: grid;
-    min-height: 176px;
-    place-items: center;
-    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 26%, transparent);
+  /* El relleno vive en un pseudo recortado (chaflan arriba-izquierda y
+     abajo-derecha, como las consolas del sitio) para que el box-shadow exterior
+     siga existiendo: clip-path sobre el propio elemento se lo llevaria por
+     delante. Las lineas de barrido viven aqui porque el overlay global del
+     `body` se queda por debajo del z-index del modal. */
+  .buddy-modal::before {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    content: "";
+    pointer-events: none;
     background:
-      linear-gradient(rgba(255, 255, 255, 0.038) 50%, transparent 50%),
-      radial-gradient(circle, color-mix(in srgb, var(--color-phosphor) 12%, transparent), transparent 62%),
-      var(--color-ink-950);
-    background-size: 100% 4px, auto, auto;
+      linear-gradient(rgba(255, 255, 255, .028) 50%, transparent 50%) 0 0 / 100% 4px,
+      radial-gradient(circle at 14% 4%, color-mix(in srgb, var(--color-phosphor) 13%, transparent), transparent 36%),
+      radial-gradient(circle at 92% 96%, color-mix(in srgb, var(--color-cyan-arcade) 10%, transparent), transparent 40%),
+      var(--buddy-surface);
+    clip-path: polygon(var(--buddy-cut) 0, 100% 0, 100% calc(100% - var(--buddy-cut)), calc(100% - var(--buddy-cut)) 100%, 0 100%, 0 var(--buddy-cut));
   }
 
+  /* El marco se dibuja con tiras de gradiente porque un `border` normal no sabe
+     seguir el chaflan. El riel superior se queda mas brillante: era la firma
+     que ya tenia el modal. */
+  .buddy-modal::after {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    content: "";
+    pointer-events: none;
+    background:
+      linear-gradient(135deg, transparent calc(50% - 1px), var(--buddy-frame) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)) 0 0 / var(--buddy-cut) var(--buddy-cut) no-repeat,
+      linear-gradient(135deg, transparent calc(50% - 1px), var(--buddy-frame) calc(50% - 1px) calc(50% + 1px), transparent calc(50% + 1px)) 100% 100% / var(--buddy-cut) var(--buddy-cut) no-repeat,
+      linear-gradient(var(--color-phosphor), var(--color-phosphor)) var(--buddy-cut) 0 / calc(100% - var(--buddy-cut)) 2px no-repeat,
+      linear-gradient(var(--buddy-frame), var(--buddy-frame)) 100% 0 / 1px calc(100% - var(--buddy-cut)) no-repeat,
+      linear-gradient(var(--buddy-frame), var(--buddy-frame)) 0 100% / calc(100% - var(--buddy-cut)) 1px no-repeat,
+      linear-gradient(var(--buddy-frame), var(--buddy-frame)) 0 var(--buddy-cut) / 1px calc(100% - var(--buddy-cut)) no-repeat;
+    /* Un drop-shadow sobre las tiras convierte el marco en tubo de neon, y de
+       paso enciende los chaflanes (un box-shadow no sabe seguir la diagonal).
+       El halo hacia fuera lo recorta el overflow del modal, asi que el que se
+       ve aqui es el que sangra hacia dentro; el exterior lo pone el box-shadow. */
+    filter:
+      drop-shadow(0 0 5px var(--buddy-neon))
+      drop-shadow(0 0 16px var(--buddy-halo));
+  }
+
+  .buddy-modal > * { position: relative; z-index: 1; }
+  .buddy-modal button { cursor: pointer; }
+  .buddy-modal button:disabled { cursor: not-allowed; }
+  .buddy-modal :is(button, input):focus-visible {
+    outline: 2px solid var(--color-cyan-arcade);
+    outline-offset: 3px;
+  }
+
+  /* El chaflan de esquina es la forma que usa todo el sitio (consola de
+     comentarios, tiles de Discord, attract mode). Aqui se aplica en pequeño a
+     cada ficha; el borde real se corta en la diagonal igual que en esos tiles. */
+  .buddy-chamfer,
+  .buddy-modal-close,
+  .buddy-preview-screen,
+  .buddy-loot-filter,
+  .buddy-loot-cell,
+  .buddy-loot-empty,
+  .buddy-miku-lock-notice,
+  .buddy-quest-summary,
+  .buddy-modal-quest,
+  .buddy-quest-icon,
+  .buddy-journal-search,
+  .buddy-archive-tile,
+  .buddy-journal-meters > div {
+    --tile-cut: 6px;
+    clip-path: polygon(var(--tile-cut) 0, 100% 0, 100% calc(100% - var(--tile-cut)), calc(100% - var(--tile-cut)) 100%, 0 100%, 0 var(--tile-cut));
+  }
+  .buddy-preview-screen, .buddy-quest-summary { --tile-cut: 10px; }
+  .buddy-quest-icon, .buddy-loot-filter { --tile-cut: 5px; }
+  /* El recorte se comeria un anillo de foco exterior, asi que en las fichas
+     recortadas se dibuja por dentro. */
+  .buddy-modal :is(.buddy-modal-close, .buddy-loot-filter, .buddy-loot-cell, .buddy-archive-tile):focus-visible {
+    outline-offset: -4px;
+  }
+  /* Superficies traslucidas: el barrido CRT del pseudo de fondo tiene que
+     atravesar la cabecera y el escenario, no morir debajo de ellos. */
+  .buddy-modal-header { flex: none; padding: 20px 24px 0; border-bottom: 1px solid color-mix(in srgb, var(--color-phosphor) 32%, transparent); box-shadow: inset 0 -16px 24px -22px var(--color-phosphor), 0 1px 14px -6px color-mix(in srgb, var(--color-phosphor) 46%, transparent); background: color-mix(in srgb, var(--buddy-raise) 78%, transparent); clip-path: polygon(var(--buddy-cut) 0, 100% 0, 100% 100%, 0 100%, 0 var(--buddy-cut)); }
+  .buddy-modal-title-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 20px; }
+  /* Los puntos de ventana son la marca de las consolas del sitio. */
+  .buddy-window-dots { display: inline-flex; gap: 5px; margin-right: 10px; translate: 0 -1px; }
+  .buddy-window-dots i { width: 7px; height: 7px; background: currentColor; color: var(--color-phosphor); box-shadow: 0 0 6px currentColor, 0 0 16px color-mix(in srgb, currentColor 60%, transparent); }
+  .buddy-window-dots i:first-child { color: var(--color-glitch); }
+  .buddy-window-dots i:nth-child(2) { color: var(--color-cabinet); }
+  .buddy-modal-kicker { color: var(--color-cyan-arcade); text-shadow: 0 0 12px color-mix(in srgb, var(--color-cyan-arcade) 55%, transparent); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+  .buddy-modal-header h2 { margin: 6px 0; color: var(--buddy-text); text-shadow: 0 0 14px color-mix(in srgb, var(--color-phosphor) 32%, transparent), 0 0 38px color-mix(in srgb, var(--color-cyan-arcade) 18%, transparent); font-family: var(--font-display); font-size: clamp(22px, 3vw, 28px); font-weight: 800; line-height: 1.35; }
+  .buddy-modal-description { margin: 0; color: var(--buddy-muted); font-size: 12px; line-height: 1.6; }
+  .buddy-modal-close { display: grid; flex: none; width: 44px; height: 44px; place-items: center; border: 1px solid var(--buddy-border); background: #ffffff03; color: var(--buddy-muted); transition: color 160ms, background 160ms; }
+  .buddy-modal-close:hover { color: var(--color-glitch); background: color-mix(in srgb, var(--color-glitch) 5%, transparent); }
+  .buddy-modal-actions { display: flex; gap: 8px; margin-top: 14px; }
+  .buddy-modal-actions button { min-height: 48px; gap: 9px; padding: 10px 18px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--buddy-muted); font-size: 12px; text-transform: none; }
+  .buddy-modal-actions button span { min-width: 22px; padding: 2px 5px; background: #ffffff09; color: var(--buddy-muted); font-size: 10px; }
+  .buddy-modal-actions button:is(:hover, :focus-visible, .is-active) { transform: none; border-color: var(--color-phosphor); background: color-mix(in srgb, var(--color-phosphor) 6%, transparent); color: var(--color-phosphor); text-shadow: 0 0 12px color-mix(in srgb, var(--color-phosphor) 55%, transparent); box-shadow: 0 4px 16px -8px var(--color-phosphor), inset 0 -18px 22px -22px var(--color-phosphor); }
+  .buddy-modal-actions button.is-active span { color: var(--color-phosphor); background: color-mix(in srgb, var(--color-phosphor) 12%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-phosphor) 26%, transparent); }
+  .buddy-section-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .buddy-section-heading h3 { margin: 0; font-size: 14px; font-weight: 700; color: var(--buddy-text); text-shadow: 0 0 16px color-mix(in srgb, var(--color-phosphor) 20%, transparent); }
+  .buddy-section-heading h3 b { margin-left: 6px; padding: 2px 6px; color: var(--buddy-muted); background: #ffffff08; font-size: 11px; }
+  .buddy-section-heading > span:last-child { color: var(--buddy-muted); font-size: 10px; }
+  .buddy-section-heading > div > h3 { margin-top: 5px; }
+  .buddy-status-dot::before { display: inline-block; width: 5px; height: 5px; margin-right: 6px; background: var(--color-phosphor); box-shadow: 0 0 6px var(--color-phosphor), 0 0 14px color-mix(in srgb, var(--color-phosphor) 55%, transparent); content: ""; }
+  .buddy-modal-inventory { display: grid; grid-template-columns: 320px minmax(0, 1fr); flex: 1; min-height: 0; }
+  /* La columna izquierda tiene cabeza fija (Buddy) y cuerpo con scroll: antes
+     el sprite se iba hacia arriba justo mientras editabas su equipo. */
+  .buddy-inventory-stage { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; padding: 20px; border-right: 1px solid var(--buddy-border); background: color-mix(in srgb, var(--buddy-sunken) 74%, transparent); }
+  .buddy-preview-card { display: grid; gap: 12px; }
+  .buddy-preview-screen { display: grid; min-height: 154px; place-items: center; border: 1px solid var(--buddy-border); box-shadow: inset 0 0 26px -6px color-mix(in srgb, var(--color-phosphor) 30%, transparent), inset 0 0 0 1px color-mix(in srgb, var(--color-phosphor) 12%, transparent); background: linear-gradient(color-mix(in srgb, var(--color-phosphor) 4%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 4%, transparent) 1px, transparent 1px), radial-gradient(ellipse, color-mix(in srgb, var(--color-phosphor) 12%, transparent), transparent 70%); background-size: 16px 16px, 16px 16px, auto; }
   .buddy-preview-sprite {
     width: 112px;
     height: 108px;
     transform: scaleX(var(--buddy-facing, 1));
-    filter: drop-shadow(0 0 16px color-mix(in srgb, var(--color-phosphor) 26%, transparent));
+    filter:
+      drop-shadow(0 0 8px color-mix(in srgb, var(--color-phosphor) 34%, transparent))
+      drop-shadow(0 0 24px color-mix(in srgb, var(--color-phosphor) 22%, transparent));
   }
 
   /* Pose de loadout completo: la cupula va arriba en flujo normal (el sprite
@@ -238,338 +264,68 @@
     transform-origin: center;
   }
 
-  .buddy-preview-stats {
-    display: flex;
-    justify-content: space-between;
-    gap: 0.6rem;
-    color: var(--color-cabinet);
-    font-size: 0.62rem;
-    font-weight: 900;
-    text-transform: uppercase;
-  }
 
-  .buddy-slot-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.36rem;
-  }
+  .buddy-preview-stats { display: flex; justify-content: space-between; gap: 8px; color: var(--buddy-muted); font-size: 11px; }
+  .buddy-preview-stats b { color: var(--color-cabinet); }
+  .buddy-loadout { display: grid; grid-template-rows: auto minmax(0, 1fr); min-height: 0; margin-top: 20px; }
+  .buddy-loadout .buddy-section-heading h3 { font-size: 12px; }
+  .buddy-slot-scroll { min-height: 0; margin-top: 12px; overflow-y: auto; border-top: 1px solid var(--buddy-border); }
+  .buddy-slot-grid { display: grid; grid-template-columns: 1fr; }
+  .buddy-equip-slot { display: grid; grid-template-columns: 54px minmax(0, 1fr); align-items: center; gap: 8px; min-width: 0; min-height: 43px; padding: 5px 6px 5px 8px; border-bottom: 1px solid #ffffff0b; transition: opacity 140ms ease, background 140ms ease, box-shadow 140ms ease; }
+  .buddy-equip-slot > span { color: var(--buddy-muted); font-size: 9px; letter-spacing: .04em; text-transform: uppercase; }
+  .buddy-equip-slot > div { display: flex; flex-wrap: wrap; gap: 4px; }
+  /* La ranura vacia se dibuja como el hueco que es, no como texto suelto. */
+  .buddy-equip-slot small { display: flex; align-items: center; width: 100%; min-height: 30px; padding: 0 9px; border: 1px dashed #ffffff14; color: var(--buddy-dim); font-size: 10px; }
+  .buddy-equip-slot:focus-within, .buddy-equip-slot:hover { background: #ffffff03; }
 
-  .buddy-equip-slot {
-    display: grid;
-    min-height: 46px;
-    align-content: space-between;
-    gap: 0.2rem;
-    padding: 0.34rem 0.44rem;
-    transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
-  }
-
-  .buddy-equip-slot:hover,
-  .buddy-equip-slot:focus-within {
-    border-color: color-mix(in srgb, var(--color-cyan-arcade) 62%, transparent);
-    box-shadow: inset 0 0 18px color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent);
-  }
-
-  .buddy-equip-slot.is-miku-locked {
-    border-color: color-mix(in srgb, var(--color-phosphor-soft) 9%, transparent);
-    background: color-mix(in srgb, var(--color-ink-950) 90%, #101516);
-    filter: grayscale(1);
-    opacity: 0.3;
-  }
-
-  .buddy-equip-slot.is-miku-locked:hover,
-  .buddy-equip-slot.is-miku-locked:focus-within {
-    border-color: color-mix(in srgb, var(--color-phosphor-soft) 9%, transparent);
-    box-shadow: none;
-  }
-
-  .buddy-equip-slot > span {
-    color: var(--color-cyan-arcade);
-    font-size: 0.58rem;
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-
-  /* Un slot vacio solo decia "empty" en gris. Dibujado como zocalo de rayas se
-     lee como un hueco donde cabe algo, que es lo que un slot vacio es. */
-  .buddy-equip-slot small {
-    display: grid;
-    min-height: 1.55rem;
-    place-items: center;
-    border: 1px dashed color-mix(in srgb, var(--color-phosphor-soft) 16%, transparent);
-    background: repeating-linear-gradient(
-      -45deg,
-      color-mix(in srgb, var(--color-phosphor-soft) 4%, transparent) 0 5px,
-      transparent 5px 11px
-    );
-    color: color-mix(in srgb, var(--color-phosphor-soft) 40%, transparent);
-    font-size: 0.5rem;
-    font-weight: 900;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-  }
-
-  /* Los slots ocupados se marcan en el borde para poder barrer la columna de un
-     vistazo y ver que hay puesto sin leer cada etiqueta. */
-  .buddy-equip-slot.is-filled {
-    border-color: color-mix(in srgb, var(--color-phosphor) 34%, transparent);
-    box-shadow: inset 2px 0 0 color-mix(in srgb, var(--color-phosphor) 58%, transparent);
-  }
-
-  .buddy-equipped-chip {
-    display: inline-flex;
-    max-width: 100%;
-    align-items: center;
-    gap: 0.28rem;
-    border: 1px solid color-mix(in srgb, currentColor 36%, transparent);
-    background: color-mix(in srgb, currentColor 10%, transparent);
-    padding: 0.25rem 0.3rem;
-    color: var(--color-phosphor);
-    font-size: 0.52rem;
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-
-  .buddy-equipped-chip.is-miku-locked,
-  .buddy-equipped-chip.is-miku-locked:hover,
-  .buddy-equipped-chip.is-miku-locked:focus-visible {
-    cursor: not-allowed;
-    filter: grayscale(1);
-    opacity: 0.42;
-  }
-
-  .buddy-gear-icon {
-    width: 1.22rem;
-    height: 1.22rem;
-    flex: 0 0 auto;
-    overflow: visible;
-    color: currentColor;
-    filter: drop-shadow(0 0 4px color-mix(in srgb, currentColor 55%, transparent));
-  }
-
-  .buddy-equipped-chip .buddy-gear-icon {
-    width: 0.9rem;
-    height: 0.9rem;
-  }
-
-  /* Panel de botin: chips de filtro por slot + zona con scroll propio, asi
-     el modal deja de crecer con cada item nuevo. */
-  .buddy-loot-panel {
-    display: grid;
-    min-height: 0;
-    grid-template-rows: auto minmax(0, 1fr);
-    gap: 0.6rem;
-  }
-
-  .buddy-loot-panel:has(.buddy-miku-lock-notice) {
-    grid-template-rows: auto auto minmax(0, 1fr);
-  }
-
-  .buddy-miku-lock-notice {
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
-    border: 1px solid color-mix(in srgb, #48ded0 38%, transparent);
-    background: color-mix(in srgb, #48ded0 7%, var(--color-ink-950));
-    padding: 0.48rem 0.62rem;
-    color: color-mix(in srgb, var(--color-phosphor-soft) 78%, transparent);
-    font-size: 0.58rem;
-    font-weight: 800;
-    text-transform: uppercase;
-  }
-
-  .buddy-miku-lock-notice span {
-    color: #48ded0;
-    font-weight: 900;
-  }
-
-  .buddy-loot-filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-
-  .buddy-loot-filter {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.34rem;
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 22%, transparent);
-    background: color-mix(in srgb, var(--color-ink-950) 86%, transparent);
-    padding: 0.34rem 0.55rem;
-    color: color-mix(in srgb, var(--color-phosphor-soft) 72%, transparent);
-    font-size: 0.56rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
-  }
-
-  .buddy-loot-filter b {
-    color: var(--color-cabinet);
-  }
-
-  .buddy-loot-filter:hover,
-  .buddy-loot-filter:focus-visible {
-    border-color: color-mix(in srgb, var(--color-phosphor) 62%, transparent);
-    color: #fff;
-  }
-
-  .buddy-loot-filter.is-active {
-    border-color: var(--color-phosphor);
-    background: color-mix(in srgb, var(--color-phosphor) 14%, transparent);
-    color: #fff;
-  }
-
-  .buddy-loot-scroll {
-    min-height: 0;
-    max-height: none;
-    padding: 2px 0.5rem 2px 1px;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    scrollbar-color: color-mix(in srgb, var(--color-phosphor) 72%, transparent) rgba(2, 6, 4, 0.62);
-    scrollbar-gutter: stable;
-    scrollbar-width: thin;
-  }
-
-  .buddy-loot-scroll::-webkit-scrollbar {
-    width: 7px;
-  }
-
-  .buddy-loot-scroll::-webkit-scrollbar-track {
-    border-left: 1px solid color-mix(in srgb, var(--color-phosphor) 12%, transparent);
-    background: rgba(2, 6, 4, 0.62);
-  }
-
-  .buddy-loot-scroll::-webkit-scrollbar-thumb {
-    border: 2px solid transparent;
-    background: linear-gradient(var(--color-cyan-arcade), var(--color-phosphor)) padding-box;
-    box-shadow: 0 0 6px color-mix(in srgb, var(--color-phosphor) 38%, transparent);
-  }
-
-  .buddy-loot-scroll::-webkit-scrollbar-button {
-    display: none;
-    width: 0;
-    height: 0;
-  }
-
-  .buddy-loot-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
-    gap: 0.5rem;
-  }
-
-  .buddy-loot-cell {
-    position: relative;
-    display: grid;
-    min-height: 68px;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    gap: 0.3rem 0.55rem;
-    padding: 0.55rem;
-    color: var(--color-phosphor);
-    text-align: left;
-    transition: border-color 160ms ease, background 160ms ease, opacity 160ms ease, transform 160ms ease;
-  }
-
-  .buddy-loot-cell.is-equipped {
-    border-color: color-mix(in srgb, var(--color-phosphor) 76%, transparent);
-    background:
-      linear-gradient(100deg, color-mix(in srgb, var(--color-phosphor) 15%, transparent), transparent 58%),
-      rgba(2, 10, 7, 0.9);
-    box-shadow:
-      inset 3px 0 0 var(--color-phosphor),
-      inset 0 0 22px color-mix(in srgb, var(--color-phosphor) 8%, transparent),
-      0 0 10px color-mix(in srgb, var(--color-phosphor) 12%, transparent);
-    padding-right: 2.05rem;
-    animation: buddy-equipped-lock-in 360ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .buddy-loot-cell.is-equipped::before {
-    position: absolute;
-    left: 4px;
-    top: 5px;
-    width: 3px;
-    height: 3px;
-    background: #fff;
-    box-shadow:
-      0 0 7px var(--color-phosphor),
-      0 52px 0 color-mix(in srgb, var(--color-phosphor) 78%, transparent);
-    content: "";
-    pointer-events: none;
-  }
-
-  .buddy-loot-equipped {
-    position: absolute;
-    right: 0.28rem;
-    top: 0.28rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.1rem;
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 58%, transparent);
-    background: color-mix(in srgb, var(--color-phosphor) 14%, var(--color-ink-950));
-    padding: 0.12rem 0.16rem;
-    color: var(--color-phosphor);
-    font-family: var(--font-pixel);
-    font-size: 0.27rem;
-    font-weight: 400;
-    letter-spacing: 0.04em;
-    line-height: 1;
-    text-transform: uppercase;
-    text-shadow: 0 0 6px color-mix(in srgb, var(--color-phosphor) 48%, transparent);
-  }
-
-  .buddy-loot-equipped svg {
-    flex: 0 0 auto;
-    stroke-width: 3;
-  }
-
-  .buddy-loot-cell:hover,
-  .buddy-loot-cell:focus-visible {
-    border-color: var(--color-phosphor);
-    background: color-mix(in srgb, var(--color-phosphor) 9%, transparent);
-    transform: translateY(-1px);
-  }
-
-  .buddy-loot-cell.is-stashed {
-    opacity: 0.58;
-  }
-
-  .buddy-loot-cell.is-miku-locked,
-  .buddy-loot-cell.is-miku-locked:hover,
-  .buddy-loot-cell.is-miku-locked:focus-visible {
-    border-color: color-mix(in srgb, var(--color-phosphor-soft) 9%, transparent);
-    background: color-mix(in srgb, var(--color-ink-950) 92%, #101516);
-    color: color-mix(in srgb, var(--color-phosphor-soft) 32%, transparent);
-    cursor: not-allowed;
-    filter: grayscale(1);
-    opacity: 0.28;
-    transform: none;
-  }
-
-  .buddy-loot-cell.is-miku-locked {
-    animation: none;
-  }
-
-  .buddy-loot-cell.is-miku-locked::before {
-    display: none;
-  }
-
-  .buddy-loot-cell span {
-    overflow: hidden;
-    color: #fff;
-    font-size: 0.62rem;
-    font-weight: 900;
-    text-overflow: ellipsis;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-
-  .buddy-loot-cell small {
-    grid-column: 2;
-    color: color-mix(in srgb, var(--color-phosphor-soft) 62%, transparent);
-    font-size: 0.54rem;
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-
+  /* El drag-and-drop existia pero era invisible. Ahora el slot destino se
+     enciende y el resto se aparta, y basta rozar una pieza para ver a donde va. */
+  .buddy-equip-slot.is-hinted { background: color-mix(in srgb, var(--color-phosphor) 4%, transparent); box-shadow: inset 3px 0 0 -1px var(--color-phosphor), inset 28px 0 26px -26px var(--color-phosphor); }
+  .buddy-slot-grid[data-dragging] .buddy-equip-slot { opacity: .3; }
+  .buddy-slot-grid[data-dragging] .buddy-equip-slot.is-droppable { opacity: 1; background: color-mix(in srgb, var(--color-phosphor) 5%, transparent); box-shadow: inset 0 0 0 1px var(--color-phosphor), inset 0 0 20px -8px var(--color-phosphor), 0 0 16px -6px color-mix(in srgb, var(--color-phosphor) 60%, transparent); }
+  .buddy-slot-grid[data-dragging] .buddy-equip-slot.is-droppable :is(span, small) { border-color: var(--color-phosphor); color: var(--color-phosphor); }
+  .buddy-slot-grid[data-dragging] .buddy-equip-slot.is-drop-over { background: color-mix(in srgb, var(--color-phosphor) 13%, transparent); }
+  .buddy-equipped-chip { display: inline-flex; align-items: center; gap: 7px; width: 100%; min-height: 32px; padding: 0; background: transparent; border: 0; color: var(--color-phosphor); text-shadow: 0 0 12px color-mix(in srgb, currentColor 32%, transparent); text-align: left; transition: text-shadow 160ms ease; }
+  .buddy-equipped-chip:is(:hover, :focus-visible) { text-shadow: 0 0 10px color-mix(in srgb, currentColor 62%, transparent), 0 0 22px color-mix(in srgb, currentColor 30%, transparent); }
+  .buddy-equipped-chip b { font-size: 11px; font-weight: 600; text-transform: capitalize; white-space: nowrap; }
+  .buddy-equipped-chip > svg:last-child { flex: none; margin-left: auto; opacity: .65; }
+  .buddy-gear-icon { flex: none; width: 28px; height: 28px; overflow: visible; color: currentColor; filter: drop-shadow(0 0 4px color-mix(in srgb, currentColor 55%, transparent)) drop-shadow(0 0 12px color-mix(in srgb, currentColor 28%, transparent)); transition: filter 160ms ease; }
+  .buddy-equipped-chip .buddy-gear-icon { width: 16px; height: 16px; }
+  .buddy-loot-panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; gap: 16px; padding: 24px; }
+  .buddy-loot-panel > .buddy-section-heading, .buddy-loot-filters, .buddy-miku-lock-notice { flex: none; }
+  .buddy-loot-filters { display: flex; flex-wrap: wrap; gap: 6px; }
+  .buddy-loot-filter { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 36px; padding: 7px 10px; border: 1px solid var(--buddy-border); background: transparent; color: var(--buddy-muted); font-size: 11px; text-transform: capitalize; transition: background 160ms, border-color 160ms, box-shadow 160ms, text-shadow 160ms, color 160ms; }
+  .buddy-loot-filter b { font-size: 10px; font-weight: 500; opacity: .8; }
+  .buddy-loot-filter:hover { border-color: var(--buddy-edge); color: #fff; box-shadow: inset 0 0 14px -8px var(--color-phosphor); }
+  .buddy-loot-filter.is-active { border-color: var(--color-phosphor); background: color-mix(in srgb, var(--color-phosphor) 10%, transparent); color: var(--color-phosphor); text-shadow: 0 0 10px color-mix(in srgb, var(--color-phosphor) 60%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-phosphor) 34%, transparent), inset 0 0 16px -6px var(--color-phosphor); }
+  .buddy-loot-scroll { min-height: 0; overflow-y: auto; padding: 3px; margin: -3px; scroll-padding-block: 34px; }
+  /* Columnas elasticas: la reja rellena el ancho que haya en vez de estirar
+     tres celdas hasta que el nombre nada en hueco vacio. */
+  .buddy-loot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: 8px; }
+  .buddy-loot-cell { display: grid; grid-template-columns: 28px minmax(0, 1fr) 22px; align-items: center; gap: 2px 11px; padding: 11px 12px; border: 1px solid var(--buddy-border); background: var(--buddy-panel); color: var(--color-phosphor); text-align: left; transition: border-color 160ms, background 160ms, box-shadow 160ms, transform 160ms; }
+  .buddy-loot-cell[draggable="true"] { cursor: grab; }
+  .buddy-loot-cell[draggable="true"]:active { cursor: grabbing; }
+  .buddy-loot-cell > .buddy-gear-icon { grid-row: 1 / 3; }
+  .buddy-loot-cell > span { grid-column: 2; color: var(--buddy-text); font-size: 12px; font-weight: 700; line-height: 1.4; text-transform: capitalize; overflow-wrap: anywhere; }
+  .buddy-loot-cell > small { grid-column: 2; color: var(--buddy-muted); font-size: 10px; line-height: 1.5; overflow-wrap: anywhere; }
+  /* El rimlight usa currentColor, asi que cada pieza se enciende en su propio
+     color de rareza en vez de tenirlo todo de verde. */
+  .buddy-loot-cell.is-equipped { border-color: color-mix(in srgb, currentColor 46%, transparent); background: linear-gradient(135deg, color-mix(in srgb, currentColor 9%, transparent), transparent 62%), var(--buddy-panel); box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 12%, transparent), inset 0 0 22px -10px currentColor; }
+  .buddy-loot-cell:hover { border-color: var(--color-cyan-arcade); background: var(--buddy-hover); transform: translateY(-1px); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-cyan-arcade) 22%, transparent), inset 0 0 26px -10px var(--color-cyan-arcade); }
+  .buddy-loot-cell:hover .buddy-gear-icon { filter: drop-shadow(0 0 5px currentColor) drop-shadow(0 0 16px color-mix(in srgb, currentColor 45%, transparent)); }
+  /* La casilla dice el estado sin gastar una linea de texto por pieza: vacia
+     es "guardado", marcada es "puesto". Lo lee `aria-pressed` para el resto. */
+  .buddy-loot-state { display: grid; grid-column: 3; grid-row: 1 / 3; width: 18px; height: 18px; place-items: center; border: 1px solid #ffffff1f; color: var(--buddy-muted); transition: border-color 160ms, background 160ms, color 160ms; }
+  .buddy-loot-state.is-on { border-color: var(--color-phosphor); background: color-mix(in srgb, var(--color-phosphor) 14%, transparent); color: var(--color-phosphor); box-shadow: 0 0 10px -2px color-mix(in srgb, var(--color-phosphor) 70%, transparent), inset 0 0 8px -3px var(--color-phosphor); }
+  .buddy-loot-cell:hover .buddy-loot-state { border-color: #ffffff40; }
+  .buddy-loot-cell.is-miku-locked, .buddy-equip-slot.is-miku-locked { opacity: .55; filter: grayscale(1); }
+  .buddy-miku-lock-notice { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 2px 8px; padding: 10px 12px; border: 1px solid #48ded044; background: #48ded00a; color: var(--buddy-muted); font-size: 11px; line-height: 1.55; }
+  .buddy-miku-lock-notice > svg { grid-row: 1 / 3; color: #48ded0; }
+  .buddy-miku-lock-notice > span { color: #48ded0; text-transform: uppercase; font-weight: 700; letter-spacing: .06em; font-size: 10px; }
+  .buddy-loot-empty { grid-column: 1 / -1; display: grid; justify-items: center; gap: 12px; padding: 48px 24px; border: 1px dashed var(--buddy-border); color: var(--buddy-muted); text-align: center; }
+  .buddy-loot-empty > svg { color: var(--color-cyan-arcade); }
+  .buddy-loot-empty strong { font-size: 14px; color: var(--buddy-text); }
+  .buddy-loot-empty p { max-width: 360px; margin: 0; font-size: 12px; line-height: 1.7; }
   .buddy-equipped-chip.is-wrench,
   .buddy-equipped-chip.is-headset,
   .buddy-equipped-chip.is-sunglasses,
@@ -603,321 +359,236 @@
     color: var(--color-cabinet);
   }
 
-  /* La boya de la suerte es redonda, como corresponde */
-  .buddy-loot-empty {
-    padding: 1rem;
-    color: color-mix(in srgb, var(--color-phosphor-soft) 55%, transparent);
-    font-size: 0.68rem;
-    font-weight: 900;
-    text-transform: uppercase;
-  }
 
-  .buddy-modal-quests {
-    display: grid;
-    gap: 0.65rem;
-    padding: 1rem;
-  }
+  /* Quests emphasize what remains, with a quieter record of completed work. */
+  .buddy-modal-quests { min-height: 0; overflow-y: auto; padding: 24px 28px; }
+  .buddy-quest-summary { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 20px; padding: 22px; border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 34%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-cyan-arcade) 10%, transparent), inset 0 0 42px -18px var(--color-cyan-arcade); background: linear-gradient(110deg, color-mix(in srgb, var(--color-cyan-arcade) 4%, transparent), color-mix(in srgb, var(--color-phosphor) 2%, transparent)); }
+  .buddy-quest-summary > svg { color: var(--color-cabinet); }
+  .buddy-quest-summary h3 { margin: 6px 0; font-size: 16px; font-weight: 700; }
+  .buddy-quest-summary p { margin: 0; max-width: 580px; color: var(--buddy-muted); font-size: 12px; line-height: 1.7; }
+  .buddy-quest-total { display: grid; gap: 5px; text-align: right; }
+  .buddy-quest-total strong { color: var(--color-phosphor); text-shadow: 0 0 18px color-mix(in srgb, var(--color-phosphor) 55%, transparent); font-family: var(--font-display); font-size: 32px; white-space: nowrap; }
+  .buddy-quest-total small { color: var(--buddy-muted); font-size: 18px; }
+  .buddy-quest-total > span { color: var(--buddy-muted); font-size: 10px; }
+  .buddy-quest-summary-meter { grid-column: 1 / -1; height: 5px; background: #0006; }
+  .buddy-quest-summary-meter i, .buddy-quest-bar b, .buddy-journal-meter b { display: block; height: 100%; background: linear-gradient(90deg, var(--color-cyan-arcade), var(--color-phosphor)); box-shadow: 0 0 10px color-mix(in srgb, var(--color-phosphor) 60%, transparent); }
+  .buddy-quest-group { margin-top: 24px; }
+  .buddy-quest-group > .buddy-section-heading { margin-bottom: 12px; }
+  .buddy-quest-list { display: grid; gap: 8px; }
+  .buddy-quest-group.is-completed .buddy-quest-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .buddy-modal-quest { display: grid; grid-template-columns: minmax(0, 1fr) 160px; gap: 20px; align-items: center; padding: 18px; border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 29%, transparent); background: color-mix(in srgb, var(--color-cyan-arcade) 2%, transparent); }
+  .buddy-quest-info { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .buddy-quest-icon { display: grid; width: 38px; height: 38px; flex: none; place-items: center; border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 32%, transparent); color: var(--color-cyan-arcade); background: color-mix(in srgb, var(--color-cyan-arcade) 6%, transparent); box-shadow: inset 0 0 16px -6px var(--color-cyan-arcade); }
+  .buddy-quest-icon > svg { filter: drop-shadow(0 0 6px color-mix(in srgb, currentColor 60%, transparent)); }
+  .buddy-quest-info strong { font-size: 13px; }
+  .buddy-quest-info p { margin: 4px 0 0; color: var(--buddy-muted); font-size: 12px; line-height: 1.65; }
+  .buddy-quest-track > div { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 9px; font-size: 10px; color: var(--color-cyan-arcade); }
+  .buddy-quest-track b { color: var(--buddy-text); font-size: 11px; white-space: nowrap; }
+  .buddy-quest-bar { display: block; height: 4px; background: #ffffff10; }
+  .buddy-modal-quest.is-complete { border-color: var(--buddy-border); background: #ffffff02; }
+  .buddy-modal-quest.is-complete { grid-template-columns: minmax(0, 1fr) 104px; padding: 14px; gap: 12px; }
+  .is-complete .buddy-quest-icon { color: var(--color-phosphor); border-color: color-mix(in srgb, var(--color-phosphor) 19%, transparent); background: color-mix(in srgb, var(--color-phosphor) 2%, transparent); }
+  .is-complete .buddy-quest-track > div { color: var(--color-phosphor); }
+  .is-complete .buddy-quest-bar b { background: color-mix(in srgb, var(--color-phosphor) 50%, transparent); }
 
-  .buddy-modal-quest {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.82rem;
-  }
+  /* El archivo es un catalogo: ficha grande a la izquierda, reja hojeable a la
+     derecha. Antes cada especie sin escanear gastaba una tarjeta entera para
+     repetir la misma frase veinte veces y enterrar los hallazgos de verdad. */
+  .buddy-journal { display: grid; grid-template-columns: 320px minmax(0, 1fr); flex: 1; min-height: 0; }
+  .buddy-journal-stage { display: grid; align-content: start; gap: 20px; min-height: 0; overflow-y: auto; padding: 20px; border-right: 1px solid var(--buddy-border); background: color-mix(in srgb, var(--buddy-sunken) 74%, transparent); }
 
-  .buddy-modal-quest.is-complete {
-    border-color: color-mix(in srgb, var(--color-phosphor) 56%, transparent);
-    background: color-mix(in srgb, var(--color-phosphor) 8%, transparent);
-  }
-
-  .buddy-modal-quest > div {
-    display: flex;
-    min-width: 0;
-    align-items: flex-start;
-    gap: 0.65rem;
-  }
-
-  .buddy-modal-quest > div > span {
-    display: grid;
-    width: 1.75rem;
-    aspect-ratio: 1;
-    flex: 0 0 auto;
-    place-items: center;
-    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 42%, transparent);
-    color: var(--color-cyan-arcade);
-  }
-
-  .buddy-modal-quest strong,
-  .buddy-modal-quest b {
-    color: #fff;
-    font-size: 0.72rem;
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-
-  .buddy-modal-quest p {
-    margin: 0.22rem 0 0;
-    color: color-mix(in srgb, var(--color-phosphor-soft) 68%, transparent);
-    font-size: 0.62rem;
-    font-weight: 800;
-    line-height: 1.55;
-  }
-
-  /* Lectura del conjunto sobre la lista. */
-  .buddy-quest-summary {
-    display: grid;
-    gap: 0.5rem;
-    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 26%, transparent);
-    background:
-      linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 7%, transparent), transparent 62%),
-      rgba(2, 6, 4, 0.6);
-    padding: 0.7rem 0.82rem;
-  }
-
-  .buddy-quest-summary > div:first-child {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.75rem;
-  }
-
-  .buddy-quest-summary span {
-    color: var(--color-cyan-arcade);
-    font-family: var(--font-pixel);
-    font-size: 0.4rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-  }
-
-  .buddy-quest-summary strong {
-    color: #fff;
-    font-family: var(--font-mono);
-    font-size: 0.72rem;
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-
-  .buddy-quest-summary-meter,
-  .buddy-quest-bar {
-    display: block;
-    overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 22%, transparent);
-    background: rgba(2, 6, 4, 0.82);
-  }
-
-  .buddy-quest-summary-meter {
-    height: 6px;
-  }
-
-  .buddy-quest-summary-meter i,
-  .buddy-quest-bar b {
-    display: block;
-    height: 100%;
-    background: linear-gradient(90deg, var(--color-cyan-arcade), var(--color-phosphor));
-    box-shadow: 0 0 10px color-mix(in srgb, var(--color-phosphor) 38%, transparent);
-    transition: width 420ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  /* El contador vivia solo al final de una franja vacia; la barra ocupa ese
-     hueco y dice cuanto falta sin tener que dividir mentalmente. */
-  .buddy-modal-quest > .buddy-quest-track {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    width: clamp(7.5rem, 17vw, 11rem);
-    align-items: center;
-    gap: 0.6rem;
-  }
-
-  .buddy-quest-bar {
-    height: 5px;
-  }
-
-  .buddy-modal-quest.is-complete .buddy-quest-bar {
-    border-color: color-mix(in srgb, var(--color-phosphor) 52%, transparent);
-  }
-
-  .buddy-modal-quest.is-complete .buddy-quest-bar b {
-    background: var(--color-phosphor);
-  }
-
-  @keyframes buddy-equipped-lock-in {
-    0% {
-      filter: brightness(1.75);
-      transform: scale(0.975);
-    }
-
-    62% {
-      filter: brightness(1.15);
-      transform: scale(1.012);
-    }
-
-    100% {
-      filter: none;
-      transform: none;
-    }
-  }
-
-  /* Catch journal --------------------------------------------------------- */
-  .buddy-journal { display: grid; gap: 1rem; padding: 1rem; }
-  .buddy-modal.is-journal .buddy-journal { min-height: 0; grid-template-rows: auto minmax(0,1fr) auto; overflow: hidden; }
-  .buddy-journal-summary { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: .6rem; }
-  .buddy-journal-summary > div { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .5rem .65rem; border: 1px solid color-mix(in srgb,var(--color-cyan-arcade) 28%,transparent); background: rgba(2,6,4,.72); padding: .75rem; color: var(--color-cyan-arcade); }
-  .buddy-journal-summary span { color: color-mix(in srgb,var(--color-phosphor-soft) 68%,transparent); font-size: .56rem; font-weight: 900; text-transform: uppercase; }
-  .buddy-journal-summary strong { color: #fff; font-size: .78rem; }
-  .buddy-journal-section { display: grid; gap: .65rem; }
-  .buddy-journal-section.is-fish-catalog { min-height: 0; grid-template-rows: auto minmax(0,1fr); }
-  .buddy-journal-section > header { display: flex; align-items: end; justify-content: space-between; gap: 1rem; border-bottom: 1px solid color-mix(in srgb,var(--color-phosphor) 18%,transparent); padding-bottom: .5rem; }
-  .buddy-journal-section > header span { color: var(--color-cyan-arcade); font-size: .52rem; font-weight: 900; letter-spacing: .14em; }
-  .buddy-journal-section h3 { margin: 0; color: #fff; font-family: var(--font-display); font-size: .86rem; text-transform: uppercase; }
-  .buddy-journal-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(250px,1fr)); grid-auto-rows: max-content; gap: .55rem; }
-  .is-fish-catalog .buddy-journal-grid { min-height: 0; align-content: start; overflow-x: hidden; overflow-y: auto; padding-right: .45rem; overscroll-behavior: contain; scrollbar-color: var(--color-cyan-arcade) rgba(2,6,4,.82); scrollbar-width: thin; }
-  .is-fish-catalog .buddy-journal-grid::-webkit-scrollbar { width: 8px; }
-  .is-fish-catalog .buddy-journal-grid::-webkit-scrollbar-track { border-left: 1px solid color-mix(in srgb,var(--color-cyan-arcade) 12%,transparent); background: rgba(2,6,4,.82); }
-  .is-fish-catalog .buddy-journal-grid::-webkit-scrollbar-thumb { border: 2px solid rgba(2,6,4,.82); background: var(--color-cyan-arcade); box-shadow: 0 0 7px color-mix(in srgb,var(--color-cyan-arcade) 42%,transparent); }
-  .buddy-journal-card { position: relative; display: grid; min-height: 128px; box-sizing: border-box; grid-template-columns: 72px minmax(0,1fr) auto; align-items: start; gap: .65rem; overflow: hidden; border: 1px solid color-mix(in srgb,var(--color-phosphor) 18%,transparent); background: rgba(2,6,4,.74); padding: .7rem; }
-  .buddy-journal-card > div:nth-child(2) { min-width: 0; align-self: start; }
-  .buddy-journal-card.is-discovered { border-color: color-mix(in srgb,var(--journal-color,var(--color-phosphor)) 42%,transparent); }
-  .buddy-journal-card.rarity-rare, .buddy-journal-card.rarity-legendary, .buddy-journal-card.rarity-mythic, .buddy-journal-card.rarity-treasure { background: radial-gradient(circle at 12% 50%,color-mix(in srgb,var(--color-cabinet) 12%,transparent),transparent 40%),rgba(2,6,4,.78); }
-  .buddy-journal-card.rarity-mythic.is-discovered { box-shadow: inset 0 0 18px color-mix(in srgb,var(--journal-color) 14%,transparent),0 0 12px color-mix(in srgb,var(--journal-color) 12%,transparent); }
-  .buddy-journal-card > b { align-self: start; color: var(--color-cabinet); font-size: .58rem; }
-  .buddy-journal-card span { color: var(--color-cyan-arcade); font-size: .48rem; font-weight: 900; letter-spacing: .08em; text-transform: uppercase; }
-  .buddy-journal-card strong { display: block; margin-top: .16rem; overflow-wrap: anywhere; color: #fff; font-size: .68rem; line-height: 1.35; text-transform: uppercase; }
-  .buddy-journal-card p { margin: .3rem 0 0; overflow-wrap: anywhere; color: color-mix(in srgb,var(--color-phosphor-soft) 58%,transparent); font-size: .55rem; font-weight: 700; line-height: 1.5; }
-  .buddy-journal-silhouette { position: relative; display: grid; width: 68px; height: 50px; align-self: center; place-items: center; color: var(--journal-color); filter: drop-shadow(0 0 7px color-mix(in srgb,var(--journal-color) 55%,transparent)); }
   .buddy-collectible-icon { display: block; width: 68px; height: 50px; overflow: visible; image-rendering: pixelated; }
-  .buddy-journal-card.is-unknown .buddy-journal-silhouette { color: #17372a; filter: none; }
+  .buddy-journal-search { display: flex; align-items: center; gap: 8px; flex: 1; max-width: 260px; min-width: 180px; min-height: 38px; padding: 0 10px; border: 1px solid var(--buddy-border); color: var(--buddy-muted); background: #0002; }
+  .buddy-journal-search input { width: 100%; min-width: 0; padding: 8px 0; background: transparent; color: var(--buddy-text); font-size: 11px; }
+  .buddy-journal-search input::placeholder { color: var(--buddy-muted); }
+  /* El anillo del input se saldria del recorte de la etiqueta: se dibuja por dentro. */
+  .buddy-journal-search:focus-within { border-color: var(--color-cyan-arcade); outline: 2px solid var(--color-cyan-arcade); outline-offset: -4px; }
+  .buddy-journal-search input:focus-visible { outline: none; }
 
-  /* Sin el parrafo repetido la casilla vacia no necesita tanto alto, y bajando
-     su presencia las especies ya escaneadas destacan en la reja en vez de
-     perderse entre veintiseis copias del mismo texto. */
-  .buddy-journal-card.is-unknown {
-    min-height: 104px;
-    border-color: color-mix(in srgb, var(--color-phosphor) 10%, transparent);
-    background: rgba(2, 6, 4, 0.5);
-    opacity: 0.58;
+  .buddy-specimen { display: grid; gap: 12px; }
+  .buddy-specimen-count { color: var(--color-cabinet); font-size: 11px; font-weight: 700; }
+  .buddy-specimen .buddy-preview-screen { min-height: 148px; background: radial-gradient(ellipse at 50% 62%, color-mix(in srgb, var(--journal-color, var(--color-phosphor)) 16%, transparent), transparent 72%), linear-gradient(color-mix(in srgb, var(--color-phosphor) 2%, transparent) 1px, transparent 1px), linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 2%, transparent) 1px, transparent 1px); background-size: auto, 16px 16px, 16px 16px; }
+  .buddy-specimen-art { width: 132px; height: 98px; filter: drop-shadow(0 0 6px color-mix(in srgb, var(--journal-color, var(--color-phosphor)) 50%, transparent)) drop-shadow(0 0 22px color-mix(in srgb, var(--journal-color, var(--color-phosphor)) 28%, transparent)); }
+  .buddy-specimen-file strong { display: block; margin-top: 6px; color: var(--buddy-text); font-size: 15px; line-height: 1.4; }
+  .buddy-specimen-file p { margin: 8px 0 0; color: var(--buddy-muted); font-size: 11px; line-height: 1.75; }
+  .buddy-specimen-tag { color: var(--journal-color, var(--color-cyan-arcade)); text-shadow: 0 0 12px color-mix(in srgb, currentColor 50%, transparent); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+  .buddy-specimen-tag.rarity-unscanned { color: var(--buddy-dim); }
+  .buddy-specimen-tag:is(.rarity-legendary, .rarity-mythic, .rarity-treasure) { color: var(--color-cabinet); }
+
+  .buddy-journal-progress { display: grid; gap: 12px; }
+  .buddy-journal-progress .buddy-section-heading h3 { font-size: 12px; }
+  .buddy-journal-meters { display: grid; gap: 8px; }
+  .buddy-journal-meters > div { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 11px 12px 13px; border: 1px solid var(--buddy-border); background: var(--buddy-panel); }
+  .buddy-journal-meters svg { color: var(--color-cyan-arcade); }
+  .buddy-journal-meters span { color: var(--buddy-muted); font-size: 10px; letter-spacing: .04em; text-transform: uppercase; }
+  .buddy-journal-meters > div > b { color: var(--color-phosphor); text-shadow: 0 0 12px color-mix(in srgb, var(--color-phosphor) 50%, transparent); font-family: var(--font-display); font-size: 15px; }
+  .buddy-journal-meters small { color: var(--buddy-muted); font-family: var(--font-mono); font-size: 11px; }
+  .buddy-journal-meter { position: absolute; inset: auto 0 0; height: 3px; background: #ffffff06; }
+  .buddy-journal-meter b { display: block; height: 100%; background: linear-gradient(90deg, var(--color-cyan-arcade), var(--color-phosphor)); }
+  .buddy-journal-tallies { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .buddy-journal-tallies span { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 3px 7px; color: var(--buddy-muted); font-size: 9px; letter-spacing: .04em; text-transform: uppercase; }
+  .buddy-journal-tallies svg { grid-row: 1 / 3; color: var(--buddy-dim); }
+  .buddy-journal-tallies b { grid-column: 2; color: var(--buddy-text); font-family: var(--font-display); font-size: 13px; }
+
+  .buddy-archive-panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; gap: 14px; padding: 24px; }
+  .buddy-archive-panel > .buddy-section-heading, .buddy-journal-toolbar { flex: none; }
+  .buddy-journal-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; }
+  /* El conmutador de catalogo se separa de los filtros de estado con un carril,
+     porque son dos preguntas distintas sobre la misma reja. */
+  .buddy-loot-filters.is-dataset { padding-right: 14px; border-right: 1px solid var(--buddy-border); }
+  .buddy-journal-toolbar .buddy-journal-search { margin-left: auto; }
+  .buddy-archive-scroll { min-height: 0; overflow-y: auto; padding: 3px; margin: -3px; scroll-padding-block: 34px; }
+  .buddy-archive-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 8px; }
+  .buddy-archive-tile { position: relative; display: grid; align-content: start; justify-items: center; gap: 7px; min-height: 92px; padding: 12px 8px 10px; border: 1px solid var(--buddy-border); background: var(--buddy-panel); text-align: center; transition: border-color 160ms, background 160ms, box-shadow 160ms, transform 160ms; }
+  .buddy-archive-tile .buddy-collectible-icon { width: 54px; height: 40px; }
+  .buddy-archive-tile > span { color: var(--buddy-text); font-size: 10px; font-weight: 700; line-height: 1.4; overflow-wrap: anywhere; }
+  .buddy-archive-tile > b { position: absolute; top: 6px; right: 8px; color: var(--color-cabinet); font-size: 9px; font-weight: 700; }
+  .buddy-archive-tile.is-unknown { border-style: dashed; background: transparent; }
+  .buddy-archive-tile.is-unknown .buddy-collectible-icon { opacity: .6; }
+  .buddy-archive-tile.is-unknown > span { color: var(--buddy-dim); letter-spacing: .1em; }
+  .buddy-archive-tile.is-found:is(.rarity-rare, .rarity-legendary, .rarity-mythic, .rarity-treasure) { border-color: color-mix(in srgb, var(--journal-color) 40%, var(--buddy-border)); }
+  .buddy-archive-tile:hover { border-color: var(--color-cyan-arcade); background: var(--buddy-hover); transform: translateY(-1px); box-shadow: inset 0 0 26px -10px var(--color-cyan-arcade); }
+  .buddy-archive-tile.is-selected { border-color: var(--journal-color, var(--color-phosphor)); background: color-mix(in srgb, var(--journal-color, var(--color-phosphor)) 12%, var(--buddy-panel)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--journal-color, var(--color-phosphor)) 22%, transparent), inset 0 0 30px -10px var(--journal-color, var(--color-phosphor)); }
+  .buddy-archive-tile.is-selected.is-unknown { border-style: solid; border-color: var(--buddy-edge); background: color-mix(in srgb, var(--color-phosphor) 6%, transparent); }
+
+  /* `scrollbar-color` se hereda, y `html` lo trae puesto desde index.css: hay
+     que devolverlo a `auto` o Chrome sigue ignorando los pseudo-elementos. */
+  .buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory { scrollbar-gutter: stable; overscroll-behavior: contain; scrollbar-color: auto; }
+
+  /* Las vistas llegan hasta el borde del modal, asi que su barra de scroll
+     cruzaba el chaflan de abajo-derecha y lo dejaba con una esquina cuadrada.
+     Recortarlas con la misma forma corta tambien la barra. */
+  .buddy-modal-inventory, .buddy-modal-quests, .buddy-journal {
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--buddy-cut)), calc(100% - var(--buddy-cut)) 100%, 0 100%);
   }
 
-  .buddy-journal-hint {
-    flex: none;
-    margin: 0;
-    color: color-mix(in srgb, var(--color-phosphor-soft) 46%, transparent);
-    font-size: 0.52rem;
-    font-weight: 800;
-    text-align: right;
-  }
-
-  .buddy-journal-meter {
-    grid-column: 1 / -1;
-    display: block;
-    height: 4px;
-    overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 24%, transparent);
-    background: rgba(2, 6, 4, 0.82);
-  }
-
-  .buddy-journal-meter b {
-    display: block;
-    height: 100%;
-    background: linear-gradient(90deg, var(--color-cyan-arcade), var(--color-phosphor));
-    box-shadow: 0 0 9px color-mix(in srgb, var(--color-phosphor) 34%, transparent);
-    transition: width 420ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .buddy-find-ledger { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: .45rem; }
-  .buddy-find-ledger article { display: grid; grid-template-columns: 52px 1fr; gap: .28rem .55rem; align-items: center; border: 1px solid color-mix(in srgb,var(--color-phosphor) 18%,transparent); background: rgba(2,6,4,.7); padding: .5rem .6rem; }
-  .buddy-find-ledger .buddy-collectible-icon { grid-row: 1 / 3; width: 48px; height: 36px; filter: drop-shadow(0 0 6px color-mix(in srgb,var(--find-color,var(--color-phosphor)) 45%,transparent)); }
-  .buddy-find-ledger strong { color: #fff; font-size: .58rem; text-transform: uppercase; }
-  .buddy-find-ledger span { color: var(--color-cabinet); font-size: .52rem; font-weight: 900; text-transform: uppercase; }
-  .buddy-find-ledger .is-unknown { opacity: .42; filter: grayscale(1); }
-  .buddy-bug-total { justify-self: end; margin: 0; border: 1px solid color-mix(in srgb,var(--color-danger-arcade) 35%,transparent); padding: .45rem .6rem; color: color-mix(in srgb,var(--color-phosphor-soft) 68%,transparent); font-size: .56rem; font-weight: 900; }
-  .buddy-bug-total b { color: var(--color-danger-arcade); }
-
-  /* The desktop loadout is dense enough to fit the current collection, so the
-     catalog keeps wheel/keyboard overflow support without reserving a bright
-     scrollbar rail. Short viewports retain the visible fallback below. */
-  @media (min-width: 761px) and (min-height: 700px) {
-    .buddy-loot-scroll {
-      padding-right: 1px;
-      scrollbar-gutter: auto;
-      scrollbar-width: none;
-    }
-
-    .buddy-loot-scroll::-webkit-scrollbar {
-      display: none;
-      width: 0;
-      height: 0;
-    }
-  }
-
-  @media (max-width: 760px) {
-    .buddy-modal-header,
-    .buddy-inventory-stage {
-      grid-template-columns: 1fr;
-    }
-
-    .buddy-modal-header {
-      display: grid;
-    }
-
-    .buddy-modal-actions {
-      justify-content: stretch;
-    }
-
-    .buddy-modal-actions button:not(.buddy-modal-close) {
-      flex: 1 1 0;
-    }
-
-    .buddy-slot-grid {
-      grid-template-columns: 1fr;
-    }
-
-    .buddy-modal.is-inventory .buddy-modal-inventory {
-      grid-template-rows: auto auto;
-      overflow-x: hidden;
-      overflow-y: auto;
-      scrollbar-color: color-mix(in srgb, var(--color-phosphor) 72%, transparent) rgba(2, 6, 4, 0.62);
+  /* Chrome ignora `scrollbar-width`/`scrollbar-color` en cuanto se definen, y a
+     cambio esas propiedades no saben separar la barra del marco. Aqui manda el
+     pseudo-elemento (borde transparente + background-clip para meter el pulgar
+     hacia dentro) y las propiedades estandar quedan solo para Firefox. */
+  @supports not selector(::-webkit-scrollbar) {
+    .buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory {
       scrollbar-width: thin;
+      scrollbar-color: var(--buddy-scroll-thumb) transparent;
     }
-
-    /* Aqui el cuerpo entero pasa a filas auto y scrollea el, asi que las dos
-       cajas que en escritorio son la fila 1fr tienen que dejar de poder
-       encogerse. Con el min-height:0 que necesitan alli, en auto colapsaban a
-       cero y la reja de botin quedaba fuera del panel: 909px de items dentro de
-       una caja de 4px. */
-    .buddy-modal.is-inventory .buddy-loot-scroll {
-      min-height: auto;
-      max-height: none;
-      overflow: visible;
-      padding-right: 0;
-      scrollbar-gutter: auto;
-    }
-
-    .buddy-modal.is-inventory .buddy-loot-panel {
-      min-height: auto;
-      grid-template-rows: auto auto;
-    }
-
-    .buddy-modal.is-inventory .buddy-loot-panel:has(.buddy-miku-lock-notice) {
-      grid-template-rows: auto auto auto;
-    }
-
-    .buddy-journal-summary { grid-template-columns: 1fr; }
-    .buddy-journal-grid { grid-template-columns: 1fr; }
-    .buddy-journal-card { grid-template-columns: 62px minmax(0,1fr) auto; }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .buddy-nav-actions button,
-    .buddy-modal-actions button,
-    .buddy-loot-cell,
-    .buddy-loot-filter,
-    .buddy-equipped-chip.is-gold-antenna i,
-    .buddy-loot-cell.is-gold-antenna i {
-      transition: none;
-    }
+  .buddy-modal :is(.buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory)::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  .buddy-modal :is(.buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory)::-webkit-scrollbar-track,
+  .buddy-modal :is(.buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory)::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  .buddy-modal :is(.buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory)::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--color-phosphor) 52%, transparent), color-mix(in srgb, var(--color-cyan-arcade) 44%, transparent));
+    background-clip: padding-box;
+  }
+  .buddy-modal :is(.buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory)::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, var(--color-phosphor), color-mix(in srgb, var(--color-cyan-arcade) 82%, transparent));
+    background-clip: padding-box;
+    box-shadow: 0 0 12px color-mix(in srgb, var(--color-phosphor) 34%, transparent);
+  }
+  .buddy-modal :is(.buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory)::-webkit-scrollbar-button {
+    display: none;
+  }
 
-    .buddy-loot-cell.is-equipped {
-      animation: none;
+  /* Una fila cortada a la mitad parece un fallo de pintado; el degradado en el
+     borde que aun esconde contenido la convierte en "sigue hacia abajo". */
+  .buddy-modal [data-edge="top"] { mask-image: linear-gradient(180deg, transparent 0, #000 28px); }
+  .buddy-modal [data-edge="bottom"] { mask-image: linear-gradient(180deg, #000 calc(100% - 28px), transparent 100%); }
+  .buddy-modal [data-edge="both"] { mask-image: linear-gradient(180deg, transparent 0, #000 28px, #000 calc(100% - 28px), transparent 100%); }
+
+  @media (max-width: 1000px) {
+    .buddy-quest-group.is-completed .buddy-quest-list { grid-template-columns: 1fr; }
+    .buddy-modal-inventory { grid-template-columns: 300px minmax(0, 1fr); }
+    .buddy-inventory-stage { padding: 16px; }
+    .buddy-loot-panel { padding: 20px; }
+    .buddy-journal { grid-template-columns: 300px minmax(0, 1fr); }
+    .buddy-journal-stage { padding: 16px; }
+    .buddy-archive-panel { padding: 20px; }
+  }
+  @media (max-width: 700px) {
+    .buddy-modal-backdrop { padding: 10px; }
+    .buddy-modal { height: calc(100dvh - 20px); }
+    .buddy-modal-header { padding: 18px 16px 0; }
+    .buddy-modal-header h2 { font-size: 21px; }
+    .buddy-modal-description { font-size: 11px; }
+    .buddy-modal-title-row { gap: 10px; }
+    .buddy-modal-actions { gap: 0; margin-top: 14px; }
+    .buddy-modal-actions button { flex: 1; gap: 6px; padding-inline: 8px; font-size: 11px; }
+    .buddy-modal-actions button span { min-width: 18px; }
+    .buddy-modal-inventory { display: block; overflow-y: auto; }
+    .buddy-inventory-stage, .buddy-loadout { display: block; }
+    .buddy-inventory-stage { border-right: 0; border-bottom: 1px solid var(--buddy-border); }
+    .buddy-slot-scroll { overflow: visible; }
+    .buddy-preview-screen { min-height: 170px; }
+    .buddy-equip-slot { grid-template-columns: 68px minmax(0, 1fr); }
+    .buddy-equipped-chip { min-height: 44px; }
+    .buddy-loot-panel { padding: 20px 16px; }
+    .buddy-loot-scroll { overflow: visible; }
+    .buddy-loot-filter { min-height: 44px; }
+    .buddy-loot-grid { grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); }
+    .buddy-loot-cell { min-height: 60px; padding: 10px; gap: 2px 9px; }
+    .buddy-modal-quests { padding: 20px 16px; }
+    .buddy-quest-summary { grid-template-columns: 1fr auto; padding: 16px; gap: 16px; }
+    .buddy-quest-summary > svg { display: none; }
+    .buddy-quest-summary h3 { font-size: 14px; }
+    .buddy-quest-summary p { font-size: 11px; }
+    .buddy-quest-total strong { font-size: 24px; }
+    .buddy-quest-total small { font-size: 14px; }
+    .buddy-modal-quest, .buddy-modal-quest.is-complete { grid-template-columns: 1fr; gap: 14px; padding: 16px; }
+    .buddy-quest-track { padding-left: 52px; }
+    .buddy-quest-info strong { font-size: 12px; }
+    .buddy-quest-info p { font-size: 11px; }
+    .buddy-quest-group > .buddy-section-heading > span { display: none; }
+    /* En movil todo cae en una columna, y con la ficha arriba del todo tocar una
+       casilla actualizaba un panel que ya estaba fuera de pantalla. `display:
+       contents` deshace el contenedor de la columna izquierda para poder
+       reordenar: ficha compacta pegada arriba, reja, y el progreso al final. */
+    .buddy-journal { display: flex; flex-direction: column; overflow-y: auto; }
+    .buddy-journal-stage { display: contents; }
+    /* Sin esto los hijos se encogen para caber en la altura del modal en vez de
+       desbordar, y el panel del archivo se queda en nada. */
+    .buddy-specimen, .buddy-archive-panel, .buddy-journal-progress { flex: none; }
+    .buddy-specimen {
+      order: 1;
+      position: sticky;
+      top: 0;
+      z-index: 3;
+      grid-template-columns: 84px minmax(0, 1fr);
+      align-content: center;
+      gap: 2px 14px;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--buddy-border);
+      background: var(--buddy-raise);
     }
+    .buddy-specimen > .buddy-section-heading { grid-column: 2; grid-row: 1; }
+    .buddy-specimen > .buddy-preview-screen { grid-column: 1; grid-row: 1 / 3; min-height: 68px; }
+    .buddy-specimen-art { width: 68px; height: 50px; }
+    .buddy-specimen-file { grid-column: 2; grid-row: 2; }
+    .buddy-specimen-file strong { margin-top: 2px; font-size: 13px; }
+    .buddy-specimen-file p { display: -webkit-box; overflow: hidden; margin-top: 4px; font-size: 10px; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .buddy-archive-panel { order: 2; padding: 20px 16px; }
+    .buddy-journal-progress { order: 3; padding: 0 16px 20px; }
+    .buddy-archive-scroll { overflow: visible; }
+    .buddy-archive-grid { grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); }
+    .buddy-journal-search { max-width: none; min-height: 44px; }
+    .buddy-journal-toolbar .buddy-journal-search { margin-left: 0; }
+    .buddy-loot-filters.is-dataset { padding-right: 0; border-right: 0; }
+  }
+  @media (max-width: 380px) {
+    .buddy-modal-actions button { padding-inline: 5px; }
+    .buddy-modal-actions button span { display: none; }
+    .buddy-loot-grid { grid-template-columns: 1fr; }
+    .buddy-loot-cell { grid-template-columns: 24px minmax(0, 1fr) 22px; }
+    .buddy-loot-cell > .buddy-gear-icon { width: 24px; height: 24px; }
+    .buddy-quest-summary { grid-template-columns: 1fr; }
+    .buddy-quest-total { text-align: left; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .buddy-modal *, .buddy-nav-actions button { animation: none !important; transition: none !important; }
   }
 }

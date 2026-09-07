@@ -1,0 +1,132 @@
+@layer components {
+  .game-shelf-titlebar {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: -0.2rem 0 1.25rem;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 24%, transparent);
+    background: linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 9%, transparent), rgba(2, 6, 4, 0.8));
+    padding: 0.85rem 1rem;
+  }
+  .game-shelf-lights { display: flex; flex-shrink: 0; gap: 5px; }
+  .game-shelf-lights i { width: 6px; height: 6px; background: var(--color-danger-arcade); }
+  .game-shelf-lights i:nth-child(2) { background: var(--color-cabinet); }
+  .game-shelf-lights i:nth-child(3) { background: var(--color-phosphor); }
+  .game-shelf-titlebar code { min-width: 0; color: var(--color-phosphor-soft); font-size: 0.72rem; font-weight: 800; overflow-wrap: anywhere; }
+  .game-shelf-titlebar code > span { margin-left: 0.35rem; color: var(--color-phosphor); animation: shelf-caret 1.2s steps(2, jump-none) infinite; }
+  .game-shelf-titlebar-mode { display: flex; align-items: center; gap: 0.5rem; margin-left: auto; color: var(--color-cyan-arcade); font-size: 0.6rem; font-weight: 800; text-transform: uppercase; }
+  .game-shelf-toolbar { align-items: center; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 1.5rem; }
+  .game-shelf-intro > p { color: #f4fff9; font-size: 0.95rem; font-weight: 800; line-height: 1.5; }
+  .game-shelf-intro > span { display: block; margin-top: 0.35rem; color: var(--color-phosphor-soft); font-size: 0.73rem; line-height: 1.6; opacity: 0.78; }
+  .game-shelf-stats { width: 100%; }
+  .game-shelf-stats span { min-height: 2.75rem; padding: 0.5rem; font-size: 0.63rem; white-space: normal; }
+  .game-shelf-upgrade { min-height: 4.6rem; padding: 0.85rem; gap: 0.35rem 0.7rem; }
+  .game-shelf-upgrade > span { color: var(--color-phosphor-soft); font-size: 0.6rem; opacity: 0.8; }
+  .game-shelf-upgrade strong { flex-wrap: wrap; white-space: normal; font-size: 0.75rem; row-gap: 0.3rem; }
+  .game-shelf-upgrade:nth-child(1) { border-color: color-mix(in srgb, var(--color-cabinet) 35%, transparent); box-shadow: inset 3px 0 0 color-mix(in srgb, var(--color-cabinet) 60%, transparent); }
+  .game-shelf-upgrade:nth-child(2) { border-color: color-mix(in srgb, var(--color-glitch) 30%, transparent); box-shadow: inset 3px 0 0 color-mix(in srgb, var(--color-glitch) 50%, transparent); }
+  .game-shelf-upgrade:nth-child(3) { border-color: color-mix(in srgb, var(--color-phosphor) 30%, transparent); box-shadow: inset 3px 0 0 color-mix(in srgb, var(--color-phosphor) 50%, transparent); }
+  .game-shelf-rank-chips i { font-size: 0.52rem; padding: 0.2rem 0.35rem; }
+
+  .game-shelf .game-card-meta {
+    align-content: start;
+    gap: 0.4rem;
+    padding: 1rem;
+    background:
+      linear-gradient(115deg, color-mix(in srgb, var(--game-accent) 8%, transparent), transparent 65%),
+      repeating-linear-gradient(0deg, transparent 0 3px, rgba(255, 255, 255, 0.018) 3px 4px),
+      rgba(2, 6, 4, 0.95);
+    transition: border-color 220ms ease, box-shadow 220ms ease;
+  }
+  .game-card-meta::after { top: 0.9rem; height: 12px; opacity: 0.5; }
+  .game-shelf .game-card-meta > strong { max-width: 100%; min-height: 2.65em; font-family: var(--font-display); font-size: clamp(0.95rem, 1.3vw, 1.15rem); line-height: 1.3; text-wrap: balance; }
+  .game-shelf .game-card-kicker { padding-right: 3rem; font-size: 0.6rem; opacity: 0.85; }
+  .game-card-meta > em { font-size: 0.65rem; letter-spacing: 0.03em; }
+  .game-card-badges { min-height: 2.8rem; align-content: start; align-items: start; gap: 0.35rem; }
+  .game-card-badges span { font-size: 0.56rem; padding: 0.25rem 0.35rem; line-height: 1.2; }
+  .game-card-playtime { margin: 0.25rem 0 0.4rem; border-top: 1px solid color-mix(in srgb, var(--game-accent) 20%, transparent); padding-top: 0.75rem; gap: 0.55rem; }
+  .game-card-hours-head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.35rem; }
+  .game-card-hours-head > span { font-size: 0.56rem; font-weight: 700; }
+  .game-card-hours-head > span:last-child { color: var(--color-phosphor-soft); opacity: 0.8; }
+  .game-card-hours-value { display: flex; align-items: baseline; gap: 0.5rem; color: var(--game-accent); font-family: var(--font-display); font-size: 1.85rem; font-weight: 900; line-height: 1.1; font-variant-numeric: tabular-nums; text-shadow: 0 0 18px color-mix(in srgb, var(--game-accent) 18%, transparent); }
+  .game-card-hours-value > span { font-family: var(--font-mono); font-size: 0.6rem; }
+  .game-card-playtime > i { position: relative; height: 9px; overflow: hidden; }
+  .game-card-playtime > i::before {
+    position: absolute;
+    inset: 0;
+    content: "";
+    background: repeating-linear-gradient(90deg, transparent 0 11px, rgba(2, 6, 4, 0.7) 11px 14px);
+  }
+  .game-card-playtime > i::after {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: var(--game-hours-progress);
+    content: "";
+    background: linear-gradient(90deg, transparent 0 35%, rgba(255, 255, 255, 0.5) 50%, transparent 65%);
+    background-size: 250% 100%;
+    animation: shelf-meter-scan 4s ease-in-out infinite;
+  }
+  .game-card:nth-child(2) .game-card-playtime > i::after { animation-delay: -1.3s; }
+  .game-card:nth-child(3) .game-card-playtime > i::after { animation-delay: -2.6s; }
+  .game-card-id { margin-top: 0.1rem; }
+  .game-card-id > b { font-size: 0.55rem; padding: 0.15rem 0.35rem; }
+  .game-card-review-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    min-height: 44px;
+    margin-top: 0.5rem;
+    border: 1px solid color-mix(in srgb, var(--game-accent) 35%, transparent);
+    background: color-mix(in srgb, var(--game-accent) 9%, #020604);
+    padding: 0.65rem 0.75rem;
+    color: var(--game-accent);
+    font-size: 0.68rem;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 200ms ease, color 200ms ease, box-shadow 200ms ease;
+  }
+  .game-card-review-toggle svg:last-child { margin-left: auto; transition: transform 200ms ease; }
+  .game-card-review-toggle:hover,
+  .game-card-review-toggle:focus-visible { background: var(--game-accent); color: #020604; box-shadow: 0 0 20px color-mix(in srgb, var(--game-accent) 25%, transparent); }
+  .game-card-review-toggle:hover svg:last-child { transform: translate(2px, -2px); }
+  .game-card-review-toggle:focus-visible { outline: 2px solid var(--game-accent); outline-offset: -4px; }
+  .game-card:hover .game-card-meta,
+  .game-card:focus-within .game-card-meta { border-color: color-mix(in srgb, var(--game-accent) 65%, transparent); box-shadow: inset 3px 0 0 var(--game-accent), inset 0 2px 0 var(--game-accent), 0 0 25px color-mix(in srgb, var(--game-accent) 8%, transparent); }
+  .game-card-review-kicker { display: flex; align-items: center; gap: 0.6rem; }
+  .game-card-review-copy:focus-visible { outline: 1px solid var(--game-accent); outline-offset: 3px; }
+  .game-shelf-readout { margin-top: 1rem; }
+}
+
+@keyframes shelf-caret { to { opacity: 0; } }
+@keyframes shelf-meter-scan {
+  0%, 15% { background-position: 150% 0; }
+  85%, 100% { background-position: -150% 0; }
+}
+
+@media (max-width: 1100px) {
+  .game-shelf .game-shelf-toolbar { grid-template-columns: 1fr; gap: 0.85rem; }
+  .game-shelf .game-shelf-stats { width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .game-shelf-titlebar { gap: 0.5rem; padding: 0.75rem; flex-wrap: wrap; }
+  .game-shelf-titlebar code { font-size: 0.63rem; }
+  .game-shelf-titlebar-mode { width: 100%; margin-left: 0; }
+  .game-shelf .game-shelf-stats { gap: 0.35rem; }
+  .game-shelf .game-shelf-stats span { font-size: 0.57rem; padding: 0.45rem 0.3rem; flex-wrap: wrap; }
+  .game-shelf .game-card-meta > strong { min-height: 0; font-size: 1.05rem; line-height: 1.4; }
+  .game-shelf .game-card-badges { min-height: 0; margin-bottom: 0.4rem; }
+  .game-shelf .game-card-meta { padding: 0.9rem; }
+  .game-shelf .game-card-hours-value { font-size: 1.8rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .game-shelf-titlebar code > span,
+  .game-card-playtime > i::after { animation: none; }
+}
+
+@media (min-width: 1400px) {
+  .game-shelf .game-card-meta > strong,
+  .game-shelf .game-card-badges { min-height: 0; }
+}

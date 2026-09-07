@@ -32,7 +32,7 @@ function lineTone(line) {
   return "";
 }
 
-export function TerminalDialog({ open, onOpenChange, onCommand, log }) {
+export function TerminalDialog({ open, onOpenChange, onCommand, log, theme }) {
   const [value, setValue] = useState("");
   const [history, setHistory] = useState([]);
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -167,12 +167,17 @@ export function TerminalDialog({ open, onOpenChange, onCommand, log }) {
 
   const outputLines = log ? log.split("\n") : ["Output buffer cleared. Terminal ready."];
 
+  // El dialogo se porta a <body>, fuera de .app-shell: sin espejar la clase del
+  // tema aqui los tokens se resuelven contra los del :root y la consola se queda
+  // verde mientras el resto del sitio se vuelve rosa.
+  const glitch = theme === "glitch" ? "theme-glitch" : "";
+
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="terminal-overlay" />
+        <Dialog.Overlay className={`terminal-overlay ${glitch}`} />
         <Dialog.Content
-          className={`terminal-window ${position ? "is-positioned" : ""} ${isDragging ? "is-dragging" : ""}`}
+          className={`terminal-window ${glitch} ${position ? "is-positioned" : ""} ${isDragging ? "is-dragging" : ""}`}
           aria-describedby="terminal-description"
           ref={windowRef}
           style={position ? { left: position.x, top: position.y, right: "auto", bottom: "auto", margin: 0, transform: "none" } : undefined}

@@ -737,6 +737,7 @@ function CabinetApp() {
         mode={buddyModal}
         onClose={() => setBuddyModal(null)}
         onModeChange={setBuddyModal}
+        theme={theme}
       />
 
       <LaunchOverlay active={isLaunching} closing={launchClosing} complete={launchComplete} phase={launchPhase} />
@@ -746,6 +747,7 @@ function CabinetApp() {
         onCommand={runCommand}
         onOpenChange={setTerminalOpen}
         open={terminalOpen}
+        theme={theme}
       />
     </div>
   );

@@ -205,8 +205,8 @@
 
   .now-card-copy h3 {
     white-space: normal;
-    font-size: clamp(1.35rem, 7vw, 1.8rem) !important;
-    line-height: 1.12;
+    font-size: clamp(1.1rem, 4.5vw, 1.4rem) !important;
+    line-height: 1.25;
     overflow-wrap: anywhere;
   }
 
