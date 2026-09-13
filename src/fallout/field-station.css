@@ -1,0 +1,123 @@
+/* Enamel housing, phosphor instruments, and paper field records. */
+.fallout-page { --fo-bg: #101a1d; --fo-panel: #111c20; --fo-metal: #254757; --fo-line: #42554b; --fo-green: #b9d7a0; --fo-bright: #d5f6af; --fo-muted: #a0afa5; --fo-amber: #e6be63; --fo-cream: #ece3c6; background: radial-gradient(ellipse at 30% 0, #263c42, transparent 65%), repeating-linear-gradient(115deg, #ffffff02 0 1px, transparent 1px 7px), #11181c; scrollbar-color: #768e88 #10181c; }
+.fo-interface { width: min(1440px, 100%); }
+.fo-site-bar { min-height: 74px; }
+.fo-brand-mark { border-color: #8aa197; }
+.fo-brand-caption { border-color: #405b5e; }
+.fo-machine { position: relative; padding: 0 19px; border: 1px solid #54747a; border-radius: 12px 12px 24px 24px; background: repeating-linear-gradient(174deg, transparent 0 140px, #dbead40a 140px 141px, transparent 141px 222px), linear-gradient(110deg, #315969, #254553 30%, #203c49 75%, #294953); box-shadow: inset 0 2px #7b9998, inset 5px 0 12px #95b6b214, inset -7px 0 9px #0004, 0 28px 75px #0008; }
+.fo-machine-plate { min-height: 54px; color: #dbcf9e; font-size: 9px; letter-spacing: 1.1px; }
+.fo-machine-vents { background: repeating-linear-gradient(90deg, #101e26 0 3px, transparent 3px 8px); border-color: #152832 #52727c; }
+.fo-screen { border-radius: 5px; background: #182428; box-shadow: 0 0 0 1px #6f8276, 0 0 0 5px #142831; }
+.has-crt .fo-screen::after { display: none; }
+.fo-hero { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, .72fr); gap: 45px; padding: 32px 36px 34px; border-bottom: 5px solid #cead58; background: repeating-linear-gradient(175deg, #eef0cd00 0 98px, #eef0cd06 99px 100px, #eef0cd00 101px 191px), linear-gradient(125deg, #315c73, #25475a 65%, #203f50); }
+.fo-hero::before { width: 100%; background: linear-gradient(90deg, transparent 73%, #e1bd6210 73% 74%, transparent 74% 76%, #e1bd6206 76% 94%, transparent 94%); }
+.fo-hero-copy { position: relative; }
+.fo-station-brand { display: flex; align-items: center; gap: 18px; margin-bottom: 28px; }
+.fo-station-brand img { width: 120px; height: auto; }
+.fo-station-brand > span { border-left: 1px solid #8a9e9950; padding-left: 18px; font-size: 9px; line-height: 1.7; letter-spacing: 1.1px; color: #d6dcc7; }
+.fo-hero .fo-kicker { font-size: 8px; letter-spacing: 1.5px; margin-bottom: 10px; color: #f1cc71; }
+.fo-hero h1 { color: #f0e6c9; font-size: clamp(40px, 4.8vw, 70px); line-height: 1; letter-spacing: .8px; text-shadow: 2px 3px #102f4060; }
+.fo-hero h1 > span { margin-top: 0; font: inherit; line-height: 1; letter-spacing: inherit; color: #edc366; }
+.fo-hero p { color: #ced9d1; font-size: 12px; margin-top: 18px; }
+.fo-hero-meta { margin-top: 23px; color: #bdcbc0; font-size: 8px; letter-spacing: 1px; }
+.fo-hero-meta > span:first-child { padding: 3px 8px; border: 1px solid #d3bb7770; color: #eed59c; transform: rotate(-2deg); }
+.fo-field-monitor { position: relative; padding: 13px; align-self: center; background: linear-gradient(120deg, #424b3c, #30372d); border: 1px solid #777e5e; border-radius: 12px; box-shadow: inset 0 2px 1px #b1b18c40, 3px 6px 0 #122f39, 8px 12px 20px #071f3540; transform: rotate(1deg); }
+.fo-monitor-label { display: flex; justify-content: space-between; gap: 8px; padding: 0 2px 10px; color: #d5d0b0; font-size: 7px; letter-spacing: 1px; }
+.fo-hero-diagram { border: 5px solid #161f17; border-radius: 36px / 24px; overflow: hidden; background: radial-gradient(ellipse, #223a1b, #07180d 90%); box-shadow: 0 0 0 1px #7a80654d, inset 0 0 35px #000b; color: #b4da85; padding: 16px 15px 13px; }
+.fo-vault-art { width: min(245px, 100%); margin: 4px auto 10px; }
+.fo-monitor-corner, .fo-monitor-caption { position: relative; z-index: 1; display: block; text-align: center; font-size: 6px; letter-spacing: 1px; color: #adc68d; }
+.has-crt .fo-hero-diagram::after, .has-crt .fo-nuclear::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit; background: repeating-linear-gradient(0deg, transparent 0 3px, #0002 3px 4px); opacity: .5; }
+.fo-monitor-controls { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 3px 0; }
+.fo-monitor-controls .fo-status { font-size: 7px; letter-spacing: .5px; }
+.fo-monitor-knobs { display: flex; gap: 9px; }
+.fo-monitor-knobs i { width: 21px; height: 21px; border: 2px solid #171e18; border-radius: 50%; background: linear-gradient(90deg, #60624b 43%, #d0bd7d 44% 52%, #454f3c 53%); box-shadow: 1px 2px 2px #0006; }
+.fo-system-bar { background: #102116; border-color: #39503a; min-height: 40px; color: #b5d498; font-size: 9px; }
+.fo-nav { padding: 11px 24px; gap: 8px; background: #1d3039; border-bottom-color: #536267; }
+.fo-nav a { min-height: 42px; justify-content: space-between; padding: 0 15px; border: 1px solid #718383; border-bottom: 3px solid #0a1d27; background: linear-gradient(#365564, #294854); color: #e3ddc2; box-shadow: inset 0 1px #acb8a525; font-size: 11px; font-weight: 700; }
+.fo-nav a + a { border-left: 1px solid #718383; }
+.fo-nav a span { color: #e4be62; }
+.fo-nav a:hover { color: #fff0bd; background: #416272; border-top-color: #e4be62; }
+.fo-content { padding: 27px; gap: 28px; background: repeating-linear-gradient(0deg, #ffffff02 0 1px, transparent 1px 4px), #182327; }
+.fo-nuclear { border: 1px solid #64724d; border-radius: 9px; overflow: hidden; background: radial-gradient(ellipse at 45% 35%, #192b18, #0d190f 85%); box-shadow: 0 0 0 4px #0a1214, 0 0 0 5px #414f4c, inset 0 0 45px #0005; }
+.fo-nuclear > .fo-panel-heading { background: #bed28f; color: #172610; border-bottom: 3px double #526c39; }
+.fo-nuclear .fo-panel-heading b { border-color: #5f7547; }
+.fo-nuclear .fo-panel-heading .fo-status { color: #24351b; }
+.fo-section-title { padding-top: 20px; }
+.fo-section-title h2 { font-family: Impact, "Arial Narrow", sans-serif; font-weight: 500; font-size: 31px; text-transform: uppercase; letter-spacing: .8px; color: #d5eeb1; }
+.fo-section-title .fo-kicker { color: #9fb687; font-size: 8px; }
+.fo-radiation { color: #c5ce8e; }
+.fo-silo { background: #09160ca6; border: 1px solid #4c653c; box-shadow: inset 0 0 18px #0003; }
+.fo-silo-top { color: #9cba84; background: #a4c4740d; border-bottom-style: dashed; }
+.fo-silo h3 { color: #bcd995; font-size: 20px; letter-spacing: 2px; }
+.fo-code { color: #defab5; padding: 4px 0; text-shadow: 0 0 10px #a7dc7440; }
+.fo-code-reset { border-left-color: #d0b66b; }
+.fo-nuclear .fo-feed-note { border-top: 1px solid #425838; }
+.fo-dossiers { grid-template-columns: 1.08fr 1fr; gap: 28px; }
+.fo-merchant { --fo-muted: #655d43; --fo-amber: #7e4326; --fo-cream: #333727; border: 1px solid #c3b78d; background: repeating-linear-gradient(0deg, transparent 0 31px, #65664a0a 32px 33px), #d7cba5; color: #343d2e; box-shadow: 3px 4px 0 #070f1450; }
+.fo-merchant::before { content: ""; position: absolute; width: 80px; height: 18px; background: #b4aa8270; top: -9px; left: calc(50% - 40px); transform: rotate(-3deg); z-index: 2; border-inline: 1px dashed #e8dfb870; }
+.fo-merchant .fo-panel-heading { background: #c3b587; color: #3d4633; border-color: #9c926c; }
+.fo-merchant .fo-panel-heading b { border-color: #8b805e; }
+.fo-merchant .fo-panel-heading .fo-status { color: #664626; }
+.fo-portrait { background: #ede4c9; border-color: #817958; padding: 7px; box-shadow: 2px 3px 7px #3d3c2b30; color: #50503a; }
+.fo-minerva-photo { filter: saturate(.85) contrast(1.03); }
+.fo-file-stamp { border-color: #974c35; color: #974c35; background: #e0d4b7ed; }
+.fo-merchant-brief .fo-kicker, .fo-merchant-role, .fo-merchant-brief h3 + p, .fo-visit-type, .fo-merchant-countdown span, .fo-inventory-note, .fo-visit-hours { color: #595b43; }
+.fo-merchant-brief h2 { color: #303f36; }
+.fo-merchant-brief h3 { color: #8a4325; }
+.fo-merchant-countdown, .fo-inventory-heading, .fo-next-stop { border-color: #9c956f; }
+.fo-inventory-heading h3, .fo-merchant-countdown strong { color: #374432; }
+.fo-inventory-list li { color: #38432f; border-color: #a69e76; }
+.fo-inventory-list b { color: #7d4021; font-weight: 700; }
+.fo-next-stop { color: #4e583b; }
+.fo-merchant .fo-feed-note { color: #565c43; border-color: #a69e76; }
+.fo-merchant .fo-feed-note > span { color: inherit; }
+.fo-merchant .fo-unavailable { color: #424e34; background: #bfb48b40; border-color: #938963; }
+.fo-merchant .fo-unavailable p { color: #555c43; }
+.fo-research { background: #142a36; border-color: #4f7484; box-shadow: inset 0 0 35px #08172150; }
+.fo-research .fo-panel-heading { background: #284858; border-color: #587888; color: #c5dce0; }
+.fo-research .fo-panel-heading b { border-color: #75989e; }
+.fo-research h2 { color: #d8e6db; font-size: clamp(22px, 2.3vw, 33px); }
+.fo-research-content > .fo-kicker { color: #a4bdc3; }
+.fo-specimen-label { color: #e0c782; border-color: #466778; }
+.fo-specimen-label > span:last-child { color: #a9cbb5; }
+.fo-specimen { background: linear-gradient(#94bec614 1px, transparent 1px), linear-gradient(90deg, #94bec614 1px, transparent 1px), radial-gradient(ellipse, #416371, #1c3747 75%); background-size: 24px 24px, 24px 24px, auto; border: 1px solid #6c919c; border-radius: 2px; padding-block: 12px; }
+.fo-specimen::before, .fo-specimen::after { content: "+"; position: absolute; color: #b2ced4; font-size: 20px; line-height: 1; }
+.fo-specimen::before { top: 5px; left: 7px; }
+.fo-specimen::after { bottom: 5px; right: 7px; }
+.fo-axolotl-photo { height: 235px; filter: brightness(1.25) drop-shadow(0 10px 9px #04162280); }
+.fo-specimen-caption { color: #b9d0d4; }
+.fo-research-content > h3 { color: #e5d5a1; }
+.fo-habitats, .fo-research-note, .fo-research-window, .fo-reward p, .fo-reward small { color: #b6cbd0; }
+.fo-reward, .fo-specimen-label, .fo-research .fo-feed-note { border-color: #456776; }
+.fo-research .fo-feed-note { color: #b5c9c8; }
+.fo-events { background: #202b2e; border-color: #606a61; }
+.fo-events > .fo-panel-heading { background: repeating-linear-gradient(120deg, #d0ad5918 0 10px, transparent 10px 20px), #2a342f; border-color: #77754e; }
+.fo-event { border-color: #495951; }
+.fo-event-number { color: #d3ba7a; border: 1px solid #6e7257; padding: 3px 6px; }
+.fo-event h3 { color: #e6ddc0; }
+.fo-events-intro p, .fo-event p { color: #b5bfb2; }
+.fo-command-console { background: #07160c; border: 1px solid #506c42; box-shadow: inset 0 0 30px #0007; }
+.fo-diagnostics { background: #142229; border-color: #45574f; }
+.fo-machine-bottom { min-height: 62px; color: #bcc4ae; }
+.fo-speaker { background: repeating-linear-gradient(90deg, #101f28 0 3px, transparent 3px 7px); }
+.fo-site-footer { color: #9dafa6; }
+@media (max-width: 1100px) { .fo-hero { gap: 25px; padding: 27px; } .fo-monitor-label { font-size: 6px; letter-spacing: .5px; } .fo-nav a { padding-inline: 10px; gap: 7px; } .fo-merchant-file { gap: 16px; } }
+@media (max-width: 850px) { .fo-hero { display: grid; grid-template-columns: minmax(0, 1fr) 255px; gap: 20px; } .fo-hero h1 { font-size: 43px; } .fo-station-brand { margin-bottom: 23px; } .fo-station-brand img { width: 97px; } .fo-station-brand > span { font-size: 7px; padding-left: 10px; } .fo-field-monitor { padding: 10px; } .fo-monitor-label { font-size: 5px; } .fo-monitor-controls .fo-status { font-size: 6px; } .fo-monitor-knobs i { width: 17px; height: 17px; } .fo-hero-diagram { padding-inline: 5px; } .fo-monitor-corner, .fo-monitor-caption { font-size: 5px; } .fo-hero-meta { gap: 10px; font-size: 7px; } .fo-hero .fo-kicker { font-size: 7px; letter-spacing: .8px; } .fo-dossiers { grid-template-columns: 1fr; } .fo-machine-plate > span:last-child { display: none; } .fo-nav { padding-inline: 16px; } .fo-nav a { font-size: 10px; } }
+@media (max-width: 600px) { .fo-interface { padding-inline: 10px; } .fo-site-bar { min-height: 65px; } .fo-machine { padding-inline: 9px; border-radius: 9px 9px 17px 17px; } .fo-machine-plate { min-height: 43px; padding-inline: 3px; gap: 10px; font-size: 6px; letter-spacing: .8px; }  .fo-machine-vents { display: none; } .fo-hero { display: grid; grid-template-columns: 1fr; padding: 24px 22px; gap: 25px; } .fo-hero h1 { font-size: clamp(38px, 9.5vw, 56px); } .fo-hero h1 > span { font: inherit; letter-spacing: inherit; } .fo-station-brand img { width: 105px; } .fo-station-brand > span { font-size: 7px; } .fo-hero .fo-kicker { font-size: 7px; } .fo-hero p { font-size: 11px; } .fo-hero-meta { font-size: 7px; margin-top: 18px; } .fo-field-monitor { width: 100%; max-width: 330px; justify-self: center; padding: 11px; } .fo-hero-diagram { position: relative; width: auto; right: auto; top: auto; bottom: auto; opacity: 1; padding: 12px; } .fo-vault-art { width: 185px; } .fo-monitor-label { font-size: 6px; } .fo-monitor-corner, .fo-monitor-caption { font-size: 6px; } .fo-monitor-controls .fo-status { font-size: 7px; } .fo-nav { grid-template-columns: 1fr 1fr; padding: 12px; gap: 8px; } .fo-nav a { min-height: 44px; font-size: 10px; padding-inline: 10px; border-bottom-width: 3px; } .fo-system-bar { padding-inline: 14px; } .fo-content { padding: 17px 12px; gap: 24px; } .fo-section-title { padding: 20px 13px 17px; } .fo-section-title h2 { font-size: 26px; } .fo-section-title .fo-kicker { font-size: 7px; } .fo-dossiers { gap: 25px; } .fo-machine-bottom { min-height: 48px; } }
+@media (max-width: 380px) { .fo-hero { padding-inline: 17px; } .fo-station-brand { gap: 10px; } .fo-hero .fo-kicker { font-size: 6px; } .fo-monitor-label { font-size: 5px; } .fo-monitor-corner, .fo-monitor-caption { font-size: 5px; } .fo-nav a { font-size: 9px; gap: 5px; padding-inline: 7px; } .fo-nuclear .fo-panel-heading { padding-inline: 10px; } .fo-section-title h2 { font-size: 23px; } .fo-section-title .fo-kicker { letter-spacing: .5px; } .fo-silos { padding-inline: 10px; } .fo-silo-body { padding-inline: 10px; } .fo-code { font-size: 25px; } .fo-silo-art { width: 30px; } }
+
+/* Machined identity badge; the monogram follows Dai's existing DV mark. */
+.fo-brand { gap: 12px; min-height: 52px; }
+.fo-brand-mark { position: relative; isolation: isolate; flex: none; width: 46px; height: 46px; border: 1px solid #a2ada080; background: repeating-linear-gradient(0deg, #d7e3c905 0 1px, transparent 1px 3px), linear-gradient(135deg, #415965, #223945 48%, #152a33); color: #e5e8cf; box-shadow: inset 0 1px #dce6c85c, inset 0 -2px #081d2d, 0 3px 7px #0004; clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px); }
+.fo-brand-mark::after { content: ""; position: absolute; inset: 4px; border: 1px solid #b5c4ae25; pointer-events: none; }
+.fo-brand-mark svg { width: 39px; height: 37px; filter: drop-shadow(0 1px 1px #061720); }
+.fo-brand-v { stroke: #e9c773; }
+.fo-brand-mark i { position: absolute; right: 4px; top: 4px; width: 4px; height: 4px; background: #efd48f; box-shadow: 0 0 6px #e9c67650; }
+.fo-brand-wordmark { display: grid; gap: 5px; }
+.fo-brand-wordmark strong { color: #ece7d2; font-size: 21px; font-weight: 900; line-height: 1; letter-spacing: -.8px; text-shadow: 0 2px 1px #071923; }
+.fo-brand-wordmark strong > span { color: #dcbc76; }
+.fo-brand-wordmark .fo-brand-caption { display: block; margin: 0; padding: 0; border: 0; font-size: 7px; letter-spacing: 1.5px; line-height: 1.2; color: #a9bfbd; }
+.fo-brand:hover .fo-brand-mark { color: #fff5d5; background-color: #375661; }
+.fo-brand:hover .fo-brand-wordmark strong > span { color: #f2d796; }
+@media (max-width: 600px) { .fo-brand { gap: 9px; } .fo-brand-mark { width: 37px; height: 37px; } .fo-brand-mark svg { width: 31px; height: 30px; } .fo-brand-wordmark strong { font-size: 17px; letter-spacing: -.6px; } .fo-brand-wordmark .fo-brand-caption { font-size: 5px; letter-spacing: .6px; } }
+@media (max-width: 380px) { .fo-brand { gap: 7px; } .fo-brand-mark { width: 33px; height: 33px; } .fo-brand-wordmark strong { font-size: 15px; } .fo-brand-wordmark .fo-brand-caption { display: none; } }

@@ -1,6 +1,6 @@
 import React from "react";
+import { FalloutLoader } from "./fallout/components/FalloutLoader";
 import { createRoot } from "react-dom/client";
-import App from "./App.jsx";
 import "./index.css";
 import "./styles/attract-mode.css";
 import "./styles/cart-swap.css";
@@ -32,8 +32,17 @@ import "./styles/entry-gate.css";
 import "./styles/cabinet-sidebar.css";
 import "./styles/cabinet-topbar.css";
 
+// The dedicated terminal has its own lazy entry; the portfolio's games, buddy,
+// Discord polling and greeting never mount on this route.
+const isFallout = window.location.pathname.toLowerCase().replace(/\/+$/, "") === "/fallout";
+const RootPage = isFallout
+  ? React.lazy(() => import("./fallout/FalloutPage.jsx"))
+  : React.lazy(() => import("./App.jsx"));
+
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <App />
+    <React.Suspense fallback={isFallout ? <FalloutLoader /> : null}>
+      <RootPage />
+    </React.Suspense>
   </React.StrictMode>
 );

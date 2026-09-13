@@ -45,6 +45,14 @@ const SEASON_ASIDES = {
 // estrellarse. Repetirle la bienvenida de siempre suena a que nadie estaba
 // mirando, asi que la anfitriona lo comenta y sigue.
 function buildReturnLines({ gateReturn, hostName, linked, visitorName }) {
+  if (gateReturn.variant === "fallout") {
+    return [
+      linked ? `oh — back from appalachia, ${visitorName}?` : "oh — welcome back, vault dweller.",
+      "leave the rads at the door. dai's cables glow enough already.",
+      "grab a seat. the wasteland can wait a little."
+    ];
+  }
+
   const who = linked ? visitorName : "you";
   const greeting = linked ? `oh — ${visitorName}. you made it back.` : "oh — you're back.";
 
@@ -89,7 +97,7 @@ function buildScript({ gateReturn, hostName, linked, seasonalEvent, visitorName 
   return lines;
 }
 
-export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [] }) {
+export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [], returnContext = null }) {
   // Bajo 800px no se monta la escena 3D: ahi el anfitrion es Buddy, el mismo
   // sprite que luego vive en el footer.
   const [compact, setCompact] = useState(() => window.matchMedia("(max-width: 800px)").matches);
@@ -100,9 +108,10 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   const [hostOverdue, setHostOverdue] = useState(false);
   const [buddyAwake, setBuddyAwake] = useState(false);
   const [avatarProgress, setAvatarProgress] = useState(0);
-  // Se consume en el primer render: el guion especial sale una vez, y una
-  // recarga posterior de la portada vuelve a la bienvenida normal.
-  const [gateReturn] = useState(() => consumeGateReturn());
+  // Read after commit: Suspense may discard a render, so consuming storage
+  // inside a state initializer could lose the greeting before it is displayed.
+  const [gateReturn, setGateReturn] = useState(returnContext);
+  const [returnChecked, setReturnChecked] = useState(Boolean(returnContext));
   const [lineIndex, setLineIndex] = useState(0);
   const [typed, setTyped] = useState(0);
   const [opening, setOpening] = useState(false);
@@ -117,6 +126,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   });
 
   const rootRef = useRef(null);
+  const returnReadRef = useRef(false);
   const hostRef = useRef(null);
   const perchRef = useRef(null);
   const typeTimerRef = useRef(0);
@@ -132,7 +142,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   const hostPresent = compact
     ? buddyAwake
     : hostOverdue || hostStage === "greeting" || hostStage === "waving" || hostStage === "error";
-  const talking = hostPresent && authChecked && !opening;
+  const talking = hostPresent && authChecked && returnChecked && !opening;
   const line = script[lineIndex] ?? "";
   const lineComplete = typed >= line.length;
   const lastLine = lineIndex >= script.length - 1;
@@ -142,6 +152,13 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   // HOST_PATIENCE_MS), asi que esperar aqui no puede dejar a nadie encerrado.
   const gateReady = authChecked && hostPresent;
   const canEnter = gateReady && !opening;
+
+  useEffect(() => {
+    if (returnReadRef.current) return;
+    returnReadRef.current = true;
+    setGateReturn(returnContext || consumeGateReturn());
+    setReturnChecked(true);
+  }, [returnContext]);
 
   useEffect(() => {
     const compactQuery = window.matchMedia("(max-width: 800px)");

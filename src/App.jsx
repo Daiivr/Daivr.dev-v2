@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { commands, discord, games, navItems, profile, projects } from "./data/site";
 import { preloadImages } from "./lib/preloadImages";
+import { consumeGateReturn } from "./lib/gateReturn";
 import { useBuddyAdventure } from "./hooks/useBuddyAdventure";
 import { useBuddyFriendship } from "./hooks/useBuddyFriendship";
 import { useBuddyLoadout } from "./hooks/useBuddyLoadout";
@@ -78,6 +79,8 @@ function CabinetApp() {
   const [launchComplete, setLaunchComplete] = useState(false);
   const [launchClosing, setLaunchClosing] = useState(false);
   const [entrySplashOpen, setEntrySplashOpen] = useState(true);
+  const [splashReturn, setSplashReturn] = useState(null);
+  const [splashRevision, setSplashRevision] = useState(0);
   const [buddyDrop, setBuddyDrop] = useState(null);
   const [buddyModal, setBuddyModal] = useState(null);
   const [hasRun, setHasRun] = useState(false);
@@ -98,6 +101,19 @@ function CabinetApp() {
   const closeKonami = useCallback(() => setKonamiView(null), []);
   const openKonamiLibrary = useCallback(() => setKonamiView("library"), []);
   const selectKonamiGame = useCallback((game) => setKonamiView(game), []);
+
+  useEffect(() => {
+    const greetRestoredVisitor = (event) => {
+      if (!event.persisted) return;
+      const context = consumeGateReturn();
+      if (!context) return;
+      setSplashReturn(context);
+      setSplashRevision((revision) => revision + 1);
+      setEntrySplashOpen(true);
+    };
+    window.addEventListener("pageshow", greetRestoredVisitor);
+    return () => window.removeEventListener("pageshow", greetRestoredVisitor);
+  }, []);
   useRandomGlitchWords(theme === "glitch");
 
   useEffect(() => {
@@ -646,6 +662,8 @@ function CabinetApp() {
       ) : null}
       {entrySplashOpen ? (
         <EntrySplash
+          key={splashRevision}
+          returnContext={splashReturn}
           onBuddyLaunch={setBuddyDrop}
           onEnter={() => {
             setEntrySplashOpen(false);
