@@ -39,8 +39,11 @@ const DISCORD_FLAG_BADGES = [
 
 const CUSTOM_BADGES = [
   {
-    icon: "/discord-badges/discord-badge-nitro-ruby-card.png",
-    label: "Nitro Ruby",
+    icon: "/discord-badges/discord-badge-nitro-opal.png",
+    tooltipIcon: "/discord-badges/discord-badge-nitro-opal-card.png",
+    iconType: "nitro",
+    tooltipWidth: 229,
+    label: "Nitro Opal",
     sublabel: "Subscriber since 9/6/20"
   },
   {
@@ -1814,7 +1817,11 @@ export function DiscordPresencePanel() {
       {badgeTooltip ? (
         createPortal(
           <div
-            className={cn("discord-floating-tooltip", badgeTooltip.iconType === "streak" && "is-streak")}
+            className={cn(
+              "discord-floating-tooltip",
+              badgeTooltip.iconType === "streak" && "is-streak",
+              badgeTooltip.iconType === "nitro" && "is-nitro"
+            )}
             role="tooltip"
             style={{
               "--tooltip-arrow-offset": `${badgeTooltip.arrowOffset || 0}px`,
