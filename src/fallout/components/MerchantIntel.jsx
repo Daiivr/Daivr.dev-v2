@@ -1,9 +1,10 @@
 import { MapPin } from "lucide-react";
+import { FalloutIcon } from "./FalloutIcon";
 import { countdown, formatDate, selectVisits } from "../data/time";
 import { FeedNote, PanelHeading, Unavailable } from "./TerminalPanel";
 
 function InventoryRows({ items }) {
-  return <ul className="fo-inventory-list">{items.map((item) => <li key={item.name}><span>{item.name}</span><b>{item.gold.toLocaleString("en-US")} <small>GB</small></b></li>)}</ul>;
+  return <ul className="fo-inventory-list">{items.map((item) => <li key={item.name}><span>{item.name}</span><b><FalloutIcon name="goldBullion" />{item.gold.toLocaleString("en-US")} <small>GB</small></b></li>)}</ul>;
 }
 
 export function MerchantIntel({ feed, loading, now, onRetry }) {

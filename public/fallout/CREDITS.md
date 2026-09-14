@@ -17,3 +17,7 @@ public image URL supplied by the Nuka Knights monthly report.
 - `appalachian-dusk.webp`: Original AI-generated Appalachian landscape, created
   for this fan site's surrounding backdrop and loading screen on September 13,
   2026. It is not a game screenshot. WebP encoding preserves the full composition.
+
+- `fonts/fallout76-icon-tags.woff2`: Seven-glyph web subset of the user-supplied
+  `Fallout76IconTags_v30_beta.ttf` (Fallout76IconTags 3.0 Beta). Includes U+F400,
+  U+F716, U+E5A1, U+F232, and U+F24B–U+F24D; original glyph outlines are unchanged.

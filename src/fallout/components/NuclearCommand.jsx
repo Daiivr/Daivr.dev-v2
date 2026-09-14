@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { SILOS } from "../data/sources";
 import { countdown, formatDate } from "../data/time";
 import { SiloDiagram } from "./TerminalArt";
+import { FalloutIcon } from "./FalloutIcon";
 import { FeedNote, PanelHeading } from "./TerminalPanel";
 
 export function NuclearCommand({ feed, loading, now, onRetry }) {
@@ -30,7 +31,7 @@ export function NuclearCommand({ feed, loading, now, onRetry }) {
     <div className="fo-silos">
       {SILOS.map((silo, index) => <article className="fo-silo" key={silo.id}>
         <div className="fo-silo-top"><span>SITE {silo.letter}</span><span>AUTH / {silo.file}</span></div>
-        <div className="fo-silo-body"><div><h3>{silo.name}</h3><span className="fo-micro">LAUNCH AUTHORIZATION</span><div className={`fo-code${loading && !feed.data ? " is-loading" : ""}`} aria-label={usable ? `${silo.name} code ${feed.data.codes[silo.id].split("").join(" ")}` : `${silo.name} code unavailable`}>{usable ? feed.data.codes[silo.id] : "— — — —"}</div></div><SiloDiagram variant={index} /></div>
+        <div className="fo-silo-body"><div><h3><FalloutIcon name={silo.id} />{silo.name}</h3><span className="fo-micro">LAUNCH AUTHORIZATION</span><div className={`fo-code${loading && !feed.data ? " is-loading" : ""}`} aria-label={usable ? `${silo.name} code ${feed.data.codes[silo.id].split("").join(" ")}` : `${silo.name} code unavailable`}>{usable ? feed.data.codes[silo.id] : "— — — —"}</div></div><SiloDiagram variant={index} /></div>
         <div className="fo-silo-controls"><span className="fo-status"><i />{usable ? "READY TO COPY" : loading ? "RECEIVING" : "UNCONFIRMED"}</span><button type="button" disabled={!usable} onClick={() => copy(silo)} aria-label={`Copy ${silo.name} launch code`}>{copied === silo.id ? <Check size={15} /> : <Copy size={15} />}<span>{copied === silo.id ? "Copied" : "Copy"}</span></button></div>
         <details className="fo-silo-detail"><summary>Transmission details</summary><p>{usable ? `Source-reported reset: ${formatDate(feed.data.endsAt, true)}. The countdown follows this published window.` : "Launch authorization is hidden until a current source report is available."}</p></details>
       </article>)}

@@ -1,0 +1,27 @@
+@font-face {
+  font-family: "Fallout76IconTags";
+  src: url("/fallout/fonts/fallout76-icon-tags.woff2?v=2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: block;
+  unicode-range: U+E5A1, U+F232, U+F24B-F24D, U+F400, U+F716;
+}
+
+.fo-icon {
+  display: inline-block;
+  flex: none;
+  font-family: "Fallout76IconTags";
+  font-size: 1em;
+  font-style: normal;
+  font-weight: 400;
+  font-synthesis: none;
+  line-height: 1;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.fo-inventory-list b { display: inline-flex; align-items: center; gap: 6px; }
+.fo-inventory-list b .fo-icon { font-size: 17px; }
+.fo-silo h3, .fo-research h2 { display: flex; align-items: center; gap: .4em; }
+.fo-habitats .fo-icon { font-size: 20px; }
+.fo-reward > .fo-icon { font-size: 22px; }
