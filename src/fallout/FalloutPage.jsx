@@ -11,6 +11,7 @@ import { EventIntel } from "./components/EventIntel";
 import { VaultDiagram } from "./components/TerminalArt";
 import { SourceLink } from "./components/TerminalPanel";
 import { TerminalBoot, useTerminalBoot } from "./components/TerminalBoot";
+import { VAULT_ENTER_MS } from "./data/vaultSequence";
 import { FalloutBackdrop } from "./components/FalloutBackdrop";
 import "./fallout.css";
 import "./field-station.css";
@@ -81,7 +82,7 @@ export default function FalloutPage() {
     setCommand("");
   }
 
-  return <div className={`fallout-page${crt ? " has-crt" : ""}`}>
+  return <div className={`fallout-page${crt ? " has-crt" : ""}`} data-vault-phase={booting ? phase : undefined} style={{ "--vault-entry-duration": `${VAULT_ENTER_MS}ms` }}>
     <FalloutBackdrop />
     <div inert={booting} className="fo-interface">
       <a className="fo-skip" href="#fallout-main">Skip to terminal content</a>

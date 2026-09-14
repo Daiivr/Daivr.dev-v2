@@ -1,6 +1,7 @@
 import { Terminal } from "lucide-react";
 import { navItems } from "../data/site";
 import { CabinetTelemetry } from "./CabinetTelemetry";
+import { VaultDoor } from "./VaultDoor";
 
 export function CabinetTopbar({ activeSection, score, cartPhase, onOpenTerminal }) {
   const index = Math.max(0, navItems.findIndex(([, href]) => href === `#${activeSection}`));
@@ -19,8 +20,9 @@ export function CabinetTopbar({ activeSection, score, cartPhase, onOpenTerminal 
         </div>
       </div>
       <div className="cabinet-topbar-controls">
-        <a className="cabinet-fallout-button arcade-focus" href="/fallout" aria-label="Open Fallout 76 terminal" title="Fallout 76">
-          <img src="/games/fallout-76-logo.png" alt="" width="500" height="171" />
+        <a className="cabinet-fallout-button arcade-focus" href="/fallout" aria-label="Open Vault 76 — Fallout terminal" title="Enter Vault 76">
+          <span className="cabinet-vault-housing"><VaultDoor compact /></span>
+          <span className="cabinet-vault-label"><small>FALLOUT</small><strong>VAULT 76</strong></span>
         </a>
         <button className="cabinet-terminal-button arcade-focus" type="button" onClick={onOpenTerminal} aria-label="Open Terminal">
           <Terminal size={16} aria-hidden="true" /><span>Terminal</span>

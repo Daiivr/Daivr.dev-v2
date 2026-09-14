@@ -1,0 +1,56 @@
+/* Enamel signage and instruments mounted to the exterior access lock. */
+.fo-vault-heading { width: min(540px, max(var(--vault-size), 350px)); }
+.fo-vault-nameplate { position: relative; display: grid; grid-template-columns: 78px 1fr 28px; align-items: center; gap: 12px; min-height: 86px; padding: 8px 19px; border: 2px solid #8e9a87; border-radius: 5px; background: linear-gradient(115deg, #48616a, #24424e 48%, #1e3540); box-shadow: inset 0 0 0 4px #142f3b, inset 0 0 0 5px #a6ae874d, 0 5px 0 #101d24, 0 9px 17px #0009; color: #d8c894; transform: rotate(-.6deg); }
+.fo-vault-nameplate::before, .fo-vault-nameplate::after { content: ""; position: absolute; inset: 9px auto auto 8px; width: 7px; height: 7px; background: url("/fallout/panel-screw.svg") center / contain; box-shadow: 0 57px 0 -1px #778471; border-radius: 50%; }
+.fo-vault-nameplate::after { left: auto; right: 8px; transform: rotate(70deg); box-shadow: none; }
+.fo-vault-sign-emblem { display: block; width: 78px; height: 64px; color: #c2b987; filter: drop-shadow(0 2px 0 #102735); }
+.fo-vault-sign-copy { text-align: left; min-width: 0; padding-left: 12px; border-left: 1px solid #c1c09650; }
+.fo-vault-sign-copy > span { display: block; font: 7px/1.2 "Courier New", monospace; color: #aebdaf; letter-spacing: 2px; white-space: nowrap; }
+.fo-vault-heading h1 { margin: 5px 0 0; color: #e0d4ac; font: 900 clamp(24px, 3vw, 42px)/.95 Impact, "Arial Narrow", sans-serif; letter-spacing: 3px; text-shadow: 0 2px 0 #142e39, 0 3px 2px #0009; }
+.fo-vault-heading h1 > span { display: block; margin-top: 7px; color: #c9b979; font: 700 10px/1 "Courier New", monospace; letter-spacing: 7px; }
+.fo-vault-sign-serial { align-self: end; margin-bottom: 8px; color: #99aa9c; font: 6px/1.6 monospace; letter-spacing: 1px; text-align: right; }
+.fo-vault-heading p { margin: 9px 0 0; color: #a7b99c; font-size: 7px; letter-spacing: 2px; }
+
+.fo-vault-overhead { top: -10%; left: 11%; right: 11%; height: 42px; padding: 4px 9px; gap: 9px; border: 2px solid #647065; border-top-color: #8b9480; border-bottom: 4px solid #101e26; border-radius: 6px 6px 3px 3px; background: repeating-linear-gradient(115deg, #6670610a 0 1px, transparent 1px 5px), linear-gradient(#48574e, #1f3136); box-shadow: inset 0 0 0 3px #11232b80, 2px 5px 0 #08141d, 0 9px 13px #0008; transform: rotate(-.6deg); }
+.fo-vault-overhead::before, .fo-vault-overhead::after { content: ""; position: absolute; top: 10px; left: -6px; width: 8px; height: 23px; border: 1px solid #6d7b6b; background: linear-gradient(90deg, #20353a, #879080, #263d3f); border-radius: 2px; }
+.fo-vault-overhead::after { left: auto; right: -6px; }
+.fo-vault-overhead .fo-vault-alarm-lens { position: relative; flex: 1; width: auto; height: 23px; border: 2px solid #101e24; border-radius: 5px; background: repeating-linear-gradient(90deg, #151d1655 0 2px, transparent 2px 5px), linear-gradient(#936235, #c29950 35%, #85592d 70%, #3e3020); box-shadow: inset 0 2px 3px #e6c16b40, 0 1px 0 #86917866; }
+.fo-vault-alarm-lens::after { content: ""; position: absolute; inset: -3px 0; border: 2px solid #101b21; border-radius: 6px; background: repeating-linear-gradient(90deg, transparent 0 16px, #142026 17px 20px, #748070 21px 22px, transparent 23px 36px); box-shadow: 0 1px 1px #000; }
+.fo-vault-alarm-label { flex: none; padding: 1px 10px; border-inline: 5px solid transparent; border-image: repeating-linear-gradient(135deg, #b6a15f 0 5px, #213438 5px 10px) 5; text-align: center; }
+.fo-vault-alarm-label strong { display: block; color: #d4c591; font: 900 12px/1.1 "Arial Narrow", sans-serif; letter-spacing: 2px; text-shadow: 0 1px #000; }
+.fo-vault-alarm-label > span { display: block; margin-top: 3px; color: #93a58f; font: 5px/1 monospace; letter-spacing: 1.4px; }
+.fo-startup:is(.is-complete, .is-leaving, .is-entering) .fo-vault-alarm-lens { background: repeating-linear-gradient(90deg, #42230044 0 2px, transparent 2px 5px), linear-gradient(#bf8b40, #ffe1a0 40%, #d29843 75%, #6b4925); animation: fo-vault-alarm-glow 2200ms ease-in-out infinite; }
+.fo-vault-alarm-lens:last-child { animation-delay: 300ms !important; }
+@keyframes fo-vault-alarm-glow { 0%, 100% { box-shadow: inset 0 2px 3px #ffe4a860, 0 0 12px #e4a34835; } 50% { box-shadow: inset 0 2px 3px #fff0ba90, 0 0 22px #e4a34880, 0 7px 26px #dda54825; } }
+
+.fo-vault-readiness { margin: 0 -3px 17px; padding: 5px 5px 0; border: 1px solid #7f8b74; border-radius: 6px; background: linear-gradient(130deg, #546157, #23383a 35%, #10252b); box-shadow: 0 3px 0 #0b1a21, inset 0 1px #afb89950; }
+.fo-vault-meter-face { position: relative; height: 105px; overflow: hidden; display: flex; align-items: end; justify-content: space-between; padding: 0 7px; border: 3px solid #11282c; border-radius: 4px; background: radial-gradient(ellipse at 40% 15%, #dad5b3, #b7b496 70%, #8e9982); box-shadow: inset 0 3px 9px #15251b88, 0 1px #aeb29655; }
+.fo-vault-meter-face::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(125deg, transparent 20%, #fffce812 21% 35%, transparent 36%), repeating-linear-gradient(5deg, transparent 0 16px, #50635008 17px 18px); }
+.fo-vault-meter-title { position: absolute; top: 8px; left: 10px; color: #41564d; font: 700 6px/1 monospace; letter-spacing: 1.5px; }
+.fo-vault-meter-dial { width: 115px; height: 85px; flex: none; margin-left: -6px; }
+.fo-vault-meter-needle { transform-origin: 66px 82px; transition: transform 750ms cubic-bezier(.3,.7,.15,1); }
+.fo-vault-meter-counter { padding-bottom: 14px; text-align: center; flex: 1; }
+.fo-vault-meter-counter > span { display: block; color: #3b5147; font: 700 5px/1.2 monospace; letter-spacing: .5px; }
+.fo-vault-meter-counter > div { display: flex; justify-content: center; align-items: center; gap: 2px; margin: 7px 0; }
+.fo-vault-meter-counter b { position: relative; display: grid; place-items: center; width: 19px; height: 27px; border: 1px solid #0b1b20; border-radius: 2px; background: linear-gradient(#0e2228, #34463f 45%, #0d2027 49%, #41524a 52%, #182d31); box-shadow: inset 0 2px 4px #0009, 0 1px #edf0cb80; color: #e2dbb3; font: 700 21px/1 "Courier New", monospace; }
+.fo-vault-meter-counter i { color: #42534a; font: 9px monospace; }.fo-vault-meter-counter small { display: block; font: 4px/1 monospace; letter-spacing: 1px; color: #586653; }
+.fo-vault-readiness .fo-vault-status { min-height: 37px; justify-content: flex-start; gap: 7px; padding: 6px 4px; color: #cfbc85; font: 700 7px/1.6 "Courier New", monospace; letter-spacing: .3px; }
+.fo-vault-status > i { width: 5px; height: 5px; border-radius: 50%; flex: none; background: #b58e43; box-shadow: 0 0 5px #b58e4340; }
+.fo-startup:is(.is-complete, .is-leaving, .is-entering) .fo-vault-status > i { background: #b9d593; box-shadow: 0 0 7px #bbd99070; }
+.fo-vault-checks { grid-template-columns: repeat(4, 1fr); gap: 7px; padding: 0 0 2px; }
+.fo-vault-checks li { display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 7px; }
+.fo-vault-checks i { width: 10px; height: 10px; border: 2px solid #12282a; border-radius: 50%; background: radial-gradient(circle at 40% 30%, #8c794d, #4a422c); box-shadow: 0 0 0 1px #7b8772, 0 2px 3px #0007; }
+.fo-vault-checks .is-ready i { background: radial-gradient(circle at 40% 30%, #d8eab1, #839d60 60%, #53663b); box-shadow: 0 0 0 1px #7b8772, 0 0 9px #b6ce7f40; }
+.fo-vault-checks b { font-size: 5px; letter-spacing: .5px; }
+
+@media (max-width: 1100px) and (min-width: 901px) { .fo-vault-nameplate { grid-template-columns: 62px 1fr 20px; gap: 8px; padding-inline: 15px; }.fo-vault-sign-emblem { width: 62px; }.fo-vault-heading h1 { font-size: 28px; letter-spacing: 2px; }.fo-vault-sign-copy > span { font-size: 5px; }.fo-vault-heading h1 > span { font-size: 8px; letter-spacing: 5px; }.fo-vault-meter-dial { width: 102px; }.fo-vault-meter-counter b { width: 17px; } }
+@media (max-width: 900px) {
+  .fo-vault-heading { top: max(16px, calc(var(--vault-y) - var(--vault-size) * .5 - 120px)); width: min(440px, calc(100% - 42px)); }
+  .fo-vault-nameplate { min-height: 64px; grid-template-columns: 52px 1fr; gap: 8px; padding: 7px 13px; }.fo-vault-sign-emblem { width: 52px; height: 45px; }.fo-vault-sign-copy { padding-left: 9px; }.fo-vault-sign-copy > span { font-size: 5px; letter-spacing: 1px; }.fo-vault-heading h1 { font-size: 25px; margin-top: 4px; letter-spacing: 1.8px; }.fo-vault-heading h1 > span { margin-top: 5px; font-size: 7px; letter-spacing: 4px; }.fo-vault-sign-serial { display: none; }.fo-vault-nameplate::before { box-shadow: 0 38px 0 -1px #778471; }.fo-vault-heading p { margin-top: 8px; font-size: 6px; letter-spacing: 1px; }
+  .fo-vault-overhead { top: -11%; height: 31px; left: 10%; right: 10%; padding: 3px 6px; gap: 5px; }.fo-vault-overhead .fo-vault-alarm-lens { height: 16px; }.fo-vault-alarm-label { padding-inline: 5px; border-inline-width: 3px; }.fo-vault-alarm-label strong { font-size: 7px; letter-spacing: 1px; }.fo-vault-alarm-label > span { font-size: 3px; letter-spacing: .6px; }.fo-vault-overhead::before, .fo-vault-overhead::after { top: 6px; height: 17px; }
+  .fo-vault-meter-face { height: 91px; padding-inline: 13px; }.fo-vault-meter-dial { width: 120px; height: 78px; }.fo-vault-meter-counter { padding-bottom: 10px; }.fo-vault-meter-counter > span { font-size: 6px; }.fo-vault-meter-counter small { font-size: 5px; }.fo-vault-meter-counter b { width: 22px; }.fo-vault-readiness .fo-vault-status { min-height: 31px; }.fo-vault-readiness { margin-bottom: 13px; }
+}
+@media (max-height: 700px) and (min-width: 901px) { .fo-vault-console-hardware { display: none; }.fo-vault-console-title { margin-block: 12px; }.fo-vault-sequence { margin-bottom: 14px; padding-block: 12px; } }
+@media (max-height: 660px) and (max-width: 900px) { .fo-vault-heading { top: max(10px, calc(var(--vault-y) - var(--vault-size) * .5 - 117px)); }.fo-vault-console { top: calc(var(--vault-y) + var(--vault-size) * .5 + 20px); }.fo-vault-meter-face { height: 70px; }.fo-vault-meter-title { top: 5px; font-size: 5px; }.fo-vault-meter-dial { width: 94px; height: 65px; }.fo-vault-meter-counter { padding-bottom: 7px; }.fo-vault-meter-counter b { height: 22px; font-size: 18px; }.fo-vault-meter-counter > div { margin-block: 4px; }.fo-vault-meter-counter small { display: none; }.fo-vault-readiness .fo-vault-status { min-height: 25px; font-size: 6px; }.fo-vault-footer { margin-top: 8px; padding-top: 5px; }.fo-vault-readiness { margin-bottom: 10px; }.fo-vault-checks li { gap: 4px; } }
+@media (max-height: 600px) and (min-width: 701px) { .fo-vault-heading { top: 10px; width: 40%; }.fo-vault-nameplate { min-height: 62px; grid-template-columns: 48px 1fr; }.fo-vault-sign-emblem { width: 48px; height: 44px; }.fo-vault-sign-serial { display: none; }.fo-vault-heading h1 { font-size: 23px; }.fo-vault-heading h1 > span { font-size: 7px; letter-spacing: 4px; }.fo-vault-heading p { display: none; }.fo-vault-console { top: 50%; } }
+@media (max-height: 660px) and (max-width: 700px) { .fo-vault-console { padding-top: 10px; }.fo-vault-console-plate { display: none; } }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FalloutLoader } from "./FalloutLoader";
+import { VAULT_UNLOCK_MS, VAULT_OPEN_MS, VAULT_ENTER_MS } from "../data/vaultSequence";
 
 const BOOT_KEY = "daivr-fallout-booted";
 
@@ -73,12 +74,14 @@ export function useTerminalBoot({ loading, intel, connectionFailed, contentRef }
   useEffect(() => {
     if (!ready || !booting) return;
     setPhase("complete");
-    // Hold a visibly full bar before revealing the terminal.
-    const hold = preferences.reduced ? 300 : 750;
-    const exit = preferences.reduced ? 0 : 320;
+    // Retract the locks, then pull the seal back and roll the door clear.
+    const hold = preferences.reduced ? 200 : VAULT_UNLOCK_MS;
+    const exit = preferences.reduced ? 0 : VAULT_OPEN_MS;
+    const entry = preferences.reduced ? 0 : VAULT_ENTER_MS;
     const revealTimer = window.setTimeout(() => setPhase("leaving"), hold);
-    const finishTimer = window.setTimeout(finish, hold + exit);
-    return () => { window.clearTimeout(revealTimer); window.clearTimeout(finishTimer); };
+    const entryTimer = window.setTimeout(() => setPhase("entering"), hold + exit);
+    const finishTimer = window.setTimeout(finish, hold + exit + entry);
+    return () => { window.clearTimeout(revealTimer); window.clearTimeout(entryTimer); window.clearTimeout(finishTimer); };
   }, [ready, booting, preferences, finish]);
 
   const unavailable = connectionFailed || Object.values(intel).every((feed) => feed.status === "unavailable");
