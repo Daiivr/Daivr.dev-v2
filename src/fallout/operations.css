@@ -1,0 +1,326 @@
+/* Vault operations desk: separate instruments on a steel work surface. */
+.fallout-page { --fo-cream: #e6dfc4; --fo-amber: #cfad66; --fo-muted: #a6b5ad; }
+.fallout-page .fo-interface { width: min(1610px, 100%); padding-inline: 30px; }
+.fallout-page .fo-world-backdrop::after { background: linear-gradient(#071213b8, #071113c9), radial-gradient(ellipse at 50% 10%, transparent, #050d13b0); }
+.fo-site-bar { min-height: 78px; }
+.fo-desk-layout { display: grid; grid-template-columns: 224px minmax(0, 1fr); align-items: start; gap: 27px; }
+.fo-desk-rail { position: sticky; top: 22px; padding: 24px 12px 17px; border: 1px solid #526355; border-top: 3px solid #859276; border-radius: 4px; background: repeating-linear-gradient(90deg, #c1cba303 0 1px, transparent 1px 4px), linear-gradient(115deg, #2e4239, #1b2c29); box-shadow: inset 3px 0 6px #819d7320, inset -3px 0 6px #0004, 0 12px 30px #0005; }
+.fo-desk-rail::before, .fo-desk-rail::after { content: ""; position: absolute; top: 7px; left: 7px; width: 7px; height: 7px; background: url('/fallout/panel-screw.svg') center / contain; }
+.fo-desk-rail::after { left: auto; right: 7px; }
+.fo-rail-brand { display: grid; justify-items: center; gap: 13px; padding: 8px 0 28px; }
+.fo-rail-brand img { width: 135px; height: auto; }
+.fo-rail-brand > span { color: #b8bf9e; font-size: 7px; letter-spacing: 1.2px; }
+.fo-rail-label { display: flex; justify-content: space-between; gap: 10px; padding: 12px 5px; border-top: 1px solid #82977633; color: #8fa48f; font-size: 7px; letter-spacing: 1px; }
+.fo-field-nav { display: grid; position: relative; top: auto; grid-template-columns: 1fr; padding: 0; gap: 7px; background: none; border: 0; }
+.fo-field-nav a, .fo-field-nav a + a { position: relative; display: grid; grid-template-columns: 22px minmax(0, 1fr); align-items: center; justify-content: start; gap: 12px; min-height: 80px; padding: 12px 10px; border: 1px solid #81957433; border-left: 3px solid transparent; border-radius: 2px; background: #071b1b33; box-shadow: inset 0 1px #c7d7a508; }
+.fo-field-nav a > svg { display: block; opacity: .8; color: #bbc5a4; width: 20px; }
+.fo-field-nav a .fo-directory-number { position: absolute; top: 6px; right: 8px; color: #7c8f7c; font-size: 8px; }
+.fo-field-nav .fo-directory-copy { display: grid; gap: 6px; min-width: 0; }
+.fo-directory-copy strong { color: #d4dcc2; font-size: 12px; line-height: 1.3; }
+.fo-directory-copy small { color: #91a791; font-size: 9px; font-weight: 400; line-height: 1.5; }
+.fo-field-nav a > i { display: none; }
+.fo-field-nav a[aria-current="location"] { background: linear-gradient(100deg, #c6b17329, #8f9d7010); border-color: #9da47766; border-left-color: #dfbe75; }
+.fo-field-nav a[aria-current="location"] strong, .fo-field-nav a[aria-current="location"] > svg { color: #ecd192; }
+.fo-field-nav a:hover { background: #a5ba7b19; }
+.fo-rail-signal { margin: 24px 6px 0; padding-top: 17px; border-top: 1px solid #82977633; }
+.fo-rail-signal > div:first-child { display: flex; align-items: center; gap: 8px; color: #b2be9d; font-size: 9px; letter-spacing: 1px; }
+.fo-rail-signal b { margin-left: auto; color: #d5dfb2; }
+.fo-reception-bars { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; margin: 12px 0 10px; }
+.fo-reception-bars i { height: 5px; background: #131f1d; box-shadow: inset 0 1px 2px #0008; }
+.fo-reception-bars .is-current { background: #a3bc7e; box-shadow: 0 0 8px #b1d28620; }
+.fo-rail-signal > span { display: block; color: #94a68f; font-size: 9px; line-height: 1.6; }
+.fo-rail-footer { display: flex; align-items: center; justify-content: center; gap: 10px; padding-top: 30px; color: #a59d6f; }
+.fo-rail-footer > span { font-size: 11px; letter-spacing: 2px; line-height: 1.5; }
+.fo-rail-footer b { font-size: 6px; font-weight: 400; letter-spacing: 1px; }
+.fo-desk-main { min-width: 0; }
+.fo-desk-main:focus { outline: none; }
+.fo-desk-masthead { position: relative; display: flex; align-items: center; justify-content: space-between; gap: 28px; padding: 25px 31px; border: 1px solid #b0a986; border-radius: 3px; background: repeating-linear-gradient(175deg, transparent 0 83px, #534e2c0a 84px 85px, transparent 86px 174px), linear-gradient(115deg, #d3cfb0, #c1bb99); box-shadow: inset 0 1px #f1ebd0, 0 4px #111e1a, 0 10px 22px #0003; color: #263b33; }
+.fo-desk-masthead::before { content: ""; position: absolute; left: 30px; top: 0; width: 68px; height: 4px; background: #6d7854; }
+.fo-desk-eyebrow { display: block; margin-bottom: 9px; font-size: 8px; font-weight: 700; letter-spacing: 2px; color: #69724f; }
+.fo-desk-masthead h1 { font: 900 clamp(26px, 2.4vw, 40px)/1.05 Impact, 'Arial Narrow', sans-serif; letter-spacing: 1px; }
+.fo-desk-masthead h1 > span { display: block; margin-top: 4px; color: #7d6435; font-size: .66em; letter-spacing: 3px; }
+.fo-desk-masthead p { margin-top: 11px; font-size: 11px; color: #57644e; }
+.fo-desk-stamp { display: grid; gap: 5px; min-width: 142px; padding: 14px 20px; border: 1px solid #867d554d; transform: rotate(-2deg); color: #6d704e; text-align: center; }
+.fo-desk-stamp span { font-size: 8px; letter-spacing: 1px; }
+.fo-desk-stamp strong { font: 900 28px/1.2 Impact, 'Arial Narrow', sans-serif; text-transform: uppercase; color: #475b43; letter-spacing: 2px; }
+.fo-desk-toolbar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 20px; min-height: 58px; padding: 4px 5px; color: #a7ba97; }
+.fo-desk-toolbar > span:nth-child(2) { color: #899f95; font-size: 8px; letter-spacing: .5px; }
+.fo-display-controls { gap: 16px; }
+.fo-display-controls button { min-height: 44px; font-size: 10px; }
+.fo-content.fo-desk-content { padding: 0; gap: 27px; background: none; }
+.fo-desk-main .fo-panel { scroll-margin-top: 22px; }
+.fo-desk-main .fo-nuclear { box-shadow: 0 0 0 4px #15261f, 0 0 0 5px #63725680, 0 10px 25px #0004; }
+.fo-desk-main .fo-nuclear > .fo-panel-heading { min-height: 38px; background: #364737; }
+.fo-desk-main .fo-section-title { padding: 18px 23px 16px; }
+.fo-desk-main .fo-section-title h2 { font-size: 26px; }
+.fo-desk-main .fo-silo { border-top: 2px solid #71865a; }
+.fo-desk-main .fo-silo-top { font-size: 8px; }
+.fo-desk-main .fo-silo-art { width: 38px; }
+.fo-desk-main .fo-silo-controls .fo-status { font-size: 7px; }
+.fo-desk-main .fo-diagnostics { margin-top: 25px; border: 1px solid #41564b; border-radius: 3px; }
+.fo-site-footer { padding-block: 22px; }
+.fo-panel { scroll-margin-top: 99px; }
+.fo-panel-heading { min-height: 41px; font-size: 10px; letter-spacing: 1px; }
+.fo-nuclear { border-radius: 5px; background: radial-gradient(ellipse at 40% 0, #24362a66, transparent 75%), #0c1915; border-color: #52624d; box-shadow: 0 0 0 4px #091415, 0 0 0 5px #4a5a4e88; }
+.fo-nuclear > .fo-panel-heading { background: #293e30; color: #bacaa2; border-bottom: 1px solid #6a7f555c; }
+.fo-nuclear .fo-panel-heading .fo-status { color: #a9c28d; }
+.fo-nuclear .fo-panel-heading b { border-color: #67775b; }
+.fo-section-title { padding: 21px 24px 19px; }
+.fo-section-title h2 { font-family: Impact, "Arial Narrow", sans-serif; font-size: 28px; color: #d4dec0; letter-spacing: 1px; }
+.fo-section-title .fo-kicker { font-size: 9px; }
+.fo-silos { gap: 17px; }
+.fo-silo { border: 1px solid #5e73534d; background: linear-gradient(120deg, #24362a4d, #0a1713); border-radius: 3px; }
+.fo-silo-top { font-size: 9px; padding-block: 9px; background: #a1bd7f08; color: #9cae8d; }
+.fo-silo-body { padding: 17px; }
+.fo-silo h3 { font-size: 18px; color: #b8cba4; }
+.fo-code { font-size: clamp(25px, 2.2vw, 34px); line-height: 1.5; letter-spacing: 1.5px; color: #deedbf; }
+.fo-silo-art { opacity: .55; }
+.fo-silo-controls { padding: 10px 13px; border-top: 1px solid #58734b33; }
+.fo-silo-controls button { min-height: 38px; min-width: 76px; justify-content: center; border-color: #82956666; color: #c9dbad; }
+.fo-silo-detail summary { min-height: 36px; padding-block: 9px; }
+.fo-code-reset { margin-block: 21px; }
+.fo-feed-note { padding-block: 12px; font-size: 10px; }
+.fo-dossiers { gap: 30px; }
+.fo-merchant { border-radius: 3px; background: repeating-linear-gradient(0deg, transparent 0 31px, #65664a09 32px 33px), #cbc5a6; box-shadow: 3px 5px #060e1166; }
+.fo-merchant .fo-panel-heading { background: #b7b08c; }
+.fo-portrait { background: #ded8bc; transform: rotate(-2deg); }
+.fo-inventory-list li { font-size: 12px; padding-block: 12px; }
+.fo-merchant-role, .fo-merchant-brief h3 + p, .fo-inventory-note { font-size: 11px; }
+.fo-research { border-radius: 3px; background: #1b3039; border-color: #516b72; }
+.fo-research .fo-panel-heading { background: #29434b; }
+.fo-specimen { background-color: #1f3943; }
+.fo-research-note, .fo-research-window { font-size: 12px; line-height: 1.8; }
+.fo-events { border-radius: 3px; background: #1d2b2a; }
+.fo-event { padding-block: 18px; }
+.fo-event h3 { font-size: 16px; line-height: 1.5; }
+.fo-event p { font-size: 11px; }
+.fo-command-console { border-radius: 4px; }
+.fo-command-console input { min-height: 44px; }
+.fo-diagnostics { background: #122223; font-size: 11px; }
+.fo-machine-bottom { min-height: 46px; font-size: 8px; }
+
+@media (max-width: 1200px) {
+  .fallout-page .fo-interface { padding-inline: 22px; }
+  .fo-desk-layout { grid-template-columns: 192px minmax(0, 1fr); gap: 22px; }
+  .fo-desk-rail { padding-inline: 9px; }
+  .fo-field-nav a, .fo-field-nav a + a { gap: 7px; padding-inline: 8px; }
+  .fo-directory-copy strong { font-size: 11px; }
+  .fo-directory-copy small { font-size: 8px; }
+  .fo-desk-masthead { padding-inline: 23px; }
+  .fo-desk-masthead h1 { font-size: 34px; }
+  .fo-desk-main .fo-code { font-size: 25px; letter-spacing: .5px; }
+  .fo-desk-main .fo-silo-art { display: none; }
+  .fo-desk-main .fo-silo-body { padding-inline: 12px; }
+  .fo-desk-main .fo-dossiers { grid-template-columns: 1fr; }
+}
+@media (max-width: 850px) {
+  .fallout-page .fo-interface { padding-inline: 15px; }
+  .fo-desk-layout { grid-template-columns: 160px minmax(0, 1fr); gap: 18px; }
+  .fo-rail-brand img { width: 112px; }
+  .fo-rail-brand > span, .fo-rail-label { font-size: 6px; letter-spacing: .5px; }
+  .fo-field-nav a, .fo-field-nav a + a { grid-template-columns: 18px minmax(0, 1fr); gap: 5px; }
+  .fo-field-nav a > svg { width: 16px; }
+  .fo-directory-copy strong { font-size: 10px; }
+  .fo-desk-masthead { padding: 22px; }
+  .fo-desk-masthead h1 { font-size: 31px; }
+  .fo-desk-masthead h1 > span { letter-spacing: 1.5px; }
+  .fo-desk-stamp { display: none; }
+  .fo-desk-toolbar > span:nth-child(2) { display: none; }
+  .fo-desk-main .fo-silos { grid-template-columns: 1fr; gap: 12px; padding-inline: 15px; }
+  .fo-desk-main .fo-silo-body { flex-direction: row; padding: 13px 17px; min-height: 90px; }
+  .fo-desk-main .fo-silo-art { display: block; width: 38px; }
+  .fo-desk-main .fo-code { font-size: 30px; }
+}
+@media (max-width: 600px) {
+  .fallout-page .fo-interface { padding-inline: 13px; }
+  .fo-site-bar { min-height: 64px; }
+  .fo-desk-layout { display: block; }
+  .fo-desk-rail { position: sticky; top: 0; z-index: 25; padding: 9px 7px; margin-bottom: 17px; border-top-width: 2px; box-shadow: 0 6px 17px #0007; }
+  .fo-desk-rail::before, .fo-desk-rail::after, .fo-rail-label, .fo-rail-brand > span, .fo-rail-signal, .fo-rail-footer { display: none; }
+  .fo-rail-brand { display: none; }
+  .fo-field-nav { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
+  .fo-field-nav a, .fo-field-nav a + a { display: flex; flex-direction: column; justify-content: center; gap: 5px; min-height: 55px; padding: 7px 1px; border-left-width: 1px; border-bottom: 2px solid transparent; }
+  .fo-field-nav a .fo-directory-number, .fo-directory-copy small { display: none; }
+  .fo-directory-copy strong { font-size: 9px; white-space: nowrap; }
+  .fo-field-nav a[aria-current="location"] { border-left-color: #9da47766; border-bottom-color: #dfbe75; }
+  .fo-desk-masthead { padding: 20px 23px; }
+  .fo-desk-masthead h1 { font-size: 34px; }
+  .fo-desk-masthead h1 > span { font-size: 21px; letter-spacing: 2px; }
+  .fo-desk-eyebrow { font-size: 7px; letter-spacing: 1px; }
+  .fo-desk-masthead p { font-size: 10px; }
+  .fo-desk-toolbar { gap: 5px; min-height: 55px; padding-inline: 2px; }
+  .fo-desk-toolbar .fo-status { font-size: 7px; letter-spacing: .3px; }
+  .fo-display-controls { gap: 10px; }
+  .fo-display-controls button { font-size: 8px; }
+  .fo-desk-main .fo-panel { scroll-margin-top: 91px; }
+  .fo-content.fo-desk-content { gap: 25px; }
+  .fo-desk-main .fo-section-title { padding: 18px 14px; }
+  .fo-desk-main .fo-section-title h2 { font-size: 24px; }
+  .fo-desk-main .fo-section-title .fo-kicker { font-size: 7px; }
+  .fo-panel-heading { font-size: 8px; }
+  .fo-panel-heading .fo-status { font-size: 7px; }
+  .fo-feed-note { font-size: 9px; }
+  .fo-merchant-file { grid-template-columns: 95px minmax(0, 1fr); gap: 15px; }
+  .fo-inventory-list li { font-size: 11px; }
+}/* Material finishes: cast receiver, enamel sign, paper records, and blueprint stock. */
+.fo-desk-rail {
+  padding: 21px 12px 16px;
+  border: 2px solid #738071;
+  border-radius: 9px 9px 18px 18px;
+  background: url('/fallout/surface-grain.svg'), repeating-linear-gradient(102deg, transparent 0 57px, #cfceac0c 58px, transparent 59px 123px), linear-gradient(100deg, #617060 0, #36493d 5%, #293e35 49%, #1d302b 94%, #4b5b4d);
+  box-shadow: inset 0 2px #c2c6a86b, inset 4px 0 9px #101e1b, inset -4px 0 8px #101b17, 0 4px 0 #0b1816, 0 16px 28px #0007;
+}
+.fo-desk-rail::before, .fo-desk-rail::after { width: 10px; height: 10px; }
+.fo-rail-brand { padding: 8px 0 16px; gap: 8px; }
+.fo-rail-brand img { width: 124px; filter: sepia(.15) brightness(.91); }
+.fo-rail-brand > span { font-size: 7px; color: #c5c6a7; }
+.fo-rail-label { padding: 10px 3px; color: #acb69d; font-size: 7px; }
+.fo-channel-dial { position: relative; margin: 0 1px 18px; padding: 10px 11px 8px; border: 4px solid #152621; border-radius: 8px; color: #414e35; background: url('/fallout/surface-grain.svg'), radial-gradient(ellipse at 50% 70%, #dfd7a7, #b8b58a); box-shadow: 0 1px #acb39477, inset 0 3px 8px #3d412b99; }
+.fo-dial-caption { display: flex; align-items: center; justify-content: space-between; gap: 6px; font-size: 6px; letter-spacing: 1px; }
+.fo-dial-caption b { font-size: 9px; }
+.fo-dial-scale { position: relative; display: grid; grid-template-columns: repeat(4, 1fr); padding-top: 17px; margin-top: 9px; background: repeating-linear-gradient(90deg, #536144a6 0 1px, transparent 1px 5px) top / 100% 9px no-repeat; border-top: 1px solid #66704c; }
+.fo-dial-scale span { text-align: center; font-size: 9px; }
+.fo-dial-scale i { position: absolute; top: -5px; bottom: 0; width: 2px; background: #a3492b; box-shadow: 1px 0 #f4dfa380; transition: left 250ms ease; }
+.fo-dial-station { display: block; margin-top: 8px; text-align: center; font-size: 7px; letter-spacing: 1.4px; }
+.fo-field-nav { gap: 10px; }
+.fo-field-nav a, .fo-field-nav a + a { grid-template-columns: 32px minmax(0, 1fr); gap: 9px; min-height: 73px; padding: 10px 8px; border: 1px solid #87917a66; border-bottom: 3px solid #10251f; border-radius: 5px; background: url('/fallout/surface-grain.svg'), linear-gradient(110deg, #50604d, #34483b 60%, #2b3c32); box-shadow: inset 0 1px #c5cba052, 0 2px 3px #07171199; }
+.fo-field-nav .fo-selector-cap { display: grid; place-items: center; width: 31px; height: 31px; border: 3px solid #172a23; border-radius: 50%; color: #bcc3a1; background: linear-gradient(135deg, #6c7760, #314738 65%, #1d3328); box-shadow: 0 1px #a2aa7966, inset 1px 1px #b6c49433; }
+.fo-field-nav .fo-selector-cap svg { display: block; width: 15px; opacity: .85; }
+.fo-field-nav .fo-directory-copy { gap: 4px; }
+.fo-directory-copy strong { font-size: 11px; text-shadow: 0 1px #071f16; }
+.fo-directory-copy small { font-size: 9px; color: #b6bea4; }
+.fo-field-nav a .fo-directory-number { top: 4px; right: 6px; font-size: 7px; color: #bac0a6; }
+.fo-field-nav a[aria-current="location"] { border: 1px solid #a8a779; border-bottom: 3px solid #1a2e23; background: url('/fallout/surface-grain.svg'), linear-gradient(110deg, #666d4d, #42513a 60%, #374730); box-shadow: inset 0 2px 7px #15241799, 0 1px #b6b38866; }
+.fo-field-nav a[aria-current="location"] .fo-selector-cap { color: #f1d088; background: radial-gradient(ellipse at 40% 30%, #b2a264, #726a39 50%, #433f22); box-shadow: 0 1px #a2aa7966, inset 1px 1px #e4d89d55, 0 0 8px #c9ba4720; }
+.fo-field-nav a:hover { background-color: #657153; border-top-color: #ccc798; filter: brightness(1.1); }
+.fo-field-nav a:focus-visible { outline-offset: 3px; }
+.fo-rail-signal { margin-top: 19px; padding: 12px 10px 10px; border: 1px solid #0c221c; border-radius: 4px; background: #081e1880; box-shadow: inset 0 2px 4px #00170fa6, 0 1px #9bae7a26; }
+.fo-rail-signal > span { font-size: 8px; }
+.fo-rail-footer { position: relative; margin-top: 16px; padding-top: 28px; }
+.fo-rail-footer::before { content: ''; position: absolute; left: 16px; right: 16px; top: 0; height: 13px; border-radius: 3px; background: repeating-linear-gradient(0deg, #081a14 0 2px, #75836c66 2px 3px, transparent 3px 5px); }
+.fo-desk-masthead { gap: 23px; padding: 25px 26px; min-height: 183px; border: 5px solid #68796c; border-radius: 7px; color: #e2dbb3; background: url('/fallout/surface-grain.svg'), repeating-linear-gradient(172deg, transparent 0 47px, #bcc5ac09 48px 49px, transparent 50px 134px), radial-gradient(ellipse at 10% 20%, #395664, #213c47 70%); box-shadow: inset 0 0 0 1px #b5b8928c, inset 0 0 0 6px #102c33, inset 0 0 0 7px #8a9a7766, 0 3px #0a1b20, 0 12px 20px #0005; }
+.fo-desk-masthead::before, .fo-desk-masthead::after { content: ''; position: absolute; width: 9px; height: 9px; top: 10px; background: url('/fallout/panel-screw.svg') center / contain; }
+.fo-desk-masthead::before { left: 10px; }
+.fo-desk-masthead::after { right: 10px; }
+.fo-desk-insignia { position: relative; display: grid; flex-shrink: 0; justify-items: center; align-content: center; width: 122px; color: #cbb879; padding-right: 20px; border-right: 1px solid #a7b19040; text-shadow: 0 2px #0f2831; }
+.fo-desk-insignia > span { font-size: 24px; line-height: 1; }
+.fo-desk-insignia strong { position: relative; display: grid; place-items: center; width: 65px; height: 65px; border: 4px double #b5aa76; border-radius: 50%; font: 900 43px/1 Impact, sans-serif; }
+.fo-desk-insignia strong::before, .fo-desk-insignia strong::after { content: ''; position: absolute; width: 19px; height: 22px; top: 12px; background: repeating-linear-gradient(0deg, #b5aa76 0 3px, transparent 3px 8px); }
+.fo-desk-insignia strong::before { right: 65px; }
+.fo-desk-insignia strong::after { left: 65px; }
+.fo-desk-insignia small { font-size: 6px; letter-spacing: 1px; margin-top: 11px; }
+.fo-desk-title { flex: 1; }
+.fo-desk-eyebrow { color: #b7c1a7; letter-spacing: 1.6px; }
+.fo-desk-masthead h1 { font-size: clamp(32px, 3vw, 47px); text-shadow: 1px 3px #102b32; letter-spacing: 1px; }
+.fo-desk-masthead h1 > span { color: #d0b373; font-size: .61em; letter-spacing: 3px; }
+.fo-desk-masthead p { color: #b2c2b8; font-size: 11px; }
+.fo-desk-stamp { min-width: 140px; padding: 13px 17px; border: 1px solid #a69e74; border-radius: 1px; color: #61603e; background: url('/fallout/surface-grain.svg'), linear-gradient(100deg, #c2b98e, #d6cfa6 45%, #bbb38c); box-shadow: 2px 4px 5px #071c225c; }
+.fo-desk-stamp::before { content: ''; position: absolute; top: -7px; left: 30%; width: 40%; height: 13px; background: #aaa580b3; border-inline: 1px dashed #ded6ae77; transform: rotate(3deg); }
+.fo-desk-stamp strong { color: #424e38; }
+.fo-dossiers { padding-top: 18px; }
+.fo-desk-main .fo-panel { scroll-margin-top: 49px; }
+.fo-file-tab { position: absolute; top: -23px; left: -1px; display: flex; align-items: center; height: 23px; padding: 0 20px; width: 236px; max-width: 75%; border: 1px solid #b6aa7c; border-bottom: 0; border-radius: 8px 16px 0 0; background: url('/fallout/surface-grain.svg'), #b8ab7b; color: #484c31; font-size: 8px; letter-spacing: 1.1px; }
+.fo-merchant { border: 1px solid #b8ac80; border-radius: 0 4px 4px 4px; background: url('/fallout/surface-grain.svg'), linear-gradient(90deg, #82724630, transparent 9%, transparent 97%, #6e613023), repeating-linear-gradient(0deg, transparent 0 30px, #69604415 31px 32px), #ccc19a; box-shadow: inset 0 0 24px #83714240, 3px 4px #aa9c74, 5px 6px #243124, 6px 9px 16px #0006; }
+.fo-merchant::before { width: 54px; height: 16px; top: 12px; left: calc(50% - 27px); border: 2px solid #7d816b; border-top: 5px solid #9a9c84; border-radius: 3px; background: linear-gradient(#565d4b, #aaa98c 45%, #5d6652); box-shadow: 0 2px 3px #3b452d66; transform: none; }
+.fo-merchant .fo-panel-heading { min-height: 52px; background: url('/fallout/surface-grain.svg'), #b8ad86; border-bottom: 3px double #877e59; }
+.fo-merchant .fo-panel-heading > span:first-child { max-width: 45%; font-size: 8px; }
+.fo-merchant .fo-panel-heading .fo-status { font-size: 8px; }
+.fo-merchant-file { padding-top: 28px; }
+.fo-portrait { box-shadow: 2px 4px 6px #3d3c2b55; }
+.fo-inventory { margin: 0 16px 20px; padding: 0 12px; background: #e1d8b033; border: 1px solid #897d5338; }
+.fo-inventory-heading { padding-top: 12px; }
+.fo-research { border: 1px solid #739097; border-radius: 0 4px 4px 4px; background: url('/fallout/surface-grain.svg'), linear-gradient(#9dbfc409 1px, transparent 1px), linear-gradient(90deg, #9dbfc409 1px, transparent 1px), #213d48; background-size: auto, 22px 22px, 22px 22px, auto; box-shadow: inset 0 0 40px #0b253473, 3px 4px #48636a, 5px 6px #142d35, 6px 9px 16px #0006; }
+.fo-research .fo-file-tab { background: url('/fallout/surface-grain.svg'), #3d5a64; border-color: #739097; color: #cad9d0; }
+.fo-research .fo-panel-heading { min-height: 52px; background: url('/fallout/surface-grain.svg'), #385661; border-bottom: 3px double #7d989a; }
+.fo-research .fo-panel-heading > span:first-child { font-size: 9px; }
+.fo-research-content { margin: 10px; padding: 17px 15px; border: 1px solid #86a6a53d; }
+.fo-specimen { box-shadow: inset 0 0 23px #081d275e; border: 1px solid #88a4a8; background-color: #294854; }
+.fo-specimen::before, .fo-specimen::after { color: #c4d4c5; }
+.fo-research h2 { font-family: Impact, 'Arial Narrow', sans-serif; letter-spacing: 1.7px; }
+@media (prefers-reduced-motion: reduce) { .fo-dial-scale i { transition: none; } }
+@media (min-width: 601px) and (max-height: 850px) {
+  .fo-desk-rail { top: 14px; padding-top: 15px; padding-bottom: 12px; max-height: calc(100dvh - 28px); overflow-y: auto; scrollbar-width: thin; }
+  .fo-rail-brand { padding-bottom: 10px; }
+  .fo-rail-brand img { width: 101px; }
+  .fo-channel-dial { margin-bottom: 12px; padding-top: 7px; padding-bottom: 6px; }
+  .fo-dial-scale { padding-top: 12px; margin-top: 6px; }
+  .fo-field-nav a, .fo-field-nav a + a { min-height: 64px; }
+  .fo-rail-signal { margin-top: 13px; }
+  .fo-rail-footer { padding-top: 23px; margin-top: 10px; }
+}
+@media (max-width: 1200px) {
+  .fo-desk-insignia { display: none; }
+  .fo-field-nav a, .fo-field-nav a + a { grid-template-columns: 27px minmax(0, 1fr); gap: 7px; padding-inline: 6px; }
+  .fo-field-nav .fo-selector-cap { width: 26px; height: 26px; }
+  .fo-desk-main .fo-dossiers { gap: 48px; }
+}
+@media (max-width: 850px) {
+  .fo-channel-dial { padding-inline: 5px; }
+  .fo-dial-caption { letter-spacing: 0; }
+  .fo-field-nav a, .fo-field-nav a + a { grid-template-columns: 22px minmax(0, 1fr); gap: 5px; }
+  .fo-field-nav .fo-selector-cap { width: 22px; height: 22px; border-width: 2px; }
+  .fo-field-nav .fo-selector-cap svg { width: 12px; }
+  .fo-directory-copy small { font-size: 8px; }
+  .fo-rail-label { font-size: 6px; }
+  .fo-desk-masthead { min-height: 170px; }
+}
+@media (max-width: 600px) {
+  .fo-desk-rail { padding: 8px 6px; border-radius: 6px; }
+  .fo-channel-dial { display: none; }
+  .fo-field-nav { gap: 6px; }
+  .fo-field-nav a, .fo-field-nav a + a { gap: 4px; min-height: 60px; padding: 6px 1px; border-radius: 3px; }
+  .fo-field-nav .fo-selector-cap { width: 24px; height: 24px; }
+  .fo-field-nav .fo-selector-cap svg { width: 13px; }
+  .fo-directory-copy strong { font-size: 8px; }
+  .fo-desk-masthead { padding: 21px; min-height: 173px; }
+  .fo-desk-masthead h1 { font-size: 35px; }
+  .fo-desk-masthead h1 > span { font-size: 21px; letter-spacing: 1.7px; }
+  .fo-desk-eyebrow { font-size: 6px; letter-spacing: 1px; }
+  .fo-desk-masthead p { font-size: 10px; }
+  .fo-dossiers { padding-top: 18px; }
+  .fo-desk-main .fo-panel { scroll-margin-top: 116px; }
+  .fo-merchant .fo-panel-heading > span:first-child { max-width: 48%; font-size: 7px; }
+  .fo-merchant .fo-panel-heading .fo-status { font-size: 7px; }
+  .fo-merchant::before { left: calc(55% - 20px); width: 40px; top: 17px; }
+  .fo-research .fo-panel-heading > span:first-child { font-size: 8px; }
+  .fo-research-content { margin: 7px; padding: 15px 10px; }
+  .fo-inventory { margin-inline: 10px; padding-inline: 9px; }
+}
+
+/* Recessed maintenance hatch and its fold-out service record. */
+.fo-desk-main .fo-service-panel { position: relative; margin-top: 29px; padding: 20px 23px 12px; border: 3px solid #59695b; border-radius: 5px; color: #b7c3ab; background: url('/fallout/surface-grain.svg'), linear-gradient(110deg, #33483d, #21362e 65%, #1b3029); box-shadow: inset 0 0 0 1px #a5b18d66, inset 0 0 0 5px #172c25, 0 3px #0b1e19, 0 9px 20px #0004; }
+.fo-service-panel::before, .fo-service-panel::after { content: ''; position: absolute; top: 8px; width: 8px; height: 8px; background: url('/fallout/panel-screw.svg') center / contain; }
+.fo-service-panel::before { left: 8px; }
+.fo-service-panel::after { right: 8px; }
+.fo-service-panel > .fo-service-heading { justify-content: start; gap: 14px; padding: 0 0 17px; border-bottom: 1px solid #8a9b7040; }
+.fo-service-badge { display: grid; place-items: center; flex-shrink: 0; width: 43px; height: 43px; border: 3px double #8a9472; border-radius: 50%; color: #c2b87e; background: #182e2580; }
+.fo-service-title { display: grid; gap: 3px; }
+.fo-service-title > span { font-size: 7px; letter-spacing: 1.5px; color: #a6b28e; }
+.fo-service-title > strong { color: #d1d4b7; font: 500 22px/1.2 Impact, 'Arial Narrow', sans-serif; text-transform: uppercase; letter-spacing: 1px; }
+.fo-service-heading > .fo-status { margin-left: auto; font-size: 8px; padding: 8px 10px; border: 1px solid #77876150; border-radius: 3px; background: #10261e80; box-shadow: inset 0 2px 3px #061b1555; }
+.fo-service-panel > .fo-service-sync { display: flex; align-items: center; justify-content: start; gap: 10px; padding: 13px 0; border-bottom: 0; font-size: 8px; letter-spacing: .6px; }
+.fo-service-sync > svg { color: #a8bb91; }
+.fo-service-sync > time { margin-left: auto; font-size: 10px; color: #c4ceb6; }
+.fo-service-panel details { border: 1px solid #65775b66; border-radius: 3px; background: #10241e6b; box-shadow: inset 0 2px 3px #091a1640; }
+.fo-service-panel summary { display: flex; align-items: center; justify-content: space-between; gap: 15px; min-height: 56px; padding: 11px 15px; list-style: none; color: #c3cbb5; }
+.fo-service-panel summary::-webkit-details-marker { display: none; }
+.fo-service-panel summary > span { display: flex; align-items: center; gap: 20px; font-size: 11px; }
+.fo-service-panel summary b { padding-right: 20px; border-right: 1px solid #79896160; color: #b7a979; font-size: 8px; letter-spacing: 1px; }
+.fo-service-panel summary:hover { background: #a4b78e0c; color: #e5e5c8; }
+.fo-service-panel details[open] summary > svg { transform: rotate(180deg); }
+.fo-service-notes { padding: 0 15px 17px; border-top: 1px solid #73846733; }
+.fo-service-panel .fo-service-notes p { font-size: 12px; line-height: 1.8; color: #b9c6b2; }
+.fo-service-panel > .fo-service-serial { display: flex; justify-content: space-between; padding: 11px 1px 0; border: 0; font-size: 7px; color: #95a281; letter-spacing: 1px; }
+.fo-service-serial i { align-self: center; flex: 1; max-width: 140px; height: 5px; background: repeating-linear-gradient(90deg, #071b15 0 3px, #7e906266 3px 4px, transparent 4px 7px); }
+.fo-site-footer { margin-top: 7px; border-top: 1px solid #6d806238; color: #9bad9a; }
+@media (max-width: 600px) {
+  .fo-desk-main .fo-service-panel { padding: 18px 14px 12px; }
+  .fo-service-title > strong { font-size: 21px; }
+  .fo-service-heading > .fo-status { margin-left: 0; width: 100%; }
+  .fo-service-panel > .fo-service-sync { gap: 6px; font-size: 7px; }
+  .fo-service-sync > time { width: 100%; padding-left: 25px; font-size: 10px; }
+  .fo-service-panel summary > span { display: grid; gap: 4px; font-size: 10px; }
+  .fo-service-panel summary b { border: 0; font-size: 7px; }
+  .fo-service-serial i { display: none; }
+  .fo-service-panel > .fo-service-serial { font-size: 6px; letter-spacing: .5px; }
+}

@@ -1,5 +1,8 @@
 .fo-startup { --vault-size: min(66vh, 620px, 46vw); --vault-x: 39%; --vault-y: 55%; position: fixed; inset: 0; z-index: 1000; overflow: hidden; isolation: isolate; color: #ddcb96; font-family: "Courier New", monospace; }
 .fo-startup, .fo-startup * { box-sizing: border-box; }
+.fo-startup.is-approaching { background: #060e12; }
+.fo-startup:focus { outline: none; }
+.fo-vault-filter-defs { position: absolute; pointer-events: none; }
 .fo-vault-camera { position: absolute; inset: 0; transform-origin: var(--vault-x) var(--vault-y); }
 .fo-vault-shade { position: absolute; inset: 0; background: #060e12; }
 .fo-vault-scene { position: absolute; width: var(--vault-size); height: var(--vault-size); left: var(--vault-x); top: var(--vault-y); transform: translate(-50%, -50%); }
@@ -20,7 +23,8 @@
 .fo-vault-atmosphere { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 30%, #bfcfab09, transparent 45%), radial-gradient(ellipse at 50% 46%, transparent 20%, #020a10bb 95%); }
 .fo-vault-rail { position: absolute; top: 99%; left: -100vw; width: 200vw; height: 20px; border-top: 3px solid #697271; border-bottom: 4px solid #070e12; background: linear-gradient(#17272f 30%, #7b8171 33%, #343e3e 45%, #121f26 70%); box-shadow: 0 10px 20px #0007; }
 .fo-vault-door-carriage { position: absolute; inset: 0; transform-origin: 50% 100%; filter: drop-shadow(9px 18px 9px #000b); }
-.fo-vault-door-carriage > .vault-door { display: block; width: 100%; height: 100%; overflow: visible; transform-origin: center; }
+.fo-vault-door-release { width: 100%; height: 100%; }
+.fo-vault-door-release > .vault-door { display: block; width: 100%; height: 100%; overflow: visible; transform-origin: center; }
 .fo-startup .vault-door-bolt { transition: transform 700ms cubic-bezier(.65,0,.35,1); transition-delay: calc(var(--bolt-order) * 130ms); }
 .fo-startup .vault-door-wheel { transform-origin: 189px 364px; transition: transform 1400ms cubic-bezier(.5,0,.3,1); }
 .fo-startup:is(.is-complete, .is-leaving, .is-entering) .vault-door-wheel { transform: rotate(-150deg); }
@@ -31,7 +35,7 @@
 .fo-vault-heading p { display: flex; justify-content: center; align-items: center; gap: 8px; margin: 0; font-size: 8px; letter-spacing: 2px; color: #a6b6a8; }
 .fo-vault-heading i { width: 5px; height: 5px; border-radius: 50%; background: #d9a354; box-shadow: 0 0 9px #e4b36688; }
 .is-complete .fo-vault-heading i, :is(.is-leaving, .is-entering) .fo-vault-heading i { background: #b9d698; box-shadow: 0 0 10px #b9d69888; }
-.fo-vault-console { position: absolute; top: 53%; left: calc(var(--vault-x) + var(--vault-size) * .5 + 85px); width: 282px; transform: translateY(-50%); padding: 0 20px 10px; border: 2px solid #677268; border-top: 3px solid #959b7e; border-radius: 9px 9px 5px 5px; background: linear-gradient(115deg, #46514a, #2d3936 25%, #19292c 90%); box-shadow: 8px 8px 0 #0a171e, 10px 14px 25px #0009, inset 0 0 0 5px #101e243b, inset 2px 1px #b7b7995c; }
+.fo-vault-console { position: absolute; top: 53%; left: calc(var(--vault-x) + var(--vault-size) * .5 + 145px); width: 282px; transform: translateY(-50%); padding: 0 20px 10px; border: 2px solid #677268; border-top: 3px solid #959b7e; border-radius: 9px 9px 5px 5px; background: linear-gradient(115deg, #46514a, #2d3936 25%, #19292c 90%); box-shadow: 8px 8px 0 #0a171e, 10px 14px 25px #0009, inset 0 0 0 5px #101e243b, inset 2px 1px #b7b7995c; }
 .fo-vault-console-plate { display: flex; gap: 9px; align-items: center; margin: 0 -14px 15px; min-height: 28px; padding-inline: 3px; border-bottom: 1px solid #98a18b30; color: #a6ae96; font-size: 7px; letter-spacing: 1.6px; }
 .fo-vault-console-plate > span { margin-left: auto; font-size: 6px; }.fo-vault-console-plate i { width: 8px; height: 8px; border-radius: 50%; background: url("/fallout/panel-screw.svg") center / contain; }
 .fo-vault-status { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 9px; line-height: 1.8; font-weight: 700; letter-spacing: .4px; }
@@ -44,20 +48,28 @@
 .fo-vault-checks b { grid-column: 2; font-size: 7px; font-weight: 400; color: #b59b60; letter-spacing: 1px; }
 .fo-vault-checks .is-ready i { background: #b0cb8d; box-shadow: 0 0 5px #b0cb8d40; }
 .fo-vault-checks .is-ready b { color: #b0cb8d; }
-.fo-vault-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 5px; margin-top: 13px; padding-top: 10px; border-top: 1px solid #95a58c30; color: #a9b49c; font-size: 6px; letter-spacing: .5px; min-height: 35px; }
-.fo-vault-footer button { min-height: 32px; flex: none; border: 0; padding: 4px; background: transparent; color: #c8c49e; font: inherit; font-size: 10px; cursor: pointer; }
-.fo-vault-footer button:hover { color: #f5e3a9; }
-.fo-vault-footer button:focus-visible { outline: 1px dashed #e3ce91; outline-offset: 3px; }
+.fo-vault-override { position: absolute; right: 18px; bottom: 16px; display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 5px solid #233332; border-radius: 50%; color: #b39b61; background: radial-gradient(circle at 40% 28%, #465047, #1b2b2b 68%); box-shadow: 0 1px 0 1px #83907a55, 0 -1px 0 1px #08181d, inset 0 2px 5px #000c, inset 0 -1px #b0a57835; cursor: pointer; transition: color 160ms, box-shadow 160ms; }
+.fo-vault-override:hover { color: #f0ce83; box-shadow: 0 1px 0 1px #83907a55, 0 -1px 0 1px #08181d, inset 0 2px 5px #000c, 0 0 14px #c5a65b22; }
+.fo-vault-override:active { padding-top: 2px; background: #192826; }
+.fo-vault-override:focus-visible { outline: 2px solid #c7b57d; outline-offset: 3px; }
 .fo-vault-steam { position: absolute; inset: -9%; border-radius: 50%; border: 20px solid #d6e5d300; filter: blur(16px); opacity: 0; pointer-events: none; }
 .fo-startup.is-entering .fo-vault-camera { animation: fo-vault-enter var(--vault-entry-duration) cubic-bezier(.55,.05,.25,1) both; }
 :is(.is-leaving, .is-entering) .fo-vault-door-carriage { animation: fo-vault-roll var(--vault-opening-duration) linear both; }
-:is(.is-leaving, .is-entering) .fo-vault-door-carriage > .vault-door { animation: fo-vault-turn var(--vault-opening-duration) linear both; }
+:is(.is-leaving, .is-entering) .fo-vault-door-release { animation: fo-vault-release var(--vault-opening-duration) linear both; }
+:is(.is-leaving, .is-entering) .fo-vault-door-release > .vault-door { animation: fo-vault-turn var(--vault-opening-duration) linear both; }
+.fo-startup.is-leaving .fo-vault-camera { animation: fo-vault-shudder 600ms ease-out 1250ms both; }
 :is(.is-leaving, .is-entering) .fo-vault-shade { animation: fo-vault-shade-out 1800ms ease 800ms both; }
 :is(.is-leaving, .is-entering) .fo-vault-atmosphere { animation: fo-vault-shade-out 1400ms ease 3600ms both; }
-:is(.is-leaving, .is-entering) .fo-vault-steam { animation: fo-vault-vent 2800ms ease-out 500ms both; }
-@keyframes fo-vault-roll { 0%, 4% { transform: translateX(0) scale(1); } 26%, 34% { transform: translateX(0) scale(.87); animation-timing-function: cubic-bezier(.42,0,.3,1); } 90%, 100% { transform: translateX(var(--vault-roll-distance, -100vw)) scale(.87); } }
-@keyframes fo-vault-turn { 0%, 4% { transform: rotate(0); } 26%, 34% { transform: rotate(7deg); animation-timing-function: cubic-bezier(.42,0,.3,1); } 90%, 100% { transform: rotate(var(--vault-roll-angle, -220deg)); } }
-@keyframes fo-vault-vent { 15%, 40% { opacity: .65; border-color: #d6e5d350; } 100% { opacity: 0; transform: scale(1.3); } }
+:is(.is-leaving, .is-entering) .fo-vault-steam { animation: fo-vault-vent 2200ms ease-out 240ms both; }
+/* Translation and rotation share the same timing and physical pitch radius. */
+@keyframes fo-vault-roll { 0%, 25% { transform: translateX(0); animation-timing-function: cubic-bezier(.55,.02,.32,1); } 94%, 100% { transform: translateX(var(--vault-roll-distance, -100vw)); } }
+@keyframes fo-vault-turn { 0%, 25% { transform: rotate(0); animation-timing-function: cubic-bezier(.55,.02,.32,1); } 94%, 100% { transform: rotate(var(--vault-roll-angle, -220deg)); } }
+@keyframes fo-vault-release { 0%, 3% { transform: translateY(0); filter: drop-shadow(0 0 0 #0000); } 13%, 18% { transform: translateY(-6px); filter: drop-shadow(3px 12px 3px #000b); } 23% { transform: translateY(1px); filter: drop-shadow(2px 5px 2px #0009); } 25%, 100% { transform: translateY(0); filter: drop-shadow(2px 4px 2px #0008); } }
+@keyframes fo-vault-shudder { 0%, 100% { transform: translate(0, 0); } 15% { transform: translate(.8px, 1px); } 32% { transform: translate(-.6px, -.5px); } 50% { transform: translate(.4px, .6px); } 72% { transform: translate(-.2px, 0); } }
+@keyframes fo-vault-vent { 0% { opacity: 0; transform: translateY(0); } 20% { opacity: .55; border-color: #c5d8c638; } 100% { opacity: 0; transform: translateY(-26px); border-color: #c5d8c600; } }
+.fo-vault-track-dust { position: absolute; left: -45%; right: 8%; top: 96%; height: 22px; opacity: 0; pointer-events: none; background: radial-gradient(ellipse at 75% 70%, #b6ac864d, transparent 46%), radial-gradient(ellipse at 40% 60%, #a6ad9640, transparent 55%); filter: blur(9px); }
+:is(.is-leaving, .is-entering) .fo-vault-track-dust { animation: fo-vault-track-dust var(--vault-opening-duration) linear both; }
+@keyframes fo-vault-track-dust { 0%, 24% { opacity: 0; transform: translateX(0); } 35% { opacity: .65; } 70% { opacity: .3; } 95%, 100% { opacity: 0; transform: translateX(-55%); } }
 @keyframes fo-vault-shade-out { to { opacity: 0; } }
 @keyframes fo-vault-enter { from { transform: translate(0, 0) scale(1); } to { transform: translate(calc(50% - var(--vault-x)), calc(50% - var(--vault-y))) scale(var(--vault-camera-zoom, 6)); } }
 .fallout-page[data-vault-phase] > .fo-interface { transform: scale(.96); transform-origin: 50% 0; }
@@ -73,14 +85,12 @@
 :is(.is-leaving, .is-entering) .fo-vault-sequence > span:nth-child(2) { animation: fo-vault-step 1ms 600ms forwards; }
 :is(.is-leaving, .is-entering) .fo-vault-sequence > span:nth-child(3) { animation: fo-vault-step 1ms 2100ms forwards; }
 @keyframes fo-vault-step { to { color: #bad38d; text-shadow: 0 0 8px #aacc7c60; } }
-.fo-vault-console-hardware { display: flex; align-items: center; gap: 12px; padding-top: 18px; margin-top: 18px; border-top: 1px solid #9aa98830; }
+.fo-vault-console-hardware { display: flex; align-items: center; gap: 12px; padding: 18px 46px 8px 0; margin-top: 18px; border-top: 1px solid #9aa98830; }
 .fo-vault-console-hardware > span { color: #a7b199; font-size: 6px; line-height: 1.8; letter-spacing: .5px; }.fo-vault-console-hardware b { font-weight: 400; color: #d0bb83; }
 .fo-vault-gauge { position: relative; width: 46px; height: 46px; flex: none; border-radius: 50%; border: 4px solid #17272b; background: repeating-conic-gradient(from -120deg, #343d34 0 2deg, transparent 2deg 26deg), #b7b596; box-shadow: 0 0 0 2px #768173, inset 2px 2px 6px #0008; }
 .fo-vault-gauge::before { content: ""; position: absolute; inset: 6px; background: #bab798; border-radius: 50%; }.fo-vault-gauge i { position: absolute; width: 2px; height: 15px; background: #6e3625; left: 17px; top: 4px; transform-origin: center 15px; transform: rotate(55deg); transition: transform 1900ms ease; }
 .fo-vault-gauge span { position: absolute; left: 9px; bottom: 6px; font: 5px monospace; color: #333b32; }:is(.is-leaving, .is-entering) .fo-vault-gauge i { transform: rotate(-65deg); }
-.fo-vault-beacon { display: block; margin-left: auto; width: 15px; height: 15px; flex: none; border-radius: 50%; border: 3px solid #142529; background: #755636; box-shadow: 0 0 0 1px #85836a; }
-.is-complete .fo-vault-beacon, :is(.is-leaving, .is-entering) .fo-vault-beacon { background: #d49b53; box-shadow: 0 0 0 1px #85836a, 0 0 15px #d49b5350; }
-.fo-vault-pipework { position: absolute; left: -37%; top: -100vh; width: 60px; height: calc(100vh + var(--vault-size)); }
+.fo-vault-pipework { position: absolute; left: -46%; top: -100vh; width: 60px; height: calc(100vh + var(--vault-size)); }
 .fo-vault-pipework > i { display: block; position: absolute; inset-block: 0; width: 11px; border-inline: 1px solid #0a1419; border-radius: 0 0 18px 18px; background: linear-gradient(90deg, #19272b, #737b6d 40%, #303f41 64%, #142329); box-shadow: 5px 2px 6px #0005; }
 .fo-vault-pipework > i:nth-child(2) { left: 18px; width: 7px; }.fo-vault-pipework > i:nth-child(3) { left: 32px; width: 15px; }
 .fo-vault-pipework::after { content: ""; position: absolute; inset: 0 -3px; background: repeating-linear-gradient(0deg, transparent 0 115px, #16262b 116px 122px, #89937d 123px 124px, transparent 125px 240px); }.fo-vault-pipework b { position: absolute; top: calc(100vh - 40px); left: -2px; width: 57px; padding: 5px 0; text-align: center; background: #9a895d; color: #203134; font: 7px monospace; transform: rotate(-4deg); z-index: 1; }
@@ -88,13 +98,32 @@
 .fo-vault-overhead > span { font-size: 6px; letter-spacing: 2px; color: #c0b184; }.fo-vault-overhead i, .fo-vault-overhead b { width: 9px; height: 9px; border: 2px solid #1d2b2d; border-radius: 50%; background: #974a29; box-shadow: 0 0 5px #e58c3440; }
 .is-complete .fo-vault-overhead i, :is(.is-leaving, .is-entering) .fo-vault-overhead i { animation: fo-vault-warning-light 1800ms ease-in-out infinite; }
 @keyframes fo-vault-warning-light { 50% { background: #e5ad62; box-shadow: 0 0 19px #e6a152a0; } }
-.fo-vault-stencil { position: absolute; left: 125%; top: -12%; display: flex; align-items: center; gap: 12px; white-space: nowrap; color: #bec0a119; font: 900 120px/1 Impact, sans-serif; transform: rotate(-2deg); }.fo-vault-stencil span { font: 700 13px/1.6 monospace; letter-spacing: 3px; }
+.fo-vault-stencil { position: absolute; left: calc(var(--vault-x) + var(--vault-size) * .5 + 145px); top: 5%; display: flex; align-items: center; gap: 12px; white-space: nowrap; color: #c3b887; opacity: .58; filter: var(--vault-paint-filter); font: 900 clamp(46px, 5vw, 76px)/1 Impact, sans-serif; transform: rotate(-2deg); }.fo-vault-stencil span { font: 700 11px/1.6 monospace; letter-spacing: 2px; }
+.fo-vault-mural { position: absolute; left: calc(var(--vault-x) + var(--vault-size) * .5 + 470px); right: 4%; top: 31%; display: grid; justify-items: center; gap: 22px; color: #c1b17b; transform: rotate(2deg); }
+.fo-vault-mural img { width: min(100%, 270px); height: min(40vh, 380px); object-fit: contain; filter: var(--vault-paint-filter) sepia(.3) saturate(.5) brightness(.83); opacity: .7; }
+.fo-vault-mural > span { filter: var(--vault-paint-filter); opacity: .6; }
+.fo-vault-wall-symbol { position: absolute; display: grid; justify-items: center; gap: 7px; color: #bda365; opacity: .48; filter: var(--vault-paint-filter); }
+.fo-vault-wall-symbol > svg { width: 100%; height: auto; }
+.fo-vault-wall-symbol > span { font: 700 6px/1.4 monospace; letter-spacing: 1.6px; white-space: nowrap; }
+.fo-vault-wall-symbol.is-vault { width: 125px; top: -90px; left: 50%; transform: translateX(-50%) rotate(-3deg); }
+.fo-vault-wall-symbol.is-radiation { width: 43px; top: 0; left: -2%; transform: rotate(-10deg); }
+.fo-vault-wall-symbol.is-power { width: 32px; top: 39%; right: -5%; transform: rotate(7deg); }
+.fo-vault-wall-symbol.is-direction { width: 42px; bottom: 21%; left: -3%; transform: rotate(-3deg); }
+.fo-vault-mural > span { text-align: center; font: 700 clamp(7px, .65vw, 11px)/1.8 monospace; letter-spacing: 2px; }
+.fo-vault-mural strong { font-size: 1.2em; }
+@media (max-width: 1400px) and (min-width: 901px) { .fo-vault-mural { left: calc(var(--vault-x) + var(--vault-size) * .5 + 420px); right: 3%; top: 32%; }.fo-vault-mural img { height: 270px; }.fo-vault-mural > span { display: none; }.fo-vault-stencil { top: 5%; font-size: 46px; }.fo-vault-stencil span { font-size: 8px; } }
+@media (max-width: 1100px) and (min-width: 901px) { .fo-vault-stencil { left: calc(var(--vault-x) + var(--vault-size) * .5 + 125px); }.fo-vault-mural { left: auto; top: 3%; width: 66px; }.fo-vault-mural img { height: 100px; } }
+@media (max-width: 900px) { .fo-vault-mural { left: auto; right: 3%; top: 27%; width: 12%; gap: 0; }.fo-vault-mural img { height: min(18svh, 120px); }.fo-vault-mural > span { display: none; } }
+@media (max-width: 1500px) { .fo-vault-wall-symbol.is-radiation, .fo-vault-wall-symbol.is-power, .fo-vault-wall-symbol.is-direction { display: none; }.fo-vault-wall-symbol.is-vault { width: min(90%, 110px); top: -60px; }.fo-vault-wall-symbol > span { font-size: 5px; letter-spacing: .7px; } }
+@media (max-width: 1100px) { .fo-vault-wall-symbol { display: none; } }
 .fo-vault-warning { left: -30%; top: 58%; width: 115px; }.fo-vault-warning strong { font-size: 11px; }.fo-vault-warning > span { font-size: 6px; }.fo-vault-warning small { font-size: 6px; }
+.fo-vault-warning::before, .fo-vault-warning::after { content: ""; position: absolute; width: 5px; height: 5px; background: url("/fallout/panel-screw.svg") center / contain; top: 4px; left: 4px; }
+.fo-vault-warning::after { top: auto; left: auto; bottom: 4px; right: 4px; }
 .fo-vault-lamp.is-left { left: -17%; top: 9%; }.fo-vault-lamp.is-right { right: -18%; top: 1%; height: 76px; opacity: .6; }
 .fo-vault-atmosphere { background: radial-gradient(ellipse at 35% 26%, #dec79813, transparent 35%), radial-gradient(ellipse at 39% 50%, transparent 15%, #020a10ba 90%); }
 .fo-vault-rail::after { content: ""; position: absolute; top: 22px; left: 0; width: 100%; height: 90px; background: repeating-linear-gradient(90deg, #0b161c 0 5px, #52605a40 6px 7px, #111f25 8px 40px); transform: perspective(130px) rotateX(45deg); transform-origin: top; opacity: .6; }
 .fo-vault-rail::before { content: ""; position: absolute; bottom: calc(100% + 1px); left: 0; width: 100%; height: clamp(9px, calc(var(--vault-size) * .03), 20px); background: linear-gradient(#adb39c 0 2px, #63716c 3px, #283b41 60%, #102329); mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 20' preserveAspectRatio='none'%3E%3Cpath fill='white' d='M0 20V14H12L23 0H55L66 14H100V20Z'/%3E%3C/svg%3E") left bottom / var(--vault-tooth-pitch, 64px) 100% repeat-x; }
-@media (max-width: 1100px) and (min-width: 901px) { .fo-startup { --vault-x: 34%; --vault-size: min(61vh, 43vw); } .fo-vault-console { left: calc(var(--vault-x) + var(--vault-size) * .5 + 50px); width: 255px; padding-inline: 15px; }.fo-vault-warning { display: none; } }
+@media (max-width: 1100px) and (min-width: 901px) { .fo-startup { --vault-x: 34%; --vault-size: min(61vh, 43vw); } .fo-vault-console { left: calc(var(--vault-x) + var(--vault-size) * .5 + 125px); width: 255px; padding-inline: 15px; }.fo-vault-warning { display: none; } }
 @media (max-width: 900px) {
   .fo-startup { --vault-x: 50%; --vault-y: 38%; --vault-size: min(39svh, 66vw, 350px); }
   .fo-vault-heading { top: max(22px, calc(var(--vault-y) - var(--vault-size) * .5 - 116px)); width: calc(100% - 30px); }
@@ -104,12 +133,15 @@
   .fo-vault-checks { grid-template-columns: repeat(4, 1fr); gap: 7px; }.fo-vault-checks li { font-size: 8px; }.fo-vault-status { font-size: 8px; }
   .fo-vault-lamp { width: 15px; height: 70px; border-width: 3px; }.fo-vault-lamp.is-left { left: -17%; }.fo-vault-lamp.is-right { right: -17%; height: 53px; }
   .fo-vault-pipework { left: -26%; opacity: .55; }.fo-vault-overhead { height: 20px; top: -9%; padding-inline: 5px; }.fo-vault-overhead > span { font-size: 4px; letter-spacing: 1px; }
-  .fo-vault-footer { flex-wrap: nowrap; font-size: 5px; }.fo-vault-footer button { font-size: 9px; }.fo-vault-console-plate { font-size: 6px; letter-spacing: 1px; }
+  .fo-vault-console-plate { font-size: 6px; letter-spacing: 1px; }
 }
 @media (max-height: 660px) and (max-width: 900px) { .fo-startup { --vault-size: min(34svh, 60vw); --vault-y: 39%; }.fo-vault-heading { top: max(14px, calc(var(--vault-y) - var(--vault-size) * .5 - 110px)); }.fo-vault-heading h1 { font-size: 22px; }.fo-vault-console { top: calc(var(--vault-y) + var(--vault-size) * .5 + 30px); } }
 @media (max-height: 600px) and (min-width: 701px) { .fo-startup { --vault-size: min(61vh, 40vw); --vault-x: 31%; --vault-y: 56%; }.fo-vault-heading { top: 18px; width: 50%; }.fo-vault-heading h1 { font-size: 23px; }.fo-vault-console { left: calc(var(--vault-x) + var(--vault-size) * .5 + 60px); top: 50%; width: 260px; transform: translateY(-50%); }.fo-vault-sequence, .fo-vault-console-hardware, .fo-vault-console-title, .fo-vault-warning, .fo-vault-stencil { display: none; }.fo-vault-checks { grid-template-columns: repeat(2, 1fr); } }
 @media (prefers-reduced-motion: reduce) { .fo-startup, .fo-startup *, .fo-startup *::after { animation: none !important; transition: none !important; } .fo-startup.is-leaving { opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .fallout-page[data-vault-phase] > .fo-interface { transform: none; animation: none; } }
+@media (max-width: 900px), (max-height: 700px) { .fo-vault-console { padding-bottom: 18px; }.fo-vault-checks { padding-right: 50px; min-height: 44px; align-items: center; }.fo-vault-override { right: 14px; bottom: 15px; } }
+@media (max-width: 700px) { .fo-vault-stencil { display: flex; top: 12px; left: 50%; gap: 7px; font-size: 26px; transform: translateX(-50%) rotate(-2deg); }.fo-vault-stencil span { font-size: 6px; letter-spacing: 1px; } }
+@media (max-height: 600px) and (min-width: 701px) { .fo-vault-stencil { display: flex; left: calc(var(--vault-x) + var(--vault-size) * .5 + 65px); top: 12px; gap: 7px; font-size: 28px; }.fo-vault-stencil span { font-size: 6px; letter-spacing: 1px; } }
 
 /* Shared recessed screws on the field console. */
 .fo-machine-plate { --fo-screw-size: 17px; }

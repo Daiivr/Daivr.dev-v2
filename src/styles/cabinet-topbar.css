@@ -49,25 +49,24 @@
   .cabinet-topbar-track i.is-active { background: var(--color-phosphor); box-shadow: 0 0 8px var(--color-phosphor); }
 
   .cabinet-fallout-button {
-    display: flex;
-    gap: 7px;
-    min-height: 40px;
+    display: grid;
+    width: 52px;
+    height: 52px;
     flex: none;
     place-items: center;
-    padding: 2px 8px 2px 3px;
-    border: 1px solid #ab945737;
-    background: linear-gradient(110deg, #64737720, #b6974f08);
-    border-radius: 2px;
-    transition: background 180ms, filter 180ms;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    border-radius: 50%;
+    transition: filter 180ms;
   }
-  .cabinet-vault-housing { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: #080f11; box-shadow: inset 0 0 0 2px #69716a60; }
-  .cabinet-vault-housing .vault-door { width: 39px; height: 39px; filter: drop-shadow(1px 2px 1px #000); transition: transform 650ms cubic-bezier(.2,.7,.2,1); }
-  .cabinet-vault-label { display: grid; gap: 3px; color: #d9c283; white-space: nowrap; }
-  .cabinet-vault-label small { font: 700 6px / 1 monospace; letter-spacing: 2px; color: #a8ae96; }
-  .cabinet-vault-label strong { font: 800 9px / 1 monospace; letter-spacing: 1px; }
-  .cabinet-fallout-button:is(:hover, :focus-visible) .vault-door { transform: rotate(-24deg); }
+  .cabinet-vault-housing { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: radial-gradient(circle, #bfad6238, #080f11 65%); box-shadow: inset 0 0 0 2px #69716a80, 0 0 0 2px #172324; }
+  .cabinet-vault-housing .vault-door { width: 46px; height: 46px; overflow: visible; filter: drop-shadow(1px 2px 1px #000); transition: transform 750ms cubic-bezier(.2,.7,.2,1); }
+  .cabinet-vault-housing .vault-door-bolt { transition: transform 180ms ease; }
+  .cabinet-fallout-button:is(:hover, :focus-visible) .vault-door { transform: translateX(-72%) rotate(-85deg); transition-delay: 120ms; }
+  .cabinet-fallout-button:is(:hover, :focus-visible) .vault-door-bolt { transform: translateY(24px); }
   .cabinet-fallout-button:hover,
-  .cabinet-fallout-button:focus-visible { background: #e1bd6710; filter: drop-shadow(0 0 7px #e1bd6740); }
+  .cabinet-fallout-button:focus-visible { filter: drop-shadow(0 0 7px #e1bd6740); }
 
   .cabinet-terminal-button {
     display: inline-flex;
@@ -97,8 +96,6 @@
     main > section[id] { scroll-margin-top: 112px; }
     .cabinet-topbar { flex-wrap: wrap; gap: 0.5rem; padding: 0.6rem 1rem; }
     .cabinet-topbar-controls { width: 100%; justify-content: space-between; gap: 0.4rem; }
-    .cabinet-fallout-button { padding-right: 6px; gap: 4px; }
-    .cabinet-vault-label strong { font-size: 8px; }
     .cabinet-terminal-button { min-height: 36px; }
     .cabinet-telemetry-cell { padding-inline: 0.55rem; }
   }
@@ -110,8 +107,7 @@
     .cabinet-topbar-route { animation: none; }
     .cabinet-topbar-track i,
     .cabinet-terminal-button,
-    .cabinet-fallout-button, .cabinet-vault-housing .vault-door { transition: none; }
-    .cabinet-fallout-button:is(:hover, :focus-visible) .vault-door { transform: none; }
+    .cabinet-fallout-button, .cabinet-vault-housing .vault-door, .cabinet-vault-housing .vault-door-bolt { transition: none; }
   }
 }
 

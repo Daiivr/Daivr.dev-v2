@@ -13,6 +13,7 @@ export function MerchantIntel({ feed, loading, now, onRetry }) {
   const confirmed = feed.status === "current" && !!visit;
   const items = visit?.inventory;
   return <section className="fo-panel fo-merchant" id="minerva" aria-labelledby="fo-minerva-title">
+    <div className="fo-file-tab" aria-hidden="true">M–01 / CARAVAN RECORDS</div>
     <PanelHeading number="02" label="MERCHANT INTELLIGENCE" status={loading ? "SYNCING" : !confirmed ? "UNCONFIRMED" : current ? "IN RESIDENCE" : "BETWEEN VISITS"} amber />
     <div className="fo-merchant-file">
       <div className="fo-portrait"><img className="fo-minerva-photo" src="/fallout/minerva.webp" width="400" height="536" alt="Minerva, Fallout 76’s traveling gold bullion merchant" loading="eager" decoding="async" /><span>SUBJECT: M-01</span><span className="fo-file-stamp">CARAVAN<br />INTELLIGENCE</span></div>

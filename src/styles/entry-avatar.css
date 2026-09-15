@@ -22,7 +22,7 @@
   height: 100% !important;
   filter: saturate(0.94) contrast(1.03);
   opacity: 0;
-  transition: opacity 90ms ease-out, filter 480ms ease-out;
+  transition: opacity 240ms ease-out, filter 480ms ease-out;
 }
 
 .entry-avatar-scene.is-ready.is-revealed canvas {

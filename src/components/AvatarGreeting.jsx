@@ -5,6 +5,7 @@ import { createVRMAnimationClip, VRMAnimationLoaderPlugin } from "@pixiv/three-v
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { warmAvatarResources, yieldAvatarWork } from "../lib/avatarWarmup";
 
 const AVATAR_URL = "/models/dai-greeter-optimized.vrm";
 const GREETING_URL = "/motions/greeting.vrma";
@@ -14,9 +15,8 @@ const REVEAL_TIME = 1.82;
 // escena y el arranque oculto de la animacion — asi que el contador llegaba al
 // final y el anfitrion tardaba segundos en aparecer. Ahora cada tramo tiene su
 // peso y el 100% cae exactamente cuando el avatar se ve.
-const PROGRESS_DOWNLOAD = 86;
-const PROGRESS_COMPILED = 96;
-const PROGRESS_READY = 97;
+const PROGRESS_DOWNLOAD = 82;
+const PROGRESS_READY = 98;
 const WAVE_LOOP_START = 5.33;
 const WAVE_LOOP_END = 6.53;
 const SOURCE_FPS = 60;
@@ -63,6 +63,19 @@ function AvatarRig({ active, onError, onPhaseChange, onProgress, onReady, onReve
     let loadedVrm = null;
     let animationScene = null;
     let mixer = null;
+    let loadingFinished = false;
+    const releaseAssets = () => {
+      mixer?.stopAllAction();
+      if (loadedVrm) {
+        mixer?.uncacheRoot(loadedVrm.scene);
+        VRMUtils.deepDispose(loadedVrm.scene);
+        loadedVrm = null;
+      }
+      if (animationScene) {
+        VRMUtils.deepDispose(animationScene);
+        animationScene = null;
+      }
+    };
 
     const avatarLoader = new GLTFLoader();
     avatarLoader.register((parser) => new VRMLoaderPlugin(parser));
@@ -81,6 +94,16 @@ function AvatarRig({ active, onError, onPhaseChange, onProgress, onReady, onReve
           }),
           animationLoader.loadAsync(GREETING_URL)
         ]);
+
+        if (disposed) {
+          VRMUtils.deepDispose(avatarGltf.scene);
+          VRMUtils.deepDispose(animationGltf.scene);
+          return;
+        }
+        loadedVrm = avatarGltf.userData.vrm;
+        animationScene = animationGltf.scene;
+        await yieldAvatarWork();
+        if (disposed) return;
 
         if (!disposed) onProgressRef.current?.(PROGRESS_DOWNLOAD);
         const nextVrm = avatarGltf.userData.vrm;
@@ -114,24 +137,13 @@ function AvatarRig({ active, onError, onPhaseChange, onProgress, onReady, onReve
           waveAction.setLoop(THREE.LoopOnce, 1);
           waveAction.clampWhenFinished = true;
         });
-        mixer.setTime(0);
+        mixer.setTime(REVEAL_TIME);
         nextVrm.update(0);
 
-        // Compile the avatar's shader variants while the canvas is still hidden.
-        // compileAsync uses parallel shader compilation where the browser supports it.
-        scene.add(nextVrm.scene);
-        try {
-          await gl.compileAsync(scene, camera);
-        } finally {
-          scene.remove(nextVrm.scene);
-        }
-
-        if (!disposed) onProgressRef.current?.(PROGRESS_COMPILED);
-
-        if (disposed) {
+        const warmed = await warmAvatarResources({ renderer: gl, root: nextVrm.scene, scene, camera,
+          cancelled: () => disposed, onProgress: (value) => onProgressRef.current?.(value) });
+        if (!warmed || disposed) {
           mixer.stopAllAction();
-          VRMUtils.deepDispose(nextVrm.scene);
-          VRMUtils.deepDispose(animationGltf.scene);
           return;
         }
 
@@ -146,7 +158,13 @@ function AvatarRig({ active, onError, onPhaseChange, onProgress, onReady, onReve
         onProgressRef.current?.(PROGRESS_READY);
         onReadyRef.current?.();
       } catch {
-        if (!disposed) onErrorRef.current?.();
+        if (!disposed) {
+          releaseAssets();
+          onErrorRef.current?.();
+        }
+      } finally {
+        loadingFinished = true;
+        if (disposed) releaseAssets();
       }
     }
 
@@ -155,11 +173,7 @@ function AvatarRig({ active, onError, onPhaseChange, onProgress, onReady, onReve
     return () => {
       disposed = true;
       mixer?.stopAllAction();
-      if (loadedVrm) {
-        mixer?.uncacheRoot(loadedVrm.scene);
-        VRMUtils.deepDispose(loadedVrm.scene);
-      }
-      if (animationScene) VRMUtils.deepDispose(animationScene);
+      if (loadingFinished) releaseAssets();
       mixerRef.current = null;
       actionRef.current = null;
       waveActionsRef.current = [];
@@ -183,6 +197,9 @@ function AvatarRig({ active, onError, onPhaseChange, onProgress, onReady, onReve
       action.enabled = true;
       action.paused = false;
       action.play();
+      // Start just before the entrance pose; the source clip's initial 1.7s
+      // are fully concealed and previously looked like a stalled loader.
+      action.time = REVEAL_TIME - 0.12;
 
       if (reducedMotion) {
         mixer.setTime(clipDurationRef.current * 0.96);
@@ -201,7 +218,7 @@ function AvatarRig({ active, onError, onPhaseChange, onProgress, onReady, onReve
     }
 
     if (!reducedMotion && active) {
-      mixer.update(delta);
+      mixer.update(Math.min(delta, 0.05));
 
       if (!revealSentRef.current) {
         // El saludo arranca oculto: ese tramo tambien es espera, asi que lo
@@ -258,7 +275,7 @@ function AvatarRig({ active, onError, onPhaseChange, onProgress, onReady, onReve
       idleGroupRef.current.rotation.z = 0;
     }
 
-    vrm.update(reducedMotion ? 0 : delta);
+    vrm.update(reducedMotion ? 0 : Math.min(delta, 0.05));
     wasActiveRef.current = active;
   });
 

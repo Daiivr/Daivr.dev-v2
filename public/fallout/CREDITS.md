@@ -21,3 +21,10 @@ public image URL supplied by the Nuka Knights monthly report.
 - `fonts/fallout76-icon-tags.woff2`: Seven-glyph web subset of the user-supplied
   `Fallout76IconTags_v30_beta.ttf` (Fallout76IconTags 3.0 Beta). Includes U+F400,
   U+F716, U+E5A1, U+F232, and U+F24B–U+F24D; original glyph outlines are unchanged.
+
+- `vault-boy.png`: Vault Boy thumbs-up artwork, Bethesda Softworks, hosted by
+  FreePNGimg. Used as a decorative wall mural in the unofficial fan-site intro.
+  Source: https://freepngimg.com/png/140272-pip-boy-fallout-free-hd-image
+  Image: https://freepngimg.com/thumb/fallout/140272-pip-boy-fallout-free-hd-image.png
+  Retrieved September 15, 2026. Original PNG preserved; faded pigment and chipped
+  paint applied with CSS and an SVG opacity filter in the interface.

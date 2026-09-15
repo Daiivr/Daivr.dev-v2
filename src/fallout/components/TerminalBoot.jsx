@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FalloutLoader } from "./FalloutLoader";
-import { VAULT_UNLOCK_MS, VAULT_OPEN_MS, VAULT_ENTER_MS } from "../data/vaultSequence";
+import { VAULT_UNLOCK_MS, VAULT_OPEN_MS, VAULT_ENTER_MS, VAULT_APPROACH_MS } from "../data/vaultSequence";
 
 const BOOT_KEY = "daivr-fallout-booted";
 
@@ -26,12 +26,14 @@ function waitForImage(image, signal) {
   });
 }
 
-export function useTerminalBoot({ loading, intel, connectionFailed, contentRef }) {
+export function useTerminalBoot({ loading, intel, connectionFailed, contentRef, entryOrigin }) {
   const [booting, setBooting] = useState(true);
   const [phase, setPhase] = useState("loading");
   const [artwork, setArtwork] = useState(null);
   const [display, setDisplay] = useState(null);
   const [minimumElapsed, setMinimumElapsed] = useState(false);
+  const [approachComplete, setApproachComplete] = useState(!entryOrigin);
+  const finishApproach = useCallback(() => setApproachComplete(true), []);
   const [preferences] = useState(() => {
     try { return { returning: !!sessionStorage.getItem(BOOT_KEY), reduced: matchMedia("(prefers-reduced-motion: reduce)").matches }; }
     catch { return { returning: true, reduced: true }; }
@@ -44,9 +46,10 @@ export function useTerminalBoot({ loading, intel, connectionFailed, contentRef }
   const specimenImage = specimen?.name === "Shadow Axolotl" ? "/fallout/shadow-axolotl.webp" : specimen?.imageUrl;
 
   useEffect(() => {
-    const timer = window.setTimeout(() => setMinimumElapsed(true), preferences.returning || preferences.reduced ? 0 : 1000);
+    const delay = preferences.reduced ? 0 : entryOrigin ? VAULT_APPROACH_MS : preferences.returning ? 0 : 1000;
+    const timer = window.setTimeout(() => setMinimumElapsed(true), delay);
     return () => window.clearTimeout(timer);
-  }, [preferences]);
+  }, [preferences, entryOrigin]);
 
   useEffect(() => {
     let active = true;
@@ -70,11 +73,11 @@ export function useTerminalBoot({ loading, intel, connectionFailed, contentRef }
     return () => controller.abort();
   }, [loading, specimenImage, booting, contentRef]);
 
-  const ready = !loading && artwork !== null && display !== null && minimumElapsed;
+  const ready = !loading && artwork !== null && display !== null && minimumElapsed && (approachComplete || preferences.reduced);
   useEffect(() => {
     if (!ready || !booting) return;
     setPhase("complete");
-    // Retract the locks, then pull the seal back and roll the door clear.
+    // Retract the locks, release the seal, then roll the full-size door clear.
     const hold = preferences.reduced ? 200 : VAULT_UNLOCK_MS;
     const exit = preferences.reduced ? 0 : VAULT_OPEN_MS;
     const entry = preferences.reduced ? 0 : VAULT_ENTER_MS;
@@ -92,11 +95,11 @@ export function useTerminalBoot({ loading, intel, connectionFailed, contentRef }
     { label: "Artwork", status: artwork || "loading" },
     { label: "Display", status: display || "loading" },
   ];
-  return { booting, finish, phase, stages, offline: !loading && unavailable };
+  return { booting, finish, phase, stages, finishApproach, offline: !loading && unavailable };
 }
 
 export function TerminalBoot({ onFinish, ...props }) {
   const skipRef = useRef(null);
-  useEffect(() => { skipRef.current?.focus(); }, []);
+  useEffect(() => { skipRef.current?.closest('[role="dialog"]')?.focus({ preventScroll: true }); }, []);
   return <FalloutLoader {...props} onSkip={onFinish} skipRef={skipRef} />;
 }
