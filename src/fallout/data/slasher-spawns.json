@@ -1,0 +1,1618 @@
+{
+  "gameVersion": "1.7.26.13",
+  "sourceRelease": "2.0.5.2",
+  "reviewedAt": "2026-09-17",
+  "borderAssignments": [
+    9398157,
+    9401843,
+    9491362
+  ],
+  "regions": [
+    {
+      "name": "Ash Heap",
+      "spawns": 7
+    },
+    {
+      "name": "Burning Springs",
+      "spawns": 11
+    },
+    {
+      "name": "Cranberry Bog",
+      "spawns": 1
+    },
+    {
+      "name": "Forest",
+      "spawns": 24
+    },
+    {
+      "name": "Savage Divide",
+      "spawns": 33
+    },
+    {
+      "name": "Skyline Valley",
+      "spawns": 8
+    },
+    {
+      "name": "The Mire",
+      "spawns": 13
+    },
+    {
+      "name": "Toxic Valley",
+      "spawns": 11
+    }
+  ],
+  "locations": [
+    {
+      "id": "ash-heap-camden-park",
+      "region": "Ash Heap",
+      "name": "Camden Park",
+      "icon": "AmusementParkMarker",
+      "marker": [
+        -179636.95,
+        -77693.97
+      ],
+      "spawns": [
+        {
+          "id": "008F83B3",
+          "number": 35,
+          "x": -179625.28,
+          "y": -79897.43,
+          "z": 1489.33,
+          "bearing": "south"
+        },
+        {
+          "id": "008F83BB",
+          "number": 36,
+          "x": -177152.12,
+          "y": -81108.51,
+          "z": 1891.37,
+          "bearing": "southeast"
+        },
+        {
+          "id": "008F83BD",
+          "number": 37,
+          "x": -181542.23,
+          "y": -84758.34,
+          "z": 92.66,
+          "bearing": "south"
+        }
+      ]
+    },
+    {
+      "id": "ash-heap-nuka-world-on-tour",
+      "region": "Ash Heap",
+      "name": "Nuka-World On Tour",
+      "icon": "NukaColaQuantumPlant",
+      "marker": [
+        -76414.14,
+        -112610.65
+      ],
+      "spawns": [
+        {
+          "id": "0091E6CF",
+          "number": 104,
+          "x": -72406.99,
+          "y": -114647.84,
+          "z": 20788.97,
+          "bearing": "southeast"
+        },
+        {
+          "id": "0091E6D4",
+          "number": 105,
+          "x": -83988.84,
+          "y": -116099.29,
+          "z": 18826.85,
+          "bearing": "southwest"
+        },
+        {
+          "id": "0091E6D0",
+          "number": 106,
+          "x": -83459.27,
+          "y": -112053.75,
+          "z": 18792.85,
+          "bearing": "west"
+        }
+      ]
+    },
+    {
+      "id": "ash-heap-rollins-labor-camp",
+      "region": "Ash Heap",
+      "name": "Rollins Labor Camp",
+      "icon": "BloodEagleMarker",
+      "marker": [
+        -98042.07,
+        -115047.09
+      ],
+      "spawns": [
+        {
+          "id": "0090AB91",
+          "number": 57,
+          "x": -102303.3,
+          "y": -117329.8,
+          "z": 18902.62,
+          "bearing": "southwest"
+        }
+      ]
+    },
+    {
+      "id": "burning-springs-athens",
+      "region": "Burning Springs",
+      "name": "Athens",
+      "icon": "TownRuinsMarker",
+      "marker": [
+        -249856.0,
+        154752.0
+      ],
+      "spawns": [
+        {
+          "id": "0091E6CC",
+          "number": 103,
+          "x": -231574.75,
+          "y": 157898.75,
+          "z": 6829.06,
+          "bearing": "east"
+        }
+      ]
+    },
+    {
+      "id": "burning-springs-dino-peaks-mini-golf",
+      "region": "Burning Springs",
+      "name": "Dino Peaks Mini Golf",
+      "icon": "CountryClubMarker",
+      "marker": [
+        -209944.0,
+        144964.0
+      ],
+      "spawns": [
+        {
+          "id": "0090ABA0",
+          "number": 70,
+          "x": -211960.75,
+          "y": 148531.97,
+          "z": 7532.63,
+          "bearing": "northwest"
+        },
+        {
+          "id": "0090ABA2",
+          "number": 71,
+          "x": -212386.62,
+          "y": 144962.67,
+          "z": 7352.54,
+          "bearing": "west"
+        },
+        {
+          "id": "0090ABAA",
+          "number": 72,
+          "x": -210476.44,
+          "y": 144036.58,
+          "z": 7654.49,
+          "bearing": "southwest"
+        }
+      ]
+    },
+    {
+      "id": "burning-springs-starlight-drive-in",
+      "region": "Burning Springs",
+      "name": "Starlight Drive-in",
+      "icon": "PublicWorkshopMarker",
+      "marker": [
+        -199248.0,
+        114456.0
+      ],
+      "spawns": [
+        {
+          "id": "008F83C3",
+          "number": 38,
+          "x": -203208.84,
+          "y": 114377.25,
+          "z": 5726.12,
+          "bearing": "west"
+        },
+        {
+          "id": "008F83C9",
+          "number": 39,
+          "x": -201304.75,
+          "y": 116550.18,
+          "z": 5726.35,
+          "bearing": "northwest"
+        }
+      ]
+    },
+    {
+      "id": "burning-springs-tycoon-lake",
+      "region": "Burning Springs",
+      "name": "Tycoon Lake",
+      "icon": "CabinMarker",
+      "marker": [
+        -199182.0,
+        5144.0
+      ],
+      "spawns": [
+        {
+          "id": "0091E6C4",
+          "number": 101,
+          "x": -195717.58,
+          "y": 7864.88,
+          "z": 2452.38,
+          "bearing": "northeast"
+        },
+        {
+          "id": "0091E6C9",
+          "number": 102,
+          "x": -194922.08,
+          "y": 6521.5,
+          "z": 2405.28,
+          "bearing": "east"
+        }
+      ]
+    },
+    {
+      "id": "burning-springs-world-of-corn",
+      "region": "Burning Springs",
+      "name": "World of Corn",
+      "icon": "LowRiseMarker",
+      "marker": [
+        -237197.38,
+        52131.46
+      ],
+      "spawns": [
+        {
+          "id": "0090ABB0",
+          "number": 73,
+          "x": -246393.98,
+          "y": 51572.98,
+          "z": 6014.38,
+          "bearing": "west"
+        },
+        {
+          "id": "0090ABB3",
+          "number": 74,
+          "x": -238019.81,
+          "y": 51188.51,
+          "z": 6104.39,
+          "bearing": "southwest"
+        },
+        {
+          "id": "0090ABB7",
+          "number": 75,
+          "x": -237214.94,
+          "y": 56982.23,
+          "z": 5255.06,
+          "bearing": "north"
+        }
+      ]
+    },
+    {
+      "id": "cranberry-bog-ranger-lookout",
+      "region": "Cranberry Bog",
+      "name": "Ranger Lookout",
+      "icon": "LookoutTowerMarker",
+      "marker": [
+        152576.08,
+        -88084.16
+      ],
+      "spawns": [
+        {
+          "id": "008FAD9A",
+          "number": 49,
+          "x": 152774.62,
+          "y": -87869.48,
+          "z": 8371.29,
+          "bearing": "northeast"
+        }
+      ]
+    },
+    {
+      "id": "forest-alpine-river-cabins",
+      "region": "Forest",
+      "name": "Alpine River Cabins",
+      "icon": "CabinMarker",
+      "marker": [
+        -127209.73,
+        53800.49
+      ],
+      "spawns": [
+        {
+          "id": "008F5880",
+          "number": 2,
+          "x": -125660.23,
+          "y": 53281.76,
+          "z": 5180.12,
+          "bearing": "east"
+        },
+        {
+          "id": "008F587D",
+          "number": 3,
+          "x": -128821.29,
+          "y": 54538.85,
+          "z": 4984.72,
+          "bearing": "northwest"
+        },
+        {
+          "id": "008F5881",
+          "number": 4,
+          "x": -127951.41,
+          "y": 52456.75,
+          "z": 5181.21,
+          "bearing": "southwest"
+        }
+      ]
+    },
+    {
+      "id": "forest-camp-adams-lookout",
+      "region": "Forest",
+      "name": "Camp Adams Lookout",
+      "icon": "LookoutTowerMarker",
+      "marker": [
+        -150606.94,
+        -35172.14
+      ],
+      "spawns": [
+        {
+          "id": "008F66F9",
+          "number": 1,
+          "x": -150690.19,
+          "y": -34863.93,
+          "z": 13155.57,
+          "bearing": "north"
+        },
+        {
+          "id": "009097D8",
+          "number": 52,
+          "x": -155458.55,
+          "y": -35802.14,
+          "z": 11147.79,
+          "bearing": "west"
+        }
+      ]
+    },
+    {
+      "id": "forest-camp-mcclintock",
+      "region": "Forest",
+      "name": "Camp McClintock",
+      "icon": "MilitaryBaseMarker",
+      "marker": [
+        -69223.63,
+        -12781.33
+      ],
+      "spawns": [
+        {
+          "id": "008F66FA",
+          "number": 13,
+          "x": -68501.7,
+          "y": -14385.33,
+          "z": 15315.77,
+          "bearing": "southeast"
+        },
+        {
+          "id": "008F66FB",
+          "number": 14,
+          "x": -69514.84,
+          "y": -9198.72,
+          "z": 14990.46,
+          "bearing": "north"
+        },
+        {
+          "id": "009097DF",
+          "number": 53,
+          "x": -69038.33,
+          "y": -16340.48,
+          "z": 15200.95,
+          "bearing": "south"
+        }
+      ]
+    },
+    {
+      "id": "forest-east-kanawha-lookout",
+      "region": "Forest",
+      "name": "East Kanawha Lookout",
+      "icon": "LookoutTowerMarker",
+      "marker": [
+        -44382.28,
+        17240.0
+      ],
+      "spawns": [
+        {
+          "id": "008FBCED",
+          "number": 30,
+          "x": -44313.38,
+          "y": 17521.08,
+          "z": 17274.97,
+          "bearing": "north"
+        }
+      ]
+    },
+    {
+      "id": "forest-flatwoods-lookout",
+      "region": "Forest",
+      "name": "Flatwoods Lookout",
+      "icon": "LookoutTowerMarker",
+      "marker": [
+        -104834.73,
+        47405.67
+      ],
+      "spawns": [
+        {
+          "id": "008FBCE5",
+          "number": 42,
+          "x": -103897.02,
+          "y": 48112.7,
+          "z": 11533.39,
+          "bearing": "northeast"
+        }
+      ]
+    },
+    {
+      "id": "forest-groves-family-cabin",
+      "region": "Forest",
+      "name": "Groves Family Cabin",
+      "icon": "CabinMarker",
+      "marker": [
+        -139934.36,
+        174278.81
+      ],
+      "spawns": [
+        {
+          "id": "008FBCE1",
+          "number": 28,
+          "x": -139929.42,
+          "y": 173577.5,
+          "z": 4847.68,
+          "bearing": "south"
+        }
+      ]
+    },
+    {
+      "id": "forest-isolated-cabin",
+      "region": "Forest",
+      "name": "Isolated Cabin",
+      "icon": "CabinMarker",
+      "marker": [
+        -88356.26,
+        67998.91
+      ],
+      "spawns": [
+        {
+          "id": "008FBCE7",
+          "number": 18,
+          "x": -88390.4,
+          "y": 68200.86,
+          "z": 5674.74,
+          "bearing": "north"
+        }
+      ]
+    },
+    {
+      "id": "forest-lakeside-cabins",
+      "region": "Forest",
+      "name": "Lakeside Cabins",
+      "icon": "PublicWorkshopMarker",
+      "marker": [
+        -61107.11,
+        -25872.22
+      ],
+      "spawns": [
+        {
+          "id": "008FBCF6",
+          "number": 23,
+          "x": -60045.57,
+          "y": -28140.55,
+          "z": 9700.22,
+          "bearing": "southeast"
+        }
+      ]
+    },
+    {
+      "id": "forest-new-river-gorge-resort",
+      "region": "Forest",
+      "name": "New River Gorge Resort",
+      "icon": "CabinMarker",
+      "marker": [
+        -81063.09,
+        12837.59
+      ],
+      "spawns": [
+        {
+          "id": "0090D3BE",
+          "number": 88,
+          "x": -79135.83,
+          "y": 9545.5,
+          "z": 12784.89,
+          "bearing": "southeast"
+        },
+        {
+          "id": "0090D3C3",
+          "number": 89,
+          "x": -82759.49,
+          "y": 9318.17,
+          "z": 12556.93,
+          "bearing": "southwest"
+        },
+        {
+          "id": "0090D3C5",
+          "number": 90,
+          "x": -76994.82,
+          "y": 12792.74,
+          "z": 12480.34,
+          "bearing": "east"
+        }
+      ]
+    },
+    {
+      "id": "forest-north-kanawha-lookout",
+      "region": "Forest",
+      "name": "North Kanawha Lookout",
+      "icon": "LookoutTowerMarker",
+      "marker": [
+        -84257.48,
+        99866.41
+      ],
+      "spawns": [
+        {
+          "id": "008FBCEB",
+          "number": 29,
+          "x": -84428.57,
+          "y": 100091.98,
+          "z": 20537.36,
+          "bearing": "northwest"
+        }
+      ]
+    },
+    {
+      "id": "forest-overlook-cabin",
+      "region": "Forest",
+      "name": "Overlook Cabin",
+      "icon": "CabinMarker",
+      "marker": [
+        -49923.89,
+        -46968.31
+      ],
+      "spawns": [
+        {
+          "id": "008FBCF3",
+          "number": 24,
+          "x": -50134.1,
+          "y": -46266.01,
+          "z": 10215.79,
+          "bearing": "north"
+        }
+      ]
+    },
+    {
+      "id": "forest-the-giant-teapot",
+      "region": "Forest",
+      "name": "The Giant Teapot",
+      "icon": "TeapotMarker",
+      "marker": [
+        -131984.48,
+        -29819.49
+      ],
+      "spawns": [
+        {
+          "id": "0090D2BA",
+          "number": 76,
+          "x": -133746.52,
+          "y": -30485.96,
+          "z": 9515.15,
+          "bearing": "west"
+        }
+      ]
+    },
+    {
+      "id": "forest-twin-pine-cabins",
+      "region": "Forest",
+      "name": "Twin Pine Cabins",
+      "icon": "BloodEagleMarker",
+      "marker": [
+        -74439.81,
+        113931.63
+      ],
+      "spawns": [
+        {
+          "id": "0090D395",
+          "number": 80,
+          "x": -73880.74,
+          "y": 114073.13,
+          "z": 13119.73,
+          "bearing": "east"
+        },
+        {
+          "id": "0090D398",
+          "number": 81,
+          "x": -75871.92,
+          "y": 114068.66,
+          "z": 13416.64,
+          "bearing": "west"
+        }
+      ]
+    },
+    {
+      "id": "forest-tyler-county-fairgrounds",
+      "region": "Forest",
+      "name": "Tyler County Fairgrounds",
+      "icon": "AmusementParkMarker",
+      "marker": [
+        -147238.12,
+        142781.52
+      ],
+      "spawns": [
+        {
+          "id": "008FADA9",
+          "number": 43,
+          "x": -145447.28,
+          "y": 141276.89,
+          "z": 1152.78,
+          "bearing": "southeast"
+        },
+        {
+          "id": "008FADA7",
+          "number": 44,
+          "x": -147187.81,
+          "y": 144868.11,
+          "z": 1260.39,
+          "bearing": "north"
+        },
+        {
+          "id": "008FADAE",
+          "number": 45,
+          "x": -147798.45,
+          "y": 146403.47,
+          "z": 1258.15,
+          "bearing": "north"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-autumn-acre-cabin",
+      "region": "Savage Divide",
+      "name": "Autumn Acre Cabin",
+      "icon": "CabinMarker",
+      "marker": [
+        100992.42,
+        46316.94
+      ],
+      "spawns": [
+        {
+          "id": "0090B982",
+          "number": 86,
+          "x": 101002.69,
+          "y": 46356.21,
+          "z": 28748.05,
+          "bearing": "north"
+        },
+        {
+          "id": "0090D3BA",
+          "number": 87,
+          "x": 100945.31,
+          "y": 45838.69,
+          "z": 28752.61,
+          "bearing": "south"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-bailey-family-cabin",
+      "region": "Savage Divide",
+      "name": "Bailey Family Cabin",
+      "icon": "CabinMarker",
+      "marker": [
+        134617.89,
+        179468.38
+      ],
+      "spawns": [
+        {
+          "id": "0090D3A3",
+          "number": 84,
+          "x": 134336.42,
+          "y": 179217.06,
+          "z": 18972.34,
+          "bearing": "southwest"
+        },
+        {
+          "id": "0090D3A8",
+          "number": 85,
+          "x": 135962.0,
+          "y": 178784.03,
+          "z": 18873.71,
+          "bearing": "southeast"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-bastion-park",
+      "region": "Savage Divide",
+      "name": "Bastion Park",
+      "icon": "OverlookMarker",
+      "marker": [
+        -22556.0,
+        -108924.0
+      ],
+      "spawns": [
+        {
+          "id": "0090D4F0",
+          "number": 96,
+          "x": -24172.77,
+          "y": -109929.09,
+          "z": 25618.75,
+          "bearing": "southwest"
+        },
+        {
+          "id": "0090D4F7",
+          "number": 97,
+          "x": -22568.41,
+          "y": -107631.13,
+          "z": 25513.04,
+          "bearing": "north"
+        },
+        {
+          "id": "0090D4FB",
+          "number": 98,
+          "x": -21470.97,
+          "y": -110134.8,
+          "z": 25619.08,
+          "bearing": "southeast"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-central-mountain-lookout",
+      "region": "Savage Divide",
+      "name": "Central Mountain Lookout",
+      "icon": "LookoutTowerMarker",
+      "marker": [
+        75960.14,
+        17350.43
+      ],
+      "spawns": [
+        {
+          "id": "008FAD93",
+          "number": 48,
+          "x": 76009.25,
+          "y": 17596.21,
+          "z": 34565.45,
+          "bearing": "north"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-devil-s-backbone",
+      "region": "Savage Divide",
+      "name": "Devil's Backbone",
+      "icon": "LandmarkMarker",
+      "marker": [
+        80368.0,
+        -88648.0
+      ],
+      "spawns": [
+        {
+          "id": "0090AB82",
+          "number": 69,
+          "x": 89085.42,
+          "y": -81553.68,
+          "z": 22795.47,
+          "bearing": "northeast"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-east-mountain-lookout",
+      "region": "Savage Divide",
+      "name": "East Mountain Lookout",
+      "icon": "LookoutTowerMarker",
+      "marker": [
+        117252.83,
+        -59848.36
+      ],
+      "spawns": [
+        {
+          "id": "008FBCDE",
+          "number": 31,
+          "x": 117002.45,
+          "y": -59426.32,
+          "z": 18835.25,
+          "bearing": "northwest"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-fissure-site",
+      "region": "Savage Divide",
+      "name": "Fissure Site",
+      "icon": "FissureMarker",
+      "marker": [
+        112457.8,
+        124837.23
+      ],
+      "spawns": [
+        {
+          "id": "008F6C5D",
+          "number": 25,
+          "x": 112256.98,
+          "y": 130073.52,
+          "z": 20383.02,
+          "bearing": "north"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-investigator-s-cabin",
+      "region": "Savage Divide",
+      "name": "Investigator's Cabin",
+      "icon": "CabinMarker",
+      "marker": [
+        55723.95,
+        -68951.4
+      ],
+      "spawns": [
+        {
+          "id": "008FBCDB",
+          "number": 26,
+          "x": 55925.52,
+          "y": -68684.26,
+          "z": 33882.98,
+          "bearing": "northeast"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-north-mountain-lookout",
+      "region": "Savage Divide",
+      "name": "North Mountain Lookout",
+      "icon": "LookoutTowerMarker",
+      "marker": [
+        107266.35,
+        145967.81
+      ],
+      "spawns": [
+        {
+          "id": "008FAD95",
+          "number": 50,
+          "x": 107177.78,
+          "y": 145888.34,
+          "z": 25489.69,
+          "bearing": "southwest"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-old-danielson-cabin",
+      "region": "Savage Divide",
+      "name": "Old Danielson Cabin",
+      "icon": "WoodShackMarker",
+      "marker": [
+        163840.0,
+        215296.0
+      ],
+      "spawns": [
+        {
+          "id": "008F75F3",
+          "number": 27,
+          "x": 163936.94,
+          "y": 215665.5,
+          "z": 23448.0,
+          "bearing": "north"
+        },
+        {
+          "id": "0090D3A2",
+          "number": 83,
+          "x": 165578.2,
+          "y": 215533.56,
+          "z": 23590.77,
+          "bearing": "east"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-pleasant-valley-cabins",
+      "region": "Savage Divide",
+      "name": "Pleasant Valley Cabins",
+      "icon": "RaiderSettlementMarker",
+      "marker": [
+        47386.8,
+        25947.83
+      ],
+      "spawns": [
+        {
+          "id": "008FBCD3",
+          "number": 16,
+          "x": 48766.44,
+          "y": 23214.97,
+          "z": 34105.56,
+          "bearing": "southeast"
+        },
+        {
+          "id": "008FBCD7",
+          "number": 17,
+          "x": 47665.86,
+          "y": 22209.06,
+          "z": 34102.96,
+          "bearing": "south"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-seneca-gang-camp",
+      "region": "Savage Divide",
+      "name": "Seneca Gang Camp",
+      "icon": "BloodEagleMarker",
+      "marker": [
+        85281.35,
+        50118.32
+      ],
+      "spawns": [
+        {
+          "id": "0090AB67",
+          "number": 58,
+          "x": 83162.93,
+          "y": 50495.39,
+          "z": 31407.08,
+          "bearing": "west"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-seneca-rocks-visitor-center",
+      "region": "Savage Divide",
+      "name": "Seneca Rocks Visitor Center",
+      "icon": "CabinMarker",
+      "marker": [
+        55773.98,
+        56634.88
+      ],
+      "spawns": [
+        {
+          "id": "0091E6C1",
+          "number": 107,
+          "x": 51984.35,
+          "y": 53071.16,
+          "z": 25061.14,
+          "bearing": "southwest"
+        },
+        {
+          "id": "0091E6DF",
+          "number": 108,
+          "x": 56189.42,
+          "y": 53803.53,
+          "z": 25206.87,
+          "bearing": "south"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-south-cutthroat-camp",
+      "region": "Savage Divide",
+      "name": "South Cutthroat Camp",
+      "icon": "BloodEagleMarker",
+      "marker": [
+        42828.53,
+        6697.98
+      ],
+      "spawns": [
+        {
+          "id": "0090AB64",
+          "number": 60,
+          "x": 43874.67,
+          "y": 7490.26,
+          "z": 32036.04,
+          "bearing": "northeast"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-south-mountain-lookout",
+      "region": "Savage Divide",
+      "name": "South Mountain Lookout",
+      "icon": "LookoutTowerMarker",
+      "marker": [
+        51206.05,
+        -123502.77
+      ],
+      "spawns": [
+        {
+          "id": "008FBCD8",
+          "number": 41,
+          "x": 51707.45,
+          "y": -122865.31,
+          "z": 37059.33,
+          "bearing": "northeast"
+        },
+        {
+          "id": "0090AB78",
+          "number": 63,
+          "x": 44942.43,
+          "y": -120376.23,
+          "z": 34203.57,
+          "bearing": "northwest"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-spruce-knob-lake",
+      "region": "Savage Divide",
+      "name": "Spruce Knob Lake",
+      "icon": "PondLakeMarker",
+      "marker": [
+        35190.12,
+        -121221.66
+      ],
+      "spawns": [
+        {
+          "id": "0090AB7C",
+          "number": 61,
+          "x": 39157.6,
+          "y": -118182.8,
+          "z": 33505.29,
+          "bearing": "northeast"
+        },
+        {
+          "id": "0090AB7F",
+          "number": 62,
+          "x": 38733.54,
+          "y": -119608.52,
+          "z": 33174.61,
+          "bearing": "northeast"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-sunnytop-ski-lanes",
+      "region": "Savage Divide",
+      "name": "Sunnytop Ski Lanes",
+      "icon": "SkiResortMarker",
+      "marker": [
+        85612.7,
+        131252.33
+      ],
+      "spawns": [
+        {
+          "id": "0090D4D3",
+          "number": 91,
+          "x": 87557.22,
+          "y": 129073.9,
+          "z": 34222.59,
+          "bearing": "southeast"
+        },
+        {
+          "id": "0090D4D7",
+          "number": 92,
+          "x": 85389.54,
+          "y": 128739.13,
+          "z": 34609.62,
+          "bearing": "south"
+        },
+        {
+          "id": "0090D4DC",
+          "number": 93,
+          "x": 85395.38,
+          "y": 133541.38,
+          "z": 34432.37,
+          "bearing": "north"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-sunnytop-ski-lanes-base-lodge",
+      "region": "Savage Divide",
+      "name": "Sunnytop Ski Lanes Base Lodge",
+      "icon": "SkiResortMarker",
+      "marker": [
+        98128.0,
+        144048.0
+      ],
+      "spawns": [
+        {
+          "id": "0090D4E8",
+          "number": 94,
+          "x": 97526.05,
+          "y": 144004.06,
+          "z": 26127.06,
+          "bearing": "west"
+        },
+        {
+          "id": "0090D4EC",
+          "number": 95,
+          "x": 97300.61,
+          "y": 143024.12,
+          "z": 26537.3,
+          "bearing": "southwest"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-sylvie-sons-logging-camp",
+      "region": "Savage Divide",
+      "name": "Sylvie & Sons Logging Camp",
+      "icon": "EncampmentMarker",
+      "marker": [
+        114951.58,
+        92363.27
+      ],
+      "spawns": [
+        {
+          "id": "0090AB6A",
+          "number": 68,
+          "x": 114392.75,
+          "y": 92103.85,
+          "z": 26490.97,
+          "bearing": "southwest"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-vault-96",
+      "region": "Savage Divide",
+      "name": "Vault 96",
+      "icon": "Vault96Marker",
+      "marker": [
+        31361.76,
+        -160240.55
+      ],
+      "spawns": [
+        {
+          "id": "0090AB76",
+          "number": 59,
+          "x": 21646.03,
+          "y": -154913.5,
+          "z": 31189.34,
+          "bearing": "northwest"
+        }
+      ]
+    },
+    {
+      "id": "savage-divide-whitespring-lookout",
+      "region": "Savage Divide",
+      "name": "Whitespring Lookout",
+      "icon": "LookoutTowerMarker",
+      "marker": [
+        -27597.53,
+        -55147.5
+      ],
+      "spawns": [
+        {
+          "id": "008FADB3",
+          "number": 47,
+          "x": -27416.17,
+          "y": -55189.33,
+          "z": 23647.42,
+          "bearing": "east"
+        }
+      ]
+    },
+    {
+      "id": "skyline-valley-camp-liberty",
+      "region": "Skyline Valley",
+      "name": "Camp Liberty",
+      "icon": "CabinMarker",
+      "marker": [
+        61224.0,
+        -250728.0
+      ],
+      "spawns": [
+        {
+          "id": "008F666D",
+          "number": 10,
+          "x": 62016.35,
+          "y": -255364.66,
+          "z": 9416.55,
+          "bearing": "south"
+        },
+        {
+          "id": "008F6675",
+          "number": 11,
+          "x": 68349.76,
+          "y": -248132.88,
+          "z": 8948.61,
+          "bearing": "east"
+        },
+        {
+          "id": "008F667D",
+          "number": 12,
+          "x": 55616.45,
+          "y": -251500.17,
+          "z": 8967.72,
+          "bearing": "west"
+        }
+      ]
+    },
+    {
+      "id": "skyline-valley-makeout-point",
+      "region": "Skyline Valley",
+      "name": "Makeout Point",
+      "icon": "CarMarker",
+      "marker": [
+        58592.0,
+        -192792.0
+      ],
+      "spawns": [
+        {
+          "id": "008FAD97",
+          "number": 46,
+          "x": 57853.36,
+          "y": -192344.81,
+          "z": 19070.33,
+          "bearing": "northwest"
+        }
+      ]
+    },
+    {
+      "id": "skyline-valley-naked-creek",
+      "region": "Skyline Valley",
+      "name": "Naked Creek",
+      "icon": "CamperMarker",
+      "marker": [
+        -31759.29,
+        -236503.91
+      ],
+      "spawns": [
+        {
+          "id": "0090AB8C",
+          "number": 64,
+          "x": -32037.62,
+          "y": -235846.98,
+          "z": 10346.32,
+          "bearing": "northwest"
+        }
+      ]
+    },
+    {
+      "id": "skyline-valley-rapidan-camp",
+      "region": "Skyline Valley",
+      "name": "Rapidan Camp",
+      "icon": "MonumentMarker",
+      "marker": [
+        3996.84,
+        -229434.67
+      ],
+      "spawns": [
+        {
+          "id": "0090AB6B",
+          "number": 65,
+          "x": 6261.55,
+          "y": -230422.34,
+          "z": 9242.48,
+          "bearing": "southeast"
+        },
+        {
+          "id": "0090AB73",
+          "number": 66,
+          "x": 5979.81,
+          "y": -223802.22,
+          "z": 9851.38,
+          "bearing": "north"
+        },
+        {
+          "id": "0090AB70",
+          "number": 67,
+          "x": 2319.98,
+          "y": -232109.28,
+          "z": 9500.52,
+          "bearing": "southwest"
+        }
+      ]
+    },
+    {
+      "id": "the-mire-camp-venture",
+      "region": "The Mire",
+      "name": "Camp Venture",
+      "icon": "OfficeMarker",
+      "marker": [
+        160282.2,
+        -39098.39
+      ],
+      "spawns": [
+        {
+          "id": "008F6C4E",
+          "number": 21,
+          "x": 161541.3,
+          "y": -40532.25,
+          "z": 8837.35,
+          "bearing": "southeast"
+        },
+        {
+          "id": "008F6C53",
+          "number": 22,
+          "x": 161284.36,
+          "y": -37321.63,
+          "z": 9289.82,
+          "bearing": "northeast"
+        }
+      ]
+    },
+    {
+      "id": "the-mire-dolly-sods-campground",
+      "region": "The Mire",
+      "name": "Dolly Sods Campground",
+      "icon": "PublicWorkshopMarker",
+      "marker": [
+        155136.53,
+        76716.05
+      ],
+      "spawns": [
+        {
+          "id": "0090AB8A",
+          "number": 54,
+          "x": 150906.42,
+          "y": 77554.75,
+          "z": 13477.26,
+          "bearing": "west"
+        },
+        {
+          "id": "0090AB85",
+          "number": 55,
+          "x": 156625.11,
+          "y": 74437.79,
+          "z": 11942.66,
+          "bearing": "southeast"
+        },
+        {
+          "id": "0090AB88",
+          "number": 56,
+          "x": 154057.42,
+          "y": 76241.71,
+          "z": 12769.25,
+          "bearing": "southwest"
+        }
+      ]
+    },
+    {
+      "id": "the-mire-dolly-sods-lookout",
+      "region": "The Mire",
+      "name": "Dolly Sods Lookout",
+      "icon": "LookoutTowerMarker",
+      "marker": [
+        152153.41,
+        89595.05
+      ],
+      "spawns": [
+        {
+          "id": "008F665E",
+          "number": 8,
+          "x": 151794.62,
+          "y": 86356.34,
+          "z": 13522.07,
+          "bearing": "south"
+        },
+        {
+          "id": "008F6669",
+          "number": 9,
+          "x": 151990.19,
+          "y": 89643.67,
+          "z": 15039.68,
+          "bearing": "west"
+        }
+      ]
+    },
+    {
+      "id": "the-mire-east-ridge-lookout",
+      "region": "The Mire",
+      "name": "East Ridge Lookout",
+      "icon": "LookoutTowerMarker",
+      "marker": [
+        152547.44,
+        130641.76
+      ],
+      "spawns": [
+        {
+          "id": "009097D6",
+          "number": 51,
+          "x": 152828.11,
+          "y": 130708.69,
+          "z": 20437.67,
+          "bearing": "east"
+        }
+      ]
+    },
+    {
+      "id": "the-mire-freddy-fear-s-house-of-scares",
+      "region": "The Mire",
+      "name": "Freddy Fear's House of Scares",
+      "icon": "BrownstoneMarker",
+      "marker": [
+        161105.81,
+        152446.75
+      ],
+      "spawns": [
+        {
+          "id": "008F67A1",
+          "number": 19,
+          "x": 161711.02,
+          "y": 153157.39,
+          "z": 17499.93,
+          "bearing": "northeast"
+        },
+        {
+          "id": "008F67A2",
+          "number": 20,
+          "x": 161798.47,
+          "y": 153092.64,
+          "z": 17503.54,
+          "bearing": "northeast"
+        }
+      ]
+    },
+    {
+      "id": "the-mire-sunday-brothers-cabin",
+      "region": "The Mire",
+      "name": "Sunday Brothers' Cabin",
+      "icon": "CabinMarker",
+      "marker": [
+        138231.66,
+        1426.2
+      ],
+      "spawns": [
+        {
+          "id": "0090D2C9",
+          "number": 77,
+          "x": 138439.59,
+          "y": 1724.75,
+          "z": 10859.74,
+          "bearing": "northeast"
+        },
+        {
+          "id": "0090D2CC",
+          "number": 78,
+          "x": 139386.03,
+          "y": 3369.4,
+          "z": 11195.39,
+          "bearing": "northeast"
+        },
+        {
+          "id": "0090D2CE",
+          "number": 79,
+          "x": 140999.14,
+          "y": -445.11,
+          "z": 10828.07,
+          "bearing": "southeast"
+        }
+      ]
+    },
+    {
+      "id": "toxic-valley-hemlock-holes",
+      "region": "Toxic Valley",
+      "name": "Hemlock Holes",
+      "icon": "CountryClubMarker",
+      "marker": [
+        -67099.84,
+        183718.03
+      ],
+      "spawns": [
+        {
+          "id": "0090D4FF",
+          "number": 99,
+          "x": -67618.34,
+          "y": 183598.69,
+          "z": 8026.25,
+          "bearing": "west"
+        },
+        {
+          "id": "0090D503",
+          "number": 100,
+          "x": -68201.55,
+          "y": 184238.58,
+          "z": 8041.39,
+          "bearing": "northwest"
+        }
+      ]
+    },
+    {
+      "id": "toxic-valley-kiddie-corner-cabins",
+      "region": "Toxic Valley",
+      "name": "Kiddie Corner Cabins",
+      "icon": "CabinMarker",
+      "marker": [
+        -12731.3,
+        181509.75
+      ],
+      "spawns": [
+        {
+          "id": "008F678D",
+          "number": 15,
+          "x": -10164.93,
+          "y": 179242.5,
+          "z": 9288.32,
+          "bearing": "southeast"
+        },
+        {
+          "id": "0090D39D",
+          "number": 82,
+          "x": -13540.75,
+          "y": 182476.56,
+          "z": 9161.68,
+          "bearing": "northwest"
+        }
+      ]
+    },
+    {
+      "id": "toxic-valley-pioneer-scout-camp",
+      "region": "Toxic Valley",
+      "name": "Pioneer Scout Camp",
+      "icon": "CabinMarker",
+      "marker": [
+        3599.88,
+        137867.33
+      ],
+      "spawns": [
+        {
+          "id": "008F6651",
+          "number": 5,
+          "x": 7054.6,
+          "y": 141145.16,
+          "z": 13087.31,
+          "bearing": "northeast"
+        },
+        {
+          "id": "008F6155",
+          "number": 6,
+          "x": 2779.25,
+          "y": 138728.0,
+          "z": 12684.53,
+          "bearing": "northwest"
+        },
+        {
+          "id": "008F6655",
+          "number": 7,
+          "x": 4749.64,
+          "y": 137400.22,
+          "z": 12573.81,
+          "bearing": "east"
+        }
+      ]
+    },
+    {
+      "id": "toxic-valley-pioneer-scout-lookout",
+      "region": "Toxic Valley",
+      "name": "Pioneer Scout Lookout",
+      "icon": "LookoutTowerMarker",
+      "marker": [
+        -2846.66,
+        140278.3
+      ],
+      "spawns": [
+        {
+          "id": "008FBCF0",
+          "number": 40,
+          "x": -3076.85,
+          "y": 140623.84,
+          "z": 16270.02,
+          "bearing": "northwest"
+        }
+      ]
+    },
+    {
+      "id": "toxic-valley-wavy-willard-s-water-park",
+      "region": "Toxic Valley",
+      "name": "Wavy Willard's Water Park",
+      "icon": "AmusementParkMarker",
+      "marker": [
+        -29820.29,
+        193976.28
+      ],
+      "spawns": [
+        {
+          "id": "008F76AC",
+          "number": 32,
+          "x": -31045.8,
+          "y": 192910.88,
+          "z": 8982.1,
+          "bearing": "southwest"
+        },
+        {
+          "id": "008F76AD",
+          "number": 33,
+          "x": -34902.62,
+          "y": 195543.88,
+          "z": 9481.95,
+          "bearing": "west"
+        },
+        {
+          "id": "008F76B0",
+          "number": 34,
+          "x": -23749.29,
+          "y": 196288.47,
+          "z": 10373.49,
+          "bearing": "east"
+        }
+      ]
+    }
+  ]
+}

@@ -2,6 +2,7 @@ import React from "react";
 import { FalloutLoader } from "./fallout/components/FalloutLoader";
 import { createRoot } from "react-dom/client";
 import { FALLOUT_NAVIGATION, getPreloadedFalloutPage, preloadFallout } from "./lib/falloutNavigation";
+import { isGuidePath, normalizeFalloutPath } from "./fallout/data/pages";
 import "./index.css";
 import "./styles/attract-mode.css";
 import "./styles/cart-swap.css";
@@ -37,13 +38,14 @@ import "./styles/cabinet-topbar.css";
 // Discord polling and greeting never mount on this route.
 const isFalloutPath = () => window.location.pathname.toLowerCase().replace(/\/+$/, "") === "/fallout";
 const FalloutPage = React.lazy(preloadFallout);
+const GuidesPage = React.lazy(() => import("./fallout/GuidesPage.jsx"));
 const CabinetPage = React.lazy(() => import("./App.jsx"));
 
 function RootPage() {
-  const [route, setRoute] = React.useState(() => ({ fallout: isFalloutPath(), origin: null }));
+  const [route, setRoute] = React.useState(() => ({ fallout: isFalloutPath(), path: normalizeFalloutPath(window.location.pathname), origin: null }));
   React.useEffect(() => {
-    const enter = (event) => { window.scrollTo(0, 0); setRoute({ fallout: true, origin: event.detail }); };
-    const restore = () => setRoute({ fallout: isFalloutPath(), origin: null });
+    const enter = (event) => { window.scrollTo(0, 0); setRoute({ fallout: true, path: "/fallout", origin: event.detail }); };
+    const restore = () => setRoute({ fallout: isFalloutPath(), path: normalizeFalloutPath(window.location.pathname), origin: null });
     window.addEventListener(FALLOUT_NAVIGATION, enter);
     window.addEventListener("popstate", restore);
     return () => {
@@ -55,7 +57,7 @@ function RootPage() {
   // directly avoids React.lazy briefly committing its full-size loader first.
   const TerminalPage = route.origin ? getPreloadedFalloutPage() || FalloutPage : FalloutPage;
   return <React.Suspense fallback={route.fallout && !route.origin ? <FalloutLoader /> : null}>
-    {route.fallout ? <TerminalPage entryOrigin={route.origin} /> : <CabinetPage />}
+    {isGuidePath(route.path) ? <GuidesPage path={route.path} /> : route.fallout ? <TerminalPage entryOrigin={route.origin} /> : <CabinetPage />}
   </React.Suspense>;
 }
 

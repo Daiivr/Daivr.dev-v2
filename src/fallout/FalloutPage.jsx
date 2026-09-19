@@ -7,6 +7,8 @@ import { NuclearCommand } from "./components/NuclearCommand";
 import { MerchantIntel } from "./components/MerchantIntel";
 import { ResearchFile } from "./components/ResearchFile";
 import { EventIntel } from "./components/EventIntel";
+import { FieldGuides } from "./components/FieldGuides";
+import { GUIDES_PATH } from "./data/pages";
 import { FieldNavigation, FieldSignal } from "./components/FieldBriefing";
 import { StationFooter } from "./components/StationFooter";
 import { TerminalBoot, useTerminalBoot } from "./components/TerminalBoot";
@@ -16,7 +18,7 @@ import "./fallout.css";
 import "./field-station.css";
 import "./operations.css";
 
-const NAV = [["codes", "Launch codes"], ["minerva", "Minerva"], ["axolotl", "A.X.O.L.O.T.L."], ["events", "Intel & events"]];
+const NAV = [["codes", "Launch codes"], ["minerva", "Minerva"], ["axolotl", "A.X.O.L.O.T.L."], ["events", "Intel & events"], ["guides", "Guides"]];
 
 export default function FalloutPage({ entryOrigin }) {
   const { intel, loading, connectionFailed, refresh } = useFalloutIntel();
@@ -45,7 +47,7 @@ export default function FalloutPage({ entryOrigin }) {
     const meta = document.querySelector('meta[name="description"]');
     const previousDescription = meta?.content;
     document.title = "Fallout Terminal | daivr.dev";
-    if (meta) meta.content = "Fallout 76 intelligence terminal with nuclear launch codes, Minerva information, monthly axolotls, and wasteland events.";
+    if (meta) meta.content = "Fallout 76 intelligence terminal with nuclear launch codes, Minerva information, monthly axolotls, wasteland events, and collectable guides.";
     const timer = window.setInterval(() => setNow(Date.now()), 30000);
     return () => { document.title = previous; if (meta) meta.content = previousDescription; window.clearInterval(timer); };
   }, []);
@@ -65,6 +67,10 @@ export default function FalloutPage({ entryOrigin }) {
   function runCommand(event) {
     event.preventDefault();
     const input = command.trim().toLowerCase();
+    if (input === "guides") {
+      window.location.assign(GUIDES_PATH);
+      return;
+    }
     if (NAV.some(([id]) => id === input)) {
       const section = document.getElementById(input);
       section?.scrollIntoView({ behavior: "instant", block: "start" });
@@ -77,7 +83,7 @@ export default function FalloutPage({ entryOrigin }) {
     } else if (input === "clear") {
       setCommandResult("");
     } else {
-      setCommandResult(input === "help" ? "COMMANDS: codes · minerva · axolotl · events · refresh · crt · clear" : `Unknown command: ${input || "(empty)"}. Type help for the command directory.`);
+      setCommandResult(input === "help" ? "COMMANDS: codes · minerva · axolotl · events · guides · refresh · crt · clear" : `Unknown command: ${input || "(empty)"}. Type help for the command directory.`);
     }
     setCommand("");
   }
@@ -90,7 +96,7 @@ export default function FalloutPage({ entryOrigin }) {
       <div className="fo-desk-layout">
         <aside className="fo-desk-rail" aria-label="Field station controls">
           <div className="fo-rail-brand"><img src="/games/fallout-76-logo.png" width="500" height="171" alt="Fallout 76" /><span>PERSONAL FIELD TERMINAL</span></div>
-          <div className="fo-rail-label">TUNE / SELECT CHANNEL<span>VT–04</span></div>
+          <div className="fo-rail-label">TUNE / SELECT CHANNEL<span>VT–05</span></div>
           <FieldNavigation feeds={feeds} loading={loading} now={now} booting={booting} />
           <FieldSignal feeds={feeds} loading={loading} connected={connected} />
           <div className="fo-rail-footer"><Radiation size={23} aria-hidden="true" /><span>VAULT 76<br /><b>RECLAMATION DIVISION</b></span></div>
@@ -107,6 +113,7 @@ export default function FalloutPage({ entryOrigin }) {
             <NuclearCommand feed={feeds.codes} loading={loading} now={now} onRetry={refresh} />
             <div className="fo-dossiers"><MerchantIntel feed={feeds.minerva} loading={loading} now={now} onRetry={refresh} /><ResearchFile feed={feeds.axolotl} loading={loading} now={now} onRetry={refresh} /></div>
             <EventIntel feed={feeds.events} loading={loading} now={now} onRetry={refresh} />
+            <FieldGuides />
             <section className="fo-command-console" aria-label="Terminal command line"><div className="fo-command-head"><Terminal size={16} aria-hidden="true" /><span>LOCAL COMMAND INTERFACE</span><span>TYPE “HELP” TO BEGIN</span></div><form onSubmit={runCommand}><label htmlFor="fo-command">guest@dai:~$</label><input id="fo-command" value={command} onChange={(event) => setCommand(event.target.value)} autoComplete="off" autoCapitalize="none" spellCheck={false} maxLength={80} placeholder="help" /><button type="submit">Execute <span aria-hidden="true">↵</span></button></form><p role="status">{commandResult || "Console cleared."}<span className="fo-cursor" aria-hidden="true">▌</span></p></section>
           </div>
           <StationFooter lastSync={lastSync} />

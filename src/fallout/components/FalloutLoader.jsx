@@ -21,7 +21,9 @@ export function FalloutLoader({ onSkip, skipRef, stages = INITIAL_STAGES, phase 
       const diameter = scene.offsetWidth;
       if (!diameter) return;
       const pitchRadius = diameter * .476;
-      const travel = scene.offsetLeft + diameter * .6;
+      // Park inside the wall pocket at full size. Travel and rotation share
+      // the gear's pitch radius so it rolls without sliding on the rear rack.
+      const travel = diameter * 1.2;
       viewport.style.setProperty("--vault-roll-distance", `${-travel}px`);
       viewport.style.setProperty("--vault-roll-angle", `${-travel / pitchRadius * 180 / Math.PI}deg`);
       viewport.style.setProperty("--vault-tooth-pitch", `${2 * Math.PI * pitchRadius / 16}px`);
@@ -52,7 +54,8 @@ export function FalloutLoader({ onSkip, skipRef, stages = INITIAL_STAGES, phase 
     ], options)];
     const surroundings = [
       ...viewport.querySelectorAll(".fo-vault-camera > :not(.fo-vault-scene)"),
-      ...scene.querySelectorAll(":scope > :not(.fo-vault-door-carriage)"),
+      ...scene.querySelectorAll(":scope > :not(.fo-vault-mechanism)"),
+      ...scene.querySelectorAll(".fo-vault-mechanism > :not(.fo-vault-door-release)"),
     ];
     surroundings.forEach((element) => animations.push(element.animate([{ opacity: 0 }, { opacity: getComputedStyle(element).opacity }], options)));
     animations[0].finished.then(() => { viewport.classList.remove("is-approaching"); onApproachComplete?.(); }).catch(() => {});
@@ -74,16 +77,20 @@ export function FalloutLoader({ onSkip, skipRef, stages = INITIAL_STAGES, phase 
     <div className="fo-vault-camera">
     <div className="fo-vault-shade" aria-hidden="true" />
     <div ref={sceneRef} className="fo-vault-scene" aria-hidden="true">
+      <div className="fo-vault-mechanism">
+        <div className="fo-vault-reveal" />
+        <div className="fo-vault-rear-track"><div className="fo-vault-rail" /></div>
+        <div className="fo-vault-door-release"><div className="fo-vault-door-carriage"><VaultDoor /></div></div>
+        <div className="fo-vault-steam" />
+        <div className="fo-vault-track-dust" />
+      </div>
       <div className="fo-vault-bulkhead"><div className="fo-vault-rim" />{Array.from({ length: 16 }, (_, i) => <i className="fo-vault-frame-bolt" key={i} style={{ "--angle": `${i * 22.5 + 11.25}deg` }} />)}</div>
       <div className="fo-vault-wall-face" />
       <div className="fo-vault-pipework"><i /><i /><i /><b>MAIN / 04</b></div>
       <div className="fo-vault-overhead"><i className="fo-vault-alarm-lens" /><div className="fo-vault-alarm-label"><strong>STAND CLEAR</strong><span>AUTOMATIC BLAST DOOR</span></div><i className="fo-vault-alarm-lens" /></div>
       <div className="fo-vault-lamp is-left"><i /><b /></div><div className="fo-vault-lamp is-right"><i /><b /></div>
       <div className="fo-vault-warning"><span>RESTRICTED AREA</span><strong>AUTHORIZED<br />PERSONNEL ONLY</strong><i /><small>BLAST DOOR / 076<br />KEEP CLEAR OF TRACK</small></div>
-      <div className="fo-vault-rail" />
-      <div className="fo-vault-door-carriage"><div className="fo-vault-door-release"><VaultDoor /></div></div>
-      <div className="fo-vault-steam" />
-      <div className="fo-vault-track-dust" />
+      <div className="fo-vault-threshold" />
     </div>
     <div className="fo-vault-atmosphere" aria-hidden="true" />
     <div className="fo-vault-stencil" aria-hidden="true">76<span>EXTERIOR<br />ACCESS LOCK</span></div>

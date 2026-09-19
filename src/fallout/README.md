@@ -62,6 +62,29 @@ these only after checking a new official bulletin. Rewards expire automatically;
 they are not labeled as a live API feed. General event data comes from the source
 homepage, with explicit unknown end times where applicable.
 
+## Field guides
+
+Channel 05 opens `/fallout/guides`; the mask guide has its own address at
+`/fallout/guides/pint-sized-slasher-masks`. Both routes have generated static
+HTML metadata and explicit Node-server handling for direct visits and reloads.
+The library and guide are independent of the four live intelligence feeds.
+
+The guide prose and map interface are original. The map uses Leaflet CRS.Simple
+with Bethesda’s in-game Appalachia artwork, locally compressed to WebP. All 108 mask records were
+extracted from the Mappalachia 2.0.5.2 database (game 1.7.26.13), with 59 search
+areas computed from nearest map landmarks. These are landmark groups, not
+hand-verified walking routes. Mask pins use world coordinates; bearings use the map icon as
+their reference, not fast-travel arrival positions. Regions follow the game
+subregion polygons; three points in boundary gaps use the nearest polygon.
+The source release is https://github.com/AHeroicLlama/Mappalachia/releases/tag/2.0.5.2.
+
+`scripts/import-slasher-spawns.py` reproduces `data/slasher-spawns.json` from a
+local database. `data/guides.js` contains lightweight card totals and reward
+stages; tests keep these in sync. Only numerical game facts and landmark names
+are extracted. No third-party guide text or Mappalachia application code is
+incorporated. Game-map artwork provenance is in `public/fallout/CREDITS.md`. Reference links appear in the guide's survey notes. There is no
+collection tracking or completion storage.
+
 ## Adding a provider
 
 Add a parser that returns the documented contract, fetch its fixed public URL on
@@ -78,3 +101,55 @@ The full bar holds for 750 ms before a 320 ms fade. Returning visits omit the fi
 visit minimum; reduced motion disables animation and shortens the completion hold.
 The request timeout and bounded asset/font waits lead to labeled offline/fallback
 checks instead of an endless boot. Escape remains an explicit manual skip.
+
+## Guide game map
+
+`data/gameMap.js` maps game X/Y into the 4096px artwork using the worldspace
+center (-500, 135) and full range 582550. North remains positive Y in Leaflet;
+the browser handles the image-axis inversion. Pins, landmark centers, and
+zoom bounds all use this same transform. The illustrated map does not provide
+floor-level detail. Area selection fits its masks; individual selection centers
+a pin and opens its popup. Overview restores filtered areas after panning.
+Mouse drag, touch drag/pinch, keyboard arrows and +/− controls are supported.
+Wheel zoom is enabled while the pointer is over the map. Resize observers
+and the Leaflet instance are disposed when the component unmounts.
+
+The illustrated texture is now the native 4096 × 4096 `papermap_city_d.dds`
+from the installed game, delivered as 85 lossless WebP tiles (512px, levels
+0–3). The offset Simple CRS produces standard top-left XYZ tile addresses;
+world coordinates remain unchanged. Native Leaflet zoom 0 is 1:1; automatic
+area framing allows zoom 1.5 to separate nearby mask pins, and manual zoom goes
+up to level 2. The artwork scales beyond its native resolution at these close
+views; the SVG icons remain sharp. Tiles load on demand. Overview fits and
+centers the complete artwork with equal padding, rather than the off-center
+mask distribution. Resizing preserves the geographic center.
+
+`data/world-locations.json` contains all 458 Appalachia MapMarker records from
+the same Mappalachia database. Their 85 original blue SVG game icons occupy
+a separate pane below the mask pins, with hover, keyboard and touch names.
+The world-location toggle affects only that layer. Offscreen icons are removed
+from the keyboard tab order. Only landmarks within the viewport plus a 15%
+buffer are attached to the DOM; cached markers are reused on subsequent pans.
+Viewport updates are batched per animation frame, icon zoom animation and tile
+fading are disabled, and tiles refresh after zoom/pan settles. Ordinary world
+icons use their built-in outlines without a CSS filter per marker.
+Rebuild the tiles, icons and records with
+`python scripts/build-fallout-map.py MAPPALACHIA.db papermap_city_d.dds`
+(requires Pillow); the source game files are only read.
+
+## Mask location photographs
+
+`data/slasher-photos.json` associates each stable mask FormID with one local AVIF
+under `public/fallout/mask-locations/`. The user-requested source guide has a
+different route order; its spawn array must not be zipped with our map IDs.
+Photo associations were checked by registering the paired map screenshots to
+our game map and comparing the player position with mask coordinates, assigning
+one photo per point in each landmark group. The Camden boat photo belongs to
+mask 037 (008F83BD), not 035. Rapidan photo 1 is assigned by elimination after
+matching photos 2 and 3; Makeout Point has only one mask. Per-image sources and
+matching notes live in `scripts/slasher-photo-provenance.json`.
+
+Leaflet creates photo content only when a popup opens. Its thumbnail reserves
+space while loading, and an error leaves the pin information usable. Clicking
+the photo opens a native modal dialog with Escape, a close button, focus trapping,
+and focus restoration. Images remain unmodified. No completion state is stored.

@@ -15,6 +15,7 @@ import { handleTradeDexVirusTotalRequest } from "./server/virustotal.mjs";
 import { handleTowerBlockRequest } from "./server/tower-block.mjs";
 import { handleVisitsRequest } from "./server/visits.mjs";
 import { handleFalloutRequest } from "./server/fallout.mjs";
+import { FALLOUT_PAGES, normalizeFalloutPath } from "./src/fallout/data/pages.js";
 
 process.on("uncaughtException", (error) => {
   console.error("[server] uncaught exception", error?.stack || error);
@@ -99,7 +100,8 @@ async function getEntityTag(filePath) {
 
 function resolvePath(url) {
   const pathname = new URL(url, `http://localhost:${port}`).pathname;
-  if (pathname.toLowerCase().replace(/\/+$/, "") === "/fallout") return join(staticRoot, "fallout", "index.html");
+  const falloutPath = normalizeFalloutPath(pathname);
+  if (Object.hasOwn(FALLOUT_PAGES, falloutPath)) return join(staticRoot, falloutPath.slice(1), "index.html");
   const relativePath = pathname === "/" ? "index.html" : pathname.replace(/^[/\\]+/, "");
   const cleanPath = normalize(decodeURIComponent(relativePath)).replace(/^(\.\.[/\\])+/, "");
   return join(staticRoot, cleanPath);

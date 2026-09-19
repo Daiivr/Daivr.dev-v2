@@ -138,7 +138,7 @@
   .fo-desk-rail { position: sticky; top: 0; z-index: 25; padding: 9px 7px; margin-bottom: 17px; border-top-width: 2px; box-shadow: 0 6px 17px #0007; }
   .fo-desk-rail::before, .fo-desk-rail::after, .fo-rail-label, .fo-rail-brand > span, .fo-rail-signal, .fo-rail-footer { display: none; }
   .fo-rail-brand { display: none; }
-  .fo-field-nav { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; }
+  .fo-field-nav { grid-template-columns: repeat(var(--fo-channel-count, 4), minmax(0, 1fr)); gap: 5px; }
   .fo-field-nav a, .fo-field-nav a + a { display: flex; flex-direction: column; justify-content: center; gap: 5px; min-height: 55px; padding: 7px 1px; border-left-width: 1px; border-bottom: 2px solid transparent; }
   .fo-field-nav a .fo-directory-number, .fo-directory-copy small { display: none; }
   .fo-directory-copy strong { font-size: 9px; white-space: nowrap; }

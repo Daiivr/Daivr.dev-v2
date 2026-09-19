@@ -1,0 +1,655 @@
+{
+  "sourcePage": "https://theduchessflame.com/df/collectables/pint-sized-slasher-masks/spawn-locations/",
+  "checkedAt": "2026-09-19",
+  "method": "Screenshot map registration against the game map and player marker position; one-to-one assignment within source landmark groups. Single-point groups are unambiguous. Rapidan photo 1 is the remaining third position after matching photos 2 and 3. No guide prose imported.",
+  "photos": [
+    {
+      "id": "008F83BD",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/ash-heap-camden-park-1-item.avif",
+      "mapReference": "ash-heap-camden-park-1-map.avif",
+      "alignmentErrorGameUnits": 166
+    },
+    {
+      "id": "008F83BB",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/ash-heap-camden-park-2-item.avif",
+      "mapReference": "ash-heap-camden-park-2-map.avif",
+      "alignmentErrorGameUnits": 156
+    },
+    {
+      "id": "008F83B3",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/ash-heap-camden-park-3-item.avif",
+      "mapReference": "ash-heap-camden-park-3-map.avif",
+      "alignmentErrorGameUnits": 187
+    },
+    {
+      "id": "0090AB91",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/ash-heap-rollins-labor-camp-item.avif",
+      "mapReference": "ash-heap-rollins-labor-camp-map.avif",
+      "alignmentErrorGameUnits": 100
+    },
+    {
+      "id": "0091E6D4",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/ash-heap-nuka-world-on-tour-1-item.avif",
+      "mapReference": "ash-heap-nuka-world-on-tour-1-map.avif",
+      "alignmentErrorGameUnits": 24
+    },
+    {
+      "id": "0091E6D0",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/ash-heap-nuka-world-on-tour-2-item.avif",
+      "mapReference": "ash-heap-nuka-world-on-tour-2-map.avif",
+      "alignmentErrorGameUnits": 51
+    },
+    {
+      "id": "0091E6CF",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/ash-heap-nuka-world-on-tour-3-item.avif",
+      "mapReference": "ash-heap-nuka-world-on-tour-3-map.avif",
+      "alignmentErrorGameUnits": 141
+    },
+    {
+      "id": "0090ABA2",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/burning-springs-dino-peaks-mini-golf-1-item.avif",
+      "mapReference": "burning-springs-dino-peaks-mini-golf-1-map.avif",
+      "alignmentErrorGameUnits": 122
+    },
+    {
+      "id": "0090ABA0",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/burning-springs-dino-peaks-mini-golf-2-item.avif",
+      "mapReference": "burning-springs-dino-peaks-mini-golf-2-map.avif",
+      "alignmentErrorGameUnits": 149
+    },
+    {
+      "id": "0090ABAA",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/burning-springs-dino-peaks-mini-golf-3-item.avif",
+      "mapReference": "burning-springs-dino-peaks-mini-golf-3-map.avif",
+      "alignmentErrorGameUnits": 146
+    },
+    {
+      "id": "0091E6CC",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/burning-springs-dino-peaks-mini-golf-4-item.avif",
+      "mapReference": "burning-springs-dino-peaks-mini-golf-4-map.avif",
+      "alignmentErrorGameUnits": 331
+    },
+    {
+      "id": "008F83C3",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/burning-springs-prospect-hill-starlight-drive-in-1-item.avif",
+      "mapReference": "burning-springs-prospect-hill-starlight-drive-in-1-map.avif",
+      "alignmentErrorGameUnits": 152
+    },
+    {
+      "id": "008F83C9",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/burning-springs-prospect-hill-starlight-drive-in-2-item.avif",
+      "mapReference": "burning-springs-prospect-hill-starlight-drive-in-2-map.avif",
+      "alignmentErrorGameUnits": 317
+    },
+    {
+      "id": "0091E6C9",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/burning-springs-tycoon-lake-1-item.avif",
+      "mapReference": "burning-springs-tycoon-lake-1-map.avif",
+      "alignmentErrorGameUnits": 151
+    },
+    {
+      "id": "0091E6C4",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/burning-springs-tycoon-lake-2-item.avif",
+      "mapReference": "burning-springs-tycoon-lake-2-map.avif",
+      "alignmentErrorGameUnits": 65
+    },
+    {
+      "id": "0090ABB7",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/burning-springs-world-of-corn-1-item.avif",
+      "mapReference": "burning-springs-world-of-corn-1-map.avif",
+      "alignmentErrorGameUnits": 110
+    },
+    {
+      "id": "0090ABB3",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/burning-springs-world-of-corn-2-item.avif",
+      "mapReference": "burning-springs-world-of-corn-2-map.avif",
+      "alignmentErrorGameUnits": 572
+    },
+    {
+      "id": "0090ABB0",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/burning-springs-world-of-corn-3-item.avif",
+      "mapReference": "burning-springs-world-of-corn-3-map.avif",
+      "alignmentErrorGameUnits": 277
+    },
+    {
+      "id": "008FAD9A",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/cranberry-bog-ranger-lookout-item.avif",
+      "mapReference": "cranberry-bog-ranger-lookout-map.avif",
+      "alignmentErrorGameUnits": 288
+    },
+    {
+      "id": "008F587D",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-alpine-river-cabins-1-item.avif",
+      "mapReference": "forest-alpine-river-cabins-1-map.avif",
+      "alignmentErrorGameUnits": 32
+    },
+    {
+      "id": "008F5881",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-alpine-river-cabins-2-item.avif",
+      "mapReference": "forest-alpine-river-cabins-2-map.avif",
+      "alignmentErrorGameUnits": 84
+    },
+    {
+      "id": "008F5880",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-alpine-river-cabins-3-item.avif",
+      "mapReference": "forest-alpine-river-cabins-3-map.avif",
+      "alignmentErrorGameUnits": 33
+    },
+    {
+      "id": "008F66F9",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-camp-adams-lookout-1-item.avif",
+      "mapReference": "forest-camp-adams-lookout-1-map.avif",
+      "alignmentErrorGameUnits": 70
+    },
+    {
+      "id": "009097D8",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-camp-adams-lookout-2-item.avif",
+      "mapReference": "forest-camp-adams-lookout-2-map.avif",
+      "alignmentErrorGameUnits": 80
+    },
+    {
+      "id": "008F66FB",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-camp-mcclintock-1-item.avif",
+      "mapReference": "forest-camp-mcclintock-1-map.avif",
+      "alignmentErrorGameUnits": 146
+    },
+    {
+      "id": "008F66FA",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-camp-mcclintock-2-item.avif",
+      "mapReference": "forest-camp-mcclintock-2-map.avif",
+      "alignmentErrorGameUnits": 30
+    },
+    {
+      "id": "009097DF",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-camp-mcclintock-3-item.avif",
+      "mapReference": "forest-camp-mcclintock-3-map.avif",
+      "alignmentErrorGameUnits": 68
+    },
+    {
+      "id": "008FBCED",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-east-kanawha-lookout-item.avif",
+      "mapReference": "forest-east-kanawha-lookout-map.avif",
+      "alignmentErrorGameUnits": 44
+    },
+    {
+      "id": "008FBCE5",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-flatwoods-lookout-item.avif",
+      "mapReference": "forest-flatwoods-lookout-map.avif",
+      "alignmentErrorGameUnits": 35
+    },
+    {
+      "id": "008FBCE1",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-groves-family-cabin-item.avif",
+      "mapReference": "forest-groves-family-cabin-map.avif",
+      "alignmentErrorGameUnits": 50
+    },
+    {
+      "id": "008FBCE7",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-isolated-cabin-item.avif",
+      "mapReference": "forest-isolated-cabin-map.avif",
+      "alignmentErrorGameUnits": 71
+    },
+    {
+      "id": "008FBCF6",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-lakeside-cabins-item.avif",
+      "mapReference": "forest-lakeside-cabins-map.avif",
+      "alignmentErrorGameUnits": 84
+    },
+    {
+      "id": "0090D3C5",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-new-river-gorge-resort-1-item.avif",
+      "mapReference": "forest-new-river-gorge-resort-1-map.avif",
+      "alignmentErrorGameUnits": 45
+    },
+    {
+      "id": "0090D3BE",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-new-river-gorge-resort-2-item.avif",
+      "mapReference": "forest-new-river-gorge-resort-2-map.avif",
+      "alignmentErrorGameUnits": 5
+    },
+    {
+      "id": "0090D3C3",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-new-river-gorge-resort-3-item.avif",
+      "mapReference": "forest-new-river-gorge-resort-3-map.avif",
+      "alignmentErrorGameUnits": 81
+    },
+    {
+      "id": "008FBCEB",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-north-kanawha-lookout-item.avif",
+      "mapReference": "forest-north-kanawha-lookout-map.avif",
+      "alignmentErrorGameUnits": 58
+    },
+    {
+      "id": "008FBCF3",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-overlook-cabin-item.avif",
+      "mapReference": "forest-overlook-cabin-map.avif",
+      "alignmentErrorGameUnits": 105
+    },
+    {
+      "id": "0090D2BA",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-the-giant-teapot-item.avif",
+      "mapReference": "forest-the-giant-teapot-map.avif",
+      "alignmentErrorGameUnits": 307
+    },
+    {
+      "id": "0090D398",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-twin-pine-cabins-1-item.avif",
+      "mapReference": "forest-twin-pine-cabins-1-map.avif",
+      "alignmentErrorGameUnits": 77
+    },
+    {
+      "id": "0090D395",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-twin-pine-cabins-2-item.avif",
+      "mapReference": "forest-twin-pine-cabins-2-map.avif",
+      "alignmentErrorGameUnits": 53
+    },
+    {
+      "id": "008FADA9",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-tyler-county-fairgrounds-1-item.avif",
+      "mapReference": "forest-tyler-county-fairgrounds-1-map.avif",
+      "alignmentErrorGameUnits": 620
+    },
+    {
+      "id": "008FADA7",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-tyler-county-fairgrounds-2-item.avif",
+      "mapReference": "forest-tyler-county-fairgrounds-2-map.avif",
+      "alignmentErrorGameUnits": 328
+    },
+    {
+      "id": "008FADAE",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/forest-tyler-county-fairgrounds-3-item.avif",
+      "mapReference": "forest-tyler-county-fairgrounds-3-map.avif",
+      "alignmentErrorGameUnits": 66
+    },
+    {
+      "id": "0090B982",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-autumn-acre-cabin-1-item.avif",
+      "mapReference": "savage-divide-autumn-acre-cabin-1-map.avif",
+      "alignmentErrorGameUnits": 102
+    },
+    {
+      "id": "0090D3BA",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-autumn-acre-cabin-2-item.avif",
+      "mapReference": "savage-divide-autumn-acre-cabin-2-map.avif",
+      "alignmentErrorGameUnits": 175
+    },
+    {
+      "id": "0090D3A3",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-bailey-family-cabin-1-item.avif",
+      "mapReference": "savage-divide-bailey-family-cabin-1-map.avif",
+      "alignmentErrorGameUnits": 100
+    },
+    {
+      "id": "0090D3A8",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-bailey-family-cabin-2-item.avif",
+      "mapReference": "savage-divide-bailey-family-cabin-2-map.avif",
+      "alignmentErrorGameUnits": 236
+    },
+    {
+      "id": "0090D4F0",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-bastion-park-1-item.avif",
+      "mapReference": "savage-divide-bastion-park-1-map.avif",
+      "alignmentErrorGameUnits": 305
+    },
+    {
+      "id": "0090D4FB",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-bastion-park-2-item.avif",
+      "mapReference": "savage-divide-bastion-park-2-map.avif",
+      "alignmentErrorGameUnits": 159
+    },
+    {
+      "id": "0090D4F7",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-bastion-park-3-item.avif",
+      "mapReference": "savage-divide-bastion-park-3-map.avif",
+      "alignmentErrorGameUnits": 137
+    },
+    {
+      "id": "008FAD93",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-central-mountain-lookout-item.avif",
+      "mapReference": "savage-divide-central-mountain-lookout-map.avif",
+      "alignmentErrorGameUnits": 153
+    },
+    {
+      "id": "0090AB82",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-devils-backbone-item.avif",
+      "mapReference": "savage-divide-devils-backbone-map.avif",
+      "alignmentErrorGameUnits": 138
+    },
+    {
+      "id": "008FBCDE",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-east-mountain-lookout-item.avif",
+      "mapReference": "savage-divide-east-mountain-lookout-map.avif",
+      "alignmentErrorGameUnits": 218
+    },
+    {
+      "id": "008F6C5D",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-fissure-site-item.avif",
+      "mapReference": "savage-divide-fissure-site-map.avif",
+      "alignmentErrorGameUnits": 97
+    },
+    {
+      "id": "008FBCDB",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-investigators-cabin-item.avif",
+      "mapReference": "savage-divide-investigators-cabin-map.avif",
+      "alignmentErrorGameUnits": 202
+    },
+    {
+      "id": "008FAD95",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-north-mountain-lookout-item.avif",
+      "mapReference": "savage-divide-north-mountain-lookout-map.avif",
+      "alignmentErrorGameUnits": 124
+    },
+    {
+      "id": "008F75F3",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-old-danielson-cabin-1-item.avif",
+      "mapReference": "savage-divide-old-danielson-cabin-1-map.avif",
+      "alignmentErrorGameUnits": 210
+    },
+    {
+      "id": "0090D3A2",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-old-danielson-cabin-2-item.avif",
+      "mapReference": "savage-divide-old-danielson-cabin-2-map.avif",
+      "alignmentErrorGameUnits": 232
+    },
+    {
+      "id": "008FBCD7",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-pleasant-valley-cabins-1-item.avif",
+      "mapReference": "savage-divide-pleasant-valley-cabins-1-map.avif",
+      "alignmentErrorGameUnits": 108
+    },
+    {
+      "id": "008FBCD3",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-pleasant-valley-cabins-2-item.avif",
+      "mapReference": "savage-divide-pleasant-valley-cabins-2-map.avif",
+      "alignmentErrorGameUnits": 96
+    },
+    {
+      "id": "0090AB67",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-seneca-gang-camp-item.avif",
+      "mapReference": "savage-divide-seneca-gang-camp-map.avif",
+      "alignmentErrorGameUnits": 429
+    },
+    {
+      "id": "0091E6C1",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-seneca-rocks-visitor-center-1-item.avif",
+      "mapReference": "savage-divide-seneca-rocks-visitor-center-1-map.avif",
+      "alignmentErrorGameUnits": 501
+    },
+    {
+      "id": "0091E6DF",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-seneca-rocks-visitor-center-2-item.avif",
+      "mapReference": "savage-divide-seneca-rocks-visitor-center-2-map.avif",
+      "alignmentErrorGameUnits": 116
+    },
+    {
+      "id": "0090AB64",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-south-cutthroat-camp-item.avif",
+      "mapReference": "savage-divide-south-cutthroat-camp-map.avif",
+      "alignmentErrorGameUnits": 138
+    },
+    {
+      "id": "008FBCD8",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-south-mountain-lookout-1-item.avif",
+      "mapReference": "savage-divide-south-mountain-lookout-1-map.avif",
+      "alignmentErrorGameUnits": 119
+    },
+    {
+      "id": "0090AB78",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-south-mountain-lookout-2-item.avif",
+      "mapReference": "savage-divide-south-mountain-lookout-2-map.avif",
+      "alignmentErrorGameUnits": 210
+    },
+    {
+      "id": "0090AB7C",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-south-mountain-lookout-3-item.avif",
+      "mapReference": "savage-divide-south-mountain-lookout-3-map.avif",
+      "alignmentErrorGameUnits": 144
+    },
+    {
+      "id": "0090AB7F",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-south-mountain-lookout-4-item.avif",
+      "mapReference": "savage-divide-south-mountain-lookout-4-map.avif",
+      "alignmentErrorGameUnits": 213
+    },
+    {
+      "id": "0090D4D7",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-sunnytop-ski-lanes-1-item.avif",
+      "mapReference": "savage-divide-sunnytop-ski-lanes-1-map.avif",
+      "alignmentErrorGameUnits": 259
+    },
+    {
+      "id": "0090D4DC",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-sunnytop-ski-lanes-2-item.avif",
+      "mapReference": "savage-divide-sunnytop-ski-lanes-2-map.avif",
+      "alignmentErrorGameUnits": 359
+    },
+    {
+      "id": "0090D4D3",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-sunnytop-ski-lanes-3-item.avif",
+      "mapReference": "savage-divide-sunnytop-ski-lanes-3-map.avif",
+      "alignmentErrorGameUnits": 154
+    },
+    {
+      "id": "0090D4EC",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-sunnytop-ski-lanes-base-lodge-1-item.avif",
+      "mapReference": "savage-divide-sunnytop-ski-lanes-base-lodge-1-map.avif",
+      "alignmentErrorGameUnits": 63
+    },
+    {
+      "id": "0090D4E8",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-sunnytop-ski-lanes-base-lodge-2-item.avif",
+      "mapReference": "savage-divide-sunnytop-ski-lanes-base-lodge-2-map.avif",
+      "alignmentErrorGameUnits": 116
+    },
+    {
+      "id": "0090AB6A",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-sylvie-sons-logging-camp-item.avif",
+      "mapReference": "savage-divide-sylvie-sons-logging-camp-map.avif",
+      "alignmentErrorGameUnits": 229
+    },
+    {
+      "id": "0090AB76",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-vault-96-item.avif",
+      "mapReference": "savage-divide-vault-96-map.avif",
+      "alignmentErrorGameUnits": 222
+    },
+    {
+      "id": "008FADB3",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/savage-divide-whitespring-lookout-item.avif",
+      "mapReference": "savage-divide-whitespring-lookout-map.avif",
+      "alignmentErrorGameUnits": 136
+    },
+    {
+      "id": "008F667D",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/skyline-valley-camp-liberty-1-item.avif",
+      "mapReference": "skyline-valley-camp-liberty-1-map.avif",
+      "alignmentErrorGameUnits": 369
+    },
+    {
+      "id": "008F666D",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/skyline-valley-camp-liberty-2-item.avif",
+      "mapReference": "skyline-valley-camp-liberty-2-map.avif",
+      "alignmentErrorGameUnits": 240
+    },
+    {
+      "id": "008F6675",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/skyline-valley-camp-liberty-3-item.avif",
+      "mapReference": "skyline-valley-camp-liberty-3-map.avif",
+      "alignmentErrorGameUnits": 263
+    },
+    {
+      "id": "008FAD97",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/skyline-valley-makeout-point-item.avif",
+      "mapReference": "skyline-valley-makeout-point-map.avif",
+      "alignmentErrorGameUnits": 2878
+    },
+    {
+      "id": "0090AB8C",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/skyline-valley-naked-creek-item.avif",
+      "mapReference": "skyline-valley-naked-creek-map.avif",
+      "alignmentErrorGameUnits": 195
+    },
+    {
+      "id": "0090AB70",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/skyline-valley-rapidan-camp-1-item.avif",
+      "mapReference": "skyline-valley-rapidan-camp-1-map.avif",
+      "alignmentErrorGameUnits": 4075
+    },
+    {
+      "id": "0090AB6B",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/skyline-valley-rapidan-camp-2-item.avif",
+      "mapReference": "skyline-valley-rapidan-camp-2-map.avif",
+      "alignmentErrorGameUnits": 175
+    },
+    {
+      "id": "0090AB73",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/skyline-valley-rapidan-camp-3-item.avif",
+      "mapReference": "skyline-valley-rapidan-camp-3-map.avif",
+      "alignmentErrorGameUnits": 78
+    },
+    {
+      "id": "008F6C4E",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/the-mire-camp-venture-1-item.avif",
+      "mapReference": "the-mire-camp-venture-1-map.avif",
+      "alignmentErrorGameUnits": 176
+    },
+    {
+      "id": "008F6C53",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/the-mire-camp-venture-2-item.avif",
+      "mapReference": "the-mire-camp-venture-2-map.avif",
+      "alignmentErrorGameUnits": 173
+    },
+    {
+      "id": "008F6669",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/the-mire-dolly-sods-lookout-1-item.avif",
+      "mapReference": "the-mire-dolly-sods-lookout-1-map.avif",
+      "alignmentErrorGameUnits": 227
+    },
+    {
+      "id": "008F665E",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/the-mire-dolly-sods-lookout-2-item.avif",
+      "mapReference": "the-mire-dolly-sods-lookout-2-map.avif",
+      "alignmentErrorGameUnits": 126
+    },
+    {
+      "id": "0090AB8A",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/the-mire-dolly-sods-campground-1-item.avif",
+      "mapReference": "the-mire-dolly-sods-campground-1-map.avif",
+      "alignmentErrorGameUnits": 80
+    },
+    {
+      "id": "0090AB88",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/the-mire-dolly-sods-campground-2-item.avif",
+      "mapReference": "the-mire-dolly-sods-campground-2-map.avif",
+      "alignmentErrorGameUnits": 197
+    },
+    {
+      "id": "0090AB85",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/the-mire-dolly-sods-campground-3-item.avif",
+      "mapReference": "the-mire-dolly-sods-campground-3-map.avif",
+      "alignmentErrorGameUnits": 267
+    },
+    {
+      "id": "009097D6",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/the-mire-east-ridge-lookout-item.avif",
+      "mapReference": "the-mire-east-ridge-lookout-map.avif",
+      "alignmentErrorGameUnits": 388
+    },
+    {
+      "id": "008F67A1",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/the-mire-freddy-fears-house-of-scares-item.avif",
+      "mapReference": "the-mire-freddy-fears-house-of-scares-map.avif",
+      "alignmentErrorGameUnits": 132
+    },
+    {
+      "id": "008F67A2",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/the-mire-freddy-fears-house-of-scares-item.avif",
+      "mapReference": "the-mire-freddy-fears-house-of-scares-map.avif",
+      "alignmentErrorGameUnits": 226
+    },
+    {
+      "id": "0090D2CC",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/the-mire-sunday-brothers-cabin-1-item.avif",
+      "mapReference": "the-mire-sunday-brothers-cabin-1-map.avif",
+      "alignmentErrorGameUnits": 163
+    },
+    {
+      "id": "0090D2C9",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/the-mire-sunday-brothers-cabin-2-item.avif",
+      "mapReference": "the-mire-sunday-brothers-cabin-2-map.avif",
+      "alignmentErrorGameUnits": 207
+    },
+    {
+      "id": "0090D2CE",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/the-mire-sunday-brothers-cabin-3-item.avif",
+      "mapReference": "the-mire-sunday-brothers-cabin-3-map.avif",
+      "alignmentErrorGameUnits": 122
+    },
+    {
+      "id": "0090D4FF",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/toxic-valley-hemlock-holes-1-item.avif",
+      "mapReference": "toxic-valley-hemlock-holes-1-map.avif",
+      "alignmentErrorGameUnits": 23
+    },
+    {
+      "id": "0090D503",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/toxic-valley-hemlock-holes-2-item.avif",
+      "mapReference": "toxic-valley-hemlock-holes-2-map.avif",
+      "alignmentErrorGameUnits": 68
+    },
+    {
+      "id": "008F678D",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/toxic-valley-kiddie-corner-cabins-1-item.avif",
+      "mapReference": "toxic-valley-kiddie-corner-cabins-1-map.avif",
+      "alignmentErrorGameUnits": 20
+    },
+    {
+      "id": "0090D39D",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/toxic-valley-kiddie-corner-cabins-2-item.avif",
+      "mapReference": "toxic-valley-kiddie-corner-cabins-2-map.avif",
+      "alignmentErrorGameUnits": 53
+    },
+    {
+      "id": "008F6155",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/toxic-valley-pioneer-scout-camp-1-item.avif",
+      "mapReference": "toxic-valley-pioneer-scout-camp-1-map.avif",
+      "alignmentErrorGameUnits": 69
+    },
+    {
+      "id": "008F6655",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/toxic-valley-pioneer-scout-camp-2-item.avif",
+      "mapReference": "toxic-valley-pioneer-scout-camp-2-map.avif",
+      "alignmentErrorGameUnits": 68
+    },
+    {
+      "id": "008F6651",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/toxic-valley-pioneer-scout-camp-3-item.avif",
+      "mapReference": "toxic-valley-pioneer-scout-camp-3-map.avif",
+      "alignmentErrorGameUnits": 42
+    },
+    {
+      "id": "008FBCF0",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/toxic-valley-pioneer-scout-lookout-item.avif",
+      "mapReference": "toxic-valley-pioneer-scout-lookout-map.avif",
+      "alignmentErrorGameUnits": 39
+    },
+    {
+      "id": "008F76AD",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/toxic-valley-wavy-willards-water-park-1-item.avif",
+      "mapReference": "toxic-valley-wavy-willards-water-park-1-map.avif",
+      "alignmentErrorGameUnits": 42
+    },
+    {
+      "id": "008F76AC",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/toxic-valley-wavy-willards-water-park-2-item.avif",
+      "mapReference": "toxic-valley-wavy-willards-water-park-2-map.avif",
+      "alignmentErrorGameUnits": 23
+    },
+    {
+      "id": "008F76B0",
+      "sourceImage": "https://theduchessflame.com/wp-content/uploads/guide-images/collectables/Slasher-Mask-Locations/toxic-valley-wavy-willards-water-park-3-item.avif",
+      "mapReference": "toxic-valley-wavy-willards-water-park-3-map.avif",
+      "alignmentErrorGameUnits": 222
+    }
+  ]
+}

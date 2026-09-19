@@ -22,9 +22,16 @@
 .fo-vault-warning small { display: block; margin-top: 9px; color: #93a09a; font: 7px/1.8 monospace; letter-spacing: .5px; }
 .fo-vault-atmosphere { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse at 50% 30%, #bfcfab09, transparent 45%), radial-gradient(ellipse at 50% 46%, transparent 20%, #020a10bb 95%); }
 .fo-vault-rail { position: absolute; top: 99%; left: -100vw; width: 200vw; height: 20px; border-top: 3px solid #697271; border-bottom: 4px solid #070e12; background: linear-gradient(#17272f 30%, #7b8171 33%, #343e3e 45%, #121f26 70%); box-shadow: 0 10px 20px #0007; }
-.fo-vault-door-carriage { position: absolute; inset: 0; transform-origin: 50% 100%; filter: drop-shadow(9px 18px 9px #000b); }
-.fo-vault-door-release { width: 100%; height: 100%; }
-.fo-vault-door-release > .vault-door { display: block; width: 100%; height: 100%; overflow: visible; transform-origin: center; }
+/* The wall occludes the entire mechanism, including its teeth and debris. */
+.fo-vault-mechanism { position: absolute; inset: 0; clip-path: circle(54% at 50% 50%); }
+.fo-startup.is-approaching .fo-vault-mechanism { clip-path: none; z-index: 1; }
+.fo-vault-reveal { position: absolute; inset: -4%; border-radius: 50%; border: calc(var(--vault-size) * .045) solid #111e22; background: transparent; box-shadow: inset 10px 14px 20px #000b, inset -3px -3px 0 #8b947438; }
+.fo-vault-rear-track { position: absolute; inset: 0; transform: translateY(1%); filter: brightness(.65); }
+.fo-vault-threshold { position: absolute; top: 103%; left: -100vw; width: 200vw; height: 12px; border-top: 2px solid #697271; background: linear-gradient(#253638, #0c171e 65%); box-shadow: 0 5px 12px #0008; }
+.fo-vault-threshold::after { content: ""; position: absolute; top: 12px; left: 0; width: 100%; height: 90px; background: repeating-linear-gradient(90deg, #0b161c 0 5px, #52605a40 6px 7px, #111f25 8px 40px); transform: perspective(130px) rotateX(45deg); transform-origin: top; opacity: .6; }
+.fo-vault-door-carriage { position: absolute; inset: 0; filter: drop-shadow(3px 7px 4px #000a); }
+.fo-vault-door-release { position: absolute; inset: 0; transform-origin: 50% 50%; }
+.fo-vault-door-carriage > .vault-door { display: block; width: 100%; height: 100%; overflow: visible; transform-origin: center; }
 .fo-startup .vault-door-bolt { transition: transform 700ms cubic-bezier(.65,0,.35,1); transition-delay: calc(var(--bolt-order) * 130ms); }
 .fo-startup .vault-door-wheel { transform-origin: 189px 364px; transition: transform 1400ms cubic-bezier(.5,0,.3,1); }
 .fo-startup:is(.is-complete, .is-leaving, .is-entering) .vault-door-wheel { transform: rotate(-150deg); }
@@ -56,20 +63,28 @@
 .fo-startup.is-entering .fo-vault-camera { animation: fo-vault-enter var(--vault-entry-duration) cubic-bezier(.55,.05,.25,1) both; }
 :is(.is-leaving, .is-entering) .fo-vault-door-carriage { animation: fo-vault-roll var(--vault-opening-duration) linear both; }
 :is(.is-leaving, .is-entering) .fo-vault-door-release { animation: fo-vault-release var(--vault-opening-duration) linear both; }
-:is(.is-leaving, .is-entering) .fo-vault-door-release > .vault-door { animation: fo-vault-turn var(--vault-opening-duration) linear both; }
-.fo-startup.is-leaving .fo-vault-camera { animation: fo-vault-shudder 600ms ease-out 1250ms both; }
+:is(.is-leaving, .is-entering) .fo-vault-door-carriage > .vault-door { animation: fo-vault-turn var(--vault-opening-duration) linear both; }
+.fo-startup.is-leaving .fo-vault-camera { animation: fo-vault-shudder 600ms ease-out 1488ms both; }
 :is(.is-leaving, .is-entering) .fo-vault-shade { animation: fo-vault-shade-out 1800ms ease 800ms both; }
 :is(.is-leaving, .is-entering) .fo-vault-atmosphere { animation: fo-vault-shade-out 1400ms ease 3600ms both; }
 :is(.is-leaving, .is-entering) .fo-vault-steam { animation: fo-vault-vent 2200ms ease-out 240ms both; }
-/* Translation and rotation share the same timing and physical pitch radius. */
-@keyframes fo-vault-roll { 0%, 25% { transform: translateX(0); animation-timing-function: cubic-bezier(.55,.02,.32,1); } 94%, 100% { transform: translateX(var(--vault-roll-distance, -100vw)); } }
-@keyframes fo-vault-turn { 0%, 25% { transform: rotate(0); animation-timing-function: cubic-bezier(.55,.02,.32,1); } 94%, 100% { transform: rotate(var(--vault-roll-angle, -220deg)); } }
-@keyframes fo-vault-release { 0%, 3% { transform: translateY(0); filter: drop-shadow(0 0 0 #0000); } 13%, 18% { transform: translateY(-6px); filter: drop-shadow(3px 12px 3px #000b); } 23% { transform: translateY(1px); filter: drop-shadow(2px 5px 2px #0009); } 25%, 100% { transform: translateY(0); filter: drop-shadow(2px 4px 2px #0008); } }
+/* Depth comes from the jamb's occlusion and the recessed lighting, never
+   resizing the door. Drop onto the rack, settle, then roll into the pocket.
+   Translation and rotation use the same pitch and easing. */
+@keyframes fo-vault-roll { 0%, 32% { transform: translateX(0); animation-timing-function: cubic-bezier(.48,.02,.3,1); } 94%, 100% { transform: translateX(var(--vault-roll-distance, -120%)); } }
+@keyframes fo-vault-turn { 0%, 32% { transform: rotate(0); animation-timing-function: cubic-bezier(.48,.02,.3,1); } 94%, 100% { transform: rotate(var(--vault-roll-angle, -144deg)); } }
+@keyframes fo-vault-release {
+  0%, 3% { transform: translateY(0); filter: brightness(1); animation-timing-function: cubic-bezier(.42,0,.25,1); }
+  18% { transform: translateY(-.6%); filter: brightness(.8); animation-timing-function: cubic-bezier(.65,0,1,1); }
+  24% { transform: translateY(1.2%); filter: brightness(.8); animation-timing-function: ease-out; }
+  27% { transform: translateY(.65%); filter: brightness(.8); animation-timing-function: ease-in; }
+  30%, 100% { transform: translateY(1%); filter: brightness(.8); }
+}
 @keyframes fo-vault-shudder { 0%, 100% { transform: translate(0, 0); } 15% { transform: translate(.8px, 1px); } 32% { transform: translate(-.6px, -.5px); } 50% { transform: translate(.4px, .6px); } 72% { transform: translate(-.2px, 0); } }
 @keyframes fo-vault-vent { 0% { opacity: 0; transform: translateY(0); } 20% { opacity: .55; border-color: #c5d8c638; } 100% { opacity: 0; transform: translateY(-26px); border-color: #c5d8c600; } }
-.fo-vault-track-dust { position: absolute; left: -45%; right: 8%; top: 96%; height: 22px; opacity: 0; pointer-events: none; background: radial-gradient(ellipse at 75% 70%, #b6ac864d, transparent 46%), radial-gradient(ellipse at 40% 60%, #a6ad9640, transparent 55%); filter: blur(9px); }
+.fo-vault-track-dust { position: absolute; left: -45%; right: 8%; top: 97%; height: 22px; opacity: 0; pointer-events: none; background: radial-gradient(ellipse at 75% 70%, #b6ac864d, transparent 46%), radial-gradient(ellipse at 40% 60%, #a6ad9640, transparent 55%); filter: blur(9px); }
 :is(.is-leaving, .is-entering) .fo-vault-track-dust { animation: fo-vault-track-dust var(--vault-opening-duration) linear both; }
-@keyframes fo-vault-track-dust { 0%, 24% { opacity: 0; transform: translateX(0); } 35% { opacity: .65; } 70% { opacity: .3; } 95%, 100% { opacity: 0; transform: translateX(-55%); } }
+@keyframes fo-vault-track-dust { 0%, 23% { opacity: 0; transform: translateX(0); } 27% { opacity: .4; } 34% { opacity: .18; } 48% { opacity: .32; } 75%, 100% { opacity: 0; transform: translateX(-45%); } }
 @keyframes fo-vault-shade-out { to { opacity: 0; } }
 @keyframes fo-vault-enter { from { transform: translate(0, 0) scale(1); } to { transform: translate(calc(50% - var(--vault-x)), calc(50% - var(--vault-y))) scale(var(--vault-camera-zoom, 6)); } }
 .fallout-page[data-vault-phase] > .fo-interface { transform: scale(.96); transform-origin: 50% 0; }

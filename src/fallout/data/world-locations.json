@@ -1,0 +1,2750 @@
+[
+  {
+    "name": "98 NAR Regional",
+    "icon": "TrainTrackMark",
+    "x": 22412.595703125,
+    "y": -9693.197265625
+  },
+  {
+    "name": "AMS Corporate Headquarters",
+    "icon": "HighTechBuildingMarker",
+    "x": 148632.0,
+    "y": -139096.0
+  },
+  {
+    "name": "AMS Testing Site",
+    "icon": "QuarryMarker",
+    "x": -125068.5078125,
+    "y": -146867.34375
+  },
+  {
+    "name": "AVR Medical Center",
+    "icon": "HospitalMarker",
+    "x": -114894.3984375,
+    "y": -55735.30078125
+  },
+  {
+    "name": "Aaronholt Homestead",
+    "icon": "FarmMarker",
+    "x": -125064.0,
+    "y": 177016.0
+  },
+  {
+    "name": "Abandoned Bog Town",
+    "icon": "PublicWorkshopMarker",
+    "x": 181757.828125,
+    "y": -92985.359375
+  },
+  {
+    "name": "Abandoned Bunker",
+    "icon": "BunkerMarker",
+    "x": 154881.265625,
+    "y": 127372.34375
+  },
+  {
+    "name": "Abandoned Convoy",
+    "icon": "CarMarker",
+    "x": 67708.296875,
+    "y": -215579.9375
+  },
+  {
+    "name": "Abandoned Mine Shaft 1",
+    "icon": "FactoryMarker",
+    "x": -142953.453125,
+    "y": -146882.734375
+  },
+  {
+    "name": "Abandoned Mine Shaft 2",
+    "icon": "QuarryMarker",
+    "x": -97592.0,
+    "y": -137752.0
+  },
+  {
+    "name": "Abandoned Mine Shaft 3",
+    "icon": "QuarryMarker",
+    "x": -73909.2421875,
+    "y": -126054.328125
+  },
+  {
+    "name": "Abandoned Mine Shaft 4",
+    "icon": "QuarryMarker",
+    "x": -170476.203125,
+    "y": -113432.1328125
+  },
+  {
+    "name": "Abandoned Mine Shaft 5",
+    "icon": "QuarryMarker",
+    "x": -126232.2109375,
+    "y": -82517.7421875
+  },
+  {
+    "name": "Abandoned Mine Shaft 6",
+    "icon": "QuarryMarker",
+    "x": -121610.5859375,
+    "y": -111742.921875
+  },
+  {
+    "name": "Abandoned Mine Shaft Elaine",
+    "icon": "QuarryMarker",
+    "x": -138273.15625,
+    "y": -114672.875
+  },
+  {
+    "name": "Abandoned Mine Site Kittery",
+    "icon": "QuarryMarker",
+    "x": -109776.234375,
+    "y": -90804.359375
+  },
+  {
+    "name": "Abandoned Waste Dump",
+    "icon": "CaveMarker",
+    "x": 185034.21875,
+    "y": 26723.82421875
+  },
+  {
+    "name": "Abbie's Bunker",
+    "icon": "BunkerMarker",
+    "x": 185219.84375,
+    "y": 138117.28125
+  },
+  {
+    "name": "Abraxodyne Chemical Power Substation",
+    "icon": "ElectricalSubstationMarker",
+    "x": -221372.3125,
+    "y": 6324.794921875
+  },
+  {
+    "name": "Albany",
+    "icon": "TownRuinsMarker",
+    "x": -223256.703125,
+    "y": 59230.00390625
+  },
+  {
+    "name": "Alpine River Cabins",
+    "icon": "CabinMarker",
+    "x": -127209.7265625,
+    "y": 53800.4921875
+  },
+  {
+    "name": "Ammo Dump",
+    "icon": "BloodEagleMarker",
+    "x": 91943.7890625,
+    "y": 99391.3515625
+  },
+  {
+    "name": "Anchor Farm",
+    "icon": "FarmMarker",
+    "x": -121045.1640625,
+    "y": 120973.484375
+  },
+  {
+    "name": "Appalachian Antiques",
+    "icon": "AppalachianAntiquesMarker",
+    "x": 119940.21875,
+    "y": -128863.359375
+  },
+  {
+    "name": "Arktos Pharma",
+    "icon": "ArktosPharmaMarker",
+    "x": -42352.6640625,
+    "y": 51382.61328125
+  },
+  {
+    "name": "Ash Cave",
+    "icon": "CaveMarker",
+    "x": -259170.96875,
+    "y": 116629.4765625
+  },
+  {
+    "name": "Athens",
+    "icon": "TownRuinsMarker",
+    "x": -249856.0,
+    "y": 154752.0
+  },
+  {
+    "name": "Autumn Acre Cabin",
+    "icon": "CabinMarker",
+    "x": 100992.421875,
+    "y": 46316.9375
+  },
+  {
+    "name": "Bailey Family Cabin",
+    "icon": "CabinMarker",
+    "x": 134617.890625,
+    "y": 179468.375
+  },
+  {
+    "name": "Bastion Park",
+    "icon": "OverlookMarker",
+    "x": -22556.0,
+    "y": -108924.0
+  },
+  {
+    "name": "Becker Farm",
+    "icon": "FarmMarker",
+    "x": -74552.8125,
+    "y": 151041.09375
+  },
+  {
+    "name": "Beckley",
+    "icon": "TownMarker",
+    "x": -188170.609375,
+    "y": -123048.2109375
+  },
+  {
+    "name": "Beckley Mine Exhibit",
+    "icon": "PublicWorkshopMarker",
+    "x": -190632.0,
+    "y": -127912.0
+  },
+  {
+    "name": "Beckwith Farm",
+    "icon": "FarmMarker",
+    "x": 43306.58203125,
+    "y": -7498.40283203125
+  },
+  {
+    "name": "Belching Betty",
+    "icon": "QuarryMarker",
+    "x": -118114.6640625,
+    "y": -82471.15625
+  },
+  {
+    "name": "Berkeley Springs",
+    "icon": "TownMarker",
+    "x": 128446.3515625,
+    "y": 27640.45703125
+  },
+  {
+    "name": "Berkeley Springs Station",
+    "icon": "TrainStationMarker",
+    "x": 136789.203125,
+    "y": 15102.9677734375
+  },
+  {
+    "name": "Berkeley Springs West",
+    "icon": "PublicWorkshopMarker",
+    "x": 122161.5625,
+    "y": 24309.650390625
+  },
+  {
+    "name": "Big Al's Tattoo Parlor",
+    "icon": "LowRiseMarker",
+    "x": -6504.201171875,
+    "y": 76623.3671875
+  },
+  {
+    "name": "Big B's Rest Stop",
+    "icon": "FillingStationMarker",
+    "x": 163348.609375,
+    "y": -17717.75
+  },
+  {
+    "name": "Big Bend Tunnel East",
+    "icon": "QuarryMarker",
+    "x": 112944.0,
+    "y": -149488.0
+  },
+  {
+    "name": "Big Bend Tunnel West",
+    "icon": "QuarryMarker",
+    "x": -44088.0,
+    "y": -120808.0
+  },
+  {
+    "name": "Big Fred's BBQ Shack",
+    "icon": "WoodShackMarker",
+    "x": 59671.1953125,
+    "y": -18744.421875
+  },
+  {
+    "name": "Big Maw",
+    "icon": "PondLakeMarker",
+    "x": 145502.828125,
+    "y": 38296.15234375
+  },
+  {
+    "name": "Big Meadows Gas Well",
+    "icon": "FactoryMarker",
+    "x": -2768.0,
+    "y": -248632.0
+  },
+  {
+    "name": "Billings Homestead",
+    "icon": "PublicWorkshopMarker",
+    "x": -168635.140625,
+    "y": -11953.00390625
+  },
+  {
+    "name": "Black Bear Lodge",
+    "icon": "BrownstoneMarker",
+    "x": 2645.3955078125,
+    "y": 182860.53125
+  },
+  {
+    "name": "Black Mountain Ordnance Works",
+    "icon": "RadioactiveAreaMarker",
+    "x": -158837.84375,
+    "y": 108308.0390625
+  },
+  {
+    "name": "Blackwater Mine",
+    "icon": "QuarryMarker",
+    "x": 28168.69140625,
+    "y": -46520.1796875
+  },
+  {
+    "name": "Blakes Offering",
+    "icon": "CultistMarker",
+    "x": 199894.390625,
+    "y": -36612.3203125
+  },
+  {
+    "name": "Bleeding Kate's Grindhouse",
+    "icon": "RaiderSettlementMarker",
+    "x": -61229.96875,
+    "y": -73357.21875
+  },
+  {
+    "name": "Bloody Frank's",
+    "icon": "BloodEagleMarker",
+    "x": 130069.921875,
+    "y": 33912.7265625
+  },
+  {
+    "name": "Blue Ridge Bunkhouse",
+    "icon": "EncampmentMarker",
+    "x": -137036.578125,
+    "y": 87969.453125
+  },
+  {
+    "name": "Bolton Greens",
+    "icon": "CountryClubMarker",
+    "x": 10567.837890625,
+    "y": 58039.94921875
+  },
+  {
+    "name": "Bootlegger's Shack",
+    "icon": "WoodShackMarker",
+    "x": 165778.890625,
+    "y": -83622.78125
+  },
+  {
+    "name": "Braxson's Quality Medical Supplies",
+    "icon": "FactoryMarker",
+    "x": 202366.859375,
+    "y": 69694.9375
+  },
+  {
+    "name": "Brim Quarry",
+    "icon": "QuarryMarker",
+    "x": -161281.90625,
+    "y": -84759.3359375
+  },
+  {
+    "name": "Camden Park",
+    "icon": "AmusementParkMarker",
+    "x": -179636.953125,
+    "y": -77693.96875
+  },
+  {
+    "name": "Camp Adams",
+    "icon": "CabinMarker",
+    "x": -153315.453125,
+    "y": -30863.439453125
+  },
+  {
+    "name": "Camp Adams Lookout",
+    "icon": "LookoutTowerMarker",
+    "x": -150606.9375,
+    "y": -35172.13671875
+  },
+  {
+    "name": "Camp Liberty",
+    "icon": "CabinMarker",
+    "x": 61224.0,
+    "y": -250728.0
+  },
+  {
+    "name": "Camp McClintock",
+    "icon": "MilitaryBaseMarker",
+    "x": -69223.6328125,
+    "y": -12781.3251953125
+  },
+  {
+    "name": "Camp Venture",
+    "icon": "OfficeMarker",
+    "x": 160282.203125,
+    "y": -39098.390625
+  },
+  {
+    "name": "Carleton Mine",
+    "icon": "CaveMarker",
+    "x": 21934.5859375,
+    "y": 158383.25
+  },
+  {
+    "name": "Carson Family Bunker",
+    "icon": "BunkerMarker",
+    "x": 159043.9375,
+    "y": 69079.5546875
+  },
+  {
+    "name": "Central Mountain Lookout",
+    "icon": "LookoutTowerMarker",
+    "x": 75960.140625,
+    "y": 17350.43359375
+  },
+  {
+    "name": "Charleston",
+    "icon": "CityMarker",
+    "x": -103243.1171875,
+    "y": -52198.43359375
+  },
+  {
+    "name": "Charleston Capitol Building",
+    "icon": "CapitalBuildingMarker",
+    "x": -91983.2421875,
+    "y": -57828.234375
+  },
+  {
+    "name": "Charleston Fire Department",
+    "icon": "LowRiseMarker",
+    "x": -105302.6328125,
+    "y": -68441.1875
+  },
+  {
+    "name": "Charleston Herald",
+    "icon": "HighTechBuildingMarker",
+    "x": -104367.296875,
+    "y": -46210.04296875
+  },
+  {
+    "name": "Charleston Landfill",
+    "icon": "PublicWorkshopMarker",
+    "x": -126835.4921875,
+    "y": -61720.67578125
+  },
+  {
+    "name": "Charleston Station",
+    "icon": "TrainStationMarker",
+    "x": -114761.8828125,
+    "y": -34818.01953125
+  },
+  {
+    "name": "Charleston Trainyard",
+    "icon": "RailroadMarker",
+    "x": -116533.9453125,
+    "y": -47773.859375
+  },
+  {
+    "name": "Checkpoint Canyon",
+    "icon": "EncampmentMarker",
+    "x": -199976.0,
+    "y": 84368.0
+  },
+  {
+    "name": "Clancy Manor",
+    "icon": "CultistMarker",
+    "x": -92174.453125,
+    "y": 182999.359375
+  },
+  {
+    "name": "Clarksburg",
+    "icon": "TownMarker",
+    "x": -24616.46875,
+    "y": 167985.5
+  },
+  {
+    "name": "Clarksburg Shooting Club",
+    "icon": "LowRiseMarker",
+    "x": -17389.130859375,
+    "y": 166270.21875
+  },
+  {
+    "name": "Cliffwatch",
+    "icon": "BloodEagleMarker",
+    "x": -2448.61328125,
+    "y": -8935.5712890625
+  },
+  {
+    "name": "Cobbleton Farm",
+    "icon": "FarmMarker",
+    "x": -91855.3828125,
+    "y": 161215.796875
+  },
+  {
+    "name": "Colonel Kelly Monument",
+    "icon": "SancHillsMarker",
+    "x": 31672.8203125,
+    "y": 149671.875
+  },
+  {
+    "name": "Converted Munitions Factory",
+    "icon": "PublicWorkshopMarker",
+    "x": 111171.4375,
+    "y": 181849.78125
+  },
+  {
+    "name": "Cow Spots Creamery",
+    "icon": "CowSpotsCreameryMarker",
+    "x": -124481.328125,
+    "y": -14415.236328125
+  },
+  {
+    "name": "Crashed Plane",
+    "icon": "AirfieldMarker",
+    "x": 147706.5,
+    "y": 58410.5078125
+  },
+  {
+    "name": "Crater Watchstation",
+    "icon": "QuarryMarker",
+    "x": -6712.0,
+    "y": 199312.0
+  },
+  {
+    "name": "Creekside Sundew Grove",
+    "icon": "ForestedMarker",
+    "x": 161083.25,
+    "y": -75948.2265625
+  },
+  {
+    "name": "Crevasse Dam",
+    "icon": "DamMarker",
+    "x": 182753.921875,
+    "y": 80130.8203125
+  },
+  {
+    "name": "Crimson Prospect",
+    "icon": "BloodEagleMarker",
+    "x": 140232.625,
+    "y": -102150.46875
+  },
+  {
+    "name": "Dabney Homestead",
+    "icon": "PublicWorkshopMarker",
+    "x": 187357.8125,
+    "y": -24214.2890625
+  },
+  {
+    "name": "Dagger's Den",
+    "icon": "BloodEagleMarker",
+    "x": 119103.984375,
+    "y": 7828.03662109375
+  },
+  {
+    "name": "Dark Hollow Manor",
+    "icon": "MansionMarker",
+    "x": 25119.150390625,
+    "y": -213977.0625
+  },
+  {
+    "name": "Darling Sister's Lab",
+    "icon": "WoodShackMarker",
+    "x": -149399.1875,
+    "y": 165314.59375
+  },
+  {
+    "name": "Deathclaw Island",
+    "icon": "ForestedMarker",
+    "x": -173625.34375,
+    "y": 131147.546875
+  },
+  {
+    "name": "Delano Grange",
+    "icon": "FarmMarker",
+    "x": 183758.625,
+    "y": 11699.4736328125
+  },
+  {
+    "name": "Dent & Sons Construction",
+    "icon": "HouseTrailerMarker",
+    "x": -23510.041015625,
+    "y": -168413.359375
+  },
+  {
+    "name": "Devil's Backbone",
+    "icon": "LandmarkMarker",
+    "x": 80368.0,
+    "y": -88648.0
+  },
+  {
+    "name": "Dino Peaks Mini Golf",
+    "icon": "CountryClubMarker",
+    "x": -209944.0,
+    "y": 144964.0
+  },
+  {
+    "name": "Dolly Sods Campground",
+    "icon": "PublicWorkshopMarker",
+    "x": 155136.53125,
+    "y": 76716.0546875
+  },
+  {
+    "name": "Dolly Sods Lookout",
+    "icon": "LookoutTowerMarker",
+    "x": 152153.40625,
+    "y": 89595.0546875
+  },
+  {
+    "name": "Dolly Sods Wilderness",
+    "icon": "ForestedMarker",
+    "x": 155697.3125,
+    "y": 86001.4921875
+  },
+  {
+    "name": "Drop Site C2",
+    "icon": "BunkerMarker",
+    "x": 194822.953125,
+    "y": -105312.9296875
+  },
+  {
+    "name": "Drop Site G3",
+    "icon": "BunkerMarker",
+    "x": 140874.28125,
+    "y": -108719.4375
+  },
+  {
+    "name": "Drop Site V9",
+    "icon": "BunkerMarker",
+    "x": 191371.828125,
+    "y": -157601.09375
+  },
+  {
+    "name": "Dyer Chemical",
+    "icon": "IndustrialDomeMarker",
+    "x": 176065.84375,
+    "y": 62784.4375
+  },
+  {
+    "name": "East Kanawha Lookout",
+    "icon": "LookoutTowerMarker",
+    "x": -44382.28125,
+    "y": 17240.00390625
+  },
+  {
+    "name": "East Mountain Lookout",
+    "icon": "LookoutTowerMarker",
+    "x": 117252.828125,
+    "y": -59848.359375
+  },
+  {
+    "name": "East Ridge Lookout",
+    "icon": "LookoutTowerMarker",
+    "x": 152547.4375,
+    "y": 130641.7578125
+  },
+  {
+    "name": "Eastern Regional Penitentiary",
+    "icon": "GoodneighborMarker",
+    "x": -29105.900390625,
+    "y": 127398.5390625
+  },
+  {
+    "name": "Ella Ames' Bunker",
+    "icon": "BunkerMarker",
+    "x": 165802.25,
+    "y": 102922.25
+  },
+  {
+    "name": "Emmett Mountain Disposal Site",
+    "icon": "RadioactiveAreaMarker",
+    "x": 56146.0859375,
+    "y": -51807.93359375
+  },
+  {
+    "name": "Excelsior Model Home",
+    "icon": "BrownstoneMarker",
+    "x": 173540.015625,
+    "y": 107323.75
+  },
+  {
+    "name": "Federal Disposal Field HZ-21",
+    "icon": "PublicWorkshopMarker",
+    "x": -509.849487304687,
+    "y": -154826.109375
+  },
+  {
+    "name": "Firebase Hancock",
+    "icon": "MilitaryBaseMarker",
+    "x": 109835.21875,
+    "y": -172981.96875
+  },
+  {
+    "name": "Firebase LT",
+    "icon": "MilitaryBaseMarker",
+    "x": 166061.921875,
+    "y": -55521.23046875
+  },
+  {
+    "name": "Firebase Major",
+    "icon": "MilitaryBaseMarker",
+    "x": 141989.609375,
+    "y": -60116.10546875
+  },
+  {
+    "name": "Fisherman's Rest",
+    "icon": "PondLakeMarker",
+    "x": 212888.0,
+    "y": -15232.0
+  },
+  {
+    "name": "Fissure Site",
+    "icon": "FissureMarker",
+    "x": -38686.0625,
+    "y": -70771.609375
+  },
+  {
+    "name": "Fissure Site",
+    "icon": "FissureMarker",
+    "x": 58897.04296875,
+    "y": -150970.015625
+  },
+  {
+    "name": "Fissure Site",
+    "icon": "FissureMarker",
+    "x": 112457.796875,
+    "y": 124837.234375
+  },
+  {
+    "name": "Fissure Site",
+    "icon": "FissureMarker",
+    "x": 129596.09375,
+    "y": 75406.421875
+  },
+  {
+    "name": "Fissure Site",
+    "icon": "FissureMarker",
+    "x": 152676.46875,
+    "y": -66537.046875
+  },
+  {
+    "name": "Fissure Site",
+    "icon": "FissureMarker",
+    "x": 153700.0625,
+    "y": 182385.28125
+  },
+  {
+    "name": "Fissure Site",
+    "icon": "FissureMarker",
+    "x": 173252.0,
+    "y": -159284.0
+  },
+  {
+    "name": "Fissure Site Prime",
+    "icon": "FissureMarker",
+    "x": 196808.0,
+    "y": -165776.0
+  },
+  {
+    "name": "Flatwoods",
+    "icon": "TownMarker",
+    "x": -105198.8828125,
+    "y": 20755.638671875
+  },
+  {
+    "name": "Flatwoods Lookout",
+    "icon": "LookoutTowerMarker",
+    "x": -104834.7265625,
+    "y": 47405.671875
+  },
+  {
+    "name": "Flooded Trainyard",
+    "icon": "TrainTrackMark",
+    "x": 175687.5,
+    "y": -143005.3125
+  },
+  {
+    "name": "Fort Atlas",
+    "icon": "BoSMarker",
+    "x": 79507.6484375,
+    "y": 73912.5390625
+  },
+  {
+    "name": "Fort Defiance",
+    "icon": "GoodneighborMarker",
+    "x": 107048.0,
+    "y": -131600.0
+  },
+  {
+    "name": "Fort Steuben",
+    "icon": "CastleMarker",
+    "x": -217529.328125,
+    "y": 32601.640625
+  },
+  {
+    "name": "Forward Station Alpha",
+    "icon": "BoSMarker",
+    "x": 116037.8828125,
+    "y": -87098.3359375
+  },
+  {
+    "name": "Forward Station Delta",
+    "icon": "BoSMarker",
+    "x": 202051.046875,
+    "y": -169304.40625
+  },
+  {
+    "name": "Forward Station Tango",
+    "icon": "BoSMarker",
+    "x": -120574.0703125,
+    "y": 75705.3125
+  },
+  {
+    "name": "Foundation",
+    "icon": "HammerWingMarker",
+    "x": 37448.71484375,
+    "y": -102945.9921875
+  },
+  {
+    "name": "Foundation Outpost",
+    "icon": "RadioactiveAreaMarker",
+    "x": 68217.140625,
+    "y": -107033.859375
+  },
+  {
+    "name": "Fraternity Row",
+    "icon": "BrownstoneMarker",
+    "x": 3190.65283203125,
+    "y": 89388.921875
+  },
+  {
+    "name": "Freddy Fear's House of Scares",
+    "icon": "BrownstoneMarker",
+    "x": 161105.8125,
+    "y": 152446.75
+  },
+  {
+    "name": "Garrahan Estate",
+    "icon": "HighTechBuildingMarker",
+    "x": -73536.0,
+    "y": -152192.0
+  },
+  {
+    "name": "Garrahan Mining Headquarters",
+    "icon": "OfficeMarker",
+    "x": -73687.7890625,
+    "y": -160896.03125
+  },
+  {
+    "name": "Gauley Mine",
+    "icon": "CaveMarker",
+    "x": -58605.36328125,
+    "y": 62688.3046875
+  },
+  {
+    "name": "Gauley Mine Exit",
+    "icon": "CaveMarker",
+    "x": -47690.76171875,
+    "y": 71024.4375
+  },
+  {
+    "name": "Gilman Lumber Mill",
+    "icon": "FactoryMarker",
+    "x": -104499.4609375,
+    "y": 69616.34375
+  },
+  {
+    "name": "Glassed Cavern",
+    "icon": "QuarryMarker",
+    "x": 200480.0,
+    "y": -161792.0
+  },
+  {
+    "name": "Gleaming Depths",
+    "icon": "GleamingDepthsMarker",
+    "x": -121623.5546875,
+    "y": -163021.515625
+  },
+  {
+    "name": "Gnarled Shallows",
+    "icon": "PondLakeMarker",
+    "x": 198828.71875,
+    "y": 141222.6875
+  },
+  {
+    "name": "Gorge Junkyard",
+    "icon": "PublicWorkshopMarker",
+    "x": -55634.53125,
+    "y": 91589.28125
+  },
+  {
+    "name": "Grafton",
+    "icon": "TownMarker",
+    "x": -52128.0,
+    "y": 149376.0
+  },
+  {
+    "name": "Grafton Dam",
+    "icon": "DamMarker",
+    "x": 7850.048828125,
+    "y": 118972.1015625
+  },
+  {
+    "name": "Grafton Station",
+    "icon": "TrainStationMarker",
+    "x": -59419.765625,
+    "y": 142807.203125
+  },
+  {
+    "name": "Grafton Steel",
+    "icon": "FactoryMarker",
+    "x": 18474.115234375,
+    "y": 132207.171875
+  },
+  {
+    "name": "Grafton Steel Yard",
+    "icon": "PublicWorkshopMarker",
+    "x": 17764.02734375,
+    "y": 126611.5546875
+  },
+  {
+    "name": "Graninger Farm",
+    "icon": "FarmMarker",
+    "x": 8478.4931640625,
+    "y": 174230.390625
+  },
+  {
+    "name": "Green Country Lodge",
+    "icon": "LowRiseMarker",
+    "x": -101049.0625,
+    "y": 28681.85546875
+  },
+  {
+    "name": "Greg's Mine Supply",
+    "icon": "LowRiseMarker",
+    "x": -22062.015625,
+    "y": 48319.32421875
+  },
+  {
+    "name": "Grindstone Arch",
+    "icon": "LandmarkMarker",
+    "x": -43324.0703125,
+    "y": -215423.859375
+  },
+  {
+    "name": "Groves Family Cabin",
+    "icon": "CabinMarker",
+    "x": -139934.359375,
+    "y": 174278.8125
+  },
+  {
+    "name": "Gulper Lagoon",
+    "icon": "PondLakeMarker",
+    "x": 158149.78125,
+    "y": 111085.390625
+  },
+  {
+    "name": "Hamley Run Camp",
+    "icon": "EncampmentMarker",
+    "x": -263267.5625,
+    "y": 169535.9375
+  },
+  {
+    "name": "Harpers Ferry",
+    "icon": "TownMarker",
+    "x": 161322.59375,
+    "y": 3190.15844726562
+  },
+  {
+    "name": "Harpers Ferry Tunnel",
+    "icon": "TrainTrackMark",
+    "x": 183554.46875,
+    "y": 2929.39624023438
+  },
+  {
+    "name": "Haven Church",
+    "icon": "ChurchMarker",
+    "x": 175895.3125,
+    "y": 43250.578125
+  },
+  {
+    "name": "Hawksbill Weather Station",
+    "icon": "ObservatoryMarker",
+    "x": -19537.0625,
+    "y": -195998.40625
+  },
+  {
+    "name": "Helvetia",
+    "icon": "TownMarker",
+    "x": -36213.29296875,
+    "y": 33151.46484375
+  },
+  {
+    "name": "Hemlock Holes",
+    "icon": "CountryClubMarker",
+    "x": -67099.8359375,
+    "y": 183718.03125
+  },
+  {
+    "name": "Hemlock Holes Maintenance",
+    "icon": "PublicWorkshopMarker",
+    "x": -59552.0,
+    "y": 183736.0
+  },
+  {
+    "name": "Hemlock Springs Dump",
+    "icon": "RadioactiveAreaMarker",
+    "x": 73844.0,
+    "y": -203120.0
+  },
+  {
+    "name": "High Knob Lookout",
+    "icon": "LookoutTowerMarker",
+    "x": -22166.546875,
+    "y": -217744.703125
+  },
+  {
+    "name": "Highland Marsh",
+    "icon": "PondLakeMarker",
+    "x": 172319.046875,
+    "y": 131548.125
+  },
+  {
+    "name": "Highway Town",
+    "icon": "ElevatedHighwayMarker",
+    "x": -233896.0,
+    "y": 100136.0
+  },
+  {
+    "name": "Hillfolk Hotdogs",
+    "icon": "HouseTrailerMarker",
+    "x": -149543.328125,
+    "y": 22921.654296875
+  },
+  {
+    "name": "Hillside Cavern",
+    "icon": "CaveMarker",
+    "x": 178223.578125,
+    "y": 214104.28125
+  },
+  {
+    "name": "Hocking Hills Train Station",
+    "icon": "TrainStationMarker",
+    "x": -256352.0,
+    "y": 79440.0
+  },
+  {
+    "name": "Honey Well Apiary",
+    "icon": "AgriculturalCenterMarker",
+    "x": -231237.375,
+    "y": 89116.1796875
+  },
+  {
+    "name": "Hopewell Cave",
+    "icon": "CaveMarker",
+    "x": 114046.84375,
+    "y": 114129.453125
+  },
+  {
+    "name": "Horizon's Rest",
+    "icon": "AirfieldMarker",
+    "x": -20788.501953125,
+    "y": 31098.375
+  },
+  {
+    "name": "Hornwright Air Purifier Site #01",
+    "icon": "BunkerMarker",
+    "x": -108156.109375,
+    "y": -78437.8125
+  },
+  {
+    "name": "Hornwright Air Purifier Site #02",
+    "icon": "BunkerMarker",
+    "x": -67522.421875,
+    "y": -101460.3125
+  },
+  {
+    "name": "Hornwright Air Purifier Site #03",
+    "icon": "BunkerMarker",
+    "x": -121064.6796875,
+    "y": -133268.421875
+  },
+  {
+    "name": "Hornwright Air Purifier Site #04",
+    "icon": "BunkerMarker",
+    "x": -187097.609375,
+    "y": -108616.75
+  },
+  {
+    "name": "Hornwright Estate",
+    "icon": "HighTechBuildingMarker",
+    "x": -56896.0,
+    "y": -149056.0
+  },
+  {
+    "name": "Hornwright Industrial Headquarters",
+    "icon": "HighTechBuildingMarker",
+    "x": -108174.90625,
+    "y": -46784.3984375
+  },
+  {
+    "name": "Hornwright Summer Villa",
+    "icon": "MansionMarker",
+    "x": -47673.82421875,
+    "y": -54542.296875
+  },
+  {
+    "name": "Hornwright Testing Site #02",
+    "icon": "FactoryMarker",
+    "x": -161901.609375,
+    "y": -153297.71875
+  },
+  {
+    "name": "Hornwright Testing Site #03",
+    "icon": "FactoryMarker",
+    "x": -100634.4375,
+    "y": -149838.6875
+  },
+  {
+    "name": "Hornwright Testing Site #04",
+    "icon": "FactoryMarker",
+    "x": -163087.46875,
+    "y": -94510.71875
+  },
+  {
+    "name": "Hunter's Ridge",
+    "icon": "BloodEagleMarker",
+    "x": -149650.203125,
+    "y": 51464.734375
+  },
+  {
+    "name": "Hunter's Shack",
+    "icon": "WoodShackMarker",
+    "x": 160461.625,
+    "y": 126137.6484375
+  },
+  {
+    "name": "Huntersville",
+    "icon": "TownMarker",
+    "x": 65688.0,
+    "y": -90680.0
+  },
+  {
+    "name": "Investigator's Cabin",
+    "icon": "CabinMarker",
+    "x": 55723.9453125,
+    "y": -68951.3984375
+  },
+  {
+    "name": "Isolated Cabin",
+    "icon": "CabinMarker",
+    "x": -88356.2578125,
+    "y": 67998.90625
+  },
+  {
+    "name": "Jackson Junkyard",
+    "icon": "JunkyardMarker",
+    "x": -257932.515625,
+    "y": 33322.45703125
+  },
+  {
+    "name": "Johnson's Acre",
+    "icon": "CultistMarker",
+    "x": 74465.2109375,
+    "y": -179824.28125
+  },
+  {
+    "name": "KMAX Transmission",
+    "icon": "RadioTowerMarker",
+    "x": 190575.09375,
+    "y": -38899.06640625
+  },
+  {
+    "name": "Kanawha County Cemetery",
+    "icon": "CultistMarker",
+    "x": -176697.5625,
+    "y": -24064.560546875
+  },
+  {
+    "name": "Kanawha Nuka-Cola Plant",
+    "icon": "NukaColaQuantumPlant",
+    "x": -162144.6875,
+    "y": -53492.50390625
+  },
+  {
+    "name": "Kerwood Mine",
+    "icon": "QuarryMarker",
+    "x": 130050.5546875,
+    "y": -64741.4453125
+  },
+  {
+    "name": "Kiddie Corner Cabins",
+    "icon": "CabinMarker",
+    "x": -12731.3017578125,
+    "y": 181509.75
+  },
+  {
+    "name": "Knife Edge",
+    "icon": "RaiderSettlementMarker",
+    "x": 46263.96875,
+    "y": 199612.171875
+  },
+  {
+    "name": "Lady Janet's Soft Serve",
+    "icon": "CowSpotsCreameryMarker",
+    "x": -103993.8203125,
+    "y": 152995.5625
+  },
+  {
+    "name": "Lake Eloise",
+    "icon": "PondLakeMarker",
+    "x": 51552.96875,
+    "y": -156467.875
+  },
+  {
+    "name": "Lake Reynolds",
+    "icon": "AmusementParkMarker",
+    "x": -65792.9453125,
+    "y": -120832.0390625
+  },
+  {
+    "name": "Lakeside Cabins",
+    "icon": "PublicWorkshopMarker",
+    "x": -61107.10546875,
+    "y": -25872.216796875
+  },
+  {
+    "name": "Landview Lighthouse",
+    "icon": "LighthouseMarker",
+    "x": -75689.1796875,
+    "y": 75399.71875
+  },
+  {
+    "name": "Lewis & Sons Farming Supply",
+    "icon": "WoodShackMarker",
+    "x": -174756.5,
+    "y": -42304.640625
+  },
+  {
+    "name": "Lewisburg",
+    "icon": "TownMarker",
+    "x": -59969.75,
+    "y": -111602.34375
+  },
+  {
+    "name": "Lewisburg Station",
+    "icon": "TrainStationMarker",
+    "x": -62553.95703125,
+    "y": -117328.640625
+  },
+  {
+    "name": "Lost Home",
+    "icon": "WoodShackMarker",
+    "x": 122772.90625,
+    "y": -164478.421875
+  },
+  {
+    "name": "Lucky Hole Mine",
+    "icon": "CultistMarker",
+    "x": 88917.5,
+    "y": -138108.203125
+  },
+  {
+    "name": "Mac's Farm",
+    "icon": "FarmMarker",
+    "x": 171107.375,
+    "y": -71432.8828125
+  },
+  {
+    "name": "Makeout Point",
+    "icon": "CarMarker",
+    "x": 58592.0,
+    "y": -192792.0
+  },
+  {
+    "name": "Makeshift Vault",
+    "icon": "CaveMarker",
+    "x": -83329.1484375,
+    "y": 160207.59375
+  },
+  {
+    "name": "Mama Dolce's Food Processing",
+    "icon": "FactoryMarker",
+    "x": -15851.26953125,
+    "y": 84461.7734375
+  },
+  {
+    "name": "Marigold Pavilion",
+    "icon": "CabinMarker",
+    "x": -153869.921875,
+    "y": 79406.5
+  },
+  {
+    "name": "Meadow Breeze Storage Depot",
+    "icon": "FactoryMarker",
+    "x": -251891.921875,
+    "y": 21015.119140625
+  },
+  {
+    "name": "Metal Dome",
+    "icon": "RaiderSettlementMarker",
+    "x": 70720.0,
+    "y": 100496.0
+  },
+  {
+    "name": "Middle Mountain Pitstop",
+    "icon": "CabinMarker",
+    "x": 46489.59375,
+    "y": -37820.734375
+  },
+  {
+    "name": "Milepost Zero",
+    "icon": "EncampmentMarker",
+    "x": 5015.58544921875,
+    "y": -256742.5
+  },
+  {
+    "name": "Miners Monument",
+    "icon": "SancHillsMarker",
+    "x": -28867.76171875,
+    "y": -82873.3828125
+  },
+  {
+    "name": "Mire's Eye",
+    "icon": "CaveMarker",
+    "x": 194133.265625,
+    "y": 186953.21875
+  },
+  {
+    "name": "Monongah",
+    "icon": "TownMarker",
+    "x": 56136.0,
+    "y": 84520.0
+  },
+  {
+    "name": "Monongah Mine",
+    "icon": "QuarryMarker",
+    "x": 58020.375,
+    "y": 111115.46875
+  },
+  {
+    "name": "Monongah Overlook",
+    "icon": "OverlookMarker",
+    "x": 43461.265625,
+    "y": 104169.6953125
+  },
+  {
+    "name": "Monongah Power Plant",
+    "icon": "PowerPlantMarker",
+    "x": 39088.0,
+    "y": 74024.0
+  },
+  {
+    "name": "Monongah Power Plant Yard",
+    "icon": "PublicWorkshopMarker",
+    "x": 44675.304687,
+    "y": 73761.358125
+  },
+  {
+    "name": "Monongah Power Substation MZ-01",
+    "icon": "ElectricalSubstationMarker",
+    "x": 72331.2265625,
+    "y": 139118.046875
+  },
+  {
+    "name": "Monongah Power Substation MZ-02",
+    "icon": "ElectricalSubstationMarker",
+    "x": 21025.091796875,
+    "y": -54635.03515625
+  },
+  {
+    "name": "Monongah Power Substation MZ-03",
+    "icon": "ElectricalSubstationMarker",
+    "x": -44230.55078125,
+    "y": -126107.453125
+  },
+  {
+    "name": "Monorail Elevator",
+    "icon": "MonorailMarker",
+    "x": 84839.234375,
+    "y": -128044.3671875
+  },
+  {
+    "name": "Moonshiner's Shack",
+    "icon": "WoodShackMarker",
+    "x": -109154.6328125,
+    "y": 84144.109375
+  },
+  {
+    "name": "Morgantown",
+    "icon": "CityMarker",
+    "x": -2080.044921875,
+    "y": 88302.8046875
+  },
+  {
+    "name": "Morgantown Airport",
+    "icon": "AirfieldMarker",
+    "x": -19704.880859375,
+    "y": 101313.25
+  },
+  {
+    "name": "Morgantown High School",
+    "icon": "LowRiseMarker",
+    "x": 2135.70288085938,
+    "y": 94128.96875
+  },
+  {
+    "name": "Morgantown Station",
+    "icon": "TrainStationMarker",
+    "x": -28920.41796875,
+    "y": 100931.9453125
+  },
+  {
+    "name": "Morgantown Trainyard",
+    "icon": "TrainTrackMark",
+    "x": -30924.978515625,
+    "y": 91603.2734375
+  },
+  {
+    "name": "Mosstown",
+    "icon": "TownRuinsMarker",
+    "x": 136903.34375,
+    "y": 71334.4375
+  },
+  {
+    "name": "Moth-Home",
+    "icon": "CultistMarker",
+    "x": 150845.375,
+    "y": -32008.771484375
+  },
+  {
+    "name": "Mount Blair",
+    "icon": "PublicWorkshopMarker",
+    "x": -130864.0,
+    "y": -101848.0
+  },
+  {
+    "name": "Mount Blair Trainyard",
+    "icon": "TrainTrackMark",
+    "x": -132583.421875,
+    "y": -121599.59375
+  },
+  {
+    "name": "Mountainside Bed & Breakfast",
+    "icon": "WoodShackMarker",
+    "x": 7455.43310546875,
+    "y": -100349.6796875
+  },
+  {
+    "name": "Mysterious Cave",
+    "icon": "CaveMarker",
+    "x": 143425.125,
+    "y": 200808.28125
+  },
+  {
+    "name": "NAR Repair Yard",
+    "icon": "RailroadMarker",
+    "x": 129113.6875,
+    "y": -153675.328125
+  },
+  {
+    "name": "Naked Creek",
+    "icon": "CamperMarker",
+    "x": -31759.287109375,
+    "y": -236503.90625
+  },
+  {
+    "name": "National Isolated Radio Array",
+    "icon": "SatelliteMarker",
+    "x": 88243.734375,
+    "y": -37538.21875
+  },
+  {
+    "name": "National Radio Astronomy Research Center",
+    "icon": "SatelliteMarker",
+    "x": 112631.2265625,
+    "y": -43120.49609375
+  },
+  {
+    "name": "New Appalachian Central Trainyard",
+    "icon": "TrainTrackMark",
+    "x": 13435.0322265625,
+    "y": -21412.568359375
+  },
+  {
+    "name": "New Gad",
+    "icon": "TownRuinsMarker",
+    "x": -58421.61328125,
+    "y": -38561.671875
+  },
+  {
+    "name": "New River Gorge Bridge - East",
+    "icon": "ElevatedHighwayMarker",
+    "x": -91369.1328125,
+    "y": 13638.1748046875
+  },
+  {
+    "name": "New River Gorge Bridge - West",
+    "icon": "ElevatedHighwayMarker",
+    "x": -123987.984375,
+    "y": -10693.0986328125
+  },
+  {
+    "name": "New River Gorge Resort",
+    "icon": "CabinMarker",
+    "x": -81063.09375,
+    "y": 12837.5947265625
+  },
+  {
+    "name": "Nicholson's End",
+    "icon": "HouseTrailerMarker",
+    "x": -181956.921875,
+    "y": -136781.703125
+  },
+  {
+    "name": "North Cutthroat Camp",
+    "icon": "RaiderSettlementMarker",
+    "x": 70571.171875,
+    "y": 24888.587890625
+  },
+  {
+    "name": "North Kanawha Lookout",
+    "icon": "LookoutTowerMarker",
+    "x": -84257.484375,
+    "y": 99866.4140625
+  },
+  {
+    "name": "North Mountain Lookout",
+    "icon": "LookoutTowerMarker",
+    "x": 107266.3515625,
+    "y": 145967.8125
+  },
+  {
+    "name": "Nuka-World On Tour",
+    "icon": "NukaColaQuantumPlant",
+    "x": -76414.140625,
+    "y": -112610.6484375
+  },
+  {
+    "name": "Ohio River Adventures",
+    "icon": "SkullRingMarker",
+    "x": -187831.015625,
+    "y": -32301.66796875
+  },
+  {
+    "name": "Old Crimora Mines",
+    "icon": "QuarryMarker",
+    "x": -38142.0859375,
+    "y": -249354.609375
+  },
+  {
+    "name": "Old Danielson Cabin",
+    "icon": "WoodShackMarker",
+    "x": 163840.0,
+    "y": 215296.0
+  },
+  {
+    "name": "Old Mold Quarry",
+    "icon": "QuarryMarker",
+    "x": 198970.75,
+    "y": -95572.203125
+  },
+  {
+    "name": "Old Rag Lookout",
+    "icon": "LookoutTowerMarker",
+    "x": 21694.712890625,
+    "y": -232146.859375
+  },
+  {
+    "name": "Organ Cave North",
+    "icon": "CultistMarker",
+    "x": -100727.765625,
+    "y": 108640.21875
+  },
+  {
+    "name": "Organ Cave South",
+    "icon": "CultistMarker",
+    "x": -125191.8125,
+    "y": 89248.2734375
+  },
+  {
+    "name": "Organ Cave West",
+    "icon": "CultistMarker",
+    "x": -134567.796875,
+    "y": 97936.2890625
+  },
+  {
+    "name": "Orwell Orchards",
+    "icon": "ForestedMarker",
+    "x": -129767.0,
+    "y": -3179.7685546875
+  },
+  {
+    "name": "Overgrown Sundew Grove",
+    "icon": "ForestedMarker",
+    "x": 184257.03125,
+    "y": -172163.953125
+  },
+  {
+    "name": "Overlook Cabin",
+    "icon": "CabinMarker",
+    "x": -49923.890625,
+    "y": -46968.3125
+  },
+  {
+    "name": "Overseer's Camp",
+    "icon": "EncampmentMarker",
+    "x": -80761.1953125,
+    "y": 44228.49609375
+  },
+  {
+    "name": "Overseer's Home",
+    "icon": "EncampmentMarker",
+    "x": -55264.0,
+    "y": 25824.0
+  },
+  {
+    "name": "Palace of the Winding Path",
+    "icon": "PalaceWindingPathMarker",
+    "x": 57571.2109375,
+    "y": 164802.0625
+  },
+  {
+    "name": "Philippi Battlefield Cemetery",
+    "icon": "GraveyardMarker",
+    "x": 38981.65234375,
+    "y": 171175.703125
+  },
+  {
+    "name": "Pioneer Scout Camp",
+    "icon": "CabinMarker",
+    "x": 3599.8837890625,
+    "y": 137867.328125
+  },
+  {
+    "name": "Pioneer Scout Lookout",
+    "icon": "LookoutTowerMarker",
+    "x": -2846.65625,
+    "y": 140278.296875
+  },
+  {
+    "name": "Pleasant Hills Cemetery",
+    "icon": "GraveyardMarker",
+    "x": -55554.4296875,
+    "y": -102053.3671875
+  },
+  {
+    "name": "Pleasant Valley Cabins",
+    "icon": "RaiderSettlementMarker",
+    "x": 47386.796875,
+    "y": 25947.826171875
+  },
+  {
+    "name": "Pleasant Valley Ski Resort",
+    "icon": "SkiResortMarker",
+    "x": 47368.3671875,
+    "y": 15757.564453125
+  },
+  {
+    "name": "Pleasant Valley Station",
+    "icon": "TrainStationMarker",
+    "x": 49104.921875,
+    "y": 10024.73828125
+  },
+  {
+    "name": "Point Pleasant",
+    "icon": "TownMarker",
+    "x": -176637.734375,
+    "y": 74855.515625
+  },
+  {
+    "name": "Point Repose",
+    "icon": "GraveyardMarker",
+    "x": 163584.0,
+    "y": 244096.0
+  },
+  {
+    "name": "Portside Pub",
+    "icon": "LibertaliaMarker",
+    "x": -21322.08203125,
+    "y": 88201.59375
+  },
+  {
+    "name": "Poseidon Energy Plant WV-06",
+    "icon": "PowerPlantMarker",
+    "x": -132032.140625,
+    "y": -40971.7734375
+  },
+  {
+    "name": "Poseidon Energy Plant Yard",
+    "icon": "PublicWorkshopMarker",
+    "x": -124848.0,
+    "y": -41712.0
+  },
+  {
+    "name": "Poseidon Power Substation PX-01",
+    "icon": "ElectricalSubstationMarker",
+    "x": -143223.828125,
+    "y": 20095.5546875
+  },
+  {
+    "name": "Poseidon Power Substation PX-02",
+    "icon": "ElectricalSubstationMarker",
+    "x": -36059.33203125,
+    "y": -513.580688476562
+  },
+  {
+    "name": "Poseidon Power Substation PX-03",
+    "icon": "ElectricalSubstationMarker",
+    "x": 32638.533203125,
+    "y": 137795.171875
+  },
+  {
+    "name": "Prickett's Fort",
+    "icon": "CastleMarker",
+    "x": 60919.546875,
+    "y": 193668.484375
+  },
+  {
+    "name": "Prospect Hill",
+    "icon": "CamperMarker",
+    "x": -211294.828125,
+    "y": 108869.515625
+  },
+  {
+    "name": "Pumpkin House",
+    "icon": "PumpkinMarker",
+    "x": 126173.3984375,
+    "y": 133518.59375
+  },
+  {
+    "name": "Pylon Ambush Site",
+    "icon": "CabinMarker",
+    "x": -82630.0546875,
+    "y": -92095.234375
+  },
+  {
+    "name": "Pylon V-13",
+    "icon": "MonorailMarker",
+    "x": 190422.234375,
+    "y": -94971.234375
+  },
+  {
+    "name": "Quarry X3",
+    "icon": "QuarryMarker",
+    "x": 157732.9375,
+    "y": -112080.1640625
+  },
+  {
+    "name": "R & G Processing Services",
+    "icon": "IndustrialDomeMarker",
+    "x": 2637.35571289062,
+    "y": -121061.2734375
+  },
+  {
+    "name": "R&G Station",
+    "icon": "TrainStationMarker",
+    "x": 9983.408203125,
+    "y": -132309.078125
+  },
+  {
+    "name": "Radiant Hills",
+    "icon": "MilitaryBaseMarker",
+    "x": 176938.34375,
+    "y": 234769.40625
+  },
+  {
+    "name": "Railroad Service Yard",
+    "icon": "RailroadMarker",
+    "x": -238320.0,
+    "y": 19704.0
+  },
+  {
+    "name": "Raleigh Clay's Bunker",
+    "icon": "BunkerMarker",
+    "x": 185466.9375,
+    "y": 59527.38671875
+  },
+  {
+    "name": "Ranger District Office",
+    "icon": "LowRiseMarker",
+    "x": 149722.890625,
+    "y": -90368.4375
+  },
+  {
+    "name": "Ranger Lookout",
+    "icon": "LookoutTowerMarker",
+    "x": 152576.078125,
+    "y": -88084.1640625
+  },
+  {
+    "name": "Ranger Station Bunker",
+    "icon": "BunkerMarker",
+    "x": 47507.828125,
+    "y": -186933.390625
+  },
+  {
+    "name": "Ransacked Bunker",
+    "icon": "BunkerMarker",
+    "x": 193738.375,
+    "y": 688.480834960937
+  },
+  {
+    "name": "Rapidan Camp",
+    "icon": "MonumentMarker",
+    "x": 3996.8388671875,
+    "y": -229434.671875
+  },
+  {
+    "name": "Red Rocket Filling Station",
+    "icon": "FillingStationMarker",
+    "x": -112108.8828125,
+    "y": -131743.375
+  },
+  {
+    "name": "Red Rocket Mega Stop",
+    "icon": "PublicWorkshopMarker",
+    "x": 137392.375,
+    "y": 148799.65625
+  },
+  {
+    "name": "Relay Tower DP-B5-21",
+    "icon": "RadioTowerMarker",
+    "x": -45863.33984375,
+    "y": -84858.4296875
+  },
+  {
+    "name": "Relay Tower EL-B1-02",
+    "icon": "RadioTowerMarker",
+    "x": 78399.8203125,
+    "y": -160560.96875
+  },
+  {
+    "name": "Relay Tower EM-B1-27",
+    "icon": "RadioTowerMarker",
+    "x": -119286.4609375,
+    "y": 37573.09765625
+  },
+  {
+    "name": "Relay Tower HG-B7-09",
+    "icon": "RadioTowerMarker",
+    "x": -132480.1875,
+    "y": -72651.5234375
+  },
+  {
+    "name": "Relay Tower HN-B1-12",
+    "icon": "RadioTowerMarker",
+    "x": -6315.53271484375,
+    "y": 34602.03515625
+  },
+  {
+    "name": "Relay Tower LW-B1-22",
+    "icon": "RadioTowerMarker",
+    "x": 105335.546875,
+    "y": 88145.8984375
+  },
+  {
+    "name": "Research Site Bavaria",
+    "icon": "RadioTowerMarker",
+    "x": 75264.0,
+    "y": -232271.125
+  },
+  {
+    "name": "Research Site Rhineland",
+    "icon": "RadioTowerMarker",
+    "x": -556.547302246094,
+    "y": -219268.90625
+  },
+  {
+    "name": "Research Site Saxony",
+    "icon": "RadioTowerMarker",
+    "x": -46744.203125,
+    "y": -234346.125
+  },
+  {
+    "name": "Ripper Alley",
+    "icon": "BloodEagleMarker",
+    "x": 74686.2734375,
+    "y": -65499.80078125
+  },
+  {
+    "name": "Riverside Manor",
+    "icon": "MansionMarker",
+    "x": -70715.1796875,
+    "y": -70220.0546875
+  },
+  {
+    "name": "RobCo Research Center",
+    "icon": "HighTechBuildingMarker",
+    "x": 200091.515625,
+    "y": -64897.75
+  },
+  {
+    "name": "Rollins Labor Camp",
+    "icon": "BloodEagleMarker",
+    "x": -98042.0703125,
+    "y": -115047.0859375
+  },
+  {
+    "name": "Sacrament",
+    "icon": "CultistMarker",
+    "x": 80252.6015625,
+    "y": 176371.84375
+  },
+  {
+    "name": "Sacramental Glade",
+    "icon": "PondLakeMarker",
+    "x": 192808.0,
+    "y": -120632.0
+  },
+  {
+    "name": "Safe 'n Clean Disposal",
+    "icon": "RadioactiveAreaMarker",
+    "x": 13173.7900390625,
+    "y": -33843.84765625
+  },
+  {
+    "name": "Sal's Grinders",
+    "icon": "BrownstoneMarker",
+    "x": -189102.640625,
+    "y": -120430.9921875
+  },
+  {
+    "name": "Sand Fork Lumber",
+    "icon": "IndustrialStacksMarker",
+    "x": -216173.609375,
+    "y": -5901.4658203125
+  },
+  {
+    "name": "Sandy's Sock Hop",
+    "icon": "LowRiseMarker",
+    "x": -243868.390625,
+    "y": 107523.0390625
+  },
+  {
+    "name": "Scenic Overlook",
+    "icon": "OverlookMarker",
+    "x": -12690.947265625,
+    "y": -145410.6875
+  },
+  {
+    "name": "Seneca Gang Camp",
+    "icon": "BloodEagleMarker",
+    "x": 85281.3515625,
+    "y": 50118.32421875
+  },
+  {
+    "name": "Seneca Rocks",
+    "icon": "LandmarkMarker",
+    "x": 66176.0,
+    "y": 53120.0
+  },
+  {
+    "name": "Seneca Rocks Visitor Center",
+    "icon": "CabinMarker",
+    "x": 55773.98046875,
+    "y": 56634.875
+  },
+  {
+    "name": "Settler's Ridge",
+    "icon": "SettlementMarker",
+    "x": -111938.9140625,
+    "y": 108395.34375
+  },
+  {
+    "name": "Shade Hill Church",
+    "icon": "ChurchMarker",
+    "x": -243764.4375,
+    "y": 126475.4765625
+  },
+  {
+    "name": "Shenandoah Visitor Center",
+    "icon": "OfficeMarker",
+    "x": 32480.0,
+    "y": -187760.0
+  },
+  {
+    "name": "Shining Creek Cavern",
+    "icon": "CaveMarker",
+    "x": 74766.375,
+    "y": -223194.515625
+  },
+  {
+    "name": "Silva Homestead",
+    "icon": "FarmMarker",
+    "x": -158848.0,
+    "y": -3712.0
+  },
+  {
+    "name": "Site Alpha",
+    "icon": "MilitaryBaseMarker",
+    "x": 80945.3984375,
+    "y": -14505.7607421875
+  },
+  {
+    "name": "Site Bravo",
+    "icon": "MilitaryBaseMarker",
+    "x": 43038.58984375,
+    "y": 137056.296875
+  },
+  {
+    "name": "Site Charlie",
+    "icon": "MilitaryBaseMarker",
+    "x": 1654.45458984375,
+    "y": -118164.9609375
+  },
+  {
+    "name": "Skullbone Vantage",
+    "icon": "BloodEagleMarker",
+    "x": 40147.94921875,
+    "y": 35776.44140625
+  },
+  {
+    "name": "Slocum's Joe",
+    "icon": "BrownstoneMarker",
+    "x": -67277.40625,
+    "y": 55943.93359375
+  },
+  {
+    "name": "Slumber Mill Motel",
+    "icon": "LowRiseMarker",
+    "x": 22216.0,
+    "y": -246728.0
+  },
+  {
+    "name": "Smith Farm",
+    "icon": "FarmMarker",
+    "x": -30844.107421875,
+    "y": 152512.375
+  },
+  {
+    "name": "Solomon's Pond",
+    "icon": "PondLakeMarker",
+    "x": 38767.4375,
+    "y": -64480.73828125
+  },
+  {
+    "name": "Sons of Dane Compound",
+    "icon": "OfficeMarker",
+    "x": 102917.40625,
+    "y": 95313.5078125
+  },
+  {
+    "name": "South Cutthroat Camp",
+    "icon": "BloodEagleMarker",
+    "x": 42828.53125,
+    "y": 6697.97802734375
+  },
+  {
+    "name": "South Mountain Lookout",
+    "icon": "LookoutTowerMarker",
+    "x": 51206.0546875,
+    "y": -123502.7734375
+  },
+  {
+    "name": "South River Bridge",
+    "icon": "CarMarker",
+    "x": 44467.51171875,
+    "y": -243001.890625
+  },
+  {
+    "name": "Southern Belle Motel",
+    "icon": "BrownstoneMarker",
+    "x": 172104.234375,
+    "y": 27701.939453125
+  },
+  {
+    "name": "Southhampton Estate",
+    "icon": "WoodShackMarker",
+    "x": 169980.546875,
+    "y": 125109.2734375
+  },
+  {
+    "name": "Sparse Sundew Grove",
+    "icon": "ForestedMarker",
+    "x": 123314.3515625,
+    "y": -172568.046875
+  },
+  {
+    "name": "Spruce Knob Campground",
+    "icon": "ForestedMarker",
+    "x": 41424.0,
+    "y": -113384.0
+  },
+  {
+    "name": "Spruce Knob Channels",
+    "icon": "PondLakeMarker",
+    "x": 26547.822265625,
+    "y": -129198.9609375
+  },
+  {
+    "name": "Spruce Knob Lake",
+    "icon": "PondLakeMarker",
+    "x": 35190.12109375,
+    "y": -121221.65625
+  },
+  {
+    "name": "Starlight Drive-in",
+    "icon": "PublicWorkshopMarker",
+    "x": -199248.0,
+    "y": 114456.0
+  },
+  {
+    "name": "Stony Man Lookout",
+    "icon": "LookoutTowerMarker",
+    "x": 60559.06640625,
+    "y": -227405.140625
+  },
+  {
+    "name": "Striker Row",
+    "icon": "EncampmentMarker",
+    "x": -113544.8515625,
+    "y": -167811.4375
+  },
+  {
+    "name": "Sugar Grove",
+    "icon": "SatelliteMarker",
+    "x": 118972.75,
+    "y": -15204.357421875
+  },
+  {
+    "name": "Sugarmaple",
+    "icon": "MonumentMarker",
+    "x": -54753.06640625,
+    "y": -51561.4609375
+  },
+  {
+    "name": "Summersville",
+    "icon": "TownMarker",
+    "x": -44470.98828125,
+    "y": -17939.60546875
+  },
+  {
+    "name": "Summersville Dam",
+    "icon": "FactoryMarker",
+    "x": -79297.6640625,
+    "y": -61373.578125
+  },
+  {
+    "name": "Summersville Docks",
+    "icon": "PierMarker",
+    "x": -70892.515625,
+    "y": -44187.16796875
+  },
+  {
+    "name": "Sunday Brothers' Cabin",
+    "icon": "CabinMarker",
+    "x": 138231.65625,
+    "y": 1426.1982421875
+  },
+  {
+    "name": "Sunnytop Ski Lanes",
+    "icon": "SkiResortMarker",
+    "x": 85612.6953125,
+    "y": 131252.328125
+  },
+  {
+    "name": "Sunnytop Ski Lanes Base Lodge",
+    "icon": "SkiResortMarker",
+    "x": 98128.0,
+    "y": 144048.0
+  },
+  {
+    "name": "Sunnytop Station",
+    "icon": "TrainStationMarker",
+    "x": 74517.609375,
+    "y": 130565.84375
+  },
+  {
+    "name": "Sunrise Field",
+    "icon": "FarmMarker",
+    "x": 153895.171875,
+    "y": -162532.015625
+  },
+  {
+    "name": "Sunshine Meadows Industrial Farm",
+    "icon": "PublicWorkshopMarker",
+    "x": -138578.046875,
+    "y": 28355.7421875
+  },
+  {
+    "name": "Super Duper Mart",
+    "icon": "OfficeMarker",
+    "x": -229305.0,
+    "y": 126978.0
+  },
+  {
+    "name": "Superior Sunset Farm",
+    "icon": "FarmMarker",
+    "x": 122641.0390625,
+    "y": -101569.8359375
+  },
+  {
+    "name": "Surly's Shack",
+    "icon": "CabinMarker",
+    "x": -80999.578125,
+    "y": 202062.53125
+  },
+  {
+    "name": "Survey Camp Alpha",
+    "icon": "MilitaryBaseMarker",
+    "x": 165244.90625,
+    "y": -154790.0625
+  },
+  {
+    "name": "Susan's Cabin",
+    "icon": "WoodShackMarker",
+    "x": 97676.0,
+    "y": -204800.671875
+  },
+  {
+    "name": "Sutton",
+    "icon": "TownMarker",
+    "x": -60225.9140625,
+    "y": 24458.296875
+  },
+  {
+    "name": "Sutton Station",
+    "icon": "TrainStationMarker",
+    "x": -60197.203125,
+    "y": 12390.4150390625
+  },
+  {
+    "name": "Sylvie & Sons Logging Camp",
+    "icon": "EncampmentMarker",
+    "x": 114951.578125,
+    "y": 92363.265625
+  },
+  {
+    "name": "Tanagra Town",
+    "icon": "TownRuinsMarker",
+    "x": 191891.984375,
+    "y": 14194.552734375
+  },
+  {
+    "name": "The Bounty",
+    "icon": "BloodEagleMarker",
+    "x": 66048.625,
+    "y": -145841.171875
+  },
+  {
+    "name": "The Bullengrube",
+    "icon": "PondLakeMarker",
+    "x": 189984.0,
+    "y": 221152.0
+  },
+  {
+    "name": "The Burning Mine",
+    "icon": "QuarryMarker",
+    "x": -84358.0078125,
+    "y": -102236.265625
+  },
+  {
+    "name": "The Burrows North",
+    "icon": "SewerMarker",
+    "x": 155171.140625,
+    "y": 1920.07836914062
+  },
+  {
+    "name": "The Burrows South",
+    "icon": "SewerMarker",
+    "x": 157951.375,
+    "y": -3956.54077148438
+  },
+  {
+    "name": "The Chop Shop",
+    "icon": "FillingStationMarker",
+    "x": -216212.78125,
+    "y": 74780.7265625
+  },
+  {
+    "name": "The Coop",
+    "icon": "SkullRingMarker",
+    "x": -140577.375,
+    "y": 113602.7578125
+  },
+  {
+    "name": "The Crater",
+    "icon": "SkullRingMarker",
+    "x": 26680.755859375,
+    "y": 198624.53125
+  },
+  {
+    "name": "The Crosshair",
+    "icon": "BloodEagleMarker",
+    "x": -92839.9375,
+    "y": 205548.25
+  },
+  {
+    "name": "The Deep",
+    "icon": "CaveMarker",
+    "x": -34473.3046875,
+    "y": -38130.6875
+  },
+  {
+    "name": "The Freak Show",
+    "icon": "RaiderSettlementMarker",
+    "x": 85048.4765625,
+    "y": -102227.75
+  },
+  {
+    "name": "The General's Steakhouse",
+    "icon": "BrownstoneMarker",
+    "x": 182221.25,
+    "y": -60406.5859375
+  },
+  {
+    "name": "The Giant Teapot",
+    "icon": "TeapotMarker",
+    "x": -131984.484375,
+    "y": -29819.494140625
+  },
+  {
+    "name": "The Kill Box",
+    "icon": "BloodEagleMarker",
+    "x": -59783.55078125,
+    "y": -56961.01953125
+  },
+  {
+    "name": "The Pigsty",
+    "icon": "BloodEagleMarker",
+    "x": -38219.75,
+    "y": -41403.3515625
+  },
+  {
+    "name": "The Retreat",
+    "icon": "SettlementMarker",
+    "x": 162312.703125,
+    "y": 45172.3359375
+  },
+  {
+    "name": "The Rose Room",
+    "icon": "MansionMarker",
+    "x": 26292.892578125,
+    "y": 99599.5078125
+  },
+  {
+    "name": "The Rust Kingdom",
+    "icon": "IndustrialDomeMarker",
+    "x": -234190.203125,
+    "y": -4729.876953125
+  },
+  {
+    "name": "The Rusty Pick",
+    "icon": "LegendaryPurveyorMarker",
+    "x": -113348.7578125,
+    "y": -74719.90625
+  },
+  {
+    "name": "The Sludge Hole",
+    "icon": "RaiderSettlementMarker",
+    "x": 77198.2890625,
+    "y": 41365.38671875
+  },
+  {
+    "name": "The Sludge Works",
+    "icon": "BloodEagleMarker",
+    "x": -105586.8515625,
+    "y": -139906.703125
+  },
+  {
+    "name": "The Thorn",
+    "icon": "MilitaryBaseMarker",
+    "x": 109347.6171875,
+    "y": -103587.0703125
+  },
+  {
+    "name": "The Trading Post",
+    "icon": "EncampmentMarker",
+    "x": 39269.76953125,
+    "y": -224111.484375
+  },
+  {
+    "name": "The Vantage",
+    "icon": "BloodEagleMarker",
+    "x": 23578.9765625,
+    "y": -68315.2421875
+  },
+  {
+    "name": "The Wayward",
+    "icon": "TownMarker",
+    "x": -81238.703125,
+    "y": 47700.60546875
+  },
+  {
+    "name": "The Whitespring Golf Club",
+    "icon": "CountryClubMarker",
+    "x": -12672.001953125,
+    "y": -51488.0
+  },
+  {
+    "name": "The Whitespring North Entrance",
+    "icon": "WhitespringResort",
+    "x": 942.437622070312,
+    "y": -49734.65234375
+  },
+  {
+    "name": "The Whitespring Resort",
+    "icon": "WhitespringResort",
+    "x": 6664.71337890625,
+    "y": -52810.28515625
+  },
+  {
+    "name": "The Whitespring Service Entrance",
+    "icon": "LowRiseMarker",
+    "x": 7426.62158203125,
+    "y": -58385.05859375
+  },
+  {
+    "name": "Three Ponds",
+    "icon": "PondLakeMarker",
+    "x": -59240.53125,
+    "y": -201006.1875
+  },
+  {
+    "name": "Thunder Mountain Power Plant",
+    "icon": "PowerPlantMarker",
+    "x": 192590.09375,
+    "y": 98395.0390625
+  },
+  {
+    "name": "Thunder Mountain Substation TM-01",
+    "icon": "ElectricalSubstationMarker",
+    "x": 145498.359375,
+    "y": 11657.107421875
+  },
+  {
+    "name": "Thunder Mountain Substation TM-02",
+    "icon": "ElectricalSubstationMarker",
+    "x": 143836.4375,
+    "y": -120232.359375
+  },
+  {
+    "name": "Thunder Mountain Substation TM-03",
+    "icon": "ElectricalSubstationMarker",
+    "x": 45784.3984375,
+    "y": -194186.09375
+  },
+  {
+    "name": "Thunder Mt. Power Plant Yard",
+    "icon": "PublicWorkshopMarker",
+    "x": 189452.453125,
+    "y": 94525.7890625
+  },
+  {
+    "name": "Top of the World",
+    "icon": "TopOfTheWorldMarker",
+    "x": 39088.7109375,
+    "y": 14204.224609375
+  },
+  {
+    "name": "Torrance House",
+    "icon": "MansionMarker",
+    "x": -55628.33984375,
+    "y": -61977.2265625
+  },
+  {
+    "name": "Toxic Dried Lakebed",
+    "icon": "PondLakeMarker",
+    "x": -15394.4609375,
+    "y": 176773.03125
+  },
+  {
+    "name": "Toxic Larry's Meat 'n Go",
+    "icon": "WoodShackMarker",
+    "x": 115472.609375,
+    "y": 39449.80078125
+  },
+  {
+    "name": "Transmission Station 1AT-U03",
+    "icon": "RadioTowerMarker",
+    "x": -154116.078125,
+    "y": 126040.421875
+  },
+  {
+    "name": "Treetops",
+    "icon": "WoodShackMarker",
+    "x": 162220.234375,
+    "y": -26927.47265625
+  },
+  {
+    "name": "Twin Lakes",
+    "icon": "PondLakeMarker",
+    "x": 47134.55859375,
+    "y": -79246.953125
+  },
+  {
+    "name": "Twin Pine Cabins",
+    "icon": "BloodEagleMarker",
+    "x": -74439.8125,
+    "y": 113931.6328125
+  },
+  {
+    "name": "Tycoon Lake",
+    "icon": "CabinMarker",
+    "x": -199182.0,
+    "y": 5144.0
+  },
+  {
+    "name": "Tygart Water Treatment",
+    "icon": "IndustrialDomeMarker",
+    "x": -32915.86328125,
+    "y": 6401.09814453125
+  },
+  {
+    "name": "Tyler County Dirt Track",
+    "icon": "PublicWorkshopMarker",
+    "x": -157335.25,
+    "y": 138173.796875
+  },
+  {
+    "name": "Tyler County Fairgrounds",
+    "icon": "AmusementParkMarker",
+    "x": -147238.125,
+    "y": 142781.515625
+  },
+  {
+    "name": "US-13C Bivouac",
+    "icon": "MilitaryBaseMarker",
+    "x": 99475.203125,
+    "y": -59043.078125
+  },
+  {
+    "name": "Uncanny Caverns",
+    "icon": "CaveMarker",
+    "x": -41527.921875,
+    "y": -89947.40625
+  },
+  {
+    "name": "Unfinished Mansion",
+    "icon": "HighTechBuildingMarker",
+    "x": -79989.796875,
+    "y": -139432.171875
+  },
+  {
+    "name": "Valley Galleria",
+    "icon": "OfficeMarker",
+    "x": 196567.15625,
+    "y": -12605.48046875
+  },
+  {
+    "name": "Vault 51",
+    "icon": "Vault51Marker",
+    "x": -125273.2265625,
+    "y": 202332.359375
+  },
+  {
+    "name": "Vault 63",
+    "icon": "Vault63Marker",
+    "x": -96440.0,
+    "y": -146576.0
+  },
+  {
+    "name": "Vault 76",
+    "icon": "Vault76Marker",
+    "x": -103674.5703125,
+    "y": 93906.375
+  },
+  {
+    "name": "Vault 79",
+    "icon": "Vault79Marker",
+    "x": 145375.15625,
+    "y": 186772.78125
+  },
+  {
+    "name": "Vault 94",
+    "icon": "Vault94Marker",
+    "x": 145156.0625,
+    "y": 137186.125
+  },
+  {
+    "name": "Vault 96",
+    "icon": "Vault96Marker",
+    "x": 31361.763671875,
+    "y": -160240.546875
+  },
+  {
+    "name": "Vault-Tec Agricultural Research Center",
+    "icon": "AgriculturalCenterMarker",
+    "x": -117195.4765625,
+    "y": 19445.03515625
+  },
+  {
+    "name": "Vault-Tec University",
+    "icon": "VaultMarker",
+    "x": -8020.11474609375,
+    "y": 82071.0703125
+  },
+  {
+    "name": "Veiled Sundew Grove",
+    "icon": "ForestedMarker",
+    "x": 172189.625,
+    "y": -119552.0078125
+  },
+  {
+    "name": "WV Lumber Co.",
+    "icon": "FactoryMarker",
+    "x": -167683.21875,
+    "y": 191449.609375
+  },
+  {
+    "name": "Wade Airport",
+    "icon": "PublicWorkshopMarker",
+    "x": -88012.4609375,
+    "y": -37757.9296875
+  },
+  {
+    "name": "Watoga",
+    "icon": "CityMarker",
+    "x": 145432.0,
+    "y": -138880.0
+  },
+  {
+    "name": "Watoga Civic Center",
+    "icon": "HighTechBuildingMarker",
+    "x": 138432.4375,
+    "y": -136952.578125
+  },
+  {
+    "name": "Watoga Emergency Services",
+    "icon": "HospitalMarker",
+    "x": 141012.03125,
+    "y": -141039.828125
+  },
+  {
+    "name": "Watoga Estates",
+    "icon": "HighTechBuildingMarker",
+    "x": 139800.0,
+    "y": -145456.0
+  },
+  {
+    "name": "Watoga High School",
+    "icon": "HighTechBuildingMarker",
+    "x": 153175.96875,
+    "y": -146584.0
+  },
+  {
+    "name": "Watoga Municipal Center",
+    "icon": "HighTechBuildingMarker",
+    "x": 143840.0,
+    "y": -141320.0
+  },
+  {
+    "name": "Watoga Shopping Plaza",
+    "icon": "HighTechBuildingMarker",
+    "x": 152607.984375,
+    "y": -137312.03125
+  },
+  {
+    "name": "Watoga Station",
+    "icon": "TrainStationMarker",
+    "x": 149826.890625,
+    "y": -150058.03125
+  },
+  {
+    "name": "Watoga Transit Hub",
+    "icon": "HighTechBuildingMarker",
+    "x": 137471.984375,
+    "y": -141535.984375
+  },
+  {
+    "name": "Watoga Underground",
+    "icon": "SewerMarker",
+    "x": 152462.546875,
+    "y": -141432.15625
+  },
+  {
+    "name": "Wavy Willard's Water Park",
+    "icon": "AmusementParkMarker",
+    "x": -29820.29296875,
+    "y": 193976.28125
+  },
+  {
+    "name": "Welch",
+    "icon": "TownRuinsMarker",
+    "x": -152527.734375,
+    "y": -133755.265625
+  },
+  {
+    "name": "Welch Station",
+    "icon": "TrainStationMarker",
+    "x": -148979.71875,
+    "y": -132179.015625
+  },
+  {
+    "name": "Wendigo Cave",
+    "icon": "CaveMarker",
+    "x": 87360.0,
+    "y": 43120.0
+  },
+  {
+    "name": "West Tek Research Center",
+    "icon": "HighTechBuildingMarker",
+    "x": 88526.140625,
+    "y": -60624.625
+  },
+  {
+    "name": "Westbrook Horse Ranch",
+    "icon": "WoodShackMarker",
+    "x": -210245.765625,
+    "y": 61227.953125
+  },
+  {
+    "name": "White Powder Winter Sports",
+    "icon": "SkiResortMarker",
+    "x": -949.519104003906,
+    "y": 18367.958984375
+  },
+  {
+    "name": "Whitespring Bunker",
+    "icon": "BunkerMarker",
+    "x": 4696.736328125,
+    "y": -64373.6171875
+  },
+  {
+    "name": "Whitespring Lookout",
+    "icon": "LookoutTowerMarker",
+    "x": -27597.53125,
+    "y": -55147.5
+  },
+  {
+    "name": "Whitespring Station",
+    "icon": "TrainStationMarker",
+    "x": 20095.06640625,
+    "y": -46750.1796875
+  },
+  {
+    "name": "Widow's Perch",
+    "icon": "BloodEagleMarker",
+    "x": -80141.484375,
+    "y": -84608.4140625
+  },
+  {
+    "name": "Willard Corporate Housing",
+    "icon": "HouseTrailerMarker",
+    "x": -17688.490234375,
+    "y": 190127.78125
+  },
+  {
+    "name": "Wilson Brother's Auto Repair",
+    "icon": "BrownstoneMarker",
+    "x": -55612.98046875,
+    "y": 111421.5546875
+  },
+  {
+    "name": "Wixon Homestead",
+    "icon": "FarmMarker",
+    "x": -97562.703125,
+    "y": 58503.98828125
+  },
+  {
+    "name": "Woods Estate",
+    "icon": "FarmMarker",
+    "x": -42440.88671875,
+    "y": 172901.3125
+  },
+  {
+    "name": "World of Corn",
+    "icon": "LowRiseMarker",
+    "x": -237197.375,
+    "y": 52131.45703125
+  },
+  {
+    "name": "Yellow Sandy's Still",
+    "icon": "HouseTrailerMarker",
+    "x": 90268.3046875,
+    "y": 20259.880859375
+  }
+]
