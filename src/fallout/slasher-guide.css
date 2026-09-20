@@ -1,0 +1,135 @@
+/* Slasher field companion: chapter rail, compact case header, map workbench. */
+.fo-slasher-page .fo-interface { max-width: 1540px; }
+.fo-slasher-layout { display: grid; grid-template-columns: 185px minmax(0, 1fr); gap: 34px; align-items: start; }
+.fo-slasher-content { min-width: 0; }
+.fo-chapter-rail { position: sticky; top: 28px; padding-top: 12px; }
+.fo-chapter-edition { display: flex; gap: 12px; align-items: center; padding-bottom: 26px; color: #cab885; }
+.fo-chapter-edition > span { font-size: 9px; letter-spacing: 1.5px; }
+.fo-chapter-edition strong { display: block; margin-top: 7px; color: #e7dfc0; font: 32px/1 Impact, sans-serif; }
+.fo-chapter-label { font-size: 9px; letter-spacing: 1.4px; color: #a1af9c; }
+.fo-chapter-nav { display: grid; gap: 5px; margin-top: 16px; }
+.fo-chapter-nav a { display: flex; gap: 10px; align-items: center; min-height: 48px; padding: 10px 12px; border-left: 2px solid transparent; color: #b6c0ae; font-size: 11px; transition: background 160ms, color 160ms; }
+.fo-chapter-nav a > svg { flex: none; }
+.fo-chapter-nav small { margin-left: auto; font-size: 9px; opacity: .7; }
+.fo-chapter-nav a:hover { background: #c6b2750f; color: #ece0b9; }
+.fo-chapter-nav a[aria-current] { color: #efda9e; border-color: #d8b76e; background: #c6b27515; }
+.fo-chapter-note { margin-top: 32px; padding: 20px 12px; border-top: 1px solid #7c8d6940; }
+.fo-chapter-note > span { font-size: 9px; color: #c5ad73; letter-spacing: 1px; }
+.fo-chapter-note p { margin-top: 10px; font-size: 11px; line-height: 1.9; color: #a5b29f; }
+.fo-chapter-top { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding-inline: 12px; color: #c3c8ad !important; font-size: 10px; }
+.fo-hunt-header { display: grid; grid-template-columns: minmax(0, 1fr) 29%; border-top: 3px solid #bb955b; background: url('/fallout/surface-grain.svg'), #172721; scroll-margin-top: 24px; }
+.fo-hunt-title { min-width: 0; padding: 32px 30px; align-self: center; }
+.fo-hunt-season { display: flex; flex-wrap: wrap; align-items: center; gap: 9px; color: #ceb887; font-size: 9px; letter-spacing: 1.3px; }
+.fo-hunt-season i { width: 4px; height: 4px; background: #ab6148; }
+.fo-hunt-title h1 { margin: 23px 0 18px; color: #ece2c0; font: 900 clamp(42px, 4.9vw, 70px)/.99 Impact, 'Arial Narrow', sans-serif; text-transform: uppercase; letter-spacing: .5px; }
+.fo-hunt-title h1 > span { color: #d5ae70; }
+.fo-hunt-title > p { color: #b7c2ad; font-size: 12px; line-height: 1.9; }
+.fo-hunt-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 20px; margin-top: 23px; }
+.fo-hunt-actions a { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; color: #e0d3ac; font-size: 11px; }
+.fo-hunt-actions a:first-child { padding: 12px 16px; background: #debd7d; color: #1c2b22; font-weight: 700; }
+.fo-hunt-actions a:first-child:hover { background: #efd29a; }
+.fo-hunt-actions a:last-child:hover { text-decoration: underline; text-underline-offset: 5px; }
+.fo-hunt-subject { display: flex; flex-direction: column; justify-content: flex-end; min-width: 0; margin: 0; overflow: hidden; background: url('/fallout/surface-grain.svg'), #d3c9a7; color: #344334; }
+.fo-hunt-subject > span { margin: 19px 16px auto; padding-bottom: 12px; border-bottom: 1px solid #34433433; font-size: 8px; letter-spacing: 1px; }
+.fo-hunt-subject img { display: block; width: 100%; max-width: none; height: auto; max-height: 280px; object-fit: contain; align-self: center; mix-blend-mode: multiply; }
+.fo-hunt-subject figcaption { position: relative; padding: 16px; background: #273a2c; color: #e0d4ad; }
+.fo-hunt-subject figcaption b { display: block; font-size: 9px; letter-spacing: .6px; }
+.fo-hunt-subject figcaption span { display: block; margin-top: 7px; color: #b8c0a6; font-size: 10px; }
+.fo-hunt-stats { display: flex; align-items: stretch; justify-content: space-between; background: #101e19; border-block: 1px solid #89916b50; }
+.fo-hunt-stats .fo-guide-facts { flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 0; border: 0; padding: 22px 30px; }
+.fo-hunt-stats .fo-guide-facts dd { color: #e6ddba; font-size: 30px; }
+.fo-hunt-stats .fo-guide-facts dt { color: #a8b59b; font-size: 9px; }
+.fo-hunt-stats > a { display: flex; align-items: center; gap: 12px; padding: 20px 24px; border-left: 1px solid #89916b50; color: #cfb47a; }
+.fo-hunt-stats > a > strong { font: 34px/1 Impact, sans-serif; }
+.fo-hunt-stats > a > span { font-size: 9px; line-height: 1.7; letter-spacing: .5px; }
+.fo-slasher-content > section[id] { scroll-margin-top: 24px; }
+.fo-slasher-content .fo-guide-section-heading h2 { font-size: 32px; }
+.fo-slasher-content .fo-guide-instructions { display: block; margin-top: 28px; padding: 24px; border: 0; background: url('/fallout/surface-grain.svg'), #d8d1b4; color: #293d30; }
+.fo-slasher-content .fo-guide-instructions > header { padding: 0 0 20px; }
+.fo-slasher-content .fo-guide-instructions .fo-kicker { color: #6b553b; }
+.fo-slasher-content .fo-guide-instructions h2 { max-width: none; margin: 8px 0 0; color: #293d30; font-size: 29px; }
+.fo-slasher-content .fo-guide-instructions > ol { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+.fo-slasher-content .fo-guide-instructions > ol > li { display: block; padding: 16px 0 0; border: 0; border-top: 1px solid #293d3040; }
+.fo-slasher-content .fo-guide-instructions li > b { margin: 0 0 12px; font: 12px var(--font-mono); color: #84472e; }
+.fo-slasher-content .fo-guide-instructions h3 { margin-bottom: 9px; font-size: 13px; color: #293d30; }
+.fo-slasher-content .fo-guide-instructions p { color: #465340; font-size: 12px; line-height: 1.85; }
+.fo-slasher-content .fo-guide-field-tip { margin-top: 22px; padding: 15px 16px; background: #293d300b; border-left-color: #84472e; }
+.fo-slasher-content .fo-guide-field-tip strong, .fo-slasher-content .fo-guide-field-tip > svg { color: #74432f; }
+.fo-slasher-content .fo-survey { margin-top: 25px; }
+.fo-hunt-rewards { margin-top: 32px; }
+.fo-hunt-rewards ol { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; padding: 0; margin: 0; list-style: none; }
+.fo-hunt-rewards li { min-width: 0; padding: 14px; background: #1e3026; border-top: 2px solid #c1a36a; }
+.fo-hunt-reward-stage { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; color: #c5ad79; }
+.fo-hunt-reward-stage > span { font-size: 8px; letter-spacing: .5px; }
+.fo-hunt-reward-stage > b { font: 26px Impact, sans-serif; }
+.fo-hunt-reward-stage small { font: 8px var(--font-mono); }
+.fo-hunt-rewards li > img { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; margin-block: 15px; background: #303030; }
+.fo-hunt-rewards h3 { min-height: 36px; color: #e8dbb4; font-size: 12px; line-height: 1.5; }
+.fo-hunt-rewards li > p { margin-top: 15px; padding-top: 12px; border-top: 1px solid #7f8b6250; font-size: 11px; color: #b4bea7; }
+.fo-hunt-rewards li > p strong { color: #e1c68b; }
+.fo-hunt-reward-note { padding: 18px 0; color: #b5bfa7; font-size: 11px; line-height: 1.8; }
+.fo-hunt-reward-note strong { color: #e3c890; }
+.fo-slasher-content .fo-guide-faq { display: grid; grid-template-columns: .8fr 1.2fr; column-gap: 35px; margin-top: 36px; padding-top: 28px; border-top: 1px solid #70836466; }
+.fo-slasher-content .fo-guide-faq > header { grid-column: 1; grid-row: 1 / 6; padding: 0; }
+.fo-slasher-content .fo-guide-faq details { grid-column: 2; background: transparent; }
+.fo-slasher-content .fo-guide-faq details[open] { background: #1c3028; }
+.fo-slasher-content .fo-guide-faq summary { padding-inline: 8px; font-size: 12px; line-height: 1.7; }
+.fo-slasher-content .fo-guide-faq details p { padding-inline: 8px; font-size: 12px; }
+@media (max-width: 1200px) {
+  .fo-slasher-layout { grid-template-columns: 166px minmax(0, 1fr); gap: 24px; }
+  .fo-chapter-nav a { padding-inline: 8px; font-size: 10px; }
+  .fo-hunt-title { padding: 28px 24px; }
+  .fo-hunt-title h1 { font-size: 52px; }
+  .fo-hunt-stats .fo-guide-facts { padding-inline: 24px; }
+  .fo-hunt-stats > a { padding-inline: 18px; }
+}
+@media (max-width: 1000px) {
+  .fo-slasher-layout { display: block; }
+  .fo-chapter-rail { position: sticky; top: 0; z-index: 600; padding: 0; background: #13241e; border-block: 1px solid #6f80574d; margin-bottom: 20px; }
+  .fo-chapter-edition, .fo-chapter-label, .fo-chapter-note, .fo-chapter-top { display: none; }
+  .fo-chapter-nav { display: flex; gap: 0; margin: 0; overflow-x: auto; scrollbar-width: thin; }
+  .fo-chapter-nav a { flex: 1 0 auto; justify-content: center; padding-inline: 14px; min-height: 50px; border-left: 0; border-bottom: 2px solid transparent; }
+  .fo-chapter-nav small { display: none; }
+  .fo-slasher-content > section[id], .fo-hunt-header, .fo-survey-station { scroll-margin-top: 76px; }
+}
+@media (max-width: 760px) {
+  .fo-hunt-header { grid-template-columns: minmax(0, 1fr) 30%; }
+  .fo-hunt-title { padding: 26px 20px; }
+  .fo-hunt-title h1 { font-size: clamp(34px, 7vw, 49px); }
+  .fo-hunt-season { font-size: 8px; letter-spacing: .6px; }
+  .fo-hunt-subject figcaption { padding: 12px; }
+  .fo-hunt-subject figcaption span, .fo-hunt-subject > span { display: none; }
+  .fo-hunt-subject { justify-content: flex-end; }
+  .fo-hunt-stats > a { gap: 10px; padding: 16px; }
+  .fo-hunt-stats > a > svg { display: none; }
+  .fo-hunt-stats .fo-guide-facts { padding: 18px; }
+  .fo-hunt-stats .fo-guide-facts dt { font-size: 8px; }
+  .fo-slasher-content .fo-guide-instructions > ol { grid-template-columns: 1fr; gap: 16px; }
+  .fo-slasher-content .fo-guide-instructions > ol > li { display: flex; gap: 16px; }
+  .fo-slasher-content .fo-guide-instructions li > b { padding-top: 2px; }
+  .fo-hunt-rewards ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fo-slasher-content .fo-guide-faq { display: block; }
+  .fo-slasher-content .fo-guide-faq > header { padding-bottom: 18px; }
+}
+@media (max-width: 480px) {
+  .fo-hunt-header { grid-template-columns: 1fr; }
+  .fo-hunt-title { padding: 24px 20px; }
+  .fo-hunt-title h1 { font-size: 44px; }
+  .fo-hunt-title > p { font-size: 11px; }
+  .fo-hunt-actions { gap: 16px; }
+  .fo-hunt-actions a:first-child { padding: 10px; font-size: 10px; }
+  .fo-hunt-actions a:first-child > svg:last-child { display: none; }
+  .fo-hunt-subject { display: grid; grid-template-columns: 108px minmax(0, 1fr); align-items: center; }
+  .fo-hunt-subject img { width: 108px; height: 108px; }
+  .fo-hunt-subject figcaption { background: transparent; color: #293d30; }
+  .fo-hunt-subject figcaption b { font-size: 10px; line-height: 1.7; }
+  .fo-hunt-subject figcaption span { display: block; color: #48553c; font-size: 10px; }
+  .fo-hunt-stats { display: block; }
+  .fo-hunt-stats > a { justify-content: center; border-left: 0; border-top: 1px solid #89916b50; padding: 12px; }
+  .fo-hunt-stats > a > strong { font-size: 27px; }
+  .fo-hunt-stats > a > span br { display: none; }
+  .fo-hunt-stats > a > span { font-size: 8px; }
+  .fo-slasher-content .fo-guide-instructions { padding: 22px 18px; }
+  .fo-slasher-content .fo-guide-section-heading h2 { font-size: 28px; }
+}
+@media (prefers-reduced-motion: reduce) { .fo-chapter-nav a { transition: none; } }

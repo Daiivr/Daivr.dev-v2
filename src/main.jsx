@@ -3,6 +3,7 @@ import { FalloutLoader } from "./fallout/components/FalloutLoader";
 import { createRoot } from "react-dom/client";
 import { FALLOUT_NAVIGATION, getPreloadedFalloutPage, preloadFallout } from "./lib/falloutNavigation";
 import { isGuidePath, normalizeFalloutPath } from "./fallout/data/pages";
+import { hasSeenFalloutSplash } from "./lib/falloutSplash";
 import "./index.css";
 import "./styles/attract-mode.css";
 import "./styles/cart-swap.css";
@@ -56,8 +57,8 @@ function RootPage() {
   // A cabinet click already awaited this module. Rendering the resolved page
   // directly avoids React.lazy briefly committing its full-size loader first.
   const TerminalPage = route.origin ? getPreloadedFalloutPage() || FalloutPage : FalloutPage;
-  return <React.Suspense fallback={route.fallout && !route.origin ? <FalloutLoader /> : null}>
-    {isGuidePath(route.path) ? <GuidesPage path={route.path} /> : route.fallout ? <TerminalPage entryOrigin={route.origin} /> : <CabinetPage />}
+  return <React.Suspense fallback={route.fallout && !route.origin && !hasSeenFalloutSplash() ? <FalloutLoader /> : null}>
+    {isGuidePath(route.path) ? <GuidesPage key={route.path} path={route.path} /> : route.fallout ? <TerminalPage entryOrigin={route.origin} /> : <CabinetPage />}
   </React.Suspense>;
 }
 

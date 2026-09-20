@@ -1,9 +1,19 @@
+import { preload } from "react-dom";
+import { FALLOUT_ARTWORK } from "../fallout/data/artwork";
+
 let pagePromise;
 let loadedPage;
 export const FALLOUT_NAVIGATION = "daivr:enter-fallout";
 export const getPreloadedFalloutPage = () => loadedPage;
 
+export function preloadFalloutArtwork() {
+  for (const { src, priority } of FALLOUT_ARTWORK) {
+    preload(src, { as: "image", fetchPriority: priority });
+  }
+}
+
 export function preloadFallout() {
+  preloadFalloutArtwork();
   pagePromise ||= import("../fallout/FalloutPage.jsx").then((module) => {
     loadedPage = module.default;
     return module;

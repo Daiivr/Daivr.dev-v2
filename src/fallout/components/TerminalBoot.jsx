@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FalloutLoader } from "./FalloutLoader";
 import { VAULT_UNLOCK_MS, VAULT_OPEN_MS, VAULT_ENTER_MS, VAULT_APPROACH_MS } from "../data/vaultSequence";
-
-const BOOT_KEY = "daivr-fallout-booted";
+import { hasSeenFalloutSplash, rememberFalloutSplash } from "../../lib/falloutSplash";
 
 function waitForImage(image, signal) {
   return new Promise((resolve) => {
@@ -27,7 +26,7 @@ function waitForImage(image, signal) {
 }
 
 export function useTerminalBoot({ loading, intel, connectionFailed, contentRef, entryOrigin }) {
-  const [booting, setBooting] = useState(true);
+  const [booting, setBooting] = useState(() => !hasSeenFalloutSplash());
   const [phase, setPhase] = useState("loading");
   const [artwork, setArtwork] = useState(null);
   const [display, setDisplay] = useState(null);
@@ -35,43 +34,47 @@ export function useTerminalBoot({ loading, intel, connectionFailed, contentRef, 
   const [approachComplete, setApproachComplete] = useState(!entryOrigin);
   const finishApproach = useCallback(() => setApproachComplete(true), []);
   const [preferences] = useState(() => {
-    try { return { returning: !!sessionStorage.getItem(BOOT_KEY), reduced: matchMedia("(prefers-reduced-motion: reduce)").matches }; }
-    catch { return { returning: true, reduced: true }; }
+    return { reduced: matchMedia("(prefers-reduced-motion: reduce)").matches };
   });
   const finish = useCallback(() => {
-    try { sessionStorage.setItem(BOOT_KEY, "1"); } catch { /* Storage is optional. */ }
     setBooting(false);
   }, []);
   const specimen = intel.axolotl.data;
   const specimenImage = specimen?.name === "Shadow Axolotl" ? "/fallout/shadow-axolotl.webp" : specimen?.imageUrl;
 
   useEffect(() => {
-    const delay = preferences.reduced ? 0 : entryOrigin ? VAULT_APPROACH_MS : preferences.returning ? 0 : 1000;
-    const timer = window.setTimeout(() => setMinimumElapsed(true), delay);
-    return () => window.clearTimeout(timer);
-  }, [preferences, entryOrigin]);
+    if (booting) rememberFalloutSplash();
+  }, [booting]);
 
   useEffect(() => {
+    if (!booting) return;
+    const delay = preferences.reduced ? 0 : entryOrigin ? VAULT_APPROACH_MS : 1000;
+    const timer = window.setTimeout(() => setMinimumElapsed(true), delay);
+    return () => window.clearTimeout(timer);
+  }, [preferences, entryOrigin, booting]);
+
+  useEffect(() => {
+    if (!booting) return;
     let active = true;
     const timer = window.setTimeout(() => { if (active) setDisplay("fallback"); }, 4000);
     document.fonts.ready.then(() => {
       if (active) { clearTimeout(timer); setDisplay("ready"); }
     });
     return () => { active = false; clearTimeout(timer); };
-  }, []);
+  }, [booting]);
 
   useEffect(() => {
-    if (loading || !booting) return;
+    // Decode artwork on every visit, including below-the-fold images. The
+    // first-visit splash must not be responsible for getting images ready.
     const controller = new AbortController();
     const images = [
-      ...Array.from(contentRef.current?.querySelectorAll("img") || []),
-      ...Array.from(contentRef.current?.closest(".fallout-page")?.querySelectorAll(".fo-world-backdrop img") || []),
+      ...Array.from(contentRef.current?.closest(".fallout-page")?.querySelectorAll(".fo-interface img, .fo-world-backdrop img") || []),
     ];
     Promise.all(images.map((image) => waitForImage(image, controller.signal))).then((results) => {
       if (!controller.signal.aborted) setArtwork(results.every(Boolean) ? "ready" : "fallback");
     });
     return () => controller.abort();
-  }, [loading, specimenImage, booting, contentRef]);
+  }, [loading, specimenImage, contentRef]);
 
   const ready = !loading && artwork !== null && display !== null && minimumElapsed && (approachComplete || preferences.reduced);
   useEffect(() => {

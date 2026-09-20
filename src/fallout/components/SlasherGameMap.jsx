@@ -8,6 +8,15 @@ import worldLocations from "../data/world-locations.json";
 const worldLandmarks = worldLocations.map(location => ({ ...location, position: L.latLng(worldToMap(location.x, location.y)) }));
 
 function pinIcon(label, kind) {
+  if (kind === "mask") {
+    return L.divIcon({
+      className: "fo-game-pin fo-game-pin-mask",
+      html: `<img src="/fallout/slasher-mask-marker-cutout.png" alt="" width="36" height="42" draggable="false" /><b class="fo-mask-pin-number" aria-hidden="true">${label}</b>`,
+      iconSize: [44, 48],
+      iconAnchor: [22, 24],
+      popupAnchor: [0, -22],
+    });
+  }
   return L.divIcon({ className: `fo-game-pin fo-game-pin-${kind}`, html: `<span>${label}</span>`, iconSize: [32, 32], iconAnchor: [16, 16] });
 }
 
@@ -155,7 +164,7 @@ export function SlasherGameMap({ locations, active, overview, selectedPoint, vie
         const position = worldToMap(...center);
         coordinates.push(...location.spawns.map(point => worldToMap(point.x, point.y)));
         const title = `${location.name}: ${location.spawns.length} masks. Open area`;
-        L.marker(position, { icon: pinIcon(String(index + 1).padStart(2, "0"), "area"), title, alt: title })
+        L.marker(position, { icon: pinIcon(String(index + 1).padStart(2, "0"), "area"), alt: title })
           .on("click", () => onSelectArea(location.id)).addTo(layer).getElement()?.setAttribute("aria-label", title);
       });
     } else {
@@ -169,7 +178,7 @@ export function SlasherGameMap({ locations, active, overview, selectedPoint, vie
         const position = worldToMap(point.x, point.y);
         coordinates.push(position);
         const title = `Mask ${String(point.number).padStart(3, "0")} near ${active.name}`;
-        const marker = L.marker(position, { icon: pinIcon(String(index + 1).padStart(2, "0"), "mask"), title, alt: title, riseOnHover: true })
+        const marker = L.marker(position, { icon: pinIcon(String(index + 1).padStart(2, "0"), "mask"), alt: title, riseOnHover: true })
           .bindPopup(() => maskPopup(point, active, setPhotoSelection), { className: "fo-mask-photo-popup", maxWidth: 320, minWidth: 200, autoPanPaddingTopLeft: [20, 95], autoPanPaddingBottomRight: [20, 35] })
           .on("click", () => onSelectPoint(point.id)).addTo(layer);
         marker.getElement()?.setAttribute("aria-label", title);
