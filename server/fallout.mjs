@@ -1,5 +1,6 @@
 import { SOURCES } from "../src/fallout/data/sources.js";
 import { parseAxolotl, parseCodes, parseHomeEvents, parseMinerva } from "./fallout-source.mjs";
+import { parseChallenges, parseDailyOps } from "./fallout-activities.mjs";
 
 const CACHE_MS = 15 * 60_000;
 const RETRY_MS = 60_000;
@@ -56,7 +57,10 @@ export function createFalloutService({ fetcher = fetch, clock = Date.now } = {})
       save("codes", () => parseCodes(get(codes))),
       save("events", () => parseHomeEvents(get(home)).map(({ inventory, ...event }) => event)),
       save("axolotl", () => parseAxolotl(get(home))),
-      save("minerva", () => parseMinerva(get(minerva), home.status === "fulfilled" ? safeEvents(home.value) : []))
+      save("minerva", () => parseMinerva(get(minerva), home.status === "fulfilled" ? safeEvents(home.value) : [])),
+      save("dailyOps", () => parseDailyOps(get(home))),
+      save("daily", () => parseChallenges(get(home), "daily", clock())),
+      save("weekly", () => parseChallenges(get(home), "weekly", clock()))
     ];
     retryAt = clock() + (results.every(Boolean) ? CACHE_MS : RETRY_MS);
   }
@@ -67,12 +71,12 @@ export function createFalloutService({ fetcher = fetch, clock = Date.now } = {})
 
   function snapshot() {
     const now = clock();
-    return Object.fromEntries(["codes", "minerva", "axolotl", "events"].map((key) => {
+    return Object.fromEntries(["codes", "minerva", "axolotl", "events", "dailyOps", "daily", "weekly"].map((key) => {
       const entry = cache.get(key);
       if (!entry || now - Date.parse(entry.fetchedAt) > MAX_STALE_MS) {
         return [key, { status: "unavailable", data: null, fetchedAt: entry?.fetchedAt || null, source: SOURCES[key] }];
       }
-      const expired = key === "codes" || key === "axolotl"
+      const expired = ["codes", "axolotl", "dailyOps", "daily", "weekly"].includes(key)
         ? now >= Date.parse(entry.data.endsAt) || now < Date.parse(entry.data.startsAt)
         : key === "minerva" && !entry.data.visits.some((visit) => Date.parse(visit.endsAt) > now);
       return [key, {

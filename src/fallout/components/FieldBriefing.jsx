@@ -1,21 +1,22 @@
-import { BookOpen, Fish, MapPin, Radio, Radiation } from "lucide-react";
+import { BookOpen, Crosshair, ListChecks, MapPin, Radio, Radiation } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { countdown, selectVisits } from "../data/time";
 import { GUIDES_PATH } from "../data/pages";
 
 const CHANNELS = [
   { id: "codes", label: "Launch codes", icon: Radiation, channel: "SILO NETWORK" },
-  { id: "minerva", label: "Minerva", icon: MapPin, channel: "CARAVAN SIGNAL" },
-  { id: "axolotl", label: "Fishing", icon: Fish, channel: "FIELD RESEARCH" },
+  { id: "fieldIntel", label: "Minerva & fishing", icon: MapPin, channel: "FIELD INTELLIGENCE" },
+  { id: "dailyOps", label: "Daily Ops", icon: Crosshair, channel: "TACTICAL BRIEFING", path: "/fallout/daily-ops" },
+  { id: "challenges", label: "Challenges", icon: ListChecks, channel: "DAILY & WEEKLY ORDERS", path: "/fallout/daily-challenges" },
   { id: "events", label: "Intel & events", icon: Radio, channel: "COMMUNITY RADIO" },
   { id: "guides", label: "Guides", icon: BookOpen, channel: "FIELD LIBRARY", reference: true },
 ];
 
 export function FieldSignal({ feeds, loading, connected }) {
   return <div className="fo-rail-signal">
-    <div><Radio size={14} aria-hidden="true" /><span>RECEPTION</span><b>{connected}/4</b></div>
-    <div className="fo-reception-bars" aria-hidden="true">{CHANNELS.filter(channel => !channel.reference).map(({ id }) => <i key={id} className={feeds[id].status === "current" ? "is-current" : ""} />)}</div>
-    <span>{loading ? "Receiving field reports…" : connected === 4 ? "All frequencies current." : connected ? "Partial signal. Check report dates." : "No current reports received."}</span>
+    <div><Radio size={14} aria-hidden="true" /><span>RECEPTION</span><b>{connected}/{Object.keys(feeds).length}</b></div>
+    <div className="fo-reception-bars" style={{ gridTemplateColumns: `repeat(${Object.keys(feeds).length}, 1fr)` }} aria-hidden="true">{Object.entries(feeds).map(([id, feed]) => <i key={id} className={feed.status === "current" ? "is-current" : ""} />)}</div>
+    <span>{loading ? "Receiving field reports…" : connected === Object.keys(feeds).length ? "All frequencies current." : connected ? "Partial signal. Check report dates." : "No current reports received."}</span>
   </div>;
 }
 
@@ -27,8 +28,9 @@ export function FieldNavigation({ feeds, loading, now, booting }) {
   const visit = current || next;
   const detail = {
     codes: feeds.codes.status === "current" && feeds.codes.data ? `Reset in ${countdown(feeds.codes.data.endsAt, now)}` : "Awaiting confirmation",
-    minerva: feeds.minerva.status === "current" && visit ? `${current ? "At" : "Next:"} ${visit.location}` : "Awaiting sighting",
-    axolotl: feeds.axolotl.status === "current" ? feeds.axolotl.data?.name : "Awaiting field report",
+    fieldIntel: feeds.minerva.status === "current" && visit ? `${current ? "At" : "Next:"} ${visit.location} · Monthly catch` : "Merchant & monthly catch",
+    dailyOps: feeds.dailyOps.status === "current" ? feeds.dailyOps.data?.mode : "Awaiting operation",
+    challenges: `${feeds.daily.data?.items.length ?? "—"} daily · ${feeds.weekly.data?.items.length ?? "—"} weekly`,
     events: feeds.events.status === "current" ? "Latest transmissions" : "Awaiting bulletin",
     guides: "Collectables & field notes",
   };
@@ -52,7 +54,7 @@ export function FieldNavigation({ feeds, loading, now, booting }) {
       <div className="fo-dial-scale" style={{ gridTemplateColumns: `repeat(${CHANNELS.length}, 1fr)` }}><i style={{ left: `${(channelIndex + .5) / CHANNELS.length * 100}%` }} />{CHANNELS.map(({ id }, index) => <span key={id}>0{index + 1}</span>)}</div>
       <span className="fo-dial-station">{CHANNELS[channelIndex].channel}</span>
     </div>
-    <nav ref={navRef} className="fo-nav fo-field-nav" style={{ "--fo-channel-count": CHANNELS.length }} aria-label="Fallout terminal directory">{CHANNELS.map(({ id, label, icon: Icon, reference }, index) => <a href={reference ? GUIDES_PATH : `#${id}`} key={id} aria-current={active === id ? "location" : undefined} onClick={() => { selectedRef.current = id; setActive(id); }}>
+    <nav ref={navRef} className="fo-nav fo-field-nav" style={{ "--fo-channel-count": CHANNELS.length }} aria-label="Fallout terminal directory">{CHANNELS.map(({ id, label, icon: Icon, reference, path }, index) => <a href={path || (reference ? GUIDES_PATH : `#${id}`)} key={id} aria-current={active === id ? "location" : undefined} onClick={() => { selectedRef.current = id; setActive(id); }}>
       <span className="fo-directory-number">0{index + 1}</span><span className="fo-selector-cap"><Icon size={18} aria-hidden="true" /></span><span className="fo-directory-copy"><strong>{label}</strong><small>{loading && !reference ? "Receiving report…" : detail[id]}</small></span><i className={feeds[id]?.status === "current" ? "is-current" : ""} aria-hidden="true" />
     </a>)}</nav>
   </>;

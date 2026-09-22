@@ -1,10 +1,10 @@
-const SEEN_KEY = "daivr-fallout-splash-seen.v1";
+const SEEN_KEY = "daivr-fallout-splash-session.v1";
 let seenThisPage = false;
 
 export function hasSeenFalloutSplash() {
   if (seenThisPage) return true;
   try {
-    return localStorage.getItem(SEEN_KEY) === "1";
+    return document.cookie.split(";").some((cookie) => cookie.trim() === `${SEEN_KEY}=1`);
   } catch {
     return false;
   }
@@ -12,5 +12,6 @@ export function hasSeenFalloutSplash() {
 
 export function rememberFalloutSplash() {
   seenThisPage = true;
-  try { localStorage.setItem(SEEN_KEY, "1"); } catch { /* Keep the in-memory fallback when storage is unavailable. */ }
+  // No expiry: share the flag across tabs for this browser session only.
+  try { document.cookie = `${SEEN_KEY}=1; Path=/; SameSite=Lax`; } catch { /* Keep the in-memory fallback when cookies are unavailable. */ }
 }

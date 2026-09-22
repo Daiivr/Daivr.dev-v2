@@ -2,7 +2,7 @@ import React from "react";
 import { FalloutLoader } from "./fallout/components/FalloutLoader";
 import { createRoot } from "react-dom/client";
 import { FALLOUT_NAVIGATION, getPreloadedFalloutPage, preloadFallout } from "./lib/falloutNavigation";
-import { isGuidePath, normalizeFalloutPath } from "./fallout/data/pages";
+import { isActivityPath, isGuidePath, normalizeFalloutPath } from "./fallout/data/pages";
 import { hasSeenFalloutSplash } from "./lib/falloutSplash";
 import "./index.css";
 import "./styles/attract-mode.css";
@@ -40,6 +40,7 @@ import "./styles/cabinet-topbar.css";
 const isFalloutPath = () => window.location.pathname.toLowerCase().replace(/\/+$/, "") === "/fallout";
 const FalloutPage = React.lazy(preloadFallout);
 const GuidesPage = React.lazy(() => import("./fallout/GuidesPage.jsx"));
+const ActivityPage = React.lazy(() => import("./fallout/ActivityPage.jsx"));
 const CabinetPage = React.lazy(() => import("./App.jsx"));
 
 function RootPage() {
@@ -58,7 +59,7 @@ function RootPage() {
   // directly avoids React.lazy briefly committing its full-size loader first.
   const TerminalPage = route.origin ? getPreloadedFalloutPage() || FalloutPage : FalloutPage;
   return <React.Suspense fallback={route.fallout && !route.origin && !hasSeenFalloutSplash() ? <FalloutLoader /> : null}>
-    {isGuidePath(route.path) ? <GuidesPage key={route.path} path={route.path} /> : route.fallout ? <TerminalPage entryOrigin={route.origin} /> : <CabinetPage />}
+    {isGuidePath(route.path) ? <GuidesPage key={route.path} path={route.path} /> : isActivityPath(route.path) ? <ActivityPage key={route.path} path={route.path} /> : route.fallout ? <TerminalPage entryOrigin={route.origin} /> : <CabinetPage />}
   </React.Suspense>;
 }
 

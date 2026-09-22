@@ -9,6 +9,8 @@
  * @typedef {{visits:MinervaVisit[]}} MinervaSchedule
  * @typedef {{name:string, month:string, regions:string[], startsAt:string, endsAt:string, imageUrl:string|null}} Axolotl
  * @typedef {{title:string, url:string, startsAt:string, endsAt:string|null}} WastelandEvent
- * @typedef {{codes:Feed<NuclearCodes>, minerva:Feed<MinervaSchedule>, axolotl:Feed<Axolotl>, events:Feed<WastelandEvent[]>}} Intelligence
+ * @typedef {{mode:string, location:string, enemies:string, mutations:{name:string, description:string}[], startsAt:string, endsAt:string}} DailyOperation
+ * @typedef {{items:{id:string, name:string, score:number, falloutFirst:boolean}[], startsAt:string, endsAt:string, resetEstimated:boolean}} ChallengeReport
+ * @typedef {{codes:Feed<NuclearCodes>, minerva:Feed<MinervaSchedule>, axolotl:Feed<Axolotl>, events:Feed<WastelandEvent[]>, dailyOps:Feed<DailyOperation>, daily:Feed<ChallengeReport>, weekly:Feed<ChallengeReport>}} Intelligence
  */
 export {};

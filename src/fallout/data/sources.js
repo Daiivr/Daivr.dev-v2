@@ -3,6 +3,9 @@ export const SOURCES = {
   minerva: { name: "Nuka Knights", url: "https://nukaknights.com/minerva-dates-inventory.html" },
   axolotl: { name: "Nuka Knights", url: "https://nukaknights.com/articles/catch-axolotl-all-regions-and-months-incl-map.html" },
   events: { name: "Nuka Knights", url: "https://nukaknights.com/en/" },
+  dailyOps: { name: "Nuka Knights", url: "https://nukaknights.com/en/" },
+  daily: { name: "Nuka Knights · snooptodd", url: "https://nukaknights.com/en/" },
+  weekly: { name: "Nuka Knights · snooptodd", url: "https://nukaknights.com/en/" },
   bethesda: { name: "Bethesda", url: "https://fallout.bethesda.net/en-US/news" }
 };
 

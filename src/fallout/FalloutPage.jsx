@@ -7,8 +7,9 @@ import { NuclearCommand } from "./components/NuclearCommand";
 import { MerchantIntel } from "./components/MerchantIntel";
 import { ResearchFile } from "./components/ResearchFile";
 import { EventIntel } from "./components/EventIntel";
+import { ActivityLinks } from "./components/ActivityLinks";
 import { FieldGuides } from "./components/FieldGuides";
-import { GUIDES_PATH } from "./data/pages";
+import { ACTIVITY_PAGES, GUIDES_PATH } from "./data/pages";
 import { FieldNavigation, FieldSignal } from "./components/FieldBriefing";
 import { StationFooter } from "./components/StationFooter";
 import { TerminalBoot, useTerminalBoot } from "./components/TerminalBoot";
@@ -18,7 +19,7 @@ import "./fallout.css";
 import "./field-station.css";
 import "./operations.css";
 
-const NAV = [["codes", "Launch codes"], ["minerva", "Minerva"], ["axolotl", "A.X.O.L.O.T.L."], ["events", "Intel & events"], ["guides", "Guides"]];
+const NAV = [["codes", "Launch codes"], ["minerva", "Minerva"], ["axolotl", "A.X.O.L.O.T.L."], ["dailyOps", "Daily Ops"], ["daily", "Daily challenges"], ["weekly", "Weekly challenges"], ["events", "Intel & events"], ["guides", "Guides"]];
 
 export default function FalloutPage({ entryOrigin }) {
   const { intel, loading, connectionFailed, refresh } = useFalloutIntel();
@@ -29,10 +30,14 @@ export default function FalloutPage({ entryOrigin }) {
   const [command, setCommand] = useState("");
   const [commandResult, setCommandResult] = useState("Terminal ready. Type help to view available commands.");
   const wasBooting = useRef(booting);
-  const feeds = Object.fromEntries(Object.entries(intel).map(([key, value]) => [key, effectiveFeed(value, now, key === "codes" || key === "axolotl")]));
+  const feeds = Object.fromEntries(Object.entries(intel).map(([key, value]) => [key, effectiveFeed(value, now, ["codes", "axolotl", "dailyOps", "daily", "weekly"].includes(key))]));
   const connected = Object.values(feeds).filter((feed) => feed.status === "current").length;
   const syncs = Object.values(feeds).map((feed) => feed.fetchedAt).filter(Boolean).sort();
   const lastSync = syncs.at(-1);
+
+  // A report can arrive after the last clock tick; judge its window using the
+  // receive time instead of briefly treating newly received data as future data.
+  useEffect(() => { setNow(Date.now()); }, [intel]);
 
   useEffect(() => {
     // Record on departure so a long visit still gets a fresh return greeting.
@@ -71,8 +76,11 @@ export default function FalloutPage({ entryOrigin }) {
       window.location.assign(GUIDES_PATH);
       return;
     }
-    if (NAV.some(([id]) => id === input)) {
-      const section = document.getElementById(input);
+    const activity = Object.entries(ACTIVITY_PAGES).find(([, page]) => page.key.toLowerCase() === input);
+    if (activity) { window.location.assign(activity[0]); return; }
+    const destination = NAV.find(([id]) => id.toLowerCase() === input)?.[0];
+    if (destination) {
+      const section = document.getElementById(destination);
       section?.scrollIntoView({ behavior: "instant", block: "start" });
       section?.querySelector("h2")?.focus({ preventScroll: true });
       setCommandResult(`Opened ${input.toUpperCase()} file.`);
@@ -83,7 +91,7 @@ export default function FalloutPage({ entryOrigin }) {
     } else if (input === "clear") {
       setCommandResult("");
     } else {
-      setCommandResult(input === "help" ? "COMMANDS: codes · minerva · axolotl · events · guides · refresh · crt · clear" : `Unknown command: ${input || "(empty)"}. Type help for the command directory.`);
+      setCommandResult(input === "help" ? "COMMANDS: codes · minerva · axolotl · dailyops · daily · weekly · events · guides · refresh · crt · clear" : `Unknown command: ${input || "(empty)"}. Type help for the command directory.`);
     }
     setCommand("");
   }
@@ -107,11 +115,12 @@ export default function FalloutPage({ entryOrigin }) {
             <div className="fo-desk-title"><span className="fo-desk-eyebrow">APPALACHIA / DAI’S FIELD STATION</span><h1>WASTELAND<span>OPERATIONS DESK.</span></h1><p>Your briefing for life outside the vault.</p></div>
             <div className="fo-desk-stamp"><span>DAILY DISPATCH</span><strong>{new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "America/New_York" }).format(now)}</strong><span>{new Intl.DateTimeFormat("en-US", { year: "numeric", timeZone: "America/New_York" }).format(now)} / EASTERN TIME</span></div>
           </header>
-          <div className="fo-desk-toolbar"><span className="fo-status"><i />{loading ? "ACCESSING SOURCES" : connected === 4 ? "ALL REPORTS CURRENT" : connected ? "PARTIAL RECEPTION" : "CONNECTION UNAVAILABLE"}</span><span>SYNC / {formatSync(lastSync)}</span><div className="fo-display-controls"><button type="button" onClick={toggleCrt} aria-pressed={crt}><Monitor size={14} aria-hidden="true" />CRT {crt ? "ON" : "OFF"}</button><button type="button" onClick={refresh} disabled={loading}><RefreshCw className={loading ? "fo-spin" : ""} size={14} aria-hidden="true" />{loading ? "Syncing" : "Refresh"}</button></div></div>
+          <div className="fo-desk-toolbar"><span className="fo-status"><i />{loading ? "ACCESSING SOURCES" : connected === Object.keys(feeds).length ? "ALL REPORTS CURRENT" : connected ? "PARTIAL RECEPTION" : "CONNECTION UNAVAILABLE"}</span><span>SYNC / {formatSync(lastSync)}</span><div className="fo-display-controls"><button type="button" onClick={toggleCrt} aria-pressed={crt}><Monitor size={14} aria-hidden="true" />CRT {crt ? "ON" : "OFF"}</button><button type="button" onClick={refresh} disabled={loading}><RefreshCw className={loading ? "fo-spin" : ""} size={14} aria-hidden="true" />{loading ? "Syncing" : "Refresh"}</button></div></div>
           <div className="fo-content fo-desk-content">
             {connectionFailed && <div className="fo-connection-warning" role="status"><strong>CONNECTION INTERRUPTED.</strong> Reports could not be refreshed. Last successful data, if available, is marked stale.<button type="button" className="fo-text-button" onClick={refresh} disabled={loading}>Retry connection</button></div>}
             <NuclearCommand feed={feeds.codes} loading={loading} now={now} onRetry={refresh} />
-            <div className="fo-dossiers"><MerchantIntel feed={feeds.minerva} loading={loading} now={now} onRetry={refresh} /><ResearchFile feed={feeds.axolotl} loading={loading} now={now} onRetry={refresh} /></div>
+            <div id="fieldIntel" className="fo-dossiers fo-section-group"><MerchantIntel feed={feeds.minerva} loading={loading} now={now} onRetry={refresh} /><ResearchFile feed={feeds.axolotl} loading={loading} now={now} onRetry={refresh} /></div>
+            <ActivityLinks feeds={feeds} />
             <EventIntel feed={feeds.events} loading={loading} now={now} onRetry={refresh} />
             <FieldGuides />
             <section className="fo-command-console" aria-label="Terminal command line"><div className="fo-command-head"><Terminal size={16} aria-hidden="true" /><span>LOCAL COMMAND INTERFACE</span><span>TYPE “HELP” TO BEGIN</span></div><form onSubmit={runCommand}><label htmlFor="fo-command">guest@dai:~$</label><input id="fo-command" value={command} onChange={(event) => setCommand(event.target.value)} autoComplete="off" autoCapitalize="none" spellCheck={false} maxLength={80} placeholder="help" /><button type="submit">Execute <span aria-hidden="true">↵</span></button></form><p role="status">{commandResult || "Console cleared."}<span className="fo-cursor" aria-hidden="true">▌</span></p></section>

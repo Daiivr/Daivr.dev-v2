@@ -4,6 +4,7 @@ import { createFalloutService } from "../server/fallout.mjs";
 import { easternDate, parseAxolotl, parseCodes, parseHomeEvents, parseMinerva, plainText } from "../server/fallout-source.mjs";
 import { countdown, effectiveFeed, isInWindow, selectVisits } from "../src/fallout/data/time.js";
 import { SOURCES } from "../src/fallout/data/sources.js";
+import { opsFixture, challengeFixture } from "./fixtures/fallout-activities.mjs";
 
 // Synthetic fixtures model the source's observed HTML shapes. These test codes
 // never enter the application or its fallback states.
@@ -72,7 +73,7 @@ function serviceHarness() {
   const get = createFalloutService({ clock: () => now, fetcher: async (url) => {
     calls++;
     if (failure) throw new Error("Offline");
-    const html = url === SOURCES.codes.url ? (brokenCodes ? "changed markup" : codeFixture()) : url === SOURCES.minerva.url ? minervaFixture : eventFixture + axolotlFixture;
+    const html = url === SOURCES.codes.url ? (brokenCodes ? "changed markup" : codeFixture()) : url === SOURCES.minerva.url ? minervaFixture : eventFixture + axolotlFixture + opsFixture + challengeFixture;
     return new Response(html, { headers: { "content-type": "text/html" } });
   } });
   return { get, calls: () => calls, advance: (ms) => { now += ms; }, fail: () => { failure = true; }, breakCodes: () => { brokenCodes = true; } };

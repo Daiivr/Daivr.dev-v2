@@ -1,13 +1,16 @@
-import { MapPin } from "lucide-react";
+import { Info, MapPin } from "lucide-react";
+import { useState } from "react";
+import { ItemWikiModal } from "./ItemWikiModal";
 import { FalloutIcon } from "./FalloutIcon";
 import { countdown, formatDate, selectVisits } from "../data/time";
 import { FeedNote, PanelHeading, Unavailable } from "./TerminalPanel";
 
-function InventoryRows({ items }) {
-  return <ul className="fo-inventory-list">{items.map((item) => <li key={item.name}><span>{item.name}</span><b><FalloutIcon name="goldBullion" />{item.gold.toLocaleString("en-US")} <small>GB</small></b></li>)}</ul>;
+function InventoryRows({ items, onInspect }) {
+  return <ul className="fo-inventory-list">{items.map((item) => <li key={item.name}><span>{item.name}</span><div className="fo-inventory-actions"><b><FalloutIcon name="goldBullion" />{item.gold.toLocaleString("en-US")} <small>GB</small></b><button type="button" onClick={() => onInspect(item)} aria-label={`Wiki info for ${item.name}`}><Info size={15} aria-hidden="true" /><span>Info</span></button></div></li>)}</ul>;
 }
 
 export function MerchantIntel({ feed, loading, now, onRetry }) {
+  const [selectedItem, setSelectedItem] = useState(null);
   const { current, next } = selectVisits(feed.data?.visits, now);
   const visit = current || next;
   const confirmed = feed.status === "current" && !!visit;
@@ -30,10 +33,11 @@ export function MerchantIntel({ feed, loading, now, onRetry }) {
     <div className="fo-inventory"><div className="fo-inventory-heading"><h3>{!confirmed ? "Last reported manifest" : current ? "Current inventory" : "Upcoming manifest"}</h3><span>{items ? `${items.length} PLANS` : "AWAITING REPORT"}</span></div>
       {!current && confirmed && <p className="fo-inventory-note">Minerva is away. These are the source’s listed offers for her next visit.</p>}
       {!confirmed && items && <p className="fo-inventory-note">Archived inventory — current availability is unconfirmed.</p>}
-      {items ? <><InventoryRows items={items.slice(0, 4)} />{items.length > 4 && <details className="fo-manifest"><summary>Open complete manifest <span>+{items.length - 4} PLANS</span></summary><InventoryRows items={items.slice(4)} /></details>}</> : <p className="fo-inventory-note">Item-level inventory has not been confirmed in this report. Check back after the next report update.</p>}
+      {items ? <><InventoryRows items={items.slice(0, 4)} onInspect={setSelectedItem} />{items.length > 4 && <details className="fo-manifest"><summary>Open complete manifest <span>+{items.length - 4} PLANS</span></summary><InventoryRows items={items.slice(4)} onInspect={setSelectedItem} /></details>}</> : <p className="fo-inventory-note">Item-level inventory has not been confirmed in this report. Check back after the next report update.</p>}
       {next && current && <p className="fo-next-stop">NEXT STOP <strong>{next.location}</strong> {formatDate(next.startsAt)} – {formatDate(next.endsAt)}</p>}
       {visit && <p className="fo-visit-hours">Visit opens {formatDate(visit.startsAt, true)}. Closes {formatDate(visit.endsAt, true)}.</p>}
     </div>
     <FeedNote feed={feed} loading={loading} />
+    {selectedItem && <ItemWikiModal key={selectedItem.name} item={selectedItem} onClose={() => setSelectedItem(null)} />}
   </section>;
 }

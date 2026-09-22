@@ -1,0 +1,33 @@
+.fo-section-group { scroll-margin-top: 49px; }
+.fo-dispatch-links { padding: 22px; border: 1px solid #637860; border-radius: 5px; background: url('/fallout/surface-grain.svg'), #263d33; }
+.fo-dispatch-links > header { display: flex; align-items: baseline; flex-wrap: wrap; gap: 8px 18px; margin-bottom: 19px; }
+.fo-dispatch-links h2 { color: #e3dfba; font: 28px/1 Impact, sans-serif; text-transform: uppercase; }
+.fo-dispatch-links .fo-kicker { flex-basis: 100%; font-size: 7px; }
+.fo-dispatch-links p { color: #b1c0a3; font-size: 10px; }
+.fo-dispatch-links > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.fo-dispatch-links a { display: flex; align-items: center; gap: 12px; min-height: 86px; padding: 16px; border: 1px solid #89957877; background: #142e2677; color: #d5dcba; }
+.fo-dispatch-links a > svg { flex: none; }
+.fo-dispatch-links a > svg:last-child { margin-left: auto; width: 14px; color: #cbb477; }
+.fo-dispatch-links strong { display: block; font-size: 12px; }
+.fo-dispatch-links small { display: block; margin-top: 6px; color: #a9bda2; font-size: 9px; }
+.fo-dispatch-links a:hover { background: #425a3e; border-color: #bac38f; }
+.fo-activity-page .fo-interface { max-width: 1160px; padding-inline: 30px; }
+.fo-report-sitebar { display: flex; align-items: center; justify-content: space-between; gap: 20px; min-height: 100px; }
+.fo-report-sitebar > a { display: flex; align-items: center; gap: 12px; color: #d2d7b8; font-size: 11px; }
+.fo-report-sitebar > a:first-child { font: 25px/1 Impact, sans-serif; }
+.fo-report-sitebar small { display: block; margin-top: 7px; font: 6px var(--font-mono); letter-spacing: 1.4px; }
+.fo-report-intro { display: flex; align-items: end; justify-content: space-between; gap: 24px; padding: 30px 0; }
+.fo-report-intro h1 { margin: 12px 0; color: #e4dfbb; font: 900 clamp(40px, 5vw, 62px)/1 Impact, sans-serif; text-transform: uppercase; }
+.fo-report-intro p { color: #adbda8; font-size: 12px; line-height: 1.7; }
+.fo-report-intro button { display: flex; align-items: center; gap: 9px; flex: none; min-height: 44px; padding: 10px 15px; border: 1px solid #83977b; background: #293f34; color: #dfddba; font: 10px var(--font-mono); }
+.fo-report-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 54px; }
+.fo-report-tabs a { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 16px 20px; min-height: 50px; border: 1px solid #75877366; background: #1d342de8; color: #aebb9f; font-size: 11px; }
+.fo-report-tabs a[aria-current] { border-color: #c0ba83; color: #e4dba7; background: #41553c; box-shadow: inset 0 -3px #c0ba83; }
+.fo-activity-page .fo-orders-cover { padding: 28px 32px; }
+.fo-activity-page .fo-orders-list { padding-inline: 26px; }
+.fo-activity-page .fo-orders-list > li { grid-template-columns: 32px minmax(0, 1fr) 90px; gap: 20px; padding-block: 19px; font-size: 14px; }
+.fo-activity-page .fo-score-ticket { padding: 10px; }
+.fo-report-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; padding: 32px 0 50px; color: #b1bda4; font-size: 9px; }
+.fo-report-footer a { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+@media (max-width: 800px) { .fo-dispatch-links > div { grid-template-columns: 1fr; } .fo-dispatch-links a { min-height: 68px; } }
+@media (max-width: 600px) { .fo-section-group { scroll-margin-top: 108px; } .fo-activity-page .fo-interface { padding-inline: 16px; } .fo-report-sitebar { min-height: 85px; gap: 12px; } .fo-report-sitebar > a:last-child { font-size: 9px; } .fo-report-intro { align-items: start; flex-direction: column; padding-top: 15px; } .fo-report-tabs { gap: 5px; } .fo-report-tabs a { padding: 14px 9px; font-size: 9px; } .fo-report-tabs a > span { display: none; } .fo-activity-page .fo-orders-cover { padding: 25px 20px; } .fo-activity-page .fo-orders-list { padding-inline: 12px; } .fo-activity-page .fo-orders-list > li { grid-template-columns: 20px minmax(0, 1fr) 60px; gap: 9px; font-size: 12px; } .fo-activity-page .fo-score-ticket { padding: 8px 3px; } }

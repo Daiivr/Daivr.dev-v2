@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { SOURCES } from "../data/sources";
 
-const KEYS = ["codes", "minerva", "axolotl", "events"];
+const KEYS = ["codes", "minerva", "axolotl", "events", "dailyOps", "daily", "weekly"];
 const emptyIntel = () => Object.fromEntries(KEYS.map((key) => [key, {
   data: null, status: "unavailable", fetchedAt: null, source: SOURCES[key]
 }]));

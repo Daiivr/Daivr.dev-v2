@@ -98,3 +98,25 @@
   .fo-guide-rewards li { padding: 16px 10px; gap: 9px; }
 }
 @media (prefers-reduced-motion: reduce) { .fo-guide-actions button, .fo-guide-actions button > svg:last-child { transition: none; } }
+
+/* The field library is a loose dossier beside the merchant and research files. */
+.fo-panel.fo-library-dossier { position: relative; margin-top: 25px; border: 1px solid #929b85; border-radius: 0 4px 4px 4px; background: url('/fallout/surface-grain.svg'), #c1c4a3; box-shadow: 3px 4px #6a7760, 5px 6px #203329, 6px 9px 16px #0006; }
+.fo-library-dossier > .fo-file-tab { background: #60715a; border-color: #929b85; color: #ede5bc; }
+.fo-panel.fo-library-dossier > .fo-panel-heading { color: #e1dfb8; background: #4c604a; border-bottom: 3px double #9aab83; }
+.fo-library-dossier .fo-guides-heading { padding: 24px 28px 20px; }
+.fo-library-dossier .fo-guides-heading h2 { font-size: 30px; color: #304735; }
+.fo-library-dossier .fo-guides-heading :is(p, .fo-kicker) { color: #4c5e43; }
+.fo-library-dossier .fo-guide-library-link { color: #394e35 !important; }
+.fo-library-dossier .fo-guide-file { grid-template-columns: minmax(180px, .7fr) minmax(0, 1.3fr); gap: 0; margin: 0 24px 25px; border-color: #b2b18d; background: url('/fallout/surface-grain.svg'), repeating-linear-gradient(transparent 0 31px, #69604413 32px), #d2c8a4; box-shadow: 3px 4px #172c25; }
+.fo-library-dossier .fo-guide-brief { padding: 28px; background: none; }
+.fo-library-dossier .fo-guide-brief h3 { font-size: clamp(28px, 2.6vw, 42px); margin-block: 14px; }
+.fo-library-dossier .fo-guide-facts { margin: 20px 0; }
+.fo-library-dossier .fo-guide-credit { font-size: 8px; letter-spacing: 1px; }
+.fo-guide-evidence { position: relative; display: flex; flex-direction: column; justify-content: space-between; margin: 22px 0 22px 22px; padding: 12px 12px 0; border: 8px solid #e4dcc0; background: radial-gradient(ellipse, #4e6050, #223e38); box-shadow: 1px 3px 9px #40392055; overflow: hidden; transform: rotate(-1.5deg); }
+.fo-guide-evidence > span:first-child { position: relative; z-index: 1; color: #c2caae; font-size: 6px; letter-spacing: 1px; }
+.fo-guide-evidence img { display: block; object-fit: contain; width: 100%; height: 270px; margin-top: 15px; object-position: center bottom; filter: drop-shadow(0 8px 5px #142a26aa); }
+.fo-guide-evidence small { margin-inline: -12px; padding: 12px 6px 5px; text-align: center; color: #585e44; background: #e4dcc0; font-size: 7px; letter-spacing: 1px; }
+.fo-evidence-stamp { position: absolute; bottom: 50px; right: 10px; padding: 6px 8px; border: 2px solid #cfb583; color: #e6c892; font-size: 9px; font-weight: 700; letter-spacing: 1px; line-height: 1.4; transform: rotate(9deg); background: #263c32d9; }
+.fo-guide-file-contents { display: grid; gap: 8px; margin: 17px 0 0; padding: 0; list-style: none; color: #4b5941; font-size: 10px; }
+.fo-guide-file-contents li::before { content: '↳'; margin-right: 10px; color: #945537; }
+@media (max-width: 700px) { .fo-library-dossier .fo-guide-file { grid-template-columns: 1fr; margin-inline: 16px; } .fo-guide-evidence { margin: 18px 24px 0; min-height: 0; transform: rotate(-1deg); } .fo-guide-evidence img { height: 200px; } .fo-library-dossier .fo-guide-brief { padding: 24px; } .fo-library-dossier .fo-guide-actions { align-items: start; } }

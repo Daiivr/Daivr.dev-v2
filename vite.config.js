@@ -15,6 +15,7 @@ import { handleTradeDexVirusTotalRequest } from "./server/virustotal.mjs";
 import { handleTowerBlockRequest } from "./server/tower-block.mjs";
 import { handleVisitsRequest } from "./server/visits.mjs";
 import { handleFalloutRequest } from "./server/fallout.mjs";
+import { handleFalloutItemRequest } from "./server/fallout-wiki.mjs";
 
 loadLocalEnv();
 
@@ -28,6 +29,7 @@ export default defineConfig({
       configureServer(server) {
         startDiscordStreakPolling();
 
+        server.middlewares.use("/api/fallout/item", handleFalloutItemRequest);
         server.middlewares.use("/api/fallout", (request, response) => {
           handleFalloutRequest(request, response);
         });

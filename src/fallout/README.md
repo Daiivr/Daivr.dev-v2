@@ -12,10 +12,10 @@ backgrounds. No sound or additional image libraries ship to visitors.
 ## Run and deploy
 
 - `pnpm dev` serves the page and `/api/fallout` through the existing Vite middleware.
-- `pnpm build` creates both `dist/index.html` and `dist/fallout/index.html`.
+- `pnpm build` creates HTML entries for the cabinet and every Fallout route.
 - `pnpm start` runs the existing Node server. `/fallout` and `/fallout/` serve
   the dedicated HTML with HTTP 200, title, description, canonical and OG metadata.
-- `node --test scripts/test-fallout.mjs` tests parsing, DST, validity boundaries,
+- `node --test scripts/test-fallout.mjs scripts/test-fallout-guides.mjs scripts/test-fallout-activities.mjs` tests parsing, DST, validity boundaries,
   source outages, partial failures, request coalescing and stale-cache behavior.
 
 The existing Node deployment requires no additional packages or environment
@@ -64,10 +64,10 @@ homepage, with explicit unknown end times where applicable.
 
 ## Field guides
 
-Channel 05 opens `/fallout/guides`; the mask guide has its own address at
+The Guides channel opens `/fallout/guides`; the mask guide has its own address at
 `/fallout/guides/pint-sized-slasher-masks`. Both routes have generated static
 HTML metadata and explicit Node-server handling for direct visits and reloads.
-The library and guide are independent of the four live intelligence feeds.
+The library and guide are independent of the seven live intelligence feeds.
 
 The guide prose and map interface are original. The map uses Leaflet CRS.Simple
 with Bethesda’s in-game Appalachia artwork, locally compressed to WebP. All 108 mask records were
@@ -153,3 +153,27 @@ Leaflet creates photo content only when a popup opens. Its thumbnail reserves
 space while loading, and an error leaves the pin information usable. Clicking
 the photo opens a native modal dialog with Escape, a close button, focus trapping,
 and focus restoration. Images remain unmodified. No completion state is stored.
+
+## Activity reports and item references
+
+Daily Ops, daily challenges, and weekly challenges have independent routes:
+`/fallout/daily-ops`, `/fallout/daily-challenges`, and
+`/fallout/weekly-challenges`. The main desk displays compact links only. Each
+report page includes navigation to the other reports and back to the desk.
+All routes receive generated HTML metadata and support direct visits/reloads.
+The main sidebar combines Minerva/fishing and daily/weekly challenges.
+
+`server/fallout-activities.mjs` parses all three feeds from the already fetched
+homepage. Daily Ops uses its published Eastern date. Challenge reset times are
+estimates from the source countdown, labeled with an approximation symbol.
+Personal rerolls and account bonuses are not represented in these public lists.
+Expired reports remain visibly stale and never claim to be current assignments.
+
+`/api/fallout/item?title=Plan: ...` serves a short attributed Nukapedia/Fallout
+Wiki extract through the public MediaWiki API. Requests are restricted to plan
+or recipe names and the fixed wiki host, bounded, coalesced and cached for a day.
+When a plan has no picture, its source-linked crafting unlock supplies the item
+image. Only the Fallout wiki image CDN is accepted. Missing images and failed
+lookups receive explicit fallback states. The modal provides the full wiki link
+and CC BY-SA attribution, supports Escape/backdrop dismissal, and restores focus
+to the triggering item button.

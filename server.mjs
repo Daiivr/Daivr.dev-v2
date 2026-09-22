@@ -15,6 +15,7 @@ import { handleTradeDexVirusTotalRequest } from "./server/virustotal.mjs";
 import { handleTowerBlockRequest } from "./server/tower-block.mjs";
 import { handleVisitsRequest } from "./server/visits.mjs";
 import { handleFalloutRequest } from "./server/fallout.mjs";
+import { handleFalloutItemRequest } from "./server/fallout-wiki.mjs";
 import { FALLOUT_PAGES, normalizeFalloutPath } from "./src/fallout/data/pages.js";
 
 process.on("uncaughtException", (error) => {
@@ -156,6 +157,10 @@ const appServer = createServer(async (request, response) => {
   try {
     const requestUrl = new URL(request.url || "/", `http://localhost:${port}`);
 
+    if (requestUrl.pathname === "/api/fallout/item") {
+      await handleFalloutItemRequest(request, response);
+      return;
+    }
     if (requestUrl.pathname === "/api/fallout") {
       await handleFalloutRequest(request, response);
       return;

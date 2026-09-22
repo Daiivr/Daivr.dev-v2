@@ -1,8 +1,14 @@
 export const GUIDES_PATH = "/fallout/guides";
 export const SLASHER_PATH = `${GUIDES_PATH}/pint-sized-slasher-masks`;
+export const ACTIVITY_PAGES = {
+  "/fallout/daily-ops": { key: "dailyOps", label: "Daily Ops", subtitle: "Know the mission before you head out." },
+  "/fallout/daily-challenges": { key: "daily", label: "Daily challenges", subtitle: "A fresh set of orders. A little more S.C.O.R.E." },
+  "/fallout/weekly-challenges": { key: "weekly", label: "Weekly challenges", subtitle: "Your assignments for the week ahead." },
+};
 
 // Shared by the browser, HTML generator and Node server.
 export const FALLOUT_PAGES = {
+  ...Object.fromEntries(Object.entries(ACTIVITY_PAGES).map(([path, page]) => [path, { title: `${page.label} | Fallout 76 | daivr.dev`, description: `Fallout 76 ${page.label.toLowerCase()} with current reports, rotation resets, and field notes from Dai's operations desk.` }])),
   "/fallout": {
     title: "Fallout Terminal | daivr.dev",
     description: "Dai's Fallout 76 intelligence terminal: nuclear launch codes, Minerva's schedule and inventory, monthly axolotls, wasteland events, and collectable guides.",
@@ -23,5 +29,9 @@ export function normalizeFalloutPath(pathname) {
 
 export function isGuidePath(pathname) {
   const path = normalizeFalloutPath(pathname);
-  return path !== "/fallout" && Object.hasOwn(FALLOUT_PAGES, path);
+  return path === GUIDES_PATH || path === SLASHER_PATH;
+}
+
+export function isActivityPath(pathname) {
+  return Object.hasOwn(ACTIVITY_PAGES, normalizeFalloutPath(pathname));
 }

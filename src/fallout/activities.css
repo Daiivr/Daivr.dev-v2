@@ -1,0 +1,51 @@
+/* Mission folder and assignment ledgers, paired with the station's field files. */
+.fo-section-group { scroll-margin-top: 49px; }
+.fo-panel.fo-ops-file { position: relative; margin-top: 25px; border: 1px solid #788e79; border-radius: 0 5px 5px 5px; background: url('/fallout/surface-grain.svg'), #293e34; box-shadow: 3px 4px #526352, 5px 6px #152922, 6px 9px 16px #0006; }
+.fo-ops-file .fo-file-tab { background: #496052; border-color: #758877; color: #d6dabb; }
+.fo-assignment-bar { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 16px 25px; border-bottom: 3px double #a9b69166; background: #3e5444; color: #d6dcbb; font-size: 9px; letter-spacing: 1px; }
+.fo-assignment-bar > span:first-child { display: flex; align-items: center; gap: 10px; }
+.fo-operation-layout { display: grid; grid-template-columns: .85fr 1.3fr; }
+.fo-operation-mission { position: relative; display: flex; flex-direction: column; justify-content: center; align-items: start; padding: 30px; border-right: 1px solid #93a68144; background: repeating-linear-gradient(45deg, transparent 0 24px, #a0b38a05 25px 26px), radial-gradient(ellipse at 20% 30%, #59754b44, transparent 80%); }
+.fo-operation-seal { display: grid; place-items: center; width: 70px; height: 70px; margin-bottom: 28px; border: 1px solid #a9b48d77; border-radius: 50%; color: #c2cf9e; box-shadow: inset 0 0 0 6px #98b97c0a; }
+.fo-operation-mission h2 { margin: 10px 0 13px; font: 900 clamp(38px, 3.7vw, 58px)/1 Impact, sans-serif; color: #e4dfb9; text-transform: uppercase; letter-spacing: .6px; overflow-wrap: anywhere; }
+.fo-operation-mission > p { color: #b1c19d; font-size: 11px; line-height: 1.7; }
+.fo-operation-reset { display: flex; align-items: center; gap: 10px; margin-top: 30px; padding: 10px 12px; border: 1px solid #99ab7b55; color: #d1c790; background: #10271c44; font-size: 10px; }
+.fo-operation-intel { padding: 28px; }
+.fo-operation-targets { display: grid; gap: 20px; }
+.fo-operation-targets > div { padding-bottom: 19px; border-bottom: 1px solid #9dac8950; }
+.fo-operation-targets dt { display: flex; align-items: center; gap: 9px; color: #aebda0; font-size: 8px; letter-spacing: 1.2px; }
+.fo-operation-targets dd { margin-top: 9px; color: #e0e2c7; font: 23px/1.3 var(--font-mono); }
+.fo-operation-conditions { margin-top: 24px; }
+.fo-operation-conditions > .fo-kicker { font-size: 7px; }
+.fo-operation-conditions > div { display: flex; gap: 12px; margin-top: 15px; }
+.fo-operation-conditions svg { flex: none; color: #d9b878; margin-top: 2px; }
+.fo-operation-conditions strong { font-size: 12px; color: #e2c891; }
+.fo-operation-conditions p { margin-top: 5px; color: #b4c3a9; font-size: 11px; line-height: 1.7; }
+.fo-operation-intel .fo-operation-date { margin-top: 25px; color: #a2b195; font-size: 8px; }
+.fo-challenge-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; align-items: start; }
+.fo-panel.fo-challenge-file { --task-ink: #344530; --task-muted: #5e674b; --task-line: #847f5955; --task-accent: #775230; position: relative; margin-top: 25px; border: 1px solid #b8ac80; border-radius: 0 4px 4px 4px; color: var(--task-ink); background: url('/fallout/surface-grain.svg'), #d3c8a4; box-shadow: 3px 4px #aa9c74, 5px 6px #243124, 6px 9px 16px #0006; }
+.fo-panel.fo-challenge-file.is-weekly { --task-ink: #dde5d7; --task-muted: #abc3c6; --task-line: #8dabb044; --task-accent: #e5c889; background: url('/fallout/surface-grain.svg'), linear-gradient(#9dbfc408 1px, transparent 1px), #24424d; background-size: auto, 22px 22px, auto; border-color: #739097; box-shadow: 3px 4px #48636a, 5px 6px #142d35, 6px 9px 16px #0006; }
+.fo-challenge-file.is-weekly .fo-file-tab { background: #385661; color: #cad9d0; border-color: #739097; }
+.fo-orders-cover { display: flex; align-items: center; gap: 16px; padding: 28px 24px 25px; }
+.fo-orders-icon { display: grid; place-items: center; flex: none; width: 46px; height: 56px; border: 1px solid var(--task-line); color: var(--task-muted); background: #6c735017; }
+.fo-orders-cover .fo-kicker { font-size: 7px; color: var(--task-muted); letter-spacing: 1px; }
+.fo-orders-cover h2 { margin-top: 6px; font: 900 39px/.98 Impact, sans-serif; text-transform: uppercase; color: var(--task-ink); }
+.fo-orders-cover h2 > span { display: block; margin-top: 7px; font: 11px var(--font-mono); letter-spacing: 2px; }
+.fo-orders-count { display: grid; gap: 5px; text-align: right; margin-left: auto; color: var(--task-muted); font: 32px/1 Impact, sans-serif; }
+.fo-orders-count small { font: 7px var(--font-mono); letter-spacing: 1px; }
+.fo-orders-reset { display: flex; align-items: center; gap: 8px; padding: 12px 24px; border-block: 1px solid var(--task-line); color: var(--task-muted); font-size: 9px; background: #53634212; }
+.fo-orders-reset > i { width: 5px; height: 5px; border-radius: 50%; background: #927044; margin-left: auto; }
+.fo-orders-reset > i.is-current { background: #6c844a; box-shadow: 0 0 0 3px #72945018; }
+.fo-orders-list { list-style: none; padding: 8px 18px 0; margin: 0; }
+.fo-orders-list > li { display: grid; grid-template-columns: 23px minmax(0, 1fr) 65px; align-items: center; gap: 10px; padding: 18px 6px; border-bottom: 1px solid var(--task-line); font-size: 12px; line-height: 1.65; }
+.fo-orders-list > li.is-gold-star { background: #aa923116; margin-inline: -5px; padding-inline: 11px; }
+.fo-order-symbol { display: grid; place-items: center; align-self: start; margin-top: 3px; min-height: 24px; color: var(--task-muted); font-size: 8px; border: 1px solid var(--task-line); }
+.fo-score-ticket { display: flex; flex-direction: column; align-items: center; padding: 8px 3px; border: 1px solid var(--task-line); color: var(--task-accent); background: #d3bc6b13; }
+.fo-score-ticket > span { display: flex; align-items: center; gap: 4px; font: 700 12px var(--font-mono); }
+.fo-score-ticket small { margin-top: 5px; font-size: 6px; letter-spacing: .5px; color: var(--task-muted); }
+.fo-first-tag { display: block; width: fit-content; margin-bottom: 6px; padding: 2px 5px; border: 1px solid var(--task-line); color: var(--task-accent); font-size: 6px; letter-spacing: 1px; }
+.fo-challenge-file .fo-orders-note { padding: 16px 24px; color: var(--task-muted); font-size: 8px; line-height: 1.7; }
+.fo-challenge-file .fo-feed-note { color: var(--task-muted); border-color: var(--task-line); font-size: 8px; }
+.fo-challenge-file .fo-unavailable { color: var(--task-ink); }
+@media (max-width: 1000px) { .fo-challenge-grid { grid-template-columns: 1fr; } .fo-operation-layout { grid-template-columns: 1fr; } .fo-operation-mission { border-right: 0; border-bottom: 1px solid #93a68144; } .fo-operation-seal { position: absolute; top: 25px; right: 24px; width: 48px; height: 48px; opacity: .5; } .fo-operation-seal svg { width: 32px; } }
+@media (max-width: 600px) { .fo-section-group { scroll-margin-top: 108px; } .fo-assignment-bar { padding: 15px 18px; font-size: 8px; } .fo-assignment-bar .fo-status { font-size: 6px; } .fo-operation-mission, .fo-operation-intel { padding: 24px 20px; } .fo-operation-mission h2 { font-size: 42px; } .fo-operation-targets dd { font-size: 20px; } .fo-orders-cover { padding: 25px 20px; gap: 12px; } .fo-orders-list { padding-inline: 12px; } .fo-orders-list > li { gap: 9px; grid-template-columns: 20px minmax(0, 1fr) 60px; } }
