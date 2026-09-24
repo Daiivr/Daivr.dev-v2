@@ -1,5 +1,4 @@
-// Return context from system pages (404 / 403) or the Fallout field station.
-// Fallout records on pagehide so the greeting also works after a long visit.
+// Return context from system pages (404 / 403).
 //
 // Cuando alguien aterriza en una ruta muerta y vuelve a la puerta, repetirle el
 // "oh — hey, didn't hear you walk up" es raro: acaba de estar aqui y acaba de
@@ -28,7 +27,7 @@ function trimPath(pathname) {
 export function recordGateReturn(variant, pathname) {
   try {
     window.sessionStorage.setItem(GATE_RETURN_KEY, JSON.stringify({
-      variant: variant === "fallout" ? "fallout" : variant === "denied" ? "denied" : "missing",
+      variant: variant === "denied" ? "denied" : "missing",
       path: trimPath(pathname),
       at: Date.now()
     }));
@@ -52,7 +51,7 @@ export function consumeGateReturn() {
 
   try {
     const parsed = JSON.parse(raw);
-    if (!parsed || !["missing", "denied", "fallout"].includes(parsed.variant)) return null;
+    if (!parsed || !["missing", "denied"].includes(parsed.variant)) return null;
     if (typeof parsed.at !== "number" || Date.now() - parsed.at > GATE_RETURN_TTL_MS) return null;
     return { variant: parsed.variant, path: typeof parsed.path === "string" ? parsed.path : "/unknown" };
   } catch {

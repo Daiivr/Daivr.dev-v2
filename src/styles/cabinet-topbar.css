@@ -48,26 +48,6 @@
   .cabinet-topbar-track i { width: 10px; height: 3px; background: color-mix(in srgb, var(--color-phosphor) 18%, transparent); transition: background 220ms, box-shadow 220ms; }
   .cabinet-topbar-track i.is-active { background: var(--color-phosphor); box-shadow: 0 0 8px var(--color-phosphor); }
 
-  .cabinet-fallout-button {
-    display: grid;
-    width: 52px;
-    height: 52px;
-    flex: none;
-    place-items: center;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    border-radius: 50%;
-    transition: filter 180ms;
-  }
-  .cabinet-vault-housing { display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%; background: radial-gradient(circle, #bfad6238, #080f11 65%); box-shadow: inset 0 0 0 2px #69716a80, 0 0 0 2px #172324; }
-  .cabinet-vault-housing .vault-door { width: 46px; height: 46px; overflow: visible; filter: drop-shadow(1px 2px 1px #000); transition: transform 750ms cubic-bezier(.2,.7,.2,1); }
-  .cabinet-vault-housing .vault-door-bolt { transition: transform 180ms ease; }
-  .cabinet-fallout-button:is(:hover, :focus-visible) .vault-door { transform: translateX(-72%) rotate(-85deg); transition-delay: 120ms; }
-  .cabinet-fallout-button:is(:hover, :focus-visible) .vault-door-bolt { transform: translateY(24px); }
-  .cabinet-fallout-button:hover,
-  .cabinet-fallout-button:focus-visible { filter: drop-shadow(0 0 7px #e1bd6740); }
-
   .cabinet-terminal-button {
     display: inline-flex;
     min-height: 40px;
@@ -106,8 +86,7 @@
   @media (prefers-reduced-motion: reduce) {
     .cabinet-topbar-route { animation: none; }
     .cabinet-topbar-track i,
-    .cabinet-terminal-button,
-    .cabinet-fallout-button, .cabinet-vault-housing .vault-door, .cabinet-vault-housing .vault-door-bolt { transition: none; }
+    .cabinet-terminal-button { transition: none; }
   }
 }
 

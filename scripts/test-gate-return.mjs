@@ -12,9 +12,9 @@ beforeEach(() => {
   } };
 });
 
-test("Fallout return is consumed once and normal reloads have no return context", () => {
-  recordGateReturn("fallout", "/fallout");
-  assert.deepEqual(consumeGateReturn(), { variant: "fallout", path: "/fallout" });
+test("Missing-page return is consumed once and normal reloads have no return context", () => {
+  recordGateReturn("missing", "/missing-page");
+  assert.deepEqual(consumeGateReturn(), { variant: "missing", path: "/missing-page" });
   assert.equal(consumeGateReturn(), null);
 });
 
@@ -27,8 +27,8 @@ test("existing missing and denied route greetings retain their context", () => {
 
 test("stale and unrecognized return notes cannot trigger the greeting", () => {
   for (const note of [
-    { variant: "fallout", path: "/fallout", at: Date.now() - 11 * 60_000 },
-    { variant: "unknown", path: "/fallout", at: Date.now() },
+    { variant: "missing", path: "/missing-page", at: Date.now() - 11 * 60_000 },
+    { variant: "unknown", path: "/missing-page", at: Date.now() },
   ]) {
     storage.set("daivr.gateReturn.v1", JSON.stringify(note));
     assert.equal(consumeGateReturn(), null);
@@ -41,6 +41,6 @@ test("restricted session storage preserves the normal splash", () => {
     setItem() { throw new Error("Blocked"); },
     getItem() { throw new Error("Blocked"); },
   };
-  assert.doesNotThrow(() => recordGateReturn("fallout", "/fallout"));
+  assert.doesNotThrow(() => recordGateReturn("missing", "/missing-page"));
   assert.equal(consumeGateReturn(), null);
 });

@@ -1,9 +1,5 @@
 import React from "react";
-import { FalloutLoader } from "./fallout/components/FalloutLoader";
 import { createRoot } from "react-dom/client";
-import { FALLOUT_NAVIGATION, getPreloadedFalloutPage, preloadFallout } from "./lib/falloutNavigation";
-import { isActivityPath, isGuidePath, normalizeFalloutPath } from "./fallout/data/pages";
-import { hasSeenFalloutSplash } from "./lib/falloutSplash";
 import "./index.css";
 import "./styles/attract-mode.css";
 import "./styles/cart-swap.css";
@@ -35,36 +31,12 @@ import "./styles/entry-gate.css";
 import "./styles/cabinet-sidebar.css";
 import "./styles/cabinet-topbar.css";
 
-// The dedicated terminal has its own lazy entry; the portfolio's games, buddy,
-// Discord polling and greeting never mount on this route.
-const isFalloutPath = () => window.location.pathname.toLowerCase().replace(/\/+$/, "") === "/fallout";
-const FalloutPage = React.lazy(preloadFallout);
-const GuidesPage = React.lazy(() => import("./fallout/GuidesPage.jsx"));
-const ActivityPage = React.lazy(() => import("./fallout/ActivityPage.jsx"));
 const CabinetPage = React.lazy(() => import("./App.jsx"));
-
-function RootPage() {
-  const [route, setRoute] = React.useState(() => ({ fallout: isFalloutPath(), path: normalizeFalloutPath(window.location.pathname), origin: null }));
-  React.useEffect(() => {
-    const enter = (event) => { window.scrollTo(0, 0); setRoute({ fallout: true, path: "/fallout", origin: event.detail }); };
-    const restore = () => setRoute({ fallout: isFalloutPath(), path: normalizeFalloutPath(window.location.pathname), origin: null });
-    window.addEventListener(FALLOUT_NAVIGATION, enter);
-    window.addEventListener("popstate", restore);
-    return () => {
-      window.removeEventListener(FALLOUT_NAVIGATION, enter);
-      window.removeEventListener("popstate", restore);
-    };
-  }, []);
-  // A cabinet click already awaited this module. Rendering the resolved page
-  // directly avoids React.lazy briefly committing its full-size loader first.
-  const TerminalPage = route.origin ? getPreloadedFalloutPage() || FalloutPage : FalloutPage;
-  return <React.Suspense fallback={route.fallout && !route.origin && !hasSeenFalloutSplash() ? <FalloutLoader /> : null}>
-    {isGuidePath(route.path) ? <GuidesPage key={route.path} path={route.path} /> : isActivityPath(route.path) ? <ActivityPage key={route.path} path={route.path} /> : route.fallout ? <TerminalPage entryOrigin={route.origin} /> : <CabinetPage />}
-  </React.Suspense>;
-}
 
 createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <RootPage />
+    <React.Suspense fallback={null}>
+      <CabinetPage />
+    </React.Suspense>
   </React.StrictMode>
 );

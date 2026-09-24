@@ -14,9 +14,6 @@ import { handleSteamPlaytimeRequest } from "./server/steam-playtime.mjs";
 import { handleTradeDexVirusTotalRequest } from "./server/virustotal.mjs";
 import { handleTowerBlockRequest } from "./server/tower-block.mjs";
 import { handleVisitsRequest } from "./server/visits.mjs";
-import { handleFalloutRequest } from "./server/fallout.mjs";
-import { handleFalloutItemRequest } from "./server/fallout-wiki.mjs";
-import { FALLOUT_PAGES, normalizeFalloutPath } from "./src/fallout/data/pages.js";
 
 process.on("uncaughtException", (error) => {
   console.error("[server] uncaught exception", error?.stack || error);
@@ -101,8 +98,6 @@ async function getEntityTag(filePath) {
 
 function resolvePath(url) {
   const pathname = new URL(url, `http://localhost:${port}`).pathname;
-  const falloutPath = normalizeFalloutPath(pathname);
-  if (Object.hasOwn(FALLOUT_PAGES, falloutPath)) return join(staticRoot, falloutPath.slice(1), "index.html");
   const relativePath = pathname === "/" ? "index.html" : pathname.replace(/^[/\\]+/, "");
   const cleanPath = normalize(decodeURIComponent(relativePath)).replace(/^(\.\.[/\\])+/, "");
   return join(staticRoot, cleanPath);
@@ -156,15 +151,6 @@ async function getGameImageFromSteamGrid(gameName) {
 const appServer = createServer(async (request, response) => {
   try {
     const requestUrl = new URL(request.url || "/", `http://localhost:${port}`);
-
-    if (requestUrl.pathname === "/api/fallout/item") {
-      await handleFalloutItemRequest(request, response);
-      return;
-    }
-    if (requestUrl.pathname === "/api/fallout") {
-      await handleFalloutRequest(request, response);
-      return;
-    }
 
     if (requestUrl.pathname.startsWith("/api/tradedex/")) {
       await handleTradeDexVirusTotalRequest(request, response);

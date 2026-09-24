@@ -14,8 +14,6 @@ import { handleSteamPlaytimeRequest } from "./server/steam-playtime.mjs";
 import { handleTradeDexVirusTotalRequest } from "./server/virustotal.mjs";
 import { handleTowerBlockRequest } from "./server/tower-block.mjs";
 import { handleVisitsRequest } from "./server/visits.mjs";
-import { handleFalloutRequest } from "./server/fallout.mjs";
-import { handleFalloutItemRequest } from "./server/fallout-wiki.mjs";
 
 loadLocalEnv();
 
@@ -28,11 +26,6 @@ export default defineConfig({
       name: "daivr-local-api",
       configureServer(server) {
         startDiscordStreakPolling();
-
-        server.middlewares.use("/api/fallout/item", handleFalloutItemRequest);
-        server.middlewares.use("/api/fallout", (request, response) => {
-          handleFalloutRequest(request, response);
-        });
 
         server.middlewares.use("/api/tradedex", (request, response, next) => {
           if (request.url?.startsWith("/info") || request.url?.startsWith("/scan")) {

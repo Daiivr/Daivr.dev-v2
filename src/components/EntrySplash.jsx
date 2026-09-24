@@ -45,14 +45,6 @@ const SEASON_ASIDES = {
 // estrellarse. Repetirle la bienvenida de siempre suena a que nadie estaba
 // mirando, asi que la anfitriona lo comenta y sigue.
 function buildReturnLines({ gateReturn, hostName, linked, visitorName }) {
-  if (gateReturn.variant === "fallout") {
-    return [
-      linked ? `oh — back from appalachia, ${visitorName}?` : "oh — welcome back, vault dweller.",
-      "leave the rads at the door. dai's cables glow enough already.",
-      "grab a seat. the wasteland can wait a little."
-    ];
-  }
-
   const who = linked ? visitorName : "you";
   const greeting = linked ? `oh — ${visitorName}. you made it back.` : "oh — you're back.";
 

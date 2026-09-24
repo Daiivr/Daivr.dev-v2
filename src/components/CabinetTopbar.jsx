@@ -1,12 +1,8 @@
 import { Terminal } from "lucide-react";
-import { useEffect } from "react";
 import { navItems } from "../data/site";
 import { CabinetTelemetry } from "./CabinetTelemetry";
-import { VaultDoor } from "./VaultDoor";
-import { enterFallout, preloadFallout, preloadFalloutArtwork } from "../lib/falloutNavigation";
 
 export function CabinetTopbar({ activeSection, score, cartPhase, onOpenTerminal }) {
-  useEffect(() => { preloadFalloutArtwork(); }, []);
   const index = Math.max(0, navItems.findIndex(([, href]) => href === `#${activeSection}`));
   const [label, href] = navItems[index];
 
@@ -23,9 +19,6 @@ export function CabinetTopbar({ activeSection, score, cartPhase, onOpenTerminal 
         </div>
       </div>
       <div className="cabinet-topbar-controls">
-        <a className="cabinet-fallout-button arcade-focus" href="/fallout" aria-label="Open Vault 76 — Fallout terminal" onClick={enterFallout} onPointerEnter={() => { preloadFallout().catch(() => {}); }} onFocus={() => { preloadFallout().catch(() => {}); }}>
-          <span className="cabinet-vault-housing"><VaultDoor compact /></span>
-        </a>
         <button className="cabinet-terminal-button arcade-focus" type="button" onClick={onOpenTerminal} aria-label="Open Terminal">
           <Terminal size={16} aria-hidden="true" /><span>Terminal</span>
         </button>
