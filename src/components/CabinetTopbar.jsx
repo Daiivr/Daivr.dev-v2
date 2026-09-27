@@ -3,7 +3,7 @@ import { navItems } from "../data/site";
 import { CabinetTelemetry } from "./CabinetTelemetry";
 import { PlayerHub } from "./PlayerHub";
 
-export function CabinetTopbar({ activeSection, score, cartPhase, onOpenTerminal, onPlay }) {
+export function CabinetTopbar({ activeSection, score, cartPhase, onOpenTerminal, onPlay, theme }) {
   const index = Math.max(0, navItems.findIndex(([, href]) => href === `#${activeSection}`));
   const [label, href] = navItems[index];
 
@@ -20,7 +20,7 @@ export function CabinetTopbar({ activeSection, score, cartPhase, onOpenTerminal,
         </div>
       </div>
       <div className="cabinet-topbar-controls">
-        <PlayerHub onPlay={onPlay} />
+        <PlayerHub onPlay={onPlay} theme={theme} />
         <button className="cabinet-terminal-button arcade-focus" type="button" onClick={onOpenTerminal} aria-label="Open Terminal">
           <Terminal size={16} aria-hidden="true" /><span>Terminal</span>
         </button>

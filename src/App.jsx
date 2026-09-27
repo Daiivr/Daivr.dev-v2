@@ -712,7 +712,7 @@ function CabinetApp() {
         />
 
         <div className="min-w-0">
-          <CabinetTopbar activeSection={activeSection} score={score} cartPhase={cartPhase} onOpenTerminal={openTerminal} onPlay={selectKonamiGame} />
+          <CabinetTopbar activeSection={activeSection} score={score} cartPhase={cartPhase} onOpenTerminal={openTerminal} onPlay={selectKonamiGame} theme={theme} />
 
           <main className={`cart-stage mx-auto w-[min(1180px,calc(100%-clamp(28px,6vw,76px)))] ${cartPhase ? `is-cart-${cartPhase}` : ""}`} id="main" tabIndex={-1}>
             <HeroStation

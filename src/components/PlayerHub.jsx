@@ -4,7 +4,7 @@ import { Award, ChevronDown, Inbox, SlidersHorizontal, Trophy, X } from "lucide-
 import { PLAYER_GAMES } from "../../shared/player-catalog.mjs";
 import { CommunityInbox } from "./CommunityInbox";
 
-export function PlayerHub({ onPlay }) {
+export function PlayerHub({ onPlay, theme = "crt" }) {
   const [open, setOpen] = useState(false);
   const [data, setData] = useState(null);
   const [edit, setEdit] = useState(null);
@@ -48,8 +48,8 @@ export function PlayerHub({ onPlay }) {
   const challenge = data?.challenge;
   return <Dialog.Root open={open} onOpenChange={setOpen}>
     <Dialog.Trigger asChild><button className="player-hub-trigger arcade-focus" type="button"><Award size={16} aria-hidden="true" /><span>Player</span>{data?.inbox?.unread ? <b aria-label={`${data.inbox.unread} unread notifications`}>{data.inbox.unread}</b> : null}</button></Dialog.Trigger>
-    <Dialog.Portal><Dialog.Overlay className="player-hub-overlay" /><Dialog.Content className="player-hub-dialog">
-      <header className="player-hub-heading"><div><span className="pixel-label">YOUR SAVE SLOT</span><Dialog.Title>Player passport</Dialog.Title><Dialog.Description>Your identity, records, and next challenge.</Dialog.Description></div><Dialog.Close asChild><button type="button" aria-label="Close player panel"><X size={20} /></button></Dialog.Close></header>
+    <Dialog.Portal><Dialog.Overlay className={`player-hub-overlay ${theme === "glitch" ? "theme-glitch" : ""}`} /><Dialog.Content className={`player-hub-dialog ${theme === "glitch" ? "theme-glitch" : ""}`}>
+      <header className="player-hub-heading"><div><div className="player-hub-kicker"><span className="player-hub-window-dots" aria-hidden="true"><i /><i /><i /></span><span>~/cabinet/player.save</span></div><Dialog.Title>Player passport<span aria-hidden="true">_</span></Dialog.Title><Dialog.Description>Your identity, records, and next challenge.</Dialog.Description></div><Dialog.Close asChild><button type="button" aria-label="Close player panel"><X size={20} /></button></Dialog.Close></header>
       <div className="player-hub-body">
       {message ? <p className="player-hub-status" role="status">{message}</p> : null}
       {!data ? <button type="button" onClick={() => load()}>Retry loading player panel</button> : null}
@@ -57,6 +57,7 @@ export function PlayerHub({ onPlay }) {
       <div className="player-hub-overview">
       {card && edit ? <div className="player-hub-identity">
         <section className={`player-passport accent-${edit.accent.toLowerCase()}`} aria-label="Your passport preview">
+          <div className="passport-card-label"><span>01 / PLAYER ID</span><Award size={13} aria-hidden="true" /></div>
           <img src={card.user.avatarUrl} alt="" /><div><small>{edit.title}</small><h3>{card.user.username}</h3><p>Favorite: {PLAYER_GAMES.find((game) => game.id === edit.favoriteGame)?.name || "Not chosen yet"}</p></div>
           <dl className="passport-stats"><div><dt>Buddy level</dt><dd>{card.level}</dd></div><div><dt>Quests</dt><dd>{card.quests}</dd></div><div><dt>Daily wins</dt><dd>{card.challengeCount}</dd></div></dl>
           {edit.featuredBadges.length ? <div className="passport-badges">{card.badges.filter((badge) => edit.featuredBadges.includes(badge.id)).map((badge) => <span key={badge.id}>{badge.label}</span>)}</div> : null}
