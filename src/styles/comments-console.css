@@ -1,4 +1,35 @@
 @layer components {
+  .comment-mention-input { position: relative; min-width: 0; }
+  .comment-mention-hint { display: block; margin: 8px 0; color: var(--color-phosphor); font-size: 11px; line-height: 1.6; opacity: .8; }
+  .comment-mentions { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .comments-console .comment-mention {
+    display: inline-flex; align-items: center; max-width: 100%; overflow-wrap: anywhere;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 35%, transparent);
+    border-radius: 4px; padding: 4px 8px; background: color-mix(in srgb, var(--color-phosphor) 8%, transparent);
+    color: var(--color-phosphor); font-size: 12px;
+  }
+  .comments-console .comment-mention.is-you { border-color: var(--color-phosphor); }
+  .comment-mention-suggestions {
+    position: absolute; top: 100%; left: 0; z-index: 20; width: min(100%, 360px);
+    padding: 6px; border: 1px solid var(--color-phosphor); background: #11151a;
+    box-shadow: 0 8px 24px #0008; border-radius: 5px;
+  }
+  .comments-console .comment-mention-suggestions button {
+    display: flex; justify-content: space-between; gap: 12px; width: 100%; padding: 10px;
+    border: 0; background: transparent; color: var(--color-phosphor); text-align: left;
+  }
+  .comment-mention-suggestions button span { overflow-wrap: anywhere; min-width: 0; }
+  .comment-mention-suggestions small { flex-shrink: 0; opacity: .6; }
+  .comments-console .comment-mention-suggestions button[aria-selected="true"] { background: color-mix(in srgb, var(--color-phosphor) 18%, transparent); }
+  .comment-mention-empty { display: block; padding: 10px; font-size: 12px; }
+  .comments-mention-filter { position: relative; z-index: 2; display: flex; flex-wrap: wrap; gap: 8px; margin: 12px clamp(0.85rem, 3.4vw, 2.6rem); }
+  .comments-console .comments-mention-filter button {
+    padding: 8px 12px; border: 1px solid color-mix(in srgb, var(--color-phosphor) 25%, transparent);
+    background: transparent; color: var(--color-phosphor); font-size: 12px; border-radius: 4px;
+  }
+  .comments-console .comments-mention-filter button[aria-pressed="true"] { border-color: var(--color-phosphor); background: color-mix(in srgb, var(--color-phosphor) 12%, transparent); }
+  .comments-console .comment-mention-input button:focus-visible,
+  .comments-console .comments-mention-filter button:focus-visible { outline: 2px solid var(--color-phosphor); outline-offset: 3px; }
   #contact { scroll-margin-top: 80px; }
   .comments-section-heading {
     margin-bottom: clamp(1.5rem, 3vw, 2rem);

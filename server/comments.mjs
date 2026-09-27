@@ -1,7 +1,12 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { DEFAULT_AVATAR_URL, getDiscordUserProfile } from "./discord-avatar.mjs";
 import { ensureDataFile, getDataFile } from "./storage.mjs";
+import { canReply, resolveMentions } from "../shared/comment-mentions.mjs";
+import { readJsonStore, writeJsonStore } from "./json-store.mjs";
+import { assertSessionConfiguration, readJsonBody, sameOrigin } from "./http-guards.mjs";
+import { reserveCommentPost } from "./comment-posting.mjs";
+import { buildInbox, markInboxRead } from "./community-inbox.mjs";
 
 const COMMENTS_FILENAME = "comments.json";
 const PREFERENCES_FILENAME = "preferences.json";
@@ -80,6 +85,8 @@ function sendEvent(response, event, payload) {
 }
 
 function ensureCommentsFile() {
+  const file = getDataFile(COMMENTS_FILENAME, COMMENTS_DATA_ENVS);
+  if ([file, `${file}.bak`, ...Array.from({ length: 7 }, (_, i) => `${file}.day-${i}.bak`)].some(existsSync)) return file;
   return ensureDataFile(COMMENTS_FILENAME, [
     {
       id: "seed-01",
@@ -115,11 +122,9 @@ function ensureCommentsFile() {
   ], COMMENTS_DATA_ENVS);
 }
 
-function readComments() {
+export function readComments() {
   ensureCommentsFile();
-  try {
-    const data = JSON.parse(readFileSync(getDataFile(COMMENTS_FILENAME, COMMENTS_DATA_ENVS), "utf8"));
-    if (!Array.isArray(data)) return [];
+    const data = readJsonStore(COMMENTS_FILENAME, [], COMMENTS_DATA_ENVS, Array.isArray);
     return data.map((comment) => ({
       ...comment,
       pinned: !!comment.pinned,
@@ -145,35 +150,21 @@ function readComments() {
         ...(comment.author || {})
       }
     }));
-  } catch (error) {
-    console.error("Comments read error", error.message || error);
-    return [];
-  }
 }
 
 function writeComments(comments) {
   ensureCommentsFile();
-  writeFileSync(getDataFile(COMMENTS_FILENAME, COMMENTS_DATA_ENVS), JSON.stringify(comments, null, 2), "utf8");
-}
-
-function ensurePreferencesFile() {
-  return ensureDataFile(PREFERENCES_FILENAME, {}, COMMENTS_DATA_ENVS);
+  writeJsonStore(COMMENTS_FILENAME, comments, [], COMMENTS_DATA_ENVS, Array.isArray);
 }
 
 function readPreferences() {
-  ensurePreferencesFile();
-  try {
-    const data = JSON.parse(readFileSync(getDataFile(PREFERENCES_FILENAME, COMMENTS_DATA_ENVS), "utf8"));
-    return data && typeof data === "object" && !Array.isArray(data) ? data : {};
-  } catch (error) {
-    console.error("Preferences read error", error.message || error);
-    return {};
-  }
+  return readJsonStore(PREFERENCES_FILENAME, {}, COMMENTS_DATA_ENVS, isRecord);
 }
 
+function isRecord(value) { return !!value && typeof value === "object" && !Array.isArray(value); }
+
 function writePreferences(preferences) {
-  ensurePreferencesFile();
-  writeFileSync(getDataFile(PREFERENCES_FILENAME, COMMENTS_DATA_ENVS), JSON.stringify(preferences, null, 2), "utf8");
+  writeJsonStore(PREFERENCES_FILENAME, preferences, {}, COMMENTS_DATA_ENVS, isRecord);
 }
 
 function getUserPreferences(user) {
@@ -224,15 +215,8 @@ function normalizeReactions(reactions) {
   }, {});
 }
 
-function hasAdminReply(comment) {
-  const adminIds = getAdminIds();
-  return (comment.replies || []).some((reply) => !!reply.author?.isAdmin || adminIds.has(String(reply.author?.id)));
-}
-
 function canReplyToComment(user, comment) {
-  if (!user || !comment) return false;
-  if (user.isAdmin) return true;
-  return String(comment.author?.id) === String(user.id) && hasAdminReply(comment);
+  return canReply(user, comment);
 }
 
 function parseCookies(request) {
@@ -263,6 +247,7 @@ function firstHeaderValue(value) {
 }
 
 function getSecret() {
+  assertSessionConfiguration();
   return process.env.COMMENTS_SESSION_SECRET || process.env.JWT_SECRET || "daivr-dev-comment-secret";
 }
 
@@ -280,7 +265,8 @@ function verifyPayload(token) {
   const right = Buffer.from(expected);
   if (left.length !== right.length || !timingSafeEqual(left, right)) return null;
 
-  const payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
+  let payload;
+  try { payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8")); } catch { return null; }
   if (!payload?.id || (payload.exp && payload.exp < Date.now())) return null;
   return payload;
 }
@@ -344,15 +330,7 @@ function getAuthStatus(request) {
 }
 
 async function readBody(request) {
-  const chunks = [];
-  for await (const chunk of request) chunks.push(chunk);
-  const raw = Buffer.concat(chunks).toString("utf8");
-  if (!raw) return {};
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return Object.fromEntries(new URLSearchParams(raw));
-  }
+  return readJsonBody(request);
 }
 
 function getAvatarUrl(user) {
@@ -426,6 +404,7 @@ async function publicComments(request) {
 async function getCommentsPayload(request) {
   return {
     comments: await publicComments(request),
+    inbox: buildInbox(readComments(), getUser(request)),
     reactions: DEFAULT_REACTIONS,
     auth: getAuthStatus(request)
   };
@@ -590,9 +569,18 @@ async function handleCreateComment(request, response) {
   }
 
   const comments = readComments();
+  let mentions;
+  try {
+    mentions = resolveMentions(body.mentionIds, comments, user.id);
+  } catch (error) {
+    sendJson(response, 400, { error: error.message });
+    return;
+  }
+  if (rejectFastPost(response, comments, user, text, gifUrl)) return;
   const comment = {
     id: `${Date.now()}-${randomBytes(3).toString("hex")}`,
     text,
+    mentions,
     createdAt: new Date().toISOString(),
     pinned: false,
     author: user,
@@ -629,13 +617,22 @@ async function handleReply(request, response, id) {
   }
 
   if (!canReplyToComment(user, comment)) {
-    sendJson(response, 403, { error: "Only admins can reply unless an admin has answered your own comment." });
+    sendJson(response, 403, { error: "You can reply to your own threads or threads where you have been mentioned." });
     return;
   }
 
+  let mentions;
+  try {
+    mentions = resolveMentions(body.mentionIds, comments, user.id);
+  } catch (error) {
+    sendJson(response, 400, { error: error.message });
+    return;
+  }
+  if (rejectFastPost(response, comments, user, text, gifUrl)) return;
   const reply = {
     id: `${Date.now()}-${randomBytes(3).toString("hex")}`,
     text,
+    mentions,
     gifUrl,
     createdAt: new Date().toISOString(),
     author: user,
@@ -995,10 +992,41 @@ function handleTyping(request, response) {
   response.end();
 }
 
+function rejectFastPost(response, comments, user, text, gifUrl) {
+  const seconds = reserveCommentPost(comments, user.id, text, gifUrl);
+  if (!seconds) return false;
+  response.setHeader("Retry-After", seconds);
+  sendJson(response, 429, { error: `Please wait ${seconds} seconds before posting again.`, retryAfter: seconds });
+  return true;
+}
+
 export async function handleCommentsRequest(request, response) {
+  try {
+    assertSessionConfiguration();
+    if (["POST", "DELETE"].includes(request.method) && !sameOrigin(request)) return sendJson(response, 403, { error: "Cross-origin changes are not allowed." });
+    if (Number(request.headers?.["content-length"]) > 16_384) return sendJson(response, 413, { error: "Request is too large." });
+    await routeCommentsRequest(request, response);
+  } catch (error) {
+    console.error("[comments]", error.message);
+    if (!response.headersSent) sendJson(response, error.status || 503, { error: error.status ? error.message : "Guestbook temporarily unavailable. Your saved data has been preserved." });
+    else response.end();
+  }
+}
+
+async function routeCommentsRequest(request, response) {
   const requestUrl = new URL(request.url || "/api/comments", getBaseUrl(request));
   const pathname = requestUrl.pathname.replace(/^\/api\/comments\/?/, "");
   const parts = pathname.split("/").filter(Boolean);
+
+  if (request.method === "POST" && pathname === "inbox/read") {
+    const user = getUser(request);
+    if (!user) return sendJson(response, 401, { error: "Connect Discord to read your inbox." });
+    const body = await readBody(request);
+    const comments = readComments();
+    markInboxRead(comments, user, body.ids);
+    await broadcastComments();
+    return sendJson(response, 200, { inbox: buildInbox(comments, user) });
+  }
 
   if (request.method === "POST" && parts.length === 1 && parts[0] === "typing") {
     handleTyping(request, response);

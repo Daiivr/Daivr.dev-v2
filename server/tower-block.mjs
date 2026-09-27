@@ -2,6 +2,7 @@ import { renameSync, readFileSync, writeFileSync } from "node:fs";
 import { DEFAULT_AVATAR_URL, refreshLeaderboardProfiles } from "./discord-avatar.mjs";
 import { getSessionUser } from "./comments.mjs";
 import { ensureDataFile, getDataFile } from "./storage.mjs";
+import { recordDailyRun } from "./player-store.mjs";
 
 const FILENAME = "tower-block-leaderboard.json";
 const DATA_ENVS = ["TOWER_BLOCK_DATA_DIR", "GAME_DATA_DIR"];
@@ -133,6 +134,7 @@ export async function handleTowerBlockRequest(request, response) {
     };
     if (index >= 0) scores[index] = next; else scores.push(next);
     writeScores(scores);
+    recordDailyRun(user, "tower-block", score);
     return sendJson(response, 200, { score: mine(scores, user.id), leaderboard: leaderboard(scores) });
   }
 

@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function ProjectFolder({ items, selectedProjectTitle, onSelect }) {
   const [open, setOpen] = useState(false);
+  useEffect(() => { if (selectedProjectTitle) setOpen(true); }, [selectedProjectTitle]);
 
   return (
     <section className={`project-folder-console${open ? " is-open" : ""}`} aria-label="Project directory">

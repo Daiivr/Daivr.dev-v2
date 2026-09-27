@@ -667,6 +667,7 @@ function CabinetApp() {
           onBuddyLaunch={setBuddyDrop}
           onEnter={() => {
             setEntrySplashOpen(false);
+            window.setTimeout(() => window.dispatchEvent(new Event("daivr-content-ready")), 50);
             window.requestAnimationFrame(() => document.getElementById("main")?.focus({ preventScroll: true }));
           }}
           seasonalEvent={seasonalEvent}
@@ -711,7 +712,7 @@ function CabinetApp() {
         />
 
         <div className="min-w-0">
-          <CabinetTopbar activeSection={activeSection} score={score} cartPhase={cartPhase} onOpenTerminal={openTerminal} />
+          <CabinetTopbar activeSection={activeSection} score={score} cartPhase={cartPhase} onOpenTerminal={openTerminal} onPlay={selectKonamiGame} />
 
           <main className={`cart-stage mx-auto w-[min(1180px,calc(100%-clamp(28px,6vw,76px)))] ${cartPhase ? `is-cart-${cartPhase}` : ""}`} id="main" tabIndex={-1}>
             <HeroStation

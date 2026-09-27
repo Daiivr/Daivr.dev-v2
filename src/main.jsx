@@ -30,6 +30,7 @@ import "./styles/entry-avatar.css";
 import "./styles/entry-gate.css";
 import "./styles/cabinet-sidebar.css";
 import "./styles/cabinet-topbar.css";
+import "./styles/community.css";
 
 const CabinetPage = React.lazy(() => import("./App.jsx"));
 

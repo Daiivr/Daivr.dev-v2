@@ -14,6 +14,9 @@ import { handleSteamPlaytimeRequest } from "./server/steam-playtime.mjs";
 import { handleTradeDexVirusTotalRequest } from "./server/virustotal.mjs";
 import { handleTowerBlockRequest } from "./server/tower-block.mjs";
 import { handleVisitsRequest } from "./server/visits.mjs";
+import { getCacheControl as assetCacheControl, loadHashedAssets } from "./server/asset-cache.mjs";
+import { assertSessionConfiguration } from "./server/http-guards.mjs";
+import { handlePlayerRequest } from "./server/player.mjs";
 
 process.on("uncaughtException", (error) => {
   console.error("[server] uncaught exception", error?.stack || error);
@@ -26,7 +29,10 @@ process.on("unhandledRejection", (error) => {
 const port = Number(process.env.PORT || 4173);
 const root = process.cwd();
 const staticRoot = join(root, "dist");
+const hashedAssets = loadHashedAssets(staticRoot);
+const getCacheControl = (file) => assetCacheControl(file, hashedAssets);
 loadLocalEnv(root);
+assertSessionConfiguration(true);
 const steamGridApiKey = process.env.STEAMGRID_API_KEY || "";
 const steamGridCache = new Map();
 
@@ -59,28 +65,6 @@ const types = {
   ".wasm": "application/wasm",
   ".data": "application/octet-stream"
 };
-
-// Los bundles de Vite llevan hash en el nombre, asi que pueden marcarse inmutables.
-const HASHED_TYPES = new Set([".css", ".js", ".png", ".jpg", ".jpeg", ".webp", ".ico", ".svg"]);
-
-// Binarios pesados que conservan su nombre entre builds (el VRM del avatar del
-// splash pesa 13 MB; el wasm + .data de la mesa de pinball, 6,8 MB): se cachean
-// y se revalidan por ETag en vez de descargarse enteros en cada visita, que es
-// lo que hacia el "no-store" por defecto.
-const REVALIDATED_TYPES = new Set([
-  ".avif", ".gif", ".woff", ".woff2", ".ttf", ".otf",
-  ".glb", ".gltf", ".vrm", ".vrma",
-  ".mp3", ".ogg", ".wav", ".mp4", ".webm",
-  ".wasm", ".data"
-]);
-
-function getCacheControl(filePath) {
-  const extension = extname(filePath).toLowerCase();
-  if (extension === ".html") return "no-store";
-  if (HASHED_TYPES.has(extension)) return "public, max-age=31536000, immutable";
-  if (REVALIDATED_TYPES.has(extension)) return "public, max-age=86400, stale-while-revalidate=604800";
-  return "no-store";
-}
 
 // ETag debil por tamano + mtime: basta para contestar 304 sin releer ni reenviar
 // el archivo completo cuando el navegador revalida.
@@ -151,6 +135,11 @@ async function getGameImageFromSteamGrid(gameName) {
 const appServer = createServer(async (request, response) => {
   try {
     const requestUrl = new URL(request.url || "/", `http://localhost:${port}`);
+
+    if (requestUrl.pathname === "/api/player") {
+      await handlePlayerRequest(request, response);
+      return;
+    }
 
     if (requestUrl.pathname.startsWith("/api/tradedex/")) {
       await handleTradeDexVirusTotalRequest(request, response);

@@ -16,6 +16,7 @@ import { navItems, profile } from "../data/site";
 import { friendshipProgress } from "../hooks/useBuddyFriendship";
 import { cn } from "../lib/cn";
 import { DiscordPlayerCard } from "./DiscordPlayerCard";
+import { useRef, useState } from "react";
 
 // Un icono por destino, indexado por ancla: ocho filas de solo texto se leian
 // todas iguales y habia que ir contando para encontrar una.
@@ -33,6 +34,8 @@ const NAV_ICONS = {
 const THEME_MODES = ["crt", "glitch"];
 
 export function Sidebar({ activeSection, buddy, onOpenBuddyModal, theme, onThemeChange }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const menuRef = useRef(null);
   const displayNavItems = navItems
     .filter(([label]) => label !== "Links")
     .map(([label, href]) => [label === "Contact" ? "Comments" : label, href]);
@@ -41,7 +44,8 @@ export function Sidebar({ activeSection, buddy, onOpenBuddyModal, theme, onTheme
   const gearTotal = buddy.gearItems.length || 0;
 
   return (
-    <aside className="cabinet-sidebar border-b border-phosphor/20 bg-ink-950/95 p-4 lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r">
+    <aside className="cabinet-sidebar border-b border-phosphor/20 bg-ink-950/95 p-4 lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r" onKeyDown={(event) => { if (event.key === "Escape" && mobileOpen) { setMobileOpen(false); menuRef.current?.focus(); } }}>
+      <div className="cabinet-mobile-header">
       <a className="brand-lockup mb-4" href="#home" aria-label="Dai home">
         <span className="brand-mark" aria-hidden="true">
           <span className="brand-mark-core">
@@ -55,6 +59,13 @@ export function Sidebar({ activeSection, buddy, onOpenBuddyModal, theme, onTheme
           <small className="cabinet-brand-caption">Dai's personal cabinet</small>
         </span>
       </a>
+      <div className="cabinet-mobile-actions">
+        <button type="button" onClick={() => { setMobileOpen(false); onOpenBuddyModal("inventory"); }} aria-label="Open Buddy inventory">Buddy</button>
+        <button ref={menuRef} type="button" aria-expanded={mobileOpen} aria-controls="cabinet-directory" onClick={() => setMobileOpen((current) => !current)}>{mobileOpen ? "Close" : "Menu"}</button>
+      </div>
+      </div>
+
+      <div id="cabinet-directory" className={`cabinet-directory${mobileOpen ? " is-open" : ""}`}>
 
       <DiscordPlayerCard />
 
@@ -71,6 +82,7 @@ export function Sidebar({ activeSection, buddy, onOpenBuddyModal, theme, onTheme
             <a
               className={cn("cabinet-nav-link arcade-focus", isActive && "is-active")}
               href={href}
+              onClick={() => setMobileOpen(false)}
               key={href}
               aria-current={isActive ? "page" : undefined}
             >
@@ -138,6 +150,7 @@ export function Sidebar({ activeSection, buddy, onOpenBuddyModal, theme, onTheme
             {mode}
           </button>
         ))}
+      </div>
       </div>
     </aside>
   );

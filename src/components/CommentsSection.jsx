@@ -8,6 +8,7 @@ import {
   LogIn,
   LogOut,
   LockKeyhole,
+  Link as LinkIcon,
   MessageSquare,
   Pin,
   RadioTower,
@@ -22,6 +23,11 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { DecodeText } from "./DecodeText";
+import { CommentMentionInput, CommentMentions } from "./CommentMentionInput";
+import { canReply, isMentioned, mentionCandidates } from "../../shared/comment-mentions.mjs";
+import { CommunityInbox } from "./CommunityInbox";
+import { commentHash } from "../lib/commentLinks";
+import { loadCommentDraft, saveCommentDraft } from "../lib/commentDrafts";
 
 const COMMENTS_ENDPOINT = "/api/comments";
 const COMMENTS_STREAM_ENDPOINT = "/api/comments/stream";
@@ -351,14 +357,8 @@ function getReactionAsset(id) {
   return REACTION_ASSET_MAP[id] || { id, label: id, src: "" };
 }
 
-function hasAdminReply(comment) {
-  return (comment?.replies || []).some((reply) => !!reply.author?.isAdmin);
-}
-
 function canReplyToComment(comment, user) {
-  if (!comment || !user) return false;
-  if (user.isAdmin) return true;
-  return !!comment.mine && hasAdminReply(comment);
+  return canReply(user, comment);
 }
 
 function getReactionPickerStyle(button) {
@@ -434,6 +434,9 @@ export function CommentsSection() {
   const [auth, setAuth] = useState({ configured: false, user: null, loginUrl: "/api/comments/auth/discord", logoutUrl: "/api/comments/auth/logout" });
   const [draft, setDraft] = useState("");
   const [draftGif, setDraftGif] = useState("");
+  const [draftMentions, setDraftMentions] = useState([]);
+  const [replyMentions, setReplyMentions] = useState([]);
+  const [mentionsOnly, setMentionsOnly] = useState(false);
   const [replyingTo, setReplyingTo] = useState("");
   const [replyDraft, setReplyDraft] = useState("");
   const [replyGif, setReplyGif] = useState("");
@@ -451,10 +454,83 @@ export function CommentsSection() {
   const [expandedThreads, setExpandedThreads] = useState(() => new Set());
   const [deleteDialog, setDeleteDialog] = useState(null);
   const [markdownHelpOpen, setMarkdownHelpOpen] = useState(false);
+  const [inbox, setInbox] = useState({ items: [], unread: 0 });
+  const [draftOwner, setDraftOwner] = useState(null);
+  const [draftSaved, setDraftSaved] = useState(false);
+  const [focusTarget, setFocusTarget] = useState("");
+  const [loaded, setLoaded] = useState(false);
+  const handledLinkRef = useRef("");
+
+  useEffect(() => {
+    const id = auth.user?.id;
+    if (!id) { setDraftOwner(null); return; }
+    const saved = loadCommentDraft(id);
+    setDraft(saved?.draft || ""); setDraftGif(saved?.draftGif || ""); setDraftMentions(saved?.draftMentions || []);
+    setReplyingTo(saved?.replyingTo || ""); setReplyDraft(saved?.replyDraft || ""); setReplyGif(saved?.replyGif || ""); setReplyMentions(saved?.replyMentions || []);
+    if (saved?.replyingTo && !/^#(comment|reply)-/.test(window.location.hash)) {
+      const index = comments.filter((comment) => !comment.pinned).findIndex((comment) => comment.id === saved.replyingTo);
+      setPage(index < 0 ? 1 : Math.floor(index / COMMENTS_PER_PAGE) + 1);
+    }
+    setDraftOwner(id);
+  }, [auth.user?.id]);
+
+  useEffect(() => {
+    if (!auth.user?.id || draftOwner !== auth.user.id) return;
+    setDraftSaved(saveCommentDraft(draftOwner, { draft, draftGif, draftMentions, replyingTo, replyDraft, replyGif, replyMentions }));
+  }, [draftOwner, auth.user?.id, draft, draftGif, draftMentions, replyingTo, replyDraft, replyGif, replyMentions]);
+
+  useEffect(() => {
+    const update = (event) => setInbox(event.detail);
+    window.addEventListener("daivr-inbox", update);
+    return () => window.removeEventListener("daivr-inbox", update);
+  }, []);
+
+  useEffect(() => {
+    function reveal(event) {
+      const match = window.location.hash.match(/^#(comment|reply)-(.+)$/);
+      if (!match || !loaded) return;
+      if (!event && handledLinkRef.current === window.location.hash) return;
+      let id;
+      try { id = decodeURIComponent(match[2]); } catch { return; }
+      const comment = comments.find((entry) => match[1] === "comment" ? entry.id === id : entry.replies?.some((reply) => reply.id === id));
+      if (!comment) { setStatus("This comment link is no longer available."); return; }
+      handledLinkRef.current = window.location.hash;
+      setMentionsOnly(false);
+      const index = comments.filter((entry) => !entry.pinned).findIndex((entry) => entry.id === comment.id);
+      setPage(index < 0 ? 1 : Math.floor(index / COMMENTS_PER_PAGE) + 1);
+      setExpandedThreads((current) => new Set([...current, comment.id]));
+      setFocusTarget(`${match[1]}-${encodeURIComponent(id)}`);
+    }
+    reveal();
+    window.addEventListener("hashchange", reveal);
+    window.addEventListener("daivr-open-comment", reveal);
+    window.addEventListener("daivr-content-ready", reveal);
+    return () => { window.removeEventListener("hashchange", reveal); window.removeEventListener("daivr-open-comment", reveal); window.removeEventListener("daivr-content-ready", reveal); };
+  }, [comments, loaded]);
+
+  useEffect(() => {
+    if (!focusTarget) return;
+    const timer = window.setTimeout(() => {
+      const node = document.getElementById(focusTarget);
+      node?.scrollIntoView({ block: "center", behavior: "auto" });
+      node?.focus({ preventScroll: true });
+      setFocusTarget("");
+    }, 80);
+    return () => window.clearTimeout(timer);
+  }, [focusTarget, page, mentionsOnly]);
+
+  async function copyCommentLink(commentId, replyId) {
+    const link = `${window.location.origin}/${commentHash(commentId, replyId)}`;
+    try { await navigator.clipboard.writeText(link); setStatus("Comment link copied."); }
+    catch { setStatus(`Share this link: ${link}`); }
+  }
 
   const pinnedCount = useMemo(() => comments.filter((comment) => comment.pinned).length, [comments]);
-  const pinnedComments = useMemo(() => comments.filter((comment) => comment.pinned), [comments]);
-  const regularComments = useMemo(() => comments.filter((comment) => !comment.pinned), [comments]);
+  const mentionedComments = useMemo(() => comments.filter((comment) => isMentioned(comment, auth.user?.id)), [comments, auth.user?.id]);
+  const filteredComments = mentionsOnly && auth.user ? mentionedComments : comments;
+  const mentionUsers = useMemo(() => mentionCandidates(comments).filter((user) => user.id !== auth.user?.id), [comments, auth.user?.id]);
+  const pinnedComments = filteredComments.filter((comment) => comment.pinned);
+  const regularComments = filteredComments.filter((comment) => !comment.pinned);
   const totalPages = Math.max(1, Math.ceil(regularComments.length / COMMENTS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
   const startIndex = (currentPage - 1) * COMMENTS_PER_PAGE;
@@ -466,7 +542,8 @@ export function CommentsSection() {
   const meterWidth = `${draftPercent}%`;
 
   function applyPayload(payload) {
-    if (Array.isArray(payload.comments)) setComments(payload.comments);
+    if (Array.isArray(payload.comments)) { setComments(payload.comments); setLoaded(true); }
+    if (payload.inbox) { setInbox(payload.inbox); window.dispatchEvent(new CustomEvent("daivr-inbox", { detail: payload.inbox })); }
     if (payload.auth) setAuth((current) => ({ ...current, ...payload.auth }));
     if (Array.isArray(payload.reactions) && payload.reactions.length) setReactions(payload.reactions);
   }
@@ -662,13 +739,15 @@ export function CommentsSection() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: draft, gifUrl: draftGif })
+        body: JSON.stringify({ text: draft, gifUrl: draftGif, mentionIds: draftMentions.map((user) => user.id) })
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "Comment failed");
       applyPayload(payload);
       setDraft("");
       setDraftGif("");
+      setDraftMentions([]);
+      setMentionsOnly(false);
       setPage(1);
       setStatus("comment stored");
     } catch (error) {
@@ -681,7 +760,7 @@ export function CommentsSection() {
   async function submitReply(commentId) {
     const targetComment = comments.find((comment) => String(comment.id) === String(commentId));
     if (!canReplyToComment(targetComment, auth.user)) {
-      setStatus("only admins can reply unless they answered your thread");
+      setStatus("you can reply to your own threads or threads where you have been mentioned");
       return;
     }
     if (!hasContent(replyDraft, replyGif) || busy) return;
@@ -693,7 +772,7 @@ export function CommentsSection() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: replyDraft, gifUrl: replyGif })
+        body: JSON.stringify({ text: replyDraft, gifUrl: replyGif, mentionIds: replyMentions.map((user) => user.id) })
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "Reply failed");
@@ -701,6 +780,8 @@ export function CommentsSection() {
       setReplyingTo("");
       setReplyDraft("");
       setReplyGif("");
+      setReplyMentions([]);
+      setExpandedThreads((current) => new Set([...current, commentId]));
       setStatus("reply stored");
     } catch (error) {
       setStatus(error.message || "reply failed");
@@ -813,12 +894,13 @@ export function CommentsSection() {
       return;
     }
     if (!canReplyToComment(comment, auth.user)) {
-      setStatus("only admins can reply unless they answered your thread");
+      setStatus("you can reply to your own threads or threads where you have been mentioned");
       return;
     }
     setReplyingTo((current) => (current === comment.id ? "" : comment.id));
     setReplyDraft("");
     setReplyGif("");
+    setReplyMentions([]);
     setGifPicker(null);
   }
 
@@ -1138,17 +1220,11 @@ export function CommentsSection() {
               <span role="status">{status}</span>
             </div>
           </div>
-          <label className="comments-input-frame">
-            <span aria-hidden="true">&gt;</span>
-            <textarea
-              aria-label="Your guestbook message"
-              value={draft}
-              maxLength={MAX_COMMENT_LENGTH}
-              onChange={(event) => setDraft(event.target.value)}
-              placeholder={auth.user ? "Write a signal for the guestbook..." : auth.configured ? "Connect Discord to write here..." : "Discord OAuth is not configured yet..."}
-              disabled={!auth.user || !auth.configured || busy}
-            />
-          </label>
+          <CommentMentionInput label="Your guestbook message" value={draft} onChange={setDraft}
+            mentions={draftMentions} onMentionsChange={setDraftMentions} users={mentionUsers}
+            maxLength={MAX_COMMENT_LENGTH} placeholder="Write a signal for the guestbook..."
+            disabled={!auth.user || !auth.configured || busy} />
+          <small className="comment-mention-hint">{draftSaved ? "Drafts saved on this device for 30 days." : "Draft storage is unavailable on this device."}</small>
           {draftGif ? (
             <div className="comments-gif-preview">
               <button className="has-tooltip" data-tooltip="Remove attached GIF" type="button" onClick={() => clearGif()} aria-label="Remove attached GIF"><X size={14} aria-hidden="true" /></button>
@@ -1186,6 +1262,14 @@ export function CommentsSection() {
         {deleteModal}
 
         <div className="comments-stream-heading"><h3><MessageSquare size={14} aria-hidden="true" /> The message board</h3><span>PINNED FIRST / LATEST NEXT</span></div>
+        {auth.user ? <details className="comments-inbox-panel"><summary>Your inbox · {inbox.unread} unread</summary><CommunityInbox inbox={inbox} /></details> : null}
+        {auth.user ? <div className="comments-mention-filter" aria-label="Filter comments">
+          <button type="button" aria-pressed={!mentionsOnly} onClick={() => { setMentionsOnly(false); setPage(1); }}>All comments</button>
+          <button type="button" aria-pressed={mentionsOnly} onClick={() => {
+            setMentionsOnly(true); setPage(1);
+            setExpandedThreads((current) => new Set([...current, ...mentionedComments.map((comment) => comment.id)]));
+          }}>Mentions of you ({mentionedComments.length})</button>
+        </div> : null}
         <div className="comments-stream" aria-live="polite">
           {visibleComments.map((comment, signalIndex) => {
             const canDeleteComment = !!auth.user && (auth.user.isAdmin || comment.mine);
@@ -1194,13 +1278,13 @@ export function CommentsSection() {
             const canSendReply = canReplyComment && hasContent(replyDraft, replyGif) && !busy;
             const reactionMap = comment.reactions && typeof comment.reactions === "object" ? comment.reactions : {};
             const replies = Array.isArray(comment.replies) ? comment.replies : [];
-            const threadExpanded = expandedThreads.has(comment.id);
+            const threadExpanded = mentionsOnly || expandedThreads.has(comment.id);
             const collapsibleReplies = replies.length > 1;
             const visibleReplies = collapsibleReplies && !threadExpanded ? replies.slice(0, 1) : replies;
             const hiddenReplyCount = replies.length - visibleReplies.length;
 
             return (
-              <article className={`comment-card is-terminal-transmission ${comment.pinned ? "is-pinned" : ""}`} key={comment.id}>
+              <article id={`comment-${encodeURIComponent(comment.id)}`} tabIndex={-1} className={`comment-card is-terminal-transmission ${comment.pinned ? "is-pinned" : ""}`} key={comment.id}>
                 {comment.pinned ? <span className="comment-pinned-badge"><Pin size={12} aria-hidden="true" /> pinned</span> : null}
                 {/* Era la misma frase, "incoming transmission", clavada en el
                     borde de cada tarjeta del hilo. La pestana se queda, pero
@@ -1215,8 +1299,9 @@ export function CommentsSection() {
                     {comment.author?.isAdmin ? <em className="comment-admin-badge"><ShieldCheck size={11} aria-hidden="true" /> admin</em> : null}
                     <span className="comment-time has-tooltip" data-tooltip={formatFullTimestamp(comment.createdAt)} tabIndex="0">{formatTimestamp(comment.createdAt)}</span>
                     <div className="comment-actions">
+                      <button type="button" onClick={() => copyCommentLink(comment.id)} aria-label="Copy comment link"><LinkIcon size={13} aria-hidden="true" /></button>
                       {canReplyComment ? (
-                        <button className="has-tooltip" data-tooltip={isReplying ? "Close reply composer." : auth.user?.isAdmin ? "Reply as admin." : "Reply in your admin-answered thread."} type="button" onClick={() => startReply(comment)} aria-label={isReplying ? "Cancel reply" : "Reply"}>
+                        <button className="has-tooltip" data-tooltip={isReplying ? "Close reply composer." : "Reply in this thread."} type="button" onClick={() => startReply(comment)} aria-label={isReplying ? "Cancel reply" : "Reply"}>
                           <Reply size={13} aria-hidden="true" />
                         </button>
                       ) : null}
@@ -1233,6 +1318,8 @@ export function CommentsSection() {
                     </div>
                   </header>
                   {comment.text ? <MarkdownText text={comment.text} /> : null}
+                  <CommentMentions mentions={comment.mentions} userId={auth.user?.id} />
+                  {isMentioned(comment, auth.user?.id) ? <p className="comment-mention-hint">You were mentioned in this thread — you can reply.</p> : null}
                   <CommentMedia gifUrl={comment.gifUrl} />
 
                   {renderReactionControls(comment.id, reactionMap)}
@@ -1250,11 +1337,11 @@ export function CommentsSection() {
                       {visibleReplies.map((reply, replyIndex) => {
                         const canDeleteReply = !!auth.user && (auth.user.isAdmin || reply.mine);
                         const isFollowUp = replyIndex > 0;
-                        const replyTarget = isFollowUp ? replies[replyIndex - 1]?.author : comment.author;
-                        const replyTargetName = replyTarget?.username || (isFollowUp ? "previous reply" : "original post");
+                        const replyTargetName = comment.author?.username || "original post";
                         const replyFromThreadAuthor = !!reply.author?.id && reply.author.id === comment.author?.id;
                         return (
                           <article
+                            id={`reply-${encodeURIComponent(reply.id)}`} tabIndex={-1}
                             className={`comment-reply ${isFollowUp ? "is-follow-up" : "is-direct-reply"}`}
                             key={reply.id}
                             aria-label={`Reply from ${reply.author?.username || "Unknown signal"} to ${replyTargetName}`}
@@ -1279,6 +1366,7 @@ export function CommentsSection() {
                                   <b>@{replyTargetName}</b>
                                 </span>
                                 <span className="comment-time has-tooltip" data-tooltip={formatFullTimestamp(reply.createdAt)} tabIndex="0">{formatTimestamp(reply.createdAt)}</span>
+                                <button type="button" onClick={() => copyCommentLink(comment.id, reply.id)} aria-label="Copy reply link"><LinkIcon size={12} aria-hidden="true" /></button>
                                 {canDeleteReply ? (
                                   <button className="has-tooltip" data-tooltip={reply.mine ? "Delete your reply." : "Admin delete reply."} type="button" onClick={() => openDeleteReply(comment, reply)} aria-label="Delete reply">
                                     <Trash2 size={12} aria-hidden="true" />
@@ -1286,6 +1374,7 @@ export function CommentsSection() {
                                 ) : null}
                               </header>
                               {reply.text ? <MarkdownText compact text={reply.text} /> : null}
+                              <CommentMentions mentions={reply.mentions} userId={auth.user?.id} />
                               <CommentMedia gifUrl={reply.gifUrl} />
                               {renderReactionControls(comment.id, reply.reactions && typeof reply.reactions === "object" ? reply.reactions : {}, reply.id)}
                             </div>
@@ -1294,7 +1383,7 @@ export function CommentsSection() {
                       })}
                       {/* El pie va envuelto porque el boton ya usa ::before/::after para su
                           tooltip: el codo que cierra el rail necesita pseudos libres. */}
-                      {collapsibleReplies ? (
+                      {collapsibleReplies && !mentionsOnly ? (
                         <div className="comment-replies-foot">
                           <button
                             className="comment-replies-toggle has-tooltip"
@@ -1322,16 +1411,9 @@ export function CommentsSection() {
 
                   {isReplying ? (
                     <form className="comment-reply-form" onSubmit={(event) => { event.preventDefault(); submitReply(comment.id); }}>
-                      <label className="comments-input-frame">
-                        <span aria-hidden="true">&gt;</span>
-                        <textarea
-                          value={replyDraft}
-                          maxLength={MAX_COMMENT_LENGTH}
-                          onChange={(event) => setReplyDraft(event.target.value)}
-                          placeholder={`Reply to ${comment.author?.username || "this comment"}...`}
-                          disabled={busy}
-                        />
-                      </label>
+                      <CommentMentionInput label={`Reply to ${comment.author?.username || "this comment"}`} value={replyDraft} onChange={setReplyDraft}
+                        mentions={replyMentions} onMentionsChange={setReplyMentions} users={mentionUsers}
+                        maxLength={MAX_COMMENT_LENGTH} placeholder={`Reply to ${comment.author?.username || "this comment"}...`} disabled={busy} />
                       {replyGif ? (
                         <div className="comments-gif-preview is-reply-preview">
                           <button className="has-tooltip" data-tooltip="Remove reply GIF" type="button" onClick={() => clearGif("reply")} aria-label="Remove reply GIF"><X size={14} aria-hidden="true" /></button>
@@ -1356,10 +1438,10 @@ export function CommentsSection() {
             );
           })}
 
-          {!comments.length ? (
+          {!filteredComments.length ? (
             <div className="comments-empty-state">
               <MessageSquare size={15} aria-hidden="true" />
-              <span>No comments in the stream yet.</span>
+              <span>{mentionsOnly && auth.user ? "No mentions of you yet." : "No comments in the stream yet."}</span>
             </div>
           ) : null}
 

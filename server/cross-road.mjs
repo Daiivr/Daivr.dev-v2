@@ -2,6 +2,7 @@ import { renameSync, readFileSync, writeFileSync } from "node:fs";
 import { DEFAULT_AVATAR_URL, refreshLeaderboardProfiles } from "./discord-avatar.mjs";
 import { getSessionUser } from "./comments.mjs";
 import { ensureDataFile, getDataFile } from "./storage.mjs";
+import { recordDailyRun } from "./player-store.mjs";
 
 const FILENAME = "cross-road-leaderboard.json";
 const DATA_ENVS = ["CROSS_ROAD_DATA_DIR", "GAME_DATA_DIR"];
@@ -79,6 +80,7 @@ export async function handleCrossRoadRequest(request, response) {
     const next = { ...(current || { discordId: String(user.id), createdAt: now }), discordId: String(user.id), username: user.username, avatarUrl: user.avatarUrl || DEFAULT_AVATAR_URL, bestScore: improves ? score : current?.bestScore || 0, bestDurationMs: improves ? durationMs : current?.bestDurationMs, lastScore: score, lastDurationMs: durationMs, lastSeenAt: now, updatedAt: improves ? now : current?.updatedAt || now, submissions: (Number(current?.submissions) || 0) + 1 };
     if (index >= 0) scores[index] = next; else scores.push(next);
     writeScores(scores);
+    recordDailyRun(user, "cross-road", score);
     return sendJson(response, 200, { score: mine(scores, user.id), leaderboard: leaderboard(scores) });
   }
   sendJson(response, 404, { error: "Cross Road endpoint not found." });

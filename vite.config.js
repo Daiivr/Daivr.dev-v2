@@ -14,6 +14,7 @@ import { handleSteamPlaytimeRequest } from "./server/steam-playtime.mjs";
 import { handleTradeDexVirusTotalRequest } from "./server/virustotal.mjs";
 import { handleTowerBlockRequest } from "./server/tower-block.mjs";
 import { handleVisitsRequest } from "./server/visits.mjs";
+import { handlePlayerRequest } from "./server/player.mjs";
 
 loadLocalEnv();
 
@@ -26,6 +27,7 @@ export default defineConfig({
       name: "daivr-local-api",
       configureServer(server) {
         startDiscordStreakPolling();
+        server.middlewares.use("/api/player", handlePlayerRequest);
 
         server.middlewares.use("/api/tradedex", (request, response, next) => {
           if (request.url?.startsWith("/info") || request.url?.startsWith("/scan")) {
@@ -89,6 +91,7 @@ export default defineConfig({
     }
   ],
   build: {
+    manifest: true,
     // Los tres chunks que pasan de 500 kB son motores 3D detras de imports
     // perezosos: react-three-fiber+three (avatar VRM del splash) y
     // ProjectLanyard (rapier, que en su build -compat lleva el WASM en base64 y

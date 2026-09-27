@@ -1,0 +1,112 @@
+@layer components {
+  .player-hub-trigger, .cabinet-mobile-actions button {
+    display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px;
+    border: 1px solid var(--color-phosphor); color: var(--color-phosphor); background: #03120d;
+    padding: 8px 12px; font-size: 12px; font-weight: 800;
+  }
+  .player-hub-trigger b { border-radius: 20px; background: var(--color-phosphor); color: #04120b; padding: 1px 6px; }
+  .player-hub-overlay { position: fixed; inset: 0; z-index: 220; background: #000c; backdrop-filter: blur(6px); }
+  .player-hub-dialog {
+    position: fixed; z-index: 221; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: min(740px, calc(100vw - 28px)); max-height: calc(100dvh - 32px); overflow-y: auto;
+    padding: clamp(18px, 4vw, 30px); border: 1px solid var(--color-phosphor); background: #07120f;
+    color: #d9f5e6; box-shadow: 0 22px 100px #000; font-family: var(--font-mono, monospace);
+    overscroll-behavior: contain; scrollbar-gutter: stable;
+  }
+  .player-hub-dialog h2 { margin: 8px 0; color: white; font-size: 26px; font-weight: 800; }
+  .player-hub-dialog h3 { font-size: 19px; font-weight: 800; color: white; }
+  .player-hub-dialog p { font-size: 13px; line-height: 1.7; margin: 8px 0 16px; }
+  .player-hub-heading { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  .player-hub-dialog button, .community-inbox button, .project-story button, .project-story a {
+    min-height: 38px; border: 1px solid #39795b; color: #9fffc9; background: #0a2218; padding: 8px 12px;
+    cursor: pointer; font: inherit; font-size: 12px; border-radius: 4px; text-decoration: none;
+  }
+  .player-hub-dialog button:disabled, .community-inbox button:disabled { opacity: .45; cursor: default; }
+  .player-hub-dialog :is(button,a,input,select):focus-visible,
+  .community-inbox button:focus-visible, .project-story :is(a,button):focus-visible,
+  .cabinet-mobile-actions button:focus-visible { outline: 2px solid #63ffad; outline-offset: 3px; }
+  .player-signin { border: 1px dashed #39795b; padding: 18px; }
+  .player-signin a { color: #63ffad; text-decoration: underline; }
+  .player-passport {
+    --passport-accent: #63ffad; display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 16px;
+    margin: 22px 0; padding: 22px; border: 1px solid var(--passport-accent);
+    background: linear-gradient(115deg, color-mix(in srgb, var(--passport-accent) 10%, #06100c), #0a1411);
+    border-left-width: 4px;
+  }
+  .player-passport.accent-skyline { --passport-accent: #5bdcff; }
+  .player-passport.accent-roadrunner { --passport-accent: #ffc76b; }
+  .player-passport.accent-orbital { --passport-accent: #c5a0ff; }
+  .player-passport img { width: 64px; height: 64px; object-fit: cover; border-radius: 8px; }
+  .player-passport small { color: var(--passport-accent); font-size: 12px; }
+  .player-passport h3 { overflow-wrap: anywhere; }
+  .passport-badges { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; }
+  .passport-badges span { border: 1px solid var(--passport-accent); color: var(--passport-accent); padding: 5px 8px; font-size: 11px; border-radius: 20px; }
+  .passport-fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .passport-fields label { display: grid; gap: 6px; font-size: 12px; }
+  .passport-fields select { min-width: 0; padding: 10px 6px; border: 1px solid #39795b; background: #06100c; color: white; border-radius: 4px; }
+  .passport-form fieldset { margin: 18px 0; }
+  .passport-form legend { font-size: 12px; margin-bottom: 10px; }
+  .passport-badge-options { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; }
+  .passport-badge-options label { display: flex; align-items: center; gap: 6px; }
+  .passport-badge-options input { accent-color: #63ffad; }
+  .passport-records { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin: 22px 0; }
+  .passport-records div { display: grid; gap: 8px; border: 1px solid #204b35; padding: 12px; font-size: 11px; }
+  .passport-records strong { color: #63ffad; font-size: 16px; }
+  .daily-challenge { border: 1px solid #a08030; background: #211b0d; padding: 20px; margin: 24px 0; }
+  .daily-challenge h3 { margin-top: 12px; }
+  .daily-challenge progress { width: 100%; height: 12px; accent-color: #ffc76b; }
+  .daily-challenge small { display: block; margin-top: 12px; font-size: 11px; line-height: 1.6; }
+  .community-inbox { margin: 16px 0; min-width: 0; }
+  .community-inbox header { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .community-inbox h3 { color: #def5e8; font-size: 16px; }
+  .community-inbox h3 span { color: #63ffad; font-size: 12px; }
+  .community-inbox p { color: #add0bd; font-size: 12px; line-height: 1.7; margin: 10px 0; }
+  .community-inbox-list { max-height: 330px; overflow-y: auto; }
+  .community-inbox article { display: grid; gap: 4px; margin-top: 8px; border: 1px solid #204b35; border-left: 3px solid #63ffad; padding: 6px; }
+  .community-inbox article.is-read { border-left-color: #204b35; }
+  .community-inbox article > button:first-child { display: grid; gap: 5px; width: 100%; text-align: left; border: 0; background: transparent; overflow-wrap: anywhere; }
+  .community-inbox article span { color: #d6e7dd; }
+  .community-inbox time { color: #92ac9c; font-size: 10px; }
+  .community-inbox .inbox-read-button { justify-self: end; font-size: 10px; min-height: 30px; }
+  .comments-inbox-panel { position: relative; z-index: 2; margin: 18px clamp(14px, 3.4vw, 42px); padding: 14px; border: 1px solid #39795b; }
+  .comments-inbox-panel summary { color: var(--color-phosphor); cursor: pointer; font-size: 13px; font-weight: 800; }
+  .comment-card:target, .comment-reply:target { outline: 2px solid var(--color-cyan-arcade); outline-offset: 4px; scroll-margin-block: 90px; }
+  .project-story { position: relative; z-index: 2; margin: 24px clamp(16px, 4vw, 36px); padding: clamp(18px, 4vw, 30px); border: 1px solid #39795b; background: #06120eed; color: #d6e7dd; }
+  .project-story h3 { color: white; font-size: clamp(22px, 3vw, 32px); line-height: 1.25; margin: 14px 0; font-weight: 800; }
+  .project-story h4 { color: #63ffad; font-size: 14px; font-weight: 800; margin: 22px 0 8px; }
+  .project-story p, .project-story li { font-size: 14px; line-height: 1.85; }
+  .project-story-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: center; }
+  .project-story figure { min-width: 0; margin: 20px 0 0; }
+  .project-story img { width: 100%; max-height: 320px; object-fit: contain; background: #021008; }
+  .project-story figcaption { font-size: 10px; color: #9fc4ae; margin-top: 10px; }
+  .project-story-tags, .project-story footer { display: flex; flex-wrap: wrap; gap: 8px; }
+  .project-story-tags span { border: 1px solid #39795b; padding: 5px 8px; font-size: 11px; }
+  .project-story ol { padding-left: 22px; list-style: decimal; }
+  .project-story footer { margin-top: 22px; }
+  .cabinet-mobile-actions { display: none; }
+  @media (max-width: 1023px) {
+    .cabinet-mobile-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .cabinet-mobile-header .brand-lockup { margin-bottom: 0; min-width: 0; }
+    .cabinet-mobile-header .brand-lockup strong { font-size: 15px; }
+    .cabinet-mobile-header .brand-mark { width: 36px; height: 36px; flex-shrink: 0; }
+    .cabinet-mobile-header .cabinet-brand-caption { display: none; }
+    .cabinet-mobile-actions { display: flex; gap: 6px; }
+    .cabinet-mobile-actions button { padding: 8px 10px; min-height: 42px; }
+    .cabinet-directory { display: none; }
+    .cabinet-directory.is-open { display: block; margin-top: 16px; }
+    .cabinet-topbar .cabinet-telemetry { display: none; }
+    .cabinet-topbar { flex-wrap: nowrap; gap: 8px; }
+    .cabinet-topbar-controls { gap: 6px; width: auto; flex-shrink: 0; }
+    .player-hub-trigger { padding: 7px 9px; }
+    .cabinet-topbar-route > span { display: none; }
+  }
+  @media (max-width: 550px) {
+    .passport-fields, .project-story-grid { grid-template-columns: 1fr; }
+    .player-passport { padding: 14px; gap: 12px; grid-template-columns: 48px minmax(0, 1fr); }
+    .player-passport img { width: 48px; height: 48px; }
+    .passport-records { grid-template-columns: 1fr; }
+    .passport-records div { display: flex; justify-content: space-between; align-items: center; }
+    .project-story p, .project-story li { font-size: 13px; }
+    .cabinet-topbar .cabinet-terminal-button { padding: 8px; }
+  }
+}

@@ -8,6 +8,8 @@ import { DiscordPresencePanel } from "./DiscordPresencePanel";
 import { GameShelf } from "./GameShelf";
 import { PatchNotes } from "./PatchNotes";
 import { ProjectFolder } from "./ProjectFolder";
+import { ProjectStory } from "./ProjectStory";
+import { projectStories } from "../data/projectStories";
 
 const ProjectLanyard = lazy(() => import("./ProjectLanyard"));
 
@@ -409,6 +411,20 @@ function ProjectConsole() {
   const selectedProject = projects.find((project) => project.title === selectedProjectTitle) || null;
 
   useEffect(() => {
+    function openLinkedProject() {
+      const project = projects.find((entry) => window.location.hash === `#project-${projectStories[entry.title]?.slug}`);
+      if (project) {
+        setSelectedProjectTitle(project.title);
+        window.setTimeout(() => lanyardDockRef.current?.scrollIntoView({ block: "start", behavior: "auto" }), 100);
+      }
+    }
+    openLinkedProject();
+    window.addEventListener("hashchange", openLinkedProject);
+    window.addEventListener("daivr-content-ready", openLinkedProject);
+    return () => { window.removeEventListener("hashchange", openLinkedProject); window.removeEventListener("daivr-content-ready", openLinkedProject); };
+  }, []);
+
+  useEffect(() => {
     let cancelled = false;
 
     async function loadTradeDexInfo() {
@@ -494,6 +510,7 @@ function ProjectConsole() {
 
   function selectProject(project) {
     setSelectedProjectTitle((current) => current === project.title ? "" : project.title);
+    window.history.replaceState(null, "", selectedProjectTitle === project.title ? "#builds" : `#project-${projectStories[project.title].slug}`);
     window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
       detail: { type: "cartridge", id: `project:${project.title}` }
     }));
@@ -526,14 +543,17 @@ function ProjectConsole() {
       />
 
       {selectedProject ? (
+        <>
         <ProjectLanyardDock
           dockRef={lanyardDockRef}
           key={selectedProject.title}
-          onClose={() => setSelectedProjectTitle("")}
+          onClose={() => { setSelectedProjectTitle(""); window.history.replaceState(null, "", "#builds"); }}
           project={selectedProject}
           scanData={selectedScanData}
           scanError={scanError}
         />
+        <ProjectStory project={selectedProject} key={`story-${selectedProject.title}`} />
+        </>
       ) : null}
     </div>
   );
