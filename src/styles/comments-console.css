@@ -1,5 +1,9 @@
 @layer components {
   .comment-mention-input { position: relative; min-width: 0; }
+  /* Raise the ancestor stacking contexts, not just the menu, above the stream. */
+  .comments-composer:has(.comment-mention-suggestions),
+  .comment-card:has(.comment-mention-suggestions) { z-index: 10; }
+  .comment-mention-input:has(.comment-mention-suggestions) { z-index: 21; }
   .comment-mention-hint { display: block; margin: 8px 0; color: var(--color-phosphor); font-size: 11px; line-height: 1.6; opacity: .8; }
   .comment-mentions { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
   .comments-console .comment-mention {
@@ -10,17 +14,28 @@
   }
   .comments-console .comment-mention.is-you { border-color: var(--color-phosphor); }
   .comment-mention-suggestions {
-    position: absolute; top: 100%; left: 0; z-index: 20; width: min(100%, 360px);
-    padding: 6px; border: 1px solid var(--color-phosphor); background: #11151a;
-    box-shadow: 0 8px 24px #0008; border-radius: 5px;
+    position: absolute; top: calc(100% + 4px); left: 0; z-index: 20; width: min(100%, 380px);
+    padding: 6px; border: 1px solid color-mix(in srgb, var(--color-phosphor) 65%, #17281f); background: #081510;
+    box-shadow: 0 16px 40px #000b, 0 0 0 4px #04100bcc; border-radius: 8px;
   }
+  .comment-mention-menu-heading, .comment-mention-menu-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; padding: 8px; font-size: 10px; line-height: 1.5; color: #9bb6a7; }
+  .comment-mention-menu-heading { border-bottom: 1px solid #244334; margin-bottom: 4px; }
+  .comment-mention-menu-heading > span { color: var(--color-phosphor); font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+  .comment-mention-menu-heading small { font-size: inherit; }
+  .comment-mention-menu-footer { border-top: 1px solid #244334; margin-top: 4px; }
+  .comment-mention-options { position: relative; max-height: min(288px, 40dvh); overflow-y: auto; overscroll-behavior: contain; }
   .comments-console .comment-mention-suggestions button {
-    display: flex; justify-content: space-between; gap: 12px; width: 100%; padding: 10px;
-    border: 0; background: transparent; color: var(--color-phosphor); text-align: left;
+    display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; padding: 8px;
+    border: 1px solid transparent; border-radius: 4px; background: transparent; color: #e0f5e9; text-align: left;
   }
-  .comment-mention-suggestions button span { overflow-wrap: anywhere; min-width: 0; }
-  .comment-mention-suggestions small { flex-shrink: 0; opacity: .6; }
-  .comments-console .comment-mention-suggestions button[aria-selected="true"] { background: color-mix(in srgb, var(--color-phosphor) 18%, transparent); }
+  .comment-mention-avatar { display: grid; place-items: center; flex: 0 0 32px; height: 32px; border: 1px solid #355f49; border-radius: 6px; background: #112c20; color: var(--color-phosphor); font-size: 14px; }
+  .comment-mention-user { display: grid; gap: 2px; min-width: 0; flex: 1; }
+  .comment-mention-user strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+  .comment-mention-user small { color: #9bb6a7; font-size: 10px; }
+  .comment-mention-select { color: var(--color-phosphor); opacity: 0; }
+  .comments-console .comment-mention-suggestions button:hover { background: #132a1f; }
+  .comments-console .comment-mention-suggestions button[aria-selected="true"] { background: #193b2b; border-color: #377956; }
+  .comment-mention-suggestions button[aria-selected="true"] .comment-mention-select { opacity: 1; }
   .comment-mention-empty { display: block; padding: 10px; font-size: 12px; }
   .comments-mention-filter { position: relative; z-index: 2; display: flex; flex-wrap: wrap; gap: 8px; margin: 12px clamp(0.85rem, 3.4vw, 2.6rem); }
   .comments-console .comments-mention-filter button {

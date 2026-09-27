@@ -1,4 +1,4 @@
-import { useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { MAX_MENTIONS } from "../../shared/comment-mentions.mjs";
 
 export function CommentMentions({ mentions = [], userId }) {
@@ -13,6 +13,7 @@ export function CommentMentions({ mentions = [], userId }) {
 export function CommentMentionInput({ value, onChange, mentions, onMentionsChange, users, disabled, placeholder, label, maxLength }) {
   const id = useId();
   const inputRef = useRef(null);
+  const listRef = useRef(null);
   const [cursor, setCursor] = useState(0);
   const [focused, setFocused] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -22,6 +23,16 @@ export function CommentMentionInput({ value, onChange, mentions, onMentionsChang
   const open = focused && !dismissed && !!match && mentions.length < MAX_MENTIONS;
   const suggestions = open ? users.filter((user) => !mentions.some((selected) => selected.id === user.id) && user.username.toLocaleLowerCase().includes(query)).slice(0, 6) : [];
   const activeIndex = Math.min(active, Math.max(0, suggestions.length - 1));
+
+  useEffect(() => {
+    const option = listRef.current?.children[activeIndex];
+    if (!option) return;
+    const list = listRef.current;
+    if (option.offsetTop < list.scrollTop) list.scrollTop = option.offsetTop;
+    else if (option.offsetTop + option.offsetHeight > list.scrollTop + list.clientHeight) {
+      list.scrollTop = option.offsetTop + option.offsetHeight - list.clientHeight;
+    }
+  }, [activeIndex, open, query]);
 
   function selectUser(user) {
     const start = cursor - match[1].length - 1;
@@ -59,13 +70,19 @@ export function CommentMentionInput({ value, onChange, mentions, onMentionsChang
           }}
         />
       </label>
-      {open ? <div className="comment-mention-suggestions" id={`${id}-list`} role="listbox" aria-label="Guestbook users">
+      {open ? <div className="comment-mention-suggestions">
+        <div className="comment-mention-menu-heading"><span>Mention a player</span><small>{suggestions.length} found</small></div>
+        <div className="comment-mention-options" ref={listRef} id={`${id}-list`} role="listbox" aria-label="Guestbook users">
         {suggestions.length ? suggestions.map((user, index) => (
           <button key={user.id} id={`${id}-option-${index}`} type="button" role="option" aria-selected={index === activeIndex}
             onPointerDown={(event) => event.preventDefault()} onClick={() => selectUser(user)}>
-            <span>@{user.username}</span><small>…{user.id.slice(-6)}</small>
+            <span className="comment-mention-avatar" aria-hidden="true">{Array.from(user.username)[0]?.toLocaleUpperCase() || "@"}</span>
+            <span className="comment-mention-user"><strong>@{user.username}</strong><small>Player · …{user.id.slice(-6)}</small></span>
+            <span className="comment-mention-select" aria-hidden="true">↵</span>
           </button>
         )) : <span className="comment-mention-empty">No matching guestbook users.</span>}
+        </div>
+        <div className="comment-mention-menu-footer" aria-hidden="true">↑ ↓ navigate <span>↵ select · esc close</span></div>
       </div> : null}
       {mentions.length ? <div className="comment-mentions" aria-label="Selected mentions">
         {mentions.map((user) => <button className="comment-mention" key={user.id} type="button" disabled={disabled}

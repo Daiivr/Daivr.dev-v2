@@ -25,7 +25,7 @@ import { createPortal } from "react-dom";
 import { DecodeText } from "./DecodeText";
 import { CommentMentionInput, CommentMentions } from "./CommentMentionInput";
 import { canReply, isMentioned, mentionCandidates } from "../../shared/comment-mentions.mjs";
-import { CommunityInbox } from "./CommunityInbox";
+import { NotificationsBell } from "./NotificationsBell";
 import { commentHash } from "../lib/commentLinks";
 import { loadCommentDraft, saveCommentDraft } from "../lib/commentDrafts";
 
@@ -1167,11 +1167,11 @@ export function CommentsSection() {
           <div className="comments-auth-panel">
             {auth.user ? (
               <>
-                <div className="comments-user-chip">
+                <div className="comments-account-row"><div className="comments-user-chip">
                   <UserAvatar user={auth.user} />
                   <strong>{auth.user.username}</strong>
                   {auth.user.isAdmin ? <em><ShieldCheck size={12} aria-hidden="true" /> admin</em> : null}
-                </div>
+                </div><NotificationsBell inbox={inbox} /></div>
                 <a className="comments-auth-btn is-secondary has-tooltip" data-tooltip="End the Discord guestbook session." href={auth.logoutUrl || "/api/comments/auth/logout"}>
                   <LogOut size={15} aria-hidden="true" />
                   log out
@@ -1262,7 +1262,6 @@ export function CommentsSection() {
         {deleteModal}
 
         <div className="comments-stream-heading"><h3><MessageSquare size={14} aria-hidden="true" /> The message board</h3><span>PINNED FIRST / LATEST NEXT</span></div>
-        {auth.user ? <details className="comments-inbox-panel"><summary>Your inbox · {inbox.unread} unread</summary><CommunityInbox inbox={inbox} /></details> : null}
         {auth.user ? <div className="comments-mention-filter" aria-label="Filter comments">
           <button type="button" aria-pressed={!mentionsOnly} onClick={() => { setMentionsOnly(false); setPage(1); }}>All comments</button>
           <button type="button" aria-pressed={mentionsOnly} onClick={() => {

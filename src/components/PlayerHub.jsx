@@ -1,6 +1,6 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";
-import { Award, X } from "lucide-react";
+import { Award, ChevronDown, Inbox, SlidersHorizontal, Trophy, X } from "lucide-react";
 import { PLAYER_GAMES } from "../../shared/player-catalog.mjs";
 import { CommunityInbox } from "./CommunityInbox";
 
@@ -49,32 +49,43 @@ export function PlayerHub({ onPlay }) {
   return <Dialog.Root open={open} onOpenChange={setOpen}>
     <Dialog.Trigger asChild><button className="player-hub-trigger arcade-focus" type="button"><Award size={16} aria-hidden="true" /><span>Player</span>{data?.inbox?.unread ? <b aria-label={`${data.inbox.unread} unread notifications`}>{data.inbox.unread}</b> : null}</button></Dialog.Trigger>
     <Dialog.Portal><Dialog.Overlay className="player-hub-overlay" /><Dialog.Content className="player-hub-dialog">
-      <header className="player-hub-heading"><div><span className="pixel-label">YOUR SAVE SLOT</span><Dialog.Title>Player passport</Dialog.Title></div><Dialog.Close asChild><button type="button" aria-label="Close player panel"><X size={20} /></button></Dialog.Close></header>
-      <Dialog.Description>Your identity, daily challenge, and conversations in one place.</Dialog.Description>
-      {message ? <p role="status">{message}</p> : null}
+      <header className="player-hub-heading"><div><span className="pixel-label">YOUR SAVE SLOT</span><Dialog.Title>Player passport</Dialog.Title><Dialog.Description>Your identity, records, and next challenge.</Dialog.Description></div><Dialog.Close asChild><button type="button" aria-label="Close player panel"><X size={20} /></button></Dialog.Close></header>
+      <div className="player-hub-body">
+      {message ? <p className="player-hub-status" role="status">{message}</p> : null}
       {!data ? <button type="button" onClick={() => load()}>Retry loading player panel</button> : null}
       {data && !data.user ? <p className="player-signin"><a href="/api/comments/auth/discord">Connect Discord</a> to save a passport, earn challenge rewards, and see your inbox.</p> : null}
-      {card && edit ? <>
+      <div className="player-hub-overview">
+      {card && edit ? <div className="player-hub-identity">
         <section className={`player-passport accent-${edit.accent.toLowerCase()}`} aria-label="Your passport preview">
-          <img src={card.user.avatarUrl} alt="" /><div><small>{edit.title}</small><h3>{card.user.username}</h3><p>Buddy level {card.level} · {card.quests} quests · {card.challengeCount} daily wins</p><p>Favorite: {PLAYER_GAMES.find((game) => game.id === edit.favoriteGame)?.name || "Not chosen yet"}</p></div>
-          <div className="passport-badges">{card.badges.filter((badge) => edit.featuredBadges.includes(badge.id)).map((badge) => <span key={badge.id}>{badge.label}</span>)}</div>
+          <img src={card.user.avatarUrl} alt="" /><div><small>{edit.title}</small><h3>{card.user.username}</h3><p>Favorite: {PLAYER_GAMES.find((game) => game.id === edit.favoriteGame)?.name || "Not chosen yet"}</p></div>
+          <dl className="passport-stats"><div><dt>Buddy level</dt><dd>{card.level}</dd></div><div><dt>Quests</dt><dd>{card.quests}</dd></div><div><dt>Daily wins</dt><dd>{card.challengeCount}</dd></div></dl>
+          {edit.featuredBadges.length ? <div className="passport-badges">{card.badges.filter((badge) => edit.featuredBadges.includes(badge.id)).map((badge) => <span key={badge.id}>{badge.label}</span>)}</div> : null}
         </section>
+        <section className="passport-records-panel" aria-label="Personal bests"><h3><Trophy size={14} aria-hidden="true" />Personal bests</h3><div className="passport-records">{card.records.map((record) => <div key={record.game}><span>{PLAYER_GAMES.find((game) => game.id === record.game)?.name}</span><strong>{record.best === null ? "No run yet" : record.best.toLocaleString()}</strong></div>)}</div></section>
+      </div> : null}
+      {challenge ? <section className="daily-challenge" aria-label="Daily challenge">
+        <div className="daily-challenge-heading"><span className="pixel-label">DAILY CHALLENGE</span><span>{challenge.complete ? "Completed" : "One run"}</span></div>
+        <h3>{challenge.name}</h3><p>Score <strong>{challenge.goal.toLocaleString()} {challenge.unit}</strong> in {PLAYER_GAMES.find((game) => game.id === challenge.game)?.name} in one run.</p>
+        <div className="daily-challenge-progress"><progress max={challenge.goal} value={Math.min(challenge.goal, challenge.best || 0)} aria-label="Daily challenge progress" /><p>{challenge.complete ? "Complete — reward unlocked!" : `${(challenge.best || 0).toLocaleString()} / ${challenge.goal.toLocaleString()} ${challenge.unit}`}</p></div>
+        <div className="daily-challenge-reward"><Award size={18} aria-hidden="true" /><div><strong>{challenge.reward}</strong><span>Passport title + card accent</span></div></div>
+        <button type="button" onClick={() => { setOpen(false); onPlay(challenge.game); }}>Play challenge <span aria-hidden="true">↗</span></button>
+        <small>{challenge.date} · Resets at 00:00 UTC.<br />{data?.user ? "Progress saves after an accepted run." : "Sign in before playing to save progress."}</small>
+      </section> : null}
+      </div>
+      {card && edit ? <details className="player-hub-disclosure">
+        <summary><SlidersHorizontal size={16} aria-hidden="true" /><span>Customize passport<small>Title, favorite game, accent & badges</small></span><ChevronDown size={16} className="player-hub-chevron" aria-hidden="true" /></summary>
         <form className="passport-form" onSubmit={save}>
           <div className="passport-fields">
             <label>Title<select value={edit.title} disabled={busy} onChange={(event) => setEdit({ ...edit, title: event.target.value })}>{card.titles.map((title) => <option key={title}>{title}</option>)}</select></label>
             <label>Favorite game<select value={edit.favoriteGame} disabled={busy} onChange={(event) => setEdit({ ...edit, favoriteGame: event.target.value })}><option value="">Choose a game</option>{PLAYER_GAMES.map((game) => <option key={game.id} value={game.id}>{game.name}</option>)}</select></label>
-            <label>Card accent<select value={edit.accent} disabled={busy} onChange={(event) => setEdit({ ...edit, accent: event.target.value })}>{["default", ...card.cosmetics].map((accent) => <option key={accent}>{accent}</option>)}</select></label>
+            <label>Card accent<select value={edit.accent} disabled={busy} onChange={(event) => setEdit({ ...edit, accent: event.target.value })}>{["default", ...card.cosmetics].map((accent) => <option key={accent} value={accent}>{accent === "default" ? "Classic green" : accent}</option>)}</select></label>
           </div>
-          <fieldset disabled={busy}><legend>Display up to three earned badges</legend><div className="passport-badge-options">{card.badges.map((badge) => <label key={badge.id}><input type="checkbox" checked={edit.featuredBadges.includes(badge.id)} disabled={!edit.featuredBadges.includes(badge.id) && edit.featuredBadges.length >= 3} onChange={(event) => setEdit({ ...edit, featuredBadges: event.target.checked ? [...edit.featuredBadges, badge.id] : edit.featuredBadges.filter((id) => id !== badge.id) })} />{badge.label}</label>)}</div></fieldset>
+          <fieldset disabled={busy}><legend>Featured badges · {edit.featuredBadges.length}/3 selected</legend><div className="passport-badge-options">{card.badges.map((badge) => <label key={badge.id}><input type="checkbox" checked={edit.featuredBadges.includes(badge.id)} disabled={!edit.featuredBadges.includes(badge.id) && edit.featuredBadges.length >= 3} onChange={(event) => setEdit({ ...edit, featuredBadges: event.target.checked ? [...edit.featuredBadges, badge.id] : edit.featuredBadges.filter((id) => id !== badge.id) })} />{badge.label}</label>)}</div></fieldset>
           <button type="submit" disabled={busy}>{busy ? "Saving…" : "Save passport"}</button>
         </form>
-        <section className="passport-records" aria-label="Personal bests">{card.records.map((record) => <div key={record.game}><span>{PLAYER_GAMES.find((game) => game.id === record.game)?.name}</span><strong>{record.best === null ? "No run yet" : record.best.toLocaleString()}</strong></div>)}</section>
-      </> : null}
-      {challenge ? <section className="daily-challenge"><div><span className="pixel-label">DAILY CABINET CHALLENGE · {challenge.date}</span><h3>{challenge.name}</h3><p>Score {challenge.goal.toLocaleString()} {challenge.unit} in {PLAYER_GAMES.find((game) => game.id === challenge.game)?.name} in one run.</p><p>Reward: <strong>{challenge.reward}</strong> passport title and accent. Resets at 00:00 UTC.</p></div>
-        <progress max={challenge.goal} value={Math.min(challenge.goal, challenge.best || 0)} aria-label="Daily challenge progress" /><p>{challenge.complete ? "Complete — reward unlocked!" : `${challenge.best || 0} / ${challenge.goal} ${challenge.unit}`}</p>
-        <button type="button" onClick={() => { setOpen(false); onPlay(challenge.game); }}>Play challenge</button><small>Sign in before playing. Progress saves when a completed run is accepted.</small>
-      </section> : null}
-      {data?.user ? <CommunityInbox inbox={data.inbox} onNavigate={() => setOpen(false)} /> : null}
+      </details> : null}
+      {data?.user ? <details className="player-hub-disclosure player-hub-inbox"><summary><Inbox size={16} aria-hidden="true" /><span>Conversations<small>Mentions & replies</small></span><b>{data.inbox?.unread || 0} unread</b><ChevronDown size={16} className="player-hub-chevron" aria-hidden="true" /></summary><CommunityInbox inbox={data.inbox} onNavigate={() => setOpen(false)} /></details> : null}
+      </div>
     </Dialog.Content></Dialog.Portal>
   </Dialog.Root>;
 }
