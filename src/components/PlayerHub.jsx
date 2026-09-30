@@ -1,8 +1,9 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useState } from "react";
-import { Award, ChevronDown, Inbox, SlidersHorizontal, Trophy, X } from "lucide-react";
+import { Award, ChevronDown, Flame, Inbox, LockKeyhole, SlidersHorizontal, Trophy, X } from "lucide-react";
 import { PLAYER_GAMES } from "../../shared/player-catalog.mjs";
 import { CommunityInbox } from "./CommunityInbox";
+import { PlayerBadge } from "./PlayerBadge";
 
 export function PlayerHub({ onPlay, theme = "crt" }) {
   const [open, setOpen] = useState(false);
@@ -46,6 +47,7 @@ export function PlayerHub({ onPlay, theme = "crt" }) {
   }
   const card = data?.passport;
   const challenge = data?.challenge;
+  const collection = card ? [...card.badges, ...(card.milestones || []).filter((badge) => !badge.earned)] : [];
   return <Dialog.Root open={open} onOpenChange={setOpen}>
     <Dialog.Trigger asChild><button className="player-hub-trigger arcade-focus" type="button"><Award size={16} aria-hidden="true" /><span>Player</span>{data?.inbox?.unread ? <b aria-label={`${data.inbox.unread} unread notifications`}>{data.inbox.unread}</b> : null}</button></Dialog.Trigger>
     <Dialog.Portal><Dialog.Overlay className={`player-hub-overlay ${theme === "glitch" ? "theme-glitch" : ""}`} /><Dialog.Content className={`player-hub-dialog ${theme === "glitch" ? "theme-glitch" : ""}`}>
@@ -57,18 +59,19 @@ export function PlayerHub({ onPlay, theme = "crt" }) {
       <div className="player-hub-overview">
       {card && edit ? <div className="player-hub-identity">
         <section className={`player-passport accent-${edit.accent.toLowerCase()}`} aria-label="Your passport preview">
-          <div className="passport-card-label"><span>01 / PLAYER ID</span><Award size={13} aria-hidden="true" /></div>
+          <div className="passport-card-label"><span>01 / PLAYER ID</span><span className="passport-collection-count"><Award size={14} aria-hidden="true" />{card.badges.length} badges earned</span></div>
           <img src={card.user.avatarUrl} alt="" /><div><small>{edit.title}</small><h3>{card.user.username}</h3><p>Favorite: {PLAYER_GAMES.find((game) => game.id === edit.favoriteGame)?.name || "Not chosen yet"}</p></div>
           <dl className="passport-stats"><div><dt>Buddy level</dt><dd>{card.level}</dd></div><div><dt>Quests</dt><dd>{card.quests}</dd></div><div><dt>Daily wins</dt><dd>{card.challengeCount}</dd></div></dl>
-          {edit.featuredBadges.length ? <div className="passport-badges">{card.badges.filter((badge) => edit.featuredBadges.includes(badge.id)).map((badge) => <span key={badge.id}>{badge.label}</span>)}</div> : null}
+          {edit.featuredBadges.length ? <div className="passport-badges" aria-label="Featured badges">{card.badges.filter((badge) => edit.featuredBadges.includes(badge.id)).map((badge) => <PlayerBadge key={badge.id} badge={badge} />)}</div> : null}
         </section>
         <section className="passport-records-panel" aria-label="Personal bests"><h3><Trophy size={14} aria-hidden="true" />Personal bests</h3><div className="passport-records">{card.records.map((record) => <div key={record.game}><span>{PLAYER_GAMES.find((game) => game.id === record.game)?.name}</span><strong>{record.best === null ? "No run yet" : record.best.toLocaleString()}</strong></div>)}</div></section>
       </div> : null}
       {challenge ? <section className="daily-challenge" aria-label="Daily challenge">
         <div className="daily-challenge-heading"><span className="pixel-label">DAILY CHALLENGE</span><span>{challenge.complete ? "Completed" : "One run"}</span></div>
         <h3>{challenge.name}</h3><p>Score <strong>{challenge.goal.toLocaleString()} {challenge.unit}</strong> in {PLAYER_GAMES.find((game) => game.id === challenge.game)?.name} in one run.</p>
-        <div className="daily-challenge-progress"><progress max={challenge.goal} value={Math.min(challenge.goal, challenge.best || 0)} aria-label="Daily challenge progress" /><p>{challenge.complete ? "Complete — reward unlocked!" : `${(challenge.best || 0).toLocaleString()} / ${challenge.goal.toLocaleString()} ${challenge.unit}`}</p></div>
+        <div className="daily-challenge-progress"><progress max={challenge.goal} value={challenge.complete ? challenge.goal : Math.min(challenge.goal, challenge.best || 0)} aria-label="Daily challenge progress" /><p>{challenge.complete ? "Complete — reward unlocked!" : `${(challenge.best || 0).toLocaleString()} / ${challenge.goal.toLocaleString()} ${challenge.unit}`}</p></div>
         <div className="daily-challenge-reward"><Award size={18} aria-hidden="true" /><div><strong>{challenge.reward}</strong><span>Passport title + card accent</span></div></div>
+        {card ? <div className="daily-streak-panel"><Flame size={22} aria-hidden="true" /><div><strong>{card.currentStreak || 0}<span> day streak</span></strong><small>Personal best: {card.bestStreak || 0} days</small></div><span className="daily-streak-status">{challenge.complete ? "Today secured" : card.currentStreak ? "Keep it going" : "Start your streak"}</span></div> : null}
         <button type="button" onClick={() => { setOpen(false); onPlay(challenge.game); }}>Play challenge <span aria-hidden="true">↗</span></button>
         <small>{challenge.date} · Resets at 00:00 UTC.<br />{data?.user ? "Progress saves after an accepted run." : "Sign in before playing to save progress."}</small>
       </section> : null}
@@ -81,7 +84,15 @@ export function PlayerHub({ onPlay, theme = "crt" }) {
             <label>Favorite game<select value={edit.favoriteGame} disabled={busy} onChange={(event) => setEdit({ ...edit, favoriteGame: event.target.value })}><option value="">Choose a game</option>{PLAYER_GAMES.map((game) => <option key={game.id} value={game.id}>{game.name}</option>)}</select></label>
             <label>Card accent<select value={edit.accent} disabled={busy} onChange={(event) => setEdit({ ...edit, accent: event.target.value })}>{["default", ...card.cosmetics].map((accent) => <option key={accent} value={accent}>{accent === "default" ? "Classic green" : accent}</option>)}</select></label>
           </div>
-          <fieldset disabled={busy}><legend>Featured badges · {edit.featuredBadges.length}/3 selected</legend><div className="passport-badge-options">{card.badges.map((badge) => <label key={badge.id}><input type="checkbox" checked={edit.featuredBadges.includes(badge.id)} disabled={!edit.featuredBadges.includes(badge.id) && edit.featuredBadges.length >= 3} onChange={(event) => setEdit({ ...edit, featuredBadges: event.target.checked ? [...edit.featuredBadges, badge.id] : edit.featuredBadges.filter((id) => id !== badge.id) })} />{badge.label}</label>)}</div></fieldset>
+          <fieldset disabled={busy}><legend>Badge collection · {edit.featuredBadges.length}/3 featured</legend><p className="passport-collection-hint">Choose up to three earned badges for your card. Streak badges stay yours after a missed day.</p><div className="passport-badge-options">{collection.map((badge) => {
+            const earned = badge.earned !== false;
+            return <label key={badge.id} className={earned ? "is-earned" : "is-locked"}>
+              <input type="checkbox" aria-label={`Feature ${badge.label}`} checked={edit.featuredBadges.includes(badge.id)} disabled={!earned || (!edit.featuredBadges.includes(badge.id) && edit.featuredBadges.length >= 3)} onChange={(event) => setEdit({ ...edit, featuredBadges: event.target.checked ? [...edit.featuredBadges, badge.id] : edit.featuredBadges.filter((id) => id !== badge.id) })} />
+              <PlayerBadge badge={badge} /><span className="badge-requirement">{badge.description}</span>
+              <span className="badge-unlock-status">{earned ? "Unlocked" : <><LockKeyhole size={11} aria-hidden="true" />{badge.progress} / {badge.target} {badge.metric === "streak" ? "best streak" : "daily wins"}</>}</span>
+              {!earned ? <progress value={badge.progress} max={badge.target} aria-label={`${badge.label} progress`} /> : null}
+            </label>;
+          })}</div></fieldset>
           <button type="submit" disabled={busy}>{busy ? "Saving…" : "Save passport"}</button>
         </form>
       </details> : null}

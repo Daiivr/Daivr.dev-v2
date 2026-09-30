@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { MAX_MENTIONS } from "../../shared/comment-mentions.mjs";
+import { AtSign, CornerDownLeft } from "lucide-react";
 
 export function CommentMentions({ mentions = [], userId }) {
   if (!mentions.length) return null;
@@ -71,18 +72,18 @@ export function CommentMentionInput({ value, onChange, mentions, onMentionsChang
         />
       </label>
       {open ? <div className="comment-mention-suggestions">
-        <div className="comment-mention-menu-heading"><span>Mention a player</span><small>{suggestions.length} found</small></div>
+        <div className="comment-mention-menu-heading"><span><AtSign size={13} aria-hidden="true" />Mention a player</span><small>{String(suggestions.length).padStart(2, "0")} found</small></div>
         <div className="comment-mention-options" ref={listRef} id={`${id}-list`} role="listbox" aria-label="Guestbook users">
         {suggestions.length ? suggestions.map((user, index) => (
           <button key={user.id} id={`${id}-option-${index}`} type="button" role="option" aria-selected={index === activeIndex}
             onPointerDown={(event) => event.preventDefault()} onClick={() => selectUser(user)}>
             <span className="comment-mention-avatar" aria-hidden="true">{Array.from(user.username)[0]?.toLocaleUpperCase() || "@"}</span>
             <span className="comment-mention-user"><strong>@{user.username}</strong><small>Player · …{user.id.slice(-6)}</small></span>
-            <span className="comment-mention-select" aria-hidden="true">↵</span>
+            <span className="comment-mention-select" aria-hidden="true"><CornerDownLeft size={14} /></span>
           </button>
         )) : <span className="comment-mention-empty">No matching guestbook users.</span>}
         </div>
-        <div className="comment-mention-menu-footer" aria-hidden="true">↑ ↓ navigate <span>↵ select · esc close</span></div>
+        <div className="comment-mention-menu-footer" aria-hidden="true"><span><kbd>↑</kbd><kbd>↓</kbd> navigate</span><span><kbd>↵</kbd> select <kbd>esc</kbd> close</span></div>
       </div> : null}
       {mentions.length ? <div className="comment-mentions" aria-label="Selected mentions">
         {mentions.map((user) => <button className="comment-mention" key={user.id} type="button" disabled={disabled}

@@ -15,34 +15,43 @@
   .comments-console .comment-mention.is-you { border-color: var(--color-phosphor); }
   .comment-mention-suggestions {
     position: absolute; top: calc(100% + 4px); left: 0; z-index: 20; width: min(100%, 380px);
-    padding: 6px; border: 1px solid color-mix(in srgb, var(--color-phosphor) 65%, #17281f); background: #081510;
-    box-shadow: 0 16px 40px #000b, 0 0 0 4px #04100bcc; border-radius: 8px;
+    --mention-border: color-mix(in srgb, var(--color-phosphor) 28%, transparent);
+    padding: 5px; border: 1px solid var(--mention-border); border-top: 2px solid var(--color-cyan-arcade);
+    background: linear-gradient(color-mix(in srgb, var(--color-phosphor) 3%, transparent) 1px, transparent 1px) 0 0 / 100% 4px, color-mix(in srgb, var(--color-phosphor) 4%, #030605);
+    box-shadow: 0 18px 40px #000c, 0 0 0 3px #020604; border-radius: 0;
+    font-family: var(--font-mono); color: var(--color-phosphor-soft);
   }
-  .comment-mention-menu-heading, .comment-mention-menu-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px; padding: 8px; font-size: 10px; line-height: 1.5; color: #9bb6a7; }
-  .comment-mention-menu-heading { border-bottom: 1px solid #244334; margin-bottom: 4px; }
-  .comment-mention-menu-heading > span { color: var(--color-phosphor); font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+  .comment-mention-menu-heading, .comment-mention-menu-footer { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 10px 8px; font-size: 10px; line-height: 1.5; color: color-mix(in srgb, var(--color-phosphor-soft) 72%, #929292); }
+  .comment-mention-menu-heading { border-bottom: 1px solid var(--mention-border); margin-bottom: 4px; }
+  .comment-mention-menu-heading > span { display: inline-flex; align-items: center; gap: 7px; color: var(--color-cyan-arcade); font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
   .comment-mention-menu-heading small { font-size: inherit; }
-  .comment-mention-menu-footer { border-top: 1px solid #244334; margin-top: 4px; }
+  .comment-mention-menu-footer { border-top: 1px solid var(--mention-border); margin-top: 4px; font-size: 9px; }
+  .comment-mention-menu-footer > span { display: inline-flex; align-items: center; gap: 5px; }
+  .comment-mention-menu-footer kbd { padding: 1px 4px; border: 1px solid var(--mention-border); border-bottom-width: 2px; color: var(--color-cyan-arcade); font: inherit; }
   .comment-mention-options { position: relative; max-height: min(288px, 40dvh); overflow-y: auto; overscroll-behavior: contain; }
   .comments-console .comment-mention-suggestions button {
     display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; padding: 8px;
-    border: 1px solid transparent; border-radius: 4px; background: transparent; color: #e0f5e9; text-align: left;
+    border: 1px solid transparent; border-left: 2px solid transparent; border-radius: 0; background: transparent; color: var(--color-phosphor-soft); text-align: left; cursor: pointer;
   }
-  .comment-mention-avatar { display: grid; place-items: center; flex: 0 0 32px; height: 32px; border: 1px solid #355f49; border-radius: 6px; background: #112c20; color: var(--color-phosphor); font-size: 14px; }
+  .comment-mention-avatar { display: grid; place-items: center; flex: 0 0 34px; height: 36px; border: 1px solid var(--mention-border); border-radius: 0; background: color-mix(in srgb, var(--color-phosphor) 7%, #020604); color: var(--color-phosphor); font-family: var(--font-display); font-size: 13px; clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px); }
   .comment-mention-user { display: grid; gap: 2px; min-width: 0; flex: 1; }
   .comment-mention-user strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
-  .comment-mention-user small { color: #9bb6a7; font-size: 10px; }
-  .comment-mention-select { color: var(--color-phosphor); opacity: 0; }
-  .comments-console .comment-mention-suggestions button:hover { background: #132a1f; }
-  .comments-console .comment-mention-suggestions button[aria-selected="true"] { background: #193b2b; border-color: #377956; }
+  .comment-mention-user small { color: color-mix(in srgb, var(--color-phosphor-soft) 65%, #929292); font-size: 10px; }
+  .comment-mention-select { padding: 4px; color: var(--color-cyan-arcade); opacity: 0; }
+  .comments-console .comment-mention-suggestions button:hover { background: color-mix(in srgb, var(--color-phosphor) 8%, transparent); }
+  .comments-console .comment-mention-suggestions button[aria-selected="true"] { background: linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 14%, transparent), color-mix(in srgb, var(--color-phosphor) 3%, transparent)); border-color: var(--mention-border); border-left-color: var(--color-phosphor); }
   .comment-mention-suggestions button[aria-selected="true"] .comment-mention-select { opacity: 1; }
   .comment-mention-empty { display: block; padding: 10px; font-size: 12px; }
-  .comments-mention-filter { position: relative; z-index: 2; display: flex; flex-wrap: wrap; gap: 8px; margin: 12px clamp(0.85rem, 3.4vw, 2.6rem); }
+  .comments-mention-filter { position: relative; z-index: 2; display: flex; flex-wrap: wrap; gap: 6px; margin: 12px clamp(0.85rem, 3.4vw, 2.6rem) 20px; padding-bottom: 10px; border-bottom: 1px solid color-mix(in srgb, var(--color-phosphor) 18%, transparent); }
   .comments-console .comments-mention-filter button {
-    padding: 8px 12px; border: 1px solid color-mix(in srgb, var(--color-phosphor) 25%, transparent);
-    background: transparent; color: var(--color-phosphor); font-size: 12px; border-radius: 4px;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px;
+    padding: 9px 13px; border: 1px solid color-mix(in srgb, var(--color-phosphor) 22%, transparent);
+    background: #02060470; color: var(--color-phosphor-soft); font-family: var(--font-mono); font-size: 11px; font-weight: 700; border-radius: 0; cursor: pointer;
   }
-  .comments-console .comments-mention-filter button[aria-pressed="true"] { border-color: var(--color-phosphor); background: color-mix(in srgb, var(--color-phosphor) 12%, transparent); }
+  .comments-console .comments-mention-filter button[aria-pressed="true"] { border-color: var(--color-phosphor); background: linear-gradient(110deg, color-mix(in srgb, var(--color-phosphor) 16%, transparent), color-mix(in srgb, var(--color-phosphor) 4%, transparent)); color: var(--color-phosphor); box-shadow: inset 0 -2px var(--color-phosphor); }
+  .comments-console .comments-mention-filter button:hover { border-color: var(--color-cyan-arcade); color: var(--color-cyan-arcade); }
+  .comments-mention-filter button > svg { flex-shrink: 0; }
+  .comments-mention-filter button > b { min-width: 22px; padding: 2px 5px; border: 1px solid color-mix(in srgb, currentColor 35%, transparent); color: var(--color-cyan-arcade); font-size: 10px; font-variant-numeric: tabular-nums; }
   .comments-console .comment-mention-input button:focus-visible,
   .comments-console .comments-mention-filter button:focus-visible { outline: 2px solid var(--color-phosphor); outline-offset: 3px; }
   #contact { scroll-margin-top: 80px; }

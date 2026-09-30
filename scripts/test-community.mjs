@@ -13,7 +13,7 @@ import { handleTowerBlockRequest } from "../server/tower-block.mjs";
 import { handleCrossRoadRequest } from "../server/cross-road.mjs";
 import { handleSpaceCadetPinballRequest } from "../server/space-cadet-pinball.mjs";
 import { dailyChallenge } from "../shared/player-catalog.mjs";
-import { recordDailyRun, readPlayers } from "../server/player-store.mjs";
+import { recordDailyRun, readPlayers, writePlayers } from "../server/player-store.mjs";
 import { assertSessionConfiguration } from "../server/http-guards.mjs";
 import { inboxEvents } from "../server/community-inbox.mjs";
 import { reserveCommentPost } from "../server/comment-posting.mjs";
@@ -123,6 +123,16 @@ test("community API, safe storage, posting limits, passports and daily rewards",
   // Replaying an already completed date (e.g. a clock correction) cannot mint another win.
   recordDailyRun(bob, challenge.game, challenge.goal);
   assert.equal(readPlayers()[bob.id].challengeCount, 1);
+
+  const players = readPlayers();
+  players[bob.id] = { ...players[bob.id], challengeCount: 25, completedDates: [0, 1, 2].map((daysAgo) => new Date(Date.parse(`${challenge.date}T00:00:00Z`) - daysAgo * 86400000).toISOString().slice(0, 10)) };
+  writePlayers(players);
+  player = (await api("/api/player")).data;
+  assert.equal(player.passport.currentStreak, 3);
+  assert.equal(player.passport.bestStreak, 3);
+  assert.ok(player.passport.badges.some((badge) => badge.id === "daily-25"));
+  assert.equal((await api("/api/player", bob, { ...chosen, featuredBadges: ["daily-25", "streak-3"] })).status, 200);
+  assert.equal((await api("/api/player", bob, { ...chosen, featuredBadges: ["streak-7"] })).status, 400);
 
   writeJsonStore("recover.json", [1], [], [], Array.isArray);
   writeJsonStore("recover.json", [1, 2], [], [], Array.isArray);

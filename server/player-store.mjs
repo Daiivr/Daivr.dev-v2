@@ -15,13 +15,15 @@ export function recordDailyRun(user, game, score, now = Date.now()) {
   const player = players[user.id] || {};
   const progress = player.daily?.date === challenge.date ? player.daily : { date: challenge.date, best: 0, complete: false };
   const best = Math.max(progress.best, score);
-  const complete = best >= challenge.goal;
+  // A target rebalance must not revoke a reward already earned today.
+  const complete = progress.complete || (player.completedDates || []).includes(challenge.date) || best >= challenge.goal;
   const firstCompletion = complete && !progress.complete && !(player.completedDates || []).includes(challenge.date);
   players[user.id] = {
     ...player, daily: { date: challenge.date, best, complete },
     challengeCount: (player.challengeCount || 0) + (firstCompletion ? 1 : 0),
     cosmetics: [...new Set([...(player.cosmetics || []), ...(complete ? [challenge.reward] : [])])],
-    completedDates: firstCompletion ? [...(player.completedDates || []), challenge.date].slice(-90) : player.completedDates || []
+    // Retain the completion calendar so long streaks and earned badges survive.
+    completedDates: firstCompletion ? [...(player.completedDates || []), challenge.date].sort() : player.completedDates || []
   };
   writePlayers(players);
 }

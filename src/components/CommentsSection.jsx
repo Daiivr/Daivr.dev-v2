@@ -1,4 +1,5 @@
 import {
+  AtSign,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -1262,12 +1263,12 @@ export function CommentsSection() {
         {deleteModal}
 
         <div className="comments-stream-heading"><h3><MessageSquare size={14} aria-hidden="true" /> The message board</h3><span>PINNED FIRST / LATEST NEXT</span></div>
-        {auth.user ? <div className="comments-mention-filter" aria-label="Filter comments">
-          <button type="button" aria-pressed={!mentionsOnly} onClick={() => { setMentionsOnly(false); setPage(1); }}>All comments</button>
+        {auth.user ? <div className="comments-mention-filter" role="group" aria-label="Filter comments">
+          <button type="button" aria-pressed={!mentionsOnly} onClick={() => { setMentionsOnly(false); setPage(1); }}><MessageSquare size={14} aria-hidden="true" /><span>All comments</span></button>
           <button type="button" aria-pressed={mentionsOnly} onClick={() => {
             setMentionsOnly(true); setPage(1);
             setExpandedThreads((current) => new Set([...current, ...mentionedComments.map((comment) => comment.id)]));
-          }}>Mentions of you ({mentionedComments.length})</button>
+          }}><AtSign size={14} aria-hidden="true" /><span>Mentions of you</span><b>{mentionedComments.length}</b></button>
         </div> : null}
         <div className="comments-stream" aria-live="polite">
           {visibleComments.map((comment, signalIndex) => {
