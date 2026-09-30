@@ -14,9 +14,13 @@ The locker shows owned, equipped, locked, or all gear, with search and slot filt
 
 The journal supports discovered/missing filters, rarity filtering, alphabetical and catch-count sorting, and catalogue order. Only discovered entries reveal names, rarity, and lore. Changing filters selects an entry in the visible results. Fish use the same SVG artwork in the journal, fishing haul, and ambient jumping-fish scenes.
 
+Patrol finds share their shaded SVG art with the journal, including a clean floppy distinct from the soggy fishing find. The collect button retains its label and keyboard focus, with a gentle bob and glint. The phosphor insect has articulated wings, a glowing abdomen, and a single arrival/hover/departure flight. The signal bird has shaded plumage. Fishing separates line winding from lure movement so the lure keeps its proportions, with a two-part bite, reel pumping, catch arc, drips, and fish-only wriggling. Catch odds, encounter rewards, and phase timers are unchanged.
+
 Run `npm test` and `npm run build`. Use isolated test data for browser checks; never seed a real player's save to preview unlocks.
 
 ## Footer wildlife and sightings
+
+The woodland keeps its existing 96px footprint. SVG trees use shaded pixel foliage over two distant forest layers, with a mossy rail, rocks, mushrooms, a small lantern, low mist, and drifting fireflies. CRT and Glitch modes use separate muted palettes. Rain dims the clearing and hides fireflies; leviathan dimming still applies. Scenery animation and grass tracking pause outside the viewport, and reduced motion leaves a static scene.
 
 Buddy retains a crisp SVG pixel silhouette with shaded casing, expressive eyes, and CRT breathing. Frogs have a spotted body, eye blinks, throat motion, and hops bounded by the footer width. Jumping fish use multiple journal species, tail paddles, eased arcs, and pixel splashes.
 
@@ -35,3 +39,9 @@ Browser validation covered a live cast → wait → bite → catch, equipment sw
 The CRT body uses a filled, shaded shell and solid shoes so equipment stays distinct. Normal walking moves the upper body separately from alternating planted feet, with a toe roll and scarf follow-through. Rocket boots and the Miku costume retain their own movement. The underwater school uses miniature journal species with independent swimming depths, turns, tail beats, and an approach to the hook. A dark pixel pool keeps fish legible over the footer ticker. Junk and treasure have individual shaded artwork, including boot laces, disk labels, controller damage, rust, cable plugs, keyboard keys, and chest hardware.
 
 The body/water pass was checked in the desktop and 375px wardrobe, junk and treasure journal views, and a live fishing cycle. Computed walking frames confirmed alternating foot lifts with a stationary outer sprite; reduced motion stopped the scarf animation.
+
+## Rain and bug encounters
+
+`BuddyUmbrella` separates the handle and canopy: Buddy lifts the folded umbrella, the canopy unfolds, runoff drips from its edges, and it folds away as rain fades. Its CSS duration comes from the existing rain timer. The shaft sits behind Buddy so it cannot cross the face.
+
+Bug encounters keep the existing phases and reward timing. Both pistol variants (including the historical `wrench` ID) share a shaded blaster with a charge cell. Three timed shots coordinate recoil, muzzle flashes, bolts, and evasive bug movement before the hit phase. Swatter and net windups also finish at the hit transition. The bug breaks into pixels and shows a brief completion label; the blaster lowers before the encounter ends. Reduced motion suppresses these effects.

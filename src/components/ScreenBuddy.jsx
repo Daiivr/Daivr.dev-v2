@@ -3,6 +3,8 @@ import { AMBIENT_CREATURES, ENEMY_BUGS, FIELD_FINDS, LEVIATHAN, fishById, weight
 import { LURE_IDS, ROD_IDS } from "../hooks/useBuddyLoadout";
 import { BuddyChuteCanopy, BuddyFishingRodArt, BuddySprite } from "./BuddySprite";
 import { BuddyBugWeapon } from "./BuddyBugWeapon";
+import { BuddyUmbrella } from "./BuddyUmbrella";
+import { PixelPhosphorMoth } from "./PixelPhosphorMoth";
 import { BuddyEnemyBug } from "./BuddyEnemyBug";
 import { PixelBird } from "./PixelBird";
 import { BuddyWornGear } from "./BuddyGearIcon";
@@ -1695,7 +1697,8 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
           onClick={collectFieldFind}
           aria-label={`Collect ${fieldFind.name}`}
         >
-          <i aria-hidden="true" />
+          <BuddyCollectibleIcon id={fieldFind.id} color={fieldFind.color} className="buddy-find-art" />
+          <svg className="buddy-find-glints" viewBox="0 0 48 40" aria-hidden="true"><path d="M7 5v6M4 8h6m29 15v6m-3-3h6" stroke="currentColor" strokeWidth="1" fill="none" /></svg>
           <span>{fieldFind.name}</span>
         </button>
       ) : null}
@@ -1711,7 +1714,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
           aria-label={creature.name}
           role="img"
         >
-          <><i /><i /><i /></>
+          <PixelPhosphorMoth />
         </span>
       ) : null}
 
@@ -1720,6 +1723,9 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
           <BuddyEnemyBug bugId={enemy.id} />
           <BuddyBugWeapon weapon={enemy.weapon} />
           <i className="buddy-laser-beam" />
+          <i className="buddy-muzzle-flash" />
+          <i className="buddy-bug-target" />
+          <span className="buddy-bug-cleared">BUG DELETED</span>
           <i className="buddy-hit-burst"><b /><b /><b /><b /></i>
         </span>
       ) : null}
@@ -1768,6 +1774,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
                   Los colores de caña/boya los pisa el aparejo puesto via CSS. */}
               <svg className="buddy-fishing-svg" viewBox="0 0 44 78" width="44" height="78">
                 <BuddyFishingRodArt />
+                <path className="buddy-cast-trace" d="M32 36Q-17-8 5 70" fill="none" stroke="#97c9c4" strokeWidth="1" />
 
                 <g className="buddy-fishing-line-group">
                   <g shapeRendering="crispEdges">
@@ -1812,13 +1819,15 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
                 </g>
                 <g className="buddy-fishing-loot" shapeRendering="crispEdges">
                   <BuddyCollectibleIcon id={fishingCatchId || "byte-minnow"} color={fishingCatchItem?.color} className="buddy-caught-specimen" x={-10} y={20} width={30} height={23} />
+                  <g className="buddy-catch-drips" fill="#8cd8d6"><path d="M-4 41h2v3h-2z" /><path d="M8 43h1v3H8z" /><path d="M16 39h2v3h-2z" /></g>
+                  <path className="buddy-catch-glint" d="M-14 22v8m-4-4h8m35-10v6m-3-3h6" stroke="#ffe29c" strokeWidth="1" fill="none" />
                 </g>
               </svg>
             </span>
           ) : null}
 
           {weather === "rain" ? (
-            <span className="buddy-weather" aria-hidden="true">
+            <span className="buddy-weather" style={{ "--rain-duration": `${RAIN_DURATION_MS}ms` }} aria-hidden="true">
               <span className="buddy-rain-field">
                 {Array.from({ length: 18 }, (_, index) => <i key={index} style={{ "--rain-i": index }} />)}
                 {Array.from({ length: 2 }, (_, index) => (
@@ -1826,55 +1835,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
                 ))}
               </span>
 
-              {/* Paraguas pixel: primo directo de la cupula del paracaidas
-                  (misma escalera rosa, paneles dorado/cian y festones),
-                  con punta dorada, mastil y mango en J detras del cuerpo. */}
-              <svg className="buddy-umbrella" viewBox="0 0 48 54" width="64" height="72">
-                <g shapeRendering="crispEdges">
-                  {/* punta */}
-                  <rect x="22" y="0" width="4" height="3" fill="#ffd166" />
-                  <rect x="23" y="0" width="2" height="1" fill="#f4fff8" opacity="0.7" />
-
-                  {/* cupula en escalera */}
-                  <rect x="12" y="3" width="24" height="4" fill="#ff3d9d" />
-                  <rect x="8" y="7" width="32" height="4" fill="#ff3d9d" />
-                  <rect x="5" y="11" width="38" height="4" fill="#ff3d9d" />
-                  <rect x="4" y="15" width="40" height="3" fill="#e02f86" />
-
-                  {/* paneles de color */}
-                  <rect x="13" y="3" width="5" height="15" fill="#ffd166" />
-                  <rect x="30" y="3" width="5" height="15" fill="#45d8ff" />
-
-                  {/* respiradero + brillo */}
-                  <rect x="22" y="3" width="4" height="2" fill="#b3216b" />
-                  <rect x="14" y="4" width="7" height="1" fill="rgba(255, 255, 255, 0.35)" />
-                  <rect x="26" y="4" width="8" height="1" fill="rgba(255, 255, 255, 0.35)" />
-
-                  {/* festones del borde */}
-                  <rect x="4" y="18" width="6" height="2" fill="#e02f86" />
-                  <rect x="14" y="18" width="6" height="2" fill="#ffd166" />
-                  <rect x="24" y="18" width="6" height="2" fill="#e02f86" />
-                  <rect x="34" y="18" width="6" height="2" fill="#45d8ff" />
-
-                  {/* mastil + mango en J */}
-                  <rect x="23" y="18" width="2" height="32" fill="#b8f7ff" />
-                  <rect x="23" y="50" width="5" height="2" fill="#45d8ff" />
-                  <rect x="26" y="47" width="2" height="3" fill="#45d8ff" />
-                </g>
-
-                {/* gotas reventando sobre la cupula, una por escalon */}
-                <g className="buddy-umbrella-splashes">
-                  {[[9, 11], [16, 7], [24, 2], [33, 7], [40, 11]].map(([sx, sy], index) => (
-                    <g key={index} transform={`translate(${sx} ${sy})`}>
-                      <g className="buddy-umbrella-splash" style={{ "--splash-i": index }}>
-                        <rect x="-2" y="-2.5" width="1.5" height="1.5" fill="#b8f7ff" />
-                        <rect x="1" y="-3" width="1.5" height="1.5" fill="#f4fff8" />
-                        <rect x="-0.5" y="-1" width="1" height="1" fill="#b8f7ff" />
-                      </g>
-                    </g>
-                  ))}
-                </g>
-              </svg>
+              <BuddyUmbrella />
             </span>
           ) : null}
 

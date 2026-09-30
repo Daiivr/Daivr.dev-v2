@@ -1,19 +1,26 @@
+function PixelBlaster({ heavy }) {
+  return <g className="buddy-blaster-art">
+    <path d="M5 13h8v-3h25v3h9v3h4v10H30v4h-5v7H13V26H5z" fill="#172d39" />
+    <path d="M8 15h29v2h10v6H27v4H15v-4H8z" fill={heavy ? "#398695" : "#448ba3"} />
+    <path d="M10 14h25v3H10m-2 1h3v4H8" fill="#9edbd6" />
+    <path d="M12 18h19v5H12z" fill="#285163" />
+    <path d="M15 19h12v2H15z" fill="#ed79ae" />
+    <path d="M34 14h5v10h-5z" fill="#263d4a" />
+    <path d="M40 17h9v6h-9z" fill="#75b6c0" /><path d="M46 18h4v4h-4z" fill="#d0f5df" />
+    <path d="M16 25h8v10h-9v-7h1z" fill="#485563" />
+    <path d="M17 27h5v2h-5m-1 3h6v1h-6" fill="#a37a95" />
+    <path d="M25 26h4v5h-5v-2h3v-1h-2z" fill="#8ab9bb" />
+    <path d="M13 10h5V8h5v2m10 0h4V8h3v4" fill="#b5d8cf" />
+    <path className="buddy-laser-charge" d="M30 18h3v4h-3z" fill="#ffd166" />
+    <path d="M8 24h6v5H8z" fill="#619c8b" /><path d="M8 24h5v2H8z" fill="#b6dfc7" />
+  </g>;
+}
+
 export function BuddyBugWeapon({ weapon }) {
   return (
     <svg className={`buddy-hunt-weapon is-${weapon}`} viewBox="0 0 52 40" aria-hidden="true">
       <g shapeRendering="crispEdges">
-        {weapon === "wrench" ? (
-          <>
-            <path d="M3 10h34v4h10v12H35v4H18v-7H3z" fill="#071b1c" />
-            <rect x="6" y="13" width="31" height="9" fill="#45d8ff" />
-            <rect x="11" y="15" width="18" height="3" fill="#b8f7ff" />
-            <rect x="37" y="16" width="12" height="6" fill="#ff3d9d" />
-            <rect x="41" y="18" width="10" height="2" fill="#f4fff8" />
-            <path d="M19 22h13v9H21z" fill="#174b57" />
-            <rect x="3" y="13" width="7" height="10" fill="#8a5428" />
-            <rect className="buddy-laser-charge" x="30" y="14" width="5" height="5" fill="#ffd166" />
-          </>
-        ) : null}
+        {weapon === "wrench" ? <PixelBlaster heavy /> : null}
 
         {weapon === "net" ? (
           <>
@@ -26,17 +33,7 @@ export function BuddyBugWeapon({ weapon }) {
           </>
         ) : null}
 
-        {weapon === "laser" ? (
-          <>
-            <path d="M5 12h34v4h7v12H34v5H19v-7H5z" fill="#071b1c" />
-            <rect x="7" y="15" width="32" height="9" fill="#45d8ff" />
-            <rect x="12" y="17" width="18" height="3" fill="#b8f7ff" />
-            <rect x="39" y="18" width="9" height="5" fill="#ff3d9d" />
-            <path d="M20 24h12v7H21z" fill="#174b57" />
-            <rect x="4" y="16" width="7" height="10" fill="#8a5428" />
-            <rect className="buddy-laser-charge" x="31" y="16" width="5" height="5" fill="#ffd166" />
-          </>
-        ) : null}
+        {weapon === "laser" ? <PixelBlaster /> : null}
 
         {weapon === "flyswatter" ? (
           <>

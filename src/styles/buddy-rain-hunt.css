@@ -1,0 +1,92 @@
+@layer components {
+  /* Props use their own hinges; the robot keeps its weight on the ground. */
+  .screen-buddy-root.is-rain .buddy-umbrella {
+    filter: drop-shadow(0 2px 0 #10252980);
+    transform-origin: 50% 88%;
+    animation: umbrella-lift-and-stow var(--rain-duration) linear both;
+  }
+  .buddy-umbrella-canopy {
+    transform-origin: 24px 19px;
+    animation: umbrella-unfold .46s steps(6,end) .22s both,
+      umbrella-fold .38s steps(5,end) calc(var(--rain-duration) - .65s) forwards;
+  }
+  .buddy-weather { z-index: 0; }
+  .buddy-weather .buddy-rain-field { animation: rain-arrives-and-clears var(--rain-duration) linear both; }
+  .buddy-umbrella-splashes { animation: rain-arrives-and-clears var(--rain-duration) linear both; }
+  .buddy-umbrella-splash { animation-duration: .9s; animation-delay: calc(.7s + var(--splash-i) * .19s); }
+  .umbrella-drip { opacity: 0; animation: umbrella-edge-drip 1.3s linear .85s infinite; }
+  .umbrella-drip-r { animation-delay: 1.4s; }
+  .buddy-umbrella-runoff { animation: rain-arrives-and-clears var(--rain-duration) linear both; }
+  .screen-buddy-root.is-rain:not(.has-miku-costume) .screen-buddy-sprite { animation: buddy-rain-reach .75s ease-out both, buddy-rain-settle 3.4s ease-in-out .75s infinite; }
+  .screen-buddy-root.is-rain .buddy-fitted-scarf .buddy-scarf-tails { animation: rain-scarf-breeze 2.8s ease-in-out infinite; }
+
+  .buddy-hunt-weapon { filter: drop-shadow(0 2px 0 #09222c90); }
+  .buddy-enemy-encounter:is(.weapon-laser,.weapon-wrench) .buddy-hunt-weapon { bottom: 1px; transform-origin: 8px 24px; transform: rotate(12deg); }
+  .buddy-enemy-encounter:is(.weapon-laser,.weapon-wrench).phase-stalk .buddy-hunt-weapon { opacity: 0; transform: translate(-8px,8px) rotate(42deg); }
+  .buddy-enemy-encounter:is(.weapon-laser,.weapon-wrench).phase-ready .buddy-hunt-weapon { animation: blaster-draw .65s steps(6,end) both; }
+  .buddy-enemy-encounter:is(.weapon-laser,.weapon-wrench).phase-attack .buddy-hunt-weapon { animation: blaster-burst-recoil .5s linear 3; }
+  .buddy-enemy-encounter:is(.weapon-laser,.weapon-wrench).phase-hit .buddy-hunt-weapon { animation: blaster-lower 1.4s ease-in-out both; }
+  .buddy-enemy-encounter.phase-attack.weapon-flyswatter .buddy-hunt-weapon { animation: bug-swatter-windup 1.5s ease-in-out both; }
+  .buddy-enemy-encounter.phase-attack.weapon-net .buddy-hunt-weapon { animation: bug-net-windup 1.5s ease-in-out both; }
+  .buddy-laser-charge { animation: none; }
+  .phase-ready .buddy-laser-charge { animation: blaster-cell-charge .3s steps(2,end) 3; }
+  .phase-attack .buddy-laser-charge { animation: blaster-cell-charge .5s steps(2,end) 3; }
+  .buddy-laser-beam { left: 89px; bottom: 12px; width: 31px; height: 2px; background: #d3fff2; box-shadow: 0 0 3px #5ee2ef; }
+  .buddy-enemy-encounter:is(.weapon-laser,.weapon-wrench).phase-attack .buddy-laser-beam { animation: blaster-bolt .5s linear 3; }
+  .buddy-muzzle-flash { position: absolute; left: 85px; bottom: 7px; width: 12px; height: 12px; opacity: 0; background: #fff0bd; clip-path: polygon(0 35%,35% 35%,35% 0,60% 25%,100% 15%,80% 50%,100% 85%,60% 75%,35% 100%,35% 65%,0 65%); }
+  .buddy-enemy-encounter:is(.weapon-laser,.weapon-wrench).phase-attack .buddy-muzzle-flash { animation: blaster-flash .5s steps(1,end) 3; }
+  .buddy-bug-target { position: absolute; left: 79px; bottom: -3px; width: 36px; height: 28px; opacity: 0; border: 1px solid #ffd166; clip-path: polygon(0 0,25% 0,25% 15%,75% 15%,75% 0,100% 0,100% 100%,75% 100%,75% 85%,25% 85%,25% 100%,0 100%); }
+  .phase-ready .buddy-bug-target { animation: bug-target-lock .9s ease-out both; }
+  .buddy-bug-cleared { position: absolute; left: 65px; bottom: 30px; white-space: nowrap; font: 8px/1.2 var(--font-mono,monospace); letter-spacing: .05em; color: #97edc7; opacity: 0; transform: scaleX(var(--enemy-side)); }
+  .phase-hit .buddy-bug-cleared { animation: bug-cleared-label 1.4s ease-out both; }
+  .buddy-enemy-bug { transform-origin: 50% 90%; filter: drop-shadow(0 2px 0 #1a1d28); }
+  .buddy-bug-feet { transform-origin: center; animation: bug-scuttle-feet .16s steps(2,end) infinite; }
+  .buddy-bug-feelers { transform-origin: 17px 5px; animation: bug-feeler-twitch .6s steps(3,end) infinite; }
+  .buddy-enemy-encounter.phase-stalk .buddy-enemy-bug { animation: bug-scuttle-in .9s linear both; }
+  .buddy-enemy-encounter.phase-ready .buddy-enemy-bug { animation: bug-alert .45s ease-in-out 2; }
+  .buddy-enemy-encounter.phase-attack .buddy-enemy-bug { animation: bug-dodge-volley 1.5s linear both; }
+  .buddy-enemy-encounter.phase-hit .buddy-enemy-bug { animation: bug-pixel-pop .5s steps(5,end) both; }
+  .phase-hit .buddy-bug-feet, .phase-hit .buddy-bug-feelers { animation: none; }
+  .buddy-hit-burst { left: 86px; bottom: 0; }
+  .buddy-enemy-encounter:is(.weapon-laser,.weapon-wrench) .buddy-enemy-bug { left: 96px; }
+  .buddy-enemy-encounter:is(.weapon-laser,.weapon-wrench) .buddy-bug-target { left: 93px; }
+  .buddy-enemy-encounter:is(.weapon-laser,.weapon-wrench) .buddy-hit-burst { left: 100px; }
+  .phase-hit .buddy-hit-burst b { animation: buddy-hit-pixel .75s cubic-bezier(.1,.7,.3,1) both; }
+  .screen-buddy-root.is-hunt:not(.has-miku-costume) .screen-buddy-sprite { animation: hunt-watch .9s ease-in-out infinite; }
+  .screen-buddy-root.is-hunt:not(.has-miku-costume):has(.phase-attack) .screen-buddy-sprite { animation: hunt-brace .5s linear 3; }
+  .screen-buddy-root.is-hunt:not(.has-miku-costume):has(.phase-hit) .screen-buddy-sprite { animation: hunt-relax .65s ease-out both; }
+  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-attack:is(.weapon-laser,.weapon-wrench)) .screen-buddy-sprite { animation: hunt-brace .5s linear 3; }
+  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-attack:is(.weapon-laser,.weapon-wrench)) .buddy-miku-arm-l { animation: buddy-miku-bug-laser-l .5s steps(3,end) 3; }
+  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-attack:is(.weapon-laser,.weapon-wrench)) .buddy-miku-arm-r { animation: buddy-miku-bug-laser-r .5s steps(3,end) 3; }
+  .screen-buddy-root.is-hunt .buddy-carry-item { visibility: hidden; }
+  @media (prefers-reduced-motion: reduce) {
+    .buddy-umbrella *, .buddy-enemy-encounter * { animation: none !important; }
+  }
+}
+@keyframes umbrella-lift-and-stow { 0% { opacity: 0; transform: translate(8px,31px) rotate(18deg); } 3% { opacity: 1; } 9% { transform: translate(0,0) rotate(-3deg); } 13% { transform: rotate(1deg); } 35%,65% { transform: rotate(-2deg); } 50%,82%,91% { transform: rotate(1deg); } 96% { opacity: 1; transform: translate(0,4px) rotate(6deg); } 100% { opacity: 0; transform: translate(9px,28px) rotate(22deg); } }
+@keyframes umbrella-unfold { 0% { transform: scale(.12,.75); } 70% { transform: scale(1.07,.93); } 100% { transform: scale(1); } }
+@keyframes umbrella-fold { to { transform: scale(.12,.8); } }
+@keyframes rain-arrives-and-clears { 0%,4%,100% { opacity: 0; } 13%,81% { opacity: 1; } 90% { opacity: 0; } }
+@keyframes umbrella-edge-drip { 0%,20% { opacity: 0; transform: translateY(0); } 30% { opacity: .9; } 80%,100% { opacity: 0; transform: translate(-2px,27px) scaleY(.5); } }
+@keyframes buddy-rain-reach { 0%,100% { transform: scaleX(var(--buddy-facing)); } 35% { transform: scaleX(var(--buddy-facing)) translateY(2px) rotate(4deg); } 70% { transform: scaleX(var(--buddy-facing)) translateY(-1px) rotate(-2deg); } }
+@keyframes buddy-rain-settle { 0%,100% { transform: scaleX(var(--buddy-facing)) translateY(0); } 50% { transform: scaleX(var(--buddy-facing)) translateY(1px); } }
+@keyframes rain-scarf-breeze { 0%,100% { transform: rotate(-4deg); } 45% { transform: rotate(12deg); } 65% { transform: rotate(7deg); } }
+@keyframes blaster-draw { from { opacity: 0; transform: translate(-8px,8px) rotate(42deg); } 65% { opacity: 1; transform: rotate(7deg); } to { opacity: 1; transform: rotate(12deg); } }
+@keyframes blaster-burst-recoil { 0%,53%,100% { transform: rotate(12deg); } 60% { transform: translate(-4px,-1px) rotate(4deg); } 78% { transform: translate(-1px,0) rotate(10deg); } }
+@keyframes blaster-lower { 0%,30% { transform: rotate(12deg); opacity: 1; } 80% { opacity: 1; } 100% { transform: translate(-5px,7px) rotate(40deg); opacity: 0; } }
+@keyframes blaster-bolt { 0%,53%,82%,100% { opacity: 0; transform: scaleX(.2); } 55% { opacity: 1; transform: scaleX(.4); } 68% { opacity: 1; transform: scaleX(1); } }
+@keyframes blaster-flash { 0%,53%,72%,100% { opacity: 0; } 54% { opacity: 1; } }
+@keyframes blaster-cell-charge { 0%,100% { fill: #eab85f; } 60% { fill: #e6ffdf; } }
+@keyframes bug-target-lock { from { opacity: 0; transform: scale(1.5); } 50% { opacity: .65; transform: scale(1); } 85% { opacity: .65; } to { opacity: 0; transform: scale(1); } }
+@keyframes bug-cleared-label { 0% { opacity: 0; translate: 0 4px; } 30%,75% { opacity: 1; } 100% { opacity: 0; translate: 0 -6px; } }
+@keyframes bug-scuttle-feet { 50% { transform: translateY(1px) scaleX(.88); } }
+@keyframes bug-feeler-twitch { 50% { transform: rotate(8deg); } }
+@keyframes bug-scuttle-in { 0% { transform: translateX(38px); opacity: 0; } 15% { opacity: 1; } 35% { transform: translate(22px,-2px); } 65% { transform: translate(10px,0); } 85% { transform: translate(3px,-1px); } 100% { transform: translateX(0); } }
+@keyframes bug-alert { 0%,100% { transform: translateY(0); } 40% { transform: translateY(-2px) rotate(-4deg); } }
+@keyframes bug-dodge-volley { 0%,16%,100% { transform: translate(0,0); } 28% { transform: translate(7px,-4px) rotate(9deg); } 42% { transform: translate(4px,0); } 60% { transform: translate(-3px,-3px) rotate(-7deg); } 78%,91% { transform: translate(1px,0); } }
+@keyframes bug-pixel-pop { 0% { filter: brightness(2); transform: scale(1); opacity: 1; } 25% { transform: translateY(2px) scale(1.15,.65); } 60% { opacity: .8; transform: translate(3px,-6px) scale(.7) rotate(15deg); } 100% { opacity: 0; transform: translate(7px,-12px) scale(.1) rotate(25deg); } }
+@keyframes hunt-watch { 0%,100% { transform: scaleX(var(--buddy-facing)); } 45% { transform: scaleX(var(--buddy-facing)) translateY(1px) rotate(-1deg); } }
+@keyframes hunt-brace { 0%,53%,100% { transform: scaleX(var(--buddy-facing)); } 62% { transform: scaleX(var(--buddy-facing)) translate(2px,1px) rotate(-2deg); } 82% { transform: scaleX(var(--buddy-facing)) translateY(1px); } }
+@keyframes hunt-relax { from { transform: scaleX(var(--buddy-facing)) translateY(1px) rotate(-2deg); } to { transform: scaleX(var(--buddy-facing)); } }
+@keyframes bug-swatter-windup { 0% { transform: rotate(-18deg); } 45% { transform: translate(-4px,-7px) rotate(-55deg); } 76% { transform: translate(2px,-5px) rotate(-45deg); } 97%,100% { transform: translate(9px,7px) rotate(26deg); } }
+@keyframes bug-net-windup { 0% { transform: rotate(-18deg); } 50% { transform: translate(-5px,4px) rotate(-32deg); } 80% { transform: translate(18px,6px) rotate(12deg); } 100% { transform: translate(13px,-6px) rotate(-12deg); } }

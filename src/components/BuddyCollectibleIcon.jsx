@@ -59,7 +59,7 @@ export function BuddyCollectibleIcon({ id, color = "#45d8ff", unknown = false, c
 <path d="M8 34h41v4H8zM10 38h6v2h-6m6-2h6v2h-6m7-2h6v2h-6m7-2h6v2h-6" fill="#27372e" />
 <path d="M36 27h4v3h-4m-21 0h4v2h-4" fill="#c49b68" /><path d="M12 8h2v7h-2m-2 7h2v5h-2" fill="#55a785" /></g>; break;
     case "soggy-disk":
-    case "floppy-disk": artwork = <g shapeRendering="crispEdges"><path d="M9 3h31v3h4v4h4v29H7V3z" fill="#1b3433" />
+      artwork = <g shapeRendering="crispEdges"><path d="M9 3h31v3h4v4h4v29H7V3z" fill="#1b3433" />
 <path d="M9 5h30v3h4v4h3v24H9z" fill={color} />
 <path d="M10 6h4v27h-4m5-28h23v2H15" fill="#b0d8bf" />
 <path d="M16 5h23v14H16z" fill="#bac9bb" /><path d="M18 5h12v11H18z" fill="#233e3e" /><path d="M33 7h4v8h-4z" fill="#809e98" />
@@ -99,10 +99,37 @@ export function BuddyCollectibleIcon({ id, color = "#45d8ff", unknown = false, c
 <path d="M16 17h4v2h-4m6-2h4v2h-4m12-2h4v2h-4m-16 7h13v1H22" fill="#edf3cc" />
 <path d="M29 17h3v4h-3m9 3h4v4h-4" fill="#162f2a" /><path d="M8 35h39v2H8" fill="#3d6152" />
 <path d="M14 4h3v5h-3m12-8h3v5h-3m11-2h3v5h-3" fill="#6ad0d5" /></g>; break;
-    case "arcade-coin": artwork = <g shapeRendering="crispEdges"><rect x="14" y="5" width="28" height="32" fill="#9a651f" /><rect x="10" y="10" width="36" height="22" fill="#ffd166" /><rect x="18" y="14" width="20" height="14" fill="#9a651f" /><text x="22" y="26" fill="#ffd166" fontFamily="monospace" fontSize="13" fontWeight="900">1</text></g>; break;
-    case "battery": artwork = <g shapeRendering="crispEdges"><rect x="18" y="7" width="20" height="31" fill="#3fff97" /><rect x="23" y="3" width="10" height="5" fill="#b8f7ff" /><rect x="21" y="11" width="14" height="11" fill="#071b1c" /><path d="m28 13-5 8h4l-2 7 8-10h-4l3-5z" fill="#ffd166" /></g>; break;
-    case "lost-bug": artwork = <g shapeRendering="crispEdges"><rect x="19" y="10" width="19" height="25" fill="#ff3d9d" /><rect x="15" y="15" width="27" height="14" fill="#ff3d9d" /><rect x="22" y="14" width="4" height="4" fill="#020604" /><rect x="31" y="14" width="4" height="4" fill="#020604" /><path d="M15 17H7m8 7H5m37-7h8m-8 7h10" stroke="#ff3d9d" strokeWidth="3" /></g>; break;
-    case "mini-cartridge": artwork = <g shapeRendering="crispEdges"><path d="M11 5h34v27h-7v6H18v-6h-7z" fill="#a78bfa" /><rect x="16" y="10" width="24" height="14" fill="#20133f" /><rect x="19" y="13" width="18" height="8" fill="#45d8ff" /><rect x="20" y="32" width="4" height="6" fill="#ffd166" /><rect x="28" y="32" width="4" height="6" fill="#ffd166" /></g>; break;
+    case "floppy-disk": artwork = <g shapeRendering="crispEdges">
+      <path d="M10 3h30v4h5v4h3v28H7V3z" fill="#203a46" /><path d="M10 5h29v4h5v4h2v23H10z" fill="#4e9ba5" />
+      <path d="M11 6h3v28h-3m3-29h23v2H14" fill="#a2dbce" /><path d="M16 5h22v13H16z" fill="#adbec0" /><path d="M18 5h10v10H18z" fill="#294453" />
+      <path d="M32 7h4v8h-4z" fill="#65878b" /><path d="M15 23h25v13H15z" fill="#d1d7bb" /><path d="M17 24h21v3H17z" fill="#987a9f" />
+      <path d="M18 29h16v2H18m0 2h9v1h-9" fill="#668b81" /><path d="M10 34h3v2h-3m31-2h2v2h-2" fill="#203a46" />
+    </g>; break;
+    case "arcade-coin": artwork = <g shapeRendering="crispEdges">
+      <path d="M19 3h18v4h7v6h4v16h-4v6h-7v4H19v-4h-7v-6H8V13h4V7h7z" fill="#77552e" />
+      <path d="M20 5h15v4h7v6h3v12h-3v6h-7v4H20v-4h-6v-6h-3V15h3V9h6z" fill="#d3a84e" />
+      <path d="M20 6h13v3H20v4h-5v13h-3V14h3V9h5z" fill="#ffdf8b" /><path d="M37 12h3v17h-5v4H20v-3h14v-4h3z" fill="#a57532" />
+      <path d="M24 12h7v18h-6V18h-4v-3h3z" fill="#795628" /><path d="M25 13h4v15h-2V16h-3v-2h1z" fill="#f8dc8c" />
+    </g>; break;
+    case "battery": artwork = <g shapeRendering="crispEdges">
+      <path d="M21 2h14v4h6v33H15V6h6z" fill="#233c3c" /><path d="M23 3h10v4H23z" fill="#b8cdc0" />
+      <path d="M17 8h22v27H17z" fill="#527c67" /><path d="M18 9h4v25h-4" fill="#96c6a0" /><path d="M34 9h5v26h-5" fill="#345e50" />
+      <path d="M17 8h22v5H17m0 20h22v4H17" fill="#a9bfaf" /><path d="M21 15h12v15H21z" fill="#213f3b" />
+      <path d="M27 16h5l-4 6h4l-8 8 2-7h-4z" fill="#dfcb79" /><path d="M24 9h8v2h-8" fill="#f1e8bd" />
+    </g>; break;
+    case "lost-bug": artwork = <g shapeRendering="crispEdges">
+      <path d="M18 12h20v3h5v14h-5v5H18v-5h-5V15h5z" fill="#4d354c" /><path d="M19 14h17v4h5v9h-5v5H19v-5h-4v-9h4z" fill="#c76c96" />
+      <path d="M20 15h6v14h-6m10-14h5v14h-5" fill="#e79ebb" /><path d="M27 15h2v18h-2" fill="#7a486b" />
+      <path d="M18 11h5V7h11v4h4v6H18z" fill="#587869" /><path d="M22 9h4v4h-4m7-4h4v4h-4" fill="#dbe9bd" /><path d="M24 10h2v3h-2m7-3h2v3h-2" fill="#1f3b3c" />
+      <path d="M15 19H9v4m6 4H9v5m32-13h6v4m-6 4h6v5M23 7V3h-4m14 4V3h4" fill="none" stroke="#809f89" strokeWidth="2" />
+      <path d="M21 20h3v3h-3m11 3h3v3h-3" fill="#7b4868" />
+    </g>; break;
+    case "mini-cartridge": artwork = <g shapeRendering="crispEdges">
+      <path d="M10 3h35v29h-7v7H17v-7h-7z" fill="#383a57" /><path d="M12 5h31v25h-7v7H19v-7h-7z" fill="#7d7da9" />
+      <path d="M13 6h3v23h-3m3-24h25v2H16" fill="#c0b6db" /><path d="M17 11h21v16H17z" fill="#303e57" />
+      <path d="M19 13h17v11H19z" fill="#638f9e" /><path d="M20 21h4v-4h4v-3h3v7h4v2H20z" fill="#c7dcca" />
+      <path d="M22 31h3v6h-3m6-6h3v6h-3m5-6h2v6h-2" fill="#d5b56c" /><path d="M17 8h21v1H17" fill="#555b80" />
+    </g>; break;
     default: artwork = <FishBody color={color} />;
   }
 

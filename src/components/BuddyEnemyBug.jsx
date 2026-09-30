@@ -6,11 +6,16 @@ export function BuddyEnemyBug({ bugId }) {
       <g shapeRendering="crispEdges">
         <path d="M8 5h5V2h8v3h5v3h4v10h-4v3H8v-3H4V8h4z" fill="#071b1c" />
         <path d="M10 6h5V4h4v2h5v3h3v8h-4v2H11v-2H7V9h3z" fill={color} />
+        <path d="M11 6h4V4h4v2h4v2H11z" fill="#fff0e2" opacity=".4" />
+        <path d="M8 15h4v2h11v-2h4v3h-4v2H11v-2H8z" fill="#352139" opacity=".65" />
         <rect x="11" y="8" width="4" height="4" fill="#020604" />
         <rect x="20" y="8" width="4" height="4" fill="#020604" />
         <rect x="12" y="8" width="1" height="1" fill="#f4fff8" />
         <rect x="21" y="8" width="1" height="1" fill="#f4fff8" />
-        <path d="M8 9H1m7 5H0m27-5h7m-7 5h7M12 5 8 0m14 5 4-5" fill="none" stroke={color} strokeWidth="2" />
+        <g className="buddy-bug-feet" fill="none" stroke={color} strokeWidth="2">
+          <path d="M8 10H3v3m5 3H2v3m25-9h4v3m-4 3h5v3" />
+        </g>
+        <path className="buddy-bug-feelers" d="M12 5 8 0m14 5 4-5" fill="none" stroke={color} strokeWidth="2" />
         {bugId === "stack-roach" ? <rect x="16" y="6" width="3" height="12" fill="#7e174c" /> : null}
         {bugId === "memory-mite" ? <path d="m17 13-4 5h8z" fill="#ffd166" /> : null}
       </g>

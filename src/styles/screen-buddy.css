@@ -1209,7 +1209,7 @@
     fill: #ffd166;
   }
 
-  .buddy-fishing-rig.rod-neon .buddy-fishing-svg,
+  .buddy-fishing-rig.rod-neon .buddy-fishing-rod-art,
   .buddy-fishing-rod-overlay.rod-neon .buddy-fishing-rod-overlay-svg,
   .buddy-rod-icon.rod-neon {
     filter: drop-shadow(0 0 6px rgba(255, 61, 157, 0.55));
@@ -1224,7 +1224,7 @@
     animation: buddy-led-pulse 1.4s ease-in-out infinite;
   }
 
-  .buddy-fishing-rig.rod-golden .buddy-fishing-svg,
+  .buddy-fishing-rig.rod-golden .buddy-fishing-rod-art,
   .buddy-fishing-rod-overlay.rod-golden .buddy-fishing-rod-overlay-svg,
   .buddy-rod-icon.rod-golden {
     filter: drop-shadow(0 0 7px rgba(255, 209, 102, 0.6));
