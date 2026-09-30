@@ -232,10 +232,14 @@ function BuddyFittedRocketBoot({ x, side }) {
       <path d="M9 3h1v4h2v2H9z" fill="#6e3b60" />
       <path d="M1 9h11v2H1z" fill="#3d7784" />
       <path d="M2 9h6v1H2" fill="#91d4d0" />
-      <path d="M4 11h5v1H4z" fill="#d6aa59" />
+      <path d="M3 11h7v2H9v1H4v-1H3z" fill="#183543" />
+      <path d="M4 11h5v1H4z" fill="#91bdc7" />
+      <path d="M5 12h3v1H5z" fill="#e5f9ec" />
       <g className={`buddy-rocket-flame buddy-rocket-flame-${side}`}>
-        <path d="M5 12h3v2H5z" fill="#ffb75c" />
-        <path d="M6 12h1v1H6z" fill="#fff2c9" />
+        <path d="M4 13h5v2H8v3H7v2H6v-2H5v-3H4z" fill="#ef8a59" />
+        <path d="M5 13h3v4H7v1H6v-1H5z" fill="#ffdb86" />
+        <path d="M5 13h3v2H7v1H6v-1H5z" fill="#a4edee" />
+        <path d="M6 13h1v3H6z" fill="#f2fff3" />
       </g>
     </g>
   );
