@@ -3,6 +3,7 @@ import { AMBIENT_CREATURES, ENEMY_BUGS, FIELD_FINDS, LEVIATHAN, fishById, weight
 import { LURE_IDS, ROD_IDS } from "../hooks/useBuddyLoadout";
 import { BuddyChuteCanopy, BuddyFishingRodArt, BuddySprite } from "./BuddySprite";
 import { BuddyBugWeapon } from "./BuddyBugWeapon";
+import { BuddyOutageKit } from "./BuddyOutageKit";
 import { BuddyUmbrella } from "./BuddyUmbrella";
 import { PixelPhosphorMoth } from "./PixelPhosphorMoth";
 import { BuddyEnemyBug } from "./BuddyEnemyBug";
@@ -1613,7 +1614,8 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
 
   const isHappy = ["pet", "party", "dance"].includes(mood)
     || (mood === "fishing" && fishingPhase === "catch")
-    || (mood === "hunt" && enemy?.phase === "hit");
+    || (mood === "hunt" && enemy?.phase === "hit")
+    || (mood === "outage" && outagePhase === "restore");
   const isAsleep = mood === "sleep";
   const isAirborne = y < -4;
   const hasRocketBoots = unlockedGear.includes("rocket-boots") && !hiddenGear.includes("rocket-boots");
@@ -1839,122 +1841,11 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
             </span>
           ) : null}
 
-          {mood === "outage" ? (
-            <span className={`buddy-outage-kit is-${outagePhase}`} aria-hidden="true">
-              <svg className="buddy-flashlight-beam" viewBox="0 0 168 112" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="buddy-beam-outer" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0" stopColor="#fff5bf" stopOpacity=".72" />
-                    <stop offset=".42" stopColor="#ffd166" stopOpacity=".28" />
-                    <stop offset="1" stopColor="#ffd166" stopOpacity="0" />
-                  </linearGradient>
-                  <linearGradient id="buddy-beam-core" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0" stopColor="#fffbe0" stopOpacity=".92" />
-                    <stop offset=".52" stopColor="#ffe69a" stopOpacity=".22" />
-                    <stop offset="1" stopColor="#ffe69a" stopOpacity="0" />
-                  </linearGradient>
-                </defs>
-                <path className="buddy-beam-outer" d="M0 49 168 2v108L0 61z" fill="url(#buddy-beam-outer)" />
-                <path className="buddy-beam-core" d="M0 52 154 24v66L0 58z" fill="url(#buddy-beam-core)" />
-              </svg>
-
-              <svg className="buddy-flashlight" viewBox="0 0 30 16">
-                <g shapeRendering="crispEdges">
-                  <path d="M1 5h17V2h8v3h3v7h-3v3h-8v-3H1z" fill="#071b1c" />
-                  <rect x="3" y="7" width="17" height="4" fill="#ffd166" />
-                  <rect x="5" y="7" width="5" height="4" fill="#45d8ff" />
-                  <rect x="20" y="4" width="6" height="9" fill="#f4fff8" />
-                  <rect x="22" y="6" width="4" height="5" fill="#ffd166" />
-                  <rect x="1" y="6" width="4" height="6" fill="#174b57" />
-                </g>
-              </svg>
-
-              {/* Gabinete de breakers estilo cabinet: placa con rayo, medidor
-                  con aguja muerta, LEDs de falla, fila de breakers chicos,
-                  palanca principal caida, franjas de peligro y conductos que
-                  bajan al riel. La aguja/palanca/LEDs se animan por fase. */}
-              <svg className="buddy-breaker-box" viewBox="0 0 48 64">
-                <g shapeRendering="crispEdges">
-                  {/* carcasa con biseles */}
-                  <path d="M4 0h40v4h4v52h-4v4H4v-4H0V4h4z" fill="#06100b" />
-                  <rect x="3" y="3" width="42" height="54" fill="#0d2a22" />
-                  <rect x="6" y="6" width="36" height="48" fill="#153b31" />
-                  <rect x="4" y="4" width="2" height="2" fill="#b8f7ff" />
-                  <rect x="42" y="4" width="2" height="2" fill="#b8f7ff" />
-                  <rect x="4" y="54" width="2" height="2" fill="#b8f7ff" />
-                  <rect x="42" y="54" width="2" height="2" fill="#b8f7ff" />
-
-                  {/* placa de identificacion: rayo + lineas de etiqueta */}
-                  <rect x="9" y="9" width="30" height="9" fill="#071b1c" />
-                  <rect x="14" y="10" width="4" height="2.5" fill="#ffd166" />
-                  <rect x="12.5" y="12.5" width="4" height="2.5" fill="#ffd166" />
-                  <rect x="15" y="15" width="4" height="2.5" fill="#ffd166" />
-                  <rect x="23" y="11" width="13" height="2" fill="#2a725a" />
-                  <rect x="23" y="14.5" width="9" height="1.5" fill="#1d5344" />
-
-                  {/* medidor analogico: la aguja revive al restaurar */}
-                  <rect x="9" y="21" width="16" height="13" fill="#071b1c" />
-                  <rect x="10" y="22" width="14" height="1" fill="rgba(69, 216, 255, 0.22)" />
-                  <rect x="11" y="24" width="1" height="2" fill="#2a725a" />
-                  <rect x="16.5" y="23.5" width="1" height="2.5" fill="#2a725a" />
-                  <rect x="22" y="24" width="1" height="2" fill="#2a725a" />
-                  <rect className="buddy-breaker-needle" x="16.5" y="24.5" width="1.5" height="7.5" fill="#45d8ff" />
-                  <rect x="16" y="31" width="3" height="2" fill="#2a725a" />
-
-                  {/* LEDs de estado: parpadean en falla, verdes al volver */}
-                  <rect className="buddy-breaker-led buddy-breaker-led-a" x="28" y="21" width="5" height="4" fill="#ff5f68" />
-                  <rect className="buddy-breaker-led buddy-breaker-led-b" x="35" y="21" width="5" height="4" fill="#ff5f68" />
-                  <rect x="28" y="27" width="12" height="2" fill="#0d1f15" />
-
-                  {/* fila de breakers chicos (decorativos) */}
-                  <rect x="9" y="37" width="16" height="9" fill="#071b1c" />
-                  <rect x="10.5" y="38" width="4" height="7" fill="#0d1f15" />
-                  <rect x="10.5" y="38" width="4" height="3" fill="#174b57" />
-                  <rect x="15.5" y="38" width="4" height="7" fill="#0d1f15" />
-                  <rect x="15.5" y="42" width="4" height="3" fill="#174b57" />
-                  <rect x="20.5" y="38" width="4" height="7" fill="#0d1f15" />
-                  <rect x="20.5" y="38" width="4" height="3" fill="#174b57" />
-
-                  {/* palanca principal: caida durante el apagon */}
-                  <rect x="30" y="31" width="8" height="17" fill="#071b1c" />
-                  <rect x="31" y="32" width="1" height="15" fill="rgba(184, 247, 255, 0.14)" />
-                  <g className="buddy-breaker-lever">
-                    <rect x="32.5" y="35" width="3" height="10" fill="#ffd166" />
-                    <rect x="34.5" y="35" width="1" height="10" fill="rgba(2, 6, 4, 0.35)" />
-                    <rect x="30.5" y="32" width="7" height="4" fill="#ff5f68" />
-                    <rect x="31.5" y="33" width="2" height="1" fill="#f4fff8" opacity="0.8" />
-                  </g>
-                  <rect x="31" y="45" width="6" height="3" fill="#2a725a" />
-
-                  {/* franjas de peligro en diagonal pixel */}
-                  <rect x="6" y="48.5" width="36" height="4" fill="#071b1c" />
-                  <rect x="7" y="48.5" width="4" height="2" fill="#ffd166" />
-                  <rect x="15" y="48.5" width="4" height="2" fill="#ffd166" />
-                  <rect x="23" y="48.5" width="4" height="2" fill="#ffd166" />
-                  <rect x="31" y="48.5" width="4" height="2" fill="#ffd166" />
-                  <rect x="39" y="48.5" width="3" height="2" fill="#ffd166" />
-                  <rect x="9" y="50.5" width="4" height="2" fill="#ffd166" />
-                  <rect x="17" y="50.5" width="4" height="2" fill="#ffd166" />
-                  <rect x="25" y="50.5" width="4" height="2" fill="#ffd166" />
-                  <rect x="33" y="50.5" width="4" height="2" fill="#ffd166" />
-
-                  {/* conductos hacia el riel */}
-                  <rect x="11" y="58" width="4" height="2" fill="#0d1f15" />
-                  <rect x="21" y="58" width="4" height="2" fill="#0d1f15" />
-                  <rect x="31" y="58" width="4" height="2" fill="#0d1f15" />
-                  <rect x="12" y="60" width="2" height="4" fill="#45d8ff" />
-                  <rect x="22" y="60" width="2" height="4" fill="#ffd166" />
-                  <rect x="32" y="60" width="2" height="4" fill="#ff3d9d" />
-                </g>
-              </svg>
-
-              <span className="buddy-breaker-sparks"><i /><i /><i /><i /></span>
-            </span>
-          ) : null}
+          {mood === "outage" ? <BuddyOutageKit phase={outagePhase} /> : null}
 
           <BuddySprite
             className="screen-buddy-sprite"
-            expression={isHappy ? "happy" : isAsleep ? "sleep" : fishingPhase === "bite" || fishingPhase === "omen" ? "surprised" : mood === "hunt" || fishingPhase === "fight" ? "focus" : "idle"}
+            expression={isHappy ? "happy" : isAsleep ? "sleep" : fishingPhase === "bite" || fishingPhase === "omen" ? "surprised" : mood === "hunt" || outagePhase === "fix" || fishingPhase === "fight" ? "focus" : "idle"}
             facing={facing}
             friendshipLevel={friendshipLevel}
             inventory={inventory}

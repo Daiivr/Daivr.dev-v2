@@ -1,0 +1,133 @@
+@layer components {
+  .buddy-outage-ground {
+    position: absolute;
+    left: -14px;
+    right: -94px;
+    bottom: -6px;
+    height: 15px;
+    opacity: 0;
+    background: radial-gradient(ellipse, #ffe8a530, #9ddbcc0c 48%, transparent 72%);
+    transition: opacity .5s;
+  }
+  .buddy-outage-kit:is(.is-search, .is-fix) .buddy-outage-ground { opacity: 1; }
+  .buddy-torch-rig {
+    position: absolute;
+    right: -10px;
+    bottom: 12px;
+    z-index: 4;
+    width: 36px;
+    height: 20px;
+    opacity: 0;
+    transform-origin: 8px 10px;
+  }
+  .buddy-outage-kit:is(.is-flicker, .is-search, .is-fix, .is-restore, .is-stow) .buddy-flashlight {
+    inset: 0;
+    width: 36px;
+    height: 20px;
+    transform: none;
+    opacity: 1;
+    animation: none;
+    filter: drop-shadow(1px 1px 0 #03131b) drop-shadow(0 0 2px #ffdc7f40);
+  }
+  .buddy-outage-kit:is(.is-flicker, .is-search, .is-fix, .is-restore, .is-stow) .buddy-flashlight-beam {
+    left: 32px;
+    top: -46px;
+    right: auto;
+    bottom: auto;
+    transform: none;
+    opacity: 1;
+    animation: none;
+    filter: none;
+  }
+  .buddy-outage-kit.is-search .buddy-torch-rig { animation: outage-torch-scan 3.9s ease-in-out both; }
+  .buddy-outage-kit.is-fix .buddy-torch-rig { opacity: 1; transform: translate(-9px, 12px) rotate(8deg); transition: transform .35s, opacity .3s; }
+  .buddy-outage-kit.is-fix .buddy-flashlight-beam { opacity: .4; }
+  .buddy-outage-kit:is(.is-restore, .is-stow) .buddy-torch-rig { opacity: 0; transition: opacity .3s; }
+  .buddy-beam-dust { animation: outage-dust 2.6s ease-in-out infinite; }
+
+  .buddy-outage-kit .buddy-breaker-box { right: -58px; filter: brightness(.8); }
+  .buddy-outage-kit.is-search .buddy-breaker-box { animation: outage-panel-discover 1.4s ease-out .8s both; }
+  .buddy-outage-kit.is-fix .buddy-breaker-box {
+    filter: brightness(.95) drop-shadow(0 1px 0 #000);
+    animation: buddy-breaker-rattle 1.25s steps(7, end) 2;
+  }
+  .buddy-outage-kit.is-fix :is(.buddy-breaker-lever, .buddy-breaker-needle, .buddy-breaker-sparks i) { animation-duration: 1.25s; }
+  .buddy-outage-kit.is-restore .buddy-breaker-box { filter: drop-shadow(0 0 3px #3fff9740); }
+  .buddy-breaker-power-track { opacity: .15; }
+  .buddy-outage-kit:is(.is-restore, .is-stow) .buddy-breaker-power-track { opacity: 1; }
+  .buddy-outage-kit.is-restore .buddy-breaker-led-b { animation-delay: .35s; }
+  .buddy-repair-arm {
+    position: absolute;
+    right: -30px;
+    bottom: 18px;
+    z-index: 5;
+    width: 48px;
+    height: 20px;
+    overflow: visible;
+    opacity: 0;
+    transform-origin: 3px 11px;
+  }
+  .buddy-outage-kit.is-fix .buddy-repair-arm { animation: outage-reach-pull 1.25s steps(7, end) 2 both; }
+  .buddy-outage-kit.is-restore .buddy-repair-arm { animation: outage-release .5s steps(5, end) both; }
+  .buddy-outage-kit .buddy-breaker-sparks { right: -28px; bottom: 24px; }
+  .buddy-outage-kit .buddy-breaker-sparks i { width: 2px; height: 2px; box-shadow: 0 0 2px #ffd166; }
+  .buddy-power-return { position: absolute; inset: 0; z-index: 2; opacity: 0; }
+  .buddy-power-return i { position: absolute; right: -39px; bottom: 1px; width: 3px; height: 3px; background: #b8ffe0; box-shadow: 0 0 4px #3fff97; }
+  .buddy-outage-kit.is-restore .buddy-power-return { opacity: 1; }
+  .buddy-outage-kit.is-restore .buddy-power-return i { animation: outage-circuit-return .9s steps(12, end) both; }
+  .buddy-outage-kit.is-restore .buddy-power-return i:nth-child(2) { animation-delay: .13s; }
+  .buddy-outage-kit.is-restore .buddy-power-return i:nth-child(3) { animation-delay: .26s; }
+
+  .screen-buddy-root.is-outage .screen-buddy-sprite { filter: brightness(.88) drop-shadow(0 1px 0 #04131c) drop-shadow(2px 0 2px #ffdf9b26); }
+  .screen-buddy-root.outage-search .screen-buddy-sprite { animation: outage-look 3.9s steps(8, end) both; }
+  .screen-buddy-root.outage-fix .screen-buddy-sprite { animation: buddy-breaker-repair 1.25s steps(7, end) 2 both; }
+  .screen-buddy-root:is(.outage-restore, .outage-stow) .screen-buddy-sprite { filter: drop-shadow(0 0 3px #3fff9730); }
+  .theme-glitch .buddy-repair-arm { filter: hue-rotate(82deg) saturate(1.4); }
+
+  @keyframes outage-torch-scan {
+    0% { opacity: 0; transform: translate(-6px, 8px) rotate(30deg); }
+    12% { opacity: 1; transform: rotate(-12deg); }
+    38% { transform: rotate(-20deg); }
+    65% { transform: rotate(10deg); }
+    85%, 100% { opacity: 1; transform: rotate(-4deg); }
+  }
+  @keyframes outage-dust { 0%, 100% { opacity: .15; transform: translate(0, 0); } 50% { opacity: .6; transform: translate(4px, -3px); } }
+  @keyframes outage-panel-discover {
+    from { opacity: 0; filter: brightness(.3); transform: translateY(3px); }
+    to { opacity: 1; filter: brightness(.85); transform: translateY(0); }
+  }
+  @keyframes outage-look {
+    0%, 100% { transform: scaleX(var(--buddy-facing)) rotate(0); }
+    30% { transform: scaleX(var(--buddy-facing)) rotate(3deg); }
+    65% { transform: scaleX(var(--buddy-facing)) translateX(-2px) rotate(-3deg); }
+  }
+  @keyframes outage-reach-pull {
+    0%, 10% { opacity: 0; transform: translate(-10px, 5px) scaleX(.6) rotate(12deg); }
+    28%, 42% { opacity: 1; transform: translate(0, 0); }
+    52% { opacity: 1; transform: translate(-4px, -3px) rotate(-6deg); }
+    64% { opacity: 1; transform: translate(1px, 2px) rotate(4deg); }
+    78%, 100% { opacity: 1; transform: translate(0, 0); }
+  }
+  @keyframes outage-release {
+    0% { opacity: 1; transform: translate(0, 0); }
+    45% { opacity: 1; transform: translate(-4px, -7px) rotate(-12deg); }
+    100% { opacity: 0; transform: translate(-12px, 6px) scaleX(.65); }
+  }
+  @keyframes outage-circuit-return {
+    0% { opacity: 0; transform: translate(0, -18px); }
+    12% { opacity: 1; }
+    32% { transform: translate(0, 0); }
+    85% { opacity: 1; }
+    100% { opacity: 0; transform: translate(-150px, 0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .buddy-outage-kit *, .screen-buddy-root.is-outage .screen-buddy-sprite { animation: none !important; transition: none !important; }
+  }
+}
+
+/* Recover the scenery along with the cabinet instead of snapping it on at cleanup. */
+.has-power-outage.outage-restore .app-footer { animation: outage-scenery-return 1.7s ease-out both; }
+@keyframes outage-scenery-return { from { filter: brightness(.08) saturate(.25); } to { filter: brightness(1) saturate(1); } }
+@media (prefers-reduced-motion: reduce) {
+  .has-power-outage.outage-restore .app-footer { animation: none; filter: none; }
+}
