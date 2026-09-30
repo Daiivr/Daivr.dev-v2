@@ -3,6 +3,18 @@
   .buddy-preview-sprite { filter: drop-shadow(0 3px 0 #0006) drop-shadow(0 0 5px #68d8b826); }
   .screen-buddy-root:not(.is-outage) .screen-buddy-sprite { filter: drop-shadow(0 2px 0 #00151080) drop-shadow(0 0 3px #68d8b826); }
   .buddy-green-visor { animation: none; filter: none; }
+  .buddy-fitted-rocket-boot .buddy-rocket-flame { opacity: 0; }
+  .screen-buddy-root:is(.is-walk,.is-sleepy,.is-chute) .buddy-fitted-rocket-boot .buddy-rocket-flame,
+  .buddy-drop:not(.is-held) .buddy-fitted-rocket-boot .buddy-rocket-flame {
+    opacity: 1;
+    animation: buddy-rocket-flame-cushion .24s steps(2,end) infinite;
+  }
+  .screen-buddy-root .buddy-fitted-rocket-boot .buddy-rocket-flame-r { animation-delay: -.12s; }
+  /* Exhaust belongs to each moving foot, rather than fixed points under the body. */
+  .screen-buddy-root.has-rocket-boots:not(.has-miku-costume) .screen-buddy-body::before,
+  .screen-buddy-root.has-rocket-boots:not(.has-miku-costume) .screen-buddy-body::after,
+  .buddy-drop.has-rocket-boots .buddy-drop-body:has(.buddy-fitted-rocket-boot)::before,
+  .buddy-drop.has-rocket-boots .buddy-drop-body:has(.buddy-fitted-rocket-boot)::after { display: none; }
   .buddy-scarf-tails { transform-origin: 30px 34px; animation: buddy-tailcloth 3.6s ease-in-out infinite; }
   .screen-buddy-root.is-walk .buddy-scarf-tails { animation: buddy-tailcloth .68s ease-in-out infinite; }
 
@@ -33,7 +45,7 @@
   .buddy-void-bubbles rect:nth-child(3) { animation-delay: -2.7s; }
   .buddy-fishing-rig:is(.is-cast,.is-omen,.is-monster,.is-retreat) .buddy-void-water { opacity: .25; }
   @media (prefers-reduced-motion: reduce) {
-    .buddy-scarf-tails, .screen-buddy-root .buddy-upper-body, .screen-buddy-root .buddy-fitted-scarf, .screen-buddy-root .buddy-leg, .screen-buddy-root .buddy-leg-foot, .buddy-fish-school * { animation: none !important; }
+    .buddy-scarf-tails, .buddy-fitted-rocket-boot .buddy-rocket-flame, .screen-buddy-root .buddy-upper-body, .screen-buddy-root .buddy-fitted-scarf, .screen-buddy-root .buddy-leg, .screen-buddy-root .buddy-leg-foot, .buddy-fish-school * { animation: none !important; }
   }
 }
 @keyframes buddy-tailcloth { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(7deg); } }

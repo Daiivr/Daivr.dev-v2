@@ -221,6 +221,26 @@ function BuddyMikuCostume({ expression = "idle", rocketBoots = false }) {
   );
 }
 
+function BuddyFittedRocketBoot({ x, side }) {
+  return (
+    <g className="buddy-fitted-rocket-boot" transform={`translate(${x} 34)`}>
+      {/* Draw each boot at the leg's native pixel scale, with a separate sole and nozzle. */}
+      <path d="M3 0h8v6h2v5H0V6h3z" fill="#252f3b" />
+      <path d="M4 1h6v6h2v2H1V7h3z" fill="#a4497d" />
+      <path d="M4 1h5v2H4m-2 4h5v1H2" fill="#f4a0c5" />
+      <path d="M4 4h5v2H4" fill="#df629e" />
+      <path d="M9 3h1v4h2v2H9z" fill="#6e3b60" />
+      <path d="M1 9h11v2H1z" fill="#3d7784" />
+      <path d="M2 9h6v1H2" fill="#91d4d0" />
+      <path d="M4 11h5v1H4z" fill="#d6aa59" />
+      <g className={`buddy-rocket-flame buddy-rocket-flame-${side}`}>
+        <path d="M5 12h3v2H5z" fill="#ffb75c" />
+        <path d="M6 12h1v1H6z" fill="#fff2c9" />
+      </g>
+    </g>
+  );
+}
+
 export function BuddySprite({ className = "", expression = "idle", facing = 1, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [], width = 64, height = 61 }) {
   const isHappy = expression === "happy";
   const isAsleep = expression === "sleep";
@@ -447,30 +467,27 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
           <path className="buddy-leg-upper" d="M14 34h5v6h-5z" fill="#274b49" />
           <path d="M15 35h2v4h-2" fill="#91cdb6" />
           <g className="buddy-leg-foot buddy-leg-foot-l">
+            {hasRocketBoots ? <BuddyFittedRocketBoot x={10} side="l" /> : <>
             <path d="M12 39h8v2h2v4H10v-4h2z" fill="#15343b" />
             <path d="M12 40h7v2h2v1H11v-2h1z" fill="#66b49b" />
             <path d="M12 40h5v1h-5" fill="#d2ead0" /><path d="M11 44h10v1H11" fill="#438a86" />
+            </>}
           </g>
         </g>
         <g className="buddy-leg buddy-leg-r">
           <path className="buddy-leg-upper" d="M29 34h5v6h-5z" fill="#274b49" />
           <path d="M30 35h2v4h-2" fill="#91cdb6" />
           <g className="buddy-leg-foot buddy-leg-foot-r">
+            {hasRocketBoots ? <BuddyFittedRocketBoot x={26} side="r" /> : <>
             <path d="M28 39h8v2h2v4H26v-4h2z" fill="#15343b" />
             <path d="M28 40h7v2h2v1H27v-2h1z" fill="#66b49b" />
             <path d="M28 40h5v1h-5" fill="#d2ead0" /><path d="M27 44h10v1H27" fill="#438a86" />
+            </>}
           </g>
         </g>
         {hasItem("wrench") ? <g className="buddy-tool-wrench buddy-carry-item"><BuddyWornGear id="wrench" x={35} y={30} width={15} height={16} /></g> : null}
         {hasItem("cartridge") ? <g className="buddy-loot-cartridge buddy-carry-item"><BuddyWornGear id="cartridge" x={36} y={31} width={13} height={15} /></g> : null}
         {hasItem("coffee") ? <g className="buddy-coffee"><BuddyWornGear id="coffee" x={0} y={32} width={14} height={13} /></g> : null}
-        {hasGear("rocket-boots") ? (
-          <g className="buddy-rocket-boots">
-            <BuddyWornGear id="rocket-boots" x={9} y={33} width={30} height={13} />
-            <rect className="buddy-rocket-flame buddy-rocket-flame-l" x="13" y="43" width="4" height="2" fill="#ff3d9d" />
-            <rect className="buddy-rocket-flame buddy-rocket-flame-r" x="31" y="43" width="4" height="2" fill="#ff3d9d" />
-          </g>
-        ) : null}
         {showFriendshipGear("scarf", 4) ? (
           <g className="buddy-fitted-scarf">
             <path d="M7 31h30v4H7z" fill="#7e3158" />
