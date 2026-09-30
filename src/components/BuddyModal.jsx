@@ -1,12 +1,11 @@
 import { memo, useEffect, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Backpack, BookOpen, Check, Compass, Lock, ScrollText, Search, Trophy, X } from "lucide-react";
+import { Backpack, BookOpen, Check, Lock, ScrollText, Search, Trophy, X } from "lucide-react";
 import { COSTUME_IDS, FACE_GEAR_IDS, HEADWEAR_IDS, LURE_IDS, MOBILITY_IDS, ROD_IDS } from "../hooks/useBuddyLoadout";
 import { useScrollEdges } from "../hooks/useScrollEdges";
 import { BuddyChuteCanopy, BuddyRodIcon, BuddySprite } from "./BuddySprite";
 import { BuddyGearIcon } from "./BuddyGearIcon";
 import { BuddyJournal } from "./BuddyJournal";
-import { BuddyActivities } from "./BuddyActivities";
 
 const BUDDY_SLOTS = [
   { id: "costume", label: "costume", accepts: COSTUME_IDS },
@@ -354,7 +353,6 @@ function BuddyQuestView({ buddy }) {
 }
 
 const BUDDY_VIEWS = [
-  { id: "activities", label: "Activities", icon: Compass, title: "Buddy Adventures", description: "A tiny companion. A whole cabinet to explore together." },
   { id: "inventory", label: "Inventory", icon: Backpack, title: "Buddy Inventory", description: "A little gear. A lot of personality. Make Buddy your own." },
   { id: "quests", label: "Quests", icon: ScrollText, title: "Buddy Quests", description: "Follow your curiosity. Explore the station. Find something new." },
   { id: "journal", label: "Journal", icon: BookOpen, title: "Catch Journal", description: "Every catch has a story. Keep a record of the things you find." }
@@ -371,7 +369,7 @@ export function BuddyModal({ buddy, mode, onClose, onModeChange, theme }) {
     <Dialog.Root open={Boolean(mode)} onOpenChange={(open) => { if (!open) onClose(); }}>
       <Dialog.Portal>
         <Dialog.Overlay className={`buddy-modal-backdrop ${theme === "glitch" ? "theme-glitch" : ""}`}>
-          <Dialog.Content className={`buddy-modal is-${mode}`}
+          <Dialog.Content className={`buddy-modal is-${view.id}`}
             onOpenAutoFocus={() => { opener.current = document.activeElement; }}
             onCloseAutoFocus={(event) => { event.preventDefault(); opener.current?.focus(); }}>
             <header className="buddy-modal-header">
@@ -388,14 +386,14 @@ export function BuddyModal({ buddy, mode, onClose, onModeChange, theme }) {
               </div>
               <nav className="buddy-modal-actions" aria-label="Buddy views">
                 {BUDDY_VIEWS.map(({ id, label, icon: Icon }) => (
-                  <button className={mode === id ? "is-active" : ""} type="button" key={id} onClick={() => onModeChange(id)} aria-current={mode === id ? "page" : undefined}>
+                  <button className={view.id === id ? "is-active" : ""} type="button" key={id} onClick={() => onModeChange(id)} aria-current={view.id === id ? "page" : undefined}>
                     <Icon size={16} aria-hidden="true" />{label}
-                    {id !== "activities" ? <span>{id === "inventory" ? buddy.gearItems.length : id === "quests" ? buddy.adventure.quests.filter((quest) => !quest.complete).length : buddy.adventure.discoveredFishCount}</span> : null}
+                    <span>{id === "inventory" ? buddy.gearItems.length : id === "quests" ? buddy.adventure.quests.filter((quest) => !quest.complete).length : buddy.adventure.discoveredFishCount}</span>
                   </button>
                 ))}
               </nav>
             </header>
-            {mode === "activities" ? <BuddyActivities buddy={buddy} onClose={onClose} /> : mode === "inventory" ? <BuddyInventoryView buddy={buddy} /> : mode === "journal" ? <BuddyJournal buddy={buddy} /> : <BuddyQuestView buddy={buddy} />}
+            {view.id === "inventory" ? <BuddyInventoryView buddy={buddy} /> : view.id === "journal" ? <BuddyJournal buddy={buddy} /> : <BuddyQuestView buddy={buddy} />}
           </Dialog.Content>
         </Dialog.Overlay>
       </Dialog.Portal>

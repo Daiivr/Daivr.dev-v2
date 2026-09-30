@@ -11,7 +11,6 @@ import { PixelBird } from "./PixelBird";
 import { BuddyWornGear } from "./BuddyGearIcon";
 import { BuddyCollectibleIcon } from "./BuddyCollectibleIcon";
 import { LeviathanEncounter } from "./LeviathanEncounter";
-import { BUDDY_ACTIVITIES, buddyActivityGate } from "../../shared/buddy-activities.mjs";
 
 const SLEEP_AFTER_MS = 5 * 60 * 1000;
 const ATTRACT_WAKE_DELAY_MS = 1000;
@@ -217,7 +216,6 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
   const mikuCostumeRef = useRef(false);
   const inventoryRef = useRef(inventory);
   const fishingCooldownRef = useRef(0);
-  const requestedActivityRef = useRef({});
   const fishSightCommentRef = useRef(0);
   const rainCooldownRef = useRef(0);
   const findCooldownRef = useRef(0);
@@ -1336,34 +1334,6 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       startFishing();
     }
 
-    function onActivityRequest(event) {
-      const request = event.detail;
-      if (!request || typeof request !== "object") return;
-      const activity = BUDDY_ACTIVITIES.find((entry) => entry.id === request.id);
-      const now = Date.now();
-      const autoCooldown = request.id === "fish" ? fishingCooldownRef.current + (equippedGearRef.current.lure === "lure-swift" ? FISHING_SWIFT_COOLDOWN_MS : FISHING_COOLDOWN_MS)
-        : request.id === "find" ? findCooldownRef.current + FIND_COOLDOWN_MS
-          : request.id === "rain" ? rainCooldownRef.current + RAIN_COOLDOWN_MS : 0;
-      const remaining = Math.max(autoCooldown, requestedActivityRef.current[request.id] || 0) - now;
-      const message = buddyActivityGate(request.id, { busy: activeEventRef.current || (["held", "chute", "outage", "hunt"].includes(moodRef.current) ? moodRef.current : ""), reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches, remaining });
-      if (message) { request.message = message; return; }
-      freezeAtCurrentPosition();
-      bootedRef.current = true;
-      liftTo(0);
-      updateMood("idle");
-      requestedActivityRef.current[request.id] = now + (request.id === "fish" && equippedGearRef.current.lure === "lure-swift" ? FISHING_SWIFT_COOLDOWN_MS : activity.cooldown);
-      if (request.id === "fish") startFishing();
-      else if (request.id === "find") startFind();
-      else if (request.id === "rain") startRain();
-      else {
-        beginBuddyEvent("dance");
-        updateMood("dance");
-        say(buddyLine("dance"), 3600);
-        schedule(() => { if (activeEventRef.current === "dance") { endBuddyEvent("dance"); updateMood("idle"); } }, 4200);
-      }
-      request.accepted = true;
-    }
-
     function reactToFishJump(event) {
       if (!visibleRef.current) return;
       if (activeEventRef.current !== "flying-fish") return;
@@ -1573,7 +1543,6 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     window.addEventListener("daivr-buddy-drop", onDropSignal);
     window.addEventListener("daivr-cart-swap", reactToCartSwap);
     window.addEventListener("daivr-buddy-fish", onFishSignal);
-    window.addEventListener("daivr-buddy-activity-request", onActivityRequest);
     window.addEventListener("daivr-footer-fish-seen", reactToFishJump);
     window.addEventListener("daivr-footer-fish-bump", reactToFishBump);
     window.addEventListener("daivr-footer-wildlife-event", onWildlifeEvent);
@@ -1600,7 +1569,6 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       window.removeEventListener("daivr-buddy-drop", onDropSignal);
       window.removeEventListener("daivr-cart-swap", reactToCartSwap);
       window.removeEventListener("daivr-buddy-fish", onFishSignal);
-      window.removeEventListener("daivr-buddy-activity-request", onActivityRequest);
       window.removeEventListener("daivr-footer-fish-seen", reactToFishJump);
       window.removeEventListener("daivr-footer-fish-bump", reactToFishBump);
       window.removeEventListener("daivr-footer-wildlife-event", onWildlifeEvent);

@@ -1,12 +1,12 @@
 # Buddy workshop
 
-The Buddy modal has four views: Activities, Inventory, Quests, and Journal. Progress and loadouts keep their existing storage keys, IDs, and server sync. No save migration is required.
+The Buddy modal has three views: Inventory, Quests, and Journal. Progress and loadouts keep their existing storage keys, IDs, and server sync. No save migration is required.
 
-## Activities
+## Autonomous routines
 
-Activities request the existing ScreenBuddy routines through `daivr-buddy-activity-request`. The handler acknowledges requests synchronously; the modal closes and scrolls to the footer only after acceptance. Active events, carrying, parachuting, combat, and outages prevent interruptions. Fishing, patrol, and rain use their existing cooldowns, including the swift lure's shorter fishing cooldown. Dance has a 12-second cooldown. The activity buttons do not grant rewards directly: fishing still rolls the existing catch table, and patrol finds still need to be collected in the footer.
+The modal opens on Inventory and has no activity-launch controls. Buddy continues fishing, patrolling, dancing, and watching rain through the existing autonomous routines and events. Existing terminal commands remain available. Removing the activity panel does not change catch odds, encounter rewards, cooldowns, or saved progress.
 
-Reduced motion prevents requested fishing, dance, and rain. Patrol remains available; the existing reduced-motion styles suppress movement. Aquarium, fish, and preview animations also honor reduced motion. Existing autonomous routines and terminal commands remain available.
+Aquarium, fish, preview, and world animations continue to honor reduced motion.
 
 ## Inventory and journal
 
