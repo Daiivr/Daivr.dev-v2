@@ -24,10 +24,14 @@ export function BuddyGearArt({ id }) {
     case "miku-wig":
       artwork = (
         <>
-          <path d="M8 3h8v2h2v5h-3V7h-2v5h-2V7H9v3H6V5h2z" fill="#58eadb" />
-          <path d="M4 5h4v3H7v8H5v5H3v-7H2V8h2zm12 0h4v3h2v6h-1v7h-2v-5h-2V8h-1z" fill="#38bdb4" />
-          <path d="M3 7h4v2H3zm14 0h4v2h-4z" fill="#ff4b9b" />
-          <path d="M8 3h8v2H8z" fill="#b8fff6" />
+          <path d="M8 2h8v1h3v3h3v4h1v9h-1v3h-4v-7h-1V9H7v6H6v7H2v-3H1v-9h1V6h3V3h3z" fill="#12353e" />
+          <path d="M3 7h3v7H5v6H3zM18 7h3v13h-2v-6h-1z" fill="#209eaa" />
+          <path d="M3 9h1v9H3zM20 9h1v9h-1z" fill="#70e9d6" />
+          <path d="M8 3h8v1h2v2h1v4h-2V8h-3v2h-2V7h-2v3H8V8H5V6h1V4h2z" fill="#2abbb6" />
+          <path d="M8 3h6v1H8v2H6V5h2zM11 5h2v2h-2z" fill="#70e9d6" />
+          <path d="M15 5h2v2h1v2h-2V7h-1z" fill="#19858f" />
+          <path d="M3 6h3v3H3zM18 6h3v3h-3z" fill="#242b40" />
+          <path d="M3 6h3v1H4v2H3zM18 6h3v3h-1V7h-2z" fill="#f163a5" />
         </>
       );
       break;
@@ -105,10 +109,18 @@ export function BuddyGearArt({ id }) {
       );
       break;
     case "headset":
-      artwork = <><path d="M7 2h10v2h3v3h2v13h-7V9h3V7h-2V5H8v2H6v2h3v11H2V7h2V4h3z" fill="#12323f" />
-<path d="M7 3h10v2h2v3h-2V6H7v2H5V5h2z" fill="#83eced" />
-<path d="M3 10h5v9H3m13-9h5v9h-5" fill="#329aaa" /><path d="M4 11h2v6H4m13-6h2v6h-2" fill="#45d8ff" />
-<path d="M19 19v3h-8v-3h3v1h3v-1z" fill="#ed659e" /></>;
+      artwork = <>
+        <path d="M7 2h10v2h3v3h2v12h-4V8h-2V6H8v2H6v11H2V7h2V4h3z" fill="#162b3d" />
+        <path d="M7 3h10v1H7zM5 5h3v1H6v3H4V7h1zM17 5h2v2h1v2h-1V8h-1V6h-1z" fill="#83d8e5" />
+        <path d="M2 9h6v11H2V9zm14 0h6v11h-6z" fill="#132536" />
+        <path d="M3 10h3v8H3zm15 0h3v8h-3z" fill="#54d9ef" />
+        <path d="M3 10h2v2H3zm15 0h2v2h-2z" fill="#d0f7ed" />
+        <path d="M6 11h1v7H6zm11 0h1v7h-1z" fill="#31415b" />
+        <path d="M3 18h3v1H3zm15 0h3v1h-3z" fill="#ef80b6" />
+        <path d="M19 19h2v3h-7v1h-4v-4h4v1h5z" fill="#162b3d" />
+        <path d="M14 21h6v1h-6zM11 20h2v1h-2z" fill="#83d8e5" />
+        <path d="M13 20h1v2h-1z" fill="#ef80b6" />
+      </>;
       break;
     case "rocket-boots":
       artwork = <><path d="M2 3h9v10h2V3h9v12h1v6H1v-8h1z" fill="#2d263e" />

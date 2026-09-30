@@ -349,48 +349,32 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
             ) : null}
           </g>
         )}
-        {hasItem("headset") ? (
-          <g>
-            <rect x="11" y="8" width="26" height="2" fill="#45d8ff" />
-            <path d="M3 15h5v12H3z" fill="#143845" /><path d="M3 16h3v8H3z" fill="#45d8ff" /><rect x="3" y="16" width="2" height="2" fill="#b8f7ff" />
-            <path d="M40 15h5v12h-5z" fill="#143845" /><path d="M42 16h3v8h-3z" fill="#45d8ff" /><rect x="42" y="16" width="2" height="2" fill="#b8f7ff" />
-            <path d="M43 25v4h-6v-2h4v-2z" fill="#ed659e" />
-          </g>
-        ) : null}
-        {/* peluco miku (atras): coletas largas que cuelgan detras de la cabeza,
-            con banda de goma + bulto, y punta anidada para el latigazo fisico */}
+        {/* Tapered twin-tails sit behind the casing; their tips retain the
+            independent follow-through used by walking and dancing. */}
         {hasMikuWig ? (
           <g className="buddy-miku-hair-back">
             <g className="buddy-hair-tail buddy-hair-tail-l">
-              <rect x="1" y="11" width="6" height="3" fill="#0e4a44" />
-              <rect x="0" y="14" width="7" height="7" fill="#48ded0" />
-              <rect x="5" y="14" width="2" height="7" fill="#28a99c" />
-              <rect x="0" y="15" width="2" height="6" fill="#9ff5ea" />
-              <rect x="0" y="21" width="6" height="6" fill="#48ded0" />
-              <rect x="4" y="21" width="2" height="6" fill="#28a99c" />
-              <rect x="0" y="21" width="1" height="6" fill="#9ff5ea" />
+              <path d="M3 11h6v5H8v12H7v9H5v4H1v-5H0V18h1v-5h2z" fill="#12353e" />
+              <path d="M3 14h4v13H6v9H4v3H2V27H1v-8h2z" fill="#209eaa" />
+              <path d="M3 16h2v12H4v7H2V22h1z" fill="#64e6d6" />
+              <path d="M3 16h1v7H3z" fill="#b0f6e3" />
+              <path d="M6 17h1v11H6v8H4v-3h1V26h1z" fill="#176e80" />
               <g className="buddy-hair-tip">
-                <rect x="1" y="27" width="5" height="7" fill="#48ded0" />
-                <rect x="4" y="27" width="2" height="7" fill="#28a99c" />
-                <rect x="1" y="28" width="1" height="9" fill="#9ff5ea" />
-                <rect x="1" y="34" width="4" height="5" fill="#48ded0" />
-                <rect x="2" y="39" width="3" height="3" fill="#1f8b81" />
+                <path d="M1 35h6v4H5v4H2v-2H1z" fill="#12353e" />
+                <path d="M2 35h3v4H4v2H2z" fill="#36c2bd" />
+                <path d="M2 35h1v4H2z" fill="#64e6d6" />
               </g>
             </g>
             <g className="buddy-hair-tail buddy-hair-tail-r">
-              <rect x="41" y="11" width="6" height="3" fill="#0e4a44" />
-              <rect x="41" y="14" width="7" height="7" fill="#48ded0" />
-              <rect x="41" y="14" width="2" height="7" fill="#28a99c" />
-              <rect x="46" y="15" width="2" height="6" fill="#9ff5ea" />
-              <rect x="42" y="21" width="6" height="6" fill="#48ded0" />
-              <rect x="42" y="21" width="2" height="6" fill="#28a99c" />
-              <rect x="47" y="21" width="1" height="6" fill="#9ff5ea" />
+              <path d="M39 11h6v2h2v5h1v18h-1v5h-4v-4h-2v-9h-1V16h-1z" fill="#12353e" />
+              <path d="M41 14h4v5h2v8h-1v12h-2v-3h-2v-9h-1z" fill="#209eaa" />
+              <path d="M43 16h2v6h1v13h-2v-7h-1z" fill="#64e6d6" />
+              <path d="M44 16h1v7h-1z" fill="#b0f6e3" />
+              <path d="M41 17h1v9h1v7h1v3h-2v-8h-1z" fill="#176e80" />
               <g className="buddy-hair-tip">
-                <rect x="42" y="27" width="5" height="7" fill="#48ded0" />
-                <rect x="42" y="27" width="2" height="7" fill="#28a99c" />
-                <rect x="46" y="28" width="1" height="9" fill="#9ff5ea" />
-                <rect x="43" y="34" width="4" height="5" fill="#48ded0" />
-                <rect x="43" y="39" width="3" height="3" fill="#1f8b81" />
+                <path d="M41 35h6v6h-1v2h-3v-4h-2z" fill="#12353e" />
+                <path d="M43 35h3v6h-2v-2h-1z" fill="#36c2bd" />
+                <path d="M45 35h1v4h-1z" fill="#64e6d6" />
               </g>
             </g>
           </g>
@@ -455,37 +439,21 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
           )}
         </g>
 
-        {/* peluco miku (frente): corona center-parted, mechones que enmarcan la
-            cara y flequillo en punta. Estatico: el pelo del craneo no se mece */}
+        {/* A broad crown follows the CRT shell, with a swept fringe that
+            leaves the eyes and visor clear. Pink clips anchor the twin-tails. */}
         {hasMikuWig ? (
           <g className="buddy-miku-hair-front">
-            <rect x="8" y="9" width="24" height="2" fill="#48ded0" />
-            <rect x="9" y="7" width="22" height="2" fill="#48ded0" />
-            <rect x="11" y="5" width="18" height="2" fill="#48ded0" />
-            <rect x="14" y="3" width="12" height="2" fill="#48ded0" />
-            <rect x="16" y="2" width="8" height="2" fill="#48ded0" />
-            <rect x="19" y="3" width="2" height="7" fill="#28a99c" />
-            <rect x="11" y="4" width="8" height="1" fill="#9ff5ea" />
-            <rect x="6" y="12" width="4" height="9" fill="#48ded0" />
-            <rect x="6" y="21" width="3" height="4" fill="#48ded0" />
-            <rect x="6" y="25" width="2" height="2" fill="#1f8b81" />
-            <rect x="9" y="12" width="1" height="10" fill="#28a99c" />
-            <rect x="6" y="13" width="1" height="9" fill="#9ff5ea" />
-            <rect x="31" y="12" width="4" height="9" fill="#48ded0" />
-            <rect x="32" y="21" width="3" height="4" fill="#48ded0" />
-            <rect x="33" y="25" width="2" height="2" fill="#1f8b81" />
-            <rect x="31" y="12" width="1" height="10" fill="#28a99c" />
-            <rect x="34" y="13" width="1" height="9" fill="#9ff5ea" />
-            <rect x="16" y="10" width="9" height="2" fill="#48ded0" />
-            <rect x="20" y="10" width="1" height="3" fill="#28a99c" />
-            <rect x="9" y="10" width="7" height="3" fill="#48ded0" />
-            <rect x="10" y="13" width="4" height="2" fill="#48ded0" />
-            <rect x="11" y="15" width="2" height="1" fill="#1f8b81" />
-            <rect x="14" y="10" width="1" height="4" fill="#28a99c" />
-            <rect x="25" y="10" width="7" height="3" fill="#48ded0" />
-            <rect x="27" y="13" width="4" height="2" fill="#48ded0" />
-            <rect x="28" y="15" width="2" height="1" fill="#1f8b81" />
-            <rect x="25" y="10" width="1" height="4" fill="#28a99c" />
+            <path d="M15 2h17v1h5v2h3v4h2v9h-3v-5h-4v-2H13v3H9v9H6V11h2V7h3V4h4z" fill="#12353e" />
+            <path d="M15 4h17v1h4v2h3v4h1v5h-2v-5h-5v-1h-5v3h-3V9h-3v4h-4v-2h-5v2H9v8H8V11h2V8h3V6h2z" fill="#2abbb6" />
+            <path d="M16 4h14v2H16v2h-3v3h-3V8h3V6h3z" fill="#70e9d6" />
+            <path d="M17 4h9v1h-9z" fill="#b0f6e3" />
+            <path d="M24 6h3v3h-2v3h-2V9h1zM17 8h3v3h-3z" fill="#50d5c6" />
+            <path d="M31 6h3v2h3v3h2v5h-2v-4h-4V9h-2z" fill="#19858f" />
+            <path d="M7 14h3v10H8v3H6V17h1zM40 13h3v12h-2v2h-2v-5h1z" fill="#19858f" />
+            <path d="M7 15h1v9H7zM41 14h1v9h-1z" fill="#64e6d6" />
+            <path d="M5 9h5v7H5zM38 9h5v7h-5z" fill="#242b40" />
+            <path d="M6 10h3v2H7v3H6zM39 10h3v5h-1v-3h-2z" fill="#f163a5" />
+            <path d="M6 10h2v1H6zM39 10h2v1h-2z" fill="#ffb4d7" />
           </g>
         ) : null}
 
@@ -495,6 +463,31 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
         <rect x="36" y="23" width="4" height="4" fill="#45d8ff" />
         <path d="M36 16h3v1h-3m0 6h3v1h-3" fill="#f4fff8" opacity=".8" />
         <rect className="buddy-power" x="36" y="29" width="4" height="2" fill="#3fff97" />
+
+        {/* Ear cushions and the boom sit in front of the casing and wig.
+            Raise the headband over the hair when both accessories are worn. */}
+        {hasItem("headset") ? (
+          <g className="buddy-fitted-headset">
+            <path d={hasMikuWig
+              ? "M3 17V11h3V7h4V4h5V2h18v2h5v3h4v4h3v6h-3v-5h-3V9h-3V6h-4V4H16v2h-4v3H9v3H6v5z"
+              : "M3 17V12h3V9h4V6h28v3h4v3h3v5h-3v-4h-3v-3H9v3H6v4z"} fill="#162b3d" />
+            <path d={hasMikuWig
+              ? "M16 2h16v1H16zM11 5h4v1h-4v3H8v3H5v4H4v-5h3V8h3V5zM34 5h3v2h3v4h-1V8h-3V6h-2z"
+              : "M11 7h26v1H11zM7 10h3v1H8v3H5v3H4v-4h3zM38 10h3v3h2v3h-1v-2h-2v-3h-2z"} fill="#83d8e5" />
+            <path d="M2 14h5v1h2v12H7v2H2v-1H0V16h2zM41 14h5v2h2v12h-2v1h-5v-2h-2V15h2z" fill="#132536" />
+            <path d="M2 16h4v1h1v9H6v1H2zM42 16h4v11h-4v-1h-1v-9h1z" fill="#328daa" />
+            <path d="M2 16h3v9H2zM43 16h3v9h-3z" fill="#54d9ef" />
+            <path d="M2 16h2v2H2zM43 16h2v2h-2z" fill="#d0f7ed" />
+            <path d="M6 17h2v9H6zM40 17h2v9h-2z" fill="#31415b" />
+            <path d="M3 19h1v4H3zM44 19h1v4h-1z" fill="#21829c" />
+            <path d="M2 26h3v1H2zM43 26h3v1h-3z" fill="#ef80b6" />
+            <path d="M43 25h3v5h-3v2H32v-4h10v-3z" fill="#132536" />
+            <path d="M43 26h1v3h-2v1h-9v-1h9v-1h1z" fill="#82b8c9" />
+            <path d="M29 27h6v1h1v3h-7z" fill="#172638" />
+            <path d="M30 28h3v1h-3z" fill="#78dce0" />
+            <path d="M34 28h1v2h-1z" fill="#f18bbd" />
+          </g>
+        ) : null}
 
         {/* gorro de fiesta: amistad lv2+ */}
         {showFriendshipGear("party-hat", 2) ? <g className="buddy-headgear"><BuddyWornGear id="party-hat" x={12} y={-1} width={24} height={15} /></g> : null}

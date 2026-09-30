@@ -7,6 +7,8 @@ import { readJsonStore, writeJsonStore } from "./json-store.mjs";
 import { assertSessionConfiguration, readJsonBody, sameOrigin } from "./http-guards.mjs";
 import { reserveCommentPost } from "./comment-posting.mjs";
 import { buildInbox, markInboxRead } from "./community-inbox.mjs";
+import { normalizeGifUrl, updateGifFavorites } from "../shared/comment-gifs.mjs";
+import { downloadCommentGif } from "./comment-gif-download.mjs";
 
 const COMMENTS_FILENAME = "comments.json";
 const PREFERENCES_FILENAME = "preferences.json";
@@ -1017,6 +1019,32 @@ async function routeCommentsRequest(request, response) {
   const requestUrl = new URL(request.url || "/api/comments", getBaseUrl(request));
   const pathname = requestUrl.pathname.replace(/^\/api\/comments\/?/, "");
   const parts = pathname.split("/").filter(Boolean);
+
+  if (parts.length === 2 && parts[0] === "gifs" && parts[1] === "favorites") {
+    const user = getUser(request);
+    if (!user) return sendJson(response, 401, { error: "Connect Discord to save GIF favorites." });
+    const preferences = readPreferences();
+    const entry = preferences[String(user.id)] || {};
+    if (request.method === "GET") return sendJson(response, 200, { favorites: (Array.isArray(entry.gifFavorites) ? entry.gifFavorites : []).map(normalizeGifUrl).filter(Boolean) });
+    if (request.method !== "POST") return sendJson(response, 405, { error: "GIF favorites method not allowed." });
+    const body = await readBody(request);
+    let favorites;
+    // Reread after the async body read so simultaneous preference saves merge.
+    const latest = readPreferences();
+    const current = latest[String(user.id)] || {};
+    try { favorites = updateGifFavorites(current.gifFavorites, body.url, body.saved); }
+    catch (error) { return sendJson(response, 400, { error: error.message }); }
+    latest[String(user.id)] = { ...current, gifFavorites: favorites };
+    writePreferences(latest);
+    return sendJson(response, 200, { favorites });
+  }
+
+  if (request.method === "GET" && parts.length === 2 && parts[0] === "gifs" && parts[1] === "download") {
+    const { bytes, type, filename } = await downloadCommentGif(requestUrl.searchParams.get("url"));
+    response.writeHead(200, { "Content-Type": type, "Content-Length": bytes.length, "Content-Disposition": `attachment; filename="${filename}"`, "X-Content-Type-Options": "nosniff", "Cache-Control": "private, max-age=300" });
+    response.end(bytes);
+    return;
+  }
 
   if (request.method === "POST" && pathname === "inbox/read") {
     const user = getUser(request);

@@ -5,6 +5,7 @@ import {
   ChevronRight,
   ChevronUp,
   CornerDownRight,
+  Heart,
   Image as ImageIcon,
   LogIn,
   LogOut,
@@ -27,6 +28,9 @@ import { CommentMentionInput } from "./CommentMentionInput";
 import { canReply, findMentionRanges, isMentioned, mentionCandidates, mentionPattern, mentionsInText, withMentionText } from "../../shared/comment-mentions.mjs";
 import { NotificationsBell } from "./NotificationsBell";
 import { CommentAdminBadge } from "./CommentAdminBadge";
+import { CommentGifDialog, CommentGifViewer } from "./CommentGifViewer";
+import { useCommentGifFavorites } from "../hooks/useCommentGifFavorites";
+import { isGifLink, normalizeGifUrl } from "../../shared/comment-gifs.mjs";
 import { commentHash } from "../lib/commentLinks";
 import { loadCommentDraft, saveCommentDraft } from "../lib/commentDrafts";
 
@@ -75,62 +79,6 @@ const MARKDOWN_HELP_LINES = [
   ["- item", "list"],
   ["[text](url)", "link"]
 ];
-let gifScrollUnlockTimer = null;
-let gifScrollGuardCleanup = null;
-
-function enableGifScrollGuard() {
-  if (typeof window === "undefined" || gifScrollGuardCleanup) return;
-
-  function isInsideGifResults(event) {
-    const target = event.target;
-    return target instanceof Element && Boolean(target.closest(".comments-gif-grid"));
-  }
-
-  function stopBackgroundScroll(event) {
-    if (isInsideGifResults(event)) return;
-    event.preventDefault();
-  }
-
-  document.addEventListener("wheel", stopBackgroundScroll, { capture: true, passive: false });
-  document.addEventListener("touchmove", stopBackgroundScroll, { capture: true, passive: false });
-
-  gifScrollGuardCleanup = () => {
-    document.removeEventListener("wheel", stopBackgroundScroll, { capture: true });
-    document.removeEventListener("touchmove", stopBackgroundScroll, { capture: true });
-    gifScrollGuardCleanup = null;
-  };
-}
-
-function lockGifPageWidth() {
-  if (typeof window === "undefined") return;
-  if (gifScrollUnlockTimer) window.clearTimeout(gifScrollUnlockTimer);
-
-  const root = document.documentElement;
-  const bodyWidth = document.body.getBoundingClientRect().width;
-  const lockWidth = Math.round(bodyWidth || root.clientWidth);
-  const scrollbarWidth = Math.max(0, window.innerWidth - lockWidth);
-
-  root.style.setProperty("--project-scrollbar-width", `${scrollbarWidth}px`);
-  root.style.setProperty("--project-lock-width", `${lockWidth}px`);
-  root.classList.add("project-modal-layout-lock");
-  document.body.classList.add("project-modal-layout-lock");
-  enableGifScrollGuard();
-}
-
-function unlockGifPageWidth() {
-  if (typeof window === "undefined") return;
-  if (gifScrollUnlockTimer) window.clearTimeout(gifScrollUnlockTimer);
-
-  gifScrollUnlockTimer = window.setTimeout(() => {
-    const root = document.documentElement;
-    root.classList.remove("project-modal-layout-lock");
-    document.body.classList.remove("project-modal-layout-lock");
-    root.style.removeProperty("--project-scrollbar-width");
-    root.style.removeProperty("--project-lock-width");
-    gifScrollGuardCleanup?.();
-  }, 240);
-}
-
 function formatTimestamp(value) {
   if (!value) return "now";
   const date = new Date(value);
@@ -398,7 +346,7 @@ function isMobileViewport() {
   return typeof window !== "undefined" && window.matchMedia("(max-width: 760px)").matches;
 }
 
-function CommentMedia({ gifUrl }) {
+function CommentMedia({ gifUrl, onPreview }) {
   const imageRef = useRef(null);
   const [mediaState, setMediaState] = useState(() => ({
     url: gifUrl,
@@ -418,11 +366,12 @@ function CommentMedia({ gifUrl }) {
 
   if (!gifUrl) return null;
   return (
-    <a
+    <button
       className={`comment-gif is-${loadState}`}
-      href={gifUrl}
-      target="_blank"
-      rel="noreferrer"
+      type="button"
+      onClick={(event) => onPreview(gifUrl, event.currentTarget)}
+      aria-label="Preview attached GIF"
+      aria-haspopup="dialog"
       aria-busy={loadState === "loading"}
     >
       {loadState !== "loaded" ? (
@@ -440,7 +389,7 @@ function CommentMedia({ gifUrl }) {
         onLoad={() => setMediaState({ url: gifUrl, status: "loaded" })}
         onError={() => setMediaState({ url: gifUrl, status: "error" })}
       />
-    </a>
+    </button>
   );
 }
 
@@ -460,6 +409,13 @@ export function CommentsSection() {
   const [replyDraft, setReplyDraft] = useState("");
   const [replyGif, setReplyGif] = useState("");
   const [gifPicker, setGifPicker] = useState(null);
+  const [gifPreview, setGifPreview] = useState("");
+  const [gifPickerView, setGifPickerView] = useState("search");
+  const [gifPickerMessage, setGifPickerMessage] = useState("");
+  const gifPreviewTriggerRef = useRef(null);
+  const gifPickerTriggerRef = useRef(null);
+  const gifSearchRef = useRef(null);
+  const gifFavorites = useCommentGifFavorites(auth.user?.id);
   const [reactionPickerId, setReactionPickerId] = useState("");
   const [reactionPickerStyle, setReactionPickerStyle] = useState(undefined);
   const [gifQuery, setGifQuery] = useState("");
@@ -717,24 +673,7 @@ export function CommentsSection() {
     return () => window.removeEventListener("pointerdown", closeReactionPicker);
   }, [reactionPickerId]);
 
-  useEffect(() => {
-    if (!gifPicker) return undefined;
-
-    lockGifPageWidth();
-
-    function closeOnEscape(event) {
-      if (event.key === "Escape") closeGifPicker();
-    }
-
-    window.addEventListener("keydown", closeOnEscape);
-
-    return () => {
-      unlockGifPageWidth();
-      window.removeEventListener("keydown", closeOnEscape);
-    };
-  }, [gifPicker]);
-
-  useEffect(() => () => unlockGifPageWidth(), []);
+  useEffect(() => () => gifSearchRef.current?.abort(), []);
 
   useEffect(() => {
     if (!deleteDialog) return undefined;
@@ -932,11 +871,15 @@ export function CommentsSection() {
     }
     setGifQuery("");
     setGifResults([]);
+    setGifPickerMessage("");
+    setGifPickerView(gifFavorites.favorites.length ? "favorites" : "search");
+    gifPickerTriggerRef.current = document.activeElement;
     setGifPicker({ target, commentId });
     setStatus("GIF picker ready");
   }
 
   function closeGifPicker() {
+    gifSearchRef.current?.abort();
     setGifPicker(null);
     setGifBusy(false);
   }
@@ -950,30 +893,49 @@ export function CommentsSection() {
     }
 
     setGifBusy(true);
+    setGifPickerMessage("");
+    gifSearchRef.current?.abort();
+    const controller = new AbortController();
+    gifSearchRef.current = controller;
     setStatus("searching GIF signal...");
     try {
-      const response = await fetch(`${COMMENTS_ENDPOINT}/gifs?q=${encodeURIComponent(cleanQuery)}`, { credentials: "include" });
+      const response = await fetch(`${COMMENTS_ENDPOINT}/gifs?q=${encodeURIComponent(cleanQuery)}`, { credentials: "include", signal: controller.signal });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "GIF search failed");
       setGifResults(Array.isArray(payload.gifs) ? payload.gifs : []);
+      setGifPickerMessage(payload.error || "");
       setStatus(payload.gifs?.length ? "GIF results loaded" : payload.error || "no GIF results");
     } catch (error) {
-      setStatus(error.message || "GIF search failed");
+      if (!controller.signal.aborted) { setStatus(error.message || "GIF search failed"); setGifPickerMessage(error.message || "GIF search failed"); }
     } finally {
-      setGifBusy(false);
+      if (!controller.signal.aborted) setGifBusy(false);
     }
   }
 
   function selectGif(url) {
     if (gifPicker?.target === "reply") setReplyGif(url);
     else setDraftGif(url);
-    setGifPicker(null);
+    closeGifPicker();
     setStatus("GIF attached");
   }
 
   function clearGif(target = "comment") {
     if (target === "reply") setReplyGif("");
     else setDraftGif("");
+  }
+
+  function openGifPreview(url, trigger) {
+    const safeUrl = normalizeGifUrl(url);
+    if (!safeUrl) return;
+    gifPreviewTriggerRef.current = trigger;
+    setGifPreview(safeUrl);
+  }
+
+  function previewGifLink(event) {
+    const link = event.target.closest?.(".comment-markdown a");
+    if (!link || !isGifLink(link.href)) return;
+    event.preventDefault();
+    openGifPreview(link.href, link);
   }
 
   function openDeleteComment(comment) {
@@ -1004,42 +966,42 @@ export function CommentsSection() {
     deleteComment(deleteDialog.commentId);
   }
 
-  const gifModal = gifPicker && typeof document !== "undefined"
-    ? createPortal(
-        <div className="comments-gif-modal" role="presentation" onMouseDown={(event) => {
-          if (event.target === event.currentTarget) closeGifPicker();
-        }}>
-          <div className="comments-gif-dialog" role="dialog" aria-modal="true" aria-labelledby="comments-gif-title">
-            <header className="comments-gif-dialog-head">
-              <div>
-                <span>GIF uplink</span>
-                <h3 id="comments-gif-title">Search Klipy</h3>
-              </div>
-              <button className="has-tooltip" data-tooltip="Close GIF picker." type="button" onClick={closeGifPicker} aria-label="Close GIF picker"><X size={16} aria-hidden="true" /></button>
-            </header>
-            <form className="comments-gif-search" onSubmit={(event) => { event.preventDefault(); searchGifs(); }}>
+  const gifModal = gifPicker ? (
+    <CommentGifDialog title="Choose a GIF" description="Search Klipy or reuse a favorite from your collection." onClose={closeGifPicker} returnFocusRef={gifPickerTriggerRef}>
+      <div className="comments-gif-views" role="group" aria-label="GIF collection view">
+        <button type="button" aria-pressed={gifPickerView === "search"} onClick={() => setGifPickerView("search")}><Search size={14} aria-hidden="true" /> Search</button>
+        <button type="button" aria-pressed={gifPickerView === "favorites"} onClick={() => setGifPickerView("favorites")}><Heart size={14} aria-hidden="true" /> Favorites ({gifFavorites.favorites.length})</button>
+      </div>
+      {gifPickerView === "search" ? <form className="comments-gif-search" onSubmit={(event) => { event.preventDefault(); searchGifs(); }}>
               <Search size={15} aria-hidden="true" />
               <input
                 value={gifQuery}
+                aria-label="Search GIFs"
                 onChange={(event) => setGifQuery(event.target.value)}
                 placeholder="search GIFs..."
               />
               <button className="has-tooltip" data-tooltip="Search Klipy for GIFs." type="submit" disabled={gifBusy || !gifQuery.trim()}>search</button>
-            </form>
+            </form> : null}
+            {gifPickerView === "favorites" && gifFavorites.error ? <p className="comments-gif-feedback" role="status">{gifFavorites.error} <button type="button" onClick={gifFavorites.reload}>Retry favorites</button></p> : null}
             <div className="comments-gif-grid">
-              {gifResults.map((url) => (
-                <button className="has-tooltip" data-tooltip="Attach this GIF." type="button" key={url} onClick={() => selectGif(url)}>
-                  <img src={url} alt="GIF result" loading="lazy" decoding="async" />
-                </button>
+              {(gifPickerView === "favorites" ? gifFavorites.favorites : gifResults).map((url, index) => (
+                <div className="comments-gif-tile" key={url}>
+                  <button className="has-tooltip comments-gif-attach" data-tooltip="Attach this GIF." type="button" onClick={() => selectGif(url)} aria-label={`Attach ${gifPickerView === "favorites" ? "favorite" : "GIF"} ${index + 1}`}>
+                    <img src={url} alt="" loading="lazy" decoding="async" />
+                  </button>
+                  {gifPickerView === "favorites" ? <button type="button" className="comments-gif-remove" aria-label={`Remove favorite ${index + 1}`} disabled={gifFavorites.saving} onClick={async () => {
+                    try { setGifPickerMessage(await gifFavorites.toggleFavorite(url) || ""); } catch (error) { setGifPickerMessage(error.message); }
+                  }}><Heart size={14} fill="currentColor" aria-hidden="true" /><X size={10} aria-hidden="true" /></button> : null}
+                </div>
               ))}
-              {!gifBusy && !gifResults.length ? <p>{gifQuery.trim() ? "No GIFs loaded. Try another search." : "Search for a GIF to attach."}</p> : null}
-              {gifBusy ? <p>Searching GIF signal...</p> : null}
+              {gifPickerView === "search" && !gifBusy && !gifResults.length ? <p>{gifQuery.trim() ? "No GIFs loaded. Try another search." : "Search for a GIF to attach."}</p> : null}
+              {gifPickerView === "search" && gifBusy ? <p role="status">Searching GIF signal...</p> : null}
+              {gifPickerView === "favorites" && gifFavorites.loading ? <p role="status">Loading favorites…</p> : null}
+              {gifPickerView === "favorites" && !gifFavorites.loading && !gifFavorites.error && !gifFavorites.favorites.length ? <p>Nothing saved yet. Open a GIF in the comments and tap Favorite to keep it here.</p> : null}
             </div>
-          </div>
-        </div>,
-        document.body
-      )
-    : null;
+            {gifPickerMessage ? <p className="comments-gif-feedback" role="status">{gifPickerMessage}</p> : null}
+    </CommentGifDialog>
+  ) : null;
 
   const deleteModal = deleteDialog && typeof document !== "undefined"
     ? createPortal(
@@ -1134,7 +1096,7 @@ export function CommentsSection() {
   }
 
   return (
-    <section className="py-16 md:py-24" id="contact" ref={sectionRef}>
+    <section className="py-16 md:py-24" id="contact" ref={sectionRef} onClick={previewGifLink}>
       <div className="comments-section-heading">
         <DecodeText as="p" className="pixel-label" duration={520} text="OPEN.CHANNEL" />
         <DecodeText
@@ -1279,6 +1241,7 @@ export function CommentsSection() {
         )}
 
         {gifModal}
+        {gifPreview ? <CommentGifViewer key={gifPreview} url={gifPreview} onClose={() => setGifPreview("")} returnFocusRef={gifPreviewTriggerRef} favorites={gifFavorites} signedIn={!!auth.user} loginUrl={auth.loginUrl} canSignIn={auth.configured} /> : null}
 
         {deleteModal}
 
@@ -1339,7 +1302,7 @@ export function CommentsSection() {
                   </header>
                   {comment.text || comment.mentions?.length ? <MarkdownText text={comment.text} mentions={comment.mentions} userId={auth.user?.id} /> : null}
                   {isMentioned(comment, auth.user?.id) ? <p className="comment-mention-hint">You were mentioned in this thread — you can reply.</p> : null}
-                  <CommentMedia gifUrl={comment.gifUrl} />
+                  <CommentMedia gifUrl={comment.gifUrl} onPreview={openGifPreview} />
 
                   {renderReactionControls(comment.id, reactionMap)}
 
@@ -1393,7 +1356,7 @@ export function CommentsSection() {
                                 ) : null}
                               </header>
                               {reply.text || reply.mentions?.length ? <MarkdownText compact text={reply.text} mentions={reply.mentions} userId={auth.user?.id} /> : null}
-                              <CommentMedia gifUrl={reply.gifUrl} />
+                              <CommentMedia gifUrl={reply.gifUrl} onPreview={openGifPreview} />
                               {renderReactionControls(comment.id, reply.reactions && typeof reply.reactions === "object" ? reply.reactions : {}, reply.id)}
                             </div>
                           </article>

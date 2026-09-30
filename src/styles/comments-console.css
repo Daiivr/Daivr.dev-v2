@@ -811,6 +811,75 @@
     padding: 0.9rem;
   }
 
+  .comments-gif-dialog.is-accessible {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    z-index: 1201;
+    width: min(720px, calc(100vw - 2rem));
+    max-height: calc(100dvh - 2rem);
+    overflow-y: auto;
+    transform: translate(-50%, -50%);
+    font-family: var(--font-mono);
+    outline: none;
+  }
+
+  .comments-gif-dialog.is-viewer { width: min(640px, calc(100vw - 2rem)); }
+  .comments-gif-dialog-head > div > span { display: flex; align-items: center; gap: 6px; }
+  .comments-gif-description, .comments-gif-feedback {
+    margin: 0;
+    color: #a8c2b9;
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .comments-gif-description a, .comments-gif-feedback button { color: var(--color-cyan-arcade); text-decoration: underline; cursor: pointer; }
+  .comments-gif-feedback:empty { display: none; }
+  .comments-gif-views, .comments-gif-viewer-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .comments-gif-views button, .comments-gif-viewer-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 8px 14px;
+    border: 1px solid #39615a;
+    border-radius: 4px;
+    background: #0b1b18;
+    color: #d1f8e8;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+  .comments-gif-views button[aria-pressed="true"] { border-color: var(--color-cyan-arcade); background: #11343b; color: #b8f7ff; }
+  .comments-gif-viewer-actions button { flex: 1; }
+  .comments-gif-viewer-actions .comments-gif-favorite { border-color: #a4668a; color: #ffc6e4; background: #2c1b29; }
+  .comments-gif-favorite[aria-pressed="true"] { box-shadow: inset 0 0 0 1px #e58bb6; }
+  .comments-gif-views button:focus-visible, .comments-gif-viewer-actions button:focus-visible,
+  .comments-gif-grid button:focus-visible, .comment-gif:focus-visible { outline: 2px solid var(--color-cyan-arcade); outline-offset: 3px; }
+  .comments-gif-viewer-actions button:disabled { opacity: .55; cursor: not-allowed; }
+  .comments-gif-stage {
+    display: grid;
+    place-items: center;
+    min-height: 180px;
+    border: 1px solid #284c43;
+    background: repeating-conic-gradient(#0c1715 0% 25%, #101f1b 0% 50%) 0 0 / 20px 20px;
+    padding: 12px;
+    border-radius: 4px;
+  }
+  .comments-gif-stage img { display: block; max-width: 100%; max-height: min(52dvh, 480px); object-fit: contain; }
+  .comments-gif-stage:not(.is-loaded) img { display: none; }
+  .comments-gif-stage p { color: #c9e2d8; font-size: 13px; text-align: center; line-height: 1.6; }
+  .comment-gif { cursor: zoom-in; }
+  .comments-gif-search input { min-width: 0; }
+
+  @media (max-width: 480px) {
+    .comments-gif-dialog.is-accessible { width: calc(100vw - 1rem); max-height: calc(100dvh - 1rem); padding: 12px; }
+    .comments-gif-stage { min-height: 140px; }
+    .comments-gif-search { gap: 6px; }
+    .comments-gif-dialog .comments-gif-search input { width: 100%; }
+  }
+
   .comments-gif-dialog-head {
     display: flex;
     align-items: center;
@@ -924,7 +993,7 @@
 
   .comments-gif-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
     gap: 0.55rem;
     max-height: min(460px, calc(100vh - 240px));
     overflow: auto;
@@ -944,6 +1013,25 @@
   .comments-gif-grid button:hover {
     border-color: var(--color-cyan-arcade);
   }
+
+  .comments-gif-tile { position: relative; min-width: 0; }
+  .comments-gif-grid .comments-gif-attach { display: block; width: 100%; height: 140px; }
+  .comments-gif-grid .comments-gif-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    width: 44px;
+    min-height: 44px;
+    border: 1px solid #d38db2;
+    border-radius: 4px;
+    color: #ffd1e9;
+    background: #281421eb;
+  }
+  .comments-gif-grid .comments-gif-remove:disabled { opacity: .5; cursor: not-allowed; }
 
   .comments-gif-grid img {
     display: block;

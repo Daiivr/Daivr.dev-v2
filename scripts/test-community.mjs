@@ -87,6 +87,22 @@ test("community API, safe storage, posting limits, passports and daily rewards",
   assert.equal((await api("/api/comments/inbox/read", bob, { ids: ["thread"] })).data.inbox.unread, 0);
   assert.equal((await api("/api/comments")).data.inbox.unread, 0);
   assert.equal((await api("/api/comments/inbox/read", null, { ids: [] })).status, 401);
+  const favoriteUrl = "https://static.klipy.com/test/favorite.gif";
+  assert.equal((await api("/api/comments/gifs/favorites", null)).status, 401);
+  assert.equal((await api("/api/comments/gifs/favorites", bob, { url: favoriteUrl, saved: true }, { Origin: "https://foreign.example" })).status, 403);
+  assert.equal((await api("/api/comments/preferences", bob, { theme: "glitch" })).status, 200);
+  assert.deepEqual((await api("/api/comments/gifs/favorites", bob, { url: favoriteUrl, saved: true })).data.favorites, [favoriteUrl]);
+  assert.deepEqual((await api("/api/comments/gifs/favorites", bob, { url: favoriteUrl, saved: true })).data.favorites, [favoriteUrl]);
+  assert.deepEqual((await api("/api/comments/gifs/favorites", alice)).data.favorites, []);
+  assert.deepEqual((await api("/api/comments/gifs/favorites", bob)).data.favorites, [favoriteUrl]);
+  // Vite's mounted middleware strips /api/comments before calling the handler.
+  assert.deepEqual((await api("/gifs/favorites", bob)).data.favorites, [favoriteUrl]);
+  assert.equal((await api("/api/comments/preferences", bob)).data.theme, "glitch");
+  assert.deepEqual(JSON.parse(readFileSync(join(dir, "preferences.json"), "utf8"))[bob.id].gifFavorites, [favoriteUrl]);
+  assert.equal((await api("/api/comments/gifs/favorites", bob, { url: "javascript:alert(1)", saved: true })).status, 400);
+  assert.deepEqual((await api("/api/comments/gifs/favorites", bob, { url: favoriteUrl, saved: false })).data.favorites, []);
+  assert.equal((await api("/api/comments/gifs/download?url=http%3A%2F%2F127.0.0.1%2Fsecret", null)).status, 400);
+  assert.match((await api("/gifs/download?url=http%3A%2F%2F127.0.0.1%2Fsecret", null)).data.error, /host/);
   assert.equal((await api("/api/comments", bob, { text: "x" }, { Origin: "https://foreign.example" })).status, 403);
   assert.equal((await api("/api/comments", bob, { text: "x".repeat(17000) })).status, 413);
   assert.equal((await api("/api/comments/thread/replies", bob, { text: "Hi Alice" })).status, 201);
