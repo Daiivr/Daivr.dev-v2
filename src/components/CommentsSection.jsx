@@ -986,12 +986,12 @@ export function CommentsSection() {
             <div className="comments-gif-grid">
               {(gifPickerView === "favorites" ? gifFavorites.favorites : gifResults).map((url, index) => (
                 <div className="comments-gif-tile" key={url}>
-                  <button className="has-tooltip comments-gif-attach" data-tooltip="Attach this GIF." type="button" onClick={() => selectGif(url)} aria-label={`Attach ${gifPickerView === "favorites" ? "favorite" : "GIF"} ${index + 1}`}>
+                  <button className="comments-gif-attach" type="button" onClick={() => selectGif(url)} aria-label={`Attach ${gifPickerView === "favorites" ? "favorite" : "GIF"} ${index + 1}`}>
                     <img src={url} alt="" loading="lazy" decoding="async" />
                   </button>
                   {gifPickerView === "favorites" ? <button type="button" className="comments-gif-remove" aria-label={`Remove favorite ${index + 1}`} disabled={gifFavorites.saving} onClick={async () => {
                     try { setGifPickerMessage(await gifFavorites.toggleFavorite(url) || ""); } catch (error) { setGifPickerMessage(error.message); }
-                  }}><Heart size={14} fill="currentColor" aria-hidden="true" /><X size={10} aria-hidden="true" /></button> : null}
+                  }}><X size={14} aria-hidden="true" /></button> : null}
                 </div>
               ))}
               {gifPickerView === "search" && !gifBusy && !gifResults.length ? <p>{gifQuery.trim() ? "No GIFs loaded. Try another search." : "Search for a GIF to attach."}</p> : null}

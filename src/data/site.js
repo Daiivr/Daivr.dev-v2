@@ -334,6 +334,271 @@ export const stack = [
 // Tipos de cambio: new (verde), buff (cian), fix (dorado), nerf (rosa).
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
+  // Historical backfill: dates follow the commits; small follow-ups share a release.
+  // 22fb8df
+  {
+    version: "v2.48.0",
+    codename: "KEEP THE GIF",
+    date: "2026-09-30",
+    summary: "The guestbook has a GIF viewer and a little collection of your own. Open a GIF in place, download it, or save it for the next conversation. Buddy's headset and Miku wig also get a better fit.",
+    entries: [
+      ["new", "Attached GIFs and direct GIF links in comment text open an in-page viewer with a large preview, Download, and Favorite controls."],
+      ["new", "Favorites save to your signed-in Discord account. The GIF picker has Search and Favorites views, so saved reactions can be attached to comments or replies without searching again."],
+      ["new", "Download saves the original supported image through the site's download endpoint. Failed downloads and unavailable previews show a readable status inside the viewer."],
+      ["buff", "The viewer supports Escape, keyboard focus containment, and returning focus to the GIF that opened it. Favorites can also be removed directly from the picker."],
+      ["buff", "Buddy's headset now has visible padded cyan ear cups, pink indicators, and a boom microphone. Its band sits above the Miku wig when both are equipped."],
+      ["buff", "The Miku wig has swept bangs, a broader crown, shaded twin-tails, and pink clips. The locker icons match the fitted accessories."]
+    ]
+  },
+  // 2a898dc
+  {
+    version: "v2.47.0",
+    codename: "HELLO, PLAYER",
+    date: "2026-09-30",
+    summary: "Mentions belong in the sentence now. The same update gives the admin badge a tiny crowned cat and redraws Buddy's full Miku costume with clearer details and expressions.",
+    entries: [
+      ["new", "Selecting a mention inserts @username at the typing cursor, so a message can read hi @Vasquez instead of leaving the name in a separate row below the text."],
+      ["buff", "Posted comments and replies highlight mentions inline while keeping Markdown, links, and code readable. Older detached mentions are appended inline, including when restoring an old draft."],
+      ["fix", "Deleting a mention from the text removes its recipient selection too. Repeated mentions of one player work within the existing five-person limit, and inserting a name respects the message length limit."],
+      ["buff", "Admin labels on messages, replies, and the signed-in account use a shared pink badge with a crowned pixel cat and a gold sparkle."],
+      ["buff", "The Miku costume gets outlined twin-tails, swept bangs, teal eyes, a fitted headset, and more defined blouse, tie, skirt, gloves, and boots. Idle, happy, sleeping, surprised, and focused expressions remain distinct."],
+      ["buff", "The costume's locker icon follows the new artwork, and its glow is softer so the small pixel details stay readable."]
+    ]
+  },
+  // a68535a, 2c876dd
+  {
+    version: "v2.46.0",
+    codename: "NIGHT WATCH",
+    date: "2026-09-30",
+    summary: "Buddy's power repair and bird visits read as little scenes now: a flashlight that follows its beam, a breaker that comes back to life, and a bird that actually lands before settling in.",
+    entries: [
+      ["buff", "The outage kit has a shaded flashlight and breaker cabinet, with a soft pool of light on the ground during the search and repair."],
+      ["fix", "The flashlight and its light cone share a pivot, keeping the beam attached while Buddy scans the clearing."],
+      ["buff", "Repair phases coordinate the torch, breaker indicators, and restoration animation. Buddy smiles when the power returns, then puts the light away."],
+      ["buff", "The signal bird has layered feathers, a pale chest, a separate tail, folded wings, and more expressive head and feet movement."],
+      ["fix", "Bird visits separate approach, landing, perching, and departure. Buddy pauses for the landing, and the perch position accounts for the Miku costume."]
+    ]
+  },
+  // a00f18d, 5722f8b, 4f5dffe
+  {
+    version: "v2.45.0",
+    codename: "RAIN IN THE CLEARING",
+    date: "2026-09-30",
+    summary: "The footer becomes a small woodland, with richer patrol finds, unfolding rain gear, and more readable bug encounters. The fishing follow-ups are collected here too, including the line staying attached throughout a cast and catch.",
+    entries: [
+      ["buff", "The clearing gains layered pixel trees, moss, rocks, mushrooms, a lantern, low mist, and fireflies. Rain darkens the scene and hides the fireflies; scenery animation pauses outside the viewport."],
+      ["buff", "Buddy raises a folded umbrella, opens its canopy, and shelters under dripping edges before folding it away as the rain clears. The handle stays behind the face."],
+      ["buff", "Bug hunts coordinate three blaster shots with recoil, muzzle flashes, moving bolts, and evasive bug movement. Swatter and net swings meet the hit phase, followed by a pixel breakup and completion label."],
+      ["buff", "Patrol finds use shaded artwork shared with the journal, while the phosphor moth gets articulated wings, a glowing abdomen, and a continuous arrival and departure flight."],
+      ["buff", "Fishing adds a two-part bite, reel pumping, a catch arc, water drips, and a wriggle for fish. Junk and treasure keep their own still silhouettes."],
+      ["fix", "The rod, foreground Miku rod, line, and float now share their motion across fishing phases. The line follows the rod tip while the water stays still, and lifting the catch no longer stretches the lure."],
+      ["buff", "Rocket-boot nozzles get layered exhaust with a brighter core and a pulse anchored to each sole. Airborne flames extend without drifting away from the boots."],
+      ["buff", "Reduced-motion settings suppress the new scenery, encounter, and fishing effects."]
+    ]
+  },
+  // 9b56064, 6b2b160
+  {
+    version: "v2.44.0",
+    codename: "SOLID LITTLE STEPS",
+    date: "2026-09-30",
+    summary: "Buddy gets a more solid CRT body and a walk with planted feet. Beneath the fishing line, the school is made from miniature journal species, and the things pulled out of the water have more character.",
+    entries: [
+      ["buff", "The normal CRT shell has filled, shaded casing and solid shoes, making the body easier to distinguish from its equipped gear."],
+      ["buff", "Walking moves the upper body separately from alternating foot lifts, with a toe roll and scarf follow-through. Rocket boots fit each leg at its native pixel scale, and their exhaust follows the moving feet."],
+      ["buff", "The underwater school uses miniature journal fish with separate depths, turns, tail beats, and an approach to the hook. A dark pixel pool keeps them legible above the footer ticker."],
+      ["buff", "Junk and treasure get individual details: boot laces, disk labels, damaged controller buttons, rusty metal, cable plugs, keyboard keys, and chest hardware."],
+      ["fix", "The body changes preserve the separate movement used by rocket boots and the Miku costume, and reduced motion stops the new scarf animation."]
+    ]
+  },
+  // 0e02f07, 46dba5c
+  {
+    version: "v2.43.0",
+    codename: "BUDDY'S WORKSHOP",
+    date: "2026-09-30",
+    summary: "The companion panel becomes a workshop with activities, a clearer locker, quest rewards, and a more useful journal. Buddy's equipment, wildlife, and rare leviathan sighting get a coordinated art and motion pass.",
+    entries: [
+      ["new", "An Activities view lets you request fishing, patrol, rain, or a dance. Accepted requests close the panel and take you to Buddy; active events and cooldowns explain when an activity must wait."],
+      ["new", "The locker can show owned, equipped, locked, or all equipment. Locked items show their actual unlock requirement and progress, and pose buttons preview Idle, Happy, or Nap."],
+      ["buff", "Quest cards show the gear they award. The journal adds rarity filters and alphabetical or catch-count sorting, while undiscovered entries keep their identity hidden."],
+      ["buff", "Locker icons and worn gear share their artwork, with fitted visor, scarf, and headset geometry. Rods, lures, boots, hats, and carried items have more consistent silhouettes."],
+      ["buff", "Fishing, walking, petting, dancing, carrying, sleeping, and combat get coordinated movement. Frogs blink and hop within the footer, and jumping fish use the journal's species artwork."],
+      ["buff", "The leviathan has a longer approach, surface visit, and retreat, plus an alert that can jump to the footer or dismiss the dimming. Its existing rarity and once-per-sighting reward remain in place."],
+      ["fix", "Fishing owns the encounter timers, so cancelling a session cannot leave the screen dimmed. Activity controls also honor reduced motion and existing reward rules."],
+      ["buff", "The Discord sidebar card separates status, activity, connection state, and device indicators, with a fallback for failed avatars. More compact spacing keeps navigation usable on short desktop windows."]
+    ]
+  },
+  // 76ffc07
+  {
+    version: "v2.42.0",
+    codename: "STREAK KEEPER",
+    date: "2026-09-30",
+    summary: "Daily challenges have more to work toward: completion milestones, streak rewards, and a collection that shows the next unlock. The targets also move up to match the scores people are actually posting.",
+    entries: [
+      ["new", "Completion badges unlock at 1, 7, 25, 50, 100, 250, and 365 daily wins, with separate streak badges for 3, 7, 14, 30, 60, and 100 consecutive UTC days."],
+      ["new", "The passport shows current and best streaks, a badge collection, locked milestones, and progress toward each reward. Up to three earned badges can be featured."],
+      ["buff", "Daily targets are now 20 blocks in Tower Block, 75 points in Cross Road, and 500,000 points in Space Cadet. Previously completed challenges stay credited."],
+      ["fix", "Streaks use UTC calendar days and remain active through the day after the latest completion. Earned streak badges remain yours after a break, and saved completion dates backfill the history that is available."],
+      ["buff", "Mention suggestions and the Mentions of you filter get clearer icons, keyboard hints, counts, and selected states."]
+    ]
+  },
+  // 9be4bdf, 1b86df6
+  {
+    version: "v2.41.0",
+    codename: "PLAYER FILES",
+    date: "2026-09-26",
+    summary: "The new community tools settle into the cabinet: notifications live behind a bell, the passport puts your records and daily goal first, and project stories look like files you can browse.",
+    entries: [
+      ["new", "A notification bell beside your guestbook account shows the unread count and opens the inbox in a compact panel. Escape closes it and returns focus to the bell."],
+      ["buff", "The passport separates identity, personal bests, and today's challenge. Progress, reward, reset time, and the Play challenge button sit together, while customization and conversations use expandable sections."],
+      ["buff", "Mention suggestions show player initials, a result count, and keyboard instructions. Moving through the list keeps the active suggestion in view."],
+      ["buff", "Project stories gain a file title bar, numbered sections, labelled visual previews, workflow steps, and clearer source, documentation, and copy-link controls."],
+      ["fix", "The passport dialog follows CRT and Glitch themes, including its overlay, frame, and player card. The follow-up styling is included here rather than becoming a separate release."]
+    ]
+  },
+  // b8a718e
+  {
+    version: "v2.40.0",
+    codename: "YOUR SAVE SLOT",
+    date: "2026-09-26",
+    summary: "The cabinet gains a player passport and daily challenges, while the guestbook becomes easier to return to with mentions, notifications, saved drafts, and direct links. Project stories and mobile navigation join the same update.",
+    entries: [
+      ["new", "The Player button opens your Discord-linked passport with Buddy progress, personal bests, favorite game, earned title, accent, and featured badges."],
+      ["new", "A shared daily challenge rotates between Tower Block, Cross Road, and Space Cadet. An accepted run meeting that day's goal awards a completion and cosmetic passport rewards, with a reset at 00:00 UTC."],
+      ["new", "Guestbook mentions invite selected players into a thread. An on-site inbox reports mentions and replies, with read markers saved per account and synced to connected guestbook tabs."],
+      ["new", "Direct links open the right comment page or expanded reply thread. Missing or deleted messages show an unavailable state."],
+      ["new", "Comment and reply drafts, including GIFs and mention selections, are kept on the current device per account for up to 30 days. Sending or cancelling clears the relevant draft."],
+      ["new", "TradeDex and Palwatch gain project stories explaining their problem, implementation, workflow, and result, with shareable project links."],
+      ["buff", "Mobile navigation collapses behind Menu while keeping Buddy directly accessible. Desktop retains its expanded directory."],
+      ["fix", "Community saves use atomic writes and recovery backups. Posting limits survive deletions and restarts, and duplicate submissions, oversized requests, and cross-origin mutations are checked."],
+      ["fix", "Only fingerprinted build outputs listed in the build manifest receive immutable caching. Other assets revalidate, avoiding stale files that keep the same name."]
+    ]
+  },
+  // 81658aa
+  {
+    version: "v2.39.0",
+    codename: "VAULT CLOSED",
+    date: "2026-09-24",
+    summary: "The Fallout field station is retired from this site. Its earlier releases remain in the archive as history; the vault, guides, map, and reports described there are no longer available in the cabinet.",
+    entries: [
+      ["nerf", "Removed the Fallout entry control from the top bar and the dedicated field station, guide, and activity routes."],
+      ["nerf", "Removed the Fallout report and item-reference endpoints, along with their source adapters and page-generation scripts."],
+      ["nerf", "Removed the bundled map tiles, mask photographs, game artwork, Fallout styles, and Leaflet dependency used by the retired section."],
+      ["buff", "The application entry returns to a single cabinet page, and the greeting no longer offers the Fallout-specific return sequence."]
+    ]
+  },
+  // 1b9f34d
+  {
+    version: "v2.38.0",
+    codename: "DAILY DISPATCH",
+    date: "2026-09-22",
+    summary: "The historical Fallout station expands with separate activity reports and an item reference viewer. These features were later retired with the station in v2.39.0.",
+    entries: [
+      ["new", "Daily Ops, daily challenges, and weekly challenges receive their own report pages, with navigation between reports and back to the operations desk."],
+      ["buff", "The main desk uses compact activity links, keeping the full assignments on their own pages. Direct visits and reloads receive the corresponding page metadata."],
+      ["fix", "Published report dates and estimated challenge resets are distinguished. Expired reports remain visibly stale instead of being presented as current assignments."],
+      ["new", "Minerva's plan and recipe items open a reference modal with a short attributed wiki extract, an image when available, and a link to the full source."],
+      ["buff", "Missing item images and failed lookups have explicit fallback states. The reference viewer supports Escape, backdrop dismissal, and returning focus to the selected item."]
+    ]
+  },
+  // e4145d0
+  {
+    version: "v2.37.0",
+    codename: "FOLLOW THE MASKS",
+    date: "2026-09-20",
+    summary: "The historical Slasher guide gets a dedicated introduction and a chapter-based layout. Its route, map, rewards, and field questions become easier to browse; the section was later retired in v2.39.0.",
+    entries: [
+      ["new", "The Slasher guide opens with its own introduction before handing focus to the guide, including when returning through the browser's page cache."],
+      ["new", "A chapter rail links Overview, Before you go, Find the masks, The rewards, and Field questions, with an active section indicator and a back-to-top control."],
+      ["buff", "The guide reorganizes its field notes, survey, and rewards into a clearer reading layout. Each reward stage shows its own required pickups and cumulative total."],
+      ["buff", "The field station remembers its introductory splash, and the cabinet preloads its entrance artwork to make returning visits smoother."],
+      ["fix", "Chapter tracking follows the Fallout page's own scroll container, and finishing the introduction respects a linked section in the URL."]
+    ]
+  },
+  // c38c5b3
+  {
+    version: "v2.36.0",
+    codename: "FIELD ATLAS",
+    date: "2026-09-19",
+    summary: "The historical Fallout station gains a guide directory and a Slasher mask atlas with an interactive game map and location photographs. This guide was later retired with the station in v2.39.0.",
+    entries: [
+      ["new", "A dedicated Slasher field guide brings together preparation notes, 108 mask positions grouped into search areas, reward stages, and common pickup questions."],
+      ["new", "An interactive Appalachia map supports dragging, zooming, area selection, individual mask pins, and returning to the overview."],
+      ["new", "The map includes a separately toggled world-location layer with 458 landmarks and their game icons, beneath the mask markers."],
+      ["new", "Mask pins include matched location photographs. Opening a photograph shows a larger modal view with keyboard dismissal and focus restoration."],
+      ["buff", "The map loads tiled artwork on demand and limits attached landmark markers to the visible area. Touch, keyboard navigation, and viewport resizing are supported."]
+    ]
+  },
+  // 64ccf3a
+  {
+    version: "v2.35.0",
+    codename: "OPERATIONS DESK",
+    date: "2026-09-15",
+    summary: "The historical field station becomes an operations desk with a channel selector and clearer diagnostics. The cabinet's avatar greeting also gets a smoother warmup. The Fallout interface was later retired in v2.39.0.",
+    entries: [
+      ["buff", "The station gains a side directory, tuning dial, daily dispatch masthead, and report summaries that make its different channels easier to scan."],
+      ["buff", "Connection status distinguishes complete, partial, and unavailable reports. Refresh, CRT controls, and the latest successful transmission are easier to find."],
+      ["new", "A station diagnostics panel collects transmission notes, source references, and the meaning of report freshness."],
+      ["buff", "Entering from the cabinet animates the small vault control into the full entrance, with preloading and revised door geometry for a more continuous transition."],
+      ["fix", "The avatar greeting warms textures, shaders, and mesh resources before revealing the model, yielding between uploads so the entry screen can keep painting."]
+    ]
+  },
+  // 1e9c00e
+  {
+    version: "v2.34.0",
+    codename: "OPEN THE VAULT",
+    date: "2026-09-14",
+    summary: "The historical Fallout entrance changes from a terminal boot panel into a mechanical Vault 76 door. The station and its entrance were later retired in v2.39.0.",
+    entries: [
+      ["new", "A miniature vault door replaces the Fallout logo in the cabinet's entry control, matching the full entrance that opens after a click."],
+      ["new", "The entrance sequences lock release, seal opening, door roll, and camera entry, surrounded by warning lamps, pipework, rail hardware, and steam."],
+      ["buff", "An analog readiness gauge and individual check indicators report interface, report, artwork, and display readiness before opening."],
+      ["fix", "Door travel and the final camera zoom adapt to the viewport, so the opening clears the screen at different sizes. Escape can skip the introduction, and reduced motion shortens the sequence."]
+    ]
+  },
+  // c729cfa, f35025a, bc9e514
+  {
+    version: "v2.33.0",
+    codename: "APPALACHIA ONLINE",
+    date: "2026-09-13",
+    summary: "A separate Fallout 76 field station joins the cabinet, with dated reports and its own terminal presentation. This is a historical release: the station was later retired in v2.39.0. The small Discord badge update ships alongside it.",
+    entries: [
+      ["new", "The /fallout page opens from the top bar as a separate interface, with a worn field-station shell, CRT presentation, and a return to the main cabinet."],
+      ["new", "The station brings together nuclear launch codes, Minerva's schedule and matching inventory, the monthly axolotl rotation, and event information."],
+      ["fix", "Reports retain their source dates and distinguish current, stale, and unavailable data. Expired launch codes cannot be copied, and a failed source does not discard healthy report sections."],
+      ["buff", "The boot screen tracks actual interface, report, image, and font readiness, with bounded waits and readable offline states."],
+      ["buff", "Game imagery and a small Fallout icon set give merchant, research, and nuclear reports their own visual identity."],
+      ["buff", "The Discord profile's Nitro badge changes to Opal, with a compact badge image and a separately sized detail card in its tooltip."]
+    ]
+  },
+  // 157f6ca, eb3235c; terminal styling follow-up e0f6a9b
+  {
+    version: "v2.32.0",
+    codename: "CABINET DIRECTORY",
+    date: "2026-09-07",
+    summary: "The cabinet tells you where you are and makes its controls easier to find. The top bar follows the current section, the project directory introduces its contents, and the terminal and secret library use clearer actions.",
+    entries: [
+      ["new", "The top bar displays the active section, its directory number, a section track, and a visible Terminal button beside XP, FPS, and local time."],
+      ["buff", "The sidebar gains clearer directory and display-mode labels, a more compact player card, and revised spacing. Section tracking considers the actual navigation destinations."],
+      ["buff", "The project folder previews the projects inside before opening, uses an explicit open/close label, and counts the actual projects. Toolbelt cards gain concise capability tags."],
+      ["fix", "Patch-note details scroll independently while the full-log action stays accessible. Changing releases resets the correct scrolling region."],
+      ["buff", "The terminal has clearer quick-command labels, a last-command readout, a clear-output control, a drag hint, and refined frame styling. Running a command returns focus to the input."],
+      ["buff", "Secret-library cartridges say Play game and have explicit accessible play labels, making the way into each game easier to recognize."]
+    ]
+  },
+  // 3c68c64
+  {
+    version: "v2.31.0",
+    codename: "LEAVE A SIGNAL",
+    date: "2026-09-06",
+    summary: "The guestbook becomes a clearer invitation to join in, and the release archive becomes easier to read at your own pace.",
+    entries: [
+      ["buff", "The guestbook introduces itself as a place for build ideas, game recommendations, and a hello, with a clearer message-board heading and account area."],
+      ["fix", "Signed-out visitors see a readable Discord invitation instead of a disabled composer. When sign-in is unavailable, the board explains that messages are still open for reading."],
+      ["fix", "The guestbook's connection label reflects the event stream's state, and action feedback uses an accessible status region."],
+      ["new", "The release archive gains a Latest release shortcut, change counts by type, a visual release manifest, and a persistent pause/resume control for automatic cycling."],
+      ["buff", "Opening a full log moves focus into the reading view; returning restores it to the read-more button. Highlights and complete logs show how many entries are visible."]
+    ]
+  },
   {
     version: "v2.30.0",
     codename: "COLD CATHODE",

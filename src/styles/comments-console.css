@@ -1014,23 +1014,25 @@
     border-color: var(--color-cyan-arcade);
   }
 
-  .comments-gif-tile { position: relative; min-width: 0; }
+  .comments-gif-tile { position: relative; isolation: isolate; min-width: 0; }
   .comments-gif-grid .comments-gif-attach { display: block; width: 100%; height: 140px; }
   .comments-gif-grid .comments-gif-remove {
     position: absolute;
     top: 4px;
     right: 4px;
+    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 2px;
-    width: 44px;
-    min-height: 44px;
-    border: 1px solid #d38db2;
-    border-radius: 4px;
-    color: #ffd1e9;
-    background: #281421eb;
+    width: 28px;
+    height: 28px;
+    min-height: 28px;
+    border: 1px solid #527b78;
+    border-radius: 0;
+    color: #d5f9ef;
+    background: #071b1c;
   }
+  .comments-gif-grid .comments-gif-remove:is(:hover, :focus-visible) { border-color: var(--color-cyan-arcade); color: #fff; background: #153b3e; }
   .comments-gif-grid .comments-gif-remove:disabled { opacity: .5; cursor: not-allowed; }
 
   .comments-gif-grid img {
@@ -1425,17 +1427,17 @@
   }
 
   .comments-console .comment-admin-badge {
-    display: inline-flex;
-    align-items: center;
+    display: inline-grid;
+    place-items: center;
     flex: 0 0 auto;
-    gap: 0.3rem;
-    min-height: 22px;
-    padding: 2px 6px 2px 4px;
-    border: 1px solid #bc789d;
-    border-radius: 5px;
-    background: linear-gradient(180deg, #3a263b, #281f30);
-    box-shadow: inset 0 1px 0 #f9c5df24, 0 1px 0 #100f19;
-    color: #ffcee6;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--color-phosphor);
     font-family: var(--font-mono);
     font-size: 9px;
     font-style: normal;
@@ -1447,6 +1449,11 @@
     vertical-align: middle;
   }
 
+  .comments-console .comment-admin-badge:focus-visible {
+    outline: 1px solid var(--color-cyan-arcade);
+    outline-offset: 2px;
+  }
+
   .comments-console .comment-admin-badge svg {
     display: block;
     flex: 0 0 auto;
@@ -1456,12 +1463,6 @@
   .comments-console .comment-admin-mascot {
     width: 16px;
     height: 16px;
-  }
-
-  .comments-console .comment-admin-sparkle {
-    width: 7px;
-    height: 9px;
-    color: #ffe0a3;
   }
 
   .comment-card p {
