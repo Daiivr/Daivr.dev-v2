@@ -259,6 +259,7 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
       aria-hidden="true"
     >
       <g shapeRendering="crispEdges">
+        <g className="buddy-upper-body">
         {/* antena (LED dorado en amistad lv5) */}
         {hasHeadAccessory ? (
           <g className="buddy-antenna buddy-antenna-side">
@@ -334,17 +335,20 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
           </g>
         ) : null}
 
-        {/* cuerpo monitor */}
-        <path d="M8 9h31v2h4v21h-3v3H8v-2H5V12h3z" fill="#05271e" />
-        <path d="M8 9h31v2H9v21H7V12h1z" fill="#92ffd0" />
-        <path d="M39 12h3v20h-3v3H10v-2h29z" fill="#128765" />
-        <path d="M10 11h28v2H10zM7 15h2v14H7z" fill="#3fff97" />
-        <path d="M11 32h25v1H11z" fill="#45d8ff" opacity=".65" />
+        {/* A filled CRT housing gives the accessories a solid attachment surface. */}
+        <path d="M8 9h31v2h4v21h-3v3H8v-2H5V12h3z" fill="#102e34" />
+        <path d="M9 10h29v2h3v19h-3v3H9v-2H7V13h2z" fill="#387d78" />
+        <path d="M9 10h28v2H10v19H8V13h1z" fill="#a4dfc4" />
+        <path d="M38 13h3v18h-3v3H11v-2h27z" fill="#20504e" />
+        <path d="M10 12h25v1H10m0 18h24v1H10" fill="#58b49c" />
+        <path d="M4 27h3v6H4m38-1h5v2h-5" fill="#244d51" />
+        <path d="M4 28h2v3H4m35-15h5v1h-5" fill="#93cbb5" />
 
         {/* pantalla */}
         <g className="buddy-screen">
-          <rect x="10" y="14" width="21" height="16" fill="#06100b" stroke="rgba(63,255,151,.4)" strokeWidth="1" />
-          <g opacity="0.16" fill="#3fff97">
+          <path d="M11 13h20v1h2v15h-2v2H11v-2H9V15h2z" fill="#112e29" />
+          <rect x="11" y="15" width="20" height="14" fill="#071b18" />
+          <g opacity="0.08" fill="#83e6bc">
             <rect x="10" y="17" width="21" height="1" />
             <rect x="10" y="21" width="21" height="1" />
             <rect x="10" y="25" width="21" height="1" />
@@ -363,12 +367,11 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
 
           {hasGear("green-visor") ? (
             <g className="buddy-green-visor">
-              <rect x="11" y="16" width="20" height="9" fill="#3fff97" opacity="0.22" />
-              <rect x="11" y="16" width="20" height="2" fill="#b4ffcf" opacity="0.86" />
-              <rect x="11" y="23" width="20" height="2" fill="#3fff97" opacity="0.74" />
-              <rect x="13" y="19" width="6" height="1" fill="#f4fff8" opacity="0.68" />
-              <rect x="22" y="19" width="6" height="1" fill="#f4fff8" opacity="0.68" />
-              <rect x="30" y="18" width="3" height="5" fill="#3fff97" opacity="0.96" />
+              <path d="M10 16h23v10H10z" fill="#27594f" opacity=".65" />
+              <path d="M12 18h19v6H12z" fill="#74e6b2" opacity=".16" />
+              <path d="M11 16h21v2H11m0 6h21v2H11" fill="#6bc9a0" />
+              <path d="M12 17h9v1h-9m8 2h3v1h-3" fill="#d8ffe4" opacity=".7" />
+              <path d="M9 19h2v4H9m23-4h2v4h-2" fill="#55a9af" />
             </g>
           ) : null}
 
@@ -437,19 +440,26 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
         {hasGear("star-cap") ? <g className="buddy-headgear"><BuddyWornGear id="star-cap" x={10} y={0} width={30} height={15} /></g> : null}
         {hasGear("pixel-crown") ? <g className="buddy-headgear"><BuddyWornGear id="pixel-crown" x={11} y={-1} width={26} height={15} /></g> : null}
 
-        {/* bufanda: amistad lv4+ */}
-        {showFriendshipGear("scarf", 4) ? <g className="buddy-worn-scarf"><BuddyWornGear id="scarf" x={7} y={29} width={30} height={16} /></g> : null}
+        </g>
 
         {/* patas */}
         <g className="buddy-leg buddy-leg-l">
-          <rect className="buddy-leg-upper" x="14" y="34" width="4" height="4" fill="#020604" stroke="#3fff97" strokeWidth="1.5" />
-          <rect className="buddy-leg-foot buddy-leg-foot-l" x="12" y="38" width="8" height="4" fill="#020604" stroke="#3fff97" strokeWidth="1.5" />
-          <path d="M12 38h7v1h-7m1 3h7v1h-7" fill="#92ffd0" />
+          <path className="buddy-leg-upper" d="M14 34h5v6h-5z" fill="#274b49" />
+          <path d="M15 35h2v4h-2" fill="#91cdb6" />
+          <g className="buddy-leg-foot buddy-leg-foot-l">
+            <path d="M12 39h8v2h2v4H10v-4h2z" fill="#15343b" />
+            <path d="M12 40h7v2h2v1H11v-2h1z" fill="#66b49b" />
+            <path d="M12 40h5v1h-5" fill="#d2ead0" /><path d="M11 44h10v1H11" fill="#438a86" />
+          </g>
         </g>
         <g className="buddy-leg buddy-leg-r">
-          <rect className="buddy-leg-upper" x="30" y="34" width="4" height="4" fill="#020604" stroke="#3fff97" strokeWidth="1.5" />
-          <rect className="buddy-leg-foot buddy-leg-foot-r" x="28" y="38" width="8" height="4" fill="#020604" stroke="#3fff97" strokeWidth="1.5" />
-          <path d="M28 38h7v1h-7m1 3h7v1h-7" fill="#92ffd0" />
+          <path className="buddy-leg-upper" d="M29 34h5v6h-5z" fill="#274b49" />
+          <path d="M30 35h2v4h-2" fill="#91cdb6" />
+          <g className="buddy-leg-foot buddy-leg-foot-r">
+            <path d="M28 39h8v2h2v4H26v-4h2z" fill="#15343b" />
+            <path d="M28 40h7v2h2v1H27v-2h1z" fill="#66b49b" />
+            <path d="M28 40h5v1h-5" fill="#d2ead0" /><path d="M27 44h10v1H27" fill="#438a86" />
+          </g>
         </g>
         {hasItem("wrench") ? <g className="buddy-tool-wrench buddy-carry-item"><BuddyWornGear id="wrench" x={35} y={30} width={15} height={16} /></g> : null}
         {hasItem("cartridge") ? <g className="buddy-loot-cartridge buddy-carry-item"><BuddyWornGear id="cartridge" x={36} y={31} width={13} height={15} /></g> : null}
@@ -461,6 +471,20 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
             <rect className="buddy-rocket-flame buddy-rocket-flame-r" x="31" y="43" width="4" height="2" fill="#ff3d9d" />
           </g>
         ) : null}
+        {showFriendshipGear("scarf", 4) ? (
+          <g className="buddy-fitted-scarf">
+            <path d="M7 31h30v4H7z" fill="#7e3158" />
+            <path d="M8 31h27v2H8z" fill="#f078b0" />
+            <path d="M10 31h15v1H10z" fill="#ffb7d8" />
+            <g className="buddy-scarf-tails">
+              <path d="M29 34h5v8h-5zM34 34h4v5h-4z" fill="#ce4e8a" />
+              <path d="M30 35h2v6h-2m5-6h1v3h-1" fill="#ff94c6" />
+              <path d="M29 41h2v2h-2m3-2h2v2h-2m3-5h2v2h-2" fill="#ffd68c" />
+            </g>
+            <path d="M28 32h7v4h-7z" fill="#a93b76" /><path d="M29 32h5v2h-5z" fill="#ff94c6" />
+          </g>
+        ) : null}
+
       </g>
     </svg>
   );

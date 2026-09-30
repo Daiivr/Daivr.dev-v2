@@ -51,14 +51,54 @@ export function BuddyCollectibleIcon({ id, color = "#45d8ff", unknown = false, c
     case "aurora-arowana": artwork = <><FishBody color={color} accent="#c084fc" long /><path d="M13 16h8v-4h8v4h8v-4h8v5" fill="none" stroke="#3fff97" strokeWidth="3" /><path d="M15 25h9v4h9v-4h9" fill="none" stroke="#a78bfa" strokeWidth="3" /></>; break;
     case "chrono-manta": artwork = <g shapeRendering="crispEdges"><path d="M3 23 19 7h21l13 16-13 8H19z" fill={color} /><path d="M25 12h10v10H25z" fill="#f4fff8" /><path d="M30 14v5l4 2" fill="none" stroke="#5b21b6" strokeWidth="2" /><path d="M18 30 9 40h14l7-9" fill="#7c3aed" /><rect x="42" y="18" width="3" height="3" fill="#020604" /></g>; break;
     case "moonkernel-sturgeon": artwork = <><FishBody color={color} accent="#a78bfa" long /><rect x="16" y="12" width="5" height="17" fill="#6b7280" /><rect x="24" y="12" width="5" height="17" fill="#94a3b8" /><rect x="32" y="13" width="5" height="15" fill="#6b7280" /><circle cx="25" cy="21" r="7" fill="#f4fff8" /><path d="M25 14a7 7 0 0 0 0 14 5 5 0 0 1 0-14" fill="#a78bfa" /></>; break;
-    case "old-boot": artwork = <g shapeRendering="crispEdges"><path d="M13 6h19v20h15v10H9V17h4z" fill={color} /><rect x="16" y="9" width="12" height="4" fill="#b8f7ff" opacity=".5" /><rect x="9" y="33" width="40" height="4" fill="#31473b" /></g>; break;
+    case "old-boot": artwork = <g shapeRendering="crispEdges"><path d="M12 4h22v21h9v3h7v10H7V17h5z" fill="#1d302c" />
+<path d="M14 6h18v20h10v4h6v5H9V19h5z" fill="#657c69" />
+<path d="M15 7h14v4H15zM11 21h3v10h-3" fill="#a4b39a" />
+<path d="M23 13h9v3h-9m0 3h9v3h-9m0 3h9v3h-9" fill="#c7bf9b" />
+<path d="M29 12h3v14h-3m-12-9h3v13h-3m3-4h5v5h-5" fill="#354d40" />
+<path d="M8 34h41v4H8zM10 38h6v2h-6m6-2h6v2h-6m7-2h6v2h-6m7-2h6v2h-6" fill="#27372e" />
+<path d="M36 27h4v3h-4m-21 0h4v2h-4" fill="#c49b68" /><path d="M12 8h2v7h-2m-2 7h2v5h-2" fill="#55a785" /></g>; break;
     case "soggy-disk":
-    case "floppy-disk": artwork = <g shapeRendering="crispEdges"><path d="M10 4h31l7 7v27H8V4z" fill={color} /><rect x="15" y="7" width="23" height="11" fill="#071b1c" /><rect x="18" y="25" width="20" height="13" fill="#b8f7ff" /><rect x="31" y="28" width="4" height="8" fill="#071b1c" /></g>; break;
-    case "token-chest": artwork = <g shapeRendering="crispEdges"><rect x="7" y="16" width="43" height="22" fill="#8a5428" /><path d="M10 8h37l4 10H6z" fill="#ffd166" /><rect x="26" y="20" width="7" height="12" fill="#f4fff8" /><rect x="9" y="34" width="40" height="4" fill="#d29330" /></g>; break;
-    case "cracked-controller": artwork = <g shapeRendering="crispEdges"><path d="M9 14h38l7 20H40l-6-7H22l-6 7H2z" fill={color} /><rect x="15" y="19" width="12" height="4" fill="#071b1c" /><rect x="19" y="15" width="4" height="12" fill="#071b1c" /><rect x="38" y="17" width="4" height="4" fill="#ff3d9d" /><rect x="44" y="23" width="4" height="4" fill="#45d8ff" /><path d="m29 14 4 5-5 5 5 4" fill="none" stroke="#ffd166" strokeWidth="2" /></g>; break;
-    case "rusty-can": artwork = <g shapeRendering="crispEdges"><rect x="16" y="5" width="25" height="33" fill={color} /><rect x="13" y="7" width="31" height="4" fill="#b8f7ff" /><rect x="13" y="33" width="31" height="4" fill="#4f3a2c" /><path d="m18 14 21 15m-18 2 17-14" stroke="#d97745" strokeWidth="4" /></g>; break;
-    case "tangled-cable": artwork = <g fill="none" stroke={color} strokeWidth="5" shapeRendering="crispEdges"><path d="M6 12h13v18h19V11h12v24H27V19H12v17" /><path d="M4 9h6v7H4zm42-2h7v8h-7z" fill="#b8f7ff" stroke="none" /></g>; break;
-    case "wet-keyboard": artwork = <g shapeRendering="crispEdges"><path d="M5 11h44l5 26H2z" fill={color} /><path d="M9 15h36v16H7z" fill="#071b1c" /><path d="M11 17h5v4h-5zm8 0h5v4h-5zm8 0h5v4h-5zm8 0h5v4h-5zM11 24h5v4h-5zm8 0h14v4H19zm17 0h5v4h-5z" fill="#b8f7ff" /><path d="M13 7h3m9-3h3m10 3h3" stroke="#45d8ff" strokeWidth="3" /></g>; break;
+    case "floppy-disk": artwork = <g shapeRendering="crispEdges"><path d="M9 3h31v3h4v4h4v29H7V3z" fill="#1b3433" />
+<path d="M9 5h30v3h4v4h3v24H9z" fill={color} />
+<path d="M10 6h4v27h-4m5-28h23v2H15" fill="#b0d8bf" />
+<path d="M16 5h23v14H16z" fill="#bac9bb" /><path d="M18 5h12v11H18z" fill="#233e3e" /><path d="M33 7h4v8h-4z" fill="#809e98" />
+<path d="M15 23h25v13H15z" fill="#d8d9b8" /><path d="M18 26h17v2H18m0 3h12v2H18" fill="#718f81" />
+<path d="M39 19h4v7h-2v4h-3v-8h1" fill="#3a7063" /><path d="M10 34h3v2h-3m31-2h2v2h-2" fill="#1b3433" />
+<path d="M29 35h3v4h-3m10-4h3v3h-3" fill="#72d5dc" /></g>; break;
+    case "token-chest": artwork = <g shapeRendering="crispEdges"><path d="M10 5h36v4h4v6h3v23H4V15h3V9h3z" fill="#493321" />
+<path d="M11 7h33v4h4v7H8v-7h3z" fill="#c2853b" /><path d="M11 8h31v3H11m-2 4h38v2H9" fill="#f2c777" />
+<path d="M7 20h43v15H7z" fill="#93602f" /><path d="M8 22h40v2H8m0 7h40v2H8" fill="#704522" />
+<path d="M13 7h5v29h-5m24-29h5v29h-5M6 34h45v4H6" fill="#dba848" /><path d="M14 8h2v25h-2m23-25h2v25h-2m-30 2h39v1H8" fill="#ffe39b" />
+<path d="M24 16h11v13H24z" fill="#513c28" /><path d="M25 17h9v10h-9z" fill="#ffd166" /><path d="M28 19h3v3h-1v3h-1v-3h-1z" fill="#674825" />
+<path d="M10 18h11v2H10m27-2h11v2H37" fill="#ffd875" /><path d="M15 10h1v2h-1m23-2h1v2h-1m-23 18h1v2h-1m23-2h1v2h-1" fill="#674825" />
+<path d="M48 2h2v3h3v2h-3v3h-2V7h-3V5h3z" fill="#fff0b9" /></g>; break;
+    case "cracked-controller": artwork = <g shapeRendering="crispEdges"><path d="M11 10h32v3h5v5h3v7h3v11H40v-4h-4v-3H20v3h-4v4H2V25h3v-7h3v-5h3z" fill="#253835" />
+<path d="M12 12h30v3h4v5h3v12h-8v-4h-5v-3H20v3h-5v4H6V24h2v-7h4z" fill="#8da596" />
+<path d="M13 12h27v3H13m-5 8h3v7H8" fill="#d6e0bc" />
+<path d="M13 17h4v4h4v4h-4v4h-4v-4H9v-4h4z" fill="#284544" />
+<path d="M14 18h2v4h-2m4 0h2v2h-2" fill="#527b75" />
+<path d="M36 17h5v5h-5" fill="#ed739d" /><path d="M43 22h5v5h-5" fill="#69d1dc" /><path d="M27 25h4v2h-4" fill="#274140" />
+<path d="M28 11v5h4v5h-4v4h4v4" fill="none" stroke="#37443b" strokeWidth="2" /><path d="M26 11v4h3" fill="none" stroke="#f6cb7e" strokeWidth="2" />
+<path d="M26 10V6h-6V2" fill="none" stroke="#416258" strokeWidth="3" /></g>; break;
+    case "rusty-can": artwork = <g shapeRendering="crispEdges"><path d="M16 4h23v3h4v6h-2v20h3v5H13v-5h2V12h-2V7h3z" fill="#3c382d" />
+<path d="M16 10h24v23H16z" fill="#a47d55" /><path d="M17 11h4v20h-4" fill="#ceb184" /><path d="M36 11h4v21h-4" fill="#74533c" />
+<path d="M15 6h26v4H15m0 24h27v3H15" fill="#8aa6a0" /><path d="M17 6h19v1H17m0 27h20v1H17" fill="#c6dcd0" />
+<path d="M24 4h9v3h-9z" fill="#56776d" /><path d="M26 4h4v1h-4" fill="#d2e2c4" />
+<path d="M25 13h9l-4 6h5l-10 12 3-10h-5z" fill="#ecd48d" />
+<path d="M16 15h4v5h-4m2 7h5v5h-5m15-18h6v4h-6m0 11h5v4h-5" fill="#ad552f" /><path d="M17 17h2v2h-2m18-3h3v1h-3m-15 13h2v2h-2" fill="#e79254" /></g>; break;
+    case "tangled-cable": artwork = <g shapeRendering="crispEdges"><path d="M8 12h13v19h19V14h7v20H27V20H15v16" fill="none" stroke="#182d2a" strokeWidth="8" />
+<path d="M8 12h13v19h19V14h7v20H27V20H15v16" fill="none" stroke="#668f81" strokeWidth="5" />
+<path d="M10 10h12v17m1 6h16m-9-12h6m10-6v15" fill="none" stroke="#a1c9ae" strokeWidth="1" />
+<path d="M24 27h6v9h-6z" fill="#25443e" /><path d="M24 27h5v2h-5" fill="#d4b97c" />
+<path d="M2 6h10v12H2m41-9h10v10H41" fill="#304940" /><path d="M3 5h8v5H3M43 5h7v5h-7" fill="#bdcfc0" />
+<path d="M5 6h2v3H5M45 6h2v3h-2" fill="#5d8c88" /><path d="M14 35v5m3-5v3" stroke="#cd9665" strokeWidth="2" /></g>; break;
+    case "wet-keyboard": artwork = <g shapeRendering="crispEdges"><path d="M7 9h42v5h3v14h3v10H1V24h3V13h3z" fill="#203831" /><path d="M8 11h39v4h3v19H4V25h3z" fill="#69877a" />
+<path d="M9 12h36v2H9m-4 13h2v6H5" fill="#bad4b5" /><path d="M9 16h36v14H7z" fill="#28473f" />
+<path d="M10 17h4v4h-4m6-4h4v4h-4m6-4h4v4h-4m6-4h4v4h-4m6-4h4v4h-4m6-4h3v4h-3M9 24h5v4H9m8-4h19v4H17m21-4h6v4h-6" fill="#b4c7ab" />
+<path d="M16 17h4v2h-4m6-2h4v2h-4m12-2h4v2h-4m-16 7h13v1H22" fill="#edf3cc" />
+<path d="M29 17h3v4h-3m9 3h4v4h-4" fill="#162f2a" /><path d="M8 35h39v2H8" fill="#3d6152" />
+<path d="M14 4h3v5h-3m12-8h3v5h-3m11-2h3v5h-3" fill="#6ad0d5" /></g>; break;
     case "arcade-coin": artwork = <g shapeRendering="crispEdges"><rect x="14" y="5" width="28" height="32" fill="#9a651f" /><rect x="10" y="10" width="36" height="22" fill="#ffd166" /><rect x="18" y="14" width="20" height="14" fill="#9a651f" /><text x="22" y="26" fill="#ffd166" fontFamily="monospace" fontSize="13" fontWeight="900">1</text></g>; break;
     case "battery": artwork = <g shapeRendering="crispEdges"><rect x="18" y="7" width="20" height="31" fill="#3fff97" /><rect x="23" y="3" width="10" height="5" fill="#b8f7ff" /><rect x="21" y="11" width="14" height="11" fill="#071b1c" /><path d="m28 13-5 8h4l-2 7 8-10h-4l3-5z" fill="#ffd166" /></g>; break;
     case "lost-bug": artwork = <g shapeRendering="crispEdges"><rect x="19" y="10" width="19" height="25" fill="#ff3d9d" /><rect x="15" y="15" width="27" height="14" fill="#ff3d9d" /><rect x="22" y="14" width="4" height="4" fill="#020604" /><rect x="31" y="14" width="4" height="4" fill="#020604" /><path d="M15 17H7m8 7H5m37-7h8m-8 7h10" stroke="#ff3d9d" strokeWidth="3" /></g>; break;

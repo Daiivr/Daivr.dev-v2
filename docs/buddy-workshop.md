@@ -26,8 +26,12 @@ The sidebar uses a compact player card and height-responsive desktop spacing. Be
 
 ## Equipment art and animation pass
 
-Inventory art lives in `BuddyGearArt`; `BuddyGearIcon` frames it for the locker and `BuddyWornGear` places the same drawing on the sprite. Hats, glasses, scarf, carried objects, rocket boots, and fishing lures share their silhouettes and palette. Fitted headset and visor overlays retain their face-aligned geometry. Rod art is shared by the normal fishing rig and Miku's foreground grip. Gear IDs, unlock rules, slot restrictions, and saved loadouts are unchanged.
+Inventory art lives in `BuddyGearArt`; `BuddyGearIcon` frames it for the locker and `BuddyWornGear` places the same drawing on the sprite. Hats, glasses, carried objects, rocket boots, and fishing lures share their silhouettes and palette. Headset, visor, and scarf use fitted geometry. The scarf wraps the lower casing, with short shaded tails painted in front of the legs. Rod art is shared by the normal fishing rig and Miku's foreground grip. Gear IDs, unlock rules, slot restrictions, and saved loadouts are unchanged.
 
 Fishing animates the rod, line, bobber, reel, splashes, and caught specimen separately. The outer SVG stays stationary so the shoreline does not rotate with the rod. The existing phase timers still control the action. Walking uses alternating planted/lifted feet; petting and dancing use anticipation, a hop, and a landing; scarf, carry, rain, sleep, held, and combat motions accompany the same existing moods. Reduced motion disables the new effects.
 
 Browser validation covered a live cast → wait → bite → catch, equipment switching including Miku, desktop and 375px inventory layout, and reduced-motion animation styles.
+
+The CRT body uses a filled, shaded shell and solid shoes so equipment stays distinct. Normal walking moves the upper body separately from alternating planted feet, with a toe roll and scarf follow-through. Rocket boots and the Miku costume retain their own movement. The underwater school uses miniature journal species with independent swimming depths, turns, tail beats, and an approach to the hook. A dark pixel pool keeps fish legible over the footer ticker. Junk and treasure have individual shaded artwork, including boot laces, disk labels, controller damage, rust, cable plugs, keyboard keys, and chest hardware.
+
+The body/water pass was checked in the desktop and 375px wardrobe, junk and treasure journal views, and a live fishing cycle. Computed walking frames confirmed alternating foot lifts with a stationary outer sprite; reduced motion stopped the scarf animation.

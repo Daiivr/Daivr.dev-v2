@@ -1786,16 +1786,22 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
                   <path className="buddy-ripple buddy-ripple-c" d="M-10 72h7v-1h19v1h8v1h-8v1H-3v-1h-7z" fill="#b8f7ff" />
                 </g>
 
-                {/* Pececitos visibles bajo la superficie; el grande se acerca y muerde. */}
+                <g className="buddy-void-water" shapeRendering="crispEdges">
+                  <path d="M-25 73h14v-2h34v2h20v8h-7v9H23v5H-9v-4h-16z" fill="#081f2c" opacity=".94" />
+                  <path d="M-21 81h9m33 7h12M-9 94h16" stroke="#478d9e" strokeWidth="1" opacity=".3" />
+                </g>
                 <g className="buddy-fish-school" shapeRendering="crispEdges">
                   <g className="buddy-fish buddy-fish-small">
-                    <path d="M22 79h3v-2h5v1h2v3h-2v1h-5v-2h-3l-2 2v-5z" fill="#45d8ff" />
-                    <rect x="29" y="78" width="1" height="1" fill="#020604" />
+                    <BuddyCollectibleIcon id="byte-minnow" color="#64cadd" x={14} y={75} width={23} height={17} />
+                  </g>
+                  <g className="buddy-fish buddy-fish-deep">
+                    <BuddyCollectibleIcon id="neon-tetra" color="#6d8ca9" x={-24} y={83} width={18} height={14} />
                   </g>
                   <g className="buddy-fish buddy-fish-biter">
-                    <path d="M-10 78h4v-3H1v1h3v4H1v2h-7v-2h-4l-3 3v-8z" fill="#ffd166" />
-                    <rect x="0" y="76" width="1" height="1" fill="#020604" />
-                    <rect className="buddy-fish-mouth" x="3" y="78" width="2" height="1" fill="#f4fff8" />
+                    <BuddyCollectibleIcon id="pixel-perch" color="#efbd65" x={-20} y={73} width={25} height={19} />
+                  </g>
+                  <g className="buddy-void-bubbles" fill="none" stroke="#86dce4" strokeWidth="1">
+                    <rect x="-9" y="87" width="2" height="2" /><rect x="27" y="91" width="2" height="2" /><rect x="8" y="88" width="1" height="1" />
                   </g>
                   <path className="buddy-hook-line" d="M5 70v8h2v3H4" fill="none" stroke="#b8f7ff" strokeWidth="1" />
                 </g>

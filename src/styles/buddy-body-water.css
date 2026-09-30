@@ -1,0 +1,65 @@
+@layer components {
+  /* Keep the frame readable under a full loadout instead of glowing through it. */
+  .buddy-preview-sprite { filter: drop-shadow(0 3px 0 #0006) drop-shadow(0 0 5px #68d8b826); }
+  .screen-buddy-root:not(.is-outage) .screen-buddy-sprite { filter: drop-shadow(0 2px 0 #00151080) drop-shadow(0 0 3px #68d8b826); }
+  .buddy-green-visor { animation: none; filter: none; }
+  .buddy-scarf-tails { transform-origin: 30px 34px; animation: buddy-tailcloth 3.6s ease-in-out infinite; }
+  .screen-buddy-root.is-walk .buddy-scarf-tails { animation: buddy-tailcloth .68s ease-in-out infinite; }
+
+  /* Body weight shifts over planted feet; the whole sprite no longer bobs. */
+  .screen-buddy-root.is-walk:not(.has-miku-costume):not(.has-rocket-boots) .screen-buddy-body,
+  .screen-buddy-root.is-walk:not(.has-miku-costume):not(.has-rocket-boots) .screen-buddy-sprite { animation: none; }
+  .screen-buddy-root.is-walk:not(.has-miku-costume):not(.has-rocket-boots) .buddy-upper-body,
+  .screen-buddy-root.is-walk:not(.has-miku-costume):not(.has-rocket-boots) .buddy-fitted-scarf { animation: buddy-weight-shift .68s linear infinite; }
+  .screen-buddy-root.is-walk:not(.has-miku-costume):not(.has-rocket-boots) .buddy-leg { transform-origin: center top; animation: buddy-grounded-step .68s linear infinite; }
+  .screen-buddy-root.is-walk:not(.has-miku-costume):not(.has-rocket-boots) .buddy-leg-r { animation-delay: -.34s; }
+  .screen-buddy-root.is-walk:not(.has-miku-costume):not(.has-rocket-boots) .buddy-leg-foot { animation: buddy-toe-roll .68s linear infinite; transform-origin: center bottom; }
+  .screen-buddy-root.is-walk:not(.has-miku-costume):not(.has-rocket-boots) .buddy-leg-foot-r { animation-delay: -.34s; }
+  .screen-buddy-root.is-walk:not(.has-rocket-boots) .buddy-carry-item { animation-duration: .68s; }
+  .screen-buddy-root.is-walk:not(.has-rocket-boots) .screen-buddy-shadow { animation: buddy-ground-shadow .68s linear infinite; }
+
+  .buddy-fish-school .buddy-collectible-icon { overflow: visible; filter: none; }
+  .buddy-fish-small { animation: void-minnow-swim 6.8s linear infinite; }
+  .buddy-fish-deep { animation: void-deep-swim 9s linear infinite; opacity: .5; }
+  .buddy-fish-biter { animation: void-perch-swim 5.8s ease-in-out infinite; }
+  .buddy-fish-school .buddy-fish-tail { transform-box: fill-box; transform-origin: right center; animation: void-tail-beat .48s steps(3,end) infinite; }
+  .buddy-fish-school .buddy-fish-fin { transform-box: fill-box; transform-origin: top right; animation: void-fin-wave .9s ease-in-out infinite; }
+  .buddy-fish-deep .buddy-fish-tail { animation-duration: .7s; }
+  .buddy-fishing-rig.is-bite .buddy-fish-biter { animation: void-investigate .88s ease-out both; }
+  .buddy-fishing-rig.is-fight .buddy-fish-biter { animation: void-hook-tussle .9s ease-in-out infinite; }
+  .buddy-fishing-rig:is(.is-bite,.is-fight) .buddy-fish-small { animation-duration: 2.6s; }
+  .buddy-void-bubbles rect { animation: void-bubble-rise 3.8s linear infinite; }
+  .buddy-void-bubbles rect:nth-child(2) { animation-delay: -1.5s; }
+  .buddy-void-bubbles rect:nth-child(3) { animation-delay: -2.7s; }
+  .buddy-fishing-rig:is(.is-cast,.is-omen,.is-monster,.is-retreat) .buddy-void-water { opacity: .25; }
+  @media (prefers-reduced-motion: reduce) {
+    .buddy-scarf-tails, .screen-buddy-root .buddy-upper-body, .screen-buddy-root .buddy-fitted-scarf, .screen-buddy-root .buddy-leg, .screen-buddy-root .buddy-leg-foot, .buddy-fish-school * { animation: none !important; }
+  }
+}
+@keyframes buddy-tailcloth { 0%,100% { transform: rotate(-2deg); } 50% { transform: rotate(7deg); } }
+@keyframes buddy-weight-shift { 0%,50%,100% { transform: translateY(1px); } 25%,75% { transform: translateY(0); } }
+@keyframes buddy-grounded-step {
+  0% { transform: translate(-2px,0); }
+  45% { transform: translate(2px,0); }
+  55% { transform: translate(2px,-1px); }
+  72% { transform: translate(0,-3px); }
+  88% { transform: translate(-2px,-1px); }
+  100% { transform: translate(-2px,0); }
+}
+@keyframes buddy-toe-roll { 0%,38%,100% { transform: rotate(0); } 52% { transform: rotate(-9deg); } 75% { transform: rotate(6deg); } 90% { transform: rotate(3deg); } }
+@keyframes buddy-ground-shadow { 0%,50%,100% { opacity: .5; scale: 1; } 25%,75% { opacity: .42; scale: .96 1; } }
+@keyframes void-minnow-swim {
+  0%,100% { transform: translate(-4px,0) scaleX(1); }
+  40% { transform: translate(11px,-2px) scaleX(1); }
+  46% { transform: translate(12px,-1px) scaleX(.15); }
+  50% { transform: translate(11px,0) scaleX(-1); }
+  88% { transform: translate(-4px,2px) scaleX(-1); }
+  94% { transform: translate(-5px,1px) scaleX(-.15); }
+}
+@keyframes void-deep-swim { 0%,100% { transform: translate(0,0); } 45% { transform: translate(21px,-1px); } 50% { transform: translate(21px,-1px) scaleX(-1); } 95% { transform: translate(0,0) scaleX(-1); } }
+@keyframes void-perch-swim { 0%,100% { transform: translate(-4px,2px) rotate(2deg); } 45% { transform: translate(3px,-1px) rotate(-4deg); } 70% { transform: translate(0,1px); } }
+@keyframes void-tail-beat { 50% { transform: scaleX(.64) skewY(5deg); } }
+@keyframes void-fin-wave { 50% { transform: rotate(-14deg); opacity: .5; } }
+@keyframes void-investigate { 0% { transform: translate(-4px,2px); } 55% { transform: translate(5px,-3px) rotate(-12deg); } 80%,100% { transform: translate(3px,-2px) rotate(-6deg); } }
+@keyframes void-hook-tussle { 0%,100% { transform: translate(3px,-2px) rotate(-6deg); } 40% { transform: translate(-2px,1px) rotate(8deg); } 75% { transform: translate(4px,-2px) rotate(-12deg); } }
+@keyframes void-bubble-rise { 0% { opacity: 0; transform: translateY(0); } 20% { opacity: .55; } 90%,100% { opacity: 0; transform: translate(2px,-15px); } }

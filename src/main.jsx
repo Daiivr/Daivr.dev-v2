@@ -23,6 +23,7 @@ import "./styles/buddy-modal.css";
 import "./styles/buddy-workshop.css";
 import "./styles/buddy-world-polish.css";
 import "./styles/buddy-animation-gear.css";
+import "./styles/buddy-body-water.css";
 import "./styles/terminal-dialog.css";
 import "./styles/madrace.css";
 import "./styles/konami-library.css";
