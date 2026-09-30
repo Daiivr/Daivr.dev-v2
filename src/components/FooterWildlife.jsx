@@ -3,6 +3,7 @@ import { PixelFrog } from "./PixelFrog";
 import { PixelLeapFish } from "./PixelLeapFish";
 
 const FISH_COLORS = ["#45d8ff", "#3fff97", "#ffd166", "#ff3d9d", "#a78bfa"];
+const FISH_SPECIES = ["byte-minnow", "cache-carp", "pixel-perch", "syntax-salmon", "neon-tetra"];
 
 function randomBetween(min, max) {
   return min + Math.random() * (max - min);
@@ -51,7 +52,8 @@ export function FooterWildlife() {
         id,
         x: randomBetween(direction > 0 ? 7 : 20, direction > 0 ? 80 : 93),
         drift: direction * randomBetween(58, 112),
-        height: randomBetween(30, 46),
+        height: randomBetween(42, 66),
+        species: FISH_SPECIES[Math.floor(Math.random() * FISH_SPECIES.length)],
         duration: randomBetween(1950, 2500),
         color: FISH_COLORS[Math.floor(Math.random() * FISH_COLORS.length)],
         facing: direction
@@ -133,9 +135,11 @@ export function FooterWildlife() {
           const id = `footer-frog-${nextIdRef.current++}`;
           const direction = side;
           const start = Math.max(28, Math.min(layerRect.width - 48, buddyCenter + direction * randomBetween(35, 72)));
-          const hop1 = direction * randomBetween(45, 78);
-          const hop2 = hop1 + direction * randomBetween(48, 90);
-          const hop3 = hop2 + direction * randomBetween(54, 104);
+          const room = direction > 0 ? layerRect.width - start - 42 : start - 2;
+          const travel = Math.max(0, Math.min(room, randomBetween(180, 240)));
+          const hop1 = direction * travel * .3;
+          const hop2 = direction * travel * .66;
+          const hop3 = direction * travel;
           const item = { id, start, hop1, hop2, hop3, delay: index * 280 };
           setFrogs((current) => [...current, item]);
           schedule(() => removeFrog(id), 6500);
@@ -192,7 +196,7 @@ export function FooterWildlife() {
           }}
         >
           <span className="footer-fish-splash is-launch"><i /><b /><b /><b /></span>
-          <span className="footer-fish-flight"><PixelLeapFish color={item.color} /></span>
+          <span className="footer-fish-flight"><PixelLeapFish color={item.color} species={item.species} /></span>
           <span className="footer-fish-impact"><i /><i /><i /><i /></span>
           <span className="footer-fish-splash is-land"><i /><b /><b /><b /></span>
         </span>

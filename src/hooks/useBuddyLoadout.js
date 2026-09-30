@@ -37,7 +37,7 @@ export const ROD_GEAR = [
 export const LURE_GEAR = [
   { id: "lure-swift", label: "swift lure", unlockCatches: 10, perk: "bites come way faster" },
   { id: "lure-anchor", label: "anchor lure", unlockCatches: 20, perk: "rares almost never escape" },
-  { id: "lure-magnet", label: "magnet lure", unlockRares: 6, perk: "junk upgrades to common" }
+  { id: "lure-magnet", label: "magnet lure", unlockRares: 6, perk: "junk upgrades to uncommon" }
 ];
 
 // Las recompensas Miku caen al llenar el diario. El peluco ocupa cabeza; el
@@ -329,6 +329,14 @@ export function useBuddyLoadout({ friendship, adventure }) {
     effectiveHiddenGear,
     equipGear,
     gearItems,
+    catalogItems: ALL_COSMETICS.map((item) => {
+      const owned = gearItems.find((gear) => gear.id === item.id);
+      const quest = adventure.quests.find((entry) => entry.reward === item.id);
+      const goal = item.unlockLevel || item.unlockPets || item.unlockRares || item.unlockCatches || (JOURNAL_GEAR.some((gear) => gear.id === item.id) ? adventure.fishJournal.length : quest?.goal) || 1;
+      const progress = item.unlockLevel ? friendship.level : item.unlockPets ? friendship.pets : item.unlockRares ? adventure.rareCatches : item.unlockCatches ? adventure.totalCatches : JOURNAL_GEAR.some((gear) => gear.id === item.id) ? adventure.discoveredFishCount : quest?.progress || 0;
+      const requirement = item.unlockLevel ? `Reach friendship level ${goal}` : item.unlockPets ? `Pet Buddy ${goal} times` : item.unlockRares ? `Land ${goal} rare catches` : item.unlockCatches ? `Land ${goal} catches` : JOURNAL_GEAR.some((gear) => gear.id === item.id) ? "Complete the catch journal" : quest ? `Quest: ${quest.title}` : item.source;
+      return { ...item, ...owned, slot: slotForGear(item.id), unlocked: !!owned, requirement, progress: Math.min(goal, progress || 0), goal };
+    }),
     hiddenGear,
     stashGear,
     toggleGear,

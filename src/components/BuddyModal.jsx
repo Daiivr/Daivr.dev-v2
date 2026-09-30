@@ -1,11 +1,12 @@
 import { memo, useEffect, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Backpack, BookOpen, Check, Lock, ScrollText, Trophy, X } from "lucide-react";
+import { Backpack, BookOpen, Check, Compass, Lock, ScrollText, Search, Trophy, X } from "lucide-react";
 import { COSTUME_IDS, FACE_GEAR_IDS, HEADWEAR_IDS, LURE_IDS, MOBILITY_IDS, ROD_IDS } from "../hooks/useBuddyLoadout";
 import { useScrollEdges } from "../hooks/useScrollEdges";
 import { BuddyChuteCanopy, BuddyRodIcon, BuddySprite } from "./BuddySprite";
 import { BuddyGearIcon } from "./BuddyGearIcon";
 import { BuddyJournal } from "./BuddyJournal";
+import { BuddyActivities } from "./BuddyActivities";
 
 const BUDDY_SLOTS = [
   { id: "costume", label: "costume", accepts: COSTUME_IDS },
@@ -110,6 +111,7 @@ function InventorySlot({ buddy, slot, mikuCostumeActive, activeSlot, dragging })
 // El sprite es lo mas caro que pinta el modal y no depende de la pieza que el
 // puntero este rozando: se aisla para que el resaltado de slots no lo repinte.
 const BuddyPreviewCard = memo(function BuddyPreviewCard({ buddy }) {
+  const [pose, setPose] = useState("idle");
   // El preview muestra el loadout completo: el equipo que no vive "sobre" el
   // sprite (chute de mobility, caña y señuelo de pesca) se compone alrededor.
   const wearsItem = (id) => buddy.unlockedGearIds.includes(id) && !buddy.effectiveHiddenGear.includes(id);
@@ -121,11 +123,11 @@ const BuddyPreviewCard = memo(function BuddyPreviewCard({ buddy }) {
     <div className="buddy-preview-card">
       <div className="buddy-section-heading"><span className="buddy-modal-kicker">your companion</span><span className="buddy-status-dot">online</span></div>
       <div className="buddy-preview-screen">
-        <div className="buddy-preview-pose">
+        <div className={`buddy-preview-pose pose-${pose}`} key={buddy.effectiveHiddenGear.join(",")}>
           {previewChute ? <BuddyChuteCanopy className="buddy-preview-chute" upgraded /> : null}
           <BuddySprite
             className="buddy-preview-sprite"
-            expression="idle"
+            expression={pose}
             facing={-1}
             friendshipLevel={buddy.friendship.level}
             inventory={buddy.adventure.inventoryIds}
@@ -137,6 +139,7 @@ const BuddyPreviewCard = memo(function BuddyPreviewCard({ buddy }) {
           {previewRod ? <BuddyRodIcon className="buddy-preview-rod" rodId={previewRod} lureId={previewLure} /> : null}
         </div>
       </div>
+      <div className="buddy-pose-controls" role="group" aria-label="Preview Buddy pose">{[["idle", "Idle"], ["happy", "Happy"], ["sleep", "Nap"]].map(([id, label]) => <button type="button" key={id} aria-pressed={pose === id} onClick={() => setPose(id)}>{label}</button>)}</div>
       <div className="buddy-preview-stats">
         <span>Level <b>{String(buddy.friendship.level).padStart(2, "0")}</b></span>
         <span><b>{buddy.activeGearCount}</b> equipped</span>
@@ -147,6 +150,11 @@ const BuddyPreviewCard = memo(function BuddyPreviewCard({ buddy }) {
 
 function BuddyInventoryView({ buddy }) {
   const [filter, setFilter] = useState("all");
+  const [query, setQuery] = useState("");
+  const [ownership, setOwnership] = useState("owned");
+  const [feedback, setFeedback] = useState("");
+  const [loadoutOpen, setLoadoutOpen] = useState(() => window.innerWidth > 700);
+  const catalog = buddy.catalogItems || buddy.gearItems.map((item) => ({ ...item, unlocked: true }));
   // Un solo "slot en foco" alimenta dos pistas: el resaltado al pasar por
   // encima de una pieza y el destino valido mientras se arrastra.
   const [activeSlot, setActiveSlot] = useState(null);
@@ -156,14 +164,15 @@ function BuddyInventoryView({ buddy }) {
   const mikuCostumeActive = buddy.unlockedGearIds.includes("miku-costume")
     && !buddy.effectiveHiddenGear.includes("miku-costume");
 
-  const slotCounts = buddy.gearItems.reduce((counts, item) => {
+  const ownershipItems = catalog.filter((item) => ownership === "all" || (ownership === "locked" ? !item.unlocked : ownership === "equipped" ? item.unlocked && isEquipped(item, buddy) : item.unlocked));
+  const slotCounts = ownershipItems.reduce((counts, item) => {
     counts[item.slot] = (counts[item.slot] || 0) + 1;
     return counts;
   }, {});
 
   // Chips solo para slots con botin: el filtro crece junto al inventario.
   const filterChips = [
-    { id: "all", label: "all", count: buddy.gearItems.length },
+    { id: "all", label: "all", count: ownershipItems.length },
     ...BUDDY_SLOTS.filter((slot) => slotCounts[slot.id]).map((slot) => ({
       id: slot.id,
       label: slot.label,
@@ -172,21 +181,22 @@ function BuddyInventoryView({ buddy }) {
   ];
   const activeFilter = filter === "all" || slotCounts[filter] ? filter : "all";
 
-  const sortedItems = [...buddy.gearItems].sort(
+  const sortedItems = [...catalog].sort(
     (a, b) => (SLOT_ORDER[a.slot] ?? 99) - (SLOT_ORDER[b.slot] ?? 99)
   );
-  const visibleItems = activeFilter === "all"
-    ? sortedItems
-    : sortedItems.filter((item) => item.slot === activeFilter);
+  const visibleItems = sortedItems.filter((item) => (activeFilter === "all" || item.slot === activeFilter)
+    && (ownership === "all" || (ownership === "locked" ? !item.unlocked : ownership === "equipped" ? item.unlocked && isEquipped(item, buddy) : item.unlocked))
+    && `${item.label} ${item.perk || ""} ${item.requirement || ""}`.toLowerCase().includes(query.trim().toLowerCase()));
 
   // Filtrar con la reja a media altura dejaba al usuario mirando un hueco.
   useEffect(() => {
     lootScrollRef.current?.scrollTo({ top: 0 });
-  }, [activeFilter, lootScrollRef]);
+  }, [activeFilter, ownership, query, lootScrollRef]);
 
   // Equipar algo cuya ranura quedaba fuera de la lista no daba ninguna señal.
   // Se acerca la fila justa (nunca el modal entero) para que el cambio se vea.
   function revealSlot(slotId) {
+    setLoadoutOpen(true);
     const box = slotScrollRef.current;
     if (!box || box.scrollHeight <= box.clientHeight) return;
     requestAnimationFrame(() => {
@@ -207,8 +217,8 @@ function BuddyInventoryView({ buddy }) {
         <BuddyPreviewCard buddy={buddy} />
 
         <div className="buddy-loadout">
-          <div className="buddy-section-heading"><h3>Current loadout</h3><span>click to remove</span></div>
-          <div className="buddy-slot-scroll" ref={slotScrollRef}>
+          <div className="buddy-section-heading"><h3>Current loadout</h3><button className="buddy-loadout-toggle" type="button" aria-expanded={loadoutOpen} aria-controls="buddy-equipped-slots" onClick={() => setLoadoutOpen((open) => !open)}>{loadoutOpen ? "Hide slots" : `Show ${buddy.activeGearCount} equipped`}</button></div>
+          <div className="buddy-slot-scroll" id="buddy-equipped-slots" ref={slotScrollRef} hidden={!loadoutOpen}>
             <div className="buddy-slot-grid" data-dragging={dragging ? "on" : undefined}>
               {BUDDY_SLOTS.map((slot) => (
                 <InventorySlot
@@ -226,7 +236,9 @@ function BuddyInventoryView({ buddy }) {
       </div>
 
       <div className="buddy-loot-panel" aria-label="Buddy inventory items">
-        <div className="buddy-section-heading"><div><span className="buddy-modal-kicker">equipment locker</span><h3>Your collection <b>{buddy.gearItems.length}</b></h3></div><span>Click to equip or stash · drag onto a slot</span></div>
+        <div className="buddy-section-heading"><div><span className="buddy-modal-kicker">equipment locker</span><h3>Your collection <b>{buddy.gearItems.length} / {catalog.length}</b></h3></div><span>Click to equip or stash · drag onto a slot</span></div>
+        <div className="buddy-locker-toolbar"><label className="buddy-journal-search"><Search size={15} aria-hidden="true" /><input type="search" aria-label="Search gear" placeholder="Find gear or a perk…" value={query} onChange={(event) => setQuery(event.target.value)} /></label><select aria-label="Gear ownership" value={ownership} onChange={(event) => setOwnership(event.target.value)}><option value="owned">Owned gear</option><option value="equipped">Equipped</option><option value="locked">Next unlocks</option><option value="all">All gear</option></select></div>
+        <p className="buddy-locker-feedback" role="status">{feedback || `${buddy.activeGearCount} equipped · ${catalog.length - buddy.gearItems.length} still to discover`}</p>
         {mikuCostumeActive ? (
           <div className="buddy-miku-lock-notice" role="status">
             <Lock size={13} aria-hidden="true" />
@@ -253,26 +265,28 @@ function BuddyInventoryView({ buddy }) {
         <div className="buddy-loot-scroll" ref={lootScrollRef} onPointerLeave={() => setActiveSlot(null)}>
           <div className="buddy-loot-grid">
             {visibleItems.length ? visibleItems.map((item) => {
-              const equipped = isEquipped(item, buddy);
-              const itemLocked = mikuCostumeActive && !isMikuEditableItem(item.id);
+              const equipped = item.unlocked && isEquipped(item, buddy);
+              const itemLocked = !item.unlocked || (mikuCostumeActive && !isMikuEditableItem(item.id));
               return (
                 <button
-                  className={`buddy-loot-cell is-${item.id} ${equipped ? "is-equipped" : "is-stashed"} ${itemLocked ? "is-miku-locked" : ""}`}
+                  className={`buddy-loot-cell is-${item.id} ${equipped ? "is-equipped" : "is-stashed"} ${!item.unlocked ? "is-undiscovered" : itemLocked ? "is-miku-locked" : ""}`}
                   type="button"
                   draggable={!itemLocked}
                   key={item.id}
-                  onClick={() => { buddy.toggleGear(item.id); revealSlot(item.slot); }}
+                  onClick={() => { buddy.toggleGear(item.id); revealSlot(item.slot); setFeedback(`${item.label} ${equipped ? "stashed" : "equipped"}.`); }}
                   onPointerEnter={() => { if (!dragging) setActiveSlot(item.slot); }}
                   onFocus={() => setActiveSlot(item.slot)}
                   onDragStart={(event) => { dragItem(event, item); setActiveSlot(item.slot); setDragging(true); }}
                   onDragEnd={() => { setDragging(false); setActiveSlot(null); }}
                   disabled={itemLocked}
                   aria-pressed={equipped}
-                  title={itemLocked ? "Unequip Miku Costume to edit other gear." : item.perk || undefined}
+                  title={!item.unlocked ? item.requirement : itemLocked ? "Unequip Miku Costume to edit other gear." : item.perk || undefined}
                 >
                   <BuddyGearIcon id={item.id} />
                   <span>{item.label}</span>
-                  <small>{item.perk || item.source}</small>
+                  <small>{item.unlocked ? item.perk || item.source : item.requirement}</small>
+                  <em className="buddy-item-category">{item.slot} · {equipped ? "equipped" : item.unlocked ? "owned" : "locked"}</em>
+                  {!item.unlocked ? <span className="buddy-item-unlock"><progress value={item.progress} max={item.goal} aria-label={`${item.label} unlock progress`} /><small>{item.progress} / {item.goal}</small></span> : null}
                   <b className={`buddy-loot-state ${equipped ? "is-on" : ""}`} aria-hidden="true">
                     {itemLocked ? <Lock size={11} /> : equipped ? <Check size={13} /> : null}
                   </b>
@@ -281,8 +295,8 @@ function BuddyInventoryView({ buddy }) {
             }) : (
               <div className="buddy-loot-empty">
                 <Backpack size={28} aria-hidden="true" />
-                <strong>{activeFilter === "all" ? "Your adventure starts here" : "Nothing for this slot yet"}</strong>
-                <p>Pet Buddy, complete quests, and fish in the footer to unlock new gear.</p>
+                <strong>{query ? "No matching gear" : "Nothing in this view yet"}</strong>
+                <p>Try another filter, or choose Next unlocks to see how to grow your collection.</p>
               </div>
             )}
           </div>
@@ -323,7 +337,7 @@ function BuddyQuestView({ buddy }) {
                 <article className={`buddy-modal-quest ${quest.complete ? "is-complete" : ""}`} key={quest.id}>
                   <div className="buddy-quest-info">
                     <span className="buddy-quest-icon">{quest.complete ? <Check size={18} aria-hidden="true" /> : <ScrollText size={18} aria-hidden="true" />}</span>
-                    <div><strong>{quest.title}</strong><p>{quest.detail}</p></div>
+                    <div><strong>{quest.title}</strong><p>{quest.detail}</p><span className="buddy-quest-reward"><BuddyGearIcon id={quest.reward} />{quest.complete ? "Unlocked" : "Reward"}: {buddy.catalogItems?.find((item) => item.id === quest.reward)?.label || quest.reward}</span></div>
                   </div>
                   <div className="buddy-quest-track">
                     <div><span>{quest.complete ? "Complete" : "In progress"}</span><b>{quest.progress} / {quest.goal}</b></div>
@@ -340,6 +354,7 @@ function BuddyQuestView({ buddy }) {
 }
 
 const BUDDY_VIEWS = [
+  { id: "activities", label: "Activities", icon: Compass, title: "Buddy Adventures", description: "A tiny companion. A whole cabinet to explore together." },
   { id: "inventory", label: "Inventory", icon: Backpack, title: "Buddy Inventory", description: "A little gear. A lot of personality. Make Buddy your own." },
   { id: "quests", label: "Quests", icon: ScrollText, title: "Buddy Quests", description: "Follow your curiosity. Explore the station. Find something new." },
   { id: "journal", label: "Journal", icon: BookOpen, title: "Catch Journal", description: "Every catch has a story. Keep a record of the things you find." }
@@ -375,12 +390,12 @@ export function BuddyModal({ buddy, mode, onClose, onModeChange, theme }) {
                 {BUDDY_VIEWS.map(({ id, label, icon: Icon }) => (
                   <button className={mode === id ? "is-active" : ""} type="button" key={id} onClick={() => onModeChange(id)} aria-current={mode === id ? "page" : undefined}>
                     <Icon size={16} aria-hidden="true" />{label}
-                    <span>{id === "inventory" ? buddy.gearItems.length : id === "quests" ? buddy.adventure.quests.filter((quest) => !quest.complete).length : buddy.adventure.discoveredFishCount}</span>
+                    {id !== "activities" ? <span>{id === "inventory" ? buddy.gearItems.length : id === "quests" ? buddy.adventure.quests.filter((quest) => !quest.complete).length : buddy.adventure.discoveredFishCount}</span> : null}
                   </button>
                 ))}
               </nav>
             </header>
-            {mode === "inventory" ? <BuddyInventoryView buddy={buddy} /> : mode === "journal" ? <BuddyJournal buddy={buddy} /> : <BuddyQuestView buddy={buddy} />}
+            {mode === "activities" ? <BuddyActivities buddy={buddy} onClose={onClose} /> : mode === "inventory" ? <BuddyInventoryView buddy={buddy} /> : mode === "journal" ? <BuddyJournal buddy={buddy} /> : <BuddyQuestView buddy={buddy} />}
           </Dialog.Content>
         </Dialog.Overlay>
       </Dialog.Portal>

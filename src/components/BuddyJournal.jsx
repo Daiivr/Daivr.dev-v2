@@ -30,6 +30,7 @@ const STATE_FILTERS = [
   { id: "discovered", label: "Found" },
   { id: "unknown", label: "Missing" }
 ];
+const RARITIES = ["common", "uncommon", "rare", "legendary", "mythic", "junk", "treasure"];
 
 // La ficha grande: una sola copia del texto que antes se repetia en cada
 // casilla sin escanear, ahora con sitio para leerse.
@@ -43,18 +44,22 @@ function SpecimenFile({ entry, set }) {
         <span className="buddy-modal-kicker">{set.kicker}</span>
         {entry.discovered ? <span className="buddy-specimen-count">×{entry.count}</span> : null}
       </div>
-      <div className="buddy-preview-screen" style={{ "--journal-color": entry.color }}>
+      <div className={`buddy-preview-screen buddy-specimen-tank ${entry.discovered ? "is-discovered" : ""}`} style={{ "--journal-color": entry.discovered ? entry.color : "#517366" }}>
+        <span className="buddy-tank-label" aria-hidden="true">{entry.discovered ? "SPECIMEN VIEW" : "AWAITING DISCOVERY"}</span>
+        <span className="buddy-tank-bubbles" aria-hidden="true"><i /><i /><i /></span>
         <BuddyCollectibleIcon
           className="buddy-specimen-art"
           id={entry.id}
           color={entry.color}
           unknown={!entry.discovered}
         />
+        <span className="buddy-tank-floor" aria-hidden="true" />
       </div>
       <div className="buddy-specimen-file">
         <span className={`buddy-specimen-tag rarity-${tag}`}>{tag}</span>
         <strong>{entry.discovered ? entry.name : set.unknownName}</strong>
         <p>{entry.discovered ? set.note(entry) : set.unknownNote}</p>
+        {entry.discovered ? <dl className="buddy-specimen-facts"><div><dt>Collected</dt><dd>{entry.count} {entry.count === 1 ? "time" : "times"}</dd></div><div><dt>Source</dt><dd>{set.label === "Fish" ? "Void fishing" : "Footer patrol"}</dd></div></dl> : null}
       </div>
     </div>
   );
@@ -68,6 +73,8 @@ export function BuddyJournal({ buddy }) {
   const [filter, setFilter] = useState("all");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState("");
+  const [rarity, setRarity] = useState("all");
+  const [sort, setSort] = useState("catalogue");
 
   const set = ARCHIVE_SETS[dataset];
   const total = FISH_CATALOG.length;
@@ -85,19 +92,20 @@ export function BuddyJournal({ buddy }) {
     const searchable = entry.discovered
       ? `${entry.name} ${set.tag(entry)} ${set.note(entry) || ""}`
       : `${set.unknownName} unscanned missing`;
-    return matchesFilter && searchable.toLowerCase().includes(query.trim().toLowerCase());
-  });
+    return matchesFilter && (rarity === "all" || dataset !== "fish" || (entry.discovered && entry.rarity === rarity)) && searchable.toLowerCase().includes(query.trim().toLowerCase());
+  }).sort((a, b) => sort === "count" ? b.count - a.count : sort === "name" ? (a.discovered ? a.name : "zzz").localeCompare(b.discovered ? b.name : "zzz") : 0);
 
   // El id elegido puede quedarse fuera al cambiar de catalogo o de filtro: la
   // ficha cae hacia el primer hallazgo real para no abrir en un hueco vacio.
-  const selected = entries.find((entry) => entry.id === selectedId)
-    || entries.find((entry) => entry.discovered)
-    || entries[0];
+  const selected = visible.find((entry) => entry.id === selectedId)
+    || visible.find((entry) => entry.discovered)
+    || visible[0];
 
   return (
     <div className="buddy-journal" ref={pageRef}>
       <div className="buddy-journal-stage" ref={stageRef}>
         <SpecimenFile entry={selected} set={set} />
+        <div className="buddy-journal-summary"><span>Total catches<strong>{buddy.adventure.totalCatches}</strong></span><span>Rare catches<strong>{buddy.adventure.rareCatches}</strong></span><span>Catalogue<strong>{pct(discovered, total)}%</strong></span></div>
 
         <div className="buddy-journal-progress">
           <div className="buddy-section-heading"><h3>Archive progress</h3></div>
@@ -138,7 +146,7 @@ export function BuddyJournal({ buddy }) {
                 className={`buddy-loot-filter ${dataset === id ? "is-active" : ""}`}
                 type="button"
                 key={id}
-                onClick={() => setDataset(id)}
+                onClick={() => { setDataset(id); setRarity("all"); setQuery(""); setSelectedId(""); }}
                 aria-pressed={dataset === id}
               >
                 {item.label}
@@ -171,6 +179,7 @@ export function BuddyJournal({ buddy }) {
             />
           </label>
         </div>
+        <div className="buddy-journal-sortbar"><span>{visible.length} entries in view</span>{dataset === "fish" ? <label>Rarity<select aria-label="Filter journal rarity" value={rarity} onChange={(event) => setRarity(event.target.value)}><option value="all">All rarities</option>{RARITIES.map((value) => <option key={value}>{value}</option>)}</select></label> : null}<label>Sort<select aria-label="Sort journal" value={sort} onChange={(event) => setSort(event.target.value)}><option value="catalogue">Catalogue</option><option value="count">Most caught</option><option value="name">Name</option></select></label></div>
 
         <div className="buddy-archive-scroll" ref={gridRef}>
           <div className="buddy-archive-grid">
@@ -186,8 +195,9 @@ export function BuddyJournal({ buddy }) {
                   onFocus={() => setSelectedId(entry.id)}
                   aria-current={entry.id === selected?.id ? "true" : undefined}
                 >
-                  <BuddyCollectibleIcon id={entry.id} color={entry.color} unknown={!entry.discovered} />
+                  <span className="buddy-archive-art"><BuddyCollectibleIcon id={entry.id} color={entry.color} unknown={!entry.discovered} /></span>
                   <span>{entry.discovered ? entry.name : "???"}</span>
+                  <small className="buddy-archive-rarity">{entry.discovered ? tag : "undiscovered"}</small>
                   {entry.discovered && entry.count > 1 ? <b>×{entry.count}</b> : null}
                 </button>
               );

@@ -118,10 +118,10 @@ export function DiscordPlayerCard() {
           ) : (
             <MessageSquare size={13} aria-hidden="true" />
           )}
-          <p>{statusText}</p>
+          <p title={statusText}>{statusText}</p>
         </div>
       </div>
-      <div className="discord-player-activity"><span className="discord-player-activity-icon"><ActivityIcon size={17} aria-hidden="true" /></span><div><strong>{activityLabel}</strong><p>{activityText}</p></div></div>
+      <div className="discord-player-activity"><span className="discord-player-activity-icon"><ActivityIcon size={17} aria-hidden="true" /></span><div><strong>{activityLabel}</strong><p title={activityText}>{activityText}</p></div></div>
       <footer className="discord-player-footer"><span>{error ? "SIGNAL LOST" : isSyncing ? "CONNECTING" : "DISCORD PRESENCE"}</span><span className="discord-player-platforms">{platformTags.map((platform) => { const Icon = platforms[platform]; return <span key={platform}><Icon size={11} aria-hidden="true" />{platform}</span>; })}</span></footer>
     </section>
   );

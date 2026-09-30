@@ -1,3 +1,4 @@
+import { BuddyWornGear } from "./BuddyGearIcon";
 /*
   Sprite pixel del buddy (mini monitor CRT) y su paracaidas, compartidos entre
   ScreenBuddy (footer), el perchado del splash de bienvenida y la caida de
@@ -89,10 +90,7 @@ export function BuddyRodIcon({ className = "", rodId = "", lureId = "" }) {
 
         {/* solid line from the tip to the equipped lure */}
         <path d="M9 14v38h3v5" fill="none" stroke="rgba(184,247,255,.88)" strokeWidth="1.5" />
-        <rect className="buddy-lure-top" x="7" y="52" width="9" height="6" fill="#ff3d9d" />
-        <rect className="buddy-lure-bottom" x="8" y="58" width="7" height="7" fill="#ffd166" />
-        <rect x="10" y="54" width="3" height="2" fill="#f4fff8" opacity=".9" />
-        <path d="M12 65v4h4v-3" fill="none" stroke="#b8f7ff" strokeWidth="2" />
+        <BuddyWornGear id={lureId || "lure"} x={4} y={50} width={16} height={20} />
       </g>
     </svg>
   );
@@ -226,6 +224,8 @@ function BuddyMikuCostume({ expression = "idle", rocketBoots = false }) {
 export function BuddySprite({ className = "", expression = "idle", facing = 1, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [], width = 64, height = 61 }) {
   const isHappy = expression === "happy";
   const isAsleep = expression === "sleep";
+  const isAlert = expression === "surprised";
+  const isFocused = expression === "focus";
   const hasItem = (id) => (inventory.includes(id) || unlockedGear.includes(id)) && !hiddenGear.includes(id);
   const hasGear = (id) => unlockedGear.includes(id) && !hiddenGear.includes(id);
   const showFriendshipGear = (id, level) => friendshipLevel >= level && !hiddenGear.includes(id);
@@ -290,9 +290,9 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
         {hasItem("headset") ? (
           <g>
             <rect x="11" y="8" width="26" height="2" fill="#45d8ff" />
-            <rect x="4" y="16" width="4" height="9" fill="#45d8ff" />
-            <rect x="40" y="16" width="4" height="9" fill="#45d8ff" />
-            <rect x="38" y="27" width="7" height="1" fill="#45d8ff" />
+            <path d="M3 15h5v12H3z" fill="#143845" /><path d="M3 16h3v8H3z" fill="#45d8ff" /><rect x="3" y="16" width="2" height="2" fill="#b8f7ff" />
+            <path d="M40 15h5v12h-5z" fill="#143845" /><path d="M42 16h3v8h-3z" fill="#45d8ff" /><rect x="42" y="16" width="2" height="2" fill="#b8f7ff" />
+            <path d="M43 25v4h-6v-2h4v-2z" fill="#ed659e" />
           </g>
         ) : null}
         {/* peluco miku (atras): coletas largas que cuelgan detras de la cabeza,
@@ -335,7 +335,11 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
         ) : null}
 
         {/* cuerpo monitor */}
-        <rect x="6" y="10" width="36" height="24" fill="#020604" stroke="#3fff97" strokeWidth="1.5" />
+        <path d="M8 9h31v2h4v21h-3v3H8v-2H5V12h3z" fill="#05271e" />
+        <path d="M8 9h31v2H9v21H7V12h1z" fill="#92ffd0" />
+        <path d="M39 12h3v20h-3v3H10v-2h29z" fill="#128765" />
+        <path d="M10 11h28v2H10zM7 15h2v14H7z" fill="#3fff97" />
+        <path d="M11 32h25v1H11z" fill="#45d8ff" opacity=".65" />
 
         {/* pantalla */}
         <g className="buddy-screen">
@@ -347,10 +351,15 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
           </g>
 
           {/* ojos: el grupo se traslada hacia el cursor, el rect parpadea */}
+          <path d="M11 15h10v1H12v4h-1z" fill="#b4ffcf" opacity=".22" />
           <g className="buddy-eye-track">
-            <rect className="buddy-eye" x="14" y="18" width="4" height="4" fill="#3fff97" />
-            <rect className="buddy-eye" x="23" y="18" width="4" height="4" fill="#3fff97" />
+            {isAsleep ? <path d="M14 21h4v1h-4m9-1h4v1h-4" fill="#3fff97" /> : <>
+              <g className="buddy-eye"><path d={isHappy ? "M14 20v-2h4v2h-1v-1h-2v1z" : isFocused ? "M14 20h4v3h-4z" : "M14 18h4v5h-4z"} fill="#3fff97" /><rect x="14" y="18" width="1" height="1" fill="#eafff4" /></g>
+              <g className="buddy-eye"><path d={isHappy ? "M23 20v-2h4v2h-1v-1h-2v1z" : isFocused ? "M23 20h4v3h-4z" : "M23 18h4v5h-4z"} fill="#3fff97" /><rect x="23" y="18" width="1" height="1" fill="#eafff4" /></g>
+            </>}
           </g>
+          {isFocused ? <path d="M13 17h6v1h-6m9-1h6v1h-6" fill="#b4ffcf" /> : null}
+          {isHappy ? <path d="M12 24h3v1h-3m14-1h3v1h-3" fill="#ff83b7" opacity=".8" /> : null}
 
           {hasGear("green-visor") ? (
             <g className="buddy-green-visor">
@@ -364,13 +373,7 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
           ) : null}
 
           {/* lentes de sol: amistad lv3+ */}
-          {showFriendshipGear("sunglasses", 3) ? (
-            <g>
-              <rect x="13" y="18" width="6" height="4" fill="#020604" stroke="#45d8ff" strokeWidth="1" />
-              <rect x="22" y="18" width="6" height="4" fill="#020604" stroke="#45d8ff" strokeWidth="1" />
-              <rect x="19" y="19" width="3" height="1" fill="#45d8ff" />
-            </g>
-          ) : null}
+          {showFriendshipGear("sunglasses", 3) ? <g className="buddy-worn-glasses"><BuddyWornGear id="sunglasses" x={11} y={14} width={20} height={15} /></g> : null}
 
           {/* boca por humor */}
           {isHappy ? (
@@ -379,6 +382,8 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
               <rect x="25" y="24" width="2" height="2" />
               <rect x="16" y="26" width="9" height="2" />
             </g>
+          ) : isAlert ? (
+            <path d="M18 24h5v5h-5zM19 25v3h3v-3z" fill="#b4ffcf" fillRule="evenodd" />
           ) : isAsleep ? (
             <rect x="18" y="26" width="4" height="2" fill="rgba(63,255,151,.4)" />
           ) : (
@@ -424,88 +429,34 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
         <rect x="33" y="14" width="1" height="16" fill="rgba(63,255,151,.28)" />
         <rect x="36" y="16" width="4" height="4" fill="#ffd166" />
         <rect x="36" y="23" width="4" height="4" fill="#45d8ff" />
+        <path d="M36 16h3v1h-3m0 6h3v1h-3" fill="#f4fff8" opacity=".8" />
         <rect className="buddy-power" x="36" y="29" width="4" height="2" fill="#3fff97" />
 
         {/* gorro de fiesta: amistad lv2+ */}
-        {showFriendshipGear("party-hat", 2) ? (
-          <g>
-            <rect x="22" y="0" width="4" height="2" fill="#ffd166" />
-            <rect x="21" y="2" width="6" height="2" fill="#ff3d9d" />
-            <rect x="20" y="4" width="8" height="2" fill="#45d8ff" />
-            <rect x="18" y="6" width="12" height="2" fill="#ff3d9d" />
-            <rect x="16" y="8" width="16" height="2" fill="#ffd166" />
-            <rect x="15" y="10" width="18" height="2" fill="#ff3d9d" />
-          </g>
-        ) : null}
-        {hasGear("star-cap") ? (
-          <g>
-            <rect x="15" y="6" width="20" height="4" fill="#45d8ff" />
-            <rect x="18" y="4" width="14" height="2" fill="#2faed8" />
-            <rect x="31" y="9" width="8" height="2" fill="#45d8ff" />
-            <rect x="23" y="3" width="2" height="2" fill="#ffd166" />
-            <rect x="21" y="5" width="6" height="1" fill="#ffd166" />
-            <rect x="24" y="6" width="2" height="2" fill="#ffd166" />
-          </g>
-        ) : null}
-        {hasGear("pixel-crown") ? (
-          <g>
-            <rect x="13" y="8" width="22" height="3" fill="#ffd166" />
-            <rect x="14" y="4" width="4" height="4" fill="#ffd166" />
-            <rect x="22" y="2" width="4" height="6" fill="#ffd166" />
-            <rect x="30" y="4" width="4" height="4" fill="#ffd166" />
-            <rect x="15" y="5" width="2" height="2" fill="#45d8ff" />
-            <rect x="23" y="3" width="2" height="2" fill="#ff3d9d" />
-            <rect x="31" y="5" width="2" height="2" fill="#3fff97" />
-            <rect x="14" y="10" width="20" height="1" fill="#b9872d" opacity="0.7" />
-          </g>
-        ) : null}
+        {showFriendshipGear("party-hat", 2) ? <g className="buddy-headgear"><BuddyWornGear id="party-hat" x={12} y={-1} width={24} height={15} /></g> : null}
+        {hasGear("star-cap") ? <g className="buddy-headgear"><BuddyWornGear id="star-cap" x={10} y={0} width={30} height={15} /></g> : null}
+        {hasGear("pixel-crown") ? <g className="buddy-headgear"><BuddyWornGear id="pixel-crown" x={11} y={-1} width={26} height={15} /></g> : null}
 
         {/* bufanda: amistad lv4+ */}
-        {showFriendshipGear("scarf", 4) ? (
-          <g>
-            <rect x="8" y="31" width="26" height="3" fill="#ff3d9d" />
-            <rect x="28" y="33" width="4" height="3" fill="#ff3d9d" />
-            <rect className="buddy-scarf-tail" x="29" y="36" width="4" height="5" fill="#ff3d9d" />
-          </g>
-        ) : null}
+        {showFriendshipGear("scarf", 4) ? <g className="buddy-worn-scarf"><BuddyWornGear id="scarf" x={7} y={29} width={30} height={16} /></g> : null}
 
         {/* patas */}
         <g className="buddy-leg buddy-leg-l">
           <rect className="buddy-leg-upper" x="14" y="34" width="4" height="4" fill="#020604" stroke="#3fff97" strokeWidth="1.5" />
           <rect className="buddy-leg-foot buddy-leg-foot-l" x="12" y="38" width="8" height="4" fill="#020604" stroke="#3fff97" strokeWidth="1.5" />
+          <path d="M12 38h7v1h-7m1 3h7v1h-7" fill="#92ffd0" />
         </g>
         <g className="buddy-leg buddy-leg-r">
           <rect className="buddy-leg-upper" x="30" y="34" width="4" height="4" fill="#020604" stroke="#3fff97" strokeWidth="1.5" />
           <rect className="buddy-leg-foot buddy-leg-foot-r" x="28" y="38" width="8" height="4" fill="#020604" stroke="#3fff97" strokeWidth="1.5" />
+          <path d="M28 38h7v1h-7m1 3h7v1h-7" fill="#92ffd0" />
         </g>
-        {hasItem("wrench") ? (
-          <g className="buddy-tool-wrench buddy-carry-item">
-            <rect x="37" y="33" width="9" height="6" fill="#071b1c" stroke="#45d8ff" strokeWidth="1" />
-            <rect x="45" y="34" width="3" height="3" fill="#b8f7ff" />
-            <rect x="39" y="34" width="4" height="2" fill="#b8f7ff" />
-            <rect x="40" y="39" width="4" height="5" fill="#174b57" stroke="#45d8ff" strokeWidth="1" />
-            <rect x="37" y="35" width="2" height="2" fill="#ffd166" />
-          </g>
-        ) : null}
-        {hasItem("cartridge") ? (
-          <g className="buddy-loot-cartridge buddy-carry-item">
-            <rect x="38" y="33" width="8" height="10" fill="#020604" stroke="#ffd166" strokeWidth="1" />
-            <rect x="40" y="35" width="4" height="2" fill="#3fff97" />
-            <rect x="40" y="39" width="1" height="2" fill="#ffd166" />
-            <rect x="43" y="39" width="1" height="2" fill="#ffd166" />
-          </g>
-        ) : null}
-        {hasItem("coffee") ? (
-          <g className="buddy-coffee">
-            <rect x="4" y="36" width="6" height="6" fill="#ffd166" />
-            <rect x="10" y="38" width="2" height="3" fill="none" stroke="#ffd166" strokeWidth="1" />
-            <rect x="5" y="34" width="4" height="1" fill="#f4fff8" opacity="0.7" />
-          </g>
-        ) : null}
+        {hasItem("wrench") ? <g className="buddy-tool-wrench buddy-carry-item"><BuddyWornGear id="wrench" x={35} y={30} width={15} height={16} /></g> : null}
+        {hasItem("cartridge") ? <g className="buddy-loot-cartridge buddy-carry-item"><BuddyWornGear id="cartridge" x={36} y={31} width={13} height={15} /></g> : null}
+        {hasItem("coffee") ? <g className="buddy-coffee"><BuddyWornGear id="coffee" x={0} y={32} width={14} height={13} /></g> : null}
         {hasGear("rocket-boots") ? (
           <g className="buddy-rocket-boots">
-            <rect x="11" y="40" width="9" height="3" fill="#45d8ff" />
-            <rect x="28" y="40" width="9" height="3" fill="#45d8ff" />
+            <BuddyWornGear id="rocket-boots" x={9} y={33} width={30} height={13} />
             <rect className="buddy-rocket-flame buddy-rocket-flame-l" x="13" y="43" width="4" height="2" fill="#ff3d9d" />
             <rect className="buddy-rocket-flame buddy-rocket-flame-r" x="31" y="43" width="4" height="2" fill="#ff3d9d" />
           </g>
@@ -513,4 +464,15 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
       </g>
     </svg>
   );
+}
+
+export function BuddyFishingRodArt() {
+  return <g className="buddy-fishing-rod-art" shapeRendering="crispEdges">
+    <path d="M3 9h6v8h7v6h7v7h7v7h6v14h-8v-9h-5v-7h-7v-7H9v-7H3z" fill="#082127" />
+    <path className="buddy-rod-seg" d="M6 15h5v6h7v7h7v7h7v9h-3v-7h-7v-7h-7v-7H8v-6H6z" fill="#b8f7ff" />
+    <path className="buddy-rod-tip" d="M4 10h4v7H4z" fill="#45d8ff" />
+    <path d="M7 16h3v1H7m9 11h4v1h-4m8 8h4v1h-4" fill="#f4fff8" opacity=".8" />
+    <path d="M30 40h5v12h-5z" fill="#6b3f24" /><path d="M30 42h5v2h-5m0 4h5v2h-5" fill="#d2a063" />
+    <g className="buddy-reel"><path d="M24 40h7v8h-7z" fill="#ffd166" /><path d="M25 41h5v5h-5z" fill="#28434b" /><path d="M27 42h2v2h-2m-5 2h4v2h-4" fill="#dfffee" /></g>
+  </g>;
 }

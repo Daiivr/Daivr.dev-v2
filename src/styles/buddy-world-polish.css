@@ -1,0 +1,69 @@
+@layer components {
+  /* A shaded, stepped shell keeps Buddy readable at its native pixel size. */
+  .screen-buddy-root.is-idle .buddy-screen { animation: buddy-crt-breathe 4s steps(4,end) infinite; }
+  .screen-buddy-root.is-talk .buddy-screen { animation: buddy-crt-breathe 1.8s steps(3,end) infinite; }
+  .screen-buddy-root.is-fishing:has(.is-omen) .screen-buddy-sprite { animation: none; }
+  .buddy-fishing-rig:is(.is-omen,.is-monster,.is-retreat) .buddy-fish-school { opacity: 0; }
+  .screen-buddy-root.is-fishing:has(.is-monster) .screen-buddy-sprite { animation: buddy-leviathan-pull .8s steps(3,end) infinite; }
+  .footer-leap-fish, .pixel-leap-fish-svg { width: 42px; height: 28px; }
+  .footer-fish-flight { filter: drop-shadow(0 2px 0 #041921) drop-shadow(0 0 4px #45d8ff66); }
+  .pixel-leap-fish-svg .buddy-fish-tail { transform-box: fill-box; transform-origin: right center; animation: footer-tail-paddle .22s steps(2,end) infinite; }
+  .footer-fish-splash i { border-radius: 0; height: 4px; border-width: 2px; }
+  .footer-rain-frog, .pixel-frog-svg { width: 40px; height: 28px; }
+  .footer-rain-frog { filter: drop-shadow(0 2px 0 #04180e) drop-shadow(0 0 3px #3fff9733); }
+  .pixel-frog-eye { transform-box: fill-box; transform-origin: center; animation: frog-blink 4.6s steps(1,end) infinite; }
+  .pixel-frog-throat { transform-box: fill-box; transform-origin: top; animation: frog-croak 1.8s steps(3,end) infinite; }
+
+  .app-footer-zone:has(.leviathan-stage) { z-index: 81; }
+  .app-footer-zone:has(.leviathan-stage) .footer-scenery { opacity: .25; }
+  .leviathan-stage { z-index: 4; }
+  .leviathan-dimmer { position: fixed; inset: 0; z-index: 80; background: #000b; pointer-events: none; animation: abyss-dim 1.6s ease-out both; }
+  .leviathan-dimmer.is-retreat { animation: abyss-clear 3.5s ease-out both; }
+  .leviathan-alert { position: fixed; z-index: 85; left: 50%; top: 24px; transform: translateX(-50%); display: flex; align-items: center; gap: 14px; width: max-content; max-width: calc(100vw - 24px); padding: 16px; border: 1px solid #58c7d0; border-top: 2px solid #ffd166; background: #07151af5; color: #e3fff3; box-shadow: 0 12px 60px #0009; font-family: var(--font-mono); }
+  .leviathan-alert > svg { color: #ffd166; flex-shrink: 0; }
+  .leviathan-alert small { display: block; color: #7db8be; font-size: 9px; letter-spacing: .1em; margin-bottom: 5px; }
+  .leviathan-alert strong { display: block; font-size: 13px; }
+  .leviathan-alert button { min-height: 44px; flex-shrink: 0; cursor: pointer; }
+  .leviathan-visit { display: flex; align-items: center; gap: 10px; padding: 0 14px; background: #12343b; border: 1px solid #58c7d0; color: #e3fff3; font-size: 12px; }
+  .leviathan-dismiss { display: grid; place-items: center; width: 44px; color: #8facaf; }
+  .leviathan-alert button:focus-visible { outline: 2px solid #ffd166; outline-offset: 3px; }
+  .leviathan-stage { position: absolute; bottom: calc(100% - 2px); left: 0; width: 100%; height: 220px; overflow: hidden; pointer-events: none; background: radial-gradient(ellipse at 60% 100%, #16445499, transparent 66%); }
+  .leviathan-stage:focus { outline: 1px solid #58c7d066; outline-offset: 6px; }
+  .leviathan-depth-label { position: absolute; top: 8px; left: 16px; display: grid; gap: 6px; font: 10px/1.4 var(--font-mono); letter-spacing: .12em; color: #67b8c3; }
+  .leviathan-depth-label b { color: #ffd166; font-size: 11px; }
+  .leviathan-art { position: absolute; right: 12%; bottom: -6px; width: min(500px, 75%); height: auto; overflow: visible; filter: drop-shadow(0 0 16px #45d8ff22); animation: abyss-surface 3s steps(18,end) both, abyss-drift 6s ease-in-out 3s infinite; }
+  .leviathan-stage.is-omen .leviathan-art { opacity: .45; transform: translateY(84%); animation: abyss-approach 5.5s ease-out both; }
+  .leviathan-stage.is-retreat .leviathan-art { animation: abyss-retreat 3.5s ease-in both; }
+  .leviathan-fin, .leviathan-tail { transform-box: fill-box; transform-origin: right center; animation: abyss-fin 3s steps(5,end) infinite; }
+  .leviathan-eye { filter: drop-shadow(0 0 4px #ffba52); }
+  .leviathan-water { position: absolute; bottom: 0; width: 100%; height: 20px; border-bottom: 3px solid #62b9c5; background: linear-gradient(transparent,#173945); z-index: 1; }
+  .leviathan-water i { position: absolute; bottom: 3px; left: 15%; width: 65%; height: 2px; background: #7bd8d1; animation: abyss-wake 3s ease-out infinite; }
+  .leviathan-water i:nth-child(2) { animation-delay: 1s; }
+  .leviathan-water i:nth-child(3) { animation-delay: 2s; }
+  .leviathan-spray i { position: absolute; bottom: 8px; left: calc(20% + var(--spray-i) * 7%); width: 3px; height: 6px; background: #b8f7ff; animation: abyss-spray 2.8s steps(8,end) calc(var(--spray-i) * -.25s) infinite; }
+  .leviathan-stage:is(.is-omen,.is-retreat) .leviathan-spray { opacity: 0; }
+  @media (max-width: 700px) {
+    .leviathan-alert { top: 12px; gap: 10px; padding: 12px; flex-wrap: wrap; width: calc(100vw - 24px); }
+    .leviathan-alert > div { flex: 1; }
+    .leviathan-visit { order: 3; width: 100%; justify-content: center; }
+    .leviathan-stage { height: 170px; }
+    .leviathan-art { width: 85%; right: 3%; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .leviathan-stage *, .leviathan-dimmer, .pixel-frog-eye, .pixel-frog-throat, .pixel-leap-fish-svg .buddy-fish-tail, .screen-buddy-root .buddy-screen { animation: none !important; }
+    .leviathan-stage.is-omen .leviathan-art { transform: translateY(70%); }
+  }
+}
+@keyframes buddy-crt-breathe { 0%,100% { opacity: 1; } 50% { opacity: .84; } }
+@keyframes footer-tail-paddle { 50% { transform: scaleX(.7); } }
+@keyframes frog-blink { 0%,91%,96%,100% { transform: scaleY(1); } 93% { transform: scaleY(.15); } }
+@keyframes frog-croak { 0%,65%,100% { transform: scaleY(1); } 78% { transform: scaleY(1.5); } }
+@keyframes abyss-dim { from { opacity: 0; } to { opacity: 1; } }
+@keyframes abyss-clear { from { opacity: 1; } to { opacity: 0; } }
+@keyframes abyss-approach { from { transform: translate(15%,100%); opacity: 0; } to { transform: translate(0,78%); opacity: .6; } }
+@keyframes abyss-surface { from { transform: translate(0,78%); } to { transform: translate(0,0); } }
+@keyframes abyss-drift { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-14px,6px); } }
+@keyframes abyss-retreat { from { transform: translate(0,0); opacity: 1; } to { transform: translate(-12%,110%); opacity: .2; } }
+@keyframes abyss-fin { 50% { transform: rotate(-5deg); } }
+@keyframes abyss-wake { from { transform: scaleX(.4); opacity: .8; } to { transform: scaleX(1.4); opacity: 0; } }
+@keyframes abyss-spray { 0%,65%,100% { opacity: 0; transform: translateY(0); } 15% { opacity: .8; } 35% { opacity: 0; transform: translateY(-24px); } }

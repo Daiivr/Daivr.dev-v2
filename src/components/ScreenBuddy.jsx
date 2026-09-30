@@ -1,10 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { AMBIENT_CREATURES, ENEMY_BUGS, FIELD_FINDS, LEVIATHAN, fishById, weightedCatch } from "../data/buddyWorld";
 import { LURE_IDS, ROD_IDS } from "../hooks/useBuddyLoadout";
-import { BuddyChuteCanopy, BuddySprite } from "./BuddySprite";
+import { BuddyChuteCanopy, BuddyFishingRodArt, BuddySprite } from "./BuddySprite";
 import { BuddyBugWeapon } from "./BuddyBugWeapon";
 import { BuddyEnemyBug } from "./BuddyEnemyBug";
 import { PixelBird } from "./PixelBird";
+import { BuddyWornGear } from "./BuddyGearIcon";
+import { BuddyCollectibleIcon } from "./BuddyCollectibleIcon";
+import { LeviathanEncounter } from "./LeviathanEncounter";
+import { BUDDY_ACTIVITIES, buddyActivityGate } from "../../shared/buddy-activities.mjs";
 
 const SLEEP_AFTER_MS = 5 * 60 * 1000;
 const ATTRACT_WAKE_DELAY_MS = 1000;
@@ -206,6 +210,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
   const mikuCostumeRef = useRef(false);
   const inventoryRef = useRef(inventory);
   const fishingCooldownRef = useRef(0);
+  const requestedActivityRef = useRef({});
   const fishSightCommentRef = useRef(0);
   const rainCooldownRef = useRef(0);
   const findCooldownRef = useRef(0);
@@ -275,6 +280,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
   function endBuddyEvent(name) {
     if (activeEventRef.current !== name) return;
     activeEventRef.current = "";
+    if (name === "fishing") setFishingPhase("");
     delete document.documentElement.dataset.buddyEvent;
     window.dispatchEvent(new CustomEvent("daivr-buddy-event-state", {
       detail: { active: false, name }
@@ -887,23 +893,28 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
           // Muy rara vez la sombra no es una captura: es algo que puede tirar
           // del propio Buddy al agua antes de soltar la linea.
           if (Math.random() < 0.025) {
-            setFishingPhase("monster");
+            setFishingPhase("omen");
             setFishingCatch("mythic");
             setFishingCatchId(LEVIATHAN.id);
-            say(buddyLine("leviathan"), 3000);
-            spawnParticles("splash", 14);
-            liftTo(22);
-            window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
-              detail: { type: "fishing-sighting", id: LEVIATHAN.id }
-            }));
+            say("the water went quiet. something is coming.", 5000);
+            schedule(() => {
+              if (!stillFishing()) return;
+              setFishingPhase("monster");
+              say(buddyLine("leviathan"), 5000);
+              spawnParticles("splash", 14);
+              liftTo(12);
+              window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
+                detail: { type: "fishing-sighting", id: LEVIATHAN.id }
+              }));
+            }, 5500);
 
             schedule(() => {
               if (!stillFishing()) return;
               liftTo(0);
-              setFishingPhase("escape");
+              setFishingPhase("retreat");
               say("it let go. i am counting that.", 2600);
-              endSessionAfter(2300);
-            }, 3600);
+              endSessionAfter(3500);
+            }, 19000);
             return;
           }
 
@@ -1313,6 +1324,34 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       startFishing();
     }
 
+    function onActivityRequest(event) {
+      const request = event.detail;
+      if (!request || typeof request !== "object") return;
+      const activity = BUDDY_ACTIVITIES.find((entry) => entry.id === request.id);
+      const now = Date.now();
+      const autoCooldown = request.id === "fish" ? fishingCooldownRef.current + (equippedGearRef.current.lure === "lure-swift" ? FISHING_SWIFT_COOLDOWN_MS : FISHING_COOLDOWN_MS)
+        : request.id === "find" ? findCooldownRef.current + FIND_COOLDOWN_MS
+          : request.id === "rain" ? rainCooldownRef.current + RAIN_COOLDOWN_MS : 0;
+      const remaining = Math.max(autoCooldown, requestedActivityRef.current[request.id] || 0) - now;
+      const message = buddyActivityGate(request.id, { busy: activeEventRef.current || (["held", "chute", "outage", "hunt"].includes(moodRef.current) ? moodRef.current : ""), reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches, remaining });
+      if (message) { request.message = message; return; }
+      freezeAtCurrentPosition();
+      bootedRef.current = true;
+      liftTo(0);
+      updateMood("idle");
+      requestedActivityRef.current[request.id] = now + (request.id === "fish" && equippedGearRef.current.lure === "lure-swift" ? FISHING_SWIFT_COOLDOWN_MS : activity.cooldown);
+      if (request.id === "fish") startFishing();
+      else if (request.id === "find") startFind();
+      else if (request.id === "rain") startRain();
+      else {
+        beginBuddyEvent("dance");
+        updateMood("dance");
+        say(buddyLine("dance"), 3600);
+        schedule(() => { if (activeEventRef.current === "dance") { endBuddyEvent("dance"); updateMood("idle"); } }, 4200);
+      }
+      request.accepted = true;
+    }
+
     function reactToFishJump(event) {
       if (!visibleRef.current) return;
       if (activeEventRef.current !== "flying-fish") return;
@@ -1522,6 +1561,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     window.addEventListener("daivr-buddy-drop", onDropSignal);
     window.addEventListener("daivr-cart-swap", reactToCartSwap);
     window.addEventListener("daivr-buddy-fish", onFishSignal);
+    window.addEventListener("daivr-buddy-activity-request", onActivityRequest);
     window.addEventListener("daivr-footer-fish-seen", reactToFishJump);
     window.addEventListener("daivr-footer-fish-bump", reactToFishBump);
     window.addEventListener("daivr-footer-wildlife-event", onWildlifeEvent);
@@ -1548,6 +1588,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       window.removeEventListener("daivr-buddy-drop", onDropSignal);
       window.removeEventListener("daivr-cart-swap", reactToCartSwap);
       window.removeEventListener("daivr-buddy-fish", onFishSignal);
+      window.removeEventListener("daivr-buddy-activity-request", onActivityRequest);
       window.removeEventListener("daivr-footer-fish-seen", reactToFishJump);
       window.removeEventListener("daivr-footer-fish-bump", reactToFishBump);
       window.removeEventListener("daivr-footer-wildlife-event", onWildlifeEvent);
@@ -1581,6 +1622,8 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
   const fishingCatchItem = fishById(fishingCatchId);
 
   return (
+    <>
+    <LeviathanEncounter phase={mood === "fishing" && ["omen", "monster", "retreat"].includes(fishingPhase) ? fishingPhase : ""} container={rootRef.current?.parentElement} />
     <div
       className={`screen-buddy-root is-${mood} ${fx ? `fx-${fx}` : ""} ${mood === "fishing" && fishingPhase === "fight" ? "is-fish-fight" : ""} ${weather ? `weather-${weather}` : ""} ${outagePhase ? `outage-${outagePhase}` : ""} ${isAirborne ? "is-airborne" : ""} ${hasRocketBoots ? "has-rocket-boots" : ""} ${hasMikuCostume ? "has-miku-costume" : ""}`}
       ref={rootRef}
@@ -1724,25 +1767,13 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
                   el contenedor se espeja con --buddy-facing igual que el sprite.
                   Los colores de caña/boya los pisa el aparejo puesto via CSS. */}
               <svg className="buddy-fishing-svg" viewBox="0 0 44 78" width="44" height="78">
-                <g className="buddy-fishing-rod-art" shapeRendering="crispEdges">
-                  <rect className="buddy-rod-seg" x="30" y="40" width="4" height="3" fill="#b8f7ff" />
-                  <rect className="buddy-rod-seg" x="24" y="34" width="8" height="3" fill="#b8f7ff" />
-                  <rect className="buddy-rod-seg" x="17" y="27" width="9" height="3" fill="#b8f7ff" />
-                  <rect className="buddy-rod-seg" x="10" y="20" width="9" height="3" fill="#b8f7ff" />
-                  <rect className="buddy-rod-tip" x="5" y="13" width="7" height="3" fill="#45d8ff" />
-                  <rect className="buddy-rod-tip" x="4" y="10" width="4" height="4" fill="#45d8ff" />
-                  {/* carrete */}
-                  <rect x="26" y="43" width="5" height="5" fill="#ffd166" />
-                  <rect x="27" y="44" width="2" height="2" fill="#020604" />
-                </g>
+                <BuddyFishingRodArt />
 
                 <g className="buddy-fishing-line-group">
                   <g shapeRendering="crispEdges">
-                    <rect x="5" y="14" width="1" height="52" fill="rgba(180, 255, 207, 0.75)" />
+                    <path className="buddy-fishing-line" d="M6 15v12H5v16H4v13h1v9" fill="none" stroke="#b8e5db" strokeWidth="1" />
                     <g className="buddy-fishing-bobber">
-                      <rect className="buddy-lure-top" x="3" y="64" width="5" height="3" fill="#ff3d9d" />
-                      <rect className="buddy-lure-bottom" x="3" y="67" width="5" height="3" fill="#ffd166" />
-                      <rect x="4" y="65" width="2" height="1" fill="#f4fff8" opacity="0.8" />
+                      <BuddyWornGear id={equippedLure || "lure"} x={0} y={62} width={11} height={12} />
                     </g>
                   </g>
                 </g>
@@ -1769,29 +1800,12 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
                   <path className="buddy-hook-line" d="M5 70v8h2v3H4" fill="none" stroke="#b8f7ff" strokeWidth="1" />
                 </g>
 
-                <g className="buddy-leviathan" shapeRendering="crispEdges">
-                  <path d="M-42 82h9v-6h13v-5H2v4h8v10H2v4h-22v-4h-13v-5h-9l-10 8V72z" fill="#081c24" />
-                  <rect x="0" y="77" width="3" height="3" fill="#ff3d9d" />
-                  <path d="M-33 72l5-8 5 8m8-2 5-9 5 10" fill="none" stroke="#164d68" strokeWidth="3" />
+                <g className="buddy-cast-splash" shapeRendering="crispEdges">
+                  <path d="M-6 68h3v-3h2v3h3v2h-8m14-2h3v-4h2v4h4v2H8" fill="#8ae8e5" />
+                  <rect x="3" y="62" width="2" height="3" fill="#f4fff8" />
                 </g>
-
                 <g className="buddy-fishing-loot" shapeRendering="crispEdges">
-                  {fishingCatchItem?.kind === "treasure" ? (
-                    <g className="buddy-catch-chest">
-                      <rect x="0" y="25" width="11" height="8" fill="#8a5428" />
-                      <rect x="1" y="23" width="9" height="4" fill="#ffd166" />
-                      <rect x="4" y="27" width="3" height="4" fill="#f4fff8" />
-                    </g>
-                  ) : fishingCatchItem?.id === "old-boot" ? (
-                    <path className="buddy-catch-boot" d="M1 23h6v7h6v5H1z" fill="#7b8f82" />
-                  ) : fishingCatchItem?.id === "soggy-disk" ? (
-                    <g><rect x="0" y="24" width="11" height="11" fill="#6da58a" /><rect x="2" y="26" width="7" height="3" fill="#020604" /><rect x="3" y="31" width="5" height="4" fill="#b8f7ff" /></g>
-                  ) : (
-                    <g className="buddy-catch-fish" style={{ "--catch-color": fishingCatchItem?.color || "#45d8ff" }}>
-                      <path d="M-2 27h4v-3h8v2h3v6h-3v2H2v-3h-4l-4 4V23z" fill="var(--catch-color)" />
-                      <rect x="9" y="26" width="1" height="1" fill="#020604" />
-                    </g>
-                  )}
+                  <BuddyCollectibleIcon id={fishingCatchId || "byte-minnow"} color={fishingCatchItem?.color} className="buddy-caught-specimen" x={-10} y={20} width={30} height={23} />
                 </g>
               </svg>
             </span>
@@ -1973,7 +1987,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
 
           <BuddySprite
             className="screen-buddy-sprite"
-            expression={isHappy ? "happy" : isAsleep ? "sleep" : "idle"}
+            expression={isHappy ? "happy" : isAsleep ? "sleep" : fishingPhase === "bite" || fishingPhase === "omen" ? "surprised" : mood === "hunt" || fishingPhase === "fight" ? "focus" : "idle"}
             facing={facing}
             friendshipLevel={friendshipLevel}
             inventory={inventory}
@@ -1988,14 +2002,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
             >
               <svg className="buddy-fishing-rod-overlay-svg" viewBox="0 0 44 78" width="44" height="78">
                 <g shapeRendering="crispEdges">
-                  <rect className="buddy-rod-seg" x="30" y="40" width="4" height="3" fill="#b8f7ff" />
-                  <rect className="buddy-rod-seg" x="24" y="34" width="8" height="3" fill="#b8f7ff" />
-                  <rect className="buddy-rod-seg" x="17" y="27" width="9" height="3" fill="#b8f7ff" />
-                  <rect className="buddy-rod-seg" x="10" y="20" width="9" height="3" fill="#b8f7ff" />
-                  <rect className="buddy-rod-tip" x="5" y="13" width="7" height="3" fill="#45d8ff" />
-                  <rect className="buddy-rod-tip" x="4" y="10" width="4" height="4" fill="#45d8ff" />
-                  <rect x="26" y="43" width="5" height="5" fill="#ffd166" />
-                  <rect x="27" y="44" width="2" height="2" fill="#020604" />
+                  <BuddyFishingRodArt />
 
                   {/* Two small foreground grips visually lock her posed hands
                       around the handle instead of letting it cross her body. */}
@@ -2013,5 +2020,5 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         <span className="screen-buddy-shadow" aria-hidden="true" />
       </button>
     </div>
-  );
+  </>);
 }
