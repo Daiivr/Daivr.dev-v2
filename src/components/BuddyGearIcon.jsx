@@ -5,12 +5,19 @@ export function BuddyGearArt({ id }) {
     case "miku-costume":
       artwork = (
         <>
-          <path d="M3 3h4v3H6v9H4V8H2V5h1zm14 0h4v2h1v3h-2v7h-2V6h-1z" fill="#45d8ca" />
-          <path d="M9 3h6v2h2v6h-2v2H9v-2H7V5h2z" fill="#ffd8c8" />
-          <path d="M8 2h8v4h-2V4h-2v3h-2V4H8z" fill="#45d8ca" />
-          <path d="M8 12h8v2h1v4h-3v4h-2v-4h-2v4H8v-4H6v-4h2z" fill="#252d39" />
-          <path d="M10 12h4v6h-4z" fill="#45d8ca" />
-          <path d="M7 17h10v2H7z" fill="#d9e5e4" />
+          <path d="M3 4h4v13H6v3H2v-4H1V8h2zM17 4h4v4h2v8h-1v4h-4v-3h-1z" fill="#12353e" />
+          <path d="M3 7h3v9H5v3H3zM18 7h3v12h-2v-3h-1z" fill="#2abbb6" />
+          <path d="M3 8h1v7H3zM20 8h1v7h-1z" fill="#70e9d6" />
+          <path d="M8 1h8v2h2v8h-2v2H8v-2H6V3h2z" fill="#12353e" />
+          <path d="M8 5h8v6h-2v1h-4v-1H8z" fill="#ffe1ca" />
+          <path d="M8 2h8v2h1v3h-2V5h-2v2h-2V4H9v2H7V4h1z" fill="#2abbb6" />
+          <path d="M8 2h6v1H8z" fill="#70e9d6" />
+          <path d="M5 3h2v5H5zM17 3h2v5h-2z" fill="#f163a5" />
+          <path d="M9 8h2v2H9zM14 8h2v2h-2z" fill="#253344" />
+          <path d="M9 8h1v1H9zM14 8h1v1h-1z" fill="#70e9d6" />
+          <path d="M8 12h8v2h2v4h-2v4h-3v-3h-2v3H8v-4H6v-4h2z" fill="#273342" />
+          <path d="M9 13h6v4H9z" fill="#d6e7e5" />
+          <path d="M11 13h2v4h-2zM7 18h10v1H7zM8 22h3v1H8zM13 22h3v1h-3z" fill="#40c9c1" />
         </>
       );
       break;

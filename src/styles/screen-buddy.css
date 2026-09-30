@@ -795,7 +795,7 @@
   }
 
   .buddy-miku-costume-sprite {
-    filter: drop-shadow(0 0 9px rgba(72, 222, 208, 0.34));
+    filter: drop-shadow(0 0 4px rgba(72, 222, 208, 0.2));
   }
 
   .buddy-miku-arm,

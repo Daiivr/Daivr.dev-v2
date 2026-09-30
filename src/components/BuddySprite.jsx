@@ -99,91 +99,127 @@ export function BuddyRodIcon({ className = "", rodId = "", lureId = "" }) {
 function BuddyMikuCostume({ expression = "idle", rocketBoots = false }) {
   const isHappy = expression === "happy";
   const isAsleep = expression === "sleep";
+  const isAlert = expression === "surprised";
+  const isFocused = expression === "focus";
 
   return (
     <g className="buddy-miku-costume" shapeRendering="crispEdges">
-      {/* Big rounded twin-tails, closely following the user's chibi reference. */}
+      {/* Stepped outlines and broad highlight bands stay legible at footer size.
+          Keep the tail/limb groups separate for the existing activity animations. */}
       <g className="buddy-hair-tail buddy-hair-tail-l">
-        <rect x="5" y="5" width="10" height="7" fill="#161d27" />
-        <rect x="7" y="6" width="6" height="3" fill="#ff3d9d" />
-        <path d="M3 8h8v3h3v8h-2v12h-2v7H8v5H4v-2H2v-5H1V29H0V17h2v-6h1z" fill="#39cfc4" />
-        <path d="M3 12h3v24H4v4H2V18h1z" fill="#8af7e9" />
-        <path d="M9 11h4v9h-2v12H9v7H7v4H4v-3h2v-9h2V19h1z" fill="#147b83" />
-        <g className="buddy-hair-tip"><path d="M3 39h7v3H8v3H4v-2H2v-2h1z" fill="#147b83" /></g>
+        <path d="M5 6h8v7h-1v13h-1v10H9v7H7v2H3v-3H1V31H0V18h1v-7h2V8h2z" fill="#12353e" />
+        <path d="M5 9h6v15h-1v11H8v7H4v-3H3V28H2V18h1v-6h2z" fill="#209eaa" />
+        <path d="M5 11h3v15H7v12H5v-8H4V17h1z" fill="#50dfd1" />
+        <path d="M5 12h2v9H5z" fill="#a0f4df" />
+        <path d="M9 14h2v12h-1v9H8v5H6v-3h1V25h2z" fill="#197482" />
+        <g className="buddy-hair-tip">
+          <path d="M3 39h6v4H7v3H3v-2H2v-3h1z" fill="#12353e" />
+          <path d="M4 39h3v4H4z" fill="#37bfb9" />
+        </g>
       </g>
       <g className="buddy-hair-tail buddy-hair-tail-r">
-        <rect x="33" y="5" width="10" height="7" fill="#161d27" />
-        <rect x="35" y="6" width="6" height="3" fill="#ff3d9d" />
-        <path d="M37 8h8v3h1v6h2v12h-1v7h-1v5h-2v2h-4v-5h-2v-7h-2V19h-2v-8h3z" fill="#39cfc4" />
-        <path d="M42 12h3v6h1v22h-2v-4h-2z" fill="#8af7e9" />
-        <path d="M35 11h4v8h1v12h2v9h2v3h-3v-4h-2v-7h-2V20h-2z" fill="#147b83" />
-        <g className="buddy-hair-tip"><path d="M38 39h7v2h1v2h-2v2h-4v-3h-2z" fill="#147b83" /></g>
+        <path d="M35 6h8v2h2v3h2v7h1v13h-1v11h-2v3h-4v-2h-2v-7h-2V26h-1V13h-1z" fill="#12353e" />
+        <path d="M37 9h6v3h2v6h1v10h-1v11h-1v3h-4v-7h-2V24h-1z" fill="#209eaa" />
+        <path d="M40 11h3v6h1v13h-1v8h-2V26h-1z" fill="#50dfd1" />
+        <path d="M41 12h2v9h-2z" fill="#a0f4df" />
+        <path d="M37 14h2v11h2v12h1v3h-2v-5h-2v-9h-1z" fill="#197482" />
+        <g className="buddy-hair-tip">
+          <path d="M39 39h6v2h1v3h-1v2h-4v-3h-2z" fill="#12353e" />
+          <path d="M41 39h3v4h-3z" fill="#37bfb9" />
+        </g>
       </g>
 
       {/* Oversized chibi head: a broad face, soft eyes and stepped bangs keep
           Miku friendly and readable even when the sprite is only 64px wide. */}
       <g className="buddy-miku-head">
-        <path d="M14 2h20v2h3v3h2v12h-2v3h-3v3h-5v2H19v-2h-5v-3h-3v-3H9V7h2V4h3z" fill="#ffd8c8" />
-        <path d="M14 1h20v2h3v3h2v10h-4V8h-3v6h-3V9h-3v7h-4V9h-3v6h-3V9h-3v7H9V6h2V3h3z" fill="#39cfc4" />
-        <path d="M15 1h14v2H15zm-2 3h8v2h-8z" fill="#8af7e9" />
-        <path d="M9 8h5v12h-3v-3H9zm25 0h5v9h-2v3h-3z" fill="#147b83" />
-
-        <path d="M8 4h6v12H8zM34 4h6v12h-6z" fill="#161d27" />
-        <path d="M9 6h4v5H9zm26 0h4v5h-4z" fill="#ff3d9d" />
-        <path d="M37 13h4v2h-2v3h-3v-2h1z" fill="#161d27" />
-        <rect x="39" y="16" width="2" height="2" fill="#ff3d9d" />
+        <path d="M15 0h17v1h4v2h3v4h1v13h-2v3h-4v2H20v-1h-6v-2h-3v-3H9V7h2V3h4z" fill="#12353e" />
+        <path d="M14 8h21v3h2v9h-2v2h-4v2H20v-1h-5v-2h-2V11h1z" fill="#e9ad9e" />
+        <path d="M15 9h18v2h3v8h-2v3h-5v1h-9v-1h-4v-2h-2V11h1z" fill="#ffe1ca" />
+        <path d="M16 11h16v2H16z" fill="#fff0db" />
+        {/* A swept fringe opens above the eyes instead of crossing the pupils. */}
+        <path d="M15 2h17v1h4v3h2v10h-3v-5h-3V8h-3v4h-3V9h-2v4h-3V8h-2v3h-3v4h-4V6h3z" fill="#2abbb6" />
+        <path d="M16 3h14v2H16zm-3 3h7v2h-4v3h-3zM23 5h3v4h-2V7h-1z" fill="#70e9d6" />
+        <path d="M16 3h9v1h-9z" fill="#b1f7e2" />
+        <path d="M30 5h4v2h2v7h-2v-4h-3V8h-1zM12 12h3v6h-2v2h-1zM34 14h3v6h-3z" fill="#19858f" />
+        {/* Pink-edged hair clips, ear cups, and a small headset microphone. */}
+        <path d="M7 5h5v8H7zM36 5h5v8h-5z" fill="#222838" />
+        <path d="M8 6h3v2H9v4H8zM37 6h3v6h-1V8h-2z" fill="#f163a5" />
+        <path d="M10 13h3v6h-3zM36 13h3v6h-3z" fill="#303749" />
+        <path d="M11 14h1v3h-1zM37 14h1v3h-1z" fill="#f163a5" />
+        <path d="M37 18v3h-5v-2h2v1h2v-2z" fill="#303749" />
 
         {isAsleep ? (
-          <path d="M16 16h5v1h-5zm12 0h5v1h-5z" fill="#17212a" />
+          <path d="M16 17h2v1h3v-1h1v2h-5v-1h-1zM27 17h1v1h3v-1h2v1h-1v1h-5z" fill="#253344" />
+        ) : isHappy ? (
+          <path d="M16 17v-2h1v-1h3v1h1v2h-1v-1h-3v1zM28 17v-2h1v-1h3v1h1v2h-1v-1h-3v1z" fill="#253344" />
         ) : (
           <>
             <g className="buddy-eye">
-              <rect x="16" y="14" width="4" height="6" fill="#17212a" />
+              <path d="M15 14h6v6h-5v-5h-1z" fill="#253344" />
+              <path d="M17 15h3v5h-3z" fill="#238e9f" />
+              <path d="M17 18h3v2h-3z" fill="#4edbd0" />
+              <rect x="17" y="15" width="2" height="2" fill="#f2ffec" />
+              {isFocused ? <path d="M15 14h6v2h-3v-1h-3z" fill="#253344" /> : null}
             </g>
             <g className="buddy-eye">
-              <rect x="29" y="14" width="4" height="6" fill="#17212a" />
+              <path d="M28 14h6v1h-1v5h-5z" fill="#253344" />
+              <path d="M29 15h3v5h-3z" fill="#238e9f" />
+              <path d="M29 18h3v2h-3z" fill="#4edbd0" />
+              <rect x="29" y="15" width="2" height="2" fill="#f2ffec" />
+              {isFocused ? <path d="M28 14h6v1h-3v1h-3z" fill="#253344" /> : null}
             </g>
           </>
         )}
-        <rect x="12" y="21" width="3" height="1" fill="#ff91ae" opacity=".72" />
-        <rect x="34" y="21" width="3" height="1" fill="#ff91ae" opacity=".72" />
+        <path d="M15 20h3v1h-3zM31 20h3v1h-3z" fill="#ed9eac" />
         {isHappy
           ? <path d="M21 21h1v1h5v-1h1v2h-2v1h-3v-1h-2z" fill="#d95778" />
-          : <path d="M23 22h3v1h-3z" fill="#d95778" />}
+          : isAlert
+            ? <path d="M23 20h3v3h-3z" fill="#bd6b7d" />
+            : <path d="M23 21h3v1h-3z" fill="#bd6b7d" />}
       </g>
 
       {/* Larger white/gray blouse, wide collar, teal tie and detached sleeves. */}
-      <rect x="22" y="22" width="6" height="3" fill="#ffd8c8" />
+      <rect x="22" y="24" width="6" height="2" fill="#e9ad9e" />
       <g className="buddy-miku-torso">
-        <path d="M17 24h16v2h2v9H15v-9h2z" fill="#e8f1ef" />
-        <path d="M18 26h4v7h-4zm10 0h4v7h-4z" fill="#9aa9ad" />
-        <path d="M17 24h6v3h4v-3h6v3h-5v3h-6v-3h-5z" fill="#27313c" />
-        <path d="M23 26h4v3h1v7h-6v-7h1z" fill="#39cfc4" />
-        <rect x="24" y="27" width="2" height="7" fill="#8af7e9" />
+        <path d="M17 25h16v2h2v8H15v-8h2z" fill="#273342" />
+        <path d="M18 26h14v2h1v6H17v-6h1z" fill="#b7cbd0" />
+        <path d="M18 27h4v6h-4zM28 27h3v5h-3z" fill="#e1efeb" />
+        <path d="M18 25h4v1h3v2h-3v1h-2v-2h-2zM28 25h4v2h-2v2h-2v-1h-3v-2h3z" fill="#f0f6ee" />
+        <path d="M24 27h2v2h1v5h-1v1h-2v-1h-1v-5h1z" fill="#219eaa" />
+        <path d="M24 29h1v4h-1z" fill="#72e8d6" />
+        <path d="M29 30h2v1h-2z" fill="#e7be6d" />
       </g>
 
       <g className="buddy-miku-arm buddy-miku-arm-l">
-        <rect x="12" y="25" width="5" height="8" fill="#ffd8c8" />
+        <rect x="12" y="26" width="5" height="7" fill="#e9ad9e" />
+        <rect x="13" y="26" width="3" height="5" fill="#ffe1ca" />
         <path d="M8 31h7v9h-2v2H8v-2H7v-7h1z" fill="#202633" />
-        <rect x="8" y="32" width="2" height="8" fill="#39cfc4" />
-        <rect x="10" y="41" width="4" height="3" fill="#ffd8c8" />
+        <path d="M9 32h5v2H9zM9 39h4v2H9z" fill="#39c6bf" />
+        <path d="M9 34h2v5H9z" fill="#43516a" />
+        <path d="M12 35h2v1h-2z" fill="#e7be6d" />
+        <rect x="10" y="41" width="4" height="3" fill="#ffe1ca" />
       </g>
       <g className="buddy-miku-arm buddy-miku-arm-r">
-        <rect x="33" y="25" width="5" height="8" fill="#ffd8c8" />
+        <rect x="33" y="26" width="5" height="7" fill="#e9ad9e" />
+        <rect x="33" y="26" width="3" height="5" fill="#ffe1ca" />
         <rect x="35" y="27" width="2" height="2" fill="#ff4b61" />
         <path d="M35 31h7v2h1v7h-1v2h-5v-2h-2z" fill="#202633" />
-        <rect x="40" y="32" width="2" height="8" fill="#39cfc4" />
-        <rect x="36" y="41" width="4" height="3" fill="#ffd8c8" />
+        <path d="M36 32h5v2h-5zM37 39h4v2h-4z" fill="#39c6bf" />
+        <path d="M36 34h2v5h-2z" fill="#43516a" />
+        <path d="M39 35h2v1h-2z" fill="#e7be6d" />
+        <rect x="36" y="41" width="4" height="3" fill="#ffe1ca" />
       </g>
 
       {/* Wide pleated skirt and two truly independent thigh-high boot groups. */}
-      <path d="M15 34h20v2h2v4H11v-4h4z" fill="#252b38" />
-      <path d="M13 38h5v-1h4v1h4v-1h4v1h5v2H13z" fill="#39cfc4" />
-      <path d="M16 35h2v4h-2zm7 0h2v4h-2zm7 0h2v4h-2z" fill="#3b4351" />
+      <path d="M16 34h18v2h2v2h1v3H13v-3h1v-2h2z" fill="#202633" />
+      <path d="M17 35h3v4h-5v-2h2zM23 35h3v4h-3zM29 35h3v2h2v2h-5z" fill="#49566c" />
+      <path d="M17 34h16v1H17zM14 39h22v1H14z" fill="#40c9c1" />
+      <path d="M20 35h1v3h-1zM27 35h1v3h-1z" fill="#82959d" />
 
       <g className="buddy-miku-leg buddy-miku-leg-l buddy-leg buddy-leg-l buddy-leg-foot buddy-leg-foot-l">
-        <rect x="17" y="40" width="7" height="3" fill="#ffd8c8" />
+        <rect x="17" y="41" width="7" height="2" fill="#ffe1ca" />
         <rect x="17" y="43" width="7" height="4" fill="#202633" />
+        <path d="M18 44h2v3h-2z" fill="#49566c" />
         <path d="M16 46h8v2h2v1H15v-2h1z" fill="#151a23" />
         <rect x="15" y="48" width="11" height="1" fill="#39cfc4" />
         {rocketBoots ? (
@@ -200,8 +236,9 @@ function BuddyMikuCostume({ expression = "idle", rocketBoots = false }) {
         ) : null}
       </g>
       <g className="buddy-miku-leg buddy-miku-leg-r buddy-leg buddy-leg-r buddy-leg-foot buddy-leg-foot-r">
-        <rect x="27" y="40" width="7" height="3" fill="#ffd8c8" />
+        <rect x="27" y="41" width="7" height="2" fill="#ffe1ca" />
         <rect x="27" y="43" width="7" height="4" fill="#202633" />
+        <path d="M28 44h2v3h-2z" fill="#49566c" />
         <path d="M27 46h8v1h1v2H26v-1h1z" fill="#151a23" />
         <rect x="26" y="48" width="10" height="1" fill="#39cfc4" />
         {rocketBoots ? (

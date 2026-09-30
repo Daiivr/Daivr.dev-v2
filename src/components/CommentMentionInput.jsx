@@ -1,15 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { MAX_MENTIONS } from "../../shared/comment-mentions.mjs";
+import { findMentionRanges, insertMention, MAX_MENTIONS, mentionQuery, mentionsInText } from "../../shared/comment-mentions.mjs";
 import { AtSign, CornerDownLeft } from "lucide-react";
-
-export function CommentMentions({ mentions = [], userId }) {
-  if (!mentions.length) return null;
-  return (
-    <div className="comment-mentions" aria-label="Mentioned users">
-      {mentions.map((user) => <span className={`comment-mention ${String(user.id) === String(userId) ? "is-you" : ""}`} key={user.id}>@{user.username}{String(user.id) === String(userId) ? " (you)" : ""}</span>)}
-    </div>
-  );
-}
 
 export function CommentMentionInput({ value, onChange, mentions, onMentionsChange, users, disabled, placeholder, label, maxLength }) {
   const id = useId();
@@ -19,10 +10,14 @@ export function CommentMentionInput({ value, onChange, mentions, onMentionsChang
   const [focused, setFocused] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [active, setActive] = useState(0);
-  const match = value.slice(0, cursor).match(/(?:^|\s)@([^@\n]{0,32})$/);
-  const query = match?.[1].toLocaleLowerCase();
-  const open = focused && !dismissed && !!match && mentions.length < MAX_MENTIONS;
-  const suggestions = open ? users.filter((user) => !mentions.some((selected) => selected.id === user.id) && user.username.toLocaleLowerCase().includes(query)).slice(0, 6) : [];
+  const [selectionError, setSelectionError] = useState("");
+  const match = mentionQuery(value, cursor);
+  const query = match?.query.toLocaleLowerCase();
+  const pastMention = match && findMentionRanges(value, mentions).some((range) => range.start === match.start && range.end < cursor);
+  const open = focused && !disabled && !dismissed && !!match && !pastMention;
+  const suggestions = open ? users.filter((user) =>
+    (mentions.length < MAX_MENTIONS || mentions.some((selected) => selected.id === user.id)) && user.username.toLocaleLowerCase().includes(query)
+  ).slice(0, 6) : [];
   const activeIndex = Math.min(active, Math.max(0, suggestions.length - 1));
 
   useEffect(() => {
@@ -36,14 +31,16 @@ export function CommentMentionInput({ value, onChange, mentions, onMentionsChang
   }, [activeIndex, open, query]);
 
   function selectUser(user) {
-    const start = cursor - match[1].length - 1;
-    onChange(value.slice(0, start) + value.slice(cursor));
-    onMentionsChange([...mentions, user]);
-    setCursor(start);
+    const inserted = insertMention(value, cursor, user, maxLength);
+    if (!inserted) { setSelectionError("Not enough room for this mention. Shorten your message first."); return; }
+    onChange(inserted.value);
+    onMentionsChange(mentionsInText(inserted.value, [...mentions.filter((entry) => entry.id !== user.id), user]));
+    setCursor(inserted.cursor);
+    setSelectionError("");
     setDismissed(true);
     requestAnimationFrame(() => {
       inputRef.current?.focus();
-      inputRef.current?.setSelectionRange(start, start);
+      inputRef.current?.setSelectionRange(inserted.cursor, inserted.cursor);
     });
   }
 
@@ -58,9 +55,13 @@ export function CommentMentionInput({ value, onChange, mentions, onMentionsChang
           aria-activedescendant={suggestions.length ? `${id}-option-${activeIndex}` : undefined} aria-describedby={`${id}-hint`}
           onFocus={() => setFocused(true)}
           onSelect={(event) => setCursor(event.currentTarget.selectionStart)}
-          onChange={(event) => { onChange(event.target.value); setCursor(event.target.selectionStart); setDismissed(false); setActive(0); }}
+          onChange={(event) => {
+            onChange(event.target.value);
+            onMentionsChange(mentionsInText(event.target.value, mentions));
+            setCursor(event.target.selectionStart); setDismissed(false); setActive(0); setSelectionError("");
+          }}
           onKeyDown={(event) => {
-            if (!open) return;
+            if (!open || event.nativeEvent.isComposing) return;
             if (event.key === "Escape") { event.preventDefault(); event.stopPropagation(); setDismissed(true); }
             if (!suggestions.length) return;
             if (["ArrowDown", "ArrowUp"].includes(event.key)) {
@@ -85,11 +86,7 @@ export function CommentMentionInput({ value, onChange, mentions, onMentionsChang
         </div>
         <div className="comment-mention-menu-footer" aria-hidden="true"><span><kbd>↑</kbd><kbd>↓</kbd> navigate</span><span><kbd>↵</kbd> select <kbd>esc</kbd> close</span></div>
       </div> : null}
-      {mentions.length ? <div className="comment-mentions" aria-label="Selected mentions">
-        {mentions.map((user) => <button className="comment-mention" key={user.id} type="button" disabled={disabled}
-          aria-label={`Remove mention of ${user.username}`} onClick={() => onMentionsChange(mentions.filter((entry) => entry.id !== user.id))}>@{user.username} ×</button>)}
-      </div> : null}
-      <small className="comment-mention-hint" id={`${id}-hint`}>{mentions.length === MAX_MENTIONS ? "Mention limit reached (5)." : "Type @ to select a guestbook user."} Selected tags invite people to reply in this thread.</small>
+      <small className="comment-mention-hint" id={`${id}-hint`} aria-live="polite">{selectionError || (mentions.length === MAX_MENTIONS ? "Mention limit reached (5 people)." : "Type @ and choose a player to mention them in your sentence.")} Delete their @name to remove the mention.</small>
     </div>
   );
 }

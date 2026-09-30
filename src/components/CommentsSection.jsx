@@ -16,7 +16,6 @@ import {
   Reply,
   Search,
   Send,
-  ShieldCheck,
   SmilePlus,
   Trash2,
   X
@@ -24,9 +23,10 @@ import {
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { DecodeText } from "./DecodeText";
-import { CommentMentionInput, CommentMentions } from "./CommentMentionInput";
-import { canReply, isMentioned, mentionCandidates } from "../../shared/comment-mentions.mjs";
+import { CommentMentionInput } from "./CommentMentionInput";
+import { canReply, findMentionRanges, isMentioned, mentionCandidates, mentionPattern, mentionsInText, withMentionText } from "../../shared/comment-mentions.mjs";
 import { NotificationsBell } from "./NotificationsBell";
+import { CommentAdminBadge } from "./CommentAdminBadge";
 import { commentHash } from "../lib/commentLinks";
 import { loadCommentDraft, saveCommentDraft } from "../lib/commentDrafts";
 
@@ -233,35 +233,53 @@ function safeMarkdownUrl(value) {
   }
 }
 
-function parseMarkdownInline(text, keyPrefix = "md") {
+function renderMentionText(text, mentions, userId) {
+  const nodes = [];
+  let lastIndex = 0;
+  for (const { start, end, user } of findMentionRanges(text, mentions)) {
+    if (start > lastIndex) nodes.push(text.slice(lastIndex, start));
+    const isYou = String(user.id) === String(userId);
+    nodes.push(<span className={`comment-mention-inline${isYou ? " is-you" : ""}`} title={isYou ? "Mentioned you" : `Mentioned ${user.username}`} key={`mention-${start}`}>{text.slice(start, end)}</span>);
+    lastIndex = end;
+  }
+  if (lastIndex < text.length) nodes.push(text.slice(lastIndex));
+  return nodes;
+}
+
+function parseMarkdownInline(text, keyPrefix = "md", mentions = [], userId) {
   const source = String(text || "");
   const tokenPattern = /(\[([^\]]{1,90})\]\(([^)\s]+)\)|`([^`]+)`|\*\*([^*]+)\*\*|__([^_]+)__|\*([^*]+)\*|_([^_]+)_|~~([^~]+)~~|==([^=]+)==|\^\^([^^]+)\^\^|\|\|([^|]+)\|\||https?:\/\/[^\s<]+)/g;
+  // Give complete handles priority so underscores in a username aren't parsed
+  // as Markdown. Code and link destinations retain their literal contents.
+  const tokens = new RegExp(`${mentionPattern(mentions)}|${tokenPattern.source}`, "giu");
   const nodes = [];
   let lastIndex = 0;
   let match;
 
-  while ((match = tokenPattern.exec(source))) {
+  while ((match = tokens.exec(source))) {
     if (match.index > lastIndex) nodes.push(source.slice(lastIndex, match.index));
     const key = `${keyPrefix}-${match.index}`;
     const [raw, , linkLabel, linkUrl, code, boldA, boldB, italicA, italicB, strike, mark, glow, spoiler] = match;
 
-    if (linkLabel && linkUrl) {
+    if (raw.startsWith("@")) {
+      nodes.push(<span key={key}>{renderMentionText(raw, mentions, userId)}</span>);
+    } else if (linkLabel && linkUrl) {
       const href = safeMarkdownUrl(linkUrl);
       nodes.push(href ? <a href={href} key={key} rel="nofollow noreferrer noopener" target="_blank">{linkLabel}</a> : raw);
     } else if (code) {
       nodes.push(<code key={key}>{code}</code>);
     } else if (boldA || boldB) {
-      nodes.push(<strong key={key}>{boldA || boldB}</strong>);
+      nodes.push(<strong key={key}>{renderMentionText(boldA || boldB, mentions, userId)}</strong>);
     } else if (italicA || italicB) {
-      nodes.push(<em key={key}>{italicA || italicB}</em>);
+      nodes.push(<em key={key}>{renderMentionText(italicA || italicB, mentions, userId)}</em>);
     } else if (strike) {
-      nodes.push(<s key={key}>{strike}</s>);
+      nodes.push(<s key={key}>{renderMentionText(strike, mentions, userId)}</s>);
     } else if (mark) {
-      nodes.push(<mark key={key}>{mark}</mark>);
+      nodes.push(<mark key={key}>{renderMentionText(mark, mentions, userId)}</mark>);
     } else if (glow) {
-      nodes.push(<span className="comment-md-glow" key={key}>{glow}</span>);
+      nodes.push(<span className="comment-md-glow" key={key}>{renderMentionText(glow, mentions, userId)}</span>);
     } else if (spoiler) {
-      nodes.push(<span className="comment-md-spoiler" key={key} tabIndex="0">{spoiler}</span>);
+      nodes.push(<span className="comment-md-spoiler" key={key} tabIndex="0">{renderMentionText(spoiler, mentions, userId)}</span>);
     } else {
       const href = safeMarkdownUrl(raw);
       nodes.push(href ? <a href={href} key={key} rel="nofollow noreferrer noopener" target="_blank">{raw}</a> : raw);
@@ -274,8 +292,8 @@ function parseMarkdownInline(text, keyPrefix = "md") {
   return nodes;
 }
 
-function MarkdownText({ text, compact = false }) {
-  const lines = String(text || "").replace(/\r\n/g, "\n").split("\n");
+export function MarkdownText({ text, compact = false, mentions = [], userId }) {
+  const lines = withMentionText(String(text || ""), mentions).replace(/\r\n/g, "\n").split("\n");
   const blocks = [];
   let paragraph = [];
 
@@ -284,7 +302,7 @@ function MarkdownText({ text, compact = false }) {
     const value = paragraph.join("\n");
     blocks.push(
       <p key={`p-${blocks.length}`}>
-        {parseMarkdownInline(value, `p-${blocks.length}`)}
+        {parseMarkdownInline(value, `p-${blocks.length}`, mentions, userId)}
       </p>
     );
     paragraph = [];
@@ -320,7 +338,7 @@ function MarkdownText({ text, compact = false }) {
       }
       blocks.push(
         <blockquote key={`quote-${blocks.length}`}>
-          {parseMarkdownInline(quoteLines.join(" "), `quote-${blocks.length}`)}
+          {parseMarkdownInline(quoteLines.join(" "), `quote-${blocks.length}`, mentions, userId)}
         </blockquote>
       );
       continue;
@@ -336,7 +354,7 @@ function MarkdownText({ text, compact = false }) {
       blocks.push(
         <ul key={`list-${blocks.length}`}>
           {items.map((item, itemIndex) => (
-            <li key={itemIndex}>{parseMarkdownInline(item, `list-${blocks.length}-${itemIndex}`)}</li>
+            <li key={itemIndex}>{parseMarkdownInline(item, `list-${blocks.length}-${itemIndex}`, mentions, userId)}</li>
           ))}
         </ul>
       );
@@ -466,8 +484,8 @@ export function CommentsSection() {
     const id = auth.user?.id;
     if (!id) { setDraftOwner(null); return; }
     const saved = loadCommentDraft(id);
-    setDraft(saved?.draft || ""); setDraftGif(saved?.draftGif || ""); setDraftMentions(saved?.draftMentions || []);
-    setReplyingTo(saved?.replyingTo || ""); setReplyDraft(saved?.replyDraft || ""); setReplyGif(saved?.replyGif || ""); setReplyMentions(saved?.replyMentions || []);
+    setDraft(withMentionText(saved?.draft || "", saved?.draftMentions)); setDraftGif(saved?.draftGif || ""); setDraftMentions(saved?.draftMentions || []);
+    setReplyingTo(saved?.replyingTo || ""); setReplyDraft(withMentionText(saved?.replyDraft || "", saved?.replyMentions)); setReplyGif(saved?.replyGif || ""); setReplyMentions(saved?.replyMentions || []);
     if (saved?.replyingTo && !/^#(comment|reply)-/.test(window.location.hash)) {
       const index = comments.filter((comment) => !comment.pinned).findIndex((comment) => comment.id === saved.replyingTo);
       setPage(index < 0 ? 1 : Math.floor(index / COMMENTS_PER_PAGE) + 1);
@@ -732,6 +750,7 @@ export function CommentsSection() {
   async function submitComment(event) {
     event.preventDefault();
     if (!canPost) return;
+    if (draft.length > MAX_COMMENT_LENGTH) { setStatus("Shorten your message to 700 characters, including mentions."); return; }
 
     setBusy(true);
     setStatus("transmitting comment...");
@@ -740,7 +759,7 @@ export function CommentsSection() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: draft, gifUrl: draftGif, mentionIds: draftMentions.map((user) => user.id) })
+        body: JSON.stringify({ text: draft, gifUrl: draftGif, mentionIds: mentionsInText(draft, draftMentions).map((user) => user.id) })
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "Comment failed");
@@ -765,6 +784,7 @@ export function CommentsSection() {
       return;
     }
     if (!hasContent(replyDraft, replyGif) || busy) return;
+    if (replyDraft.length > MAX_COMMENT_LENGTH) { setStatus("Shorten your reply to 700 characters, including mentions."); return; }
 
     setBusy(true);
     setStatus("transmitting reply...");
@@ -773,7 +793,7 @@ export function CommentsSection() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: replyDraft, gifUrl: replyGif, mentionIds: replyMentions.map((user) => user.id) })
+        body: JSON.stringify({ text: replyDraft, gifUrl: replyGif, mentionIds: mentionsInText(replyDraft, replyMentions).map((user) => user.id) })
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "Reply failed");
@@ -1171,7 +1191,7 @@ export function CommentsSection() {
                 <div className="comments-account-row"><div className="comments-user-chip">
                   <UserAvatar user={auth.user} />
                   <strong>{auth.user.username}</strong>
-                  {auth.user.isAdmin ? <em><ShieldCheck size={12} aria-hidden="true" /> admin</em> : null}
+                  {auth.user.isAdmin ? <CommentAdminBadge /> : null}
                 </div><NotificationsBell inbox={inbox} /></div>
                 <a className="comments-auth-btn is-secondary has-tooltip" data-tooltip="End the Discord guestbook session." href={auth.logoutUrl || "/api/comments/auth/logout"}>
                   <LogOut size={15} aria-hidden="true" />
@@ -1296,7 +1316,7 @@ export function CommentsSection() {
                 <div className="comment-body">
                   <header className="comment-card-head">
                     <strong>{comment.author?.username || "Unknown signal"}</strong>
-                    {comment.author?.isAdmin ? <em className="comment-admin-badge"><ShieldCheck size={11} aria-hidden="true" /> admin</em> : null}
+                    {comment.author?.isAdmin ? <CommentAdminBadge /> : null}
                     <span className="comment-time has-tooltip" data-tooltip={formatFullTimestamp(comment.createdAt)} tabIndex="0">{formatTimestamp(comment.createdAt)}</span>
                     <div className="comment-actions">
                       <button type="button" onClick={() => copyCommentLink(comment.id)} aria-label="Copy comment link"><LinkIcon size={13} aria-hidden="true" /></button>
@@ -1317,8 +1337,7 @@ export function CommentsSection() {
                       ) : null}
                     </div>
                   </header>
-                  {comment.text ? <MarkdownText text={comment.text} /> : null}
-                  <CommentMentions mentions={comment.mentions} userId={auth.user?.id} />
+                  {comment.text || comment.mentions?.length ? <MarkdownText text={comment.text} mentions={comment.mentions} userId={auth.user?.id} /> : null}
                   {isMentioned(comment, auth.user?.id) ? <p className="comment-mention-hint">You were mentioned in this thread — you can reply.</p> : null}
                   <CommentMedia gifUrl={comment.gifUrl} />
 
@@ -1355,7 +1374,7 @@ export function CommentsSection() {
                             <div className="comment-reply-content">
                               <header>
                                 <strong>{reply.author?.username || "Unknown signal"}</strong>
-                                {reply.author?.isAdmin ? <em className="comment-admin-badge"><ShieldCheck size={10} aria-hidden="true" /> admin</em> : null}
+                                {reply.author?.isAdmin ? <CommentAdminBadge /> : null}
                                 {replyFromThreadAuthor ? <em className="comment-op-badge">op</em> : null}
                                 {/* El "replying to" ocupaba una linea propia encima del nombre, o
                                     sea que leias el destino antes de saber quien hablaba. Ahora es
@@ -1373,8 +1392,7 @@ export function CommentsSection() {
                                   </button>
                                 ) : null}
                               </header>
-                              {reply.text ? <MarkdownText compact text={reply.text} /> : null}
-                              <CommentMentions mentions={reply.mentions} userId={auth.user?.id} />
+                              {reply.text || reply.mentions?.length ? <MarkdownText compact text={reply.text} mentions={reply.mentions} userId={auth.user?.id} /> : null}
                               <CommentMedia gifUrl={reply.gifUrl} />
                               {renderReactionControls(comment.id, reply.reactions && typeof reply.reactions === "object" ? reply.reactions : {}, reply.id)}
                             </div>

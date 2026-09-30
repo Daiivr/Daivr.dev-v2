@@ -6,7 +6,40 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { test } from "node:test";
 import { handleCommentsRequest } from "../server/comments.mjs";
-import { canReply, isMentioned, mentionCandidates } from "../shared/comment-mentions.mjs";
+import { canReply, findMentionRanges, insertMention, isMentioned, mentionCandidates, mentionsInText, withMentionText } from "../shared/comment-mentions.mjs";
+import { inboxEvents } from "../server/community-inbox.mjs";
+
+test("inline mentions insert at the caret, preserve the sentence, and respect its length limit", () => {
+  const user = { id: "v", username: "vaskes" };
+  assert.deepEqual(insertMention("hi @vas", 7, user), { value: "hi @vaskes ", cursor: 11 });
+  assert.deepEqual(insertMention("hi @va, welcome!", 6, user), { value: "hi @vaskes, welcome!", cursor: 10 });
+  assert.deepEqual(insertMention("hi @va welcome!", 6, user), { value: "hi @vaskes welcome!", cursor: 11 });
+  assert.deepEqual(insertMention("hi (@va) welcome!", 7, user), { value: "hi (@vaskes) welcome!", cursor: 11 });
+  assert.equal(insertMention("email@va", 8, user), null);
+  assert.equal(insertMention("hi @va", 6, user, 10), null);
+  assert.equal(insertMention("hi @va", 6, user, 11).value.length, 11);
+});
+
+test("editing inline mentions updates recipients without matching emails or longer handles", () => {
+  const users = [{ id: "v", username: "vaskes" }, { id: "a", username: "A B" }, { id: "u", username: "猫_猫" }, { id: "p", username: "a.b+(c)" }];
+  const text = "hi @VASKES, @A B! @猫_猫 and @a.b+(c).";
+  assert.deepEqual(findMentionRanges(text, users).map(({ start, end }) => text.slice(start, end)), ["@VASKES", "@A B", "@猫_猫", "@a.b+(c)"]);
+  assert.deepEqual(mentionsInText("hi @vaskes, and @vaskes again", users), [users[0]]);
+  assert.deepEqual(mentionsInText("hi @vaſkes", users), [users[0]]);
+  assert.deepEqual(mentionsInText("hi @vaskesagain @vaskes.other @vaskes_else email@vaskes https://x/@vaskes", users), []);
+  assert.deepEqual(mentionsInText("hi @vas", users), []);
+  assert.deepEqual(mentionsInText("hello!", users), []);
+  const overlapping = [{ id: "short", username: "A" }, users[1]];
+  assert.deepEqual(mentionsInText("hi @A B", overlapping), [users[1]]);
+});
+
+test("legacy detached mentions are displayed inline without duplicating current mentions", () => {
+  const users = [{ id: "v", username: "vaskes" }];
+  assert.equal(withMentionText("hi", users), "hi @vaskes");
+  assert.equal(withMentionText("hi @vaskes!", users), "hi @vaskes!");
+  assert.equal(withMentionText("", users), "@vaskes");
+  assert.equal(withMentionText("plain text"), "plain text");
+});
 
 test("mentions invite real users into a persistent thread and enforce permissions", async (t) => {
   const dir = mkdtempSync(join(tmpdir(), "daivr-mentions-"));
@@ -46,16 +79,18 @@ test("mentions invite real users into a persistent thread and enforce permission
     const response = await fetch(`http://127.0.0.1:${server.address().port}/api/comments${path}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
     return { status: response.status, data: await response.json() };
   }
-  const created = await request("author", "", { text: "Come join me", mentionIds: ["invited", "invited"] });
+  const created = await request("author", "", { text: "Hi @invited, come join me!", mentionIds: ["invited", "invited"] });
   assert.equal(created.status, 201);
+  assert.equal(created.data.comment.text, "Hi @invited, come join me!");
   assert.deepEqual(created.data.comment.mentions, [{ id: "invited", username: "invited" }]);
   const threadId = created.data.comment.id;
   const path = `/${threadId}/replies`;
   assert.equal((await request(null, path, { text: "Anonymous" })).status, 401);
   assert.equal((await request("other", path, { text: "Self-invite", mentionIds: ["other"] })).status, 403);
   assert.equal((await request("author", path, { text: "Follow-up" })).status, 201);
-  const invitedReply = await request("invited", path, { text: "Thanks!", mentionIds: ["other"] });
+  const invitedReply = await request("invited", path, { text: "Thanks! Hi @other, join us.", mentionIds: ["other"] });
   assert.equal(invitedReply.status, 201);
+  assert.equal(invitedReply.data.reply.text, "Thanks! Hi @other, join us.");
   assert.equal((await request("other", path, { text: "Joining via a reply mention" })).status, 201);
   assert.equal((await request("admin", path, { text: "Moderating" })).status, 201);
 
@@ -71,6 +106,10 @@ test("mentions invite real users into a persistent thread and enforce permission
   assert.equal((await request("admin", `/${plain.data.comment.id}/replies`, { text: "Admin access" })).status, 201);
 
   const persisted = JSON.parse(readFileSync(join(dir, "comments.json"), "utf8")).find((entry) => entry.id === threadId);
+  assert.equal(persisted.text, "Hi @invited, come join me!");
+  const notification = inboxEvents([persisted], users.invited).find((entry) => entry.id === threadId);
+  assert.equal(notification.type, "mention");
+  assert.equal(notification.preview, "Hi @invited, come join me!");
   assert.equal(isMentioned(persisted, "invited"), true);
   assert.equal(isMentioned(persisted, "other"), true);
   assert.equal(canReply(null, persisted), false);
