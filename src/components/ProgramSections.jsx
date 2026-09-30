@@ -1,7 +1,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowRight, Bot, Check, Code2, Copy, Cpu, Download, ExternalLink, Gamepad2, Github, Globe2, Lock, ShieldCheck, Terminal, Twitch, X } from "lucide-react";
 import { FaDiscord, FaSteam } from "react-icons/fa6";
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { now, projects, roomStats, socialLinks, stack } from "../data/site";
 import { DecodeText } from "./DecodeText";
 import { DiscordPresencePanel } from "./DiscordPresencePanel";
@@ -405,6 +405,10 @@ function LinkConsole() {
 function ProjectConsole() {
   const [projectScanInfo, setProjectScanInfo] = useState({});
   const [selectedProjectTitle, setSelectedProjectTitle] = useState("");
+  const [projectView, setProjectView] = useState("overview");
+  const viewTransition = useRef(null);
+  const overviewFocusRef = useRef(null);
+  const storyBackRef = useRef(null);
   const [liveScan, setLiveScan] = useState(null);
   const [scanError, setScanError] = useState("");
   const lanyardDockRef = useRef(null);
@@ -414,6 +418,7 @@ function ProjectConsole() {
     function openLinkedProject() {
       const project = projects.find((entry) => window.location.hash === `#project-${projectStories[entry.title]?.slug}`);
       if (project) {
+        setProjectView("overview");
         setSelectedProjectTitle(project.title);
         window.setTimeout(() => lanyardDockRef.current?.scrollIntoView({ block: "start", behavior: "auto" }), 100);
       }
@@ -509,11 +514,59 @@ function ProjectConsole() {
   }, [selectedProject]);
 
   function selectProject(project) {
+    setProjectView("overview");
     setSelectedProjectTitle((current) => current === project.title ? "" : project.title);
     window.history.replaceState(null, "", selectedProjectTitle === project.title ? "#builds" : `#project-${projectStories[project.title].slug}`);
     window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
       detail: { type: "cartridge", id: `project:${project.title}` }
     }));
+  }
+
+  function changeProjectView(view) {
+    if (viewTransition.current || view === projectView) return;
+    const panel = lanyardDockRef.current;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const transition = { view, height: panel.getBoundingClientRect().height, reduced, animations: [] };
+    viewTransition.current = transition;
+    if (reduced) { setProjectView(view); return; }
+    const exit = panel.firstElementChild.animate(
+      [{ opacity: 1, transform: "translateY(0)" }, { opacity: 0, transform: "translateY(-6px)" }],
+      { duration: 120, easing: "ease-in", fill: "forwards" }
+    );
+    transition.animations.push(exit);
+    exit.onfinish = () => setProjectView(view);
+  }
+
+  useLayoutEffect(() => {
+    const transition = viewTransition.current;
+    if (!transition || transition.view !== projectView || !selectedProject) return;
+    const panel = lanyardDockRef.current;
+    const target = projectView === "story" ? storyBackRef : overviewFocusRef;
+    target.current?.focus({ preventScroll: true });
+    if (!transition.reduced) {
+      const resize = panel.animate(
+        [{ height: `${transition.height}px`, overflow: "clip" }, { height: `${panel.getBoundingClientRect().height}px`, overflow: "clip" }],
+        { duration: 300, easing: "cubic-bezier(.22,.7,.18,1)" }
+      );
+      const enter = panel.firstElementChild.animate(
+        [{ opacity: 0, transform: "translateY(10px)" }, { opacity: 1, transform: "translateY(0)" }],
+        { duration: 260, easing: "ease-out" }
+      );
+      transition.animations.push(resize, enter);
+      resize.onfinish = () => { viewTransition.current = null; };
+    } else viewTransition.current = null;
+    panel.scrollIntoView({ block: "start", behavior: "instant" });
+  }, [projectView, selectedProject]);
+
+  useEffect(() => () => {
+    viewTransition.current?.animations.forEach((animation) => { animation.onfinish = null; animation.cancel(); });
+    viewTransition.current = null;
+  }, [selectedProjectTitle]);
+
+  function closeProject() {
+    setSelectedProjectTitle("");
+    setProjectView("overview");
+    window.history.replaceState(null, "", "#builds");
   }
 
   const selectedScanData = selectedProject?.modal.type === "download"
@@ -543,17 +596,23 @@ function ProjectConsole() {
       />
 
       {selectedProject ? (
-        <>
+        <div className="project-view" ref={lanyardDockRef}>
+        <div className="project-view-panel" key={`${selectedProject.title}-${projectView}`}>
+        {projectView === "story" ? (
+          <ProjectStory project={selectedProject} key={`story-${selectedProject.title}`} onBack={() => changeProjectView("overview")} onClose={closeProject} backRef={storyBackRef} />
+        ) : (
         <ProjectLanyardDock
-          dockRef={lanyardDockRef}
+          headingRef={overviewFocusRef}
           key={selectedProject.title}
-          onClose={() => { setSelectedProjectTitle(""); window.history.replaceState(null, "", "#builds"); }}
+          onClose={closeProject}
+          onLearnMore={() => changeProjectView("story")}
           project={selectedProject}
           scanData={selectedScanData}
           scanError={scanError}
         />
-        <ProjectStory project={selectedProject} key={`story-${selectedProject.title}`} />
-        </>
+        )}
+        </div>
+        </div>
       ) : null}
     </div>
   );
@@ -596,7 +655,7 @@ function getProjectLanyardScan(project, scanData, scanError) {
   };
 }
 
-function ProjectLanyardDock({ project, scanData, scanError, onClose, dockRef }) {
+function ProjectLanyardDock({ project, scanData, scanError, onClose, onLearnMore, headingRef }) {
   const [showWarning, setShowWarning] = useState(false);
   const virusTotalBadge = getVirusTotalBadge(project, scanData);
   const scan = project.modal.type === "download"
@@ -615,12 +674,11 @@ function ProjectLanyardDock({ project, scanData, scanError, onClose, dockRef }) 
       aria-label={`${project.title} interactive project lanyard`}
       className={`project-lanyard-dock is-${project.visual}`}
       id="project-lanyard-dock"
-      ref={dockRef}
     >
       <header className="project-lanyard-header">
         <div>
           <span>PROJECT.BADGE // SLOT_{project.kicker}</span>
-          <strong>{project.title} access lanyard</strong>
+          <strong ref={headingRef} tabIndex={-1}>{project.title} access lanyard</strong>
         </div>
         <span className="project-lanyard-live"><i /> physics online</span>
         <button className="arcade-focus" type="button" onClick={onClose} aria-label="Retract project lanyard">
@@ -673,6 +731,11 @@ function ProjectLanyardDock({ project, scanData, scanError, onClose, dockRef }) 
               </div>
             </div>
           ) : null}
+
+          <button className="project-learn-more arcade-focus" type="button" onClick={onLearnMore}>
+            <span><strong>Learn more</strong><small>The idea, the build, and how it works</small></span>
+            <ArrowRight size={20} aria-hidden="true" />
+          </button>
 
           <div className="project-lanyard-actions">
             <a className="arcade-focus is-primary" href={project.repoHref} target="_blank" rel="noreferrer">

@@ -57,7 +57,7 @@ export function ProjectFolder({ items, selectedProjectTitle, onSelect }) {
                     <img src={project.image} alt="" aria-hidden="true" decoding="async" />
                   </span>
                   <strong>{project.title}</strong>
-                  <small>{selected ? "lanyard active" : "open project"}</small>
+                  <small>{selected ? "project open" : "open project"}</small>
                 </button>
               );
             })}

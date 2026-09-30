@@ -31,6 +31,8 @@ Completion badges unlock at 1, 7, 25, 50, 100, 250, and 365 daily wins. Streak b
 
 On screens below 1024px, the sidebar is collapsed behind Menu, with Buddy directly accessible. Desktop navigation stays expanded. The project stories are in `src/data/projectStories.js`. Links use `/#project-tradedex` and `/#project-palwatch`; they open the project after the entry greeting. The stories describe documented functionality and contain no invented adoption metrics.
 
+Each project opens on its lanyard overview. Learn more replaces that overview with the project story; Back to overview restores it. Only the active view is mounted, so the physics preview stops while reading. Selecting another project or following a project link starts on its overview. View changes move keyboard focus and scroll to the active panel.
+
 ## Asset caching
 
 The production build generates `dist/.vite/manifest.json`. Only exact build outputs listed there receive year-long immutable caching. Other static files revalidate with ETags; HTML uses `no-cache`. Deploy the complete `dist` directory, including its manifest. Older builds without a manifest safely revalidate every asset.

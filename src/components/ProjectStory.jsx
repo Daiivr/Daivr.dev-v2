@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { ArrowUpRight, BookOpen, Copy, GitBranch, Terminal } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, BookOpen, Copy, GitBranch, Terminal, X } from "lucide-react";
 import { projectStories } from "../data/projectStories";
 
-export function ProjectStory({ project }) {
+export function ProjectStory({ project, onBack, onClose, backRef }) {
   const [status, setStatus] = useState("");
   const [imageFailed, setImageFailed] = useState(false);
   const story = projectStories[project.title];
@@ -13,7 +13,11 @@ export function ProjectStory({ project }) {
     catch { setStatus(`Share: ${url}`); }
   }
   return <article className={`project-story project-story-${story.slug}`} aria-label={`${project.title} project story`}>
-    <div className="project-story-titlebar"><span><Terminal size={14} aria-hidden="true" /> ~/projects/{story.slug}/brief</span><span>PROJECT FILE</span></div>
+    <div className="project-story-titlebar">
+      <button className="project-story-back" type="button" onClick={onBack} ref={backRef}><ArrowLeft size={15} aria-hidden="true" />Back to overview</button>
+      <span className="project-story-route"><Terminal size={14} aria-hidden="true" /> ~/projects/{story.slug}/brief</span>
+      <button className="project-story-close" type="button" onClick={onClose} aria-label={`Close ${project.title} project`}><X size={17} aria-hidden="true" /></button>
+    </div>
     <div className="project-story-body">
       <header className="project-story-heading"><span className="pixel-label">{story.eyebrow}</span><h3>{project.title}<span aria-hidden="true">_</span></h3><p>{story.headline}</p><div className="project-story-tags">{story.focus.map((item) => <span key={item}>{item}</span>)}</div></header>
       <div className="project-story-grid"><div className="project-story-notes"><section><h4><span>01</span> The problem</h4><p>{story.problem}</p></section><section><h4><span>02</span> What I built</h4><p>{story.contribution}</p></section></div>

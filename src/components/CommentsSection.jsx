@@ -980,7 +980,7 @@ export function CommentsSection() {
                 onChange={(event) => setGifQuery(event.target.value)}
                 placeholder="search GIFs..."
               />
-              <button className="has-tooltip" data-tooltip="Search Klipy for GIFs." type="submit" disabled={gifBusy || !gifQuery.trim()}>search</button>
+              <button type="submit" disabled={gifBusy || !gifQuery.trim()}>search</button>
             </form> : null}
             {gifPickerView === "favorites" && gifFavorites.error ? <p className="comments-gif-feedback" role="status">{gifFavorites.error} <button type="button" onClick={gifFavorites.reload}>Retry favorites</button></p> : null}
             <div className="comments-gif-grid">
