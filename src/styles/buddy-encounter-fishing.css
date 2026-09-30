@@ -1,7 +1,13 @@
-@property --buddy-fight-angle {
+@property --buddy-rod-angle {
   syntax: "<angle>";
   inherits: true;
   initial-value: 0deg;
+}
+
+@property --buddy-line-lift {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
 }
 
 @layer components {
@@ -22,36 +28,36 @@
 
   .buddy-cast-trace { opacity: 0; stroke-dasharray: 90; stroke-dashoffset: 90; }
   .buddy-fishing-rig.is-cast .buddy-cast-trace { animation: fishing-cast-trace .56s ease-out both; }
-  .buddy-fishing-rig.is-cast .buddy-fishing-rod-art,
-  .buddy-fishing-rod-overlay.is-cast .buddy-fishing-rod-overlay-svg { animation: fishing-load-and-cast .56s ease-in-out both; }
-  .buddy-fishing-rig.is-cast .buddy-fishing-line-group { animation: fishing-line-release .56s ease-out both; }
+  .screen-buddy-root.is-fishing:has(.buddy-fishing-rig.is-cast) { animation: fishing-load-and-cast .56s ease-in-out both; }
   .buddy-fishing-rig.is-wait .buddy-fishing-bobber { animation: fishing-float-settle 3.2s ease-in-out infinite; }
   .buddy-fishing-rig.is-bite .buddy-fishing-bobber { animation: fishing-double-dip .88s ease-in-out both; }
-  .buddy-fishing-rig.is-bite .buddy-fishing-line-group { animation: fishing-line-tension .88s ease-in-out both; }
-  .buddy-fishing-rig.is-bite .buddy-fishing-rod-art,
-  .buddy-fishing-rod-overlay.is-bite .buddy-fishing-rod-overlay-svg { animation: fishing-hook-set .88s ease-in-out both; }
+  .screen-buddy-root.is-fishing:has(.buddy-fishing-rig.is-bite) { animation: fishing-hook-set .88s ease-in-out both; }
   .buddy-fishing-rig.is-fight .buddy-reel { transform-box: fill-box; transform-origin: center; animation: angler-reel-spin .65s steps(6,end) infinite; }
-  .screen-buddy-root.is-fish-fight { animation: fishing-pull-angle 1.05s ease-in-out infinite; }
-  .buddy-fishing-rig.is-fight .buddy-fishing-rod-art,
-  .buddy-fishing-rod-overlay.is-fight .buddy-fishing-rod-overlay-svg { animation: none; transform: rotate(var(--buddy-fight-angle)); transform-origin: 32px 44px; }
-  .buddy-fishing-rig.is-fight .buddy-fishing-line-group { animation: none; transform: none; }
-  .buddy-fishing-rig.is-fight .buddy-fishing-line {
+  .screen-buddy-root.is-fishing:has(.buddy-fishing-rig.is-fight) { animation: fishing-pull-angle 1.05s ease-in-out infinite; }
+  .screen-buddy-root.is-fishing:has(.buddy-fishing-rig.is-monster) { animation: fishing-monster-angle .9s ease-in-out infinite; }
+  /* Every phase shares the same coordinate system, including Miku's foreground rod.
+     Keep the water fixed instead of rotating the entire SVG or swaying the line group. */
+  .screen-buddy-root.is-fishing .buddy-fishing-svg { animation: none; transform: none; }
+  .screen-buddy-root.is-fishing .buddy-fishing-rig .buddy-fishing-rod-art,
+  .screen-buddy-root.is-fishing .buddy-fishing-rod-overlay-svg { animation: none; transform: rotate(var(--buddy-rod-angle)); transform-origin: 32px 44px; }
+  .screen-buddy-root.is-fishing .buddy-fishing-line-group { animation: none; transform: none; opacity: 1; }
+  .screen-buddy-root.is-fishing .buddy-fishing-line {
     /* Rotate the rod's (6,15) attachment about its (32,44) grip. Shear and
-       stretch only the line, keeping its water endpoint (5,65) fixed. The
-       inherited angle gives both rod layers and the line one animation clock. */
-    --tip-x: calc(32 - 26 * cos(var(--buddy-fight-angle)) + 29 * sin(var(--buddy-fight-angle)));
-    --tip-y: calc(44 - 26 * sin(var(--buddy-fight-angle)) - 29 * cos(var(--buddy-fight-angle)));
+       stretch only the line, keeping its water endpoint (5,65) fixed until
+       the catch lifts the float. The attachment follows the same angle in
+       cast, wait, bite, fight, catch, escape, omen, monster and retreat. */
+    --tip-x: calc(32 - 26 * cos(var(--buddy-rod-angle)) + 29 * sin(var(--buddy-rod-angle)));
+    --tip-y: calc(44 - 26 * sin(var(--buddy-rod-angle)) - 29 * cos(var(--buddy-rod-angle)));
     --line-shear: calc((6 - var(--tip-x)) / 50);
-    --line-stretch: calc((65 - var(--tip-y)) / 50);
+    --line-end-y: calc(65 + var(--buddy-line-lift));
+    --line-stretch: calc((var(--line-end-y) - var(--tip-y)) / 50);
+    animation: none;
     transform-box: view-box;
     transform-origin: 0 0;
-    transform: matrix(1, 0, var(--line-shear), var(--line-stretch), calc(-65 * var(--line-shear)), calc(65 - 65 * var(--line-stretch)));
+    transform: matrix(1, 0, var(--line-shear), var(--line-stretch), calc(-65 * var(--line-shear)), calc(var(--line-end-y) - 65 * var(--line-stretch)));
   }
-  .buddy-fishing-rig.is-catch .buddy-fishing-line-group { animation: none; transform: none; }
-  .buddy-fishing-rig.is-catch .buddy-fishing-line { transform-origin: 6px 15px; animation: fishing-wind-line .8s ease-in-out both; }
-  .buddy-fishing-rig.is-catch .buddy-fishing-bobber { animation: fishing-lift-float .8s ease-in-out both; }
-  .buddy-fishing-rig.is-catch .buddy-fishing-rod-art,
-  .buddy-fishing-rod-overlay.is-catch .buddy-fishing-rod-overlay-svg { animation: fishing-land-rod 1.1s ease-in-out both; }
+  .screen-buddy-root.is-fishing:has(.buddy-fishing-rig.is-catch) { animation: fishing-land-rod 1.1s ease-in-out both, fishing-lift-float .8s ease-in-out both; }
+  .buddy-fishing-rig.is-catch .buddy-fishing-bobber { animation: none; transform: translateY(calc(var(--buddy-line-lift) * 1px)); }
   .buddy-fishing-rig.is-catch .buddy-fishing-loot { transform-box: view-box; transform-origin: 5px 32px; animation: fishing-catch-arc 1.25s cubic-bezier(.2,.6,.3,1) both; }
   .buddy-fishing-rig.is-catch .buddy-caught-specimen .buddy-species-art { transform-box: fill-box; transform-origin: center; animation: fishing-catch-wriggle .45s ease-in-out 1.1s 2; }
   .buddy-fishing-rig.is-catch.tier-junk .buddy-caught-specimen .buddy-species-art,
@@ -62,14 +68,13 @@
   .buddy-fishing-rig.is-catch .buddy-catch-drips path:nth-child(3) { animation-delay: .7s; }
   .buddy-catch-glint { opacity: 0; }
   .buddy-fishing-rig.is-catch:is(.tier-rare,.tier-legendary,.tier-mythic,.tier-treasure) .buddy-catch-glint { animation: fishing-haul-glint 1.1s ease-out .8s both; }
-  .buddy-fishing-rig.is-escape .buddy-fishing-rod-art,
-  .buddy-fishing-rod-overlay.is-escape .buddy-fishing-rod-overlay-svg { animation: fishing-rod-release .7s ease-out both; }
+  .screen-buddy-root.is-fishing:has(.buddy-fishing-rig.is-escape) { animation: fishing-rod-release .7s ease-out both; }
   .buddy-fishing-rig.is-escape .buddy-cast-splash { animation: angler-splash .8s ease-out both; }
   .screen-buddy-root.is-fishing:not(.has-miku-costume):has(.is-bite) .screen-buddy-sprite { animation: fishing-notice-bite .88s ease-in-out both; }
   .screen-buddy-root.is-fishing:not(.has-miku-costume):has(.is-fight) .screen-buddy-sprite { animation: fishing-brace-reel 1.05s ease-in-out infinite; }
   .screen-buddy-root.is-fishing:not(.has-miku-costume):has(.is-catch) .screen-buddy-sprite { animation: fishing-proud-catch 1.25s ease-in-out both; }
   @media (prefers-reduced-motion: reduce) {
-    .screen-buddy-root.is-fish-fight { animation: none; }
+    .screen-buddy-root.is-fishing { animation: none !important; }
     .buddy-field-find *, .pixel-phosphor-moth *, .buddy-cast-trace, .buddy-catch-drips *, .buddy-catch-glint { animation: none !important; }
   }
 }
@@ -80,21 +85,19 @@
 @keyframes phosphor-visit { 0% { opacity: 0; transform: translate(var(--creature-moth-end-x),-20px) scale(.75); } 16% { opacity: 1; transform: translate(var(--creature-moth-mid-x),-9px) rotate(-8deg); } 36% { transform: translate(var(--creature-moth-start-x),-2px) rotate(5deg); } 55% { transform: translate(var(--creature-moth-start-x),-8px) rotate(-5deg); } 76% { opacity: 1; transform: translate(var(--creature-moth-mid-x),-15px); } 100% { opacity: 0; transform: translate(var(--creature-moth-end-x),-30px) scale(.75); } }
 @keyframes encounter-antenna-watch { 0%,100% { transform: rotate(0); } 45% { transform: rotate(-7deg); } 65% { transform: rotate(4deg); } }
 @keyframes fishing-cast-trace { 0%,23% { opacity: 0; stroke-dashoffset: 90; } 45% { opacity: .45; } 85% { opacity: .25; stroke-dashoffset: 0; } 100% { opacity: 0; stroke-dashoffset: 0; } }
-@keyframes fishing-load-and-cast { 0% { transform: rotate(0); } 32% { transform: rotate(38deg); } 60% { transform: rotate(-16deg); } 80% { transform: rotate(5deg); } 100% { transform: rotate(0); } }
-@keyframes fishing-line-release { 0%,28% { transform: rotate(28deg) scaleY(.12); opacity: 0; } 50% { transform: rotate(-12deg) scaleY(.55); opacity: .7; } 83% { transform: rotate(-4deg) scaleY(.95); opacity: 1; } 100% { transform: none; opacity: 1; } }
+@keyframes fishing-load-and-cast { 0% { --buddy-rod-angle: 0deg; } 32% { --buddy-rod-angle: 38deg; } 60% { --buddy-rod-angle: -16deg; } 80% { --buddy-rod-angle: 5deg; } 100% { --buddy-rod-angle: 0deg; } }
 @keyframes fishing-float-settle { 0%,100% { transform: translateY(0) rotate(-2deg); } 35% { transform: translateY(1.5px) rotate(3deg); } 65% { transform: translateY(.5px); } }
 @keyframes fishing-double-dip { 0%,35% { transform: translateY(0); } 20% { transform: translate(1px,3px) rotate(8deg); } 64% { transform: translate(-1px,7px) rotate(-10deg); } 84%,100% { transform: translateY(4px) rotate(3deg); } }
-@keyframes fishing-line-tension { 0%,100% { transform: scaleY(1); } 32% { transform: skewX(-2deg) scaleY(1.045); } 60% { transform: skewX(1deg) scaleY(.98); } 82% { transform: scaleY(1.02); } }
-@keyframes fishing-hook-set { 0%,32% { transform: rotate(0); } 55% { transform: rotate(-9deg); } 80% { transform: rotate(12deg); } 100% { transform: rotate(4deg); } }
-@keyframes fishing-pull-angle { 0%,100% { --buddy-fight-angle: 4deg; } 25% { --buddy-fight-angle: -8deg; } 58%,72% { --buddy-fight-angle: 14deg; } }
-@keyframes fishing-wind-line { 0% { transform: scaleY(1.04); } 25% { transform: scaleY(.95); } 100% { transform: scaleY(.22); } }
-@keyframes fishing-lift-float { 0% { transform: translateY(4px); } 25% { transform: translateY(0); } 100% { transform: translateY(-39px); } }
-@keyframes fishing-land-rod { 0% { transform: rotate(3deg); } 35% { transform: rotate(20deg); } 65% { transform: rotate(-5deg); } 100% { transform: rotate(0); } }
+@keyframes fishing-hook-set { 0%,32% { --buddy-rod-angle: 0deg; } 55% { --buddy-rod-angle: -9deg; } 80% { --buddy-rod-angle: 12deg; } 100% { --buddy-rod-angle: 4deg; } }
+@keyframes fishing-pull-angle { 0%,100% { --buddy-rod-angle: 4deg; } 25% { --buddy-rod-angle: -8deg; } 58%,72% { --buddy-rod-angle: 14deg; } }
+@keyframes fishing-lift-float { 0% { --buddy-line-lift: 4; } 25% { --buddy-line-lift: 0; } 100% { --buddy-line-lift: -39; } }
+@keyframes fishing-monster-angle { 0%,100% { --buddy-rod-angle: -5deg; } 35% { --buddy-rod-angle: 8deg; } 65% { --buddy-rod-angle: -8deg; } }
+@keyframes fishing-land-rod { 0% { --buddy-rod-angle: 3deg; } 35% { --buddy-rod-angle: 20deg; } 65% { --buddy-rod-angle: -5deg; } 100% { --buddy-rod-angle: 0deg; } }
 @keyframes fishing-catch-arc { 0% { opacity: 0; transform: translate(0,44px) rotate(-12deg); } 12% { opacity: 1; } 50% { transform: translate(-8px,-10px) rotate(18deg); } 75% { transform: translate(5px,0) rotate(-8deg); } 100% { opacity: 1; transform: translate(8px,5px) rotate(0); } }
 @keyframes fishing-catch-wriggle { 0%,100% { transform: rotate(0); } 30% { transform: rotate(8deg); } 70% { transform: rotate(-6deg); } }
 @keyframes fishing-haul-drip { 0% { opacity: .8; transform: translateY(0); } 100% { opacity: 0; transform: translateY(18px); } }
 @keyframes fishing-haul-glint { 0%,100% { opacity: 0; } 30%,60% { opacity: .9; } }
-@keyframes fishing-rod-release { 0% { transform: rotate(-10deg); } 35% { transform: rotate(18deg); } 70% { transform: rotate(-6deg); } 100% { transform: rotate(0); } }
+@keyframes fishing-rod-release { 0% { --buddy-rod-angle: -10deg; } 35% { --buddy-rod-angle: 18deg; } 70% { --buddy-rod-angle: -6deg; } 100% { --buddy-rod-angle: 0deg; } }
 @keyframes fishing-notice-bite { 0%,35% { transform: scaleX(var(--buddy-facing)); } 65% { transform: scaleX(var(--buddy-facing)) translateY(-2px) rotate(-3deg); } 100% { transform: scaleX(var(--buddy-facing)) translateY(1px); } }
 @keyframes fishing-brace-reel { 0%,100% { transform: scaleX(var(--buddy-facing)) translateY(1px); } 25% { transform: scaleX(var(--buddy-facing)) translate(-1px,2px) rotate(-3deg); } 58%,72% { transform: scaleX(var(--buddy-facing)) translate(1px,0) rotate(3deg); } }
 @keyframes fishing-proud-catch { 0% { transform: scaleX(var(--buddy-facing)) translateY(2px); } 40% { transform: scaleX(var(--buddy-facing)) translateY(-3px) rotate(-3deg); } 75% { transform: scaleX(var(--buddy-facing)) translateY(1px); } 100% { transform: scaleX(var(--buddy-facing)); } }
