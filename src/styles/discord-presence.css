@@ -3,11 +3,13 @@
     position: relative;
     --card-edge-hot: var(--color-cyan-arcade);
     --card-edge-cool: var(--color-phosphor);
-    background:
-      linear-gradient(115deg, rgba(69, 216, 255, 0.08), transparent 38%),
-      linear-gradient(rgba(63, 255, 151, 0.045) 1px, transparent 1px),
-      #020604;
-    background-size: auto, 100% 5px, auto;
+    --player-card-border: color-mix(in srgb, var(--card-edge-hot) 25%, transparent);
+    --player-card-muted: color-mix(in srgb, var(--color-phosphor-soft) 70%, #979da0);
+    margin-bottom: 18px; overflow: hidden; isolation: isolate;
+    border: 1px solid var(--player-card-border); border-top-color: var(--card-edge-hot);
+    background: radial-gradient(ellipse at 0 25%, color-mix(in srgb, var(--card-edge-hot) 10%, transparent), transparent 65%), #040909;
+    color: var(--color-phosphor-soft); font-family: var(--font-mono);
+    clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
   }
 
   .discord-player-card::before {
@@ -15,18 +17,39 @@
     inset: 0;
     content: "";
     pointer-events: none;
-    border-left: 2px solid color-mix(in srgb, var(--color-cyan-arcade) 68%, transparent);
-    opacity: 0.78;
+    border-left: 2px solid color-mix(in srgb, var(--card-edge-hot) 65%, transparent);
+    background: linear-gradient(90deg, color-mix(in srgb, var(--card-edge-hot) 3%, transparent) 1px, transparent 1px) 0 0 / 18px 18px;
+    z-index: -1;
   }
 
-  .discord-player-card::after {
-    position: absolute;
-    inset: 0 auto 0 -30%;
-    width: 30%;
-    content: "";
-    pointer-events: none;
-    background: linear-gradient(90deg, transparent, rgba(69, 216, 255, 0.16), transparent);
-    animation: player-card-scan 4.2s ease-in-out infinite;
+  .discord-player-topline { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; padding: 9px 12px; border-bottom: 1px solid var(--player-card-border); font-size: 8px; font-weight: 800; letter-spacing: .06em; color: var(--player-card-muted); }
+  .discord-player-topline > span:first-child { white-space: nowrap; }
+  .discord-player-topline i { margin-inline: 4px; color: var(--card-edge-hot); font-style: normal; }
+  .discord-player-signal { display: inline-flex; align-items: center; gap: 4px; color: var(--color-cyan-arcade); text-transform: uppercase; }
+  .discord-player-signal[data-state="error"] { color: var(--color-cabinet); }
+  .discord-player-identity { display: grid; grid-template-columns: 60px minmax(0, 1fr); align-items: center; gap: 12px; padding: 14px 12px 12px; }
+  .discord-player-avatar { position: relative; display: block; width: 60px; height: 60px; outline-offset: 3px; background: #020604; box-shadow: 0 0 0 3px #040909, 0 0 0 4px var(--player-card-border); }
+  .discord-player-nameplate { min-width: 0; }
+  .discord-player-nameplate > strong { display: block; overflow-wrap: anywhere; color: #fff; font: 800 22px/1.25 var(--font-display); }
+  .discord-player-status { display: flex; align-items: center; gap: 5px; margin-top: 5px; font-size: 10px; line-height: 1.4; text-transform: capitalize; }
+  .discord-player-status > i { width: 6px; height: 6px; flex-shrink: 0; }
+  .discord-player-profile-link { display: inline-flex; align-items: center; gap: 3px; min-height: 24px; margin-top: 2px; color: var(--player-card-muted); font-size: 9px; }
+  .discord-player-profile-link:hover, .discord-player-profile-link:focus-visible { color: var(--card-edge-hot); }
+  .discord-player-message { margin: 0 12px 10px; padding: 8px 10px; border-left: 2px solid var(--player-card-border); background: color-mix(in srgb, var(--card-edge-hot) 4%, transparent); }
+  .discord-player-caption { display: block; color: var(--player-card-muted); font-size: 8px; letter-spacing: .08em; }
+  .discord-player-message > div { display: flex; align-items: flex-start; gap: 6px; margin-top: 5px; font-size: 12px; line-height: 1.5; }
+  .discord-player-message :is(img, svg) { width: 14px; height: 14px; flex-shrink: 0; margin-top: 2px; color: var(--card-edge-hot); }
+  .discord-player-message p { margin: 0; overflow-wrap: anywhere; }
+  .discord-player-activity { display: flex; align-items: flex-start; gap: 9px; margin: 0 12px; padding: 10px 0 12px; border-top: 1px solid var(--player-card-border); }
+  .discord-player-activity-icon { display: grid; place-items: center; width: 30px; height: 30px; flex-shrink: 0; border: 1px solid var(--player-card-border); background: color-mix(in srgb, var(--card-edge-hot) 6%, #040909); color: var(--card-edge-hot); }
+  .discord-player-activity > div { min-width: 0; }
+  .discord-player-activity strong { display: block; font-size: 11px; font-weight: 700; line-height: 1.5; overflow-wrap: anywhere; }
+  .discord-player-activity p { margin: 3px 0 0; color: var(--player-card-muted); font-size: 10px; line-height: 1.6; overflow-wrap: anywhere; }
+  .discord-player-footer { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; padding: 8px 12px; border-top: 1px solid var(--player-card-border); background: #0003; font-size: 8px; letter-spacing: .04em; color: var(--player-card-muted); }
+  .discord-player-platforms { display: flex; flex-wrap: wrap; gap: 8px; }
+  .discord-player-platforms > span { display: inline-flex; align-items: center; gap: 4px; color: var(--color-cyan-arcade); text-transform: uppercase; }
+  @media (prefers-reduced-motion: reduce) {
+    .discord-player-avatar-image { transition: none; }
   }
 
   .discord-player-avatar-viewport {
