@@ -27,6 +27,7 @@ import "./styles/buddy-body-water.css";
 import "./styles/buddy-rain-hunt.css";
 import "./styles/buddy-encounter-fishing.css";
 import "./styles/buddy-outage.css";
+import "./styles/pixel-birds.css";
 import "./styles/terminal-dialog.css";
 import "./styles/madrace.css";
 import "./styles/konami-library.css";

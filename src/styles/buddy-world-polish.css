@@ -9,7 +9,7 @@
   .footer-fish-flight { filter: drop-shadow(0 2px 0 #041921) drop-shadow(0 0 4px #45d8ff66); }
   .pixel-leap-fish-svg .buddy-fish-tail { transform-box: fill-box; transform-origin: right center; animation: footer-tail-paddle .22s steps(2,end) infinite; }
   .footer-fish-splash i { border-radius: 0; height: 4px; border-width: 2px; }
-  .footer-rain-frog, .pixel-frog-svg { width: 40px; height: 28px; }
+  .footer-rain-frog, .pixel-frog-svg { width: 28px; height: 20px; }
   .footer-rain-frog { filter: drop-shadow(0 2px 0 #04180e) drop-shadow(0 0 3px #3fff9733); }
   .pixel-frog-eye { transform-box: fill-box; transform-origin: center; animation: frog-blink 4.6s steps(1,end) infinite; }
   .pixel-frog-throat { transform-box: fill-box; transform-origin: top; animation: frog-croak 1.8s steps(3,end) infinite; }

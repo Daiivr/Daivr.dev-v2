@@ -34,6 +34,10 @@ const RAIN_DURATION_MS = 7000;
 const FIND_COOLDOWN_MS = 70000;
 const ENEMY_COOLDOWN_MS = 95000;
 const CREATURE_COOLDOWN_MS = 45000;
+const BIRD_ARRIVAL_MS = 1600;
+const BIRD_LANDING_MS = 420;
+const BIRD_PERCH_MS = 4300;
+const BIRD_DEPARTURE_MS = 1500;
 const OUTAGE_COOLDOWN_MS = 8 * 60 * 1000;
 const DIALOGUE_GAP_MS = 420;
 const MIN_DIALOGUE_MS = 1800;
@@ -1062,11 +1066,16 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         return;
       }
 
+      freezeAtCurrentPosition();
+      updateMood("idle");
       setCreature({ ...item, side: inwardEventDirection(Math.random() < 0.5 ? -1 : 1), phase: "fly-in" });
+      schedule(() => {
+        setCreature((current) => current?.id === "bird" ? { ...current, phase: "landing" } : current);
+      }, BIRD_ARRIVAL_MS);
       schedule(() => {
         setCreature((current) => current?.id === "bird" ? { ...current, phase: "perched" } : current);
         if (["idle", "talk"].includes(moodRef.current)) say(pickLine(LINES.birdHello), 2400);
-      }, 1450);
+      }, BIRD_ARRIVAL_MS + BIRD_LANDING_MS);
 
       schedule(() => {
         setCreature((current) => current?.id === "bird" ? { ...current, phase: "fly-out" } : current);
@@ -1074,13 +1083,13 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
           updateMood("shoo");
           say(pickLine(LINES.birdShoo), 2400);
         }
-      }, 6100);
+      }, BIRD_ARRIVAL_MS + BIRD_LANDING_MS + BIRD_PERCH_MS);
 
       schedule(() => {
         setCreature((current) => current?.id === "bird" ? null : current);
         if (moodRef.current === "shoo") updateMood("idle");
         endBuddyEvent("creature:bird");
-      }, 7500);
+      }, BIRD_ARRIVAL_MS + BIRD_LANDING_MS + BIRD_PERCH_MS + BIRD_DEPARTURE_MS);
     }
 
     function startBugHunt(forcedWeapon = "") {
@@ -1747,6 +1756,10 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
           <span
             className={`buddy-ambient-creature is-bird phase-${creature.phase || "active"}`}
             style={{
+              "--bird-arrival-ms": `${BIRD_ARRIVAL_MS}ms`,
+              "--bird-landing-ms": `${BIRD_LANDING_MS}ms`,
+              "--bird-departure-ms": `${BIRD_DEPARTURE_MS}ms`,
+              "--bird-perch-inset": hasMikuCostume ? "10%" : "3%",
               "--creature-bird-in-start-x": `${creatureSide * 145}px`,
               "--creature-bird-in-mid-x": `${creatureSide * 65}px`,
               "--creature-bird-in-near-x": `${creatureSide * 12}px`,
