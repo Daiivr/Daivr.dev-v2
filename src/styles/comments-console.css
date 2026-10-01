@@ -2147,10 +2147,12 @@
   }
 
   .comment-reply header button {
-    margin-left: auto;
+    margin-left: 0;
     min-height: 1.65rem;
     padding-inline: 0.45rem;
   }
+
+  .comment-reply-header-actions { display: inline-flex; flex: 0 0 auto; align-items: center; gap: 0.36rem; margin-left: auto; }
 
   .comment-reply p {
     font-size: 0.82rem;

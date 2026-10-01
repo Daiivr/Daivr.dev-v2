@@ -3,6 +3,7 @@ import { dailyXp, playerProgression } from "../shared/player-progression.mjs";
 
 // These definitions stay server-side: locked secrets never enter a response.
 const SECRET_BADGES = [
+  { id: "kraken-witness", label: "Eight arms below", tier: "gold", xp: 600, description: "Met the Abyss Kraken while fishing with Buddy.", icon: "sighting", test: (a) => a.krakenSightings > 0 },
   { id: "first-boot", label: "Hello, world", tier: "bronze", xp: 75, description: "Booted Dai.exe for the first time.", icon: "boot", test: (a) => a.daiBooted },
   { id: "fish-archivist", label: "Deep-sea archivist", tier: "diamond", xp: 2000, description: "Caught every fish species in the Buddy journal.", icon: "fish", test: (a) => FISH_CATALOG.filter((fish) => fish.kind === "fish").every((fish) => a.fishCollection?.[fish.id] > 0) },
   { id: "abyss-witness", label: "Abyss witness", tier: "gold", xp: 500, description: "Witnessed the Void Leviathan at the surface.", icon: "sighting", test: (a) => a.leviathanSightings > 0 },

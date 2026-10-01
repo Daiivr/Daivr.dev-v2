@@ -460,7 +460,7 @@ function CabinetApp() {
     if (name === "help") {
       const advanced = args.some((item) => ["--all", "-a", "advanced"].includes(item.toLowerCase()));
       appendTerminal(input, advanced
-        ? "COMMAND INDEX // ALL\n  help [--all]       command directory\n  status             cabinet telemetry\n  ls                 list page nodes\n  goto <node>        navigate the cabinet\n  theme [crt|glitch] set or toggle theme\n  run                boot Dai.exe\n  attract            start arcade demo mode\n  whoami / now / scan / discord / contact\n  date / echo <text> / clear / exit\n\nDIAGNOSTIC BUS // use responsibly\n  fish / forage / wildlife / debugbug\n  leviathan          admin: guaranteed Leviathan sighting\n  blackout           admin: power outage sequence\n    aliases: powerout / power-out\n  season [event]     admin: mount a seasonal cartridge\n  unlockall [off]    admin: unlock all buddy cosmetics"
+        ? "COMMAND INDEX // ALL\n  help [--all]       command directory\n  status             cabinet telemetry\n  ls                 list page nodes\n  goto <node>        navigate the cabinet\n  theme [crt|glitch] set or toggle theme\n  run                boot Dai.exe\n  attract            start arcade demo mode\n  whoami / now / scan / discord / contact\n  date / echo <text> / clear / exit\n\nDIAGNOSTIC BUS // use responsibly\n  fish / forage / wildlife / debugbug\n  leviathan          admin: guaranteed Leviathan sighting\n  kraken             admin: guaranteed Kraken sighting\n  blackout           admin: power outage sequence\n    aliases: powerout / power-out\n  season [event]     admin: mount a seasonal cartridge\n  unlockall [off]    admin: unlock all buddy cosmetics"
         : "COMMAND INDEX\n  status             cabinet telemetry\n  ls                 list page nodes\n  goto <node>        navigate the cabinet\n  theme [crt|glitch] set or toggle theme\n  run                boot Dai.exe\n  attract            start arcade demo mode\n  whoami / now / scan / discord / contact\n  date / echo <text> / clear / exit\n\nHint: type help --all for diagnostics and admin commands.");
       return;
     }
@@ -633,8 +633,8 @@ function CabinetApp() {
         unavailable: "BUDDY OFFLINE // The event could not start. Try again once Buddy is ready."
       };
       appendTerminal(input, result === "started"
-        ? name === "leviathan"
-          ? "ADMIN // LEVIATHAN_OVERRIDE accepted.\nWatch the water by Buddy // sighting guaranteed."
+        ? ["leviathan", "kraken"].includes(name)
+          ? `ADMIN // ${name.toUpperCase()}_OVERRIDE accepted.\nWatch the water by Buddy // sighting guaranteed.`
           : "ADMIN // BREAKER_OVERRIDE accepted.\nPower outage started // flashlight crew notified."
         : messages[result] || messages.unavailable);
       if (result === "started") {

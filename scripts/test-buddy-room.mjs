@@ -108,6 +108,10 @@ test("room API persists per account without changing friendship, gear, or collec
   assert.deepEqual(restored.room, fishingKeepsakes);
   assert.equal(restored.adventure.fishCollection["byte-minnow"], 2);
   assert.equal(restored.pets, 25);
+  await api("alice", { action: "sync-adventure", adventure: { krakenSightings: 2 } });
+  assert.equal((await api("alice")).data.adventure.krakenSightings, 2);
+  await api("alice", { action: "sync-adventure", adventure: { krakenSightings: 1 } });
+  assert.equal((await api("alice")).data.adventure.krakenSightings, 2);
   await api("alice", { action: "save-room", owner: "alice", room: { palette: "amber" } });
   assert.equal((await api("alice")).data.room.aquarium, "");
 });

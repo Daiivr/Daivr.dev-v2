@@ -12,6 +12,7 @@ const COMMAND_HINTS = [
   { name: "run", detail: "boot Dai.exe" },
   { name: "attract", detail: "start arcade demo" },
   { name: "leviathan", detail: "admin: summon a sighting" },
+  { name: "kraken", detail: "admin: summon a kraken sighting" },
   { name: "blackout", detail: "admin: power outage" },
   { name: "whoami", detail: "operator profile" },
   { name: "now", detail: "current save-state" },

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { FIELD_FINDS, FISH_CATALOG, LEVIATHAN } from "../data/buddyWorld";
+import { FIELD_FINDS, FISH_CATALOG, KRAKEN, LEVIATHAN } from "../data/buddyWorld";
 
 const STORAGE_KEY = "daivr.buddyAdventure.v1";
 const GUEST_STORAGE_KEY = "daivr.buddyAdventure.guest.v1";
@@ -72,6 +72,7 @@ function createInitialState() {
     fishCollection: {},
     foundObjects: {},
     leviathanSightings: 0,
+    krakenSightings: 0,
     daiBooted: false,
     bugsDefeated: 0,
     completed: [],
@@ -107,6 +108,7 @@ function normalizeState(value) {
     fishCollection: normalizeCounterMap(source.fishCollection),
     foundObjects: normalizeCounterMap(source.foundObjects),
     leviathanSightings: Math.max(0, Math.floor(Number(source.leviathanSightings) || 0)),
+    krakenSightings: Math.max(0, Math.floor(Number(source.krakenSightings) || 0)),
     daiBooted: source.daiBooted === true,
     bugsDefeated: Math.max(0, Math.floor(Number(source.bugsDefeated) || 0)),
     completed: normalizeList(source.completed),
@@ -138,6 +140,7 @@ function mergeStates(leftValue, rightValue) {
     fishCollection: mergeCounterMaps(left.fishCollection, right.fishCollection),
     foundObjects: mergeCounterMaps(left.foundObjects, right.foundObjects),
     leviathanSightings: Math.max(left.leviathanSightings, right.leviathanSightings),
+    krakenSightings: Math.max(left.krakenSightings, right.krakenSightings),
     daiBooted: left.daiBooted || right.daiBooted,
     bugsDefeated: Math.max(left.bugsDefeated, right.bugsDefeated),
     completed: normalizeList([...left.completed, ...right.completed]),
@@ -348,6 +351,9 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
           };
         }
 
+        if (detail.type === "fishing-sighting" && detail.id === KRAKEN.id) {
+          return { ...current, krakenSightings: Math.min(99, current.krakenSightings + 1) };
+        }
         if (detail.type === "fishing-sighting" && detail.id === LEVIATHAN.id) {
           return { ...current, leviathanSightings: Math.min(99, current.leviathanSightings + 1) };
         }
@@ -418,6 +424,7 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
     finds,
     discoveredFindCount: finds.filter((item) => item.discovered).length,
     leviathanSightings: state.leviathanSightings,
+    krakenSightings: state.krakenSightings,
     bugsDefeated: state.bugsDefeated
   };
 }

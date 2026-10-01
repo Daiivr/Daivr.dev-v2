@@ -1,5 +1,6 @@
 import { FISH_CATALOG } from "../../shared/buddy-catches.mjs";
 export { FISH_CATALOG };
+export { KRAKEN } from "../../shared/buddy-encounters.mjs";
 
 export const FIELD_FINDS = [
   { id: "arcade-coin", name: "Arcade Coin", color: "#ffd166", line: "a credit! shiny." },

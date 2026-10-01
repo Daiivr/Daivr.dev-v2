@@ -1,13 +1,18 @@
 import { createPortal } from "react-dom";
 import { ArrowDown, Hand, Radar, Waves, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import { encounterPlacement } from "../../shared/buddy-encounters.mjs";
+import { KrakenArt } from "./KrakenArt";
 
-export function LeviathanEncounter({ phase, container, response = "", onInteract }) {
+export function LeviathanEncounter({ phase, container, response = "", onInteract, creature = "leviathan", buddyX = 0 }) {
   const [dismissed, setDismissed] = useState(false);
   const [used, setUsed] = useState([]);
   useEffect(() => { if (!phase) { setDismissed(false); setUsed([]); } }, [phase]);
   if (!phase || !container) return null;
-  const title = phase === "omen" ? "Something enormous is approaching" : phase === "monster" ? "Leviathan at the surface" : "Returning to the deep";
+  const kraken = creature === "kraken";
+  const name = kraken ? "Kraken" : "Leviathan";
+  const placement = encounterPlacement(container.clientWidth, buddyX);
+  const title = phase === "omen" ? "Something enormous is approaching" : phase === "monster" ? `${name} at the surface` : "Returning to the deep";
   const visit = () => {
     container.scrollIntoView({ behavior: "instant", block: "end" });
     container.querySelector(".leviathan-stage")?.focus({ preventScroll: true });
@@ -20,23 +25,25 @@ export function LeviathanEncounter({ phase, container, response = "", onInteract
   return <>
     {!dismissed && createPortal(<div className={`leviathan-dimmer is-${phase}`} aria-hidden="true" />, container.closest(".app-shell") || document.body)}
     {createPortal(<>
-      {!dismissed && <aside className="leviathan-alert" aria-label="Leviathan sighting">
+      {!dismissed && <aside className="leviathan-alert" aria-label={`${name} sighting`}>
         <Radar size={24} aria-hidden="true" />
         <div role="status"><small>RARE ENCOUNTER / FOOTER</small><strong>{title}</strong></div>
         <button className="leviathan-visit" onClick={visit}>Go to footer <ArrowDown size={16} aria-hidden="true" /></button>
         <button className="leviathan-dismiss" aria-label="Dismiss sighting alert and dimming" onClick={() => setDismissed(true)}><X size={17} /></button>
       </aside>}
     </>, document.body)}
-    {createPortal(<section className={`leviathan-stage is-${phase} ${response ? `response-${response}` : ""}`} tabIndex={-1} aria-label={`Void leviathan: ${title}`}>
-      <div className="leviathan-depth-label"><span>ABYSSAL SIGNAL</span><b>{phase === "omen" ? "CONTACT RISING" : phase === "monster" ? "LEVIATHAN // SIGHTING LOGGED" : "SIGNAL FADING"}</b></div>
+    {createPortal(<section className={`leviathan-stage creature-${creature} ${placement.facesLeft ? "faces-buddy-left" : "faces-buddy-right"} is-${phase} ${response ? `response-${response}` : ""}`} tabIndex={-1} aria-label={`${name}: ${title}`}>
+      <div className="leviathan-depth-label"><span>ABYSSAL SIGNAL</span><b>{phase === "omen" ? kraken ? "TENTACLES AT THE EDGE" : "CONTACT RISING" : phase === "monster" ? `${name.toUpperCase()} // SIGHTING LOGGED` : "SIGNAL FADING"}</b></div>
       <div className="leviathan-interaction">
-        <p role="status">{phase === "omen" ? "A shadow moves beneath the broken floor…" : phase === "retreat" ? "A final flash of light. Then, still water." : response === "steady" ? "Buddy plants his feet. The tension eases." : response === "signal" ? "Its markings glow. It recognizes your signal." : "Buddy has company. Help him greet the deep."}</p>
+        <p role="status">{phase === "omen" ? kraken ? "Suckers catch the rim. Something is climbing out…" : "A shadow moves beneath the broken floor…" : phase === "retreat" ? kraken ? "Its grip loosens. Ink swirls where the giant was." : "A final flash of light. Then, still water." : response === "steady" ? "Buddy plants his feet. The tension eases." : response === "signal" ? kraken ? "One tentacle waves back. Buddy made a friend." : "Its markings glow. It recognizes your signal." : kraken ? "It grips the footer and hauls itself from the deep." : "Buddy has company. Help him greet the deep."}</p>
         {phase === "monster" ? <div><button type="button" disabled={used.includes("steady")} onClick={() => interact("steady")}><Hand size={14} aria-hidden="true" />Steady Buddy</button><button type="button" disabled={used.includes("signal")} onClick={() => interact("signal")}><Waves size={14} aria-hidden="true" />Signal hello</button></div> : null}
       </div>
       <div className="leviathan-water"><i /><i /><i /></div>
-      <svg className="leviathan-art" viewBox="0 0 360 140" aria-hidden="true" shapeRendering="crispEdges">
+      <svg className="leviathan-art" style={{ left: placement.left, width: placement.width, right: "auto", bottom: kraken ? -(placement.width * 14 / 360) : undefined }} viewBox={kraken ? "0 0 360 160" : "0 0 360 140"} aria-hidden="true" shapeRendering="crispEdges">
+        <g transform={placement.facesLeft ? "translate(360 0) scale(-1 1)" : undefined}>
+        {kraken ? <KrakenArt /> : <>
         <g className="leviathan-tail">
-          <path d="M112 101H80V91H55V76H32V60H18V42H8V19h10v10h12v10h10V24h10v34h12v12h22v8h28z" fill="#102c3b" stroke="#376678" strokeWidth="2" />
+          <path d="M112 101H80V91H55V76H32V60H18V42L8 16l20 12 9 17 15-18-5 31 15 12h22v8h28z" fill="#102c3b" stroke="#376678" strokeWidth="2" />
           <path d="M20 43h12v17h12v12h15v9h25v10h20v6H78V87H53V72H31V56H20z" fill="#286070" />
           <path d="M31 39h9v20h-5V47h-4zM12 25h5v14h-5z" fill="#66bab8" />
         </g>
@@ -63,7 +70,12 @@ export function LeviathanEncounter({ phase, container, response = "", onInteract
         <path d="M307 70h13v3h-13m18 6h5v3h-5" fill="#64958f" />
         <g className="leviathan-fin"><path d="M206 84h27v13h-9v13h-14v14h-29v-11h9V98h9z" fill="#1c4859" stroke="#487d89" strokeWidth="2" /><path d="M210 89h13v6h-8v12h-13v10h-10v-6h7V99h11z" fill="#568f93" /><path d="M216 92h4v5h-8v12h-4V99h8z" fill="#8dc4b6" /></g>
         <g className="leviathan-whiskers" fill="none" stroke="#80b6ad" strokeWidth="2"><path d="M324 100v12h-8v11h-15m28-20v13h9v10h-7" /></g>
+        <path className="leviathan-far-fin" d="M166 58l-22-21h-15l13 22 16 8z" fill="#2d5261" stroke="#609396" strokeWidth="1" />
+        <path className="leviathan-cheek" d="M269 53l-7-14h9l12 15m-8 21h9v3h-9m6 22h14v3h-14" fill="#75a7a0" />
+        </>}
+        </g>
       </svg>
+      {kraken ? <div className="kraken-ink" aria-hidden="true" /> : null}
       <div className="leviathan-spray" aria-hidden="true">{Array.from({ length: 9 }, (_, i) => <i key={i} style={{ "--spray-i": i }} />)}</div>
     </section>, container)}
   </>;

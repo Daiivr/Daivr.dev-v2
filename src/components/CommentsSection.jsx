@@ -1348,12 +1348,14 @@ export function CommentsSection() {
                                   <b>@{replyTargetName}</b>
                                 </span>
                                 <span className="comment-time has-tooltip" data-tooltip={formatFullTimestamp(reply.createdAt)} tabIndex="0">{formatTimestamp(reply.createdAt)}</span>
+                                <div className="comment-reply-header-actions">
                                 <button type="button" onClick={() => copyCommentLink(comment.id, reply.id)} aria-label="Copy reply link"><LinkIcon size={12} aria-hidden="true" /></button>
                                 {canDeleteReply ? (
                                   <button className="has-tooltip" data-tooltip={reply.mine ? "Delete your reply." : "Admin delete reply."} type="button" onClick={() => openDeleteReply(comment, reply)} aria-label="Delete reply">
                                     <Trash2 size={12} aria-hidden="true" />
                                   </button>
                                 ) : null}
+                                </div>
                               </header>
                               {reply.text || reply.mentions?.length ? <MarkdownText compact text={reply.text} mentions={reply.mentions} userId={auth.user?.id} /> : null}
                               <CommentMedia gifUrl={reply.gifUrl} onPreview={openGifPreview} />

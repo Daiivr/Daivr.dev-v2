@@ -125,6 +125,7 @@ export function BuddyJournal({ buddy }) {
           </div>
           <div className="buddy-journal-tallies">
             <span><Radar size={14} aria-hidden="true" />leviathan sightings<b>{buddy.adventure.leviathanSightings}</b></span>
+            {buddy.adventure.krakenSightings > 0 ? <span><Radar size={14} aria-hidden="true" />kraken sightings<b>{buddy.adventure.krakenSightings}</b></span> : null}
             <span><Bug size={14} aria-hidden="true" />bugs deleted<b>{buddy.adventure.bugsDefeated}</b></span>
           </div>
         </div>

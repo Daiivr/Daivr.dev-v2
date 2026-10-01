@@ -30,7 +30,7 @@ test("manual encounters and every existing outage alias require a server-verifie
     [`${session("test-admin")}tampered`, "signed-out"],
     [session("test-admin"), "started"]
   ];
-  for (const [command, event] of [["leviathan", "daivr-buddy-leviathan"], ["blackout", "daivr-buddy-outage"], ["powerout", "daivr-buddy-outage"], ["power-out", "daivr-buddy-outage"]]) {
+  for (const [command, event] of [["leviathan", "daivr-buddy-leviathan"], ["kraken", "daivr-buddy-kraken"], ["blackout", "daivr-buddy-outage"], ["powerout", "daivr-buddy-outage"], ["power-out", "daivr-buddy-outage"]]) {
     assert.equal(buddyDiagnosticEvent(command), event);
     for (const [cookie, expected] of cases) {
       let starts = 0;

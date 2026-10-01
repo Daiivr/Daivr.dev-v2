@@ -1,5 +1,6 @@
 const COMMAND_EVENTS = Object.freeze({
   leviathan: "daivr-buddy-leviathan",
+  kraken: "daivr-buddy-kraken",
   blackout: "daivr-buddy-outage",
   powerout: "daivr-buddy-outage",
   "power-out": "daivr-buddy-outage"

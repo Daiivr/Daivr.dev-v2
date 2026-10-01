@@ -2,7 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { fishingSpot } from "../../shared/buddy-fishing-spot.mjs";
 import { BuddyFishingPortal, PORTAL_OPEN_MS } from "./BuddyFishingPortal";
 import { runAdminBuddyDiagnostic } from "../../shared/buddy-diagnostics.mjs";
-import { AMBIENT_CREATURES, ENEMY_BUGS, FIELD_FINDS, LEVIATHAN, fishById, weightedCatch } from "../data/buddyWorld";
+import { AMBIENT_CREATURES, ENEMY_BUGS, FIELD_FINDS, KRAKEN, LEVIATHAN, fishById, weightedCatch } from "../data/buddyWorld";
+import { rareFishingEncounter } from "../../shared/buddy-encounters.mjs";
 import { LURE_IDS, ROD_IDS } from "../hooks/useBuddyLoadout";
 import { BuddyChuteCanopy, BuddyFishingRodArt, BuddySprite } from "./BuddySprite";
 import { BuddyBugWeapon } from "./BuddyBugWeapon";
@@ -184,6 +185,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
   const [fishingPhase, setFishingPhase] = useState("");
   const leviathanInteractionRef = useRef(null);
   const [leviathanResponse, setLeviathanResponse] = useState("");
+  const [seaCreature, setSeaCreature] = useState("leviathan");
   const [fishingPortal, setFishingPortal] = useState(null);
   const closeFishingPortal = useCallback((id) => {
     setFishingPortal((current) => current?.id === id ? null : current);
@@ -816,7 +818,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     }
 
     // The opening belongs to the footer. Buddy notices it, approaches, then casts.
-    function startFishing({ forceLeviathan = false } = {}) {
+    function startFishing({ forceCreature = "" } = {}) {
       const spot = fishingSpot(stageWidth(), { miku: mikuCostumeRef.current });
       if (!spot) return;
       if (!beginBuddyEvent("fishing")) return;
@@ -855,10 +857,10 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
 
         // El señuelo puesto define las reglas de la sesion.
         const lure = equippedGearRef.current.lure;
-        const waitMs = forceLeviathan ? 0 : lure === "lure-swift" ? 3200 + Math.random() * 2800 : 7000 + Math.random() * 6000;
+        const waitMs = forceCreature ? 0 : lure === "lure-swift" ? 3200 + Math.random() * 2800 : 7000 + Math.random() * 6000;
 
         schedule(() => {
-          if (stillFishing() && !forceLeviathan) say(buddyLine("fishWait"), 2200);
+          if (stillFishing() && !forceCreature) say(buddyLine("fishWait"), 2200);
         }, 2600 + Math.random() * 2400);
 
         if (waitMs > 9500) {
@@ -909,10 +911,13 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
 
           // Muy rara vez la sombra no es una captura: es algo que puede tirar
           // del propio Buddy al agua antes de soltar la linea.
-          if (forceLeviathan || Math.random() < 0.025) {
+          const encounter = forceCreature || rareFishingEncounter();
+          if (encounter) {
+            const monster = encounter === "kraken" ? KRAKEN : LEVIATHAN;
+            setSeaCreature(encounter);
             setFishingPhase("omen");
             setFishingCatch("mythic");
-            setFishingCatchId(LEVIATHAN.id);
+            setFishingCatchId(monster.id);
             clearDialogue();
             say("the water went quiet. something is coming.", 5000);
             schedule(() => {
@@ -925,15 +930,15 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
                 setLeviathanResponse(action);
                 liftTo(action === "steady" ? 0 : 5);
                 clearDialogue();
-                say(action === "steady" ? "feet on the ground. we've got this, together." : "hey, big friend... it blinked back!", 3600);
+                say(action === "steady" ? "feet on the ground. we've got this, together." : encounter === "kraken" ? "eight arms... and one is waving at me!" : "hey, big friend... it blinked back!", 3600);
                 spawnParticles(action === "steady" ? "splash" : "heart", 6);
               };
               clearDialogue();
-              say(buddyLine("leviathan"), 5000);
+              say(encounter === "kraken" ? "that's a lot of arms. please don't take my rod!" : buddyLine("leviathan"), 5000);
               spawnParticles("splash", 14);
               liftTo(12);
               window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
-                detail: { type: "fishing-sighting", id: LEVIATHAN.id }
+                detail: { type: "fishing-sighting", id: monster.id }
               }));
             }, 5500);
 
@@ -1463,7 +1468,10 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     }
 
     function onLeviathanSignal(event) {
-      void onAdminDiagnostic(event, () => startFishing({ forceLeviathan: true }));
+      void onAdminDiagnostic(event, () => startFishing({ forceCreature: "leviathan" }));
+    }
+    function onKrakenSignal(event) {
+      void onAdminDiagnostic(event, () => startFishing({ forceCreature: "kraken" }));
     }
 
     function reactToNowPlaying(event) {
@@ -1602,6 +1610,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     window.addEventListener("daivr-buddy-enemy", onEnemySignal);
     window.addEventListener("daivr-buddy-outage", onOutageSignal);
     window.addEventListener("daivr-buddy-leviathan", onLeviathanSignal);
+    window.addEventListener("daivr-buddy-kraken", onKrakenSignal);
     window.addEventListener("daivr-attract-mode", reactToAttractMode);
     window.addEventListener("resize", clampToStage);
 
@@ -1630,6 +1639,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       window.removeEventListener("daivr-buddy-enemy", onEnemySignal);
       window.removeEventListener("daivr-buddy-outage", onOutageSignal);
       window.removeEventListener("daivr-buddy-leviathan", onLeviathanSignal);
+      window.removeEventListener("daivr-buddy-kraken", onKrakenSignal);
       window.removeEventListener("daivr-attract-mode", reactToAttractMode);
       window.removeEventListener("resize", clampToStage);
       clearDialogue(false);
@@ -1658,7 +1668,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
   return (
     <>
     <BuddyFishingPortal portal={fishingPortal} onClosed={closeFishingPortal} />
-    <LeviathanEncounter phase={mood === "fishing" && ["omen", "monster", "retreat"].includes(fishingPhase) ? fishingPhase : ""} container={rootRef.current?.parentElement} response={leviathanResponse} onInteract={(action) => leviathanInteractionRef.current?.(action)} />
+    <LeviathanEncounter phase={mood === "fishing" && ["omen", "monster", "retreat"].includes(fishingPhase) ? fishingPhase : ""} container={rootRef.current?.parentElement} creature={seaCreature} buddyX={x} response={leviathanResponse} onInteract={(action) => leviathanInteractionRef.current?.(action)} />
     <div
       className={`screen-buddy-root is-${mood} ${fishingPhase === "approach" ? "is-fishing-approach" : ""} ${fx ? `fx-${fx}` : ""} ${mood === "fishing" && fishingPhase === "fight" ? "is-fish-fight" : ""} ${weather ? `weather-${weather}` : ""} ${outagePhase ? `outage-${outagePhase}` : ""} ${isAirborne ? "is-airborne" : ""} ${hasRocketBoots ? "has-rocket-boots" : ""} ${hasMikuCostume ? "has-miku-costume" : ""}`}
       ref={rootRef}

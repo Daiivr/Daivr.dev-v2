@@ -1,5 +1,6 @@
 import { Bug, Fish, Flame, Gamepad2, HeartHandshake, MessageSquare, Moon, Radar, Shield, Terminal, Trophy } from "lucide-react";
-import { useId, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 export function BadgeEmblem({ badge }) {
   const id = useId().replace(/:/g, "");
@@ -36,13 +37,37 @@ export function BadgeEmblem({ badge }) {
 export function PlayerBadge({ badge, tooltip = false }) {
   const tooltipId = useId();
   const [visible, setVisible] = useState(false);
-  return <span className={`player-badge badge-tier-${badge.tier || "base"} ${tooltip ? "has-tooltip" : ""}`}
+  const anchorRef = useRef(null);
+  const tooltipRef = useRef(null);
+  const closeTimer = useRef(null);
+  const [position, setPosition] = useState(null);
+  const show = () => { clearTimeout(closeTimer.current); setVisible(true); };
+  const hide = () => { closeTimer.current = setTimeout(() => setVisible(false), 120); };
+  useEffect(() => () => clearTimeout(closeTimer.current), []);
+  useLayoutEffect(() => {
+    if (!visible || !tooltip) return;
+    const update = () => {
+      const anchor = anchorRef.current?.getBoundingClientRect();
+      const tip = tooltipRef.current?.getBoundingClientRect();
+      if (!anchor || !tip) return;
+      const left = Math.max(10, Math.min(innerWidth - tip.width - 10, anchor.left + (anchor.width - tip.width) / 2));
+      const top = anchor.top - tip.height - 8 >= 10 ? anchor.top - tip.height - 8 : Math.min(innerHeight - tip.height - 10, anchor.bottom + 8);
+      setPosition({ left, top: Math.max(10, top), "--badge-color": getComputedStyle(anchorRef.current).getPropertyValue("--badge-color") || "#3fff97" });
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(tooltipRef.current);
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => { observer.disconnect(); window.removeEventListener("resize", update); window.removeEventListener("scroll", update, true); };
+  }, [visible, tooltip]);
+  return <span ref={anchorRef} className={`player-badge badge-tier-${badge.tier || "base"} ${tooltip ? "has-tooltip" : ""}`}
     {...(tooltip ? { tabIndex: 0, role: "button", "aria-label": `${badge.label} badge details`, "aria-describedby": visible ? tooltipId : undefined,
-      onMouseEnter: () => setVisible(true), onMouseLeave: () => setVisible(false), onFocus: () => setVisible(true), onBlur: () => setVisible(false), onClick: () => setVisible(true),
+      onMouseEnter: show, onMouseLeave: hide, onFocus: show, onBlur: () => setVisible(false), onClick: show,
       onKeyDown: (event) => { if (event.key === "Escape") { event.stopPropagation(); setVisible(false); } else if (["Enter", " "].includes(event.key)) { event.preventDefault(); setVisible((value) => !value); } }
     } : {})}>
     <BadgeEmblem badge={badge} />
     <span className="player-badge-caption"><strong>{badge.label}</strong><small>{badge.secret ? "Secret discovered" : badge.metric === "streak" ? `${badge.target}-day streak` : badge.metric === "completions" ? `${badge.target} daily win${badge.target === 1 ? "" : "s"}` : "Cabinet member"}</small></span>
-    {tooltip && visible ? <span id={tooltipId} role="tooltip" className="player-badge-tooltip"><small>{badge.secret ? "SECRET DISCOVERED" : "BADGE UNLOCKED"}</small><strong>{badge.label}</strong><span>{badge.description}</span><b>+{badge.xp?.toLocaleString()} XP earned</b></span> : null}
+    {tooltip && visible ? createPortal(<span ref={tooltipRef} id={tooltipId} role="tooltip" className={`player-badge-tooltip badge-tier-${badge.tier || "base"}`} style={{ ...position, visibility: position ? "visible" : "hidden" }} onMouseEnter={show} onMouseLeave={hide}><small>{badge.secret ? "SECRET DISCOVERED" : "BADGE UNLOCKED"}</small><strong>{badge.label}</strong><span>{badge.description}</span><b>+{badge.xp?.toLocaleString()} XP earned</b></span>, document.body) : null}
   </span>;
 }

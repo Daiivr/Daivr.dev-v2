@@ -31,20 +31,17 @@
   .player-hub-nav button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px; min-width: 0; }
   .player-hub-nav button[aria-current] { color: #07170e; background: var(--color-phosphor); border-color: var(--color-phosphor); }
   .player-hub-nav b { font-size: 9px; }
-  .view-challenge .daily-challenge { width: min(100%, 620px); justify-self: center; }
+
   .view-records .passport-records-panel { margin: 0; }
   .view-records .passport-records > div { padding: 22px; }
   .view-records .passport-records strong { font-size: 26px; }
   .passport-customize .passport-form { padding: 0; }
   .passport-customize .passport-fields { margin-bottom: 12px; }
-  .passport-customize .passport-badge-options { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .passport-badge-pagination { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 10px; font-size: 10px; color: var(--player-muted); }
-  .passport-badge-pagination button { display: grid; place-items: center; }
+  .passport-customize .passport-badge-options { grid-template-columns: repeat(4, minmax(0, 1fr)); max-height: min(440px, 46dvh); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--color-phosphor) #071810; scrollbar-gutter: stable; padding: 3px 8px 8px 3px; }
+  .passport-badge-options:focus-visible { outline: 1px solid var(--color-cyan-arcade); outline-offset: 2px; }
   .player-badge.has-tooltip { position: relative; cursor: help; }
   .player-badge.has-tooltip:focus-visible { outline: 2px solid var(--badge-color); outline-offset: 2px; }
-  .player-badge-tooltip { position: absolute; z-index: 5; bottom: calc(100% - 3px); left: 50%; transform: translateX(-50%); width: 230px; max-width: 65vw; display: grid; gap: 6px; padding: 12px; text-align: left; color: #e0f5e8; border: 1px solid var(--badge-color); background: var(--panel-grain), linear-gradient(135deg, #253b30, #07140e); box-shadow: inset 0 1px #ffffff24, 0 6px 20px #000b; pointer-events: auto; font: 11px/1.5 var(--font-mono); }
-  .passport-badges > :first-child .player-badge-tooltip { left: 0; transform: none; }
-  .passport-badges > :last-child .player-badge-tooltip { left: auto; right: 0; transform: none; }
+  .player-badge-tooltip { position: fixed; z-index: 260; width: 250px; max-width: calc(100vw - 20px); max-height: calc(100dvh - 20px); overflow-y: auto; display: grid; gap: 6px; padding: 12px; text-align: left; color: #e0f5e8; border: 1px solid var(--badge-color); background: url('/textures/arcade-grain.svg'), linear-gradient(135deg, #253b30, #07140e); box-shadow: inset 0 1px #ffffff24, 0 6px 20px #000b; pointer-events: auto; font: 11px/1.5 var(--font-mono); }
   .player-badge-tooltip > small { font-size: 8px; letter-spacing: .08em; color: var(--badge-color); }
   .player-badge-tooltip > strong { font-size: 12px; color: var(--badge-color); }
   .player-badge-tooltip > b { padding-top: 6px; border-top: 1px dashed #ffffff25; color: #ffcf67; font-size: 10px; }
@@ -83,7 +80,7 @@
     .player-hub-heading-actions button span { display: none; }
     .player-hub-body { padding: 14px; }
     .player-hub-overview { grid-template-columns: minmax(0, 1fr); }
-    .view-passport:has(.player-hub-identity) .daily-challenge { display: none; }
+
     .player-hub-nav { padding: 10px; gap: 4px; }
     .player-hub-nav button { flex-direction: column; gap: 4px; padding: 7px 3px; font-size: 9px; }
     .passport-customize .passport-fields { grid-template-columns: 1fr; gap: 8px; }
