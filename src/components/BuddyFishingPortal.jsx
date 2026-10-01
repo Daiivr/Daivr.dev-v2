@@ -6,11 +6,11 @@ export const PORTAL_CLOSE_MS = 1000;
 
 function PoolFish({ color, className }) {
   return <g className={`footer-pool-fish ${className}`}><g className="footer-pool-fish-facing">
-    <path className="pool-fish-tail" d="M-9 0l-7-5v10z" fill={color} />
-    <path d="M-9-3h5v-2h10v2h5v6H6v2H-4V3h-5z" fill={color} />
-    <path d="M-3-5v-4l7 4M-1 5l4 4 3-4" fill={color} opacity=".6" />
-    <path d="M-5-2H6v2H-5z" fill="#d4f9dc" opacity=".5" />
-    <path d="M6-2h2v2H6z" fill="#061d28" /><path d="M-4 2h8v1h-8z" fill="#0c3948" opacity=".6" />
+    <path className="pool-fish-tail" d="M-6 0l-5-3 1 3-1 3z" fill={color} />
+    <path d="M-6-1l5-2h5l4 3-4 3h-5l-5-2z" fill={color} />
+    <path d="M-2-2l3-3 2 3M-2 2l3 3 2-3" fill={color} opacity=".5" />
+    <path d="M-4 0H5" stroke="#d4f9dc" strokeWidth=".7" opacity=".4" />
+    <path d="M4-2h1v1H4m0 2h1v1H4" fill="#071c24" />
   </g></g>;
 }
 
@@ -24,32 +24,32 @@ export function BuddyFishingPortal({ portal, onClosed }) {
   }, [portal?.id, portal?.phase, onClosed]);
   if (!portal) return null;
   return <div className={`buddy-footer-portal is-${portal.phase}`} style={{ "--portal-x": `${portal.x}px`, "--pool-width": `${FISHING_POOL_WIDTH}px`, "--pool-height": `${FISHING_POOL_HEIGHT}px`, "--portal-open-ms": `${PORTAL_OPEN_MS}ms`, "--portal-close-ms": `${PORTAL_CLOSE_MS}ms` }} aria-hidden="true">
-    <svg viewBox="0 0 128 56" shapeRendering="crispEdges">
+    <svg viewBox="0 0 128 32" preserveAspectRatio="none" shapeRendering="crispEdges">
       <defs>
-        <linearGradient id={`${id}-depth`} x2="0" y2="1"><stop stopColor="#2b6371"/><stop offset=".3" stopColor="#184757"/><stop offset="1" stopColor="#071e2b"/></linearGradient>
-        <clipPath id={`${id}-water`}><path d="M12 8h17V5h69v5h17v9h5v21h-13v8H29v-4H10V20h4z"/></clipPath>
+        <radialGradient id={`${id}-depth`} cx="52%" cy="45%" r="60%"><stop stopColor="#173e43"/><stop offset=".65" stopColor="#0b282d"/><stop offset="1" stopColor="#020c10"/></radialGradient>
+        <clipPath id={`${id}-water`}><path d="M16 12h10V9h19V7h37v2h20v3h10v4h6v6h-12v3H85v2H42v-2H23v-3H12v-6h4z"/></clipPath>
       </defs>
       <g className="buddy-portal-aperture">
-        <path d="M2 0h122v52H2z" fill="#091711"/>
-        <path d="M5 4h21V1h74v5h18v10h7v28h-14v9H26v-5H4V18h5z" fill="#030a08" stroke="#203329" strokeWidth="2"/>
-        <path d="M12 8h17V5h69v5h17v9h5v21h-13v8H29v-4H10V20h4z" fill={paint("depth")} stroke="#010807" strokeWidth="4"/>
+        {/* A foreshortened hole in the ground, with an irregular earthen lip. */}
+        <path d="M7 12h13V7h21V4h45v3h21v4h12v5h7v9h-14v4H89v2H38v-2H17v-4H3v-8h4z" fill="#06110e"/>
+        <path d="M10 12h13V8h19V5h43v3h20v4h12v4h6v7h-13v4H88v3H39v-3H20v-4H7v-7h3z" fill="#182b24"/>
+        <path d="M16 12h10V9h19V7h37v2h20v3h10v4h6v6h-12v3H85v2H42v-2H23v-3H12v-6h4z" fill={paint("depth")}/>
         <g clipPath={paint("water")}>
-          <path className="footer-pool-caustics" d="M25 3h7l15 47H34zM72 3h4l13 47h-8zM101 5h7L92 50h-8z" fill="#adf0d8" opacity=".1"/>
-          <path d="M10 42h23v4h33v-4h25v3h30v8H10z" fill="#315048"/>
-          <path d="M19 44h8v2h-8m23 2h5v2h-5m24-5h7v2h-7m29 1h8v3h-8" fill="#879b73"/>
-          <path className="pool-reeds" d="M107 45V27h3v18m-9-1V32h3v12m9-7h5v-3h-5m-7-6h-5v-3h5" fill="#477f68"/>
-          <PoolFish color="#81b8c3" className="fish-one"/>
-          <PoolFish color="#bbaf73" className="fish-two"/>
-          <PoolFish color="#559389" className="fish-three"/>
-          <path className="footer-pool-ripples" d="M15 11h29m9-2h22m12 6h25M23 25h18m35 7h21m-39 8h12" fill="none" stroke="#a4ddd5" strokeWidth="1" opacity=".6"/>
-          <g className="pool-bubbles" fill="none" stroke="#a1d7cf" strokeWidth="1"><path d="M94 31h2v2h-2zM98 21h2v2h-2zM92 12h1v1h-1z"/></g>
-          <path d="M14 8h15V5h69v5h16" fill="none" stroke="#b3e5d0" strokeWidth="2" opacity=".65"/>
+          <path d="M16 16h10v-4h19V9h37v2h20v3h10v3" fill="none" stroke="#010808" strokeWidth="3"/>
+          <path className="footer-pool-caustics" d="M29 13l12 4 13-3 12 4 17-5m-57 9 15-3 18 5 22-5 18 3" fill="none" stroke="#88c7b7" opacity=".12"/>
+          <PoolFish color="#7aab9d" className="fish-one"/>
+          <PoolFish color="#9e9869" className="fish-two"/>
+          <PoolFish color="#4f8581" className="fish-three"/>
+          <g className="footer-pool-ripples" fill="none" stroke="#85b6aa" strokeWidth=".7" opacity=".4">
+            <path d="M34 13h13m36 0h12M22 19h11m53 3h15M45 25h16"/>
+            <ellipse cx="64" cy="18" rx="13" ry="3"/><ellipse cx="64" cy="18" rx="23" ry="5" opacity=".4"/>
+          </g>
         </g>
-        <path d="M6 5h20V2h73v5h18v9h7M5 21v27h21v5h84v-9h14" fill="none" stroke="#354b3e" strokeWidth="2"/>
-        <path d="M8 7h18v4H14v9M30 3h17v2H30m63 44h13v-7h14" fill="none" stroke="#28392b" strokeWidth="3"/>
-        <path d="M1 11h8l-3 5h7M106 1v5h8M20 49v5h-9M118 47h7v6" fill="none" stroke="#4e654e"/>
-        <g className="footer-pool-rubble" fill="#4f6151"><path d="M4 2h4v2H4zM115 49h5v3h-5zM17 48h5v3h-5z"/></g>
-        <text x="66" y="53" textAnchor="middle" fill="#708f80" fontSize="4" fontFamily="monospace" letterSpacing="1">DEEP WATER</text>
+        <path d="M22 25h20v3h43v-2h21v-3h12" fill="none" stroke="#34483a"/>
+        <path d="M8 12h12V8h18m51 0h15v4h12" fill="none" stroke="#263b2c"/>
+        <path d="M17 10l-4-3h-6m96 1 5-4h9M22 27l-5 4m92-5 7 4" fill="none" stroke="#080e0b" strokeWidth="2"/>
+        <g className="footer-pool-rubble" fill="#3d5040"><path d="M25 7h5v2h-5zM92 27h5v2h-5zM10 21h4v2h-4zM111 12h5v2h-5z"/></g>
+        <path d="M34 7V4h2v4m3-3V2h2v5m57 21v-3h2v4" stroke="#3c5c3d" fill="none"/>
       </g>
     </svg>
   </div>;

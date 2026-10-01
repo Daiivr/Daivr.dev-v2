@@ -1,6 +1,8 @@
 // The pool stays inside the footer; its surface meets the rod's hook.
 export const FISHING_POOL_WIDTH = 128;
-export const FISHING_POOL_HEIGHT = 56;
+export const FISHING_POOL_HEIGHT = 18;
+// The shallow surface sits on the walking rail, above the music ticker.
+export const FISHING_WATER_OFFSET = 2;
 export function fishingSpot(width, { miku = false, random = Math.random } = {}) {
   const bodyWidth = 64;
   const padding = 4;

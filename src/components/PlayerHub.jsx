@@ -12,6 +12,7 @@ export function PlayerHub({ onPlay, theme = "crt" }) {
   const [data, setData] = useState(null);
   const [edit, setEdit] = useState(null);
   const [message, setMessage] = useState("");
+  const [saveMessage, setSaveMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const previousCard = useRef(null);
@@ -60,15 +61,15 @@ export function PlayerHub({ onPlay, theme = "crt" }) {
     return () => { controller.abort(); window.clearTimeout(timer); };
   }, [open, data?.challenge?.date]);
   async function save(event) {
-    event.preventDefault(); setBusy(true); setMessage("");
+    event.preventDefault(); setBusy(true); setSaveMessage("");
     try {
       const response = await fetch("/api/player", { method: "POST", credentials: "include", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: edit.title, favoriteGame: edit.favoriteGame, featuredBadges: edit.featuredBadges, accent: edit.accent }) });
       const value = await response.json();
       if (!response.ok) throw new Error(value.error || "Save failed.");
       ++requestId.current;
       previousCard.current = value.passport;
-      setData(value); setEdit(value.passport); setMessage("Passport saved.");
-    } catch (error) { setMessage(error.message); }
+      setData(value); setEdit(value.passport); setSaveMessage("Passport saved.");
+    } catch (error) { setSaveMessage(error.message); }
     finally { setBusy(false); }
   }
   const card = data?.passport;
@@ -116,7 +117,7 @@ export function PlayerHub({ onPlay, theme = "crt" }) {
       </div> : null}
       {view === "records" && card ? <section className="passport-records-panel" aria-label="Personal bests"><h3><Trophy size={14} aria-hidden="true" />Your high scores</h3><div className="passport-records">{card.records.map((record) => <div key={record.game}><span>{PLAYER_GAMES.find((game) => game.id === record.game)?.name}</span><strong>{record.best === null ? "No run yet" : record.best.toLocaleString()}</strong></div>)}</div></section> : null}
       {view === "customize" && card && edit ? <section className="passport-customize">
-        <form className="passport-form" onSubmit={save}>
+        <form className="passport-form" onSubmit={save} onChange={() => setSaveMessage("")}>
           <div className="passport-fields">
             <label>Title<select value={edit.title} disabled={busy} onChange={(event) => setEdit({ ...edit, title: event.target.value })}>{card.titles.map((title) => <option key={title}>{title}</option>)}</select></label>
             <label>Favorite game<select value={edit.favoriteGame} disabled={busy} onChange={(event) => setEdit({ ...edit, favoriteGame: event.target.value })}><option value="">Choose a game</option>{PLAYER_GAMES.map((game) => <option key={game.id} value={game.id}>{game.name}</option>)}</select></label>
@@ -132,7 +133,7 @@ export function PlayerHub({ onPlay, theme = "crt" }) {
               {!earned ? <progress value={badge.progress} max={badge.target} aria-label={`${badge.label} progress`} /> : null}
             </label>;
           })}</div></fieldset>
-          <button type="submit" disabled={busy}>{busy ? "Saving…" : "Save passport"}</button>
+          <div className="passport-save-row"><button type="submit" disabled={busy}>{busy ? "Saving…" : "Save passport"}</button><span className="passport-save-status" role="status" aria-live="polite">{saveMessage}</span></div>
         </form>
       </section> : null}
       {view === "inbox" && data?.user ? <CommunityInbox inbox={data.inbox} onNavigate={() => setOpen(false)} /> : null}

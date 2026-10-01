@@ -334,6 +334,49 @@ export const stack = [
 // Tipos de cambio: new (verde), buff (cian), fix (dorado), nerf (rosa).
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
+  // 8137cda — sea encounters and passport follow-ups.
+  {
+    version: "v2.54.0",
+    codename: "SOMETHING BELOW",
+    date: "2026-10-01",
+    summary: "Something is holding onto the edge of the cabinet. The Abyss Kraken joins Buddy's fishing encounters, the water gets a deeper world of its own, and a few everyday passport and guestbook details fall into place.",
+    entries: [
+      ["new", "The Abyss Kraken can appear during a fishing trip. Textured tentacles grip the footer before pulling its shaded body out of the deep, with suction cups, glowing eyes, a friendly wave, and an ink-filled retreat."],
+      ["buff", "Sea creatures face Buddy, with clearer encounter messages and ways to react together. Sighting counts are saved in the journal, and more secret passport rewards wait to be discovered."],
+      ["buff", "The fishing opening sits fully inside the footer, clear of the music ticker. Dark broken edges surround layered water, swimming fish with moving tails, bubbles, reeds, and drifting light."],
+      ["buff", "Customize passport now shows the badge collection in one scrollable list. The extra Daily tab is gone; today's challenge stays on the main passport."],
+      ["fix", "Featured-badge tooltips stay inside the screen instead of being cut off by the passport. Their position adapts when the view scrolls or resizes."],
+      ["fix", "Guestbook reply headers keep the share-link and admin delete buttons together."]
+    ]
+  },
+  // 2c7163b — rankings, completion notices, and aquarium selection.
+  {
+    version: "v2.53.0",
+    codename: "MAKE YOUR MARK",
+    date: "2026-10-01",
+    summary: "Your passport has a place on the leaderboard, Buddy's aquarium has room for your choices, and daily runs let you know when the challenge is complete.",
+    entries: [
+      ["new", "Open rankings beside the passport's close button to see the top five players by level, best daily streak, and total daily completions. A Back button returns to your passport."],
+      ["buff", "The passport uses dedicated views for records, customization, and conversations. Textured ranking panels and styled badge tooltips match the rest of the cabinet."],
+      ["new", "A daily-challenge notification appears when an accepted result completes the goal, including while a game is open. It stays above the game so you can see when the challenge is saved."],
+      ["new", "Choose all three fish in Buddy's aquarium: one large featured fish and two smaller companions. Only caught species can be displayed, and your choices save with the room."],
+      ["buff", "Buddy approaches a fishing spot at a calmer pace. Leviathan sightings get richer animation, reactions, and additional hidden progression rewards."]
+    ]
+  },
+  // a5eb603 — player progression and game keyboard focus.
+  {
+    version: "v2.52.0",
+    codename: "EVERY RUN COUNTS",
+    date: "2026-10-01",
+    summary: "The player passport grows with you. Daily challenges and earned badges now build lifetime XP, with a textured level display and extra rewards for keeping a daily streak alive.",
+    entries: [
+      ["new", "Player levels track lifetime XP separately from Buddy's level. The passport shows your current level, progress to the next one, and the XP still needed."],
+      ["new", "Daily challenges award 100 base XP, with 10 more bonus XP for each consecutive day after the first. Missing a day resets the streak bonus."],
+      ["new", "Unlocking badges awards XP based on the achievement. Secret badges stay out of the collection until you discover them, and each badge's XP is awarded only once."],
+      ["buff", "The level panel gains an inset display, surface texture, and a segmented progress bar to fit the passport's arcade finish."],
+      ["fix", "Madrace, Tower Block, and Cross Road receive keyboard focus when opened, so you can use the game controls without first clicking inside the screen."]
+    ]
+  },
   {
     version: "v2.51.0",
     codename: "SMALL DETAILS, MORE LIFE",

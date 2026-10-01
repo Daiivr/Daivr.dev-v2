@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { fishingSpot } from "../../shared/buddy-fishing-spot.mjs";
+import { fishingSpot, FISHING_WATER_OFFSET } from "../../shared/buddy-fishing-spot.mjs";
 import { BuddyFishingPortal, PORTAL_OPEN_MS } from "./BuddyFishingPortal";
 import { runAdminBuddyDiagnostic } from "../../shared/buddy-diagnostics.mjs";
 import { AMBIENT_CREATURES, ENEMY_BUGS, FIELD_FINDS, KRAKEN, LEVIATHAN, fishById, weightedCatch } from "../data/buddyWorld";
@@ -1815,6 +1815,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
           {mood === "fishing" ? (
             <span
               className={`buddy-fishing-rig is-${fishingPhase || "cast"} ${fishingCatch ? `tier-${fishingCatch}` : ""} ${fishingCatchId ? `catch-${fishingCatchId}` : ""} ${equippedRod} ${equippedLure}`}
+              style={{ "--buddy-water-offset": FISHING_WATER_OFFSET }}
               aria-hidden="true"
             >
               {/* Caña + linea dibujadas mirando a la izquierda (facing 1);
@@ -1822,31 +1823,31 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
                   Los colores de caña/boya los pisa el aparejo puesto via CSS. */}
               <svg className="buddy-fishing-svg" viewBox="0 0 44 78" width="44" height="78">
                 <BuddyFishingRodArt />
-                <path className="buddy-cast-trace" d="M32 36Q-17-8 5 70" fill="none" stroke="#97c9c4" strokeWidth="1" />
+                <path className="buddy-cast-trace" d={`M32 36Q-17-8 5 ${70 + FISHING_WATER_OFFSET}`} fill="none" stroke="#97c9c4" strokeWidth="1" />
 
                 <g className="buddy-fishing-line-group">
                   <g shapeRendering="crispEdges">
                     <path className="buddy-fishing-line" d="M6 15v12H5v16H4v13h1v9" fill="none" stroke="#b8e5db" strokeWidth="1" />
-                    <g className="buddy-fishing-bobber">
+                    <g transform={`translate(0 ${FISHING_WATER_OFFSET})`}><g className="buddy-fishing-bobber">
                       <BuddyWornGear id={equippedLure || "lure"} x={0} y={62} width={11} height={12} />
-                    </g>
+                    </g></g>
                   </g>
                 </g>
 
                 {/* Superficie del vacio: ondas concentricas alrededor del anzuelo */}
-                <g className="buddy-fishing-ripples" shapeRendering="crispEdges">
+                <g transform={`translate(0 ${FISHING_WATER_OFFSET})`}><g className="buddy-fishing-ripples" shapeRendering="crispEdges">
                   <path className="buddy-water-surface" d="M-13 70h13v-1h11v1h17v2H12v1H-2v-1h-11z" fill="#164d68" />
                   <path className="buddy-ripple buddy-ripple-a" d="M1 70h3v-1h4v1h3v1H8v1H4v-1H1z" fill="#b8f7ff" />
                   <path className="buddy-ripple buddy-ripple-b" d="M-4 71h5v-1h11v1h5v1h-5v1H1v-1h-5z" fill="#45d8ff" />
                   <path className="buddy-ripple buddy-ripple-c" d="M-10 72h7v-1h19v1h8v1h-8v1H-3v-1h-7z" fill="#b8f7ff" />
-                </g>
+                </g></g>
 
-                {!["catch", "escape", "retreat"].includes(fishingPhase) ? <path className="buddy-hook-line" d="M5 70v8h2v3H4" fill="none" stroke="#b8f7ff" strokeWidth="1" /> : null}
+                {!["catch", "escape", "retreat"].includes(fishingPhase) ? <path className="buddy-hook-line" transform={`translate(0 ${FISHING_WATER_OFFSET})`} d="M5 70v3h2v2H4" fill="none" stroke="#b8f7ff" strokeWidth="1" /> : null}
 
-                <g className="buddy-cast-splash" shapeRendering="crispEdges">
+                <g transform={`translate(0 ${FISHING_WATER_OFFSET})`}><g className="buddy-cast-splash" shapeRendering="crispEdges">
                   <path d="M-6 68h3v-3h2v3h3v2h-8m14-2h3v-4h2v4h4v2H8" fill="#8ae8e5" />
                   <rect x="3" y="62" width="2" height="3" fill="#f4fff8" />
-                </g>
+                </g></g>
                 <g className="buddy-fishing-loot" shapeRendering="crispEdges">
                   <BuddyCollectibleIcon id={fishingCatchId || "byte-minnow"} color={fishingCatchItem?.color} className="buddy-caught-specimen" x={-10} y={20} width={30} height={23} />
                   <g className="buddy-catch-drips" fill="#8cd8d6"><path d="M-4 41h2v3h-2z" /><path d="M8 43h1v3H8z" /><path d="M16 39h2v3h-2z" /></g>

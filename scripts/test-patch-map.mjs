@@ -10,7 +10,7 @@ const releases = patchNotes.map((patch) => ({ ...patch, story: patchStories[patc
 
 test("release map combines month, all search terms, and developer-note filters", () => {
   const results = filterReleases(releases, { month: "2026-10", query: "FISH aquarium", annotated: true });
-  assert.deepEqual(results.map((patch) => patch.version), ["v2.51.0", "v2.49.0"]);
+  assert.deepEqual(results.map((patch) => patch.version), ["v2.53.0", "v2.51.0", "v2.49.0"]);
   assert.equal(filterReleases(releases, { query: "v2.49.0" })[0].codename, "A ROOM OF YOUR OWN");
   assert.equal(filterReleases(releases, { query: "no-such-release-xyz" }).length, 0);
   assert.equal(filterReleases(releases, { month: "legacy", annotated: true }).length, 0);

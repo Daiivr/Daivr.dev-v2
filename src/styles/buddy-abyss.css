@@ -1,6 +1,8 @@
 @layer components {
-  .app-footer-zone:has(.buddy-footer-portal) .app-footer { padding-top: 60px; }
-  .buddy-footer-portal { top: 2px; left: clamp(68px,var(--portal-x),calc(100% - 68px)); width: var(--pool-width); height: var(--pool-height); margin-left: calc(var(--pool-width) / -2); overflow: hidden; }
+  .buddy-footer-portal { top: 0; left: clamp(68px,var(--portal-x),calc(100% - 68px)); width: var(--pool-width); height: var(--pool-height); margin-left: calc(var(--pool-width) / -2); overflow: hidden; }
+  /* Redistribute the ticker's existing padding; never grow the footer for fishing. */
+  .app-footer-zone:has(.buddy-footer-portal) .footer-ticker-content { padding-top: .84rem; padding-bottom: 0; }
+  .buddy-footer-portal .buddy-portal-aperture { transform-origin: 64px 18px; }
   .buddy-footer-portal > svg { width: 100%; height: 100%; overflow: hidden; filter: none; }
   .buddy-footer-portal.is-opening .buddy-portal-aperture { animation: footer-floor-break var(--portal-open-ms) steps(6,end) both; }
   .buddy-footer-portal.is-closing .buddy-portal-aperture { animation: footer-floor-break var(--portal-close-ms) steps(6,end) reverse both; }
@@ -19,27 +21,18 @@
   .leviathan-stage.faces-buddy-right .leviathan-depth-label, .leviathan-stage.faces-buddy-right .leviathan-interaction { left: auto; right: 16px; }
   .leviathan-stage.faces-buddy-right .leviathan-depth-label { width: min(300px,32%); }
   .leviathan-far-fin { transform-box: fill-box; transform-origin: right bottom; animation: abyss-fin 5s ease-in-out infinite reverse; }
-  .creature-kraken { background: radial-gradient(ellipse at 50% 100%,#66476b80,transparent 70%); }
+  .creature-kraken { background: radial-gradient(ellipse at 50% 100%,#66476b80,transparent 70%); overflow: visible; clip-path: inset(0 0 -8px); }
   .creature-kraken .leviathan-art { filter: drop-shadow(0 5px 0 #14121e80) drop-shadow(0 0 16px #dba0ef22); }
-  .kraken-arm { transform-box: view-box; transform-origin: 180px 110px; animation: kraken-arm-sway calc(3.6s + var(--arm-i) * .17s) ease-in-out calc(var(--arm-i) * -.4s) infinite; }
-  .kraken-arm:nth-child(even) { animation-direction: reverse; }
   .leviathan-stage.creature-kraken:is(.is-omen,.is-monster) .leviathan-art { animation: none; transform: none; opacity: 1; }
-  .creature-kraken.is-omen .kraken-mantle-rise { transform: translateY(145px); }
-  .creature-kraken.is-omen .kraken-free-arms { transform: translateY(110px); }
-  .creature-kraken.is-omen .kraken-grips { animation: kraken-find-grip 5.5s cubic-bezier(.25,.7,.3,1) both; }
-  .creature-kraken.is-monster .kraken-mantle-rise { animation: kraken-haul 3.6s ease-in-out both; }
-  .creature-kraken.is-monster .kraken-free-arms { animation: kraken-unfurl 3.6s ease-out both; }
-  .kraken-grip-arm { transform-box: view-box; }
-  .kraken-grip-arm.grip-0 { transform-origin: 27px 146px; }
-  .kraken-grip-arm.grip-1 { transform-origin: 334px 146px; }
-  .creature-kraken.is-monster .kraken-grip-arm { animation: kraken-grip-tension 3.6s ease-in-out both; }
   .kraken-grip-sparks { opacity: 0; }
   .creature-kraken.is-monster .kraken-grip-sparks { animation: kraken-grip-spray 3.6s linear both; }
-  .kraken-mantle { transform-box: fill-box; transform-origin: center bottom; animation: kraken-breath 4s ease-in-out infinite; }
+  /* The articulated rig bends along its centerlines and holds its contact points. */
+  .leviathan-stage.creature-kraken.is-retreat .leviathan-art { animation: none; transform: none; }
+  .creature-kraken .kraken-articulated .kraken-mantle-rise { animation: none; }
+  .kraken-articulated .kraken-mantle { animation: none; }
+  .kraken-articulated .kraken-contact-ledges { pointer-events: none; }
   .kraken-runes { animation: leviathan-glimmer 3s ease-in-out infinite; }
-  .response-signal .kraken-arm.arm-4 { animation: kraken-wave 1.1s ease-in-out 4; }
   .response-signal .kraken-runes { filter: drop-shadow(0 0 4px #baf4dc); }
-  .response-steady .kraken-arm { animation-duration: 7s; }
   .kraken-ink { position: absolute; bottom: 0; left: 10%; right: 10%; height: 70px; opacity: 0; background: radial-gradient(ellipse at 50% 100%,#30223be6,transparent 70%); }
   .is-retreat .kraken-ink { animation: kraken-ink 3.5s ease-out both; }
   .leviathan-art { width: min(680px,65%); right: 3%; bottom: -12px; filter: drop-shadow(0 8px 0 #020f1780) drop-shadow(0 0 22px #63c5ce25); animation: leviathan-rise 3.4s cubic-bezier(.2,.6,.3,1) both,leviathan-breathe 6s ease-in-out 3.4s infinite; }
@@ -78,27 +71,19 @@
     .leviathan-stage.is-omen .leviathan-art { transform: translateY(70%); opacity: .4; }
     .leviathan-stage.is-retreat .leviathan-art { opacity: .4; }
     .buddy-footer-portal.is-closing { opacity: 0; }
-    .creature-kraken.is-omen .kraken-grips { transform: translateY(8px); }
-    .footer-pool-fish.fish-one { transform: translate(40px,25px); }
-    .footer-pool-fish.fish-two { transform: translate(86px,32px) scale(.7); }
-    .footer-pool-fish.fish-three { transform: translate(60px,39px) scale(.5); }
+    .footer-pool-fish.fish-one { transform: translate(40px,17px); }
+    .footer-pool-fish.fish-two { transform: translate(86px,21px) scale(.7); }
+    .footer-pool-fish.fish-three { transform: translate(60px,12px) scale(.5); }
   }
 }
-@keyframes kraken-find-grip { 0% { transform: translateY(70px); } 45% { transform: translateY(23px); } 68% { transform: translateY(-4px); } 80%,100% { transform: translateY(0); } }
-@keyframes kraken-haul { 0%,15% { transform: translateY(110px); } 42% { transform: translateY(53px); } 55% { transform: translateY(61px); } 85% { transform: translateY(-3px); } 100% { transform: translateY(0); } }
-@keyframes kraken-unfurl { from { transform: translateY(110px) scaleX(.85); } 50% { transform: translateY(42px); } to { transform: translateY(0) scaleX(1); } }
-@keyframes kraken-grip-tension { 0%,15% { transform: scaleY(.45); } 42% { transform: scaleY(.75); } 55% { transform: scaleY(.68); } 85% { transform: scaleY(1.04); } 100% { transform: scaleY(1); } }
 @keyframes kraken-grip-spray { 0%,25%,53%,75%,100% { opacity: 0; } 28%,58% { opacity: .9; } }
-@keyframes pool-school-one { 0%,100% { transform: translate(34px,25px); } 50% { transform: translate(90px,21px); } }
-@keyframes pool-school-two { 0%,100% { transform: translate(26px,36px) scale(.7); } 50% { transform: translate(98px,33px) scale(.7); } }
-@keyframes pool-school-three { 0%,100% { transform: translate(32px,39px) scale(.5); } 50% { transform: translate(75px,43px) scale(.5); } }
+@keyframes pool-school-one { 0%,100% { transform: translate(34px,16px); } 50% { transform: translate(90px,18px); } }
+@keyframes pool-school-two { 0%,100% { transform: translate(30px,21px) scale(.7); } 50% { transform: translate(98px,20px) scale(.7); } }
+@keyframes pool-school-three { 0%,100% { transform: translate(42px,12px) scale(.5); } 50% { transform: translate(78px,13px) scale(.5); } }
 @keyframes pool-fish-turn { 0%,100% { transform: scaleX(1); } 50% { transform: scaleX(-1); } }
 @keyframes pool-tail { to { transform: scaleX(.65); } }
 @keyframes pool-bubbles { from { transform: translateY(8px); opacity: 0; } 30% { opacity: .65; } to { transform: translateY(-12px); opacity: 0; } }
 @keyframes pool-light { to { transform: translateX(8px); opacity: .18; } }
-@keyframes kraken-arm-sway { 50% { transform: rotate(6deg) scaleY(.93); } }
-@keyframes kraken-breath { 50% { transform: scale(1.025,.96); } }
-@keyframes kraken-wave { 50% { transform: rotate(-17deg); } }
 @keyframes kraken-ink { 10% { opacity: .8; transform: scaleX(.6); } 100% { opacity: 0; transform: scaleX(1.3); } }
 @keyframes footer-floor-break { from { clip-path: inset(0 48% 80%); opacity: .3; } 45% { clip-path: inset(0 22% 40%); opacity: 1; } to { clip-path: inset(-10%); opacity: 1; } }
 @keyframes footer-floor-rubble { from { transform: translateY(-4px); } 50% { transform: translateY(-7px); } to { transform: translateY(0); } }

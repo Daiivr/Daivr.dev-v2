@@ -7,11 +7,20 @@ import { KrakenArt } from "./KrakenArt";
 export function LeviathanEncounter({ phase, container, response = "", onInteract, creature = "leviathan", buddyX = 0 }) {
   const [dismissed, setDismissed] = useState(false);
   const [used, setUsed] = useState([]);
+  const [stageWidth, setStageWidth] = useState(0);
+  useEffect(() => {
+    if (!container) return;
+    const resize = () => setStageWidth(container.clientWidth);
+    resize();
+    const observer = new ResizeObserver(resize);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [container]);
   useEffect(() => { if (!phase) { setDismissed(false); setUsed([]); } }, [phase]);
   if (!phase || !container) return null;
   const kraken = creature === "kraken";
   const name = kraken ? "Kraken" : "Leviathan";
-  const placement = encounterPlacement(container.clientWidth, buddyX);
+  const placement = encounterPlacement(stageWidth || container.clientWidth, buddyX);
   const title = phase === "omen" ? "Something enormous is approaching" : phase === "monster" ? `${name} at the surface` : "Returning to the deep";
   const visit = () => {
     container.scrollIntoView({ behavior: "instant", block: "end" });
@@ -41,7 +50,7 @@ export function LeviathanEncounter({ phase, container, response = "", onInteract
       <div className="leviathan-water"><i /><i /><i /></div>
       <svg className="leviathan-art" style={{ left: placement.left, width: placement.width, right: "auto", bottom: kraken ? -(placement.width * 14 / 360) : undefined }} viewBox={kraken ? "0 0 360 160" : "0 0 360 140"} aria-hidden="true" shapeRendering="crispEdges">
         <g transform={placement.facesLeft ? "translate(360 0) scale(-1 1)" : undefined}>
-        {kraken ? <KrakenArt /> : <>
+        {kraken ? <KrakenArt phase={phase} response={response} /> : <>
         <g className="leviathan-tail">
           <path d="M112 101H80V91H55V76H32V60H18V42L8 16l20 12 9 17 15-18-5 31 15 12h22v8h28z" fill="#102c3b" stroke="#376678" strokeWidth="2" />
           <path d="M20 43h12v17h12v12h15v9h25v10h20v6H78V87H53V72H31V56H20z" fill="#286070" />

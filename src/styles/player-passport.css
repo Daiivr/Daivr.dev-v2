@@ -36,6 +36,9 @@
   .view-records .passport-records > div { padding: 22px; }
   .view-records .passport-records strong { font-size: 26px; }
   .passport-customize .passport-form { padding: 0; }
+  .passport-save-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .passport-save-row > button { flex-shrink: 0; }
+  .passport-save-status { color: var(--player-muted); font: 11px/1.6 var(--font-mono); text-align: right; overflow-wrap: anywhere; }
   .passport-customize .passport-fields { margin-bottom: 12px; }
   .passport-customize .passport-badge-options { grid-template-columns: repeat(4, minmax(0, 1fr)); max-height: min(440px, 46dvh); overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--color-phosphor) #071810; scrollbar-gutter: stable; padding: 3px 8px 8px 3px; }
   .passport-badge-options:focus-visible { outline: 1px solid var(--color-cyan-arcade); outline-offset: 2px; }

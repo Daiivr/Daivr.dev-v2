@@ -178,7 +178,15 @@
   .patch-desk-footer button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 9px 13px; border: 1px solid var(--patch-line); font: 10px var(--font-mono); color: var(--patch-secondary); background: var(--patch-surface); }
   .patch-desk-footer button:hover { border-color: var(--patch-secondary); background: color-mix(in srgb, var(--patch-secondary) 7%, transparent); }
   .patch-discovery-overlay { position: fixed; inset: 0; z-index: 210; background: #010806dd; backdrop-filter: blur(8px); }
-  .patch-discovery { position: fixed; z-index: 211; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(940px, calc(100vw - 48px)); max-height: min(900px, 90svh); display: flex; flex-direction: column; border: 1px solid var(--patch-accent); background: var(--color-ink-950); box-shadow: 0 0 60px color-mix(in srgb, var(--patch-accent) 9%, transparent); }
+  .patch-discovery {
+    --patch-grain: url('/textures/arcade-grain.svg');
+    --patch-brush: repeating-linear-gradient(0deg, #ffffff05 0 1px, #00000012 1px 3px);
+    position: fixed; z-index: 211; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: min(940px, calc(100vw - 48px)); max-height: min(900px, 90svh);
+    display: flex; flex-direction: column; border: 1px solid var(--patch-accent);
+    background: var(--patch-grain), repeating-linear-gradient(135deg, #ffffff04 0 1px, transparent 1px 4px), linear-gradient(120deg, color-mix(in srgb, var(--patch-accent) 10%, var(--color-ink-950)), var(--color-ink-950));
+    box-shadow: inset 0 0 0 4px #0007, inset 0 0 0 5px var(--patch-line), 0 24px 80px #000b, 0 0 50px color-mix(in srgb, var(--patch-accent) 8%, transparent);
+  }
   .patch-discovery-header { display: flex; align-items: start; justify-content: space-between; gap: 20px; padding: 22px 24px 12px; flex-shrink: 0; }
   .patch-discovery-header > div > span { color: var(--patch-secondary); font: 9px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
   .patch-discovery-header h2 { margin-top: 9px; font: 700 clamp(23px, 2.5vw, 30px)/1.2 var(--font-display); color: var(--patch-text); }
@@ -201,6 +209,41 @@
   .patch-archive-tools { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; padding: 12px 24px; border-bottom: 1px solid var(--patch-line); flex-shrink: 0; }
   .patch-archive-tools select { min-height: 46px; width: 100%; min-width: 0; padding: 10px; border: 1px solid var(--patch-line); color: var(--patch-text); background: var(--color-ink-950); font: 11px var(--font-mono); }
   .patch-archive-tools select:focus-visible { outline: 2px solid var(--patch-secondary); }
+  /* Woven cover, brushed hardware, and inset pages share the passport materials. */
+  .patch-discovery-header {
+    background: var(--patch-grain), var(--patch-brush), linear-gradient(110deg, color-mix(in srgb, var(--patch-accent) 15%, var(--color-ink-950)), color-mix(in srgb, var(--patch-accent) 5%, var(--color-ink-950)));
+    box-shadow: inset 0 1px #ffffff18;
+  }
+  .patch-discovery-header > div > span { display: flex; align-items: center; gap: 26px; }
+  .patch-discovery-header > div > span::before { content: ""; flex: 0 0 5px; height: 5px; background: var(--color-danger-arcade); box-shadow: 8px 0 var(--color-cabinet), 16px 0 var(--patch-accent); }
+  .patch-discovery-header h2 { text-shadow: 0 2px 0 #000; }
+  .patch-discovery-context { background: var(--patch-grain), var(--patch-brush), linear-gradient(110deg, color-mix(in srgb, var(--patch-accent) 15%, var(--color-ink-950)), color-mix(in srgb, var(--patch-accent) 5%, var(--color-ink-950))); box-shadow: 0 3px 0 #0006; }
+  .patch-discovery-reader { scrollbar-color: color-mix(in srgb, var(--patch-accent) 48%, #14231c) #0003; }
+  .patch-discovery-reader .patch-entry {
+    border-color: color-mix(in srgb, var(--patch-accent) 36%, transparent);
+    background: var(--patch-grain), radial-gradient(ellipse at 100% 0, color-mix(in srgb, var(--patch-secondary) 7%, transparent), transparent 65%), linear-gradient(125deg, color-mix(in srgb, var(--patch-accent) 8%, var(--color-ink-950)), var(--color-ink-950));
+    box-shadow: inset 0 1px #ffffff12, inset 3px 0 color-mix(in srgb, var(--patch-secondary) 50%, transparent), 0 4px 12px #0006;
+  }
+  .patch-discovery-reader .patch-entry.is-latest { border-top: 2px solid var(--patch-accent); }
+  .patch-discovery .patch-entry-meta { border-bottom: 1px dashed var(--patch-line); margin: 0 24px 14px; padding-inline: 0; }
+  .patch-discovery .patch-version { padding: 5px 7px; background: #0006; border: 1px solid var(--patch-line); box-shadow: inset 0 2px 4px #0008; }
+  .patch-discovery .patch-current { background: var(--patch-brush), color-mix(in srgb, var(--patch-accent) 10%, transparent); border: 1px solid var(--patch-line); }
+  .patch-discovery .patch-change-counts { gap: 8px; }
+  .patch-discovery .patch-change-counts > span { padding: 5px 8px; border: 1px solid color-mix(in srgb, var(--change-color) 20%, transparent); background: #0003; }
+  .patch-discovery .patch-entry-actions { background: var(--patch-brush), #0005; box-shadow: inset 0 1px #ffffff08, 0 2px 3px #0004; }
+  .patch-discovery .patch-entry-actions button[aria-expanded="true"] { background: linear-gradient(0deg, color-mix(in srgb, var(--patch-accent) 12%, transparent), transparent); }
+  .patch-discovery .patch-entry-content { background: var(--patch-grain), linear-gradient(110deg, #0005, #0009); }
+  .patch-discovery .patch-content-heading { padding-bottom: 12px; border-bottom: 1px dashed var(--patch-line); }
+  .patch-discovery .patch-changes { counter-reset: patch-change; }
+  .patch-discovery .patch-changes li { position: relative; padding-left: 28px; counter-increment: patch-change; }
+  .patch-discovery .patch-changes li::before { content: counter(patch-change, decimal-leading-zero); position: absolute; top: 20px; left: 0; color: var(--patch-muted); opacity: .6; font: 9px var(--font-mono); }
+  .patch-discovery .patch-change-tag { background: var(--patch-brush), color-mix(in srgb, var(--change-color) 7%, transparent); box-shadow: inset 0 1px #ffffff0d; }
+  .patch-discovery .patch-dev-note { padding: 20px; border: 1px solid var(--patch-line); border-left: 2px solid var(--patch-secondary); background: var(--patch-grain), repeating-linear-gradient(0deg, transparent 0 25px, #ffffff03 25px 26px), linear-gradient(120deg, color-mix(in srgb, var(--patch-secondary) 6%, transparent), #0002); box-shadow: 0 3px 8px #0005; }
+  .patch-discovery .patch-dev-avatar { background: var(--patch-brush), linear-gradient(135deg, color-mix(in srgb, var(--patch-secondary) 15%, #07100e), #020806); box-shadow: inset 0 1px #ffffff22, inset 0 -3px #0007; }
+  .patch-discovery-nav, .patch-discovery .patch-archive-tools { background: var(--patch-grain), var(--patch-brush), color-mix(in srgb, var(--patch-accent) 5%, var(--color-ink-950)); box-shadow: inset 0 1px #ffffff0a; }
+  .patch-discovery-nav button, .patch-discovery-header > button { background: var(--patch-brush), linear-gradient(color-mix(in srgb, var(--patch-accent) 9%, var(--color-ink-950)), var(--color-ink-950)); box-shadow: inset 0 1px #ffffff14, inset 0 -3px #0008, 0 2px 4px #0004; }
+  .patch-discovery-header > button:hover { color: var(--patch-secondary); border-color: var(--patch-secondary); }
+  .patch-discovery-nav button:not(:disabled):hover { background: var(--patch-brush), color-mix(in srgb, var(--patch-accent) 15%, var(--color-ink-950)); }
   @media (max-width: 900px) {
     .patch-desk-scene { min-height: 390px; }
     .patch-object-label { gap: 5px; font-size: 9px; padding: 6px; }
@@ -236,6 +279,10 @@
     .patch-discovery-nav button { padding: 8px; font-size: 10px; gap: 4px; }
     .patch-discovery-nav > span { font-size: 9px; }
     .patch-archive-tools { padding: 10px 14px; grid-template-columns: minmax(0, 1fr); }
+    .patch-discovery .patch-entry-meta { margin-inline: 14px; gap: 8px; flex-wrap: wrap; padding-block: 8px; }
+    .patch-discovery .patch-current { font-size: 7px; }
+    .patch-discovery .patch-dev-note { padding: 14px; gap: 12px; }
+    .patch-discovery .patch-changes li { padding-left: 24px; }
   }
   @media (prefers-reduced-motion: reduce) { .patch-desk-object > svg { transition: none; } .patch-desk-object:is(:hover, :focus-visible) > svg { transform: none; } }
 }

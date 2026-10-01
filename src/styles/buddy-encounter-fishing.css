@@ -59,7 +59,7 @@
     --tip-x: calc(32 - 26 * cos(var(--buddy-rod-angle)) + 29 * sin(var(--buddy-rod-angle)));
     --tip-y: calc(44 - 26 * sin(var(--buddy-rod-angle)) - 29 * cos(var(--buddy-rod-angle)));
     --line-shear: calc((6 - var(--tip-x)) / 50);
-    --line-end-y: calc(65 + var(--buddy-line-lift));
+    --line-end-y: calc(65 + var(--buddy-water-offset, 0) + var(--buddy-line-lift));
     --line-stretch: calc((var(--line-end-y) - var(--tip-y)) / 50);
     animation: none;
     transform-box: view-box;
