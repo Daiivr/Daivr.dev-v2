@@ -74,6 +74,7 @@ export function TowerBlockModal({ open, onBack, onClose }) {
           setMyScore(data.score || null);
           setLeaderboard(data.leaderboard || []);
           setSaveStatus(`STACK ${next} SECURED // RANK #${data.score?.rank || "?"}`);
+          window.dispatchEvent(new Event("daivr-player-progress"));
         }).catch((error) => setSaveStatus(String(error.message || "SAVE FAILED").toUpperCase()));
       }
     }
@@ -94,7 +95,7 @@ export function TowerBlockModal({ open, onBack, onClose }) {
           <div className="tower-modal-stats"><span>LAST <b>{score}</b></span><span>BEST <b>{best}</b></span><button className={rankingOpen ? "is-active" : ""} type="button" onClick={() => setRankingOpen((value) => !value)} aria-label="Toggle Tower Block leaderboard"><Trophy size={16} /></button><button type="button" onClick={() => { setScore(0); setInstance((value) => value + 1); }} aria-label="Restart Tower Block"><RotateCcw size={16} /></button><button type="button" onClick={onClose} aria-label="Close Tower Block"><X size={18} /></button></div>
         </header>
         <div className="tower-modal-screen">
-          <iframe key={instance} ref={frameRef} src="/tower-block/index.html" title="Tower Block minigame" />
+          <iframe key={instance} ref={frameRef} src="/tower-block/index.html" title="Tower Block minigame" onLoad={(event) => { if (!rankingOpen) event.currentTarget.contentWindow?.focus(); }} />
           {rankingOpen ? <aside className="tower-ranking" aria-label="Tower Block leaderboard">
             <header><div><small>RANKING.SYS</small><strong>TOP BUILDERS</strong></div><button type="button" onClick={() => loadLeaderboard()}>REFRESH</button></header>
             {me ? <div className="tower-ranking-self"><RankingAvatar src={me.avatarUrl} name={me.username} loading="eager" /><span><small>LINKED AS {me.username}</small><strong>{myScore ? `#${myScore.rank} // ${myScore.bestScore} BLOCKS // ${formatDuration(myScore.bestDurationMs)}` : "NO TOWER RECORDED"}</strong></span></div> : <a href="/api/comments/auth/discord"><LogIn size={15} /> CONNECT DISCORD TO RANK</a>}

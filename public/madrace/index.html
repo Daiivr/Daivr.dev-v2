@@ -1105,6 +1105,12 @@
     var fakeProgressPercentStart = 80 + Math.random() * 15;
     window.addEventListener('DOMContentLoaded', domContentLoaded);
     window.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape' && window.parent !== window) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        window.parent.postMessage({ type: 'daivr:madrace-close' }, window.location.origin);
+        return;
+      }
       if (!document.documentElement.classList.contains('madrace-game-paused')) return;
       if (event.key !== 'ArrowDown' && String(event.key || '').toLowerCase() !== 's') return;
       event.preventDefault();

@@ -33,7 +33,6 @@ export function MadraceModal({ open, onBack, onClose }) {
   const [resetting, setResetting] = useState(false);
   const [volume, setVolume] = useState(() => Math.max(0, Math.min(100, Number(localStorage.getItem(VOLUME_KEY) ?? 12))));
   const frameRef = useRef(null);
-  const closeRef = useRef(null);
   const launchConfiguredRef = useRef(false);
   const resetConfirmRef = useRef(false);
 
@@ -82,7 +81,6 @@ export function MadraceModal({ open, onBack, onClose }) {
     const shell = document.querySelector(".app-shell");
     const previousOverflow = shell?.style.overflow;
     if (shell) shell.style.overflow = "hidden";
-    window.setTimeout(() => closeRef.current?.focus(), 80);
 
     function onKeyDown(event) {
       if (event.key !== "Escape") return;
@@ -101,6 +99,11 @@ export function MadraceModal({ open, onBack, onClose }) {
     function onMessage(event) {
       if (event.origin !== window.location.origin) return;
       const data = event.data || {};
+      if (data.type === "daivr:madrace-close" && event.source === frameRef.current?.contentWindow) {
+        if (resetConfirmRef.current) setResetConfirmOpen(false);
+        else onClose();
+        return;
+      }
       if (data.type === "daivr:drive-mad-score-saving") setStatus(`SAVING LEVEL ${data.level || "?"}...`);
       if (data.type === "daivr:drive-mad-score-error") {
         setStatus(data.status === 401 ? "DISCORD LINK REQUIRED TO SAVE" : String(data.error || "SAVE FAILED").toUpperCase());
@@ -108,13 +111,14 @@ export function MadraceModal({ open, onBack, onClose }) {
       if (data.type === "daivr:drive-mad-score-updated") {
         setStatus(`LEVEL ${data.score?.highestLevel || data.level} SECURED`);
         setMyScore(data.score || null);
+        window.dispatchEvent(new Event("daivr-player-progress"));
         loadScores(true);
       }
       if (data.type === "daivr:game-ready") sendVolume(volume, 800);
     }
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [loadScores, open, volume]);
+  }, [loadScores, onClose, open, volume]);
 
   function sendVolume(nextVolume, fadeMs = 180) {
     frameRef.current?.contentWindow?.postMessage({
@@ -202,7 +206,7 @@ export function MadraceModal({ open, onBack, onClose }) {
             <button type="button" className={leaderboardOpen ? "is-active" : ""} onClick={() => setLeaderboardOpen((value) => !value)}>
               <Trophy size={14} /> TOP 10
             </button>
-            <button className="madrace-close" type="button" onClick={onClose} ref={closeRef} aria-label="Close Madrace">
+            <button className="madrace-close" type="button" onClick={onClose} aria-label="Close Madrace">
               <X size={19} />
             </button>
           </div>
@@ -216,7 +220,10 @@ export function MadraceModal({ open, onBack, onClose }) {
               src={gameSrc}
               title="Madrace minigame"
               allow="autoplay; fullscreen"
-              onLoad={() => sendVolume(volume, 900)}
+              onLoad={(event) => {
+                sendVolume(volume, 900);
+                if (!leaderboardOpen && !resetConfirmOpen && !resetting) event.currentTarget.contentWindow?.focus();
+              }}
             />
           ) : <div className="madrace-boot">LOADING SECRET CARTRIDGE...</div>}
 

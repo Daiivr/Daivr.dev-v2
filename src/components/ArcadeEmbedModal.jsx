@@ -126,7 +126,7 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
       setStatus(me ? ranking.saving(score) : "DISCORD LINK REQUIRED TO RANK");
       if (!me) return;
       fetch(`/api/${ranking.api}/score`, { method:"POST", credentials:"include", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ score, durationMs }) })
-        .then(async (response) => { const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.error || "save-failed"); setMyScore(data.score || null); setLeaderboard(data.leaderboard || []); setStatus(ranking.saved(score, data.score?.rank || "?")); })
+        .then(async (response) => { const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.error || "save-failed"); setMyScore(data.score || null); setLeaderboard(data.leaderboard || []); setStatus(ranking.saved(score, data.score?.rank || "?")); window.dispatchEvent(new Event("daivr-player-progress")); })
         .catch((error) => setStatus(String(error.message || "SAVE FAILED").toUpperCase()));
     }
     window.addEventListener("message", onMessage);
@@ -159,7 +159,7 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
           <div className="arcade-embed-title"><button type="button" onClick={onBack} aria-label="Back to game library"><ArrowLeft size={17} /></button><span><small>{config.subtitle}</small><strong><Gamepad2 size={19} /> {config.title}</strong></span></div>
           <div>{hasRanking ? <button className={rankingOpen ? "is-active" : ""} type="button" onClick={() => setRankingOpen((value) => !value)} aria-label={`Toggle ${config.title} leaderboard`}><Trophy size={16} /></button> : null}<button type="button" onClick={() => { setGameOver(null); setInstance((value) => value + 1); }} aria-label={`Restart ${config.title}`}><RotateCcw size={16} /></button><button type="button" onClick={onClose} aria-label={`Close ${config.title}`}><X size={18} /></button></div>
         </header>
-        <div className="arcade-embed-screen"><iframe key={instance} ref={frameRef} src={config.src} title={config.title} allow="autoplay; fullscreen" />
+        <div className="arcade-embed-screen"><iframe key={instance} ref={frameRef} src={config.src} title={config.title} allow="autoplay; fullscreen" onLoad={(event) => { if (game === "cross-road" && !rankingOpen) event.currentTarget.contentWindow?.focus(); }} />
           {gameOver ? (
             <div className="pinball-gameover" role="dialog" aria-modal="true" aria-label="Game over">
               <div>

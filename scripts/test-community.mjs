@@ -9,6 +9,8 @@ import { getCacheControl, loadHashedAssets } from "../server/asset-cache.mjs";
 import { readJsonStore, writeJsonStore } from "../server/json-store.mjs";
 import { handleCommentsRequest } from "../server/comments.mjs";
 import { handlePlayerRequest } from "../server/player.mjs";
+import { handleBuddyRequest } from "../server/buddy.mjs";
+import { FISH_CATALOG } from "../shared/buddy-catches.mjs";
 import { handleTowerBlockRequest } from "../server/tower-block.mjs";
 import { handleCrossRoadRequest } from "../server/cross-road.mjs";
 import { handleSpaceCadetPinballRequest } from "../server/space-cadet-pinball.mjs";
@@ -66,7 +68,7 @@ test("community API, safe storage, posting limits, passports and daily rewards",
   const fixture = [{ id: "thread", author: alice, text: "Welcome", mentions: [{ id: bob.id, username: bob.username }], createdAt: "2026-01-01T00:00:00Z", replies: [] }];
   writeFileSync(join(dir, "comments.json"), JSON.stringify(fixture));
   const server = createServer((req, res) => {
-    const handler = req.url.startsWith("/api/player") ? handlePlayerRequest : req.url.startsWith("/api/tower-block") ? handleTowerBlockRequest : req.url.startsWith("/api/cross-road") ? handleCrossRoadRequest : req.url.startsWith("/api/space-cadet-pinball") ? handleSpaceCadetPinballRequest : handleCommentsRequest;
+    const handler = req.url.startsWith("/api/buddy") ? handleBuddyRequest : req.url.startsWith("/api/player") ? handlePlayerRequest : req.url.startsWith("/api/tower-block") ? handleTowerBlockRequest : req.url.startsWith("/api/cross-road") ? handleCrossRoadRequest : req.url.startsWith("/api/space-cadet-pinball") ? handleSpaceCadetPinballRequest : handleCommentsRequest;
     handler(req, res).catch((error) => { res.writeHead(500); res.end(JSON.stringify({ error: error.message })); });
   });
   t.after(async () => {
@@ -123,6 +125,11 @@ test("community API, safe storage, posting limits, passports and daily rewards",
   let player = (await api("/api/player")).data;
   assert.equal(player.challenge.complete, true);
   assert.equal(player.passport.challengeCount, 1);
+  assert.equal(player.challenge.xp.total, 100);
+  assert.equal(player.passport.progression.totalXp, 275); // daily, visitor, signal, player, challenger
+  assert.ok(!JSON.stringify(player).includes("first-boot"));
+  assert.ok(!JSON.stringify(player).includes("fish-archivist"));
+  assert.ok(!JSON.stringify(player).includes("abyss-witness"));
   recordDailyRun(bob, challenge.game, challenge.goal + 1);
   assert.equal(readPlayers()[bob.id].challengeCount, 1);
   const chosen = { title: challenge.reward, accent: challenge.reward, favoriteGame: "tower-block", featuredBadges: ["visitor", "challenger"] };
@@ -149,6 +156,18 @@ test("community API, safe storage, posting limits, passports and daily rewards",
   assert.ok(player.passport.badges.some((badge) => badge.id === "daily-25"));
   assert.equal((await api("/api/player", bob, { ...chosen, featuredBadges: ["daily-25", "streak-3"] })).status, 200);
   assert.equal((await api("/api/player", bob, { ...chosen, featuredBadges: ["streak-7"] })).status, 400);
+
+  const xpBeforeSecrets = player.passport.progression.totalXp;
+  const adventure = { daiBooted: true, leviathanSightings: 1, fishCollection: Object.fromEntries(FISH_CATALOG.filter((fish) => fish.kind === "fish").map((fish) => [fish.id, 1])) };
+  assert.equal((await api("/api/buddy", bob, { action: "sync-adventure", adventure })).status, 200);
+  player = (await api("/api/player")).data;
+  assert.equal(player.passport.progression.totalXp, xpBeforeSecrets + 2575);
+  assert.deepEqual(player.passport.badges.filter((badge) => badge.secret).map((badge) => badge.id), ["first-boot", "fish-archivist", "abyss-witness"]);
+  assert.equal((await api("/api/player", bob, { ...chosen, featuredBadges: ["fish-archivist", "abyss-witness", "first-boot"], xpAwards: { cheat: 9999999 } })).status, 200);
+  await api("/api/buddy", bob, { action: "sync-adventure", adventure: {} });
+  assert.equal((await api("/api/buddy")).data.adventure.daiBooted, true);
+  assert.equal((await api("/api/player")).data.passport.progression.totalXp, xpBeforeSecrets + 2575);
+  assert.ok(!(await api("/api/player", alice)).data.passport.badges.some((badge) => badge.secret));
 
   writeJsonStore("recover.json", [1], [], [], Array.isArray);
   writeJsonStore("recover.json", [1, 2], [], [], Array.isArray);

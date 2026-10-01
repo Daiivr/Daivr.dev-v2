@@ -37,9 +37,10 @@ export function challengeStats(saved, now = Date.now()) {
 }
 
 export function challengeBadges(count, bestStreak) {
-  return CHALLENGE_BADGES.map((badge) => {
+  const rewards = [50, 100, 250, 400, 750, 1500, 2500, 75, 200, 350, 700, 1400, 2500];
+  return CHALLENGE_BADGES.map((badge, index) => {
     const value = badge.metric === "completions" ? count : bestStreak;
-    return { ...badge, earned: value >= badge.target, progress: Math.min(value, badge.target),
+    return { ...badge, xp: rewards[index], earned: value >= badge.target, progress: Math.min(value, badge.target),
       description: badge.metric === "completions"
         ? `Complete ${badge.target} daily challenge${badge.target === 1 ? "" : "s"}.`
         : `Complete daily challenges ${badge.target} UTC days in a row.` };

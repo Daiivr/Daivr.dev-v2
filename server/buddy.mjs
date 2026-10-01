@@ -21,6 +21,7 @@ const EMPTY_ADVENTURE = Object.freeze({
   fishCollection: {},
   foundObjects: {},
   leviathanSightings: 0,
+  daiBooted: false,
   bugsDefeated: 0,
   completed: [],
   inventory: []
@@ -85,6 +86,7 @@ function normalizeAdventure(value) {
     fishCollection: normalizeCounterMap(source.fishCollection),
     foundObjects: normalizeCounterMap(source.foundObjects),
     leviathanSightings: boundedCount(source.leviathanSightings),
+    daiBooted: source.daiBooted === true,
     bugsDefeated: boundedCount(source.bugsDefeated),
     completed: normalizeIdList(source.completed),
     inventory: normalizeIdList(source.inventory)
@@ -115,6 +117,7 @@ function mergeAdventure(storedValue, incomingValue) {
     fishCollection: mergeCounterMaps(stored.fishCollection, incoming.fishCollection),
     foundObjects: mergeCounterMaps(stored.foundObjects, incoming.foundObjects),
     leviathanSightings: Math.max(stored.leviathanSightings, incoming.leviathanSightings),
+    daiBooted: stored.daiBooted || incoming.daiBooted,
     bugsDefeated: Math.max(stored.bugsDefeated, incoming.bugsDefeated),
     completed: normalizeIdList([...stored.completed, ...incoming.completed]),
     inventory: normalizeIdList([...stored.inventory, ...incoming.inventory])

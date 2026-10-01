@@ -74,6 +74,23 @@
   .player-passport h3 { overflow-wrap: anywhere; }
   .player-passport p { margin: 4px 0 0; font-size: 11px; color: var(--player-muted); }
   .passport-stats { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding-top: 12px; border-top: 1px solid var(--player-border); }
+  .passport-level { grid-column: 1 / -1; padding: 12px; border: 1px solid color-mix(in srgb, var(--passport-accent) 35%, transparent); background: #020b0899; }
+  .passport-level-heading, .passport-level-meta { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px; }
+  .passport-level-heading strong { color: var(--passport-accent); font: 800 26px var(--font-display); }
+  .passport-level-heading strong span { font: 800 10px var(--font-mono); letter-spacing: .12em; }
+  .passport-level-heading > span, .passport-level-meta { color: var(--player-muted); font-size: 10px; }
+  .passport-level progress { display: block; width: 100%; height: 8px; margin: 10px 0 8px; border: 0; background: #020604; accent-color: var(--passport-accent); }
+  .passport-level progress::-webkit-progress-bar { background: #020604; }
+  .passport-level progress::-webkit-progress-value { background: var(--passport-accent); }
+  .passport-level progress::-moz-progress-bar { background: var(--passport-accent); }
+  .daily-xp-reward { display: grid; gap: 5px; padding: 12px 0; border-top: 1px dashed var(--player-border); }
+  .daily-xp-reward strong { font-size: 17px; color: var(--color-cabinet); }
+  .daily-xp-reward strong small, .daily-xp-reward > span, .daily-xp-reward > small { font-size: 10px; color: var(--player-muted); line-height: 1.6; }
+  .badge-xp { color: var(--color-cabinet); font-size: 10px; }
+  .player-xp-toast { position: fixed; right: 16px; bottom: 24px; z-index: 230; display: flex; align-items: center; gap: 12px; width: max-content; max-width: min(480px, calc(100vw - 32px)); padding: 16px; border: 1px solid var(--color-cabinet); background: #071810; color: #ffcf67; box-shadow: 0 8px 32px #0009; font: 12px/1.6 var(--font-mono); }
+  .player-xp-toast > svg { flex-shrink: 0; }
+  .player-xp-toast button { display: grid; place-items: center; flex-shrink: 0; width: 36px; height: 36px; cursor: pointer; color: inherit; }
+  .player-xp-toast button:focus-visible { outline: 2px solid currentColor; }
   .passport-stats > div { display: flex; flex-direction: column-reverse; gap: 3px; padding-inline: 10px; border-left: 1px solid var(--player-border); }
   .passport-stats > div:first-child { border-left: 0; padding-left: 0; }
   .passport-stats dt { font-size: 9px; color: var(--player-muted); text-transform: uppercase; }
@@ -158,6 +175,8 @@
   .player-hub-dialog .daily-challenge > button { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 42px; border-color: var(--color-cabinet); background: color-mix(in srgb, var(--color-cabinet) 8%, #020604); color: var(--color-cabinet); font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
   .player-hub-dialog .daily-challenge > button:hover { border-color: var(--color-cabinet); background: color-mix(in srgb, var(--color-cabinet) 18%, #020604); }
   .daily-challenge small { display: block; margin-top: 10px; color: var(--player-muted); font-size: 10px; line-height: 1.6; }
+  .daily-challenge .daily-xp-reward small { margin-top: 0; }
+  .daily-challenge .daily-xp-reward strong small { display: inline; font-weight: 400; }
   .player-hub-dialog :is(button,a,input,select,summary):focus-visible { outline-color: var(--color-cyan-arcade); }
   .player-hub-dialog .community-inbox :is(h3, p, article span) { color: var(--color-phosphor-soft); }
   .player-hub-dialog .community-inbox h3 span, .player-signin a { color: var(--color-phosphor); }

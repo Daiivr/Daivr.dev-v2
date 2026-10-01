@@ -443,6 +443,7 @@ function CabinetApp() {
       setLaunchComplete(false);
       setLaunchClosing(false);
       setHasRun(true);
+      window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", { detail: { type: "dai-boot" } }));
       showAchievement("Achievement unlocked: Dai.exe went live", 3600);
     }, finishDelay + 1280);
 

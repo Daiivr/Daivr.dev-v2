@@ -1,5 +1,7 @@
 import { dailyChallenge } from "../shared/player-catalog.mjs";
 import { readJsonStore, writeJsonStore } from "./json-store.mjs";
+import { challengeStats, challengeBadges } from "../shared/player-achievements.mjs";
+import { reconcileProgression } from "./player-progression.mjs";
 
 const FILE = "player-passports.json";
 const ENVS = ["COMMENTS_DATA_DIR"];
@@ -25,5 +27,7 @@ export function recordDailyRun(user, game, score, now = Date.now()) {
     // Retain the completion calendar so long streaks and earned badges survive.
     completedDates: firstCompletion ? [...(player.completedDates || []), challenge.date].sort() : player.completedDates || []
   };
+  const next = players[user.id];
+  players[user.id] = reconcileProgression(next, challengeBadges(next.challengeCount, challengeStats(next, now).bestStreak).filter((badge) => badge.earned), now).saved;
   writePlayers(players);
 }

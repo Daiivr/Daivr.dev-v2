@@ -72,6 +72,7 @@ function createInitialState() {
     fishCollection: {},
     foundObjects: {},
     leviathanSightings: 0,
+    daiBooted: false,
     bugsDefeated: 0,
     completed: [],
     inventory: []
@@ -106,6 +107,7 @@ function normalizeState(value) {
     fishCollection: normalizeCounterMap(source.fishCollection),
     foundObjects: normalizeCounterMap(source.foundObjects),
     leviathanSightings: Math.max(0, Math.floor(Number(source.leviathanSightings) || 0)),
+    daiBooted: source.daiBooted === true,
     bugsDefeated: Math.max(0, Math.floor(Number(source.bugsDefeated) || 0)),
     completed: normalizeList(source.completed),
     inventory: normalizeList(source.inventory)
@@ -136,6 +138,7 @@ function mergeStates(leftValue, rightValue) {
     fishCollection: mergeCounterMaps(left.fishCollection, right.fishCollection),
     foundObjects: mergeCounterMaps(left.foundObjects, right.foundObjects),
     leviathanSightings: Math.max(left.leviathanSightings, right.leviathanSightings),
+    daiBooted: left.daiBooted || right.daiBooted,
     bugsDefeated: Math.max(left.bugsDefeated, right.bugsDefeated),
     completed: normalizeList([...left.completed, ...right.completed]),
     inventory: normalizeList([...left.inventory, ...right.inventory])
@@ -262,6 +265,7 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
         stateRef.current = confirmed;
         setState(confirmed);
         writeState(confirmed, STORAGE_KEY);
+        window.dispatchEvent(new Event("daivr-player-progress"));
       } catch {
         // Offline and guest sessions keep using their isolated local save.
       }
@@ -280,6 +284,8 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "sync-adventure", adventure: next })
+    }).then((response) => {
+      if (response.ok) window.dispatchEvent(new Event("daivr-player-progress"));
     }).catch(() => {
       // Local progress remains queued implicitly and merges on the next load.
     });
@@ -306,6 +312,7 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
       const detail = event.detail || {};
 
       apply((current) => {
+        if (detail.type === "dai-boot") return { ...current, daiBooted: true };
         if (detail.type === "cartridge") {
           const id = String(detail.id || "").trim();
           if (!id) return current;

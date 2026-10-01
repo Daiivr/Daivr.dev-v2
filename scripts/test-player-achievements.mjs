@@ -41,16 +41,20 @@ test("validated daily runs keep long streaks, prevent duplicate awards, and pres
     const now = start + day * DAY;
     challenge = dailyChallenge(now);
     recordDailyRun(user, challenge.game, challenge.goal, now);
+    const awarded = readPlayers()[user.id].xpAwards;
     recordDailyRun(user, challenge.game, challenge.goal + 10, now);
+    assert.deepEqual(readPlayers()[user.id].xpAwards, awarded);
   }
   let saved = readPlayers()[user.id];
   assert.equal(saved.challengeCount, 105);
   assert.equal(saved.completedDates.length, 105);
+  assert.equal(saved.xpAwards[`daily:${date(104)}`], 1140);
   assert.deepEqual(challengeStats(saved, start + 105 * DAY), { currentStreak: 105, bestStreak: 105 });
   // Two missed days reset the current run, but never revoke earned streak medals.
   challenge = dailyChallenge(start + 107 * DAY);
   recordDailyRun(user, challenge.game, challenge.goal, start + 107 * DAY);
   saved = readPlayers()[user.id];
+  assert.equal(saved.xpAwards[`daily:${date(107)}`], 100);
   assert.deepEqual(challengeStats(saved, start + 107 * DAY), { currentStreak: 1, bestStreak: 105 });
   assert.equal(challengeBadges(saved.challengeCount, 105).find((badge) => badge.id === "streak-100").earned, true);
   challenge = dailyChallenge(start);

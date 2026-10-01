@@ -1,11 +1,11 @@
-import { Flame, Gamepad2, HeartHandshake, MessageSquare, Shield, Trophy } from "lucide-react";
+import { Bug, Fish, Flame, Gamepad2, HeartHandshake, MessageSquare, Moon, Radar, Shield, Terminal, Trophy } from "lucide-react";
 import { useId } from "react";
 
 export function BadgeEmblem({ badge }) {
   const id = useId().replace(/:/g, "");
   const paint = (name) => `url(#${id}-${name})`;
   const Icon = badge.metric === "streak" ? Flame : badge.metric === "completions" ? Trophy
-    : ({ signal: MessageSquare, buddy: HeartHandshake, player: Gamepad2 }[badge.id] || Shield);
+    : ({ boot: Terminal, fish: Fish, sighting: Radar, night: Moon, bug: Bug }[badge.icon] || { signal: MessageSquare, buddy: HeartHandshake, player: Gamepad2 }[badge.id] || Shield);
   return <span className={`badge-emblem badge-tier-${badge.tier || "base"}`} aria-hidden="true">
     <svg className="badge-emblem-frame" viewBox="0 0 64 72" fill="none">
       <defs>
@@ -36,6 +36,6 @@ export function BadgeEmblem({ badge }) {
 export function PlayerBadge({ badge }) {
   return <span className={`player-badge badge-tier-${badge.tier || "base"}`} title={badge.description}>
     <BadgeEmblem badge={badge} />
-    <span className="player-badge-caption"><strong>{badge.label}</strong><small>{badge.metric === "streak" ? `${badge.target}-day streak` : badge.metric === "completions" ? `${badge.target} daily win${badge.target === 1 ? "" : "s"}` : "Cabinet member"}</small></span>
+    <span className="player-badge-caption"><strong>{badge.label}</strong><small>{badge.secret ? "Secret discovered" : badge.metric === "streak" ? `${badge.target}-day streak` : badge.metric === "completions" ? `${badge.target} daily win${badge.target === 1 ? "" : "s"}` : "Cabinet member"}</small></span>
   </span>;
 }
