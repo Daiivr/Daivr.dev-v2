@@ -1,6 +1,7 @@
 import { ArrowLeft, Gamepad2, LogIn, Play, RotateCcw, Trophy, Volume2, VolumeX, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RankingAvatar } from "./RankingAvatar";
+import { ArcadeTvDetails } from "./ArcadeTvDetails";
 
 const VOLUME_KEY = "daivr.pinballVolume.v1";
 // La mesa es ruidosa y el cartucho se abre sin avisar: arranca bajo y el que
@@ -153,7 +154,7 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
 
   return (
     <div className="arcade-embed-backdrop">
-      <section className="arcade-embed-modal" role="dialog" aria-modal="true" aria-label={config.title}>
+      <section className="arcade-embed-modal arcade-tv" role="dialog" aria-modal="true" aria-label={config.title}>
         <header>
           <div className="arcade-embed-title"><button type="button" onClick={onBack} aria-label="Back to game library"><ArrowLeft size={17} /></button><span><small>{config.subtitle}</small><strong><Gamepad2 size={19} /> {config.title}</strong></span></div>
           <div>{hasRanking ? <button className={rankingOpen ? "is-active" : ""} type="button" onClick={() => setRankingOpen((value) => !value)} aria-label={`Toggle ${config.title} leaderboard`}><Trophy size={16} /></button> : null}<button type="button" onClick={() => { setGameOver(null); setInstance((value) => value + 1); }} aria-label={`Restart ${config.title}`}><RotateCcw size={16} /></button><button type="button" onClick={onClose} aria-label={`Close ${config.title}`}><X size={18} /></button></div>
@@ -189,6 +190,7 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
             {rankingLoading ? <p>{ranking.scanning}</p> : <ol>{leaderboard.map((entry) => <li className={entry.discordId === me?.id ? "is-player" : ""} key={entry.discordId}><b>{String(entry.rank).padStart(2,"0")}</b><RankingAvatar src={entry.avatarUrl} name={entry.username} /><span>{entry.username}</span><em>{ranking.format(entry.bestScore)}</em><small>{formatDuration(entry.bestDurationMs)}</small></li>)}</ol>}
           </aside> : null}
         </div>
+        <ArcadeTvDetails channel={{ "cross-road": "03", "rubiks-cube": "04", "space-cadet-pinball": "05" }[game]} />
         <footer>
           <span>{config.controls}</span>
           {config.volume ? (

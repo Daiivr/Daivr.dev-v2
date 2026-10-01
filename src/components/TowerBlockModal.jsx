@@ -1,6 +1,7 @@
 import { ArrowLeft, Blocks, LogIn, RotateCcw, Trophy, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RankingAvatar } from "./RankingAvatar";
+import { ArcadeTvDetails } from "./ArcadeTvDetails";
 
 const BEST_KEY = "daivr.tower-block.best.v1";
 
@@ -84,7 +85,7 @@ export function TowerBlockModal({ open, onBack, onClose }) {
 
   return (
     <div className="tower-modal-backdrop">
-      <section className="tower-modal" role="dialog" aria-modal="true" aria-labelledby="tower-modal-title">
+      <section className="tower-modal arcade-tv" role="dialog" aria-modal="true" aria-labelledby="tower-modal-title">
         <header>
           <div className="tower-modal-title">
             <button type="button" onClick={onBack} aria-label="Back to game library"><ArrowLeft size={17} /></button>
@@ -100,6 +101,7 @@ export function TowerBlockModal({ open, onBack, onClose }) {
             {rankingLoading ? <p>SCANNING TOWERS...</p> : <ol>{leaderboard.map((entry) => <li className={entry.discordId === me?.id ? "is-player" : ""} key={entry.discordId}><b>{String(entry.rank).padStart(2,"0")}</b><RankingAvatar src={entry.avatarUrl} name={entry.username} /><span>{entry.username}</span><em>{entry.bestScore} BLOCKS</em><small>{formatDuration(entry.bestDurationMs)}</small></li>)}</ol>}
           </aside> : null}
         </div>
+        <ArcadeTvDetails channel="02" />
         <footer><span>SPACE / CLICK TO PLACE</span><b>{saveStatus || "BUILD SIGNAL ONLINE"}</b><em>ESC TO CLOSE</em></footer>
       </section>
     </div>

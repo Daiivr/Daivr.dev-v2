@@ -5,6 +5,7 @@ import {
   Boxes,
   FileClock,
   Gamepad2,
+  Home,
   MessageSquare,
   MonitorCog,
   RadioTower,
@@ -119,6 +120,10 @@ export function Sidebar({ activeSection, buddy, onOpenBuddyModal, theme, onTheme
         </div>
 
         <div className="buddy-nav-actions">
+          <button className="arcade-focus" type="button" onClick={() => onOpenBuddyModal("room")} aria-label="Open Buddy room">
+            <Home size={14} aria-hidden="true" />
+            room
+          </button>
           <button className="arcade-focus" type="button" onClick={() => onOpenBuddyModal("inventory")} aria-label="Open Buddy inventory">
             <Backpack size={14} aria-hidden="true" />
             inv

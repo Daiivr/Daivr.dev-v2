@@ -1,7 +1,8 @@
-import { ArrowUpRight, BadgeCheck, BookOpen, Clock3, Gamepad2, RadioTower, RotateCcw, Star, Trophy } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { ArrowUpRight, BookOpen, Clock3, Gamepad2, RadioTower, RotateCcw, Trophy } from "lucide-react";
+import { useEffect, useState } from "react";
 import { games } from "../data/site";
 import { DecodeText } from "./DecodeText";
+import { GameCardFlip } from "./GameCardFlip";
 
 const STEAM_PLAYTIME_ENDPOINT = "/api/steam-playtime";
 
@@ -27,9 +28,7 @@ function formatHours(value) {
 
 export function GameShelf() {
   const [flippedCards, setFlippedCards] = useState(() => new Set());
-  const [closingCards, setClosingCards] = useState(() => new Set());
   const [steamPlaytime, setSteamPlaytime] = useState(initialSteamPlaytime);
-  const closingTimers = useRef(new Map());
 
   useEffect(() => {
     const appIds = games.map((game) => game.appId).filter(Boolean);
@@ -86,12 +85,6 @@ export function GameShelf() {
     return () => window.removeEventListener("wheel", keepReviewWheelInside, { capture: true });
   }, []);
 
-  useEffect(() => {
-    return () => {
-      closingTimers.current.forEach((timer) => window.clearTimeout(timer));
-    };
-  }, []);
-
   function activateCard(event) {
     event.currentTarget.classList.add("is-active");
   }
@@ -108,37 +101,15 @@ export function GameShelf() {
       return next;
     });
 
-    // Timers and quest events belong to the interaction, not React's state updater.
-    window.clearTimeout(closingTimers.current.get(title));
-    if (wasFlipped) {
-      setClosingCards((closing) => new Set(closing).add(title));
-      const timer = window.setTimeout(() => {
-        setClosingCards((closing) => {
-          const nextClosing = new Set(closing);
-          nextClosing.delete(title);
-          return nextClosing;
-        });
-        closingTimers.current.delete(title);
-      }, 260);
-      closingTimers.current.set(title, timer);
-    } else {
+    if (!wasFlipped) {
       window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
         detail: { type: "cartridge", id: `game:${title}` }
       }));
-      setClosingCards((closing) => {
-        const nextClosing = new Set(closing);
-        nextClosing.delete(title);
-        return nextClosing;
-      });
-      closingTimers.current.delete(title);
     }
   }
 
   function returnToCover(event, title) {
     const card = event.currentTarget.closest(".game-card");
-    event.currentTarget.blur();
-    card?.classList.remove("is-active");
-    resetCardPointer({ currentTarget: card });
     toggleCardFlip(title);
     card?.querySelector(".game-card-review-toggle")?.focus({ preventScroll: true });
   }
@@ -147,11 +118,8 @@ export function GameShelf() {
     const card = event.currentTarget.closest(".game-card");
     toggleCardFlip(title);
     window.requestAnimationFrame(() => {
+      if (!card?.classList.contains("is-flipped")) return;
       card?.querySelector(".game-card-review-copy")?.focus({ preventScroll: true });
-      card?.querySelector(".game-card-scene")?.scrollIntoView({
-        block: "center",
-        behavior: reduceMotionQuery?.matches ? "auto" : "smooth"
-      });
     });
   }
 
@@ -214,11 +182,6 @@ export function GameShelf() {
   const hasLiveSteamHours = steamPlaytime.status === "online" && syncedCount > 0;
   const totalHours = games.reduce((sum, game) => sum + getGameHourValue(game), 0);
   const topGame = games.reduce((top, game) => (getGameHourValue(game) > getGameHourValue(top) ? game : top), games[0]);
-  // Los rangos iban unidos por " // " en una sola cadena que se salia de la
-  // caja; sueltos son tres fichas legibles.
-  const favoriteRanks = games
-    .map((game) => game.favoriteRank || game.kicker || game.title)
-    .filter(Boolean);
   const badgePool = [...new Set(games.flatMap((game) => game.badges || []))];
   // Antes eran dos fichas separadas ("local hours" y "sync // local") diciendo
   // la misma mitad de la historia cada una. Una sola lo dice entero.
@@ -242,16 +205,16 @@ export function GameShelf() {
         />
       </div>
 
-      <div className="game-shelf panel-strong overflow-visible p-4 md:p-6">
+      <div className="game-shelf game-collection panel-strong overflow-visible p-4 md:p-6">
         <div className="game-shelf-titlebar">
           <span className="game-shelf-lights" aria-hidden="true"><i /><i /><i /></span>
-          <code>~/daivr/favorites.archive<span aria-hidden="true">_</span></code>
+          <code>DAI'S ARCADE / FAVORITES 01</code>
           <span className="game-shelf-titlebar-mode"><BookOpen size={13} aria-hidden="true" /> personal collection</span>
         </div>
         <header className="game-shelf-toolbar">
           <div className="game-shelf-intro">
-            <p>The worlds I keep coming back to.</p>
-            <span>Explore a cartridge. Flip it for my review.</span>
+            <p>Kept within reach.</p>
+            <span>The worlds I keep coming back to. Tap a cover to read my notes.</span>
           </div>
           <div className="game-shelf-stats">
             <span><Gamepad2 size={13} aria-hidden="true" /> {String(games.length).padStart(2, "0")} cartridges</span>
@@ -260,26 +223,13 @@ export function GameShelf() {
           </div>
         </header>
 
-        <div className="game-shelf-upgrades" aria-label="Game shelf summary">
-          <div className="game-shelf-upgrade">
+        <div className="game-collection-plaque" aria-label="Game shelf summary">
+          <div>
             <Trophy size={16} aria-hidden="true" />
-            <span>top cartridge</span>
-            <strong>{topGame.title}<b>{getGameHours(topGame)}</b></strong>
+            <span>Most played <strong>{topGame.title}</strong></span>
+            <b>{getGameHours(topGame)}</b>
           </div>
-          <div className="game-shelf-upgrade">
-            <Star size={16} aria-hidden="true" />
-            <span>favorite stack</span>
-            {favoriteRanks.length ? (
-              <div className="game-shelf-rank-chips">
-                {favoriteRanks.map((rank) => <i key={rank}>{rank}</i>)}
-              </div>
-            ) : <strong>favorites pending</strong>}
-          </div>
-          <div className="game-shelf-upgrade">
-            <BadgeCheck size={16} aria-hidden="true" />
-            <span>badge pool</span>
-            <strong>{badgePool.length} traits indexed</strong>
-          </div>
+          <span className="game-collection-inscription">PERSONAL ARCHIVE <i /> {badgePool.length} traits collected</span>
         </div>
 
         <div className="game-shelf-stage">
@@ -291,16 +241,17 @@ export function GameShelf() {
           <div className="game-shelf-grid">
             {games.map((game) => {
               const isFlipped = flippedCards.has(game.title);
-              const isClosing = closingCards.has(game.title);
               const hours = getGameHourValue(game);
               const hourPercent = totalHours > 0 ? Math.min(100, (hours / totalHours) * 100) : 0;
               const reviewId = `game-review-${game.appId}`;
 
               return (
                 <article
-                  className={`game-card game-card-${game.accent} ${isFlipped ? "is-flipped" : ""} ${isClosing ? "is-review-closing" : ""}`}
+                  className={`game-card game-card-${game.accent} ${isFlipped ? "is-flipped" : ""}`}
                   key={game.title}
-                  onBlur={resetCardPointer}
+                  onBlur={(event) => {
+                    if (!event.currentTarget.contains(event.relatedTarget)) resetCardPointer(event);
+                  }}
                   onFocus={activateCard}
                   onPointerEnter={activateCard}
                   onPointerLeave={resetCardPointer}
@@ -314,47 +265,54 @@ export function GameShelf() {
                       <i />
                     </div>
                     <div className="game-card-flip">
-                      <div className="game-card-flip-inner">
-                        <button
-                          className="game-card-cover-wrap game-card-face game-card-face-front"
-                          type="button"
-                          aria-label={`Show review for ${game.title}`}
-                          aria-pressed={isFlipped}
-                          aria-controls={reviewId}
-                          tabIndex={isFlipped ? -1 : 0}
-                          onClick={(event) => openReview(event, game.title)}
-                        >
-                          <img className="game-card-cover" src={game.image} alt={`Cover art for ${game.title}`} loading="eager" decoding="async" fetchPriority="high" />
-                          <span className="game-card-foil" aria-hidden="true" />
-                        </button>
-                      </div>
+                      <GameCardFlip flipped={isFlipped}>
+                        <div className="game-card-front" inert={isFlipped} aria-hidden={isFlipped}>
+                          <div className="game-case-spine" aria-hidden="true"><span>{game.bay}</span><b>{game.title}</b><i /></div>
+                          <button
+                            className="game-card-cover-wrap"
+                            type="button"
+                            aria-label={`Show review for ${game.title}`}
+                            aria-pressed={isFlipped}
+                            aria-controls={reviewId}
+                            tabIndex={isFlipped ? -1 : 0}
+                            onClick={(event) => openReview(event, game.title)}
+                          >
+                            <img className="game-card-cover" src={game.image} alt={`Cover art for ${game.title}`} loading="eager" decoding="async" fetchPriority="high" />
+                            <span className="game-card-foil" aria-hidden="true" />
+                          </button>
+                          <img className="game-card-character" src={game.character} alt="" loading="eager" decoding="async" fetchPriority="high" aria-hidden="true" />
+                          <div className="game-card-logo-wrap" aria-hidden="true">
+                            <img className="game-card-logo" src={game.logo} alt="" loading="eager" decoding="async" fetchPriority="high" />
+                          </div>
+                          <span className="game-card-bay">{game.bay}</span>
+                          <span className="game-card-favorite-ribbon">{game.favoriteRank || game.kicker}</span>
+                        </div>
+                        <div className="game-card-back" inert={!isFlipped} aria-hidden={!isFlipped}>
+                        <div className="game-case-spine" aria-hidden="true"><span>{game.bay}</span><b>{game.title}</b><i /></div>
+                        <div className="game-card-review" id={reviewId} onPointerMove={setCardPointer} onKeyDown={(event) => {
+                          if (event.key === "Escape") {
+                            event.stopPropagation();
+                            returnToCover(event, game.title);
+                          }
+                        }}>
+                          <span className="game-card-review-kicker"><BookOpen size={13} aria-hidden="true" /> Dai's field notes</span>
+                          <strong>{game.title}</strong>
+                          <div className="game-card-review-copy" tabIndex="0" role="region" aria-label={`Review of ${game.title}`}>
+                            {game.review || "Review pending. Your notes for this game will live here once they are ready."}
+                          </div>
+                          <button
+                            className="game-card-review-action"
+                            type="button"
+                            aria-label={`Back to cover for ${game.title}`}
+                            onClick={(event) => returnToCover(event, game.title)}
+                          >
+                            back to cover
+                          </button>
+                        </div>
+                        </div>
+                      </GameCardFlip>
                     </div>
-                    <div className="game-card-review" id={reviewId} inert={!isFlipped} onPointerMove={setCardPointer} onKeyDown={(event) => {
-                      if (event.key === "Escape") {
-                        event.stopPropagation();
-                        returnToCover(event, game.title);
-                      }
-                    }}>
-                      <span className="game-card-review-kicker"><BookOpen size={13} aria-hidden="true" /> Dai's field notes</span>
-                      <strong>{game.title}</strong>
-                      <div className="game-card-review-copy" tabIndex="0" role="region" aria-label={`Review of ${game.title}`}>
-                        {game.review || "Review pending. Your notes for this game will live here once they are ready."}
-                      </div>
-                      <button
-                        className="game-card-review-action"
-                        type="button"
-                        aria-label={`Back to cover for ${game.title}`}
-                        onClick={(event) => returnToCover(event, game.title)}
-                      >
-                        back to cover
-                      </button>
-                    </div>
-                    <img className="game-card-character" src={game.character} alt="" loading="eager" decoding="async" fetchPriority="high" aria-hidden="true" />
-                    <div className="game-card-logo-wrap" aria-hidden="true">
-                      <img className="game-card-logo" src={game.logo} alt="" loading="eager" decoding="async" fetchPriority="high" />
-                    </div>
-                    <span className="game-card-bay">{game.bay}</span>
-                    <span className="game-card-favorite-ribbon">{game.favoriteRank || game.kicker}</span>
+
                   </div>
 
                   <div className="game-card-meta">

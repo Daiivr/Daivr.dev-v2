@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { PixelFrog } from "./PixelFrog";
 import { PixelLeapFish } from "./PixelLeapFish";
+import { fishArc, fishContact, fishRebound, reboundPoint } from "../../shared/footer-fish-motion.mjs";
 
 const FISH_COLORS = ["#45d8ff", "#3fff97", "#ffd166", "#ff3d9d", "#a78bfa"];
 const FISH_SPECIES = ["byte-minnow", "cache-carp", "pixel-perch", "syntax-salmon", "neon-tetra"];
@@ -22,6 +23,7 @@ export function FooterWildlife() {
     if (reduceMotion) return undefined;
 
     const timers = new Set();
+    let flightFrame = 0;
     const schedule = (callback, delay) => {
       const timer = window.setTimeout(() => {
         timers.delete(timer);
@@ -46,72 +48,86 @@ export function FooterWildlife() {
     const spawnFish = ({ forceCollision = false } = {}) => {
       if (buddyEventActiveRef.current || activeFishRef.current) return;
       const layer = layerRef.current;
+      const layerRect = layer?.getBoundingClientRect();
+      if (!layerRect || layerRect.bottom < 0 || layerRect.top > window.innerHeight || document.hidden) return;
       const id = `footer-fish-${nextIdRef.current++}`;
-      const direction = Math.random() < 0.5 ? -1 : 1;
+      const buddyNode = document.querySelector(".screen-buddy-root:not(.is-off)");
+      const bodyNode = buddyNode?.querySelector(".screen-buddy-sprite");
+      const readBody = (rect) => {
+        if (!bodyNode || buddyNode.matches(".is-off,.is-held,.is-chute,.is-sleep,.is-sleepy,.is-outage,.is-hunt")) return null;
+        const body = bodyNode.getBoundingClientRect();
+        // Ignore transparent SVG margins, antenna, loose gear and speech bubble.
+        return { left: body.left - rect.left + body.width * .19, right: body.right - rect.left - body.width * .19,
+          top: body.top - rect.top + body.height * .24, bottom: body.bottom - rect.top - body.height * .13 };
+      };
+      const body = readBody(layerRect);
+      let direction = Math.random() < 0.5 ? -1 : 1;
+      if (forceCollision && body) direction = (body.left + body.right) / 2 > layerRect.width / 2 ? 1 : -1;
+      const drift = direction * randomBetween(115, 185);
+      const margin = 25;
+      const startMin = direction > 0 ? margin : margin + Math.abs(drift);
+      const startMax = direction > 0 ? layerRect.width - margin - Math.abs(drift) : layerRect.width - margin;
+      const startX = forceCollision && body
+        ? Math.max(margin, Math.min(layerRect.width - margin, (body.left + body.right) / 2 - drift * .55))
+        : randomBetween(Math.min(startMin, startMax), Math.max(startMin, startMax));
       const item = {
-        id,
-        x: randomBetween(direction > 0 ? 7 : 20, direction > 0 ? 80 : 93),
-        drift: direction * randomBetween(58, 112),
-        height: randomBetween(42, 66),
+        id, startX, drift, waterY: layerRect.height + 10,
+        height: randomBetween(61, 85),
         species: FISH_SPECIES[Math.floor(Math.random() * FISH_SPECIES.length)],
-        duration: randomBetween(1950, 2500),
+        duration: randomBetween(1.35, 1.75),
         color: FISH_COLORS[Math.floor(Math.random() * FISH_COLORS.length)],
         facing: direction
       };
-      const layerRect = layer?.getBoundingClientRect();
-      const buddyNode = document.querySelector(".screen-buddy-root:not(.is-off)");
-      const buddyRect = buddyNode?.getBoundingClientRect();
-      if (forceCollision && layerRect && buddyRect) {
-        const buddyCenter = buddyRect.left + buddyRect.width / 2 - layerRect.left;
-        item.drift = direction * 88;
-        item.x = Math.max(7, Math.min(91, (buddyCenter - item.drift * 0.54) / layerRect.width * 100));
-      }
-      const startX = layerRect ? layerRect.width * item.x / 100 : 0;
-      const buddyLeft = layerRect && buddyRect ? buddyRect.left - layerRect.left : -9999;
-      const buddyRight = layerRect && buddyRect ? buddyRect.right - layerRect.left : -9999;
-      const buddyNearWater = Boolean(layerRect && buddyRect && buddyRect.bottom >= layerRect.bottom - 30 && buddyRect.bottom <= layerRect.bottom + 20);
-      const pathLeft = Math.min(startX, startX + item.drift);
-      const pathRight = Math.max(startX, startX + item.drift);
-      const intersectsBuddy = Boolean(
-        layerRect && buddyRect && buddyNearWater
-        && pathRight >= buddyLeft - 8
-        && pathLeft <= buddyRight + 8
-      );
-
-      if (intersectsBuddy) {
-        const buddyCenter = (buddyLeft + buddyRight) / 2;
-        const progress = Math.max(0.14, Math.min(0.86, (buddyCenter - startX) / item.drift));
-        item.collision = {
-          progress,
-          x: item.drift * progress,
-          y: -4 * item.height * progress * (1 - progress),
-          bounceX: item.drift * progress - direction * randomBetween(22, 38)
-        };
-      }
-
       activeFishRef.current = id;
       window.dispatchEvent(new CustomEvent("daivr-footer-wildlife-event", {
         detail: { active: true, name: "flying-fish" }
       }));
       setFish([item]);
-      if (item.collision) {
-        schedule(() => {
-          if (buddyEventActiveRef.current && document.documentElement.dataset.buddyEvent !== "flying-fish") {
-            removeFish(id);
-            return;
-          }
-          setFish((current) => current.map((fishItem) => fishItem.id === id ? { ...fishItem, collided: true } : fishItem));
+      window.dispatchEvent(new CustomEvent("daivr-footer-fish-seen", {
+        detail: { x: startX / layerRect.width * 100, direction }
+      }));
+      let startedAt, previous = fishArc(item, 0), previousBody = body, bounce = null, hitTime = 0;
+      let fishNode, flight;
+      const animate = (now) => {
+        if (activeFishRef.current !== id) return;
+        const rect = layer.getBoundingClientRect();
+        if (document.hidden || Math.abs(rect.width - layerRect.width) > 1 || rect.bottom < 0 || rect.top > window.innerHeight
+          || window.matchMedia("(prefers-reduced-motion: reduce)").matches) { removeFish(id); return; }
+        fishNode ||= layer.querySelector(`[data-fish-id="${id}"]`);
+        flight ||= fishNode?.querySelector(".footer-fish-flight");
+        if (!flight) { flightFrame = window.requestAnimationFrame(animate); return; }
+        startedAt ??= now;
+        const time = (now - startedAt) / 1000;
+        let point = bounce ? reboundPoint(bounce, Math.min(time - hitTime, bounce.duration)) : fishArc(item, time);
+        const liveBody = readBody(rect);
+        const contact = !bounce && time > .08 ? fishContact(previous, point, previousBody, liveBody) : null;
+        if (contact) {
+          bounce = fishRebound(contact, point, item.waterY);
+          hitTime = time;
+          point = { ...point, x: contact.x, y: contact.y };
+          fishNode.style.setProperty("--fish-collision-x", `${contact.x - startX}px`);
+          fishNode.style.setProperty("--fish-collision-y", `${contact.y - item.waterY}px`);
+          fishNode.classList.add("is-collided");
           window.dispatchEvent(new CustomEvent("daivr-footer-fish-bump", {
-            detail: { x: item.x, direction: item.facing }
+            detail: { x: contact.x / rect.width * 100, direction, speed: Math.hypot(point.vx, point.vy) }
           }));
-          schedule(() => removeFish(id), 1050);
-        }, item.duration * item.collision.progress);
-      } else {
-        window.dispatchEvent(new CustomEvent("daivr-footer-fish-seen", {
-          detail: { x: item.x, direction: item.facing }
-        }));
-      }
-      schedule(() => removeFish(id), item.duration + (item.collision ? 1200 : 500));
+        }
+        // The very same coordinates drive rendering and contact detection.
+        const angle = Math.atan2(point.vy, Math.abs(point.vx)) * 180 / Math.PI * direction;
+        flight.style.transform = `translate(${point.x - startX}px, ${point.y - item.waterY}px) rotate(${angle}deg)`;
+        flight.style.opacity = String(Math.min(1, Math.max(0, (rect.height + 12 - point.y) / 15)));
+        previous = point;
+        previousBody = liveBody;
+        if (bounce ? time - hitTime >= bounce.duration : time >= item.duration) {
+          fishNode.style.setProperty("--fish-land-x", `${point.x - startX}px`);
+          fishNode.classList.add("is-landed");
+          flight.style.opacity = "0";
+          schedule(() => removeFish(id), 720);
+          return;
+        }
+        flightFrame = window.requestAnimationFrame(animate);
+      };
+      flightFrame = window.requestAnimationFrame(animate);
     };
 
     const queueFish = () => {
@@ -168,6 +184,11 @@ export function FooterWildlife() {
       window.removeEventListener("daivr-buddy-event-state", onBuddyEventState);
       timers.forEach((timer) => window.clearTimeout(timer));
       timers.clear();
+      window.cancelAnimationFrame(flightFrame);
+      if (activeFishRef.current) {
+        activeFishRef.current = "";
+        window.dispatchEvent(new CustomEvent("daivr-footer-wildlife-event", { detail: { active: false, name: "flying-fish" } }));
+      }
     };
   }, []);
 
@@ -175,24 +196,12 @@ export function FooterWildlife() {
     <div className="footer-wildlife-layer" ref={layerRef} aria-hidden="true">
       {fish.map((item) => (
         <span
-          className={`footer-leap-fish ${item.collided ? "is-collided" : ""}`}
+          className="footer-leap-fish"
+          data-fish-id={item.id}
           key={item.id}
           style={{
-            "--fish-x": `${item.x}%`,
-            "--fish-drift": `${item.drift}px`,
-            "--fish-mid": `${item.drift * 0.52}px`,
-            "--fish-late": `${item.drift * 0.82}px`,
-            "--fish-apex": `${item.height * -1}px`,
-            "--fish-fall": `${item.height * -0.52}px`,
-            "--fish-duration": `${item.duration}ms`,
-            "--fish-facing": item.facing,
-            "--fish-rise-angle": `${item.facing * -14}deg`,
-            "--fish-apex-angle": `${item.facing * -2}deg`,
-            "--fish-fall-angle": `${item.facing * 14}deg`,
-            "--fish-entry-angle": `${item.facing * 28}deg`,
-            "--fish-collision-x": `${item.collision?.x || 0}px`,
-            "--fish-collision-y": `${item.collision?.y || 0}px`,
-            "--fish-bounce-x": `${item.collision?.bounceX || item.drift}px`
+            "--fish-x": `${item.startX}px`,
+            "--fish-facing": item.facing
           }}
         >
           <span className="footer-fish-splash is-launch"><i /><b /><b /><b /></span>
@@ -215,10 +224,14 @@ export function FooterWildlife() {
             "--frog-air-2": `${(frog.hop1 + frog.hop2) * 0.5}px`,
             "--frog-air-3": `${(frog.hop2 + frog.hop3) * 0.5}px`,
             "--frog-facing": frog.hop1 < 0 ? -1 : 1,
+            "--frog-height-1": `${Math.min(29, 10 + Math.abs(frog.hop1) * .2)}px`,
+            "--frog-height-2": `${Math.min(34, 12 + Math.abs(frog.hop2 - frog.hop1) * .2)}px`,
+            "--frog-height-3": `${Math.min(27, 9 + Math.abs(frog.hop3 - frog.hop2) * .2)}px`,
             "--frog-delay": `${frog.delay}ms`
           }}
         >
-          <PixelFrog />
+          <span className="footer-frog-shadow" />
+          <span className="footer-frog-lift"><PixelFrog /></span>
         </span>
       ))}
     </div>

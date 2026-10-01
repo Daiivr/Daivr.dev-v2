@@ -153,7 +153,7 @@ function unlockProjectPageWidth() {
   }, 240);
 }
 
-export function ProgramSections() {
+export function ProgramSections({ theme, interactive }) {
   return (
     <>
       <section className="py-16 md:py-24" id="now">
@@ -308,8 +308,8 @@ export function ProgramSections() {
       </section>
 
       <section className="py-16 md:py-24" id="patchlog">
-        <SectionHeading eyebrow="PATCH.LOG" title="Cabinet firmware history." />
-        <PatchNotes />
+        <SectionHeading eyebrow="PATCH.LOG" title="Behind the cabinet." />
+        <PatchNotes theme={theme} interactive={interactive} />
       </section>
     </>
   );

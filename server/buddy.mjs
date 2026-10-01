@@ -2,6 +2,8 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { getSessionUser } from "./comments.mjs";
 import { ensureDataFile, getDataFile } from "./storage.mjs";
+import { normalizeRoom } from "../shared/buddy-room.mjs";
+import { sameOrigin } from "./http-guards.mjs";
 
 const BUDDY_FILENAME = "buddy-friendship.json";
 const BUDDY_DATA_ENVS = ["COMMENTS_DATA_DIR"];
@@ -127,7 +129,9 @@ function buddyPayload(userId, entry = {}) {
     level: levelForPets(pets),
     adventure: normalizeAdventure(entry.adventure),
     hiddenGear: normalizeIdList(entry.hiddenGear),
-    hasLoadout: entry.hasLoadout === true
+    hasLoadout: entry.hasLoadout === true,
+    room: normalizeRoom(entry.room),
+    hasRoom: entry.hasRoom === true
   };
 }
 
@@ -185,6 +189,21 @@ export async function handleBuddyRequest(request, response) {
     const body = await readBody(request);
     const store = readStore();
     const entry = store[user.id] && typeof store[user.id] === "object" ? store[user.id] : {};
+
+    if (body.action === "save-room") {
+      if (!sameOrigin(request)) {
+        sendJson(response, 403, { error: "Room saves must come from this site." });
+        return;
+      }
+      if (body.owner !== user.id) {
+        sendJson(response, 409, { error: "Your account changed. Reopen the room before saving." });
+        return;
+      }
+      store[user.id] = { ...entry, room: normalizeRoom(body.room), hasRoom: true, updatedAt: new Date().toISOString() };
+      writeStore(store);
+      sendJson(response, 200, buddyPayload(user.id, store[user.id]));
+      return;
+    }
 
     if (body.action === "sync-adventure") {
       const adventure = mergeAdventure(entry.adventure, body.adventure);

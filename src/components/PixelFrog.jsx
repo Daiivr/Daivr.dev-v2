@@ -1,21 +1,18 @@
 export function PixelFrog() {
-  return <svg className="pixel-frog-svg" viewBox="0 0 40 28" width="40" height="28" aria-hidden="true" shapeRendering="crispEdges">
-    <g className="pixel-frog-hind-leg">
-      <path d="M4 14h12v4h-3v5H3v-3H1v-4h3z" fill="#103d2d" />
-      <path d="M5 15h8v4H9v4H2v-2h3z" fill="#28ae67" />
-      <path d="M1 24h13v3H0v-2h1z" fill="#b5ef96" />
-    </g>
+  return <svg className="pixel-frog-svg" viewBox="0 0 48 32" width="48" height="32" aria-hidden="true" shapeRendering="crispEdges">
+    <path d="M21 23h6v5h13v2H23l-4-3z" fill="#225940" />
     <g className="pixel-frog-body">
-      <path d="M9 11h5V7h8V3h5V1h7v3h3v6h2v10h-5v3H15v-2H9z" fill="#103d2d" />
-      <path d="M11 12h5V8h9V4h9v7h3v8h-5v3H16v-3h-5z" fill="#59d982" />
-      <path d="M14 10h10v2H14m-3 3h4v3h-4m7-9h6v1h-6" fill="#a9f6a1" />
-      <path d="M19 18h17v2h-5v3H19z" fill="#e6efad" />
-      <path d="M16 14h3v2h-3m6-5h2v2h-2m-2 5h3v2h-3" fill="#249267" />
-      <g className="pixel-frog-eye"><path d="M27 4h7v7h-7z" fill="#effbc2" /><path d="M30 5h3v5h-3z" fill="#05271e" /><rect x="30" y="5" width="1" height="1" fill="#fff" /></g>
-      <path d="M32 15h6v1h-6m-2 1h3v1h-3" fill="#174b37" />
-      <rect x="27" y="13" width="3" height="2" fill="#f5b98c" />
-      <path className="pixel-frog-throat" d="M28 19h7v3h-7z" fill="#e6efad" />
+      <path d="M7 18h3v-5h6v-3h10V6h7v3h3V5h7v4h2v5h2v8h-4v3H18v-2H7z" fill="#183e2b" />
+      <path d="M10 17h3v-3h6v-2h10V8h3v5h6V7h3v4h2v5h2v5h-6v3H18v-3h-8z" fill="#5f9860" />
+      <path d="M13 15h7v-2h9v2h-8v2h-8m22-5h4v2h-4m-16 3h5v2h-5" fill="#92ba77" />
+      <path d="M20 21h10v-2h14v3h-5v3H22z" fill="#ccd3a0" />
+      <path d="M16 18h3v2h-3m7-4h3v2h-3m5 3h2v2h-2m-15-5h2v2h-2" fill="#3b7049" />
+      <g className="pixel-frog-eye"><path d="M27 8h4v5h-4z" fill="#bec78b" /><path d="M29 9h2v3h-2z" fill="#122e22" /><path d="M37 8h5v6h-5z" fill="#e9dfa3" /><path d="M39 9h3v4h-3z" fill="#102b21" /><path d="M39 9h1v1h-1z" fill="#fffbe2" /></g>
+      <path d="M36 18h9v1h-9m-3 0h3v1h-3" fill="#244b32" />
+      <path d="M41 15h1v1h-1" fill="#183e2b" />
+      <path className="pixel-frog-throat" d="M30 21h10v3H30z" fill="#d7dda9" />
     </g>
-    <g className="pixel-frog-front-leg"><path d="M26 21h4v3h7v3H25v-2h-2v-4z" fill="#249267" /><path d="M26 25h12v2H26z" fill="#b5ef96" /></g>
+    <g className="pixel-frog-hind-leg"><path d="M8 18h10v2h4v5h-6l-4 3H3v-3h4l4-3H7z" fill="#234e33" /><path d="M9 18h8v2h3v3h-7l-3 3H6l7-5H9z" fill="#76a268" /><path d="M2 27h12v2H2m0 0v1H0v-2h2m4 1v2H4v-2m6 0v1H8v-1" fill="#a3bd83" /></g>
+    <g className="pixel-frog-front-leg"><path d="M31 22h4v5h8v2H30v-2h-2v-4z" fill="#3b754e" /><path d="M32 27h11v2H32m11-1h3v2h-3m-5 0h2v2h-2m-5-2h2v3h-2" fill="#b8cd93" /></g>
   </svg>;
 }

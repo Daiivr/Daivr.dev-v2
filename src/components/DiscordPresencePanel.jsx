@@ -1,3 +1,4 @@
+import { ControllerSticker } from "./ControllerSticker";
 import { Activity, BarChart3, ExternalLink, Gamepad2, Globe, Headphones, Maximize2, Minimize2, Monitor, Radio, Smartphone, Users, WifiOff, X, Zap } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -11,6 +12,9 @@ import {
   useLanyardPresence
 } from "../hooks/useLanyardPresence";
 import { cn } from "../lib/cn";
+import { DiscordDeskControls } from "./DiscordDeskControls";
+import { DiscordDeskKeepsakes } from "./DiscordDeskKeepsakes";
+import { packetRexGeometry, packetRexJump } from "../../shared/packet-rex-motion.mjs";
 
 // Un Set vacio y estable: sirve de estado inicial a los dos marcos que se
 // pintan, sin crear uno nuevo en cada render.
@@ -118,6 +122,7 @@ function getVisibleActivities(presence) {
       name: presence.spotify.song,
       state: presence.spotify.album,
       timestamps: presence.spotify.timestamps,
+      trackId: presence.spotify.track_id,
       type: 2,
       typeLabel: "listening"
     });
@@ -147,23 +152,6 @@ function getVisibleActivities(presence) {
   return activities.slice(0, 4);
 }
 
-function useMobilePresenceLayout() {
-  const [isMobile, setIsMobile] = useState(() =>
-    typeof window !== "undefined" && window.matchMedia("(max-width: 760px)").matches
-  );
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia("(max-width: 760px)");
-    const updateViewport = (event) => setIsMobile(event.matches);
-
-    setIsMobile(mediaQuery.matches);
-    mediaQuery.addEventListener("change", updateViewport);
-    return () => mediaQuery.removeEventListener("change", updateViewport);
-  }, []);
-
-  return isMobile;
-}
-
 function usePrefersReducedMotion() {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(() =>
     typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
@@ -179,15 +167,6 @@ function usePrefersReducedMotion() {
   }, []);
 
   return prefersReducedMotion;
-}
-
-function getMobileActivities(activities) {
-  const priorityActivity =
-    activities.find((activity) => activity.type === 0) ||
-    activities.find((activity) => activity.isSpotify) ||
-    activities[0];
-
-  return priorityActivity ? [priorityActivity] : [];
 }
 
 function useAnimatedActivities(nextActivities, prefersReducedMotion) {
@@ -507,6 +486,7 @@ function DiscordIdleRunner({ prefersReducedMotion }) {
     let isVisible = false;
     let jumpOffset = 0;
     let jumpVelocity = 0;
+    let jumpGravity = 980;
     let lastTime = 0;
     let manualClock = null;
     let spawnCooldown = 160;
@@ -643,10 +623,11 @@ function DiscordIdleRunner({ prefersReducedMotion }) {
 
     function spawnObstacle(spawnX) {
       const cluster = Math.random() > 0.58;
+      const { obstacleScale } = packetRexGeometry(stageWidth, stageHeight);
       obstacles.push({
-        height: cluster ? randomBetween(38, 45) : randomBetween(29, 37),
+        height: (cluster ? randomBetween(38, 45) : randomBetween(29, 37)) * obstacleScale,
         type: cluster ? "cluster" : "single",
-        width: cluster ? 29 : 19,
+        width: (cluster ? 29 : 19) * obstacleScale,
         x: spawnX
       });
     }
@@ -679,9 +660,17 @@ function DiscordIdleRunner({ prefersReducedMotion }) {
       canvas.height = Math.round(stageHeight * density);
       context.setTransform(density, 0, 0, density, 0, 0);
       context.imageSmoothingEnabled = false;
-      dinoScale = Math.max(1.42, Math.min(1.9, stageWidth / 155));
+      const geometry = packetRexGeometry(stageWidth, stageHeight);
+      dinoScale = geometry.dinoScale;
       dinoX = Math.max(22, stageWidth * 0.13);
-      groundY = stageHeight - Math.max(27, stageHeight * 0.14);
+      groundY = geometry.groundY;
+      if (resized) {
+        obstacles.length = 0;
+        drone = null;
+        jumpOffset = 0;
+        jumpVelocity = 0;
+        isGrounded = true;
+      }
       if (resized || !stars.length) seedScenery();
 
       if (!obstacles.length) {
@@ -899,8 +888,8 @@ function DiscordIdleRunner({ prefersReducedMotion }) {
 
       let threat = null;
       for (const item of obstacles) {
-        if (item.x + item.width <= bodyRight) continue;
-        if (!threat || item.x < threat.x) threat = { clearance: item.height + 9, width: item.width, x: item.x };
+        if (item.x + item.width <= bodyLeft) continue;
+        if (!threat || item.x < threat.x) threat = { clearance: item.height + 6, width: item.width, x: item.x };
       }
       if (drone?.blocking && drone.x + drone.width > bodyRight) {
         const clearance = drone.altitude + drone.height + 10;
@@ -908,28 +897,26 @@ function DiscordIdleRunner({ prefersReducedMotion }) {
       }
 
       if (isGrounded && threat) {
-        // El impulso se dimensiona por obstaculo: el rastreador tiene que seguir
-        // por encima mientras el cactus cruza todo el cuerpo, no solo cuando
-        // llega al morro. Con impulso fijo el sprite se colaba por los altos.
-        const traversal = (threat.width + bodyRight - bodyLeft) / speed;
-        const needed = Math.sqrt(2 * gravity * threat.clearance + (gravity * traversal * 0.5) ** 2);
-        // Techo duro: el salto nunca puede salirse por arriba del lienzo.
-        const headroom = Math.max(40, groundY - dinoHeight - 6);
-        const maxLaunch = Math.min(Math.max(430, stageHeight * 1.75), Math.sqrt(2 * gravity * headroom));
-        const launchSpeed = Math.min(maxLaunch, needed * 1.05);
+        const plan = packetRexJump({
+          clearance: threat.clearance,
+          headroom: groundY - dinoHeight - 6,
+          obstacleWidth: threat.width,
+          bodyWidth: bodyRight - bodyLeft,
+          speed,
+          gravity
+        });
         const timeToThreat = (threat.x - bodyRight) / speed;
-        const discriminant = Math.max(0, launchSpeed ** 2 - 2 * gravity * threat.clearance);
-        const timeToClear = (launchSpeed - Math.sqrt(discriminant)) / gravity;
 
-        if (timeToThreat > 0 && timeToThreat <= timeToClear + 0.02) {
+        if (plan && timeToThreat > 0 && timeToThreat <= plan.riseTime + delta) {
           isGrounded = false;
-          jumpVelocity = -launchSpeed;
+          jumpVelocity = -plan.velocity;
+          jumpGravity = plan.gravity;
         }
       }
 
       if (!isGrounded) {
-        jumpOffset += jumpVelocity * delta;
-        jumpVelocity += gravity * delta;
+        jumpOffset += jumpVelocity * delta + 0.5 * jumpGravity * delta * delta;
+        jumpVelocity += jumpGravity * delta;
 
         if (jumpOffset >= 0) {
           jumpOffset = 0;
@@ -1169,14 +1156,12 @@ function DiscordProfileFrame({ anchor, className, decorative = false, frame }) {
 
 export function DiscordPresencePanel() {
   const { data: presence, error, loading, updatedAt } = useLanyardPresence(discord.userId);
-  const isMobileLayout = useMobilePresenceLayout();
   const [openStatsKey, setOpenStatsKey] = useState(null);
   const prefersReducedMotion = usePrefersReducedMotion();
   const [activityImages, setActivityImages] = useState({});
   const [badgeTooltip, setBadgeTooltip] = useState(null);
   const [now, setNow] = useState(Date.now());
   const [profileFrame, setProfileFrame] = useState(null);
-  const [profileNameplate, setProfileNameplate] = useState(null);
   const [profileFrameOverflow, setProfileFrameOverflow] = useState(true);
   const [profileFrameOverflowAdmin, setProfileFrameOverflowAdmin] = useState(false);
   const [profileFrameOverflowBusy, setProfileFrameOverflowBusy] = useState(false);
@@ -1194,10 +1179,7 @@ export function DiscordPresencePanel() {
   const customStatus = getCustomStatus(presence?.activities);
   const customEmojiUrl = getEmojiUrl(customStatus?.emoji);
   const activities = useMemo(() => getVisibleActivities(presence), [presence]);
-  const displayedActivities = useMemo(
-    () => (isMobileLayout ? getMobileActivities(activities) : activities),
-    [activities, isMobileLayout]
-  );
+  const displayedActivities = activities;
   const animatedActivities = useAnimatedActivities(displayedActivities, prefersReducedMotion);
   const badges = getUserBadges(user);
   const statusText = error ? "Lanyard signal lost" : customStatus?.state || customStatus?.name || profile.location;
@@ -1239,12 +1221,10 @@ export function DiscordPresencePanel() {
         const payload = await response.json();
         if (!cancelled) {
           setProfileFrame(payload.frame || null);
-          setProfileNameplate(payload.nameplate || null);
         }
       } catch {
         if (!cancelled) {
           setProfileFrame(null);
-          setProfileNameplate(null);
         }
       }
     }
@@ -1414,7 +1394,7 @@ export function DiscordPresencePanel() {
   return (
     <section
       className={cn(
-        "discord-presence-shell panel-strong",
+        "discord-presence-shell discord-desk panel-strong",
         profileFrameOverflow ? "is-frame-overflowing" : "is-frame-contained"
       )}
       aria-label="Discord presence"
@@ -1425,7 +1405,7 @@ export function DiscordPresencePanel() {
           <span />
           <span />
         </div>
-        <code>~/daivr/discord.presence</code>
+        <code>DAI’S DESK <span aria-hidden="true"> / </span> LIVE FROM DISCORD</code>
         {profileFrameOverflowAdmin ? (
           <button
             className={cn(
@@ -1452,24 +1432,24 @@ export function DiscordPresencePanel() {
       </div>
 
       <div className="discord-presence-grid">
+        <div className="discord-desk-notebook-area">
         <aside className="discord-presence-profile">
-          <DiscordProfileFrame className="discord-profile-frame-profile" frame={profileFrame} />
-
-          {/* En movil el adorno del marco cae justo sobre el centro de la barra
-              de titulo y se come la ruta. Como esta fila dice lo mismo y queda
-              por debajo del adorno, alli baja la ruta y el rotulo generico se
-              retira: no se pierde el dato ni se gana altura. */}
+          <span className="discord-notebook-binding" aria-hidden="true" />
+          <div className="discord-notebook-page is-portrait">
           <div className="flex items-center justify-between gap-3">
-            <p className="pixel-label discord-presence-eyebrow">DISCORD.PRESENCE</p>
+            <p className="pixel-label discord-presence-eyebrow">THE PERSON / 01</p>
             <code className="discord-presence-path">~/daivr/discord.presence</code>
             <span className={cn("discord-presence-led", status.colorClass)} aria-hidden="true" />
           </div>
 
+          <div className="discord-notebook-photo">
+          <DiscordProfileFrame className="discord-profile-frame-profile" frame={profileFrame} />
           <a className={cn("discord-presence-avatar arcade-focus", statusKey === "offline" && "is-offline")} href={discord.profileUrl} rel="noreferrer" target="_blank">
             <img src={avatarUrl} alt={`${displayName} Discord avatar`} />
             {decorationUrl ? <img className="discord-presence-decoration" src={decorationUrl} alt="" aria-hidden="true" /> : null}
             <i className={statusKey === "offline" ? "discord-presence-offline-indicator" : status.colorClass} aria-hidden="true" />
           </a>
+          </div>
 
           <div className="discord-presence-identity text-center">
             <div className="discord-presence-name-row">
@@ -1488,6 +1468,15 @@ export function DiscordPresencePanel() {
             </div>
             <small>@{user?.username || "daivr"}</small>
           </div>
+
+          <div className="discord-notebook-scribble">
+            <span>my little corner<br />of the internet.</span>
+            <ControllerSticker />
+            <small>PROFILE NOTES · VOL. 01</small>
+          </div>
+          </div>
+          <div className="discord-notebook-page is-notes">
+          <p className="discord-notebook-heading">CURRENTLY / 02</p>
 
           <div className="discord-presence-status">
             <span className={status.textClass}>
@@ -1544,34 +1533,9 @@ export function DiscordPresencePanel() {
 
           {badges.length ? (
             <div
-              className={cn("discord-presence-badges", profileNameplate && "has-nameplate")}
-              data-nameplate-palette={profileNameplate?.palette || undefined}
+              className="discord-presence-badges"
               aria-label="Discord badges"
             >
-              {profileNameplate ? (
-                prefersReducedMotion ? (
-                  <img
-                    className="discord-nameplate-backdrop"
-                    src={profileNameplate.fallbackSrc}
-                    alt=""
-                    aria-hidden="true"
-                  />
-                ) : (
-                  <video
-                    className="discord-nameplate-backdrop"
-                    poster={profileNameplate.fallbackSrc}
-                    autoPlay
-                    loop
-                    muted
-                    playsInline
-                    preload="metadata"
-                    aria-hidden="true"
-                    tabIndex={-1}
-                  >
-                    <source src={profileNameplate.animatedSrc} type="video/webm" />
-                  </video>
-                )
-              ) : null}
               {badges.map((badge) => (
                 <span
                   className="discord-presence-badge"
@@ -1593,17 +1557,20 @@ export function DiscordPresencePanel() {
             <ExternalLink size={14} aria-hidden="true" />
             <span className="sr-only"> (opens in a new tab)</span>
           </a>
+          </div>
         </aside>
+        <DiscordDeskKeepsakes />
+        </div>
 
         <div className={cn("discord-presence-activity", !animatedActivities.length && "has-idle-monitor", error && "is-signal-lost")}>
           <div className="discord-presence-activity-head">
             <div>
-              <p className="pixel-label">ACTIVITY.STREAM</p>
-              <h3>Actividad</h3>
+              <p className="pixel-label">ON THE DESK</p>
+              <h3>A little downtime.</h3>
             </div>
             <span className="discord-presence-live">
               {error ? <WifiOff size={14} aria-hidden="true" /> : <Radio size={14} aria-hidden="true" />}
-              {error ? "signal lost" : loading && !presence ? "syncing" : `${displayedActivities.length} ${displayedActivities.length === 1 ? "activa" : "activas"}`}
+              {error ? "signal lost" : loading && !presence ? "syncing" : `${displayedActivities.length} active`}
             </span>
           </div>
 
@@ -1625,9 +1592,7 @@ export function DiscordPresencePanel() {
                   : null;
                 const spotifyProgress = activity.isSpotify ? getSpotifyProgress(activity.timestamps, now) : null;
                 const gameStats = activity.type === 0 ? getGameStats(streak, activity.name) : null;
-                // El desplegable de estadisticas es cosa de escritorio: en movil
-                // la tarjeta ya va apilada y no queda esquina donde ponerlo.
-                const canShowStats = Boolean(gameStats && !isMobileLayout);
+                const canShowStats = Boolean(gameStats);
                 const statsOpen = canShowStats && openStatsKey === activity.activityKey;
                 const statsPanelId = `discord-activity-stats-${activity.activityKey.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
                 // El reloj se saca al raíl derecho, que antes solo repetía la
@@ -1648,10 +1613,12 @@ export function DiscordPresencePanel() {
 
                 return (
                   <article
-                    className={cn("discord-activity-card", `is-${activity.motionState}`)}
+                    className={cn("discord-activity-card discord-desk-device", activity.isSpotify ? "is-music-player" : activity.type === 0 ? "is-handheld" : "is-activity-terminal", `is-${activity.motionState}`)}
                     key={activity.activityKey}
                     style={{ "--discord-activity-delay": `${activityIndex * 45}ms` }}
                   >
+                    <div className="discord-device-brand" aria-hidden="true"><span>{activity.isSpotify ? "daiPod" : activity.type === 0 ? "DAI BOY" : "SIGNAL"}</span><i /> <small>{activity.isSpotify ? "music lives here" : "COLOR"}</small></div>
+                    <div className={cn("discord-device-screen", statsOpen && "is-showing-stats")} onKeyDown={(event) => { if (event.key === "Escape" && statsOpen) { event.stopPropagation(); setOpenStatsKey(null); } }}>
                     <div className="discord-activity-art">
                       {activity.image || activityImages[activity.name] ? (
                         <img
@@ -1669,7 +1636,7 @@ export function DiscordPresencePanel() {
                         </span>
                       ) : null}
                     </div>
-                    <div className="discord-activity-main min-w-0">
+                    <div className="discord-activity-main min-w-0" inert={statsOpen || undefined}>
                       <span>{activity.typeLabel}</span>
                       <strong>{activity.name}</strong>
                       {activity.detail ? <p>{activity.detail}</p> : null}
@@ -1721,14 +1688,13 @@ export function DiscordPresencePanel() {
                           <i>{railClock.label}</i>
                         </span>
                       ) : null}
-                      {railMeta ? <em>{railMeta}</em> : null}
-                    </div>
+                      {railMeta && !canShowStats ? <em>{railMeta}</em> : null}
 
                     {canShowStats ? (
                       <button
                         aria-controls={statsPanelId}
                         aria-expanded={statsOpen}
-                        aria-label={statsOpen ? `Cerrar estadísticas de ${activity.name}` : `Ver estadísticas de ${activity.name}`}
+                        aria-label={statsOpen ? `Close ${activity.name} stats` : `View ${activity.name} stats`}
                         className={cn("discord-activity-stats-toggle", statsOpen && "is-open")}
                         onClick={() => setOpenStatsKey(statsOpen ? null : activity.activityKey)}
                         type="button"
@@ -1736,24 +1702,26 @@ export function DiscordPresencePanel() {
                         {statsOpen ? <X size={13} aria-hidden="true" /> : <BarChart3 size={13} aria-hidden="true" />}
                       </button>
                     ) : null}
+                    </div>
 
                     {statsOpen ? (
-                      <div className="discord-activity-stats" id={statsPanelId}>
+                      <div className="discord-activity-stats" id={statsPanelId} role="region" aria-label={`${activity.name} stats`} tabIndex={0}>
+                        <h4 className="discord-stats-heading">Player record <span>{activity.name}</span></h4>
                         <div className="discord-activity-stats-grid">
                           <span>
-                            <i>horas jugadas</i>
+                            <i>play time</i>
                             <b>{formatPlaytime(gameStats.totalMs)}</b>
                           </span>
                           <span>
-                            <i>racha actual</i>
+                            <i>current streak</i>
                             <b>{gameStats.streak}d</b>
                           </span>
                           <span>
-                            <i>mejor racha</i>
+                            <i>best streak</i>
                             <b>{gameStats.bestStreak}d</b>
                           </span>
                           <span>
-                            <i>días vistos</i>
+                            <i>days played</i>
                             <b>{gameStats.days}</b>
                           </span>
                         </div>
@@ -1768,10 +1736,13 @@ export function DiscordPresencePanel() {
                           </ol>
                         ) : null}
                         {gameStats.firstDay ? (
-                          <p className="discord-activity-stats-since">seguimiento desde {gameStats.firstDay}</p>
+                          <p className="discord-activity-stats-since">Tracking since {gameStats.firstDay}</p>
                         ) : null}
                       </div>
                     ) : null}
+                    </div>
+                    <DiscordDeskControls music={activity.isSpotify} handheld={activity.type === 0} />
+                    {activity.isSpotify && activity.trackId ? <a className="discord-device-open-link" href={`https://open.spotify.com/track/${encodeURIComponent(activity.trackId)}`} target="_blank" rel="noreferrer">Open in Spotify <ExternalLink size={11} aria-hidden="true" /><span className="sr-only"> (opens in a new tab)</span></a> : null}
                   </article>
                 );
               })
@@ -1788,8 +1759,8 @@ export function DiscordPresencePanel() {
 
                   <div className="discord-idle-copy">
                     <span className="discord-idle-kicker">{error ? "CONNECTION INTERRUPTED" : loading && !presence ? "ESTABLISHING UPLINK" : "SIGNAL HUNT // STANDBY"}</span>
-                    <h4>{error ? "Signal out of range." : loading && !presence ? "Tuning into the room." : "No activity to chase."}</h4>
-                    <p>{error ? "La conexión se ha interrumpido. El rastreador sigue corriendo mientras vuelve la señal." : loading && !presence ? "Conectando con Discord para recibir la actividad de la sala." : "Sin juego ni música por ahora. Rex sigue explorando hasta que llegue la próxima señal."}</p>
+                    <h4>{error ? "Signal out of range." : loading && !presence ? "Tuning into the room." : "Between sessions."}</h4>
+                    <p>{error ? "The connection dropped. The desk will update when the signal returns." : loading && !presence ? "Waiting for the latest from Discord." : "The music player and handheld will light up when something is playing."}</p>
                   </div>
                   <div className="discord-idle-readout" aria-label="Activity signal status">
                     <span><Gamepad2 size={16} aria-hidden="true" /><code>game.scan</code><b>{error ? "no signal" : "listening"}</b></span>
@@ -1807,12 +1778,7 @@ export function DiscordPresencePanel() {
           </div>
         </div>
 
-        <DiscordProfileFrame
-          anchor="bottom"
-          className="discord-profile-frame-mobile-bottom"
-          decorative
-          frame={profileFrame}
-        />
+        <div className="discord-desk-pencil" aria-hidden="true"><i /><span>ONE MORE IDEA</span></div>
       </div>
       {badgeTooltip ? (
         createPortal(

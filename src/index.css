@@ -4772,11 +4772,6 @@
     filter: drop-shadow(0 0 14px color-mix(in srgb, var(--game-accent, var(--color-phosphor)) 48%, transparent));
   }
 
-  .game-card.is-flipped .game-card-character,
-  .game-card.is-flipped .game-card-logo-wrap,
-  .game-card.is-flipped .game-card-bay,
-  .game-card.is-flipped .game-card-favorite-ribbon,
-  .game-card.is-flipped .game-card-cartridge-bar,
   .game-card.is-review-closing .game-card-character,
   .game-card.is-review-closing .game-card-logo-wrap,
   .game-card.is-review-closing .game-card-bay,
@@ -4786,7 +4781,6 @@
     pointer-events: none;
   }
 
-  .game-card.is-flipped .game-card-character,
   .game-card.is-review-closing .game-card-character {
     transform: translate3d(calc(-50% + var(--char-x)), calc(12% + var(--char-y)), 54px) rotateX(var(--char-rot-x)) rotateY(var(--char-rot-y)) scale(0.72);
   }

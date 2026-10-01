@@ -1430,21 +1430,20 @@
     display: inline-grid;
     place-items: center;
     flex: 0 0 auto;
-    width: 24px;
-    height: 24px;
+    width: 26px;
+    height: 23px;
     padding: 0;
     border: 0;
-    border-radius: 0;
-    background: none;
-    box-shadow: none;
-    color: var(--color-phosphor);
+    border-radius: 3px;
+    background: transparent;
+    color: #ffdb7b;
     font-family: var(--font-mono);
     font-size: 9px;
     font-style: normal;
     font-weight: 900;
     letter-spacing: 0.06em;
     line-height: 1;
-    text-transform: uppercase;
+    text-transform: none;
     white-space: nowrap;
     vertical-align: middle;
   }
@@ -1460,9 +1459,30 @@
     filter: none;
   }
 
-  .comments-console .comment-admin-mascot {
-    width: 16px;
-    height: 16px;
+  .comments-console .comment-admin-crown {
+    width: 26px;
+    height: 23px;
+    overflow: visible;
+    transition: filter .2s ease, transform .2s ease;
+  }
+
+  .comments-console .comment-admin-badge:is(:hover, :focus-visible) .comment-admin-crown {
+    filter: drop-shadow(0 0 3px #ffd166) drop-shadow(0 0 9px #ffb73a80);
+    transform: translateY(-1px);
+  }
+
+  .admin-crown-sparkle { opacity: 0; transform-box: fill-box; transform-origin: center; }
+  .comment-admin-badge:is(:hover, :focus-visible) .admin-crown-sparkle { animation: admin-crown-twinkle 1.25s ease-in-out infinite; }
+  .comment-admin-badge .admin-crown-sparkle.is-two { animation-delay: .25s; }
+  .comment-admin-badge .admin-crown-sparkle.is-three { animation-delay: .6s; }
+  @keyframes admin-crown-twinkle {
+    0%, 100% { opacity: 0; transform: scale(.4) rotate(0); }
+    40% { opacity: 1; transform: scale(1) rotate(12deg); }
+    70% { opacity: .45; transform: scale(.7) rotate(25deg); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .comments-console .comment-admin-crown { transition: none; }
+    .comment-admin-badge:is(:hover, :focus-visible) .admin-crown-sparkle { animation: none; opacity: 1; }
   }
 
   .comment-card p {
@@ -2718,3 +2738,61 @@
     opacity: 0.35;
   }
 }
+
+/* Matte enamel and machined trim. The original layout remains intact. */
+@layer components {
+  .comments-console::before {
+    background: url('/textures/guestbook-grain.svg') 0 0 / 160px 160px, radial-gradient(ellipse at 0 0, #34544340, transparent 60%), linear-gradient(120deg, #0e1816, #080f0e 70%);
+    box-shadow: inset 0 1px #afcabb26, inset 4px 0 #172c2266, inset -4px 0 #0005, inset 0 -6px #152b2044;
+  }
+  .comments-console-titlebar::before {
+    background: url('/textures/guestbook-grain.svg') 0 0 / 160px 160px, repeating-linear-gradient(0deg, #dce9e006 0 1px, transparent 1px 3px), linear-gradient(100deg, #2b3a35, #152620 35%, #102019 75%, #25352d);
+    box-shadow: inset 0 1px #dceade33, inset 0 3px #ffffff06, inset 0 -2px #020b0799;
+  }
+  .comments-console-head { background: radial-gradient(ellipse at 20% 0, #7ba68b0a, transparent 70%), linear-gradient(180deg, #030c0880, #030c0826); }
+  .comments-auth-panel {
+    background: radial-gradient(circle at 5px 5px, #9aaba380 0 .7px, #07110b 1px 2px, transparent 2.5px), radial-gradient(circle at calc(100% - 5px) calc(100% - 5px), #9aaba380 0 .7px, #07110b 1px 2px, transparent 2.5px), url('/textures/guestbook-grain.svg') 0 0 / 160px 160px, linear-gradient(135deg, #2a3a33, #172820 50%, #102118);
+    box-shadow: inset 1px 1px #d2dec433, inset -1px -2px #030d0888, 2px 3px 5px #0005;
+  }
+  .comments-guest-panel {
+    background: linear-gradient(115deg, #afd5cf0b, transparent 38%), linear-gradient(180deg, #102b26, #081c18);
+    box-shadow: inset 0 1px #a7d9c726, inset 0 2px 9px #0004, 0 2px #0004;
+  }
+  .comments-stream .comment-card::before {
+    background: url('/textures/guestbook-grain.svg') 0 0 / 160px 160px, linear-gradient(115deg, #b9dcc609, transparent 40%), linear-gradient(180deg, #18271f, #0b1b13 80%, #091710);
+    box-shadow: inset 0 1px #c9e1c42e, inset 0 3px #ffffff04, inset 0 -3px #010a0655;
+  }
+  .comments-stream .comment-card.is-pinned::before {
+    background: url('/textures/guestbook-grain.svg') 0 0 / 160px 160px, linear-gradient(115deg, #dbc7940c, transparent 45%), linear-gradient(180deg, #292d20, #181f14 80%, #10190f);
+    box-shadow: inset 0 1px #e9daa733, inset 0 3px #ffffff04, inset 0 -3px #0b0d0755;
+  }
+  .comments-channel-footer {
+    background: url('/textures/guestbook-grain.svg') 0 0 / 160px 160px, repeating-linear-gradient(0deg, #dce9e006 0 1px, transparent 1px 3px), linear-gradient(100deg, #24372b, #14241c 55%, #203327);
+    box-shadow: inset 0 1px #bdccaf26, inset 0 -2px #010c0877;
+  }
+}
+/* Portaled outside the comment card: no ancestor clipping or stacking trap. */
+.comment-admin-tooltip {
+  position: fixed;
+  z-index: 2147483000;
+  width: max-content;
+  max-width: calc(100vw - 16px);
+  padding: 9px 12px;
+  border: 1px solid #70b994;
+  border-radius: 3px;
+  background: #07180f;
+  color: #e5ffed;
+  box-shadow: 0 5px 16px #000b, inset 0 1px #bbffd526;
+  font: 800 10px/1.3 var(--font-mono);
+  letter-spacing: .05em;
+  pointer-events: none;
+}
+.comment-admin-tooltip::after {
+  content: ""; position: absolute; left: calc(50% - 4px); bottom: -5px;
+  width: 8px; height: 8px; background: inherit;
+  border-right: 1px solid #70b994; border-bottom: 1px solid #70b994;
+  transform: rotate(45deg);
+}
+.comment-admin-tooltip.is-below::after { top: -5px; bottom: auto; transform: rotate(225deg); }
+.comment-admin-tooltip.is-glitch { color: #ffe0f3; border-color: #c67aaf; background: #281229; }
+.comment-admin-tooltip.is-glitch::after { border-color: #c67aaf; }

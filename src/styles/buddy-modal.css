@@ -1,4 +1,10 @@
 @layer components {
+  .buddy-room-recovery { padding: clamp(24px,5vw,60px); color: var(--text, #d7eee2); }
+  .buddy-room-recovery h3 { margin: 16px 0 10px; font-size: 1.25rem; }
+  .buddy-room-recovery p { max-width: 48ch; line-height: 1.7; }
+  .buddy-room-recovery > div { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
+  .buddy-room-recovery button { border: 1px solid #3fff9780; padding: 12px 16px; background: #102c23; color: #d7eee2; cursor: pointer; }
+  .buddy-room-recovery button:hover, .buddy-room-recovery button:focus-visible { background: #194235; outline: 2px solid #45d8ff; outline-offset: 3px; }
   .buddy-nav-card {
     display: grid;
     gap: 0.45rem;
@@ -30,7 +36,7 @@
 
   .buddy-nav-actions {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.5rem;
   }
 

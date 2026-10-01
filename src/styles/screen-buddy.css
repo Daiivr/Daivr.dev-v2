@@ -483,6 +483,7 @@
 
   .screen-buddy-root.fx-bump .screen-buddy-sprite {
     animation: buddy-fish-bump .62s cubic-bezier(.2,.9,.35,1.2) both !important;
+    transform-origin: 50% 85%;
   }
 
   .screen-buddy-root.fx-glitchy .screen-buddy-sprite {
@@ -1696,10 +1697,10 @@
   }
 
   @keyframes buddy-fish-bump {
-    0%, 100% { transform: scaleX(var(--buddy-facing, 1)) translateX(0) rotate(0); }
-    18% { transform: scaleX(var(--buddy-facing, 1)) translateX(7px) rotate(5deg); }
-    42% { transform: scaleX(var(--buddy-facing, 1)) translateX(-4px) rotate(-3deg); }
-    68% { transform: scaleX(var(--buddy-facing, 1)) translateX(2px) rotate(1deg); }
+    0%, 100% { transform: rotate(0) scaleX(var(--buddy-facing, 1)); }
+    18% { transform: rotate(var(--buddy-bump-lean, 9deg)) scaleX(var(--buddy-facing, 1)) scale(1.04,.96); }
+    46% { transform: rotate(calc(var(--buddy-bump-lean, 9deg) * -.35)) scaleX(var(--buddy-facing, 1)); }
+    72% { transform: rotate(calc(var(--buddy-bump-lean, 9deg) * .12)) scaleX(var(--buddy-facing, 1)); }
   }
 
   @keyframes buddy-walk-body {

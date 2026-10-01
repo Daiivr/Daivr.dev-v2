@@ -31,6 +31,7 @@ import "./styles/pixel-birds.css";
 import "./styles/terminal-dialog.css";
 import "./styles/madrace.css";
 import "./styles/konami-library.css";
+import "./styles/konami-shelves.css";
 import "./styles/cursor.css";
 import "./styles/seasonal-events.css";
 import "./styles/mobile.css";
@@ -39,6 +40,11 @@ import "./styles/entry-gate.css";
 import "./styles/cabinet-sidebar.css";
 import "./styles/cabinet-topbar.css";
 import "./styles/community.css";
+import "./styles/discord-desk.css";
+import "./styles/game-collection.css";
+import "./styles/arcade-panels.css";
+import "./styles/arcade-tv.css";
+import "./styles/panel-glitch.css";
 
 const CabinetPage = React.lazy(() => import("./App.jsx"));
 

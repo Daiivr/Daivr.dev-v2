@@ -1,0 +1,121 @@
+/* The physical panels need material colors as well as the global neon accents.
+   Scope every override to Glitch so CRT's original textures stay intact. */
+.app-shell.theme-glitch {
+  --material-brush: repeating-linear-gradient(0deg, #e8ceff08 0 1px, transparent 1px 4px);
+  --material-panel: linear-gradient(115deg, #392139, #180e23 65%);
+  --material-paper: #c6b8cf;
+  --material-ink: #38263f;
+  --material-ink-muted: #594262;
+}
+
+/* Discord notebook, lacquered desk and translucent purple electronics. */
+.app-shell.theme-glitch .discord-desk { border-color: #c54a91; border-top-color: var(--color-phosphor); background: #180d20; box-shadow: 0 14px 30px #0007, inset 0 0 0 5px #1c1028; }
+.app-shell.theme-glitch .discord-desk .discord-presence-titlebar { background: var(--material-brush), var(--material-panel); border-color: #ff3d9d55; box-shadow: inset 0 1px #f5b8ff22; }
+.app-shell.theme-glitch .discord-desk .discord-presence-titlebar code { color: #ff9cd1; }
+.app-shell.theme-glitch .discord-desk .discord-presence-grid {
+  background: radial-gradient(ellipse at 20% 0,#ff3d9d1c,transparent 55%),radial-gradient(ellipse at 85% 70%,#b986ff16,transparent 55%),radial-gradient(circle,#b798cb26 .65px,transparent .9px) 0 0 / 5px 5px,repeating-linear-gradient(0deg,transparent 0 120px,#0006 121px 123px,#c5a3d310 124px 125px),linear-gradient(110deg,#180e20,#2b1834 50%,#140c1b);
+  box-shadow: inset 0 8px 16px #0009,inset 0 -5px #120a19,inset 0 -7px #ff3d9d66;
+}
+.app-shell.theme-glitch .discord-desk .discord-presence-profile { background: #bcb0c4; border-color: #3d2746; box-shadow: 0 0 0 1px #d594cd66,1px 3px #76627d,2px 5px #c7bad2,2px 7px #574061,3px 10px #1a0c23,7px 16px 24px #0009; }
+.app-shell.theme-glitch .discord-desk .discord-presence-profile::after { background: repeating-linear-gradient(0deg,transparent 0 5px,#ffffff16 5px 6px),linear-gradient(90deg,#95265e,#f589be 45%,#a63576); }
+.app-shell.theme-glitch .discord-desk .discord-notebook-page { color: var(--material-ink); background: repeating-linear-gradient(0deg,#74598417 0 1px,transparent 1px 24px),repeating-linear-gradient(90deg,#64477105 0 1px,transparent 1px 3px),radial-gradient(ellipse at top,#f2e2f533,transparent 65%),var(--material-paper); }
+.app-shell.theme-glitch .discord-desk .discord-notebook-page.is-portrait { background-color: #bdafc6; box-shadow: inset -10px 0 15px #63417626; }
+.app-shell.theme-glitch .discord-desk .discord-notebook-page.is-notes { box-shadow: inset 8px 0 12px #644e7330; }
+.app-shell.theme-glitch .discord-desk .discord-notebook-binding { background: linear-gradient(90deg,transparent,#efdcfa18 15%,#67466f26 34%,#45304e66 47%,#36233f80 50%,#f2e2fa78 54%,#e5cfea33 65%,transparent); }
+.app-shell.theme-glitch .discord-desk .discord-notebook-binding::before { border-left-color: #5c426d40; border-right-color: #f3dffc4d; }
+.app-shell.theme-glitch .discord-desk .discord-notebook-photo { background: #ddcce0; box-shadow: 1px 3px 5px #38263f60; }
+.app-shell.theme-glitch .discord-desk :is(.discord-presence-eyebrow,.discord-notebook-heading,.discord-presence-custom-label,.discord-presence-identity strong,.discord-presence-identity > small,.discord-device-bay-head code,.discord-device-tally,.discord-device-tally.is-live,.discord-notebook-scribble,.discord-notebook-scribble > small,.discord-presence-custom,.discord-presence-status > span:last-child) { color: var(--material-ink); }
+.app-shell.theme-glitch .discord-desk :is(.discord-presence-status,.discord-presence-custom-block) { border-color: #795c8b55; }
+.app-shell.theme-glitch .discord-desk .discord-primary-guild-badge { background: #4b2b57; border-color: #9b77a4; color: #fae5ff; }
+.app-shell.theme-glitch .discord-desk .discord-device-tile { color: #493051; border-color: #8c709a; background: #d2c2dc; }
+.app-shell.theme-glitch .discord-desk .discord-device-tile.is-active { color: #ffe4f4; border-color: #9a487b; background: linear-gradient(#682e52,#3e203d); box-shadow: inset 0 -2px #ff70bb,inset 0 1px #ffc8e533; }
+.app-shell.theme-glitch .discord-desk .discord-profile-link { color: #ffe8f5; border-color: #965279; background: linear-gradient(#743559,#401d3b); box-shadow: inset 0 1px #ffc0e344,inset 0 -3px #2a1029,0 2px #77548055; }
+.app-shell.theme-glitch .discord-desk .discord-profile-link:is(:hover,:focus-visible) { background: #81335f; border-color: #ff8ccb; outline-color: #722653; }
+.app-shell.theme-glitch .discord-desk .discord-presence-badge:is(:hover,:focus-visible) { outline-color: #7d4384; }
+.app-shell.theme-glitch .discord-desk .discord-presence-live { color: #dbb8ff; background: #221332; border-color: #9c62c777; box-shadow: inset 0 -2px #b986ff33; }
+.app-shell.theme-glitch .discord-desk .discord-presence-activity-head { border-color: #b94a9255; }
+.app-shell.theme-glitch .discord-desk .discord-presence-activity-head :is(h3, h4) { color: #f5dff5; }
+.app-shell.theme-glitch .discord-desk .discord-desk-device { border-color: #a0709b; background: radial-gradient(ellipse at 0 0,#efb7ff22,transparent 65%),repeating-linear-gradient(90deg,#e8b5f009 0 1px,transparent 1px 4px),linear-gradient(110deg,#654064,#402445 55%,#27152e); box-shadow: inset 2px 2px #f4c9ff33,inset -3px -3px #13091b99,3px 6px #24122c,7px 13px 17px #0009,0 0 0 1px #ff3d9d26; }
+.app-shell.theme-glitch .discord-desk .is-handheld { border-color: #8e7ab4; background: repeating-linear-gradient(0deg,#dac2ff0d 0 1px,transparent 1px 4px),linear-gradient(125deg,#514474,#302747 50%,#20172f); box-shadow: inset 2px 2px #dfc5ff44,inset -3px -3px #180e28,3px 5px #211530,8px 15px 18px #0009; }
+.app-shell.theme-glitch .discord-desk .discord-device-brand { color: #f1cde8; }
+.app-shell.theme-glitch .discord-desk :is(.discord-device-brand small,.is-handheld .discord-device-brand small,.is-handheld .discord-handheld-buttons > span,.is-handheld .discord-handheld-system span) { color: #d6bddf; }
+.app-shell.theme-glitch .discord-desk .discord-device-brand > i { background: #ff72be; box-shadow: 0 0 7px #ff3d9daa; }
+.app-shell.theme-glitch .discord-desk .discord-device-screen,
+.app-shell.theme-glitch .discord-desk .is-handheld .discord-device-screen { background: repeating-linear-gradient(0deg,#76568812 0 1px,transparent 1px 3px),#cbbddd; border-color: #27152f; color: var(--material-ink); box-shadow: 0 0 0 1px #c498dc77,0 0 12px #d679ff12,inset 0 2px 8px #44285866; }
+.app-shell.theme-glitch .discord-desk .discord-activity-art { border-color: #654977; background: #1d122c; }
+.app-shell.theme-glitch .discord-desk :is(.discord-activity-main > strong,.discord-activity-main > p,.discord-activity-clock b,.discord-stats-heading,.discord-activity-stats-grid b) { color: var(--material-ink); }
+.app-shell.theme-glitch .discord-desk :is(.discord-activity-main > span,.discord-activity-main > small,.discord-activity-clock i,.discord-activity-rail em,.discord-spotify-progress-time,.discord-spotify-progress span,.discord-stats-heading span,.discord-activity-stats-grid i,.discord-activity-stats-library li,.discord-activity-stats-since) { color: var(--material-ink-muted); }
+.app-shell.theme-glitch .discord-desk :is(.discord-activity-rail,.discord-activity-stats-library li) { border-color: #84609555; }
+.app-shell.theme-glitch .discord-desk .discord-spotify-progress-track { border-color: #795384; background: #b29cc455; }
+.app-shell.theme-glitch .discord-desk .discord-spotify-progress-track i { background: #86456f; }
+.app-shell.theme-glitch .discord-desk :is(.discord-activity-stats-toggle,.discord-party-chip,.discord-streak-chip) { color: #593769; border-color: #8a649866; background: #9675af33; }
+.app-shell.theme-glitch .discord-desk .discord-activity-stats { --stats-scroll-thumb: #87619c; --stats-scroll-hover: #593769; --stats-scroll-track: #84609518; }
+.app-shell.theme-glitch .discord-desk .discord-activity-stats-grid > span { border-color: #8c5993; background: #86619615; }
+.app-shell.theme-glitch .discord-desk .discord-player-wheel { color: #f7c6e4; border-color: #aa6e9c; background: radial-gradient(circle at 40% 30%,#794565,#47243f 65%,#2e152e); box-shadow: inset 1px 2px #ffc8e733,inset 0 -2px #270c23,0 0 0 3px #211025,0 0 0 4px #ed71c259; }
+.app-shell.theme-glitch .discord-desk .discord-player-wheel span { color: #f5c3e0; }
+.app-shell.theme-glitch .discord-desk .wheel-center { border-color: #b06e9f; background: linear-gradient(130deg,#783a61,#49233f); box-shadow: inset 1px 1px #ffd4ee44,0 2px 4px #0006; }
+.app-shell.theme-glitch .discord-desk .discord-device-open-link { color: #f2bedc; }
+.app-shell.theme-glitch .discord-desk .discord-device-open-link:focus-visible { outline-color: #ff86c5; }
+.app-shell.theme-glitch .discord-desk .discord-handheld-dpad { background: #30223f; box-shadow: inset 1px 2px 3px #0009,0 1px #dcb7ff44; }
+.app-shell.theme-glitch .discord-desk .discord-handheld-speaker i { background: #190c28; box-shadow: 1px 0 #b99bd266; }
+.app-shell.theme-glitch .discord-desk .discord-presence-empty { border-color: #59405f; background: #190d22; box-shadow: 0 0 0 1px #ff3d9d66,inset 0 2px #ff88ce22,3px 6px #18091d,7px 12px 15px #0008; }
+.app-shell.theme-glitch .discord-desk .discord-presence-footer { border-color: #ca6aa140; color: #d3b6d0; }
+.app-shell.theme-glitch .discord-desk .discord-terminal-vents i { background: #4f315b; }
+
+/* Game artwork keeps its own colors; only the cabinet and printed inserts change. */
+.app-shell.theme-glitch .game-collection { border-color: #ae4483; background: var(--material-brush),#170c20; box-shadow: inset 0 2px #ff62b2,inset 0 0 0 5px #0f0816,0 16px 35px #0006; }
+.app-shell.theme-glitch .game-collection .game-shelf-titlebar { border-color: #ff3d9d44; background: var(--material-panel); box-shadow: inset 0 2px #ff73c266,0 3px 12px #ff3d9d10; }
+.app-shell.theme-glitch .game-collection .game-shelf-titlebar code { color: #ff99d0; }
+.app-shell.theme-glitch .game-collection .game-shelf-titlebar-mode { color: #c5a4d0; }
+.app-shell.theme-glitch .game-collection .game-shelf-intro > p { color: #ffe3f4; }
+.app-shell.theme-glitch .game-collection .game-shelf-intro > span { color: #d1b3d3; }
+.app-shell.theme-glitch .game-collection .game-shelf-stats span { color: #e0c0df; border-color: #72446e; background: var(--material-brush),linear-gradient(#39213b,#1c1026); box-shadow: inset 0 -2px #ff3d9d33,inset 0 1px #e4b0ef22; }
+.app-shell.theme-glitch .game-collection-plaque { color: #d8c5f3; border-color: #a585d177; background: repeating-linear-gradient(90deg,#e0c8ff08 0 1px,transparent 1px 3px),linear-gradient(110deg,#342346,#1f152c); box-shadow: inset 3px 0 #b986ff,inset 0 1px #fff2,0 3px 6px #0005; }
+.app-shell.theme-glitch .game-collection-plaque :is(strong,b) { color: #e7d0ff; }
+.app-shell.theme-glitch .game-collection-inscription { color: #bd9acb; }
+.app-shell.theme-glitch .game-collection .game-shelf-stage { border-color: #39243d; background: radial-gradient(ellipse at 50% 0,#ff3d9d1c,transparent 60%),radial-gradient(circle,#b494c226 .65px,transparent .9px) 0 0 / 5px 5px,linear-gradient(90deg,#100919,#25142e 50%,#100919); box-shadow: inset 0 2px #ff62b280,inset 0 14px 24px #0009,inset 0 -1px #bd66cf55; }
+.app-shell.theme-glitch .game-collection :is(.game-card-front, .game-card-back) { border-color: #463047; background: #1c1128; box-shadow: inset 0 0 0 1px #d6acc847,3px 3px #0d0613,5px 7px #604266,10px 13px 17px #0009; }
+.app-shell.theme-glitch .game-collection .game-card-scene::after { border-color: #8d668e; border-bottom-color: #1f0f2c; background: repeating-linear-gradient(90deg,transparent 0 12px,#e6c5e318 12px 13px),linear-gradient(#674163,#321b39); }
+.app-shell.theme-glitch .game-case-spine { color: #e2c3e3; border-color: #b183b855; background: var(--material-brush),linear-gradient(90deg,#25132e,#69446b,#361d3f); }
+.app-shell.theme-glitch .game-case-spine i { background: repeating-linear-gradient(0deg,#d3b5dd 0 1px,transparent 1px 3px); }
+.app-shell.theme-glitch .game-collection :is(.game-card-favorite-ribbon,.game-card-bay) { background: #321837eb; }
+.app-shell.theme-glitch .game-collection .game-card-meta { border-color: #9f6b9b66; background: radial-gradient(circle at 7px 7px,#c198c4 0 1px,#2b142f 2px 3px,transparent 3.5px),radial-gradient(circle at calc(100% - 7px) 7px,#c198c4 0 1px,#2b142f 2px 3px,transparent 3.5px),var(--material-brush),linear-gradient(130deg,#40213d,#200f2a); }
+.app-shell.theme-glitch .game-collection .game-card-badges span { border-color: #bb8bb355; background: #1b0b2566; }
+.app-shell.theme-glitch .game-collection .game-card-review-toggle { border-color: color-mix(in srgb,var(--game-accent) 45%,#402044); background: #2b1536; }
+.app-shell.theme-glitch .game-collection .game-card-review-toggle:is(:hover,:focus-visible) { background: #603257; }
+.app-shell.theme-glitch .game-collection .game-card-review { border-color: #ac8cb7; color: var(--material-ink); background: repeating-linear-gradient(0deg,#7c558f17 0 1px,transparent 1px 23px),linear-gradient(105deg,#c2aace,#e0cde8 48%,#c6b1d4); box-shadow: inset 6px 0 12px #58306a26,0 3px 5px #0006; }
+.app-shell.theme-glitch .game-collection :is(.game-card-review strong,.game-card-review-copy,.game-card-review-kicker) { color: #40264d; border-color: #88639255; }
+.app-shell.theme-glitch .game-collection .game-card-review-action { color: #ffe2f5; border-color: #996188; background: #663653; }
+.app-shell.theme-glitch .game-collection .game-shelf-readout { background: #21102c; }
+
+/* Patch desk: purple lacquer, pink edge lighting and themed SVG materials. */
+.app-shell.theme-glitch .patch-desk-scene { border-color: #b6498c; background: radial-gradient(ellipse at 50% 30%,#ff3d9d1c,transparent 60%),radial-gradient(circle,#b799ce26 .65px,transparent .9px) 0 0 / 5px 5px,repeating-linear-gradient(90deg,transparent 0 159px,#0005 160px 162px,#d8a6e311 163px 164px),linear-gradient(110deg,#170c20,#321b37 55%,#1c1029); box-shadow: inset 0 0 0 5px #14091c,inset 0 0 0 6px #ff69b855,inset 0 0 70px #0008,0 10px 30px #0005; }
+.app-shell.theme-glitch .patch-desk-wall { color: #d8b7db; }
+.app-shell.theme-glitch .patch-desk-shelf { border-top-color: #ff7fc8; border-bottom-color: #210e27; background: repeating-linear-gradient(90deg,transparent 0 12px,#e8c4ef15 12px 13px),linear-gradient(#75446b,#371d3b); box-shadow: 0 -2px 12px #ff3d9d40,0 2px #24102e,0 10px 18px #0009; }
+.app-shell.theme-glitch .patch-desk-surface { border-top-color: #b775b266; border-bottom-color: #291533; background: linear-gradient(180deg,#100817b3,transparent 25%),radial-gradient(ellipse at 90% 90%,#b986ff16,transparent 60%),repeating-linear-gradient(2deg,#e9c7ed09 0 1px,#19092026 2px 3px,transparent 4px 9px),repeating-linear-gradient(0deg,transparent 0 94px,#15091daa 95px 97px,#d0a8da22 98px,transparent 99px 190px),linear-gradient(115deg,#492947,#27162e 52%,#482b4c); box-shadow: inset 0 -2px #ff69b980,inset 0 -5px #1b0e25; }
+.app-shell.theme-glitch .patch-desk-surface::after { border-color: #b986ff99; outline-color: #e3b2f033; background: linear-gradient(#b986ff10 1px,transparent 1px) 0 0 / 24px 24px,linear-gradient(90deg,#b986ff10 1px,transparent 1px) 0 0 / 24px 24px,repeating-linear-gradient(45deg,#d4b3e008 0 1px,transparent 1px 3px),linear-gradient(#2a1738,#160b22); box-shadow: 0 0 10px #b986ff26,0 5px 10px #0008,inset 0 1px #e1b5ff44; }
+.app-shell.theme-glitch .patch-desk-object .patch-object-label { border-color: #ac65a680; background: var(--material-brush),linear-gradient(#49253f,#211029); box-shadow: inset 0 1px #e6b7f022,inset 0 -2px #0008,0 3px 5px #0006; }
+.app-shell.theme-glitch .patch-desk-object:is(:hover,:focus-visible) .patch-object-label { color: #ffe1f4; background: #693352; border-color: var(--patch-secondary); box-shadow: inset 0 -2px #0008,0 0 12px #ff3d9d33; }
+.app-shell.theme-glitch .patch-desk-object.is-discovered .patch-object-label { box-shadow: inset 0 -2px #ff6bb755,0 3px 5px #0006; }
+.app-shell.theme-glitch .patch-desk-footer button { border-color: #a868ac; background: var(--material-brush),linear-gradient(#47223f,#1c1028); box-shadow: inset 0 1px #f0b9ee22,inset 0 -3px #0008,0 2px #100818; }
+.app-shell.theme-glitch .patch-desk-footer button:is(:hover,:focus-visible) { color: #f9d6ff; background: #623154; box-shadow: inset 0 -3px #0008,0 0 12px #ff3d9d26; }
+.app-shell.theme-glitch .patch-desk-scene {
+  --patch-plastic-1: #88718e; --patch-plastic-2: #59425e; --patch-plastic-3: #35273f; --patch-plastic-4: #231a2d;
+  --patch-blue-1: #a394c4; --patch-blue-2: #6e5989; --patch-blue-3: #47355f; --patch-blue-4: #2b203d;
+  --patch-metal-1: #8b7c96; --patch-metal-2: #e1cde5; --patch-metal-3: #b8a0c0; --patch-metal-4: #e6d4ef; --patch-metal-5: #7d638c;
+  --patch-glass-1: #4b2147; --patch-glass-2: #250f28; --patch-glass-3: #110818;
+}
+/* The coffee stays coffee; tint the keepsakes' physical materials only. */
+.app-shell.theme-glitch .discord-desk-keepsakes #desk-cassette-shell stop:first-child { stop-color: #765276; }
+.app-shell.theme-glitch .discord-desk-keepsakes #desk-cassette-shell stop:last-child { stop-color: #39213f; }
+.app-shell.theme-glitch .discord-desk-keepsakes #desk-note-paper stop:first-child { stop-color: #d3b5d4; }
+.app-shell.theme-glitch .discord-desk-keepsakes #desk-note-paper stop:last-child { stop-color: #a384ac; }
+.app-shell.theme-glitch .discord-desk-keepsakes #desk-cup-ceramic stop:nth-child(1) { stop-color: #eddbf1; }
+.app-shell.theme-glitch .discord-desk-keepsakes #desk-cup-ceramic stop:nth-child(2) { stop-color: #c5accd; }
+.app-shell.theme-glitch .discord-desk-keepsakes #desk-cup-ceramic stop:nth-child(3) { stop-color: #997ba7; }
+.app-shell.theme-glitch .discord-desk-keepsakes #desk-cup-ceramic stop:nth-child(4) { stop-color: #61476f; }
+.app-shell.theme-glitch .discord-desk-keepsakes #desk-cup-saucer stop:nth-child(1) { stop-color: #70577f; }
+.app-shell.theme-glitch .discord-desk-keepsakes #desk-cup-saucer stop:nth-child(2) { stop-color: #a68bb4; }
+.app-shell.theme-glitch .discord-desk-keepsakes #desk-cup-saucer stop:nth-child(3) { stop-color: #d1b8dc; }
+.app-shell.theme-glitch .discord-desk-keepsakes #desk-cup-saucer stop:nth-child(4) { stop-color: #a085b1; }
+.app-shell.theme-glitch .discord-desk-keepsakes #desk-cup-saucer stop:nth-child(5) { stop-color: #594068; }

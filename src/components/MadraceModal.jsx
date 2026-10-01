@@ -1,6 +1,7 @@
 import { ArrowLeft, LogIn, RotateCcw, Trophy, Volume2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RankingAvatar } from "./RankingAvatar";
+import { ArcadeTvDetails } from "./ArcadeTvDetails";
 
 const VOLUME_KEY = "daivr.madrace.volume.v1";
 const SAVE_SLOT_PREFIX = "daivr.madrace.save-slot.v1";
@@ -188,7 +189,7 @@ export function MadraceModal({ open, onBack, onClose }) {
 
   return (
     <div className="madrace-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <section className="madrace-modal" role="dialog" aria-modal="true" aria-labelledby="madrace-title">
+      <section className="madrace-modal arcade-tv" role="dialog" aria-modal="true" aria-labelledby="madrace-title">
         <header className="madrace-header">
           <div className="madrace-title-with-back">
             <button type="button" onClick={onBack} aria-label="Back to game library"><ArrowLeft size={17} /></button>
@@ -253,6 +254,7 @@ export function MadraceModal({ open, onBack, onClose }) {
           ) : null}
         </div>
 
+        <ArcadeTvDetails channel="01" />
         <footer className="madrace-footer">
           <span className={status.includes("FAILED") || status.includes("REQUIRED") ? "is-error" : ""}>{status || (me ? "DISCORD SAVE LINK ONLINE" : "GUEST RUN // SCORES LOCAL ONLY")}</span>
           <label><Volume2 size={14} /><input type="range" min="0" max="100" value={volume} onChange={updateVolume} /><b>{volume}%</b></label>

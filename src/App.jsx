@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { commands, discord, games, navItems, profile, projects } from "./data/site";
 import { preloadImages } from "./lib/preloadImages";
 import { consumeGateReturn } from "./lib/gateReturn";
+import { buddyDiagnosticEvent } from "../shared/buddy-diagnostics.mjs";
 import { useBuddyAdventure } from "./hooks/useBuddyAdventure";
 import { useBuddyFriendship } from "./hooks/useBuddyFriendship";
 import { useBuddyLoadout } from "./hooks/useBuddyLoadout";
@@ -458,7 +459,7 @@ function CabinetApp() {
     if (name === "help") {
       const advanced = args.some((item) => ["--all", "-a", "advanced"].includes(item.toLowerCase()));
       appendTerminal(input, advanced
-        ? "COMMAND INDEX // ALL\n  help [--all]       command directory\n  status             cabinet telemetry\n  ls                 list page nodes\n  goto <node>        navigate the cabinet\n  theme [crt|glitch] set or toggle theme\n  run                boot Dai.exe\n  attract            start arcade demo mode\n  whoami / now / scan / discord / contact\n  date / echo <text> / clear / exit\n\nDIAGNOSTIC BUS // use responsibly\n  fish / forage / wildlife / debugbug\n  blackout           rare breaker simulation\n  season [event]     admin: mount a seasonal cartridge\n  unlockall [off]    admin: unlock all buddy cosmetics"
+        ? "COMMAND INDEX // ALL\n  help [--all]       command directory\n  status             cabinet telemetry\n  ls                 list page nodes\n  goto <node>        navigate the cabinet\n  theme [crt|glitch] set or toggle theme\n  run                boot Dai.exe\n  attract            start arcade demo mode\n  whoami / now / scan / discord / contact\n  date / echo <text> / clear / exit\n\nDIAGNOSTIC BUS // use responsibly\n  fish / forage / wildlife / debugbug\n  leviathan          admin: guaranteed Leviathan sighting\n  blackout           admin: power outage sequence\n    aliases: powerout / power-out\n  season [event]     admin: mount a seasonal cartridge\n  unlockall [off]    admin: unlock all buddy cosmetics"
         : "COMMAND INDEX\n  status             cabinet telemetry\n  ls                 list page nodes\n  goto <node>        navigate the cabinet\n  theme [crt|glitch] set or toggle theme\n  run                boot Dai.exe\n  attract            start arcade demo mode\n  whoami / now / scan / discord / contact\n  date / echo <text> / clear / exit\n\nHint: type help --all for diagnostics and admin commands.");
       return;
     }
@@ -614,14 +615,31 @@ function CabinetApp() {
       return;
     }
 
-    if (["blackout", "powerout", "power-out"].includes(name)) {
-      if (powerOutage) {
-        appendTerminal(input, `Power bus already busy: ${powerOutage}.`);
-        return;
+    const diagnosticEvent = buddyDiagnosticEvent(name);
+    if (diagnosticEvent) {
+      const result = await new Promise((resolve) => {
+        const timeout = window.setTimeout(() => resolve("unavailable"), 6500);
+        window.dispatchEvent(new CustomEvent(diagnosticEvent, {
+          detail: { reply: (status) => { window.clearTimeout(timeout); resolve(status); } }
+        }));
+      });
+      const messages = {
+        "signed-out": "ACCESS DENIED // Sign in through Discord with an admin account to use this command.",
+        denied: "ACCESS DENIED // This command requires a Discord admin account.",
+        offline: "AUTH BUS OFFLINE // Admin session could not be verified. No event started.",
+        busy: "BUDDY BUSY // Let the current encounter or landing finish, then try again.",
+        "reduced-motion": "Event paused // These sequences require motion. Enable animations before trying again.",
+        unavailable: "BUDDY OFFLINE // The event could not start. Try again once Buddy is ready."
+      };
+      appendTerminal(input, result === "started"
+        ? name === "leviathan"
+          ? "ADMIN // LEVIATHAN_OVERRIDE accepted.\nWatch the water by Buddy // sighting guaranteed."
+          : "ADMIN // BREAKER_OVERRIDE accepted.\nPower outage started // flashlight crew notified."
+        : messages[result] || messages.unavailable);
+      if (result === "started") {
+        setTerminalOpen(false);
+        window.requestAnimationFrame(() => document.querySelector(".app-footer-zone")?.scrollIntoView({ behavior: "smooth", block: "end" }));
       }
-      appendTerminal(input, "BREAKER_OVERRIDE accepted.\nRare outage sequence armed // flashlight crew notified.");
-      setTerminalOpen(false);
-      window.dispatchEvent(new CustomEvent("daivr-buddy-outage"));
       return;
     }
 
@@ -723,7 +741,7 @@ function CabinetApp() {
               onOpenTerminal={openTerminal}
               onRun={runBuild}
             />
-            <ProgramSections />
+            <ProgramSections theme={theme} interactive={!entrySplashOpen} />
             <CommentsSection />
           </main>
           <SiteFooter buddy={buddy} onBuddyPet={handleBuddyPet} onPowerOutage={setPowerOutage} />
@@ -746,6 +764,7 @@ function CabinetApp() {
       <BuddyModal
         buddy={buddy}
         mode={buddyModal}
+        seasonalEvent={seasonalEvent}
         onClose={() => setBuddyModal(null)}
         onModeChange={setBuddyModal}
         theme={theme}

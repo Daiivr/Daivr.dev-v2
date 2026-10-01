@@ -117,7 +117,7 @@ const EVENT_SURFACE_SELECTOR = [
   ".project-console",
   ".discord-presence-shell",
   ".game-shelf",
-  ".patch-console",
+  ".patch-desk-scene",
   ".comments-console",
   ".panel",
   ".panel-strong"

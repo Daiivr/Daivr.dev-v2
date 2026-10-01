@@ -678,9 +678,6 @@
     opacity: 0.95;
   }
 
-  .game-card.is-flipped .game-card-character,
-  .game-card.is-flipped .game-card-logo-wrap,
-  .game-card.is-flipped .game-card-bay,
   .game-card.is-review-closing .game-card-character,
   .game-card.is-review-closing .game-card-logo-wrap,
   .game-card.is-review-closing .game-card-bay {

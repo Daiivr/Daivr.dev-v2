@@ -1,0 +1,139 @@
+@layer components {
+  /* Match Buddy's companion panels, including their theme-responsive palette. */
+  .terminal-window {
+    --panel-surface: color-mix(in srgb, var(--color-phosphor) 5%, #020604);
+    --panel-raise: color-mix(in srgb, var(--color-phosphor) 8%, #030907);
+    --panel-sunken: color-mix(in srgb, var(--color-phosphor) 3%, #010504);
+    --panel-card: color-mix(in srgb, var(--color-phosphor) 6%, #060f0c);
+    --panel-hover: color-mix(in srgb, var(--color-phosphor) 10%, #0a1c15);
+    --panel-border: color-mix(in srgb, var(--color-phosphor) 20%, transparent);
+    --panel-muted: color-mix(in srgb, var(--color-phosphor-soft) 50%, #7e9188);
+    --panel-text: color-mix(in srgb, var(--color-phosphor-soft) 26%, #fff);
+    --panel-scanlines: linear-gradient(#ffffff07 50%, transparent 50%);
+    color: var(--panel-text);
+    box-shadow: 0 32px 100px #000a, 0 0 42px color-mix(in srgb, var(--color-phosphor) 18%, transparent), 0 0 120px color-mix(in srgb, var(--color-cyan-arcade) 10%, transparent);
+  }
+  .terminal-windowbar {
+    padding: 20px 24px 18px;
+    background: var(--panel-scanlines) 0 0 / 100% 4px, var(--panel-raise);
+    border-bottom: 1px solid color-mix(in srgb, var(--color-phosphor) 32%, transparent);
+    box-shadow: inset 0 -16px 24px -22px var(--color-phosphor), 0 1px 14px -6px color-mix(in srgb, var(--color-phosphor) 46%, transparent);
+  }
+  .terminal-window-id h2 {
+    margin: 6px 0;
+    color: var(--panel-text);
+    font-family: var(--font-display);
+    font-size: clamp(22px, 3vw, 28px);
+    font-weight: 800;
+    line-height: 1.35;
+    letter-spacing: normal;
+    text-transform: none;
+    white-space: normal;
+    text-shadow: 0 0 14px color-mix(in srgb, var(--color-phosphor) 32%, transparent), 0 0 38px color-mix(in srgb, var(--color-cyan-arcade) 18%, transparent);
+  }
+  .terminal-window-kicker {
+    display: flex; align-items: center; gap: 10px; margin: 0;
+    color: var(--color-cyan-arcade); font: 700 10px/1.5 var(--font-mono); letter-spacing: .12em; text-transform: uppercase;
+    text-shadow: 0 0 12px color-mix(in srgb, var(--color-cyan-arcade) 55%, transparent);
+  }
+  .terminal-window-id p { display: block; margin: 6px 0 0; color: var(--panel-muted); font-size: 12px; line-height: 1.6; white-space: normal; }
+  .terminal-window-dots { display: inline-flex; align-items: center; gap: 5px; }
+  .terminal-window-dots i, .terminal-window-dots i:nth-child(n) { width: 6px; height: 6px; background: var(--color-phosphor); box-shadow: 0 0 7px currentColor; color: var(--color-phosphor); }
+  .terminal-window-dots i:first-child { background: var(--color-glitch); color: var(--color-glitch); }
+  .terminal-window-dots i:nth-child(2) { background: var(--color-cabinet); color: var(--color-cabinet); }
+  .terminal-close {
+    display: grid; place-items: center; flex: none; width: 44px; height: 44px; padding: 0;
+    border: 1px solid var(--panel-border); background: #ffffff03; color: var(--panel-muted); box-shadow: none;
+    clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  }
+  .terminal-close:hover { color: var(--color-glitch); border-color: var(--panel-border); background: color-mix(in srgb, var(--color-glitch) 5%, transparent); }
+  .terminal-windowbar { align-items: start; }
+  .terminal-windowbar::after { content: none; }
+  .terminal-window-id { display: block; }
+  .terminal-window-meta { align-self: center; }
+  .terminal-window-meta span { background: var(--panel-sunken); border-color: var(--panel-border); box-shadow: none; }
+  .terminal-buffer, .terminal-command-deck { background: var(--panel-surface); box-shadow: none; }
+  .terminal-command-deck { border-left: 1px solid var(--panel-border); }
+  .terminal-bufferbar, .terminal-command-deck > header { background: var(--panel-sunken); box-shadow: none; border-bottom-color: var(--panel-border); }
+  .terminal-output {
+    background: var(--panel-scanlines) 0 0 / 100% 4px, linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 3%, transparent) 1px, transparent 1px) 0 0 / 24px 24px, radial-gradient(ellipse at 50% 0, color-mix(in srgb, var(--color-phosphor) 5%, transparent), transparent 65%), var(--panel-sunken);
+    box-shadow: inset 0 0 28px #0005;
+  }
+  .terminal-window .terminal-command-chip {
+    background: var(--panel-card); border: 1px solid var(--panel-border); box-shadow: none; color: var(--panel-text);
+  }
+  .terminal-window .terminal-command-chip:is(:hover,:focus-visible) {
+    background: var(--panel-hover); border-color: color-mix(in srgb, var(--cmd-accent) 58%, transparent);
+    box-shadow: inset 0 0 22px -11px var(--cmd-accent), 0 0 10px -6px var(--cmd-accent);
+  }
+  .terminal-input-zone { background: var(--panel-surface); border-top: 1px solid var(--panel-border); box-shadow: none; }
+  .terminal-prompt-row { background: var(--panel-sunken); box-shadow: none; }
+  .terminal-prompt-row label { background: var(--panel-card); }
+  .terminal-window .terminal-run-button { background: var(--panel-card); border-color: var(--panel-border); box-shadow: none; }
+  .terminal-window .terminal-run-button:not(:disabled):hover { background: var(--panel-hover); box-shadow: inset 0 0 20px -10px var(--color-phosphor); }
+  @media (max-width: 760px) {
+    .terminal-windowbar { padding: 18px 16px; }
+    .terminal-windowbar { grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+    .terminal-window-kicker { display: flex; font-size: 8px; letter-spacing: .06em; }
+    .terminal-window-id h2 { font-size: 21px; }
+    .terminal-window-id p { font-size: 10px; }
+    .terminal-command-deck { border-left: 0; }
+  }
+  .badge-emblem { filter: drop-shadow(0 3px 1px #000b) drop-shadow(0 6px 6px #0006); transition: transform 220ms ease, filter 220ms ease; }
+  .badge-emblem-icon { filter: drop-shadow(0 1px 0 #000) drop-shadow(0 -1px 0 #ffffff38); }
+  .badge-emblem-number, .badge-emblem-star { background: linear-gradient(#213128, #0a120f); box-shadow: 0 1px #ffffff24, inset 0 1px 3px #000b; border: 1px solid color-mix(in srgb, var(--badge-color) 35%, #000); font-size: 9px; }
+  .badge-foil-glint { transform: translateX(-20px); }
+  .player-badge:hover .badge-emblem, label:focus-within .badge-emblem { transform: translateY(-2px) rotate(-3deg); filter: drop-shadow(0 5px 2px #000a) drop-shadow(0 0 5px color-mix(in srgb, var(--badge-color) 25%, transparent)); }
+  .player-badge:hover .badge-foil-glint, label:focus-within .badge-foil-glint { animation: badge-foil-pass 750ms ease-out both; }
+  @keyframes badge-foil-pass { from { transform: translateX(-20px); } to { transform: translateX(90px); } }
+  @media (prefers-reduced-motion: reduce) {
+    .badge-emblem { transition: none; }
+    .player-badge:hover .badge-emblem, label:focus-within .badge-emblem { transform: none; }
+    .player-badge:hover .badge-foil-glint, label:focus-within .badge-foil-glint { animation: none; }
+  }
+}
+
+@layer components {
+  /* The passport keeps its woven cover and laminated collectible card. */
+  .player-hub-dialog {
+    --panel-grain: url('/textures/arcade-grain.svg');
+    --panel-brush: repeating-linear-gradient(0deg, #ffffff04 0 1px, #0000000d 1px 2px, transparent 2px 4px);
+  }
+  .player-hub-dialog::before {
+    background: var(--panel-grain), repeating-linear-gradient(45deg, #a2ccb907 0 1px, transparent 1px 4px), repeating-linear-gradient(-45deg, #0003 0 1px, transparent 1px 4px), linear-gradient(125deg, #203d30, #0b1b15 45%, #12281e);
+    box-shadow: inset 0 0 0 5px #020b0899, inset 0 0 0 6px #89b69a25;
+  }
+  .player-hub-heading {
+    background: var(--panel-grain), var(--panel-brush), linear-gradient(110deg, #3a5143, #172c24 45%, #0d1b16);
+    box-shadow: inset 0 1px #def5dd38, inset 0 -3px #020a0899, 0 3px 8px #0005;
+    border-bottom-color: #729c7859;
+  }
+  .player-hub-heading h2 { text-shadow: 0 2px 1px #020a08, 0 0 20px #8ceeb31a; }
+  .player-hub-heading > div { position: relative; }
+  .player-signin { background: var(--panel-grain), linear-gradient(100deg, #143227, #071710); box-shadow: inset 0 2px 5px #0008, 0 1px #b5d3bf20; border-color: #76968480; }
+  .player-passport {
+    background: var(--panel-grain), repeating-radial-gradient(ellipse at 100% 0, transparent 0 7px, color-mix(in srgb, var(--passport-accent) 7%, transparent) 7.5px 8px, transparent 8.5px 13px), linear-gradient(125deg, #294338, #0e201a 55%, #1b3429);
+    box-shadow: inset 0 1px #dbf3d954, inset 0 -3px #0008, inset 3px 0 color-mix(in srgb, var(--passport-accent) 45%, transparent);
+  }
+  .passport-card-label { padding-bottom: 10px; border-bottom: 1px dashed #b6d4bd45; text-shadow: 0 1px #000; }
+  .player-passport img { box-shadow: 0 3px 7px #0008, inset 0 1px #fff4; border-color: #adbfaa90; background: #182c22; }
+  .passport-stats { border-top-style: dashed; }
+  .passport-stats dd { text-shadow: 0 2px #000; }
+  .passport-badges > .player-badge, .passport-badge-options label { background: var(--panel-grain), radial-gradient(ellipse at 50% 0, #78998724, transparent 70%), #091711; box-shadow: inset 0 2px 5px #0009, inset 0 -1px #c7ddca20; border-color: #67837345; }
+  .passport-badge-options label:has(:checked) { background: var(--panel-grain), radial-gradient(ellipse at top, #355d43, #10251b); box-shadow: inset 0 1px #c8ecc12b, inset 0 -2px var(--color-phosphor); }
+  .passport-badge-options .is-locked .badge-emblem { filter: grayscale(1) drop-shadow(0 2px 2px #0008); transform: none; }
+  .passport-badge-options .is-locked .badge-foil-glint { animation: none; }
+  .daily-challenge { background: var(--panel-grain), repeating-linear-gradient(0deg, transparent 0 3px, #d9c79406 3px 4px), linear-gradient(125deg, #343727, #19251c 55%, #111e17); border-color: #a3945366; border-top-color: var(--color-cabinet); box-shadow: inset 0 1px #f8e6b028, inset 0 -3px #0007, 0 5px 12px #0005; }
+  .daily-challenge-heading { padding-bottom: 13px; border-bottom: 1px dashed #d4c58150; }
+  .daily-challenge-heading > span:last-child { background: var(--panel-brush), linear-gradient(#514b2c, #282719); box-shadow: inset 0 1px #ffe6a640, 0 2px 2px #0005; }
+  .daily-challenge-reward { border-top-style: dashed; }
+  .daily-challenge-reward > svg { filter: drop-shadow(0 2px 1px #000); }
+  .player-hub-dialog .daily-challenge > button { background: var(--panel-grain), var(--panel-brush), linear-gradient(#494329, #252619); box-shadow: inset 0 1px #fff2, inset 0 -3px #0009, 0 2px 3px #0006; transition: box-shadow 160ms ease, background-color 160ms ease; }
+  .player-hub-dialog .daily-challenge > button:hover { background: var(--panel-grain), linear-gradient(#5a5330, #33331e); }
+  .player-hub-dialog .daily-challenge > button:active { box-shadow: inset 0 2px 5px #000a; }
+  .passport-records div, .player-hub-disclosure { background: var(--panel-grain), linear-gradient(#20382b, #101f18); box-shadow: inset 0 1px #deffda15, 0 2px 4px #0005; }
+  .passport-fields select { box-shadow: inset 0 2px 4px #000b, 0 1px #c2e6c526; }
+  .player-hub-dialog.theme-glitch { --panel-brush: repeating-linear-gradient(0deg, #f6dcff08 0 1px, #18021b22 1px 2px, transparent 2px 4px); }
+  .player-hub-dialog.theme-glitch .player-hub-heading { background: var(--panel-grain), var(--panel-brush), linear-gradient(110deg, #48374c, #281e30 60%, #1c1422); }
+  .player-hub-dialog.theme-glitch::before { background: var(--panel-grain), repeating-linear-gradient(45deg, #d9b9e408 0 1px, transparent 1px 4px), linear-gradient(125deg, #2e2337, #160f20); }
+}

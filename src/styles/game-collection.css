@@ -1,0 +1,194 @@
+/* A physical collector's cabinet, scoped away from the secret game library. */
+.app-shell .game-collection {
+  container-type: inline-size;
+  padding: 0;
+  border: 1px solid #508d6b;
+  background: #101e1b;
+  box-shadow: inset 0 0 0 5px #061410, 0 16px 35px #0006;
+}
+.app-shell .game-collection::before { display: none; }
+.app-shell .game-collection .game-shelf-titlebar { margin: 0; border: 0; border-bottom: 1px solid #56816866; padding: 16px 22px; background: linear-gradient(#152b23, #07170f); box-shadow: inset 0 1px #a6d2af22; }
+.app-shell .game-collection .game-shelf-titlebar code { font-size: 10px; letter-spacing: .08em; }
+.app-shell .game-collection .game-shelf-titlebar-mode { color: #93b4a4; font-size: 9px; }
+.app-shell .game-collection .game-shelf-toolbar { padding: 22px 24px 18px; margin: 0; border: 0; }
+.app-shell .game-collection .game-shelf-intro > p { font: 800 23px/1.3 var(--font-display); color: #e2ead7; }
+.app-shell .game-collection .game-shelf-intro > span { max-width: 370px; font-size: 11px; color: #b1c8b7; opacity: 1; }
+.app-shell .game-collection .game-shelf-stats { gap: 7px; }
+.app-shell .game-collection .game-shelf-stats span { min-height: 38px; font: 700 10px/1.5 var(--font-mono); color: #b9ceba; border: 1px solid #546e5b; background: repeating-linear-gradient(0deg,#c7e3c406 0 1px,transparent 1px 3px),linear-gradient(125deg,#243a2c,#12251d); box-shadow: inset 1px 1px #d9eac51c, 0 2px #030d08; }
+.game-collection-plaque { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 0 24px 23px; padding: 11px 15px; border: 1px solid #93805a88; border-radius: 2px; color: #c9bb8b; background: repeating-linear-gradient(90deg,#ecd6a108 0 1px,transparent 1px 4px),linear-gradient(110deg,#3a3c29,#232d21 70%,#343924); box-shadow: inset 0 1px #e1cf9433, 0 3px 6px #0005; }
+.game-collection-plaque > div { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; font: 700 10px/1.5 var(--font-mono); }
+.game-collection-plaque strong { color: #eee3ba; margin-left: 8px; font-size: 12px; }
+.game-collection-plaque b { color: #ddc885; font-size: 10px; }
+.game-collection-inscription { display: flex; align-items: center; gap: 10px; font: 700 8px/1.5 var(--font-mono); color: #b7b58f; }
+.game-collection-inscription i { width: 3px; height: 3px; background: #b7b58f; }
+.app-shell .game-collection .game-shelf-stage { padding: 30px 24px 24px; border: 0; border-block: 7px solid #233a2d; background: repeating-linear-gradient(90deg,transparent 0 112px,#0005 113px 115px,#c5bca410 116px 117px),repeating-linear-gradient(2deg,#afbea408 0 1px,transparent 1px 8px),linear-gradient(90deg,#0a1c16,#1a3025 50%,#0b1c17); box-shadow: inset 0 8px 16px #0009, 0 1px #7b967144; }
+.app-shell .game-collection .game-shelf-grid { gap: 30px; padding: 8px 4px 0; }
+.app-shell .game-collection .game-card { gap: 28px; padding: 0 0 2px; align-content: start; }
+.app-shell .game-collection .game-card-scene { min-height: clamp(270px,26vw,335px); margin-left: 14px; border: 5px solid #25352e; border-left-width: 7px; border-radius: 4px 8px 6px 3px; background: #14251d; box-shadow: inset 0 0 0 1px #b5c2a74d, 3px 3px #06110d, 5px 7px #405344, 10px 13px 17px #0009; }
+.app-shell .game-collection .game-card-scene::after { opacity: 1; z-index: -1; left: -28px; right: -15px; bottom: -23px; width: auto; height: 15px; border: 1px solid #57745d; border-bottom: 5px solid #10261b; border-radius: 1px; filter: none; background: repeating-linear-gradient(2deg,transparent 0 3px,#c7cca617 4px 5px),linear-gradient(#4c6850,#2a4231); box-shadow: 0 9px 11px #0008,inset 0 1px #ced5ab44; transform: none; }
+.app-shell .game-collection .game-card-cartridge-bar { display: none; }
+.game-case-spine { position: absolute; z-index: 1; top: -4px; bottom: -4px; left: -22px; width: 19px; display: flex; align-items: center; gap: 12px; padding: 9px 2px; writing-mode: vertical-rl; transform: rotate(180deg); color: #c6d8be; border: 1px solid #79927d55; border-radius: 3px; background: repeating-linear-gradient(90deg,#d2e7c50a 0 1px,transparent 1px 3px),linear-gradient(90deg,#14271e,#3e5645,#213829); box-shadow: inset 2px 0 #0004; pointer-events: none; }
+.game-case-spine span { font: 700 7px/1 var(--font-mono); color: var(--game-accent); }
+.game-case-spine b { font: 700 9px/1 var(--font-mono); letter-spacing: .06em; }
+.game-case-spine i { height: 19px; width: 7px; margin-top: auto; background: repeating-linear-gradient(0deg,#b1c5a8 0 1px,transparent 1px 3px); }
+.app-shell .game-collection .game-card-cover-wrap { border: 1px solid #d6e3cd33; clip-path: none; border-radius: 2px; }
+.app-shell .game-collection .game-card-cover-wrap::before { background: linear-gradient(115deg,#f3f7da25,transparent 18% 65%,#e2efd418 66%,transparent 75%),repeating-linear-gradient(0deg,#fff1 0 1px,transparent 1px 5px); background-size: auto; opacity: .45; }
+.app-shell .game-collection .game-card-favorite-ribbon { top: 9px; right: 8px; max-width: calc(100% - 55px); padding: 5px 7px; font-size: 8px; border: 1px solid #d2bc7e77; background: #17291eeb; color: #e4d294; box-shadow: 1px 2px #0006; transform: rotate(2deg); }
+.app-shell .game-collection .game-card-bay { top: 9px; left: 7px; font-size: 9px; padding: 5px; background: #11251fe6; }
+.app-shell .game-collection .game-card-meta { position: relative; gap: 8px; margin: 0 -3px; padding: 17px 16px 14px; border: 1px solid #6e89736b; border-radius: 3px; clip-path: none; background: radial-gradient(circle at 7px 7px,#a4b394 0 1px,#122b21 2px 3px,transparent 3.5px),radial-gradient(circle at calc(100% - 7px) 7px,#a4b394 0 1px,#122b21 2px 3px,transparent 3.5px),repeating-linear-gradient(0deg,#a7c4b00a 0 1px,transparent 1px 3px),linear-gradient(130deg,#20352c,#10251e); box-shadow: inset 1px 1px #a8c39822,2px 4px 7px #0006; }
+.app-shell .game-collection .game-card-meta::after { display: none; }
+.app-shell .game-collection .game-card-meta > strong { min-height: 0; font-size: 17px; line-height: 1.3; text-wrap: wrap; }
+.app-shell .game-collection .game-card-kicker { font-size: 9px; letter-spacing: .09em; }
+.app-shell .game-collection .game-card-meta > em { font-size: 10px; }
+.app-shell .game-collection .game-card-badges { min-height: 0; gap: 5px; }
+.app-shell .game-collection .game-card-badges span { padding: 4px 5px; font-size: 9px; border-color: #8fa78355; background: #08190f66; }
+.app-shell .game-collection .game-card-playtime { margin: 2px 0; padding-top: 10px; gap: 7px; }
+.app-shell .game-collection .game-card-hours-head > span { font-size: 9px; }
+.app-shell .game-collection .game-card-hours-value { font-size: 29px; }
+.app-shell .game-collection .game-card-meta > small { font-size: 10px; }
+.app-shell .game-collection .game-card-review-toggle { min-height: 42px; margin-top: 3px; border-color: #7c97706b; background: #07190fcc; font-size: 11px; box-shadow: inset 0 1px #b0c29a22,0 2px #031009; }
+.app-shell .game-collection .game-card-review-toggle:is(:hover,:focus-visible) { background: #304c38; color: #e0edd2; }
+.app-shell .game-collection .game-card-review { inset: 3px; gap: 9px; padding: 18px 14px 12px; border: 1px solid #899d7c; clip-path: none; border-radius: 1px; color: #213c2b; background: repeating-linear-gradient(0deg,#526c4817 0 1px,transparent 1px 23px),linear-gradient(105deg,#a5b293,#c7ccb0 48%,#aab89b); box-shadow: inset 6px 0 12px #354d2926,0 3px 5px #0006; }
+.app-shell .game-collection .game-card-review::before { background: none; border-left: 1px solid #9b665b55; left: 8px; opacity: 1; }
+.app-shell .game-collection .game-card-review::after { display: none; }
+.app-shell .game-collection .game-card-review-kicker { color: #395538; font: 800 9px/1.4 var(--font-mono); }
+.app-shell .game-collection .game-card-review strong { color: #193924; font-size: 15px; line-height: 1.3; }
+.app-shell .game-collection .game-card-review-copy { color: #243e2c; font-size: 12px; line-height: 1.7; border-color: #4f6a3c55; padding-block: 7px; scrollbar-color: #49663f transparent; }
+.app-shell .game-collection .game-card-review-action { color: #e0e9cc; background: #294834; border-color: #4c6943; font-size: 10px; min-height: 32px; }
+.app-shell .game-collection .game-shelf-readout { margin: 0; padding: 15px 24px; background: #0a1c14; font-size: 9px; }
+@media (max-width: 1100px) { .game-collection-inscription { display: none; } }
+@media (max-width: 760px) {
+  .app-shell .game-collection { padding: 0 !important; }
+  .app-shell .game-collection .game-shelf-toolbar { padding: 17px 14px; }
+  .app-shell .game-collection .game-shelf-titlebar { padding: 12px 14px; }
+  .app-shell .game-collection .game-shelf-titlebar code { font-size: 9px; }
+  .app-shell .game-collection .game-shelf-titlebar-mode { display: none; }
+  .app-shell .game-collection .game-shelf-stats span { font-size: 9px; }
+  .game-collection-plaque { margin: 0 14px 18px; padding: 10px; }
+  .game-collection-plaque > div { gap: 8px; }
+  .game-collection-plaque strong { display: block; margin-left: 0; }
+  .app-shell .game-collection .game-shelf-stage { padding: 24px 19px !important; }
+  .app-shell .game-collection .game-shelf-grid { gap: 35px; padding: 0; }
+  .app-shell .game-collection .game-card-scene { min-height: min(95vw,350px) !important; overflow: visible; }
+  .app-shell .game-collection .game-card-character { max-width: 100%; }
+  .app-shell .game-collection .game-card-review-copy { font-size: 13px; }
+  .app-shell .game-collection .game-card-meta { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-shell .game-collection .game-card-scene { transform: none; transition: none; }
+}
+
+/* A single rotating carrier keeps the cover and review synchronized in both directions. */
+.app-shell .game-collection .game-card-flip {
+  perspective: 1100px;
+  /* Composite the whole cartridge above the stationary shelf without intersecting it. */
+  isolation: isolate;
+}
+.app-shell .game-collection .game-card-flip-inner {
+  transition: none;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.app-shell .game-collection :is(.game-card-front, .game-card-back) {
+  position: absolute;
+  inset: -5px -5px -5px -7px;
+  display: block;
+  overflow: visible;
+  border: 5px solid #1e332b;
+  border-left-width: 7px;
+  border-radius: 4px 8px 6px 3px;
+  transform: rotateY(0deg) translateZ(1px);
+  transform-style: flat;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.app-shell .game-collection .game-card-back { transform: rotateY(180deg) translateZ(1px); }
+.app-shell .game-collection .game-card-back .game-case-spine { left: auto; right: -22px; }
+.app-shell .game-collection .game-card.is-flipped .game-card-front { pointer-events: none; }
+.app-shell .game-collection .game-card:not(.is-flipped):focus-within .game-card-character {
+  opacity: 1;
+  filter: blur(0) saturate(1.08) brightness(1);
+  transform: translate3d(calc(-50% + var(--char-x)), calc(-5% + var(--char-y)), 86px) rotateX(var(--char-rot-x)) rotateY(var(--char-rot-y)) scale(.92);
+}
+.app-shell .game-collection .game-card.is-flipped .game-card-character {
+  opacity: 0;
+  filter: blur(7px) saturate(.78) brightness(.82);
+  transform: translate3d(calc(-50% + var(--char-x)), calc(18% + var(--char-y)), 54px) rotateX(var(--char-rot-x)) rotateY(var(--char-rot-y)) scale(.72);
+  transition: opacity 180ms ease-out, transform 220ms ease-out, filter 180ms ease-out;
+}
+.app-shell .game-collection .game-card-cover-wrap { transform: none; transition: none; }
+.app-shell .game-collection .game-card-review {
+  display: grid;
+  transform: none;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  opacity: 1;
+  transition: none;
+}
+.app-shell .game-collection .game-card.is-flipped .game-card-review { display: grid; pointer-events: auto; }
+@media (prefers-reduced-motion: reduce) {
+  .app-shell .game-collection .game-card-flip-inner { transform: none !important; transition: none; }
+  .app-shell .game-collection .game-card-back { transform: none; }
+  .app-shell .game-collection .game-card.is-flipped .game-card-front,
+  .app-shell .game-collection .game-card:not(.is-flipped) .game-card-back { visibility: hidden; }
+}
+
+/* Powder-coated arcade cabinet, illuminated rails and molded cartridge bays. */
+.app-shell .game-collection {
+  border-color: #27885f;
+  background: repeating-linear-gradient(0deg, #9acdb703 0 1px, transparent 1px 4px), #061410;
+  box-shadow: inset 0 2px #43ffa3, inset 0 0 0 5px #020b08, 0 16px 35px #0006;
+}
+.app-shell .game-collection .game-shelf-titlebar {
+  border-bottom-color: #39ed923d;
+  background: linear-gradient(110deg, #163329, #061610 65%);
+  box-shadow: inset 0 2px #40ffac66, 0 3px 12px #00ff8810;
+}
+.app-shell .game-collection .game-shelf-titlebar code { color: #63ffb0; letter-spacing: .13em; }
+.app-shell .game-collection .game-shelf-intro > p { color: #e2fff0; }
+.app-shell .game-collection .game-shelf-stats span {
+  border-color: #2c5d49;
+  background: linear-gradient(#11271e, #06130e);
+  box-shadow: inset 0 -2px #28cc7833, inset 0 1px #95e2b822;
+}
+.game-collection-plaque {
+  border-color: #c4a75266;
+  background: repeating-linear-gradient(90deg,#e8ca7306 0 1px,transparent 1px 3px),linear-gradient(110deg,#29291a,#121c14);
+  box-shadow: inset 3px 0 #e3bd5d, inset 0 1px #fff2, 0 3px 6px #0005;
+}
+.app-shell .game-collection .game-shelf-stage {
+  border-block: 5px solid #152c24;
+  background: radial-gradient(ellipse at 50% 0,#23ff9810,transparent 60%),radial-gradient(circle,#769f8524 .65px,transparent .9px) 0 0 / 5px 5px,linear-gradient(90deg,#050e0b,#0d1e18 50%,#050e0b);
+  box-shadow: inset 0 2px #42ffa580,inset 0 14px 24px #0009,inset 0 -1px #38d98d55;
+}
+.app-shell .game-collection .game-card-scene {
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+}
+.app-shell .game-collection :is(.game-card-front, .game-card-back) {
+  border-color: #1e332b;
+  background: #07150f;
+  box-shadow: inset 0 0 0 1px #92c6a447,3px 3px #020a06,5px 7px #304b3b,10px 13px 17px #0009;
+}
+.app-shell .game-collection .game-card-scene::after {
+  border-color: #416954;
+  border-bottom-color: #07170f;
+  background: repeating-linear-gradient(90deg,transparent 0 12px,#b6dac518 12px 13px),linear-gradient(#294d3b,#10261c);
+  box-shadow: inset 0 2px var(--game-accent),0 2px 9px color-mix(in srgb,var(--game-accent) 14%,transparent),0 9px 11px #0008;
+}
+.game-case-spine { background: repeating-linear-gradient(0deg,#8eab9b0d 0 1px,transparent 1px 4px),linear-gradient(90deg,#07180f,#284332,#10281b); }
+.app-shell .game-collection .game-card-meta {
+  border-color: #486a545e;
+  background: radial-gradient(circle at 7px 7px,#85ac93 0 1px,#092017 2px 3px,transparent 3.5px),radial-gradient(circle at calc(100% - 7px) 7px,#85ac93 0 1px,#092017 2px 3px,transparent 3.5px),repeating-linear-gradient(0deg,#99cdb108 0 1px,transparent 1px 3px),linear-gradient(130deg,#132b20,#06190f);
+  box-shadow: inset 0 2px color-mix(in srgb,var(--game-accent) 55%,transparent),inset 1px 1px #a8c39822,2px 4px 7px #0006;
+}
+.app-shell .game-collection .game-card-review-toggle {
+  border-color: color-mix(in srgb,var(--game-accent) 45%,#10251a);
+  box-shadow: inset 0 -3px #0009,inset 0 1px #b0c29a22,0 2px #031009;
+}
+.app-shell .game-collection .game-card-review-toggle:is(:hover,:focus-visible) {
+  color: var(--game-accent);
+  background: #153e28;
+  box-shadow: inset 0 -3px #0009,0 0 14px color-mix(in srgb,var(--game-accent) 16%,transparent);
+}

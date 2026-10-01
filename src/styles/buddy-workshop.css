@@ -60,7 +60,7 @@
   .buddy-modal :is(button,select,input):focus-visible { outline: 2px solid var(--color-cyan-arcade); outline-offset: 2px; }
 
   @media (max-width: 700px) {
-    .buddy-modal-actions { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); }
+    .buddy-modal-actions { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); }
     .buddy-modal-actions button { gap: 4px; padding: 9px 3px; font-size: 10px; flex-direction: column; }
     .buddy-modal-actions button span { display: none; }
     .buddy-specimen-tank { min-height: 78px; }

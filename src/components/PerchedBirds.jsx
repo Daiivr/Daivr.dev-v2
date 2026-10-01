@@ -7,7 +7,7 @@ const BIRD_FLY_AWAY_MS = 2400;
 const PAGE_PERCHES = [
   { id: "now", selector: ".now-card", side: "left" },
   { id: "project", selector: ".project-card", side: "right" },
-  { id: "patch", selector: ".patch-console", side: "right" }
+  { id: "patch", selector: ".patch-desk-scene", side: "right" }
 ];
 
 const SPLASH_PERCH = { id: "splash", selector: ".entry-splash-gate", side: "left", overlay: true };
@@ -31,7 +31,9 @@ function getActivePerches() {
     ".arcade-embed-backdrop",
     ".project-modal-overlay[data-state=\"open\"]",
     ".comments-gif-modal",
-    ".comments-delete-modal"
+    ".comments-delete-modal",
+    ".patch-discovery-overlay",
+    ".patch-lightbox-overlay"
   ].join(","))) return [];
   return PAGE_PERCHES;
 }

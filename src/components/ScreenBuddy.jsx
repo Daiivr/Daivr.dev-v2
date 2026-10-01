@@ -1,4 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { fishingSpot } from "../../shared/buddy-fishing-spot.mjs";
+import { BuddyFishingPortal, PORTAL_OPEN_MS } from "./BuddyFishingPortal";
+import { runAdminBuddyDiagnostic } from "../../shared/buddy-diagnostics.mjs";
 import { AMBIENT_CREATURES, ENEMY_BUGS, FIELD_FINDS, LEVIATHAN, fishById, weightedCatch } from "../data/buddyWorld";
 import { LURE_IDS, ROD_IDS } from "../hooks/useBuddyLoadout";
 import { BuddyChuteCanopy, BuddyFishingRodArt, BuddySprite } from "./BuddySprite";
@@ -21,7 +24,6 @@ const BRAIN_TICK_MS = 1100;
 const SPRITE_WIDTH = 64;
 const WALK_MARGIN = 72;
 const CORNER_MARGIN = 12;
-const FISHING_EDGE_MARGIN = 34;
 const PET_SPAM_WINDOW_MS = 2600;
 const EYE_TRACK_RADIUS = 340;
 const DRAG_THRESHOLD_PX = 7;
@@ -180,6 +182,10 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
   const [walkMs, setWalkMs] = useState(0);
   const [particles, setParticles] = useState([]);
   const [fishingPhase, setFishingPhase] = useState("");
+  const [fishingPortal, setFishingPortal] = useState(null);
+  const closeFishingPortal = useCallback((id) => {
+    setFishingPortal((current) => current?.id === id ? null : current);
+  }, []);
   const [fishingCatch, setFishingCatch] = useState("");
   const [fishingCatchId, setFishingCatchId] = useState("");
   const [weather, setWeather] = useState("");
@@ -285,7 +291,10 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
   function endBuddyEvent(name) {
     if (activeEventRef.current !== name) return;
     activeEventRef.current = "";
-    if (name === "fishing") setFishingPhase("");
+    if (name === "fishing") {
+      setFishingPhase("");
+      setFishingPortal((current) => current ? { ...current, phase: "closing" } : null);
+    }
     delete document.documentElement.dataset.buddyEvent;
     window.dispatchEvent(new CustomEvent("daivr-buddy-event-state", {
       detail: { active: false, name }
@@ -702,6 +711,8 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     const reduceMotion = Boolean(reduceMotionQuery?.matches);
     const stage = rootRef.current?.parentElement;
 
+    let disposed = false;
+
     function bootUp() {
       bootedRef.current = true;
       moveTo(Math.min(Math.max(WALK_MARGIN, stageWidth() * 0.14), stageWidth() - WALK_MARGIN - SPRITE_WIDTH));
@@ -802,25 +813,21 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       }, ms + 80);
     }
 
-    // Sesion de pesca: elige un punto seguro por todo el ancho del footer,
-    // camina hasta alli y lanza hacia el lado con espacio. Las capturas raras
-    // alimentan la quest "Void angler"; el lucky lure mejora las probabilidades.
-    function startFishing() {
+    // The opening belongs to the footer. Buddy notices it, approaches, then casts.
+    function startFishing({ forceLeviathan = false } = {}) {
+      const spot = fishingSpot(stageWidth(), { miku: mikuCostumeRef.current });
+      if (!spot) return;
       if (!beginBuddyEvent("fishing")) return;
       fishingCooldownRef.current = Date.now();
-
-      const width = stageWidth();
-      const minSpot = Math.min(FISHING_EDGE_MARGIN, Math.max(0, width - SPRITE_WIDTH));
-      const maxSpot = Math.max(minSpot, width - SPRITE_WIDTH - FISHING_EDGE_MARGIN);
-      const target = randomBetween(minSpot, maxSpot);
-      const roomOnLeft = target;
-      const roomOnRight = width - (target + SPRITE_WIDTH);
-      const castLeft = roomOnLeft < 78
-        ? false
-        : roomOnRight < 78
-          ? true
-          : Math.random() < 0.5;
+      freezeAtCurrentPosition();
+      const { target, castLeft, portalX } = spot;
       const distance = Math.abs(target - xRef.current);
+      const portalId = fishingCooldownRef.current;
+      setFishingPortal({ id: portalId, x: portalX, phase: "opening" });
+      setFishingPhase("approach");
+      updateMood("talk");
+      const noticeGeneration = moodGenRef.current;
+      say("a ripple in the footer... fishing spot!", 2200);
 
       function beginSession() {
         // En el sprite base facing 1 apunta a la izquierda. Cerca de un borde
@@ -843,10 +850,10 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
 
         // El señuelo puesto define las reglas de la sesion.
         const lure = equippedGearRef.current.lure;
-        const waitMs = lure === "lure-swift" ? 3200 + Math.random() * 2800 : 7000 + Math.random() * 6000;
+        const waitMs = forceLeviathan ? 0 : lure === "lure-swift" ? 3200 + Math.random() * 2800 : 7000 + Math.random() * 6000;
 
         schedule(() => {
-          if (stillFishing()) say(buddyLine("fishWait"), 2200);
+          if (stillFishing() && !forceLeviathan) say(buddyLine("fishWait"), 2200);
         }, 2600 + Math.random() * 2400);
 
         if (waitMs > 9500) {
@@ -897,7 +904,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
 
           // Muy rara vez la sombra no es una captura: es algo que puede tirar
           // del propio Buddy al agua antes de soltar la linea.
-          if (Math.random() < 0.025) {
+          if (forceLeviathan || Math.random() < 0.025) {
             setFishingPhase("omen");
             setFishingCatch("mythic");
             setFishingCatchId(LEVIATHAN.id);
@@ -961,23 +968,21 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         }, FISHING_CAST_MS + waitMs + 880);
       }
 
-      if (distance < 24) {
-        beginSession();
-        return;
-      }
-
-      faceTravelDirection(target > xRef.current ? 1 : -1);
-      updateMood("walk");
-      const generation = moodGenRef.current;
-      const ms = Math.min(9000, (distance / WALK_SPEED_PX_S) * 1000);
-      setWalkMs(ms);
-      moveTo(target);
-
       schedule(() => {
-        if (moodGenRef.current !== generation || moodRef.current !== "walk") return;
-        setWalkMs(0);
-        beginSession();
-      }, ms + 80);
+        if (moodGenRef.current !== noticeGeneration || activeEventRef.current !== "fishing") return;
+        setFishingPortal((current) => current?.id === portalId ? { ...current, phase: "open" } : current);
+        faceTravelDirection(target > xRef.current ? 1 : -1);
+        updateMood("walk");
+        const generation = moodGenRef.current;
+        const ms = Math.max(120, distance / 105 * 1000);
+        setWalkMs(ms);
+        moveTo(target);
+        schedule(() => {
+          if (moodGenRef.current !== generation || activeEventRef.current !== "fishing") return;
+          setWalkMs(0);
+          beginSession();
+        }, ms + 80);
+      }, PORTAL_OPEN_MS + 200);
     }
 
     function startRain() {
@@ -1351,14 +1356,19 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       if (["off", "sleep", "sleepy", "held", "chute", "outage", "hunt"].includes(moodRef.current)) return;
       const direction = Number(event.detail?.direction) < 0 ? -1 : 1;
       freezeAtCurrentPosition();
+      updateMood("talk");
       const maxX = Math.max(4, stageWidth() - SPRITE_WIDTH - 4);
-      setWalkMs(180);
-      moveTo(clamp(xRef.current + direction * 12, 4, maxX));
+      const nudge = clamp((Number(event.detail?.speed) || 120) * .065, 5, 12);
+      setWalkMs(160);
+      moveTo(clamp(xRef.current + direction * nudge, 4, maxX));
+      rootRef.current?.style.setProperty("--buddy-bump-lean", `${direction * 9}deg`);
       updateFacing(facingForDirection(-direction));
       playFx("bump", 620);
       spawnParticles("splash", 5);
       say(buddyLine("fishBump"), 2200);
-      schedule(() => setWalkMs(0), 200);
+      const generation = moodGenRef.current;
+      schedule(() => { if (moodGenRef.current === generation) setWalkMs(0); }, 200);
+      settleDown(2300);
     }
 
     function onWildlifeEvent(event) {
@@ -1413,15 +1423,28 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       startBugHunt(event.detail?.weapon || "");
     }
 
-    function onOutageSignal() {
-      if (activeEventRef.current) return;
-      if (reduceMotion) return;
-      if (moodRef.current === "hunt") return;
-      if (!["idle", "talk"].includes(moodRef.current)) {
+    async function onAdminDiagnostic(event, start) {
+      const status = await runAdminBuddyDiagnostic(() => {
+        if (disposed) return "unavailable";
+        if (reduceMotionQuery?.matches) return "reduced-motion";
+        if (activeEventRef.current || dropInFlightRef.current || attractModeRef.current
+          || ["held", "chute", "hunt"].includes(moodRef.current)) return "busy";
+        bootedRef.current = true;
         freezeAtCurrentPosition();
+        liftTo(0);
         updateMood("idle");
-      }
-      startPowerOutage();
+        start();
+        return "started";
+      });
+      if (typeof event.detail?.reply === "function") event.detail.reply(status);
+    }
+
+    function onOutageSignal(event) {
+      void onAdminDiagnostic(event, startPowerOutage);
+    }
+
+    function onLeviathanSignal(event) {
+      void onAdminDiagnostic(event, () => startFishing({ forceLeviathan: true }));
     }
 
     function reactToNowPlaying(event) {
@@ -1482,6 +1505,14 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     }
 
     function clampToStage() {
+      if (activeEventRef.current === "fishing") {
+        freezeAtCurrentPosition();
+        endBuddyEvent("fishing");
+        setFishingCatch("");
+        setFishingCatchId("");
+        liftTo(0);
+        updateMood("idle");
+      }
       const maxX = Math.max(WALK_MARGIN, stageWidth() - SPRITE_WIDTH - WALK_MARGIN);
       if (xRef.current > maxX) {
         setWalkMs(0);
@@ -1551,11 +1582,13 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     window.addEventListener("daivr-buddy-creature", onCreatureSignal);
     window.addEventListener("daivr-buddy-enemy", onEnemySignal);
     window.addEventListener("daivr-buddy-outage", onOutageSignal);
+    window.addEventListener("daivr-buddy-leviathan", onLeviathanSignal);
     window.addEventListener("daivr-attract-mode", reactToAttractMode);
     window.addEventListener("resize", clampToStage);
 
     return () => {
       observer.disconnect();
+      disposed = true;
       window.clearInterval(brainTimer);
       window.cancelAnimationFrame(eyeRaf);
       window.cancelAnimationFrame(dragFrameRef.current);
@@ -1577,6 +1610,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       window.removeEventListener("daivr-buddy-creature", onCreatureSignal);
       window.removeEventListener("daivr-buddy-enemy", onEnemySignal);
       window.removeEventListener("daivr-buddy-outage", onOutageSignal);
+      window.removeEventListener("daivr-buddy-leviathan", onLeviathanSignal);
       window.removeEventListener("daivr-attract-mode", reactToAttractMode);
       window.removeEventListener("resize", clampToStage);
       clearDialogue(false);
@@ -1604,9 +1638,10 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
 
   return (
     <>
+    <BuddyFishingPortal portal={fishingPortal} onClosed={closeFishingPortal} />
     <LeviathanEncounter phase={mood === "fishing" && ["omen", "monster", "retreat"].includes(fishingPhase) ? fishingPhase : ""} container={rootRef.current?.parentElement} />
     <div
-      className={`screen-buddy-root is-${mood} ${fx ? `fx-${fx}` : ""} ${mood === "fishing" && fishingPhase === "fight" ? "is-fish-fight" : ""} ${weather ? `weather-${weather}` : ""} ${outagePhase ? `outage-${outagePhase}` : ""} ${isAirborne ? "is-airborne" : ""} ${hasRocketBoots ? "has-rocket-boots" : ""} ${hasMikuCostume ? "has-miku-costume" : ""}`}
+      className={`screen-buddy-root is-${mood} ${fishingPhase === "approach" ? "is-fishing-approach" : ""} ${fx ? `fx-${fx}` : ""} ${mood === "fishing" && fishingPhase === "fight" ? "is-fish-fight" : ""} ${weather ? `weather-${weather}` : ""} ${outagePhase ? `outage-${outagePhase}` : ""} ${isAirborne ? "is-airborne" : ""} ${hasRocketBoots ? "has-rocket-boots" : ""} ${hasMikuCostume ? "has-miku-costume" : ""}`}
       ref={rootRef}
       style={{
         "--buddy-x": `${x}px`,
@@ -1776,25 +1811,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
                   <path className="buddy-ripple buddy-ripple-c" d="M-10 72h7v-1h19v1h8v1h-8v1H-3v-1h-7z" fill="#b8f7ff" />
                 </g>
 
-                <g className="buddy-void-water" shapeRendering="crispEdges">
-                  <path d="M-25 73h14v-2h34v2h20v8h-7v9H23v5H-9v-4h-16z" fill="#081f2c" opacity=".94" />
-                  <path d="M-21 81h9m33 7h12M-9 94h16" stroke="#478d9e" strokeWidth="1" opacity=".3" />
-                </g>
-                <g className="buddy-fish-school" shapeRendering="crispEdges">
-                  <g className="buddy-fish buddy-fish-small">
-                    <BuddyCollectibleIcon id="byte-minnow" color="#64cadd" x={14} y={75} width={23} height={17} />
-                  </g>
-                  <g className="buddy-fish buddy-fish-deep">
-                    <BuddyCollectibleIcon id="neon-tetra" color="#6d8ca9" x={-24} y={83} width={18} height={14} />
-                  </g>
-                  <g className="buddy-fish buddy-fish-biter">
-                    <BuddyCollectibleIcon id="pixel-perch" color="#efbd65" x={-20} y={73} width={25} height={19} />
-                  </g>
-                  <g className="buddy-void-bubbles" fill="none" stroke="#86dce4" strokeWidth="1">
-                    <rect x="-9" y="87" width="2" height="2" /><rect x="27" y="91" width="2" height="2" /><rect x="8" y="88" width="1" height="1" />
-                  </g>
-                  <path className="buddy-hook-line" d="M5 70v8h2v3H4" fill="none" stroke="#b8f7ff" strokeWidth="1" />
-                </g>
+                {!["catch", "escape", "retreat"].includes(fishingPhase) ? <path className="buddy-hook-line" d="M5 70v8h2v3H4" fill="none" stroke="#b8f7ff" strokeWidth="1" /> : null}
 
                 <g className="buddy-cast-splash" shapeRendering="crispEdges">
                   <path d="M-6 68h3v-3h2v3h3v2h-8m14-2h3v-4h2v4h4v2H8" fill="#8ae8e5" />

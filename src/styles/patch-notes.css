@@ -1,1030 +1,281 @@
 @layer components {
   .patch-console {
-    position: relative;
-    display: grid;
-    gap: clamp(0.9rem, 2vw, 1.1rem);
-    overflow: hidden;
-    padding: clamp(1rem, 2.4vw, 1.45rem);
-  }
-
-  .patch-console-titlebar {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.85rem;
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 18%, transparent);
-    background: rgba(2, 6, 4, 0.58);
-    padding: 0.85rem 1rem;
-  }
-
-  .patch-console-dots {
-    display: flex;
-    gap: 0.35rem;
-  }
-
-  .patch-console-dots i {
-    width: 0.5rem;
-    aspect-ratio: 1;
-    background: var(--color-danger-arcade);
-    box-shadow: 0 0 12px currentColor;
-  }
-
-  .patch-console-dots i:nth-child(2) {
-    background: var(--color-cabinet);
-  }
-
-  .patch-console-dots i:nth-child(3) {
-    background: var(--color-phosphor);
-  }
-
-  .patch-console-titlebar > span {
-    overflow: hidden;
-    min-width: 0;
-    flex: 1;
-    color: var(--color-phosphor-soft);
-    font-size: 0.72rem;
-    font-weight: 900;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    opacity: 0.65;
-  }
-
-  .patch-console-titlebar strong {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 30%, transparent);
-    background: color-mix(in srgb, var(--color-phosphor) 7%, transparent);
-    padding: 0.45rem 0.6rem;
-    color: var(--color-phosphor);
-    font-size: 0.6rem;
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-
-  .patch-console-titlebar strong span {
-    width: 0.42rem;
-    aspect-ratio: 1;
-    border-radius: 999px;
-    background: currentColor;
-    box-shadow: 0 0 10px currentColor;
-    animation: status-meter-pulse 2.4s ease-in-out infinite;
-  }
-
-  .patch-personality-readout {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-template-columns: auto auto minmax(0, 1fr);
-    gap: 0.65rem;
-    align-items: center;
-    border: 1px solid color-mix(in srgb, var(--color-cabinet) 26%, transparent);
-    background:
-      linear-gradient(90deg, color-mix(in srgb, var(--color-cabinet) 10%, transparent), transparent 44%),
-      rgba(2, 6, 4, 0.58);
-    padding: 0.75rem 0.9rem;
-  }
-
-  @media (min-width: 761px) {
-    .patch-personality-readout {
-      height: 3.8rem;
-      overflow: hidden;
-    }
-
-    .patch-personality-readout p {
-      display: -webkit-box;
-      overflow: hidden;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 2;
-    }
-  }
-
-  .patch-personality-readout span,
-  .patch-personality-readout strong {
-    font-size: 0.62rem;
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-
-  .patch-personality-readout span {
-    color: var(--color-cabinet);
-  }
-
-  .patch-personality-readout strong {
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 32%, transparent);
-    color: var(--color-phosphor);
-    padding: 0.24rem 0.42rem;
-  }
-
-  .patch-personality-readout p {
-    min-width: 0;
-    color: color-mix(in srgb, var(--color-phosphor-soft) 78%, white);
-    font-size: 0.72rem;
-    font-weight: 800;
-    line-height: 1.45;
-  }
-
-  .patch-console-pagination {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.45rem;
-    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 22%, transparent);
-    background:
-      linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent), transparent 55%),
-      rgba(2, 6, 4, 0.54);
-    padding: 0.5rem;
-  }
-
-  .patch-page-list {
-    display: inline-flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-  }
-
-  .patch-page-arrow,
-  .patch-page-button {
-    display: inline-grid;
-    place-items: center;
-    min-width: 2rem;
-    height: 2rem;
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 24%, transparent);
-    background: color-mix(in srgb, var(--color-phosphor) 5%, rgba(2, 6, 4, 0.72));
-    color: var(--color-phosphor-soft);
-    font-size: 0.62rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    transition:
-      border-color 160ms ease,
-      background 160ms ease,
-      color 160ms ease,
-      transform 160ms ease;
-  }
-
-  .patch-page-arrow:not(:disabled):hover,
-  .patch-page-arrow:not(:disabled):focus-visible,
-  .patch-page-button:hover,
-  .patch-page-button:focus-visible,
-  .patch-page-button[aria-current="page"] {
-    border-color: color-mix(in srgb, var(--color-cyan-arcade) 58%, transparent);
-    background: color-mix(in srgb, var(--color-cyan-arcade) 12%, transparent);
-    color: var(--color-cyan-arcade);
-    box-shadow:
-      inset 0 0 12px color-mix(in srgb, var(--color-cyan-arcade) 9%, transparent),
-      0 0 14px color-mix(in srgb, var(--color-cyan-arcade) 12%, transparent);
-  }
-
-  .patch-page-arrow:not(:disabled):hover,
-  .patch-page-button:hover {
-    transform: translateY(-1px);
-  }
-
-  .patch-page-arrow:disabled {
-    cursor: not-allowed;
-    opacity: 0.35;
-  }
-
-  .patch-page-readout {
-    margin-left: auto;
-    border: 1px solid color-mix(in srgb, var(--color-cabinet) 26%, transparent);
-    background: color-mix(in srgb, var(--color-cabinet) 7%, transparent);
-    padding: 0.52rem 0.62rem;
-    color: var(--color-cabinet);
-    font-size: 0.58rem;
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-
-  /* Timeline: riel vertical a la izquierda con nodos por version */
-  .patch-console-list {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    gap: clamp(0.9rem, 2vw, 1.15rem);
-    padding-left: clamp(1.15rem, 2.6vw, 1.5rem);
-  }
-
-  .patch-console-list::before {
-    position: absolute;
-    inset: 0.4rem auto 0.4rem calc(clamp(1.15rem, 2.6vw, 1.5rem) / 2 - 1px);
-    width: 2px;
-    content: "";
-    background: linear-gradient(
-      var(--color-phosphor),
-      color-mix(in srgb, var(--color-cyan-arcade) 60%, transparent) 55%,
-      color-mix(in srgb, var(--color-phosphor) 14%, transparent)
-    );
-    opacity: 0.4;
-  }
-
-  .patch-entry {
-    position: relative;
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 16%, transparent);
-    background:
-      linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 5%, transparent), transparent 42%),
-      rgba(2, 6, 4, 0.62);
-    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
-    padding: clamp(0.85rem, 2vw, 1.1rem);
-    box-shadow: inset 3px 0 0 color-mix(in srgb, var(--color-phosphor) 34%, transparent);
-  }
-
-  .patch-entry-node {
-    position: absolute;
-    top: 1.25rem;
-    left: calc(clamp(1.15rem, 2.6vw, 1.5rem) * -1 + clamp(1.15rem, 2.6vw, 1.5rem) / 2 - 4px);
-    width: 8px;
-    aspect-ratio: 1;
-    background: var(--color-phosphor);
-    box-shadow: 0 0 12px color-mix(in srgb, var(--color-phosphor) 70%, transparent);
-  }
-
-  .patch-entry.is-latest {
-    border-color: color-mix(in srgb, var(--color-phosphor) 38%, transparent);
-    box-shadow:
-      inset 3px 0 0 color-mix(in srgb, var(--color-phosphor) 70%, transparent),
-      0 0 30px color-mix(in srgb, var(--color-phosphor) 9%, transparent);
-  }
-
-  .patch-entry.is-latest .patch-entry-node {
-    animation: status-meter-pulse 2.4s ease-in-out infinite;
-  }
-
-  .patch-entry-head {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.6rem;
-    border-bottom: 1px solid color-mix(in srgb, var(--color-phosphor) 20%, transparent);
-    padding-bottom: 0.6rem;
-  }
-
-  .patch-entry-version {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.55rem;
-  }
-
-  .patch-entry-version strong {
-    color: #fff;
-    font-family: var(--font-display);
-    font-size: clamp(1.05rem, 1.8vw, 1.35rem);
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-
-  .patch-entry-version span {
-    color: var(--color-cyan-arcade);
-    font-size: 0.66rem;
-    font-weight: 900;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    opacity: 0.85;
-  }
-
-  .patch-entry-badge {
-    border: 1px solid color-mix(in srgb, var(--color-cabinet) 42%, transparent);
-    background: color-mix(in srgb, var(--color-cabinet) 10%, transparent);
-    padding: 0.28rem 0.45rem;
-    color: var(--color-cabinet);
-    font-size: 0.56rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    animation: status-meter-pulse 2.4s ease-in-out infinite;
-  }
-
-  .patch-entry-head time {
-    margin-left: auto;
-    color: var(--color-phosphor-soft);
-    font-size: 0.64rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    opacity: 0.55;
-  }
-
-  .patch-entry-summary {
-    margin-top: 0.5rem;
-    color: var(--color-phosphor-soft);
-    font-size: 0.82rem;
-    line-height: 1.6;
-    opacity: 0.85;
-  }
-
-  .patch-entry-changes {
-    display: grid;
-    gap: 0.45rem;
-    margin-top: 0.75rem;
-  }
-
-  /* Cada entrada es ahora su propia tarjeta con el color de su tipo: riel
-     izquierdo, fondo tenido y numero al margen. Antes eran cinco parrafos
-     sueltos sobre el mismo fondo, indistinguibles entre si. */
-  .patch-entry-changes li {
     --patch-accent: var(--color-phosphor);
-    position: relative;
-    display: grid;
-    grid-template-columns: 3.4rem minmax(0, 1fr);
-    align-items: start;
-    gap: 0.7rem;
-    border: 1px solid color-mix(in srgb, var(--patch-accent) 22%, transparent);
-    background:
-      linear-gradient(90deg, color-mix(in srgb, var(--patch-accent) 9%, transparent), transparent 48%),
-      rgba(2, 6, 4, 0.45);
-    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-    padding: 0.58rem 0.7rem;
-    box-shadow: inset 2px 0 0 color-mix(in srgb, var(--patch-accent) 60%, transparent);
-    transition: border-color 180ms ease, background 180ms ease;
+    --patch-secondary: var(--color-cyan-arcade);
+    --patch-line: color-mix(in srgb, var(--patch-accent) 24%, transparent);
+    --patch-muted: color-mix(in srgb, var(--color-phosphor-soft) 65%, #a1aaa5);
+    --patch-text: color-mix(in srgb, var(--color-phosphor-soft) 20%, white);
+    --patch-surface: color-mix(in srgb, var(--patch-accent) 3%, var(--color-ink-950));
+    position: relative; color: var(--patch-text); min-width: 0;
   }
-
-  .patch-entry-changes li:hover {
-    border-color: color-mix(in srgb, var(--patch-accent) 48%, transparent);
-    background:
-      linear-gradient(90deg, color-mix(in srgb, var(--patch-accent) 14%, transparent), transparent 54%),
-      rgba(2, 9, 7, 0.6);
+  .patch-console button { cursor: pointer; transition: border-color .18s, background .18s, color .18s; }
+  .patch-console :is(button, input, article):focus-visible { outline: 2px solid var(--patch-secondary); outline-offset: 3px; }
+  .patch-journal-signal { display: flex; align-items: center; gap: 9px; font: 700 11px var(--font-mono); letter-spacing: .12em; color: var(--patch-accent); }
+  .patch-journal-signal i, .patch-current i { width: 5px; height: 5px; background: var(--patch-accent); box-shadow: 0 0 10px color-mix(in srgb, var(--patch-accent) 70%, transparent); }
+  .patch-journal-search { display: flex; align-items: center; flex: 1; gap: 10px; min-width: 0; padding: 0 10px; border: 1px solid var(--patch-line); color: var(--patch-secondary); background: var(--color-ink-950); }
+  .patch-journal-search:focus-within { border-color: var(--patch-secondary); }
+  .patch-journal-search input { width: 100%; min-width: 0; min-height: 44px; color: var(--patch-text); font: 12px var(--font-mono); background: transparent; border: 0; }
+  .patch-journal-search input::placeholder { color: var(--patch-muted); opacity: .8; }
+  .patch-entry { position: relative; margin-bottom: 18px; border: 1px solid var(--patch-line); background: var(--patch-surface); scroll-margin-top: 100px; }
+  .patch-entry::before { content: ""; position: absolute; width: 5px; height: 5px; top: 34px; left: -24px; background: var(--patch-muted); box-shadow: 0 0 0 4px var(--color-ink-950); }
+  .patch-entry.is-latest { border-color: color-mix(in srgb, var(--patch-accent) 55%, transparent); background: radial-gradient(ellipse at 90% 0, color-mix(in srgb, var(--patch-accent) 7%, transparent), transparent 65%), var(--patch-surface); }
+  .patch-entry.is-latest::before { background: var(--patch-accent); box-shadow: 0 0 0 4px var(--color-ink-950), 0 0 15px var(--patch-accent); }
+  .patch-entry.is-expanded { border-color: color-mix(in srgb, var(--patch-secondary) 50%, transparent); }
+  .patch-entry-meta { display: flex; align-items: center; gap: 12px; min-height: 58px; padding: 8px 24px 0; color: var(--patch-muted); font: 10px var(--font-mono); }
+  .patch-version { color: var(--patch-secondary); font: 700 11px var(--font-mono); }
+  .patch-current { display: flex; align-items: center; gap: 6px; padding: 5px 7px; background: color-mix(in srgb, var(--patch-accent) 9%, transparent); color: var(--patch-accent); font-size: 8px; letter-spacing: .05em; }
+  .patch-entry-meta time { margin-left: auto; }
+  .patch-copy { display: grid; place-items: center; min-width: 44px; min-height: 44px; color: var(--patch-muted); }
+  .patch-copy:hover { color: var(--patch-secondary); }
+  .patch-entry-preview { display: grid; gap: 28px; padding: 8px 24px 24px; }
+  .patch-entry-preview.has-image { grid-template-columns: minmax(0, 1fr) minmax(200px, 30%); align-items: center; }
+  .patch-entry h3 { color: var(--patch-text); font: 800 clamp(22px, 2.2vw, 31px)/1.2 var(--font-display); letter-spacing: -.02em; overflow-wrap: anywhere; }
+  .patch-entry-summary { max-width: 78ch; margin-top: 12px; color: var(--patch-muted); font: 13px/1.85 var(--font-mono); }
+  .patch-entry-summary.is-short { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .patch-summary-toggle { min-height: 44px; font: 10px var(--font-mono); color: var(--patch-secondary); text-decoration: underline; text-underline-offset: 4px; }
+  .patch-change-counts { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 18px; }
+  .patch-change-counts > span { display: flex; align-items: center; gap: 6px; font: 10px var(--font-mono); color: var(--patch-muted); }
+  .patch-change-counts i { width: 4px; height: 4px; background: var(--change-color); }
+  .patch-console .is-new { --change-color: var(--patch-accent); }
+  .patch-console .is-buff { --change-color: var(--patch-secondary); }
+  .patch-console .is-fix { --change-color: var(--color-cabinet); }
+  .patch-console .is-nerf, .patch-console .is-known { --change-color: var(--color-danger-arcade); }
+  .patch-entry-thumbnail { display: block; overflow: hidden; position: relative; width: 100%; aspect-ratio: 1.7; border: 1px solid var(--patch-line); background: var(--color-ink-950); }
+  .patch-entry-thumbnail img { width: 100%; height: 100%; object-fit: cover; transition: transform .2s ease-out; }
+  .patch-entry-thumbnail:hover { border-color: var(--patch-secondary); }
+  .patch-entry-thumbnail:hover img { transform: scale(1.03); }
+  .patch-entry-thumbnail > span { display: flex; align-items: center; gap: 6px; position: absolute; bottom: 0; left: 0; right: 0; padding: 8px 10px; color: var(--patch-text); font: 9px var(--font-mono); background: color-mix(in srgb, var(--color-ink-950) 92%, transparent); border-top: 1px solid var(--patch-line); }
+  .patch-entry-thumbnail > span svg:last-child { margin-left: auto; transform: rotate(45deg); color: var(--patch-secondary); }
+  .patch-copy-status:empty { display: none; }
+  .patch-copy-status { padding: 0 24px 12px; color: var(--patch-secondary); font: 11px var(--font-mono); }
+  .patch-link-fallback { width: calc(100% - 48px); margin: 0 24px 12px; min-height: 44px; padding: 8px; border: 1px solid var(--patch-line); background: var(--color-ink-950); font: 11px var(--font-mono); }
+  .patch-entry-actions { display: flex; align-items: stretch; gap: 4px; padding: 0 12px; border-top: 1px solid var(--patch-line); background: color-mix(in srgb, var(--color-ink-950) 50%, transparent); }
+  .patch-entry-actions button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 50px; padding: 10px 13px; color: var(--patch-muted); font: 11px var(--font-mono); border-bottom: 2px solid transparent; }
+  .patch-entry-actions button small { color: var(--patch-secondary); font-size: 9px; }
+  .patch-entry-actions button:hover { color: var(--patch-text); background: color-mix(in srgb, var(--patch-accent) 4%, transparent); }
+  .patch-entry-actions button[aria-expanded="true"] { color: var(--patch-accent); border-color: var(--patch-accent); }
+  .patch-entry-actions button[aria-expanded="true"] > .lucide-plus { transform: rotate(45deg); }
+  .patch-entry-content { padding: 24px; border-top: 1px solid var(--patch-line); background: color-mix(in srgb, var(--color-ink-950) 60%, transparent); animation: patch-content-in .18s ease-out; }
+  .patch-entry-content[hidden] { display: none; }
+  .patch-content-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--patch-muted); font: 9px var(--font-mono); letter-spacing: .08em; margin-bottom: 6px; }
+  .patch-changes { list-style: none; }
+  .patch-changes li { display: grid; grid-template-columns: 70px minmax(0, 1fr); gap: 14px; align-items: start; padding: 16px 0; border-bottom: 1px solid var(--patch-line); }
+  .patch-changes li:last-child { border-bottom: 0; }
+  .patch-change-tag { justify-self: start; color: var(--change-color); border: 1px solid color-mix(in srgb, var(--change-color) 25%, transparent); padding: 4px 6px; font: 9px var(--font-mono); }
+  .patch-changes p { color: var(--patch-text); font: 12px/1.85 var(--font-mono); }
+  .patch-close-entry { display: flex; align-items: center; gap: 8px; min-height: 44px; color: var(--patch-muted); font: 10px var(--font-mono); margin-top: 12px; }
+  .patch-close-entry:hover { color: var(--patch-accent); }
+  .patch-dev-note { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 20px; padding: 10px 0; }
+  .patch-dev-avatar { display: grid; place-items: center; height: 44px; color: var(--patch-secondary); border: 1px solid var(--patch-line); background: color-mix(in srgb, var(--patch-secondary) 5%, transparent); }
+  .patch-content-kicker { font: 9px var(--font-mono); letter-spacing: .1em; color: var(--patch-secondary); }
+  .patch-dev-note h4 { color: var(--patch-text); font: 700 22px var(--font-display); margin: 9px 0 12px; }
+  .patch-dev-note p { font: 13px/1.9 var(--font-mono); color: var(--patch-muted); max-width: 80ch; }
+  .patch-gallery { max-width: 800px; margin: 0 auto; }
+  .patch-cover { position: relative; display: block; width: 100%; aspect-ratio: 2; overflow: hidden; background: var(--color-ink-950); border: 1px solid var(--patch-line); }
+  .patch-cover img { display: block; width: 100%; height: 100%; object-fit: contain; }
+  .patch-cover:hover { border-color: var(--patch-secondary); }
+  .patch-image-kind, .patch-image-expand { position: absolute; display: flex; align-items: center; gap: 6px; padding: 7px 9px; color: var(--patch-text); background: color-mix(in srgb, var(--color-ink-950) 94%, transparent); font: 9px var(--font-mono); }
+  .patch-image-kind { left: 8px; top: 8px; }
+  .patch-image-expand { right: 8px; bottom: 8px; border: 1px solid var(--patch-line); }
+  .patch-gallery figcaption { display: flex; align-items: start; justify-content: space-between; gap: 16px; padding: 12px 0; color: var(--patch-muted); font: 11px/1.7 var(--font-mono); }
+  .patch-gallery figcaption > span:last-child { white-space: nowrap; color: var(--patch-secondary); }
+  .patch-gallery-choices { display: flex; flex-wrap: wrap; gap: 8px; }
+  .patch-gallery-choices button { display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 14px; border: 1px solid var(--patch-line); font: 11px var(--font-mono); color: var(--patch-muted); }
+  .patch-gallery-choices button:is(:hover, [aria-pressed="true"]) { border-color: var(--patch-secondary); color: var(--patch-secondary); background: color-mix(in srgb, var(--patch-secondary) 5%, transparent); }
+  .patch-image-unavailable { display: grid; place-content: center; justify-items: center; gap: 10px; min-height: 120px; height: 100%; font: 11px var(--font-mono); color: var(--patch-muted); }
+  .patch-no-results button { display: flex; align-items: center; justify-content: center; gap: 10px; min-height: 48px; padding: 12px 24px; border: 1px solid var(--patch-line); color: var(--patch-accent); background: var(--patch-surface); font: 12px var(--font-mono); }
+  .patch-no-results button:hover { border-color: var(--patch-accent); background: color-mix(in srgb, var(--patch-accent) 8%, transparent); }
+  .patch-no-results { display: grid; justify-items: center; gap: 16px; padding: 60px 20px; border: 1px dashed var(--patch-line); text-align: center; color: var(--patch-muted); }
+  .patch-no-results h3 { font: 700 24px var(--font-display); color: var(--patch-text); }
+  .patch-no-results p { font: 12px/1.8 var(--font-mono); }
+  .patch-lightbox-overlay { position: fixed; inset: 0; z-index: 230; background: #010504e8; backdrop-filter: blur(8px); }
+  .patch-lightbox { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 231; width: min(1040px, calc(100vw - 48px)); max-height: 92svh; overflow-y: auto; padding: 24px; border: 1px solid var(--color-phosphor); color: var(--color-phosphor-soft); background: var(--color-ink-950); }
+  .patch-lightbox header { display: flex; align-items: start; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+  .patch-lightbox header span { font: 10px var(--font-mono); color: var(--color-cyan-arcade); }
+  .patch-lightbox h2 { margin-top: 6px; font: 700 24px var(--font-display); }
+  .patch-lightbox button { display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 44px; min-height: 44px; padding: 8px 12px; border: 1px solid color-mix(in srgb, var(--color-phosphor) 30%, transparent); color: var(--color-phosphor-soft); font: 11px var(--font-mono); cursor: pointer; }
+  .patch-lightbox button:hover { border-color: var(--color-phosphor); }
+  .patch-lightbox button:focus-visible { outline: 2px solid var(--color-cyan-arcade); outline-offset: 3px; }
+  .patch-lightbox-image img { width: 100%; height: min(60svh, 620px); object-fit: contain; }
+  .patch-lightbox > p { margin-top: 16px; font: 12px/1.7 var(--font-mono); }
+  .patch-lightbox-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 18px; }
+  .patch-lightbox-nav > span { font: 11px var(--font-mono); color: var(--color-cyan-arcade); }
+  @keyframes patch-content-in { from { opacity: .5; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
+  @media (max-width: 1000px) {
+    .patch-entry-preview.has-image { grid-template-columns: minmax(0, 1fr) 190px; gap: 18px; }
+    .patch-journal-search { flex-basis: 100%; }
   }
-
-  .patch-entry-changes li.is-buff { --patch-accent: var(--color-cyan-arcade); }
-  .patch-entry-changes li.is-fix { --patch-accent: var(--color-cabinet); }
-  .patch-entry-changes li.is-nerf { --patch-accent: var(--color-glitch); }
-  .patch-entry-changes li.is-known { --patch-accent: var(--color-danger-arcade); }
-
-  .patch-entry-index {
-    position: absolute;
-    right: 0.5rem;
-    top: 0.42rem;
-    color: color-mix(in srgb, var(--patch-accent) 34%, transparent);
-    font-family: var(--font-mono);
-    font-size: 0.5rem;
-    font-style: normal;
-    font-weight: 900;
+  @media (max-width: 640px) {
+    #patchlog { scroll-margin-top: 100px; }
+    .patch-journal-search input { font-size: 12px; }
+    .patch-entry::before { left: -15px; }
+    .patch-entry { scroll-margin-top: 90px; }
+    .patch-entry-meta { flex-wrap: wrap; gap: 8px; padding: 6px 14px 0; min-height: 52px; }
+    .patch-entry-meta time { margin-left: 0; font-size: 9px; }
+    .patch-copy { margin-left: auto; }
+    .patch-current { font-size: 7px; }
+    .patch-current + time { flex-basis: calc(100% - 52px); order: 4; margin: -8px 0 10px; }
+    .patch-entry-preview, .patch-entry-preview.has-image { grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 8px 14px 18px; }
+    .patch-entry h3 { font-size: 23px; }
+    .patch-entry-summary { font-size: 12px; line-height: 1.85; }
+    .patch-entry-thumbnail { aspect-ratio: 2; }
+    .patch-change-counts { gap: 10px; margin-top: 14px; }
+    .patch-change-counts > span { font-size: 9px; }
+    .patch-entry-actions { gap: 0; padding: 0 4px; flex-wrap: wrap; }
+    .patch-entry-actions button { flex: 1; padding: 10px 6px; gap: 5px; font-size: 10px; min-height: 48px; }
+    .patch-entry-actions button small { font-size: 8px; }
+    .patch-entry-actions button > svg { width: 13px; flex-shrink: 0; }
+    .patch-entry-content { padding: 18px 14px; }
+    .patch-changes li { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+    .patch-dev-note { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+    .patch-dev-avatar { display: none; }
+    .patch-dev-note p { font-size: 12px; }
+    .patch-cover { aspect-ratio: 1.4; }
+    .patch-image-kind, .patch-image-expand { padding: 5px; font-size: 8px; }
+    .patch-gallery figcaption { font-size: 10px; }
+    .patch-gallery-choices button { font-size: 10px; padding: 7px 10px; }
+    .patch-copy-status { padding-left: 14px; padding-right: 14px; }
+    .patch-lightbox { width: calc(100vw - 20px); padding: 14px; }
+    .patch-lightbox-nav { gap: 6px; }
+    .patch-lightbox-nav button { font-size: 9px; padding: 7px; gap: 4px; }
   }
-
-  .patch-entry-changes p {
-    color: var(--color-phosphor-soft);
-    font-size: 0.8rem;
-    line-height: 1.65;
-  }
-
-  .patch-chip {
-    display: inline-grid;
-    place-items: center;
-    margin-top: 0.1rem;
-    border: 1px solid color-mix(in srgb, var(--patch-accent) 44%, transparent);
-    background: color-mix(in srgb, var(--patch-accent) 9%, transparent);
-    padding: 0.24rem 0;
-    color: var(--patch-accent);
-    font-size: 0.56rem;
-    font-weight: 900;
-    text-align: center;
-    text-transform: uppercase;
-  }
-
-  .patch-entry-read-more {
-    display: inline-flex;
-    min-height: 2.6rem;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    margin-top: 0.85rem;
-    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 40%, transparent);
-    background:
-      linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 11%, transparent), transparent),
-      rgba(2, 6, 4, 0.72);
-    padding: 0.55rem 0.75rem;
-    color: var(--color-cyan-arcade);
-    font-size: 0.62rem;
-    font-weight: 900;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    transition:
-      border-color 160ms ease,
-      background 160ms ease,
-      color 160ms ease,
-      transform 160ms ease;
-  }
-
-  .patch-entry-read-more:hover,
-  .patch-entry-read-more:focus-visible {
-    border-color: color-mix(in srgb, var(--color-phosphor) 65%, transparent);
-    background: color-mix(in srgb, var(--color-phosphor) 12%, rgba(2, 6, 4, 0.72));
-    color: var(--color-phosphor);
-    box-shadow: 0 0 18px color-mix(in srgb, var(--color-phosphor) 10%, transparent);
-  }
-
-  .patch-entry-read-more:hover {
-    transform: translateY(-1px);
-  }
-
-  .patch-console-readout {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 14%, transparent);
-    background: rgba(2, 6, 4, 0.5);
-    padding: 0.6rem 0.85rem;
-    color: var(--color-phosphor-soft);
-    font-size: 0.62rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    opacity: 0.85;
-  }
-
-  .patch-console-readout span {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-  }
-
-  .patch-console-dots-trail {
-    letter-spacing: 0.3em;
-    opacity: 0.4;
-  }
-
-  .patch-swap-controller {
-    position: relative;
-    z-index: 3;
-    display: flex;
-    align-items: stretch;
-    gap: 0.55rem;
-  }
-
-  .patch-swap-controller > button {
-    display: grid;
-    width: 2.7rem;
-    min-height: 2.7rem;
-    flex: 0 0 auto;
-    place-items: center;
-    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 40%, transparent);
-    background: color-mix(in srgb, var(--color-cyan-arcade) 7%, rgba(2, 6, 4, 0.9));
-    color: var(--color-cyan-arcade);
-    transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease;
-  }
-
-  .patch-swap-controller > button:hover,
-  .patch-swap-controller > button:focus-visible {
-    border-color: var(--color-phosphor);
-    background: color-mix(in srgb, var(--color-phosphor) 12%, rgba(2, 6, 4, 0.9));
-    color: var(--color-phosphor);
-  }
-
-  .patch-swap-controller > button:hover {
-    transform: translateY(-1px);
-  }
-
-  .patch-swap-controller label {
-    display: grid;
-    min-width: min(21rem, 60vw);
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: center;
-    gap: 0.65rem;
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 20%, transparent);
-    background: rgba(2, 6, 4, 0.78);
-    padding: 0.4rem 0.5rem 0.4rem 0.7rem;
-  }
-
-  .patch-swap-controller label > span {
-    color: var(--color-phosphor-soft);
-    font-size: 0.57rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    opacity: 0.64;
-  }
-
-  .patch-swap-controller select {
-    min-width: 0;
-    border: 1px solid color-mix(in srgb, var(--color-cabinet) 36%, transparent);
-    border-radius: 0;
-    outline: 0;
-    background: color-mix(in srgb, var(--color-cabinet) 7%, #030706);
-    padding: 0.48rem 0.65rem;
-    color: var(--color-phosphor);
-    font: inherit;
-    font-size: 0.64rem;
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-
-  .patch-swap-controller select:focus-visible {
-    border-color: var(--color-cyan-arcade);
-    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-cyan-arcade) 18%, transparent);
-  }
-
-  .patch-swap-mode {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    margin-left: auto;
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 18%, transparent);
-    background: rgba(2, 6, 4, 0.62);
-    padding: 0.55rem 0.7rem;
-    color: var(--color-phosphor-soft);
-    font-size: 0.57rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-
-  .patch-swap-mode i {
-    width: 0.42rem;
-    aspect-ratio: 1;
-    border-radius: 999px;
-    background: var(--color-phosphor);
-    box-shadow: 0 0 9px currentColor;
-    animation: status-meter-pulse 2.4s ease-in-out infinite;
-  }
-
-  .patch-swap-workspace {
-    position: relative;
-    z-index: 1;
-    display: grid;
-    grid-template-columns: minmax(19rem, 0.78fr) minmax(0, 1.22fr);
-    gap: clamp(1rem, 2.6vw, 1.8rem);
-    height: 34rem;
-    min-height: 34rem;
-  }
-
-  .patch-swap-workspace.is-reading-full {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .patch-swap-deck {
-    --patch-swap-x-step: 0.86rem;
-    --patch-swap-y-step: 0.82rem;
-    position: relative;
-    height: 34rem;
-    min-height: 0;
-    overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 23%, transparent);
-    background:
-      linear-gradient(color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent) 1px, transparent 1px),
-      radial-gradient(circle at 52% 42%, color-mix(in srgb, var(--color-glitch) 13%, transparent), transparent 54%),
-      rgba(1, 7, 5, 0.76);
-    background-size: 24px 24px, 24px 24px, auto, auto;
-    perspective: 900px;
-    overscroll-behavior: none;
-    touch-action: pan-y;
-  }
-
-  /* Ranuras de estante en el borde izquierdo y un foco tras el mazo: el vacio
-     alrededor de las cartas pasa a leerse como un archivo iluminado en vez de
-     como una caja a medio llenar. */
-  .patch-swap-deck {
-    background-image:
-      linear-gradient(color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent) 1px, transparent 1px),
-      repeating-linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--color-phosphor) 16%, transparent) 0 1px,
-        transparent 1px 3rem
-      ),
-      radial-gradient(circle at 52% 42%, color-mix(in srgb, var(--color-glitch) 13%, transparent), transparent 54%),
-      radial-gradient(ellipse 46% 40% at 46% 50%, color-mix(in srgb, var(--color-cyan-arcade) 10%, transparent), transparent 72%);
-    background-position: 0 0, 0 0, 0 0, 0 0, 0 0;
-    background-repeat: repeat, repeat, no-repeat, no-repeat, no-repeat;
-    background-size: 24px 24px, 24px 24px, 1.6rem 100%, auto, auto;
-  }
-
-  .patch-swap-deck::before,
-  .patch-swap-deck::after {
-    position: absolute;
-    z-index: 0;
-    width: 4.5rem;
-    height: 1px;
-    background: var(--color-glitch);
-    box-shadow: 0 0 12px color-mix(in srgb, var(--color-glitch) 45%, transparent);
-    content: "";
-  }
-
-  .patch-swap-deck::before {
-    top: 1rem;
-    left: 1rem;
-  }
-
-  .patch-swap-deck::after {
-    right: 1rem;
-    bottom: 1rem;
-    background: var(--color-phosphor);
-  }
-
-  .patch-swap-guide {
-    position: absolute;
-    right: 1rem;
-    bottom: 1.2rem;
-    left: 1rem;
-    z-index: 8;
-    display: flex;
-    justify-content: space-between;
-    gap: 0.75rem;
-    color: var(--color-phosphor-soft);
-    font-size: 0.56rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    pointer-events: none;
-    opacity: 0.72;
-  }
-
-  .patch-swap-guide strong {
-    color: var(--color-cyan-arcade);
-  }
-
-  /* La carta ocupaba menos de la mitad del alto de la baraja, asi que el resto
-     de la caja quedaba en blanco arriba y abajo del mazo. */
-  .patch-swap-card {
-    position: absolute;
-    top: 47%;
-    left: 45%;
-    display: grid;
-    width: min(84%, 23.5rem);
-    min-height: 23.5rem;
-    align-content: start;
-    gap: 0.62rem;
-    overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 54%, transparent);
-    border-radius: 0.2rem;
-    background:
-      linear-gradient(135deg, color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent), transparent 48%),
-      linear-gradient(180deg, rgba(3, 15, 12, 0.99), rgba(1, 6, 5, 0.99));
-    padding: 1.15rem;
-    color: var(--color-phosphor-soft);
-    text-align: left;
-    transform:
-      translate(-50%, -50%)
-      translateX(calc(var(--patch-swap-slot) * var(--patch-swap-x-step)))
-      translateY(calc(var(--patch-swap-slot) * var(--patch-swap-y-step)))
-      translateZ(calc(var(--patch-swap-slot) * -42px))
-      rotateY(calc(var(--patch-swap-slot) * -1.4deg))
-      rotateZ(calc(var(--patch-swap-slot) * 0.6deg))
-      scale(calc(1 - var(--patch-swap-slot) * 0.035));
-    transform-origin: 50% 100%;
-    box-shadow:
-      -0.55rem 0.75rem 0 rgba(0, 0, 0, 0.28),
-      0 0 24px color-mix(in srgb, var(--color-cyan-arcade) 7%, transparent);
-    transition: transform 560ms cubic-bezier(0.2, 0.78, 0.24, 1), opacity 420ms ease, border-color 180ms ease, box-shadow 180ms ease;
-    backface-visibility: hidden;
-    will-change: transform;
-  }
-
-  .patch-swap-card::before {
-    position: absolute;
-    inset: 0;
-    background:
-      linear-gradient(color-mix(in srgb, var(--color-phosphor) 5%, transparent) 1px, transparent 1px),
-      linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 5%, transparent) 1px, transparent 1px);
-    background-size: 18px 18px;
-    content: "";
-    pointer-events: none;
-    opacity: 0.62;
-  }
-
-  .patch-swap-card:hover,
-  .patch-swap-card:focus-visible {
-    border-color: var(--color-phosphor);
-    box-shadow: -0.55rem 0.75rem 0 rgba(0, 0, 0, 0.28), 0 0 28px color-mix(in srgb, var(--color-phosphor) 16%, transparent);
-  }
-
-  .patch-swap-card.is-active {
-    border-color: var(--color-glitch);
-    box-shadow: -0.65rem 0.85rem 0 rgba(0, 0, 0, 0.34), 0 0 32px color-mix(in srgb, var(--color-glitch) 18%, transparent);
-  }
-
-  .patch-swap-card.is-exiting {
-    opacity: 0;
-    transform: translate(-50%, -50%) translateY(25rem) translateZ(60px) rotateZ(-5deg) scale(0.98);
-    pointer-events: none;
-  }
-
-  .patch-swap-card > * {
-    position: relative;
-    z-index: 1;
-  }
-
-  .patch-swap-card-index {
-    justify-self: end;
-    color: var(--color-glitch);
-    font-size: 0.58rem;
-    font-weight: 900;
-  }
-
-  .patch-swap-card-version {
-    width: max-content;
-    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 50%, transparent);
-    padding: 0.3rem 0.48rem;
-    color: var(--color-cyan-arcade);
-    font-size: 0.66rem;
-    font-weight: 900;
-  }
-
-  .patch-swap-card strong {
-    overflow: hidden;
-    color: white;
-    font-family: var(--font-display);
-    font-size: clamp(1.15rem, 2.2vw, 1.55rem);
-    line-height: 1;
-    text-overflow: ellipsis;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-
-  .patch-swap-card time {
-    color: var(--color-phosphor);
-    font-size: 0.58rem;
-    font-weight: 900;
-    opacity: 0.72;
-  }
-
-  .patch-swap-card-summary {
-    display: -webkit-box;
-    overflow: hidden;
-    color: var(--color-phosphor-soft);
-    font-size: 0.69rem;
-    line-height: 1.55;
-    opacity: 0.78;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-  }
-
-  .patch-swap-card-command {
-    align-self: end;
-    width: max-content;
-    margin-top: auto;
-    border-top: 1px solid color-mix(in srgb, var(--color-glitch) 38%, transparent);
-    padding-top: 0.45rem;
-    color: var(--color-glitch);
-    font-size: 0.56rem;
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-
-  /* Columna en flex para que el boton de log completo se ancle abajo en vez de
-     dejar un hueco muerto entre la ultima entrada y el pie del panel. */
-  /* auto y no hidden: con las entradas convertidas en tarjetas la altura
-     depende del largo del texto, y recortar en seco escondia el enlace al log
-     completo sin decirlo. */
-  .patch-swap-detail {
-    display: flex;
-    flex-direction: column;
-    height: 34rem;
-    min-height: 0;
-    max-height: 34rem;
-    align-self: stretch;
-    overflow-y: auto;
-    overscroll-behavior: contain;
-    overscroll-behavior: contain;
-    scrollbar-gutter: stable;
-    clip-path: none;
-  }
-
-  .patch-swap-detail:not(.is-full-log) .patch-entry-changes {
-    flex: none;
-  }
-
-  .patch-swap-detail.is-full-log {
-    grid-column: 1 / -1;
-    overflow-y: auto;
-  }
-
-  .patch-swap-detail:not(.is-full-log) .patch-entry-summary {
-    margin-top: 0.4rem;
-    font-size: 0.7rem;
-    line-height: 1.4;
-  }
-
-  .patch-swap-detail:not(.is-full-log) .patch-entry-changes {
-    gap: 0.35rem;
-    margin-top: 0.55rem;
-  }
-
-  .patch-swap-detail:not(.is-full-log) .patch-entry-changes p {
-    font-size: 0.75rem;
-    line-height: 1.45;
-  }
-
-  /* Anclarlo abajo dejaba el hueco entre la ultima entrada y el boton, que se
-     lee como algo roto. Pegado al contenido, el aire sobrante queda al final
-     del panel, donde pasa por margen. */
-  .patch-swap-detail:not(.is-full-log) .patch-entry-read-more {
-    margin-top: 0.85rem;
-  }
-
-  .patch-full-log-back {
-    position: sticky;
-    top: 0;
-    z-index: 5;
-    display: flex;
-    width: max-content;
-    min-height: 2.7rem;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0 0 1rem auto;
-    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 48%, transparent);
-    background:
-      linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 12%, transparent), transparent),
-      rgba(2, 8, 7, 0.96);
-    padding: 0.58rem 0.8rem;
-    color: var(--color-cyan-arcade);
-    font-size: 0.62rem;
-    font-weight: 900;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    box-shadow: 0 0 18px rgba(0, 0, 0, 0.48);
-    transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
-  }
-
-  .patch-full-log-back:hover,
-  .patch-full-log-back:focus-visible {
-    border-color: var(--color-phosphor);
-    background: color-mix(in srgb, var(--color-phosphor) 11%, rgba(2, 8, 7, 0.96));
-    color: var(--color-phosphor);
-  }
-
-  @media (max-width: 760px) {
-    .patch-personality-readout {
-      grid-template-columns: 1fr;
-    }
-
-    /* Era flex-wrap con el label reservando calc(100% - 6rem) para los dos
-       botones, pero entre botones y huecos suman 6.5rem: se pasaba de ancho y
-       la flecha de siguiente caia sola a la fila de abajo, dejando el hueco a
-       su derecha. En rejilla de tres columnas cada uno tiene su sitio. */
-    .patch-swap-controller {
-      display: grid;
-      grid-template-columns: 2.7rem minmax(0, 1fr) 2.7rem;
-      align-items: stretch;
-    }
-
-    .patch-swap-controller label {
-      min-width: 0;
-      grid-template-columns: 1fr;
-      gap: 0.3rem;
-    }
-
-    .patch-swap-mode {
-      grid-column: 1 / -1;
-      width: 100%;
-      justify-content: center;
-      margin-left: 0;
-    }
-
-    .patch-swap-workspace {
-      grid-template-columns: 1fr;
-      height: auto;
-      min-height: 0;
-    }
-
-    .patch-swap-deck {
-      height: 22rem;
-      min-height: 22rem;
-    }
-
-    .patch-swap-card {
-      top: 48%;
-      width: min(80vw, 19rem);
-      min-height: 15rem;
-      padding: 0.9rem;
-    }
-
-    /* En movil la columna es fija y recortaba en seco: una entrada larga
-       desaparecia sin aviso y el enlace al log completo podia quedar fuera.
-       Que scrollee es preferible a esconder texto. */
-    .patch-swap-detail {
-      height: min(30rem, 68vh);
-      min-height: min(30rem, 68vh);
-      max-height: min(30rem, 68vh);
-      overflow-y: auto;
-      overscroll-behavior: contain;
-    }
-
-    .patch-page-readout {
-      margin-left: 0;
-      width: 100%;
-    }
-
-    .patch-entry-head time {
-      margin-left: 0;
-      width: 100%;
-    }
-
-    .patch-entry-changes li {
-      grid-template-columns: 3rem minmax(0, 1fr);
-      gap: 0.5rem;
-    }
-
-    .patch-console-dots-trail {
-      display: none;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .patch-page-arrow,
-    .patch-page-button,
-    .patch-entry-read-more,
-    .patch-full-log-back,
-    .patch-swap-controller > button,
-    .patch-swap-card,
-    .patch-swap-mode i,
-    .patch-console-titlebar strong span,
-    .patch-entry.is-latest .patch-entry-node,
-    .patch-entry-badge {
-      animation: none;
-      transition: none;
-    }
-  }
+  @media (prefers-reduced-motion: reduce) { .patch-entry-content { animation: none; } .patch-console button, .patch-entry-thumbnail img { transition: none; } .patch-entry-thumbnail:hover img { transform: none; } }
 }
 
 @layer components {
-  #patchlog { scroll-margin-top: 80px; }
-  .patch-archive-intro { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0.2rem 0.2rem 0.65rem; border-bottom: 1px solid color-mix(in srgb, var(--color-phosphor) 22%, transparent); }
-  .patch-archive-intro > div > span { color: var(--color-cyan-arcade); font-size: 0.6rem; font-weight: 900; letter-spacing: 0.1em; }
-  .patch-archive-intro h3 { margin-top: 0.35rem; color: #f3fff8; font-family: var(--font-display); font-size: clamp(1.15rem, 1.7vw, 1.5rem); font-weight: 900; line-height: 1.2; }
-  .patch-archive-intro h3 span { color: var(--color-phosphor); animation: patch-archive-caret 1.2s steps(2, jump-none) infinite; }
-  .patch-archive-intro p { color: var(--color-phosphor-soft); margin-top: 0.4rem; font-size: 0.75rem; line-height: 1.55; }
-  .patch-latest-link { display: flex; flex-shrink: 0; align-items: center; gap: 0.8rem; padding: 0.55rem 0.7rem; border: 1px solid color-mix(in srgb, var(--color-phosphor) 35%, transparent); background: linear-gradient(110deg, color-mix(in srgb, var(--color-phosphor) 9%, transparent), transparent); color: var(--color-phosphor-soft); font-size: 0.6rem; font-weight: 800; text-transform: uppercase; transition: border-color 180ms, background 180ms; }
-  .patch-latest-link strong { display: block; margin-top: 0.2rem; color: var(--color-phosphor); font-size: 0.8rem; }
-  .patch-latest-link:hover, .patch-latest-link:focus-visible { border-color: var(--color-phosphor); background: color-mix(in srgb, var(--color-phosphor) 13%, transparent); }
-  .patch-swap-controller .patch-cycle-toggle { display: flex; width: auto; padding-inline: 0.9rem; margin-left: auto; font-size: 0.61rem; gap: 0.5rem; }
-  .patch-cycle-toggle[aria-pressed="true"] { border-color: var(--color-cabinet); color: var(--color-cabinet); }
-  .patch-cycle-toggle:disabled { opacity: 0.6; cursor: default; }
-  .patch-swap-controller select { font-size: 0.7rem; min-height: 36px; }
-  .patch-swap-workspace { height: 33rem; min-height: 33rem; grid-template-columns: minmax(18rem, 0.72fr) minmax(0, 1.28fr); gap: 1.5rem; }
-  .patch-swap-workspace.is-reading-full { grid-template-columns: minmax(0, 1fr); }
-  .patch-swap-deck { height: 33rem; }
-  .patch-swap-card { display: flex; flex-direction: column; min-height: 23.5rem; gap: 0.55rem; }
-  .patch-swap-card > strong { line-height: 1.15; white-space: normal; overflow-wrap: anywhere; }
-  .patch-swap-card-index { align-self: flex-end; }
-  .patch-swap-card time { font-size: 0.64rem; opacity: 0.9; }
-  .patch-card-manifest { display: grid; gap: 0.65rem; margin-top: 0.65rem; padding-top: 0.65rem; border-top: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 25%, transparent); }
-  .patch-manifest-title { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.4rem; color: var(--color-phosphor-soft); font-size: 0.52rem; letter-spacing: 0.04em; }
-  .patch-manifest-title b { color: var(--color-cyan-arcade); }
-  .patch-manifest-meter { display: flex; height: 6px; gap: 3px; }
-  .patch-manifest-meter i { flex: 1; background: var(--manifest-color); box-shadow: 0 0 8px color-mix(in srgb, var(--manifest-color) 24%, transparent); }
-  .patch-card-manifest .is-new { --manifest-color: var(--color-phosphor); }
-  .patch-card-manifest .is-buff { --manifest-color: var(--color-cyan-arcade); }
-  .patch-card-manifest .is-fix { --manifest-color: var(--color-cabinet); }
-  .patch-card-manifest .is-nerf { --manifest-color: var(--color-glitch); }
-  .patch-card-manifest .is-known { --manifest-color: var(--color-danger-arcade); }
-  .patch-manifest-types { display: grid; gap: 0.5rem; }
-  .patch-manifest-types > span { display: flex; align-items: center; gap: 0.55rem; color: var(--color-phosphor-soft); font-size: 0.65rem; text-transform: uppercase; }
-  .patch-manifest-types i { width: 5px; height: 5px; background: var(--manifest-color); }
-  .patch-manifest-types b { margin-left: auto; color: var(--manifest-color); }
-  .patch-swap-card-command { width: 100%; padding-top: 0.75rem; margin-top: auto; }
-  .patch-swap-card.is-active .patch-manifest-meter { animation: patch-manifest-arrive 560ms ease both; transform-origin: left; }
-  .patch-swap-detail { height: 33rem; max-height: 33rem; padding: 1.3rem; }
-  .patch-swap-detail:not(.is-full-log) .patch-entry-summary { font-size: 0.8rem; line-height: 1.75; margin-top: 0.85rem; opacity: 1; }
-  .patch-entry-head time { opacity: 0.85; }
-  .patch-detail-label { display: flex; justify-content: space-between; flex-shrink: 0; gap: 0.8rem; margin-top: 1.25rem; padding-bottom: 0.55rem; color: var(--color-cyan-arcade); font-size: 0.56rem; font-weight: 900; letter-spacing: 0.05em; }
-  .patch-swap-detail:not(.is-full-log) .patch-entry-changes { gap: 0.65rem; margin-top: 0; }
-  .patch-swap-detail .patch-entry-changes li { grid-template-columns: 1fr; gap: 0.45rem; padding: 0.8rem 0.9rem; }
-  .patch-swap-detail .patch-chip { justify-self: start; padding: 0.22rem 0.45rem; font-size: 0.54rem; }
-  .patch-swap-detail:not(.is-full-log) .patch-entry-changes p { font-size: 0.8rem; line-height: 1.7; }
-  .patch-swap-detail .patch-entry-read-more { flex-shrink: 0; min-height: 44px; position: sticky; bottom: -1.3rem; background: #04120f; box-shadow: 0 -8px 18px #020604; }
-  .patch-swap-detail.is-full-log .patch-entry-summary { max-width: 95ch; line-height: 1.8; }
-  .patch-swap-detail.is-full-log .patch-entry-changes p { max-width: 100ch; font-size: 0.84rem; line-height: 1.8; }
+  .patch-desk:focus { outline: none; }
+  .patch-desk-intro { display: flex; justify-content: space-between; align-items: center; gap: 20px; padding-bottom: 20px; }
+  .patch-desk-intro p { margin-top: 10px; font: 13px/1.7 var(--font-mono); color: var(--patch-muted); }
+  .patch-discoveries { display: grid; justify-items: end; gap: 10px; flex-shrink: 0; font: 10px var(--font-mono); color: var(--patch-secondary); }
+  .patch-discoveries > div { display: flex; gap: 5px; }
+  .patch-discoveries i { width: 18px; height: 4px; background: var(--patch-line); }
+  .patch-discoveries i.is-found { background: var(--patch-accent); box-shadow: 0 0 9px color-mix(in srgb, var(--patch-accent) 25%, transparent); }
+  .patch-desk-scene { position: relative; width: 100%; aspect-ratio: 2.1; min-height: 430px; isolation: isolate; overflow: hidden; border: 1px solid color-mix(in srgb, var(--patch-accent) 40%, #35433a); background: radial-gradient(ellipse at 50% 32%, color-mix(in srgb, var(--patch-accent) 12%, transparent), transparent 57%), repeating-linear-gradient(90deg, transparent 0 79px, #0004 80px, #a4b7a310 82px, transparent 84px 160px), repeating-linear-gradient(0deg, #b6c4ae04 0 1px, transparent 1px 5px), linear-gradient(120deg, #233329, #10251d 55%, #1c2b23); box-shadow: inset 0 0 0 5px #090e0c, inset 0 0 0 6px #7e8b6740, inset 0 0 90px #0008, 0 10px 30px #0003; }
+  .patch-desk-scene::before { content: ""; position: absolute; inset: 7px; pointer-events: none; z-index: 3; background: radial-gradient(circle at 3px 3px, #acb49b 0 1px, #14211a 1.5px 3px, transparent 3.5px), radial-gradient(circle at calc(100% - 3px) 3px, #acb49b 0 1px, #14211a 1.5px 3px, transparent 3.5px), radial-gradient(circle at 3px calc(100% - 3px), #acb49b 0 1px, #14211a 1.5px 3px, transparent 3.5px), radial-gradient(circle at calc(100% - 3px) calc(100% - 3px), #acb49b 0 1px, #14211a 1.5px 3px, transparent 3.5px); }
+  .patch-desk-wall { position: absolute; display: flex; justify-content: space-between; left: 22px; right: 22px; top: 18px; color: var(--patch-muted); font: 8px var(--font-mono); letter-spacing: .13em; opacity: .65; }
+  .patch-desk-shelf { position: absolute; left: 3%; right: 3%; top: 49%; height: 12px; border-top: 2px solid #a78c60; border-bottom: 4px solid #241c15; background: repeating-linear-gradient(0deg, #a88a5129 0 1px, transparent 1px 3px), linear-gradient(90deg, #745334, #453a26 50%, #7c603b); box-shadow: 0 2px #090e0bb3, 0 10px 18px #0007; z-index: -1; }
+  .patch-desk-surface { position: absolute; left: 0; right: 0; bottom: 0; height: 49%; background: linear-gradient(180deg, #0e0b0880, transparent 22%), radial-gradient(ellipse 150px 6px at 18% 31%, transparent 25%, #c19c6238 30% 34%, transparent 38%, #28190f66 48% 55%, transparent 60%), radial-gradient(ellipse 210px 8px at 84% 76%, transparent 30%, #27190f55 33% 38%, transparent 43%, #d4af7530 50% 55%, transparent 60%), repeating-linear-gradient(2deg, #c39d6720 0 1px, #20170d25 2px 3px, transparent 4px 9px), repeating-linear-gradient(0deg, transparent 0 54px, #170f0c88 55px 57px, #b5935344 58px, transparent 59px 109px), linear-gradient(115deg, #715031, #433625 52%, #6b5338); border-top: 1px solid #9c815655; border-bottom: 12px solid #382a1d; box-shadow: inset 0 -1px #be9f6955, inset 0 -5px #1b17134d; z-index: -2; }
+  .patch-desk-surface::after { content: ""; position: absolute; left: 27%; right: 26%; top: 17%; bottom: -24%; border: 2px solid #68817470; border-radius: 8px; outline: 1px dashed #a6aa8455; outline-offset: -5px; background: repeating-linear-gradient(45deg, #9ba89506 0 1px, transparent 1px 3px), repeating-linear-gradient(-45deg, #07100c33 0 1px, transparent 1px 3px), radial-gradient(ellipse at top, #253d31, #111f18); box-shadow: 0 4px 8px #130e09a8; transform: perspective(350px) rotateX(25deg); }
+  .patch-desk-cable { position: absolute; left: 46%; top: 47%; width: 30%; height: 30%; border: solid #030c0b; border-width: 0 0 5px 5px; border-radius: 0 0 0 28px; z-index: -1; }
+  .patch-desk-object { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: end; border: 0; background: transparent; color: var(--patch-accent); filter: drop-shadow(2px 7px 4px #0006); }
+  .patch-desk-object > svg { display: block; width: 100%; min-height: 0; height: calc(100% - 30px); transition: transform .2s ease-out, filter .2s ease-out; }
+  .patch-desk-object:is(:hover, :focus-visible) > svg { transform: translateY(-5px) rotate(-2deg); filter: drop-shadow(0 0 8px color-mix(in srgb, currentColor 25%, transparent)); }
+  .patch-desk-object:focus-visible { outline: 1px dashed var(--patch-secondary); outline-offset: 3px; }
+  .patch-object-label { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 28px; padding: 6px 10px; color: var(--patch-text); background: #071310e8; border: 1px solid var(--patch-line); font: 10px var(--font-mono); white-space: nowrap; }
+  .patch-object-label small { color: var(--patch-secondary); font-size: 8px; }
+  .patch-object-label > svg { color: var(--patch-accent); }
+  .patch-desk-object:is(:hover, :focus-visible) .patch-object-label { border-color: currentColor; color: var(--patch-accent); }
+  .patch-desk-object.is-discovered .patch-object-label { border-bottom-color: var(--patch-accent); }
+  .desk-monitor { left: 33%; top: 6%; width: 34%; height: 49%; }
+  .desk-notebook { left: 5%; top: 53%; width: 29%; height: 43%; color: var(--color-cabinet); }
+  .desk-cartridges { left: 4%; top: 8%; width: 25%; height: 42%; color: var(--patch-secondary); }
+  .desk-buddy { right: 3%; top: 8%; width: 27%; height: 43%; }
+  .desk-radio { right: 4%; top: 53%; width: 28%; height: 43%; color: var(--patch-secondary); }
+  .desk-disk { left: 39%; top: 60%; width: 23%; height: 36%; color: var(--color-cabinet); }
+  .patch-desk-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 0 0; }
+  .patch-desk-footer p { color: var(--patch-muted); font: 11px/1.8 var(--font-mono); }
+  .patch-desk-footer > div { display: flex; gap: 10px; flex-shrink: 0; }
+  .patch-desk-footer button { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 9px 13px; border: 1px solid var(--patch-line); font: 10px var(--font-mono); color: var(--patch-secondary); background: var(--patch-surface); }
+  .patch-desk-footer button:hover { border-color: var(--patch-secondary); background: color-mix(in srgb, var(--patch-secondary) 7%, transparent); }
+  .patch-discovery-overlay { position: fixed; inset: 0; z-index: 210; background: #010806dd; backdrop-filter: blur(8px); }
+  .patch-discovery { position: fixed; z-index: 211; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(940px, calc(100vw - 48px)); max-height: min(900px, 90svh); display: flex; flex-direction: column; border: 1px solid var(--patch-accent); background: var(--color-ink-950); box-shadow: 0 0 60px color-mix(in srgb, var(--patch-accent) 9%, transparent); }
+  .patch-discovery-header { display: flex; align-items: start; justify-content: space-between; gap: 20px; padding: 22px 24px 12px; flex-shrink: 0; }
+  .patch-discovery-header > div > span { color: var(--patch-secondary); font: 9px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+  .patch-discovery-header h2 { margin-top: 9px; font: 700 clamp(23px, 2.5vw, 30px)/1.2 var(--font-display); color: var(--patch-text); }
+  .patch-discovery-header > button { display: grid; place-items: center; min-width: 44px; min-height: 44px; border: 1px solid var(--patch-line); color: var(--patch-accent); }
+  .patch-discovery-context { padding: 0 24px 20px; font: 12px/1.85 var(--font-mono); color: var(--patch-muted); border-bottom: 1px solid var(--patch-line); flex-shrink: 0; }
+  .patch-discovery-reader { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 18px 24px; scrollbar-width: thin; scrollbar-color: var(--patch-line) transparent; }
+  .patch-discovery-reader .patch-entry { margin: 0; }
+  .patch-discovery-reader .patch-entry::before { display: none; }
+  .patch-discovery-reader .patch-entry-preview.has-image { grid-template-columns: minmax(0, 1fr); }
+  .patch-discovery-reader .patch-entry-thumbnail { display: none; }
+  .patch-discovery-reader .patch-entry h3 { font-size: 24px; }
+  .patch-discovery-reader .patch-entry-summary { font-size: 12px; }
+  .patch-discovery-reader .patch-entry-preview { padding-bottom: 18px; }
+  .patch-discovery-reader .patch-entry-meta { padding-top: 0; }
+  .patch-discovery-nav { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 24px; border-top: 1px solid var(--patch-line); flex-shrink: 0; }
+  .patch-discovery-nav > span { color: var(--patch-muted); font: 10px var(--font-mono); text-align: center; }
+  .patch-discovery-nav button { display: flex; align-items: center; gap: 9px; min-height: 44px; padding: 9px 12px; color: var(--patch-accent); font: 11px var(--font-mono); border: 1px solid var(--patch-line); }
+  .patch-discovery-nav button:not(:disabled):hover { border-color: var(--patch-accent); }
+  .patch-discovery-nav button:disabled { opacity: .3; cursor: default; }
+  .patch-archive-tools { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; padding: 12px 24px; border-bottom: 1px solid var(--patch-line); flex-shrink: 0; }
+  .patch-archive-tools select { min-height: 46px; width: 100%; min-width: 0; padding: 10px; border: 1px solid var(--patch-line); color: var(--patch-text); background: var(--color-ink-950); font: 11px var(--font-mono); }
+  .patch-archive-tools select:focus-visible { outline: 2px solid var(--patch-secondary); }
+  @media (max-width: 900px) {
+    .patch-desk-scene { min-height: 390px; }
+    .patch-object-label { gap: 5px; font-size: 9px; padding: 6px; }
+    .patch-desk-footer { flex-wrap: wrap; }
+  }
+  @media (max-width: 640px) {
+    .patch-desk-intro { gap: 10px; align-items: start; }
+    .patch-desk-intro .patch-journal-signal { font-size: 9px; line-height: 1.7; max-width: 23ch; }
+    .patch-desk-intro p { font-size: 12px; max-width: 27ch; }
+    .patch-discoveries { font-size: 9px; padding-top: 4px; }
+    .patch-discoveries i { width: 10px; }
+    .patch-desk-scene { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 8px; padding: 38px 8px 18px; aspect-ratio: auto; min-height: 0; }
+    .patch-desk-wall { left: 12px; right: 12px; top: 14px; font-size: 6px; letter-spacing: .05em; }
+    .patch-desk-shelf { display: none; }
+    .patch-desk-surface { height: 69%; }
+    .patch-desk-surface::after { left: 10%; right: 10%; top: 52%; }
+    .patch-desk-cable { display: none; }
+    .patch-desk-object { position: relative; inset: auto; width: 100%; height: 158px; }
+    .patch-desk-object > svg { height: 128px; }
+    .patch-object-label { font-size: 8px; gap: 4px; padding: 6px 5px; }
+    .patch-object-label small { font-size: 7px; }
+    .patch-desk-footer { gap: 10px; }
+    .patch-desk-footer p { font-size: 10px; min-height: 36px; }
+    .patch-desk-footer > div { width: 100%; }
+    .patch-desk-footer button { flex: 1; padding: 8px; font-size: 10px; }
+    .patch-discovery { width: calc(100vw - 16px); max-height: 94svh; }
+    .patch-discovery-header { padding: 16px 14px 10px; gap: 12px; }
+    .patch-discovery-header h2 { font-size: 23px; }
+    .patch-discovery-header > div > span { font-size: 8px; }
+    .patch-discovery-context { padding: 0 14px 14px; font-size: 11px; line-height: 1.8; }
+    .patch-discovery-reader { padding: 12px 10px; }
+    .patch-discovery-nav { padding: 8px 12px; gap: 6px; }
+    .patch-discovery-nav button { padding: 8px; font-size: 10px; gap: 4px; }
+    .patch-discovery-nav > span { font-size: 9px; }
+    .patch-archive-tools { padding: 10px 14px; grid-template-columns: minmax(0, 1fr); }
+  }
+  @media (prefers-reduced-motion: reduce) { .patch-desk-object > svg { transition: none; } .patch-desk-object:is(:hover, :focus-visible) > svg { transform: none; } }
 }
-@keyframes patch-archive-caret { to { opacity: 0; } }
-@keyframes patch-manifest-arrive { from { transform: scaleX(0.05); opacity: 0.3; } to { transform: scaleX(1); opacity: 1; } }
-@media (max-width: 1000px) {
-  .patch-archive-intro { align-items: flex-start; gap: 1rem; }
-  .patch-swap-workspace { grid-template-columns: 1fr; height: auto; min-height: 0; }
-  .patch-swap-deck { height: 31rem; }
-  .patch-swap-card { min-height: 24rem; width: min(80%, 23rem); }
-  .patch-swap-controller { flex-wrap: wrap; }
-  .patch-swap-controller label { min-width: 0; flex: 1; }
-}
-@media (max-width: 760px) {
-  #patchlog { scroll-margin-top: 112px; }
-  .patch-archive-intro { flex-direction: column; }
-  .patch-latest-link { width: 100%; justify-content: space-between; }
-  .patch-swap-controller .patch-cycle-toggle { grid-column: 1 / -1; width: 100%; margin-left: 0; justify-content: center; min-height: 44px; }
-  .patch-console .patch-swap-card { min-height: 24rem; padding: 1rem; }
-  .patch-console .patch-swap-detail { height: min(36rem, 75svh); min-height: 24rem; max-height: none; padding: 1rem; }
-  .patch-console .patch-swap-detail.is-full-log { height: auto; overflow: visible; }
-  .patch-swap-detail .patch-entry-read-more { bottom: -1rem; }
-  .patch-console .patch-full-log-back { width: 100%; justify-content: center; }
-}
-@media (prefers-reduced-motion: reduce) { .patch-archive-intro h3 span, .patch-swap-card.is-active .patch-manifest-meter { animation: none; } }
-@layer components { .patch-swap-detail { scroll-margin-top: 84px; } }
-@media (max-width: 760px) { .patch-console .patch-swap-detail { scroll-margin-top: 112px; } }
 
-/* The action rail belongs to the panel; only the notes above it scroll. */
 @layer components {
-  .patch-console { gap: 0.8rem; }
-  .patch-console .patch-swap-detail { overflow: hidden; padding: 1rem; scrollbar-gutter: auto; }
-  .patch-detail-scroll { flex: 1 1 0; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; padding-right: 0.65rem; }
-  .patch-detail-scroll:focus-visible { outline: 1px solid var(--color-cyan-arcade); outline-offset: -1px; }
-  .patch-detail-actions { flex: 0 0 auto; padding-top: 0.65rem; margin-top: 0.65rem; border-top: 1px solid color-mix(in srgb, var(--color-phosphor) 22%, transparent); }
-  .patch-console .patch-swap-detail .patch-entry-read-more { position: static; width: 100%; margin: 0; min-height: 44px; box-shadow: none; }
-  .patch-console .patch-full-log-back { flex-shrink: 0; position: static; margin-bottom: 0.75rem; }
-}
-@media (max-width: 760px) {
-  .patch-console .patch-swap-detail.is-full-log { height: min(36rem, 75svh); overflow: hidden; }
-  .patch-console .patch-swap-card { min-height: 22rem; }
+  /* A developer workbench built into the same arcade cabinet as the shelf. */
+  .patch-desk-scene {
+    border-color: #27885f;
+    background: radial-gradient(ellipse at 50% 30%,#28ff9315,transparent 60%),radial-gradient(circle,#769f8526 .65px,transparent .9px) 0 0 / 5px 5px,repeating-linear-gradient(90deg,transparent 0 159px,#0005 160px 162px,#86d7b011 163px 164px),linear-gradient(110deg,#06140e,#10281e 55%,#071810);
+    box-shadow: inset 0 0 0 5px #041009,inset 0 0 0 6px #3af59955,inset 0 0 70px #0008,0 10px 30px #0005;
+  }
+  .patch-desk-wall { color: #a6d1b8; opacity: 1; }
+  .patch-desk-shelf {
+    border-top-color: #50ffc0; border-bottom-color: #04120c;
+    background: repeating-linear-gradient(90deg,transparent 0 12px,#c4e4cb15 12px 13px),linear-gradient(#2d5340,#0e291c);
+    box-shadow: 0 -2px 12px #3aff9630,0 2px #081a10,0 10px 18px #0009;
+  }
+  .patch-desk-surface {
+    border-top-color: #4fa27466; border-bottom-color: #0b2418;
+    background: linear-gradient(180deg,#020b09b3,transparent 25%),radial-gradient(ellipse at 90% 90%,#19dcff0e,transparent 60%),repeating-linear-gradient(2deg,#b8e9cc09 0 1px,#010d0826 2px 3px,transparent 4px 9px),repeating-linear-gradient(0deg,transparent 0 94px,#020d08aa 95px 97px,#92cda222 98px,transparent 99px 190px),linear-gradient(115deg,#1e392b,#0d241b 52%,#193b2d);
+    box-shadow: inset 0 -2px #40ffaa80,inset 0 -5px #05160c;
+  }
+  .patch-desk-surface::after {
+    border-color: #49cbbd99; outline-color: #9cdebb33;
+    background: linear-gradient(#5dc99d0b 1px,transparent 1px) 0 0 / 24px 24px,linear-gradient(90deg,#5dc99d0b 1px,transparent 1px) 0 0 / 24px 24px,repeating-linear-gradient(45deg,#97bea008 0 1px,transparent 1px 3px),linear-gradient(#0a211a,#04140f);
+    box-shadow: 0 0 10px #2de4cc1a,0 5px 10px #0008,inset 0 1px #88ffce44;
+  }
+  .patch-desk-object .patch-object-label {
+    border-color: color-mix(in srgb,currentColor 40%,#122c20); border-radius: 2px;
+    background: repeating-linear-gradient(0deg,#b6eac409 0 1px,transparent 1px 3px),linear-gradient(#163525,#061a10);
+    box-shadow: inset 0 1px #b5e5bf22,inset 0 -2px #0008,0 3px 5px #0006;
+  }
+  .patch-desk-object:is(:hover,:focus-visible) .patch-object-label {
+    color: #dcffeb; background: #16472e; border-color: var(--patch-secondary);
+    box-shadow: inset 0 -2px #0008,0 0 12px #2cf5b533;
+  }
+  .patch-desk-object.is-discovered .patch-object-label { box-shadow: inset 0 -2px #35ff9255,0 3px 5px #0006; }
+  .patch-desk-footer button {
+    border-color: #39816a; background: linear-gradient(#153629,#05170f);
+    box-shadow: inset 0 1px #99ecbe22,inset 0 -3px #0008,0 2px #031009;
+  }
+  .patch-desk-footer button:is(:hover,:focus-visible) { color: #b9fff0; background: #174630; box-shadow: inset 0 -3px #0008,0 0 12px #20ff991c; }
 }

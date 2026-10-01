@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { Activity, ChevronRight, Command, FolderCode, GripHorizontal, Radio, Send, Sparkles, Terminal, Trash2, X } from "lucide-react";
+import { Activity, ChevronRight, Command, FolderCode, GripHorizontal, Radio, Send, Sparkles, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 const COMMAND_HINTS = [
@@ -11,6 +11,8 @@ const COMMAND_HINTS = [
   { name: "theme", detail: "crt / glitch" },
   { name: "run", detail: "boot Dai.exe" },
   { name: "attract", detail: "start arcade demo" },
+  { name: "leviathan", detail: "admin: summon a sighting" },
+  { name: "blackout", detail: "admin: power outage" },
   { name: "whoami", detail: "operator profile" },
   { name: "now", detail: "current save-state" },
   { name: "discord", detail: "presence link" },
@@ -191,10 +193,8 @@ export function TerminalDialog({ open, onOpenChange, onCommand, log, theme }) {
             onPointerUp={endDrag}
           >
             <div className="terminal-window-id">
-              <span className="terminal-window-dots" aria-hidden="true"><i /><i /><i /></span>
-              <span className="terminal-window-icon" aria-hidden="true"><Terminal size={18} /></span>
               <div>
-                <span className="terminal-window-kicker">node 01 / operator shell</span>
+                <span className="terminal-window-kicker"><span className="terminal-window-dots" aria-hidden="true"><i /><i /><i /></span>cabinet / operator shell</span>
                 <Dialog.Title>DAI.EXE command console</Dialog.Title>
                 <Dialog.Description id="terminal-description">Interactive cabinet shell with history and command completion.</Dialog.Description>
               </div>

@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="480" viewBox="0 0 1000 480">
+  <defs>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0v32" fill="none" stroke="#9becc4" stroke-opacity=".055"/></pattern>
+    <radialGradient id="glow"><stop stop-color="#1e714f" stop-opacity=".45"/><stop offset="1" stop-color="#061311" stop-opacity="0"/></radialGradient>
+  </defs>
+  <path fill="#061311" d="M0 0h1000v480H0z"/><path fill="url(#grid)" d="M0 0h1000v480H0z"/><ellipse cx="740" cy="225" rx="340" ry="250" fill="url(#glow)"/>
+  <g fill="#b5cfc1" font-family="monospace" font-size="12" letter-spacing="3"><text x="46" y="43">DAIVR / DEVELOPMENT ATLAS</text><text x="46" y="445">JUL 2026</text><text x="842" y="445">OCT 2026</text></g>
+  <path d="M80 335h144l70-70h170l70-70h170l80-80h100" fill="none" stroke="#43e99a" stroke-opacity=".08" stroke-width="28"/>
+  <path d="M80 335h144l70-70h170l70-70h170l80-80h100" fill="none" stroke="#43e99a" stroke-width="3"/>
+  <path d="M296 265v-77h93M704 195v112h91" fill="none" stroke="#4a9691" stroke-width="1.5" stroke-dasharray="5 6"/>
+  <g fill="#071b15" stroke="#49eaa1" stroke-width="2"><rect x="113" y="327" width="16" height="16"/><rect x="361" y="257" width="16" height="16"/><rect x="614" y="187" width="16" height="16"/><rect x="818" y="107" width="16" height="16"/></g>
+  <g font-family="monospace" font-size="15" fill="#e0f6e9"><text x="87" y="380">v2.0</text><text x="333" y="310">v2.5</text><text x="585" y="240">v2.43</text><text x="789" y="160">v2.49</text></g>
+  <g font-family="monospace" font-size="11" fill="#91b4a8" letter-spacing="1"><text x="86" y="398">FIRST BOOT</text><text x="331" y="328">INSERT COIN</text><text x="584" y="258">WORKSHOP</text><text x="788" y="178">COME HOME</text></g>
+  <g transform="translate(92 225)"><path d="M0 0h57v42H0zM22 42h14v9H22zM13 51h32v5H13z" fill="#57746c"/><path d="M5 5h47v32H5z" fill="#152e26"/><path d="m12 14 7 6-7 6m15 0h12" fill="none" stroke="#6df3af" stroke-width="3"/></g>
+  <g transform="translate(340 155)"><path d="M0 0h58v65H0z" fill="#8e729d"/><path d="M5 5h48v36H5z" fill="#342e47"/><path d="M12 12h34v22H12z" fill="#c6a9c9"/><path d="M11 49h36v16H11z" fill="#d1b975"/><path d="M17 51v12m8-12v12m8-12v12m8-12v12" stroke="#826c51" stroke-width="2"/></g>
+  <g transform="translate(595 96)"><path d="M0 0h54v41H0zM-6 13h6v21h-6zM54 13h6v21h-6zM9 41h11v10H9zM35 41h11v10H35z" fill="#65ae9b"/><path d="M6 6h42v28H6z" fill="#0b2520"/><path d="M14 14h6v5h-6zM34 14h6v5h-6zM19 25h17v3H19z" fill="#76f9b3"/><path d="M25-13h5V0h-5z" fill="#65ae9b"/><path d="M23-18h9v7h-9z" fill="#70cfdc"/></g>
+  <g transform="translate(801 51)"><path d="m0 17 24-21 24 21v34H0z" fill="#658f82"/><path d="m-5 17 29-25 29 25" fill="none" stroke="#bbd7b9" stroke-width="5"/><path d="M18 28h13v23H18z" fill="#15372c"/><path d="M5 23h9v10H5zM35 23h9v10h-9z" fill="#efcf8a"/></g>
+  <g fill="#81d5d9" font-family="monospace" font-size="11"><text x="312" y="179">SIDE QUESTS</text><text x="718" y="325">SMALL DETAILS, BIG DIFFERENCE</text></g>
+  <path d="M906 112h5v5h-5zM909 109h-1v11h1z" fill="#b3ffe0"/>
+</svg>

@@ -334,6 +334,63 @@ export const stack = [
 // Tipos de cambio: new (verde), buff (cian), fix (dorado), nerf (rosa).
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
+  {
+    version: "v2.51.0",
+    codename: "SMALL DETAILS, MORE LIFE",
+    date: "2026-10-01",
+    summary: "More texture, more little moments, and a sturdier cabinet. The Discord desk, game shelves, passport, and console get a tactile arcade finish, while Buddy's home and footer adventures feel more alive.",
+    entries: [
+      ["buff", "The Discord presence panel becomes a textured desk: an open notebook holds the profile, a daiPod shows Spotify, and a handheld console shows game activity. Darker materials, a gently tilted notebook, a cassette, a note, and a top-view coffee cup complete the scene."],
+      ["fix", "Music and game artwork fit inside their screens without cropping. Game stats sit beside the session timer and stay compact when opened. Notebook device labels are easier to read, profile badges have darker shadows, and the photo tape no longer covers the avatar decorations."],
+      ["buff", "The favorite-game shelf and secret game library get richer arcade cases, cartridge details, and textured shelving. Clicking a favorite now turns the whole cartridge, including its frame and spine, to reveal the review on the back while the shelf stays still."],
+      ["fix", "Cartridge flips finish smoothly without bouncing or a slow landing. The artwork no longer disappears behind the case during a turn, and characters can extend beyond the top edge without being cropped."],
+      ["buff", "Game characters shrink and fade away when turning to a review, then zoom and fade back in when returning to the cover. Keyboard controls remain available, and reduced motion switches sides without the turn."],
+      ["buff", "The notebook has a more detailed center fold, wider avatar-frame decorations, and a colored, textured controller sticker. Hovering the sticker lifts a deeper corner that follows the pointer's direction."],
+      ["buff", "The handheld's player-record scrollbar is slimmer and rounded, with no arrow buttons, smoother keyboard scrolling, and colors that match its screen in both themes."],
+      ["buff", "Arcade game dialogs now resemble old televisions, with textured cases, inset screens, speaker grilles, tuner details, and physical-looking controls that fit the secret game library."],
+      ["fix", "Glitch mode now recolors the Discord desk, favorite-game shelf, and patch-notes workspace with matching plum, pink, and lavender materials while preserving the original artwork."],
+      ["buff", "The patch-notes desk gets wood grain, a stitched mat, shaded objects, metal hardware, and an arcade finish. Its visiting bird lands on the desk frame instead of perching in midair."],
+      ["buff", "The player passport gains a woven cover, laminated card details, and textured challenge panels. Collectible badges have brushed-metal edges, enamel centers, stitched ribbons, and a brief hover shine; locked badges remain muted."],
+      ["buff", "The command console matches Buddy's header, cyan labels, dark screen, and illuminated controls. Command history, autocomplete, dragging, and mobile controls keep their familiar behavior."],
+      ["buff", "The guestbook keeps its existing layout with matte surface texture and shaded trim. The admin marker is now a smaller crown that sparkles and glows on hover, with a tooltip that stays above surrounding page elements."],
+      ["buff", "Buddy's room gets richer furniture and aquarium details, more natural trees outside the window, and shooting stars. The decorating panel uses illustrated choices, and the aquarium cabinet now sits correctly in front of the rug."],
+      ["new", "A sleeping husky keeps Buddy company beside the bed, with breathing, occasional head lifts and looks around, and a softer tail wag anchored at the back."],
+      ["buff", "Room display labels appear on hover or keyboard focus. Buddy speaks when clicked, and the speech bubble clears after a few seconds."],
+      ["fix", "Living fish belong in the aquarium. Shelves still accept patrol finds, fishing junk such as the Old Boot, and treasure from the catch journal."],
+      ["fix", "Opening Buddy's room no longer requests a separate script that an update could have replaced. A room rendering failure now shows recovery controls inside the dialog instead of blanking the whole website."],
+      ["buff", "Fishing begins with a void portal opening at a random safe spot in the footer. Buddy notices it, runs over, and then casts; the stationary portal closes with an animation after fishing or an interruption."],
+      ["buff", "The fishing portal has a darker center, a layered glowing rim, flowing currents, and small drifting lights. The underwater hook disappears when Buddy lifts a catch out of the water."],
+      ["buff", "Rain-potion frogs get clearer eyes, jointed legs, breathing, and blinking. Their hops now include a crouch, a back-leg push, a smoother airborne arc, a grounded shadow, and a softer landing."],
+      ["fix", "Footer fish have improved jumping artwork and more natural collision reactions with Buddy. PACKET_REX's obstacle timing is corrected so it no longer jumps far ahead of an approaching obstacle."],
+      ["new", "Admin-only terminal commands can trigger the Leviathan sighting and power-outage encounters: leviathan and blackout, with powerout and power-out aliases. Manual requests verify admin access with the server; ordinary visitors cannot activate them."],
+      ["known", "Mobile loading was measured in Lighthouse and follow-up work was documented for startup rendering and large media downloads. These visual updates are not presented as a measured performance improvement."]
+    ]
+  },
+  {
+    version: "v2.50.0",
+    codename: "BEHIND THE CABINET",
+    date: "2026-10-01",
+    summary: "A few things left on a developer's desk, each with a story to tell. Pick up an object to discover the ideas, experiments, and little updates behind this cabinet.",
+    entries: [
+      ["new", "Explore six objects on Dai's desk: the live build, dev notebook, game stack, Buddy's corner, open channel, and first save. Each reveals personal context and a short selection of related releases."],
+      ["new", "Selected releases include Behind the build commentary, feature snapshots, and artwork. Open an image for a closer look or browse the release gallery."],
+      ["buff", "Read one release at a time, switch between patch notes, developer comments, and galleries, or search the complete archive for a specific build. Direct release links still work."],
+      ["buff", "Discoveries are remembered on this device. Surprise me picks an unexplored object when possible, and the desk adapts to touch, keyboard, and reduced-motion preferences."]
+    ]
+  },
+  {
+    version: "v2.49.0",
+    codename: "A ROOM OF YOUR OWN",
+    date: "2026-10-01",
+    summary: "Buddy has a place to call home. Decorate a little pixel room, put your discoveries on the shelves, and watch your catches swim while the world moves outside the window.",
+    entries: [
+      ["new", "Open Room from the Buddy panel to choose colors, beds, rugs, and little comforts. Guest rooms save on this device; signed-in rooms save to your Discord account."],
+      ["new", "Two shelves display your patrol finds. Fish live in the aquarium: choose a featured fish, with up to two other caught species swimming alongside it. Your collection stays intact."],
+      ["buff", "Patterned walls, paneled trim, wood grain, quilted blankets, woven rugs, and shaded furniture give Buddy's home a little more warmth."],
+      ["new", "The window looks onto layered mountains and trees, with drifting clouds, birds, and seasonal leaves, snow, or fireflies. The aquarium has planted gravel, bubbles, glass reflections, and swimming fish."],
+      ["buff", "Room controls work on phones and keyboards. Reduced motion stills the scenery, and the room loads only when you open it."]
+    ]
+  },
   // Historical backfill: dates follow the commits; small follow-ups share a release.
   // 22fb8df
   {

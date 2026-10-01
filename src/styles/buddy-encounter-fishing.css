@@ -11,6 +11,17 @@
 }
 
 @layer components {
+  .buddy-footer-portal { position: absolute; z-index: 4; left: clamp(38px,var(--portal-x),calc(100% - 38px)); top: -10px; width: 84px; height: 44px; margin-left: -42px; pointer-events: none; }
+  .buddy-footer-portal > svg { display: block; overflow: visible; filter: drop-shadow(0 0 5px #6d69e544); }
+  .buddy-portal-aperture { transform-box: view-box; transform-origin: 42px 18px; }
+  .buddy-footer-portal.is-opening .buddy-portal-aperture { animation: footer-portal-open var(--portal-open-ms) cubic-bezier(.2,.75,.3,1) both; }
+  .buddy-footer-portal.is-closing .buddy-portal-aperture { animation: footer-portal-close var(--portal-close-ms) ease-in both; }
+  .buddy-portal-current { animation: footer-portal-current 7s linear infinite; }
+  .buddy-portal-undertow { animation: footer-portal-current 9s linear infinite reverse; }
+  .buddy-portal-depth-stars { animation: footer-portal-motes 3s ease-in-out infinite alternate-reverse; }
+  .buddy-portal-motes { animation: footer-portal-motes 2.2s ease-in-out infinite alternate; }
+  .buddy-footer-portal.is-closing .buddy-portal-motes { animation: footer-portal-close var(--portal-close-ms) ease-in both; transform-origin: 42px 18px; }
+  .screen-buddy-root.is-walk.is-fishing-approach :is(.screen-buddy-body,.screen-buddy-sprite,.buddy-leg-foot-l,.buddy-leg-foot-r) { animation-duration: .24s; }
   .buddy-field-find { min-width: 48px; min-height: 44px; padding: 0 0 8px; bottom: 0; }
   .buddy-field-find .buddy-find-art { width: 38px; height: 30px; overflow: visible; filter: drop-shadow(0 2px 0 #09221f); animation: encounter-loot-bob 2.6s ease-in-out infinite; }
   .buddy-field-find .buddy-find-glints { position: absolute; top: -4px; width: 48px; height: 40px; pointer-events: none; opacity: .6; animation: encounter-loot-glint 2.8s ease-in-out infinite; }
@@ -77,6 +88,15 @@
     .screen-buddy-root.is-fishing { animation: none !important; }
     .buddy-field-find *, .pixel-phosphor-moth *, .buddy-cast-trace, .buddy-catch-drips *, .buddy-catch-glint { animation: none !important; }
   }
+}
+
+@keyframes footer-portal-open { 0% { opacity: 0; transform: scale(.04,.03); } 35% { opacity: 1; transform: scale(.65,.12); } 75% { transform: scale(1.06,1.1); } 100% { transform: scale(1); } }
+@keyframes footer-portal-close { 0% { opacity: 1; transform: scale(1); } 25% { transform: scale(1.06,.85); } 70% { opacity: 1; transform: scale(.75,.1); } 100% { opacity: 0; transform: scale(0,.02); } }
+@keyframes footer-portal-current { to { stroke-dashoffset: -84; } }
+@keyframes footer-portal-fish { from { transform: translateX(-5px); } to { transform: translateX(6px); } }
+@keyframes footer-portal-motes { from { opacity: .3; transform: translateY(1px); } to { opacity: .8; transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) {
+  .buddy-footer-portal :is(.buddy-portal-aperture,.buddy-portal-current,.buddy-portal-undertow,.buddy-portal-depth-stars,.buddy-portal-motes) { animation: none; }
 }
 @keyframes encounter-loot-bob { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-3px) rotate(2deg); } }
 @keyframes encounter-loot-glint { 0%,65%,100% { opacity: .1; } 35% { opacity: .75; } }
