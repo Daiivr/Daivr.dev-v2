@@ -6,6 +6,7 @@ import "./styles/cart-swap.css";
 import "./styles/discord-presence.css";
 import "./styles/game-shelf.css";
 import "./styles/hero-entry.css";
+import "./styles/workstation-materials.css";
 import "./styles/link-console.css";
 import "./styles/now-dashboard.css";
 import "./styles/project-console.css";

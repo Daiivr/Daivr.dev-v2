@@ -572,3 +572,61 @@
   .link-console-prompt { flex-wrap: wrap; }
   .link-console-prompt-hint { width: 100%; margin-left: 1.6rem; }
 }
+
+@layer components {
+  /* Powder-coated enclosure and removable route plates. */
+  .link-console {
+    --link-grain: url('/textures/arcade-grain.svg');
+    --link-brush: repeating-linear-gradient(0deg, #e9f0ec07 0 1px, transparent 1px 3px, #0002 3px 4px);
+    background: var(--link-grain), var(--link-brush), linear-gradient(125deg, color-mix(in srgb, var(--color-phosphor) 9%, #29332f), #0d1511 48%, #1d2721);
+    box-shadow: inset 0 2px #deefe02b, inset 0 0 0 5px #0005, inset 0 0 0 6px #cadccd15, 0 20px 55px #0007;
+  }
+  .link-console-titlebar {
+    background: var(--link-grain), var(--link-brush), linear-gradient(115deg, #3c494066, #0b140e);
+    box-shadow: inset 0 1px #ffffff24, inset 0 -3px #0008, 0 4px 8px #0004;
+  }
+  .link-console-status {
+    background: linear-gradient(120deg, #ffffff05, transparent), #030a06;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 24%, #15271c);
+    padding: 0.6rem 0.8rem;
+    box-shadow: inset 0 2px 7px #000, 0 1px #d5ebdc20;
+  }
+  .link-console .link-console-card {
+    background: var(--link-grain), repeating-linear-gradient(120deg, #ffffff03 0 1px, transparent 1px 5px), linear-gradient(130deg, color-mix(in srgb, var(--link-accent) 12%, #25302a), #101912 48%, #0b120e);
+    box-shadow: inset 3px 0 color-mix(in srgb, var(--link-accent) 65%, #152019), inset 0 1px #eef9ef33, inset -1px 0 #e4f5e51a, inset 0 -4px #000a;
+  }
+  .link-console .link-console-card:hover,
+  .link-console .link-console-card:focus-visible {
+    border-color: var(--link-accent);
+    box-shadow: inset 3px 0 var(--link-accent), inset 0 1px #fff6, inset 0 -4px #000a, inset 0 0 30px color-mix(in srgb, var(--link-accent) 9%, transparent);
+  }
+  .link-console .link-console-card:focus-visible { outline: 2px solid var(--link-accent); outline-offset: -5px; }
+  .link-console-index {
+    background: var(--link-grain), linear-gradient(150deg, #ffffff0f, #0005), #142019;
+    box-shadow: inset 0 1px #ffffff22, 0 2px 3px #0007;
+  }
+  .link-console-icon {
+    background: var(--link-grain), linear-gradient(135deg, #e4f5ef15, transparent 50%), color-mix(in srgb, var(--link-accent) 9%, #060e09);
+    box-shadow: inset 0 2px 8px #000c, inset 0 -1px #d7efdf40, inset 0 0 0 4px #0005;
+  }
+  .link-console-icon::before { box-shadow: inset 0 1px 4px #0007, 0 1px #ffffff15; }
+  .link-console-action {
+    background: var(--link-grain), linear-gradient(160deg, color-mix(in srgb, var(--link-accent) 14%, #2b352f), #121a15);
+    box-shadow: inset 0 1px #ecffef33, inset 0 -3px #0009;
+  }
+  .link-console-card-footer { box-shadow: 0 -1px #0006; }
+  .link-console-watermark { opacity: 0.055; text-shadow: 0 1px #ffffff15, 0 -1px #000; }
+  .link-console-prompt {
+    background: repeating-linear-gradient(0deg, #c9f9da05 0 1px, transparent 1px 3px), linear-gradient(110deg, #d9ffeb07, transparent 60%), #040d08;
+    box-shadow: inset 0 2px 8px #000c, 0 1px #d2edda26;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .link-console-card,
+    .link-console-icon svg,
+    .link-console-action svg { transition: none; }
+    .link-console-card:hover::after,
+    .link-console-card:focus-visible::after,
+    .link-console-card:hover .link-console-card-footer::before,
+    .link-console-card:focus-visible .link-console-card-footer::before { animation: none; }
+  }
+}

@@ -1,0 +1,153 @@
+@layer components {
+  /* Shared cabinet materials: static grain on the casing, quieter glass on
+     readable displays. Theme colors carry through both cabinet palettes. */
+  .hero-station,
+  .launch-card {
+    --station-grain: url('/textures/arcade-grain.svg');
+    --station-brush: repeating-linear-gradient(0deg, #e4eeed08 0 1px, transparent 1px 3px, #0002 3px 4px);
+    --station-metal: linear-gradient(125deg, color-mix(in srgb, var(--color-phosphor) 10%, #25302c), #101815 44%, #1b2521 75%, #080e0c);
+    --station-glass: linear-gradient(125deg, #d3fff00a, transparent 36%, #0004), #050c09;
+  }
+
+  .hero-console,
+  .console-secret-bay,
+  .launch-card {
+    background: var(--station-grain), var(--station-brush), var(--station-metal);
+  }
+
+  .hero-console-handle,
+  .hero-console-telemetry,
+  .launch-header,
+  .launch-footer {
+    background: var(--station-grain), var(--station-brush), linear-gradient(110deg, #ffffff07, #0003), var(--station-metal);
+    box-shadow: inset 0 1px #ecfff526, inset 0 -1px #000b, 0 2px 6px #0005;
+  }
+
+  .hero-console-drag-hint {
+    border: 1px solid #b8d7c51c;
+    background: repeating-linear-gradient(90deg, #0005 0 1px, transparent 1px 3px), #02080570;
+    padding: 0.3rem 0.45rem;
+    box-shadow: inset 0 1px 3px #0009, 0 1px #ffffff0d;
+  }
+
+  .hero-console .console-left {
+    background: var(--station-grain), linear-gradient(100deg, #ffffff05, #0004);
+    box-shadow: inset -3px 0 6px #0006;
+  }
+
+  .hero-console .code-card,
+  .hero-console .build-output-panel {
+    background: var(--station-glass);
+    border-color: color-mix(in srgb, var(--color-phosphor) 30%, #263b30);
+    box-shadow: inset 3px 0 color-mix(in srgb, var(--color-phosphor) 45%, #15211b), inset 0 2px 8px #000b, inset 0 -1px #ffffff15;
+  }
+
+  .code-card > div:first-child,
+  .build-output-head,
+  .launch-terminal-head {
+    background: var(--station-grain), var(--station-brush), linear-gradient(110deg, #36463c66, #0a120f);
+    box-shadow: inset 0 1px #ffffff0d, 0 2px 5px #0006;
+  }
+
+  .hero-canvas-stage::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+    pointer-events: none;
+    background: linear-gradient(125deg, #d9fff407, transparent 34% 72%, #d9fff403);
+    box-shadow: inset 0 0 0 4px #02060499, inset 0 0 0 5px #a8d8bc18, inset 0 0 32px #0009;
+  }
+
+  .hero-console .canvas-node-badge,
+  .hero-console .build-node,
+  .launch-stats > div {
+    background: var(--station-grain), linear-gradient(150deg, #ffffff08, #0003), #0d1913;
+    box-shadow: inset 0 1px #ffffff12, inset 0 -2px #0008;
+  }
+
+  /* The wall pin gets a machined rim and fine grooves without changing its
+     hit target or the drag hook's measurements. */
+  .hero-nail-head {
+    border: 1px solid color-mix(in srgb, var(--color-phosphor-soft) 42%, #48534b);
+    background:
+      radial-gradient(ellipse at 32% 25%, #fff9, transparent 28%),
+      repeating-radial-gradient(circle at 50% 50%, transparent 0 2px, #0003 2px 3px),
+      conic-gradient(from 30deg, #17221c, color-mix(in srgb, var(--color-phosphor) 38%, #94a598), #263d31, #abbcaf, #17221c);
+  }
+
+  .console-secret-bay {
+    box-shadow: inset 0 0 0 5px #0007, inset 0 0 0 6px #d3efdf19, inset 0 0 65px #000b;
+  }
+
+  .vault {
+    background: var(--station-grain), var(--station-brush), linear-gradient(135deg, color-mix(in srgb, var(--vault-key) 9%, #38413a), #17211b 45%, #0c130f);
+    box-shadow: inset 0 2px #e8ffed33, inset 2px 0 #c5d9ca20, inset 0 -5px #0009, inset -3px 0 #0006;
+  }
+
+  .vault-corner {
+    display: block;
+    position: absolute;
+    z-index: 3;
+    width: 5px;
+    height: 5px;
+    border: 1px solid #040a07;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #92a599 40%, #101d15 42% 57%, #516358 60%);
+    box-shadow: 0 1px 2px #000, inset 0 1px #d2e4d666;
+    pointer-events: none;
+  }
+
+  .vault-door {
+    border-radius: 50%;
+    background: repeating-radial-gradient(circle, transparent 0 3px, #0003 3px 4px), conic-gradient(from 30deg, #08120d, #485c4d, #111e16, #647363, #15241b, #08120d);
+    box-shadow: 0 0 0 3px #020805, 0 0 0 4px #b4d3bb24, 0 5px 10px #000a, inset 0 0 12px #000c;
+  }
+  .vault-ring.is-mid { background: var(--station-grain), linear-gradient(135deg, #29362ccc, #050d08); }
+  .vault-hub {
+    background: repeating-linear-gradient(0deg, #c2ffe610 0 1px, transparent 1px 3px), radial-gradient(circle at 32% 23%, #c6efce22, #031008 70%);
+    box-shadow: inset 0 2px 6px #000, 0 1px #d7efde44, 0 0 0 3px #01070499;
+  }
+  .vault-key {
+    background: var(--station-grain), linear-gradient(155deg, #39483d, #1a2720 50%, #101a14);
+    box-shadow: inset 0 2px #dbe8de33, inset 1px 0 #a9c2ae22, inset 0 -4px #0009, inset -1px 0 #0009;
+    text-shadow: 0 1px 2px #000;
+  }
+  .vault-key.is-enter { background: var(--station-grain), linear-gradient(150deg, color-mix(in srgb, var(--vault-key) 22%, #29352e), #101a14); }
+  .vault-key:hover:not(:disabled),
+  .vault-key:focus-visible:not(:disabled) {
+    background: var(--station-grain), linear-gradient(145deg, color-mix(in srgb, var(--vault-key) 22%, #35443a), #13231a);
+    box-shadow: inset 0 2px #e7ffed44, inset 0 -4px #0009;
+  }
+  .vault-key:active:not(:disabled) { box-shadow: inset 0 2px 5px #000a, inset 0 -1px #d2efdc22; }
+  .vault-code b { box-shadow: inset 0 2px 5px #000, 0 1px #d3ebdc26; }
+
+  .launch-panel { background: var(--station-grain), linear-gradient(120deg, #ffffff03, #0003); }
+  .launch-current {
+    background: var(--station-grain), linear-gradient(110deg, color-mix(in srgb, var(--color-cabinet) 10%, #142019), #0b1510);
+    box-shadow: inset 0 1px #e8fff21f, inset 0 -2px #0009, 0 3px 8px #0005;
+  }
+  .launch-readout,
+  .launch-terminal { box-shadow: inset 0 2px 8px #000c, 0 1px #e3ffec26; }
+  .launch-radar { box-shadow: inset 0 0 0 5px #0009, inset 0 0 0 6px #a7cdb422; }
+  .launch-radar::before {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    pointer-events: none;
+    content: "";
+    background: linear-gradient(125deg, #edfff80b, transparent 38% 75%, #edfff804);
+  }
+  .launch-node { background: var(--station-grain), linear-gradient(145deg, #2a3930, #09130d); }
+  .launch-core { background: var(--station-grain), var(--station-brush), linear-gradient(140deg, color-mix(in srgb, var(--color-phosphor) 12%, #28392f), #070e0a); }
+  .launch-checklist li { box-shadow: inset 0 1px #ffffff10, inset 0 -2px #0006; }
+  .launch-progress,
+  .hero-console .build-progress {
+    background: repeating-linear-gradient(90deg, #b7dcc510 0 9px, #0005 9px 11px), #020604;
+    box-shadow: inset 0 2px 5px #000, 0 1px #e0ffe630;
+  }
+  .launch-progress span,
+  .hero-console .build-progress span {
+    background: linear-gradient(180deg, #ffffff80, transparent 35%, #0005 85%), linear-gradient(90deg, var(--color-phosphor), var(--color-cyan-arcade));
+    box-shadow: inset 0 1px #ffffff70, 0 0 12px color-mix(in srgb, var(--color-phosphor) 40%, transparent);
+  }
+}
