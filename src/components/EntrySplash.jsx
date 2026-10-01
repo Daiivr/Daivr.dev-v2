@@ -315,9 +315,10 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   }, [requestEnter]);
 
   const streaming = !compact && !hostPresent;
+  const signalProgress = streaming ? Math.max(0, Math.min(100, Math.round(avatarProgress))) : 100;
   const signalCopy = streaming
     ? avatarProgress > 0
-      ? `streaming host // ${Math.round(avatarProgress)}%`
+      ? "streaming host"
       : "linking host signal"
     : hostStage === "error" && !compact
       ? "host offline // gate still open"
@@ -348,8 +349,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
       </div>
 
       <div className="entry-gate-doors" aria-hidden="true">
-        <i className="entry-gate-door is-left"><i className="entry-gate-door-shade" /><i className="entry-gate-door-texture" /><GatePatina side="left" seasonalEvent={seasonalEvent} /></i>
-        <i className="entry-gate-door is-right"><i className="entry-gate-door-shade" /><i className="entry-gate-door-texture" /><GatePatina side="right" seasonalEvent={seasonalEvent} /></i>
+        {["left", "right"].map(side => <i key={side} className={`entry-gate-door is-${side}`}><i className="entry-gate-door-shade" /><i className="entry-gate-door-texture" /><span className="entry-gate-door-hardware"><i/><i/><i/><i/><span className="gate-door-vent"/></span><GatePatina side={side} seasonalEvent={seasonalEvent} /></i>)}
         <i className="entry-gate-seam" />
       </div>
 
@@ -462,9 +462,9 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
         </div>
 
         <div className={`entry-gate-signal ${streaming ? "is-streaming" : "is-open"}`}>
-          <span>{signalCopy}</span>
-          <i className="entry-gate-signal-meter">
-            <b style={{ width: streaming ? `${Math.max(4, Math.round(avatarProgress))}%` : "100%" }} />
+          <div className="entry-gate-signal-heading"><span><i aria-hidden="true" />{signalCopy}</span><small>{streaming ? `${signalProgress}%` : "READY"}</small></div>
+          <i className="entry-gate-signal-meter" role="progressbar" aria-label="Host loading progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={streaming && signalProgress === 0 ? undefined : signalProgress} aria-valuetext={streaming ? `${signalCopy}, ${signalProgress}%` : signalCopy}>
+            <b style={{ width: `${signalProgress}%` }} />
           </i>
         </div>
 

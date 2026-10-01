@@ -160,7 +160,8 @@
   top: 0;
   width: 4px;
   height: calc(var(--gate-lamp-drop) + 4px);
-  background: linear-gradient(90deg, #020705, #597565 50%, #0a160f);
+  background: repeating-linear-gradient(25deg, #0005 0 2px, transparent 2px 4px), linear-gradient(90deg, #020705, #597565 50%, #0a160f);
+  box-shadow: 1px 0 #0009;
 }
 
 .gate-lamp-fixture {
@@ -178,6 +179,8 @@
 .is-on .gate-lamp-bulb { filter: drop-shadow(0 0 9px #c9ffac); }
 .is-off .gate-lamp-bulb { fill: #526151; }
 .is-off .gate-lamp-reflector { opacity: .12; }
+.is-off .gate-lamp-reflector-ribs, .is-off .gate-lamp-filament { opacity: .12; }
+.is-off .gate-lamp-glass-glint { opacity: .25; }
 
 .gate-lamp-pull {
   position: absolute;
@@ -210,7 +213,7 @@
   width: 4px;
   height: calc(var(--chain-length) + var(--chain-stretch, 0px));
   background:
-    radial-gradient(circle, #afbd9f 0 1.3px, transparent 1.6px) center top / 4px 6px repeat-y,
+    radial-gradient(circle at 40% 35%, #e0e5c1 0 .6px, #9da989 .9px, #26372b 1.5px, transparent 1.7px) center top / 4px 6px repeat-y,
     linear-gradient(#566651, #566651) center / 1px 100% no-repeat;
   transform: rotate(var(--chain-angle, 0rad));
   transform-origin: 50% 0;
@@ -224,8 +227,8 @@
   height: 22px;
   border: 1px solid #8da18d;
   border-radius: 3px 3px 5px 5px;
-  background: repeating-linear-gradient(0deg, transparent 0 4px, rgba(0, 0, 0, .6) 4px 5px), linear-gradient(90deg, #263c2b, #617a53 45%, #2a412b);
-  box-shadow: 0 3px 7px #000;
+  background: url('/textures/arcade-grain.svg'), repeating-linear-gradient(0deg, #b7c2a022 0 1px, transparent 1px 3px, #0009 3px 4px), linear-gradient(90deg, #1b2c20, #92a078 35%, #5c714f 55%, #182c20);
+  box-shadow: inset 1px 0 #e1e9b944, inset -1px 0 #0008, 0 3px 7px #000;
   transform: rotate(var(--chain-angle, 0rad));
   transform-origin: 50% 0;
   transition: border-color 180ms ease;
@@ -371,11 +374,14 @@
   background:
     linear-gradient(rgba(167, 227, 193, .34), rgba(167, 227, 193, .34)) 6px 6px / 25px 1px no-repeat,
     linear-gradient(rgba(167, 227, 193, .22), rgba(167, 227, 193, .22)) calc(100% - 6px) calc(100% - 6px) / 25px 1px no-repeat,
-    linear-gradient(180deg, rgba(180, 255, 207, .025), transparent 24%, rgba(0, 0, 0, .14));
+    repeating-linear-gradient(0deg, #bcc9b406 0 1px, transparent 1px 3px),
+    linear-gradient(180deg, rgba(180, 255, 207, .04), transparent 24%, rgba(0, 0, 0, .18));
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, .8),
     inset 0 0 0 4px rgba(0, 0, 0, .4),
-    inset 0 0 0 5px rgba(112, 173, 143, .1),
+    inset 0 0 0 5px rgba(112, 173, 143, .22),
+    inset 0 10px 18px #0007,
+    inset 0 -2px 0 #9dad8722,
     0 2px 6px rgba(0, 0, 0, .28);
 }
 
@@ -402,8 +408,18 @@
     radial-gradient(ellipse at 76% 66%, rgba(0, 0, 0, .8), transparent 48%),
     linear-gradient(180deg, rgba(133, 150, 119, .25), transparent 18%, transparent 78%, rgba(0, 0, 0, .8));
   background-clip: padding-box;
-  opacity: .12;
+  opacity: .32;
 }
+
+.entry-gate-door-hardware { position: absolute; inset: var(--gate-panel-inset); z-index: 3; pointer-events: none; }
+.entry-gate-door-hardware > i { position: absolute; width: 7px; height: 7px; border-radius: 50%; border: 1px solid #101b13; background: linear-gradient(135deg, #9eac87, #445342 45%, #192b21); box-shadow: 0 1px 2px #000c, inset 0 1px #dde0b64d; }
+.entry-gate-door-hardware > i::after { content: ""; position: absolute; inset: 2px 0; height: 1px; background: #0b150d; transform: rotate(-35deg); }
+.entry-gate-door-hardware > i:nth-child(1) { left: 12px; top: 12px; }
+.entry-gate-door-hardware > i:nth-child(2) { right: 12px; top: 12px; }
+.entry-gate-door-hardware > i:nth-child(3) { left: 12px; bottom: 12px; }
+.entry-gate-door-hardware > i:nth-child(4) { right: 12px; bottom: 12px; }
+.gate-door-vent { position: absolute; bottom: 22px; left: 24px; width: clamp(48px, 6vw, 94px); height: 24px; border: 1px solid #59735a33; background: repeating-linear-gradient(0deg, #010603 0 2px, #67795a40 2px 3px, #0a170e 3px 5px); box-shadow: inset 0 2px 5px #000b, 0 1px #a4b58a1a; }
+.is-right .gate-door-vent { left: auto; right: 24px; }
 
 .entry-gate-door.is-right .entry-gate-door-texture {
   background-position: 173px 91px, 29px 0, 0 0, 0 0, 0 0;
@@ -853,7 +869,8 @@
   align-items: center;
   gap: clamp(1rem, 3vw, 2.6rem);
   border-top: 1px solid color-mix(in srgb, var(--color-phosphor) 22%, transparent);
-  background: linear-gradient(180deg, #020d09, #010705);
+  background: url('/textures/arcade-grain.svg'), repeating-linear-gradient(0deg, #c7d9c108 0 1px, transparent 1px 3px), linear-gradient(110deg, #16281e, #06120c 44%, #12231a);
+  box-shadow: inset 0 1px #c6e6b333, inset 0 4px #0004, 0 -5px 18px #0008;
   padding: clamp(0.85rem, 2.2vh, 1.5rem) clamp(1.1rem, 5vw, 4rem);
 }
 
@@ -882,6 +899,12 @@
   min-width: 0;
 }
 
+.entry-gate-signal-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.entry-gate-signal-heading > span { display: flex; align-items: center; gap: 7px; }
+.entry-gate-signal-heading > span > i { width: 5px; height: 5px; flex: none; background: currentColor; box-shadow: 0 0 7px currentColor; }
+.entry-gate-signal-heading > small { flex: none; font: 700 9px var(--font-mono); letter-spacing: .1em; color: var(--color-cyan-arcade); }
+.entry-gate-signal.is-open .entry-gate-signal-heading > small { color: var(--color-phosphor); }
+
 .entry-gate-signal span {
   overflow: hidden;
   color: var(--color-cyan-arcade);
@@ -899,18 +922,30 @@
 
 .entry-gate-signal-meter {
   display: block;
-  height: 2px;
+  position: relative;
+  height: 15px;
+  padding: 3px;
+  border: 1px solid #4c74604d;
   overflow: hidden;
-  background: color-mix(in srgb, var(--color-cyan-arcade) 16%, transparent);
+  background: repeating-linear-gradient(90deg, transparent 0 7px, #83b0a312 7px 8px), linear-gradient(#010503, #091b11);
+  box-shadow: inset 0 2px 5px #000d, 0 1px #d3f5bc24;
+  font-style: normal;
 }
 
+.entry-gate-signal-meter::after { position: absolute; inset: 3px; content: ""; pointer-events: none; background: repeating-linear-gradient(90deg, transparent 0 7px, #01120be6 7px 9px); }
+
 .entry-gate-signal-meter b {
+  position: relative;
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, var(--color-cyan-arcade), var(--color-phosphor));
-  box-shadow: 0 0 12px color-mix(in srgb, var(--color-phosphor) 40%, transparent);
+  background: linear-gradient(180deg, #d6ffeab3, transparent 45%, #001c1680), linear-gradient(90deg, #2aaba3, var(--color-phosphor));
+  box-shadow: 0 0 8px color-mix(in srgb, var(--color-phosphor) 28%, transparent);
   transition: width 280ms ease-out;
 }
+
+.entry-gate-signal.is-streaming .entry-gate-signal-meter::before { content: ""; position: absolute; inset: 3px; background: linear-gradient(90deg, transparent, #d5fff02e, transparent); transform: translateX(-100%); animation: gate-signal-scan 2.4s ease-in-out infinite; }
+@keyframes gate-signal-scan { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .entry-gate-signal.is-streaming .entry-gate-signal-meter::before { animation: none; } .entry-gate-signal-meter b { transition: none; } }
 
 .entry-gate-enter {
   display: inline-flex;
@@ -918,10 +953,13 @@
   gap: 1rem;
   border: 1px solid color-mix(in srgb, var(--color-phosphor) 56%, transparent);
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--color-phosphor) 15%, transparent), color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent)),
+    url('/textures/arcade-grain.svg'),
+    repeating-linear-gradient(0deg, #d4eed90a 0 1px, transparent 1px 3px),
+    linear-gradient(135deg, color-mix(in srgb, var(--color-phosphor) 20%, transparent), color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent)),
     rgba(2, 10, 7, 0.92);
   padding: 0.72rem 1.15rem;
   color: #f4fff8;
+  box-shadow: inset 0 1px #d6ffd94d, inset 0 -4px #0008;
   clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
   transition:
     transform 240ms cubic-bezier(0.16, 1, 0.3, 1),

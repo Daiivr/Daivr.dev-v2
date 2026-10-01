@@ -183,6 +183,13 @@ test("community API, safe storage, posting limits, passports and daily rewards",
   assert.equal((await api("/api/buddy")).data.adventure.daiBooted, true);
   assert.equal((await api("/api/player")).data.passport.progression.totalXp, xpBeforeSecrets + 2575);
   assert.ok(!(await api("/api/player", alice)).data.passport.badges.some((badge) => badge.secret));
+  assert.ok(!JSON.stringify(player).includes("digital-diva"));
+  await api("/api/buddy", bob, { action: "sync-adventure", adventure: { fishCollection: Object.fromEntries(FISH_CATALOG.map(item => [item.id, 1])) } });
+  player = (await api("/api/player", bob)).data;
+  assert.ok(player.passport.badges.some(badge => badge.id === "digital-diva" && badge.secret && badge.earned));
+  assert.equal(player.passport.progression.totalXp, xpBeforeSecrets + 4075);
+  assert.equal((await api("/api/player", bob, { ...chosen, featuredBadges: ["digital-diva"] })).status, 200);
+  assert.equal((await api("/api/player", bob)).data.passport.progression.totalXp, xpBeforeSecrets + 4075);
   const ranked = (await api("/api/player?view=rankings", null)).data.rankings;
   assert.equal(ranked.level[0].user.username, "Bob");
   assert.equal(ranked.streak[0].bestStreak, 3);
