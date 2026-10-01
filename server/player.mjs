@@ -8,6 +8,7 @@ import { dailyChallenge, PLAYER_GAMES } from "../shared/player-catalog.mjs";
 import { challengeStats, challengeBadges } from "../shared/player-achievements.mjs";
 import { dailyXp } from "../shared/player-progression.mjs";
 import { reconcileProgression, secretBadges } from "./player-progression.mjs";
+import { buildPlayerRankings } from "./player-rankings.mjs";
 
 function readExisting(name, envs = []) {
   const path = getDataFile(name, envs);
@@ -15,12 +16,21 @@ function readExisting(name, envs = []) {
   return JSON.parse(readFileSync(path, "utf8"));
 }
 
-function passport(user, saved, comments) {
-  const buddy = readExisting("buddy-friendship.json", ["COMMENTS_DATA_DIR"])[user.id] || {};
+function passportSources() {
+  return {
+    buddies: readExisting("buddy-friendship.json", ["COMMENTS_DATA_DIR"]),
+    games: Object.fromEntries(["tower-block", "cross-road", "space-cadet-pinball", "madrace"].map((game) => {
+      const env = `${game.replaceAll("-", "_").toUpperCase()}_DATA_DIR`;
+      return [game, readExisting(`${game}-leaderboard.json`, [env, "GAME_DATA_DIR"]).scores || []];
+    }))
+  };
+}
+
+function passport(user, saved, comments, sources = passportSources()) {
+  const buddy = sources.buddies[user.id] || {};
   const level = [0, 10, 25, 60, 120].filter((threshold) => (buddy.pets || 0) >= threshold).length;
   const records = ["tower-block", "cross-road", "space-cadet-pinball", "madrace"].map((game) => {
-    const env = `${game.replaceAll("-", "_").toUpperCase()}_DATA_DIR`;
-    const score = (readExisting(`${game}-leaderboard.json`, [env, "GAME_DATA_DIR"]).scores || []).find((entry) => String(entry.discordId) === String(user.id));
+    const score = sources.games[game].find((entry) => String(entry.discordId) === String(user.id));
     return { game, best: game === "madrace" ? score?.highestLevel ?? null : score?.bestScore ?? null };
   });
   const messages = comments.flatMap((entry) => [entry, ...(entry.replies || [])]).filter((entry) => String(entry.author?.id) === String(user.id)).length;
@@ -36,7 +46,7 @@ function passport(user, saved, comments) {
   const earnedBadges = reconciled.badges;
   const cosmetics = saved.cosmetics || [];
   const titles = ["Visitor", ...(messages ? ["Signal sender"] : []), ...cosmetics];
-  return { saved: reconciled.saved, card: { user, level, progression: reconciled.progression, quests: buddy.adventure?.completed?.length || 0, records, messages,
+  return { saved: { ...reconciled.saved, profile: { id: user.id, username: user.username, avatarUrl: user.avatarUrl } }, card: { user, level, progression: reconciled.progression, quests: buddy.adventure?.completed?.length || 0, records, messages,
     challengeCount: saved.challengeCount || 0, ...stats, milestones, badges: earnedBadges, cosmetics, titles,
     title: titles.includes(saved.title) ? saved.title : "Visitor",
     favoriteGame: PLAYER_GAMES.some((game) => game.id === saved.favoriteGame) ? saved.favoriteGame : "",
@@ -48,6 +58,27 @@ export async function handlePlayerRequest(request, response) {
   const send = (status, body) => { response.writeHead(status, { "Content-Type": "application/json", "Cache-Control": "no-store" }); response.end(JSON.stringify(body)); };
   try {
     const user = getSessionUser(request);
+    if (new URL(request.url, "http://localhost").searchParams.get("view") === "rankings") {
+      if (request.method !== "GET") return send(405, { error: "Method not allowed." });
+      const players = readPlayers();
+      const sources = passportSources();
+      const comments = readComments();
+      const identities = new Map();
+      for (const entry of comments.flatMap((comment) => [comment, ...(comment.replies || [])])) {
+        if (entry.author?.id) identities.set(String(entry.author.id), entry.author);
+      }
+      for (const scores of Object.values(sources.games)) for (const score of scores) {
+        if (score.discordId) identities.set(String(score.discordId), { id: String(score.discordId), username: score.username, avatarUrl: score.avatarUrl });
+      }
+      for (const [id, saved] of Object.entries(players)) if (saved.profile) identities.set(id, saved.profile);
+      if (user) identities.set(String(user.id), user);
+      const ids = new Set([...Object.keys(players), ...Object.keys(sources.buddies), ...Object.values(sources.games).flatMap((scores) => scores.map((score) => String(score.discordId))), ...(user ? [String(user.id)] : [])]);
+      const cards = [...ids].map((id) => {
+        const identity = identities.get(id);
+        return passport({ id, username: identity?.username || "Cabinet player", avatarUrl: identity?.avatarUrl || "/favicon.png" }, players[id] || {}, comments, sources).card;
+      });
+      return send(200, { rankings: buildPlayerRankings(cards) });
+    }
     const challenge = { ...dailyChallenge(), xp: dailyXp() };
     if (!user) return send(request.method === "GET" ? 200 : 401, { user: null, challenge, error: request.method === "GET" ? undefined : "Connect Discord to save your passport." });
     if (!["GET", "POST"].includes(request.method)) return send(405, { error: "Method not allowed." });

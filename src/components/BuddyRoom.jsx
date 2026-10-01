@@ -12,6 +12,7 @@ import "../styles/buddy-room.css";
 const PALETTES = [["aurora", "Aurora"], ["plum", "Plum dusk"], ["amber", "Warm amber"]];
 const SEASONS = { winter: "Snow over the pines", spring: "Spring in the clearing", summer: "An endless summer evening", autumn: "Autumn in the clearing", halloween: "A spooky little evening" };
 const SLOTS = [["aquarium", "Aquarium"], ["shelfLeft", "Left shelf"], ["shelfRight", "Right shelf"]];
+const FISH_SLOTS = [["aquarium", "Main fish", "Large · foreground"], ["aquariumBackLeft", "Back fish 1", "Small · background"], ["aquariumBackRight", "Back fish 2", "Small · background"]];
 
 function Choices({ number, label, value, options, onChange }) {
   return <fieldset className="room-choices">
@@ -27,6 +28,7 @@ function Choices({ number, label, value, options, onChange }) {
 export default function BuddyRoom({ buddy, seasonalEvent }) {
   const state = useBuddyRoom();
   const [slot, setSlot] = useState("aquarium");
+  const [fishSlot, setFishSlot] = useState("aquarium");
   const [napping, setNapping] = useState(false);
   const [speech, setSpeech] = useState("");
   const speechTimer = useRef(null);
@@ -40,7 +42,8 @@ export default function BuddyRoom({ buddy, seasonalEvent }) {
   const [tab, setTab] = useState("decorate");
   const displays = useMemo(() => ownedRoomDisplays(buddy.adventure), [buddy.adventure]);
   const season = roomSeason(seasonalEvent);
-  const candidates = displays.filter((item) => isRoomDisplayAllowed(slot, item.key));
+  const selectedSlot = slot === "aquarium" ? fishSlot : slot;
+  const candidates = displays.filter((item) => isRoomDisplayAllowed(selectedSlot, item.key));
   const { room } = state;
   const displayFor = (id) => displays.find((item) => item.key === room[id] && isRoomDisplayAllowed(id, item.key));
 
@@ -55,7 +58,7 @@ export default function BuddyRoom({ buddy, seasonalEvent }) {
         {SLOTS.map(([id, label]) => {
           const item = displayFor(id);
           return <button type="button" key={id} className={`room-display room-display-${id} ${slot === id && tab === "collection" ? "is-selected" : ""}`} disabled={state.loading || state.saving} aria-label={`Choose ${label.toLowerCase()} display${item ? `: ${item.name}` : ": empty"}`} onClick={() => { setSlot(id); setTab("collection"); }}>
-            {id === "aquarium" ? <BuddyRoomAquarium featured={item} collection={displays} /> : item ? <BuddyCollectibleIcon id={item.id} color={item.color} /> : <span className="room-display-empty" aria-hidden="true">+</span>}
+            {id === "aquarium" ? <BuddyRoomAquarium featured={item} companions={[displayFor("aquariumBackLeft"), displayFor("aquariumBackRight")]} /> : item ? <BuddyCollectibleIcon id={item.id} color={item.color} /> : <span className="room-display-empty" aria-hidden="true">+</span>}
             <span className="room-display-label">{item?.name || label}</span>
           </button>;
         })}
@@ -81,8 +84,9 @@ export default function BuddyRoom({ buddy, seasonalEvent }) {
           <Choices number="04" label="Little comforts" value={room.prop} options={[["plant", "Houseplant"], ["lamp", "Reading lamp"], ["books", "Book stack"]]} onChange={(value) => state.update("prop", value)} />
         </> : <>
           <fieldset className="room-slot-picker"><legend>Choose a display</legend><div>{SLOTS.map(([id, name]) => <button type="button" key={id} aria-pressed={slot === id} onClick={() => setSlot(id)}>{name}</button>)}</div></fieldset>
-          <p className="room-collection-hint">{slot === "aquarium" ? "Choose a featured fish. Up to two of your other caught species will swim alongside it." : "Display patrol finds, fishing junk, or treasure. Your fish live in the aquarium."}</p>
-          <div className="room-collection"><button type="button" className="room-item" aria-pressed={!displayFor(slot)} onClick={() => state.update(slot, "")}><span aria-hidden="true">—</span><strong>Leave empty</strong></button>{candidates.map((item) => <button type="button" className="room-item" key={item.key} aria-pressed={room[slot] === item.key} onClick={() => state.update(slot, item.key)}><BuddyCollectibleIcon id={item.id} color={item.color} /><strong>{item.name}</strong><small>{item.rarity || "patrol find"}</small></button>)}</div>
+          {slot === "aquarium" ? <div className="room-fish-slots" role="group" aria-label="Aquarium residents">{FISH_SLOTS.map(([id, name, size]) => <button type="button" key={id} aria-pressed={fishSlot === id} onClick={() => setFishSlot(id)}><span>{name}</span><small>{size}</small><strong>{displayFor(id)?.name || "Empty"}</strong></button>)}</div> : null}
+          <p className="room-collection-hint">{slot === "aquarium" ? "Choose a resident above, then a caught fish below. Selecting a fish already in the tank moves it to this slot." : "Display patrol finds, fishing junk, or treasure. Your fish live in the aquarium."}</p>
+          <div className="room-collection"><button type="button" className="room-item" aria-pressed={!displayFor(selectedSlot)} onClick={() => state.update(selectedSlot, "")}><span aria-hidden="true">—</span><strong>Leave empty</strong></button>{candidates.map((item) => <button type="button" className="room-item" key={item.key} aria-pressed={room[selectedSlot] === item.key} onClick={() => state.update(selectedSlot, item.key)}><BuddyCollectibleIcon id={item.id} color={item.color} /><strong>{item.name}</strong><small>{slot === "aquarium" ? FISH_SLOTS.find(([id]) => room[id] === item.key)?.[1] || item.rarity : item.rarity || "patrol find"}</small></button>)}</div>
           {!candidates.length ? <div className="room-empty-note"><Fish size={24} aria-hidden="true" /><strong>{slot === "aquarium" ? "A little life, coming soon." : "A shelf for your stories."}</strong><p>{slot === "aquarium" ? "Let Buddy fish at the footer, then come back to choose your first resident." : "Explore with Buddy to collect your first display."}</p></div> : null}
         </>}
       </fieldset>

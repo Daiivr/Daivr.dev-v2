@@ -1,5 +1,5 @@
 import { Bug, Fish, Flame, Gamepad2, HeartHandshake, MessageSquare, Moon, Radar, Shield, Terminal, Trophy } from "lucide-react";
-import { useId } from "react";
+import { useId, useState } from "react";
 
 export function BadgeEmblem({ badge }) {
   const id = useId().replace(/:/g, "");
@@ -33,9 +33,16 @@ export function BadgeEmblem({ badge }) {
   </span>;
 }
 
-export function PlayerBadge({ badge }) {
-  return <span className={`player-badge badge-tier-${badge.tier || "base"}`} title={badge.description}>
+export function PlayerBadge({ badge, tooltip = false }) {
+  const tooltipId = useId();
+  const [visible, setVisible] = useState(false);
+  return <span className={`player-badge badge-tier-${badge.tier || "base"} ${tooltip ? "has-tooltip" : ""}`}
+    {...(tooltip ? { tabIndex: 0, role: "button", "aria-label": `${badge.label} badge details`, "aria-describedby": visible ? tooltipId : undefined,
+      onMouseEnter: () => setVisible(true), onMouseLeave: () => setVisible(false), onFocus: () => setVisible(true), onBlur: () => setVisible(false), onClick: () => setVisible(true),
+      onKeyDown: (event) => { if (event.key === "Escape") { event.stopPropagation(); setVisible(false); } else if (["Enter", " "].includes(event.key)) { event.preventDefault(); setVisible((value) => !value); } }
+    } : {})}>
     <BadgeEmblem badge={badge} />
     <span className="player-badge-caption"><strong>{badge.label}</strong><small>{badge.secret ? "Secret discovered" : badge.metric === "streak" ? `${badge.target}-day streak` : badge.metric === "completions" ? `${badge.target} daily win${badge.target === 1 ? "" : "s"}` : "Cabinet member"}</small></span>
+    {tooltip && visible ? <span id={tooltipId} role="tooltip" className="player-badge-tooltip"><small>{badge.secret ? "SECRET DISCOVERED" : "BADGE UNLOCKED"}</small><strong>{badge.label}</strong><span>{badge.description}</span><b>+{badge.xp?.toLocaleString()} XP earned</b></span> : null}
   </span>;
 }

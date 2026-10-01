@@ -23,6 +23,19 @@ test("only discoveries enter the room collection, with distinct catch and find i
   assert.equal(roomSeason("halloween"), "halloween");
 });
 
+test("aquarium keeps three explicit residents, rejects duplicates and never fills empty slots", () => {
+  const fish = FISH_CATALOG.filter((item) => item.kind === "fish").slice(0, 3).map((item) => `fish:${item.id}`);
+  const room = normalizeRoom({ aquarium: fish[0], aquariumBackLeft: fish[1], aquariumBackRight: fish[2] });
+  assert.deepEqual([room.aquarium, room.aquariumBackLeft, room.aquariumBackRight], fish);
+  const legacy = normalizeRoom({ aquarium: fish[0] });
+  assert.equal(legacy.aquariumBackLeft, "");
+  assert.equal(legacy.aquariumBackRight, "");
+  assert.equal(normalizeRoom({ aquarium: fish[0], aquariumBackLeft: fish[0] }).aquariumBackLeft, "");
+  assert.equal(normalizeRoom({ aquariumBackLeft: fish[1], aquariumBackRight: fish[1] }).aquariumBackRight, "");
+  assert.equal(normalizeRoom({ aquariumBackLeft: "fish:old-boot", aquariumBackRight: "find:arcade-coin" }).aquariumBackLeft, "");
+  assert.equal(normalizeRoom({ aquariumBackRight: "find:arcade-coin" }).aquariumBackRight, "");
+});
+
 test("saved rooms keep fish in the aquarium and patrol finds on shelves", () => {
   const oldRoom = normalizeRoom({ aquarium: "fish:byte-minnow", shelfLeft: "fish:glitch-koi", shelfRight: "fish:byte-minnow", palette: "amber" });
   assert.equal(oldRoom.aquarium, "fish:byte-minnow");
@@ -71,7 +84,7 @@ test("room API persists per account without changing friendship, gear, or collec
     const response = await fetch(`http://127.0.0.1:${server.address().port}/api/buddy`, { method: body ? "POST" : "GET", headers: { "Content-Type": "application/json", ...(user ? { Cookie: `daivr_comment_session=${token}` } : {}), ...(origin ? { Origin: origin } : {}) }, body: body ? JSON.stringify(body) : undefined });
     return { status: response.status, data: await response.json() };
   }
-  const body = { action: "save-room", owner: "alice", room: { palette: "plum", aquarium: "fish:byte-minnow", bed: "bunk", shelfLeft: "fish:byte-minnow", shelfRight: "find:arcade-coin" } };
+  const body = { action: "save-room", owner: "alice", room: { palette: "plum", aquarium: "fish:byte-minnow", aquariumBackLeft: "fish:void-eel", aquariumBackRight: "fish:glitch-koi", bed: "bunk", shelfLeft: "fish:byte-minnow", shelfRight: "find:arcade-coin" } };
   assert.equal((await api(null, body)).status, 401);
   assert.equal((await api("alice", body, "https://other.example")).status, 403);
   assert.equal((await api("bob", body)).status, 409);

@@ -182,6 +182,8 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
   const [walkMs, setWalkMs] = useState(0);
   const [particles, setParticles] = useState([]);
   const [fishingPhase, setFishingPhase] = useState("");
+  const leviathanInteractionRef = useRef(null);
+  const [leviathanResponse, setLeviathanResponse] = useState("");
   const [fishingPortal, setFishingPortal] = useState(null);
   const closeFishingPortal = useCallback((id) => {
     setFishingPortal((current) => current?.id === id ? null : current);
@@ -819,6 +821,8 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       if (!spot) return;
       if (!beginBuddyEvent("fishing")) return;
       fishingCooldownRef.current = Date.now();
+      leviathanInteractionRef.current = null;
+      setLeviathanResponse("");
       freezeAtCurrentPosition();
       const { target, castLeft, portalX } = spot;
       const distance = Math.abs(target - xRef.current);
@@ -827,7 +831,8 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       setFishingPhase("approach");
       updateMood("talk");
       const noticeGeneration = moodGenRef.current;
-      say("a ripple in the footer... fishing spot!", 2200);
+      clearDialogue();
+      say("the floor cracked... there's water underneath!", 2600);
 
       function beginSession() {
         // En el sprite base facing 1 apunta a la izquierda. Cerca de un borde
@@ -908,10 +913,22 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
             setFishingPhase("omen");
             setFishingCatch("mythic");
             setFishingCatchId(LEVIATHAN.id);
+            clearDialogue();
             say("the water went quiet. something is coming.", 5000);
             schedule(() => {
               if (!stillFishing()) return;
               setFishingPhase("monster");
+              const interactions = new Set();
+              leviathanInteractionRef.current = (action) => {
+                if (!stillFishing() || interactions.has(action) || !["steady", "signal"].includes(action)) return;
+                interactions.add(action);
+                setLeviathanResponse(action);
+                liftTo(action === "steady" ? 0 : 5);
+                clearDialogue();
+                say(action === "steady" ? "feet on the ground. we've got this, together." : "hey, big friend... it blinked back!", 3600);
+                spawnParticles(action === "steady" ? "splash" : "heart", 6);
+              };
+              clearDialogue();
               say(buddyLine("leviathan"), 5000);
               spawnParticles("splash", 14);
               liftTo(12);
@@ -923,8 +940,10 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
             schedule(() => {
               if (!stillFishing()) return;
               liftTo(0);
+              leviathanInteractionRef.current = null;
               setFishingPhase("retreat");
-              say("it let go. i am counting that.", 2600);
+              clearDialogue();
+              say("until next time, big friend.", 2600);
               endSessionAfter(3500);
             }, 19000);
             return;
@@ -974,7 +993,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         faceTravelDirection(target > xRef.current ? 1 : -1);
         updateMood("walk");
         const generation = moodGenRef.current;
-        const ms = Math.max(120, distance / 105 * 1000);
+        const ms = Math.max(120, distance / WALK_SPEED_PX_S * 1000);
         setWalkMs(ms);
         moveTo(target);
         schedule(() => {
@@ -1639,10 +1658,11 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
   return (
     <>
     <BuddyFishingPortal portal={fishingPortal} onClosed={closeFishingPortal} />
-    <LeviathanEncounter phase={mood === "fishing" && ["omen", "monster", "retreat"].includes(fishingPhase) ? fishingPhase : ""} container={rootRef.current?.parentElement} />
+    <LeviathanEncounter phase={mood === "fishing" && ["omen", "monster", "retreat"].includes(fishingPhase) ? fishingPhase : ""} container={rootRef.current?.parentElement} response={leviathanResponse} onInteract={(action) => leviathanInteractionRef.current?.(action)} />
     <div
       className={`screen-buddy-root is-${mood} ${fishingPhase === "approach" ? "is-fishing-approach" : ""} ${fx ? `fx-${fx}` : ""} ${mood === "fishing" && fishingPhase === "fight" ? "is-fish-fight" : ""} ${weather ? `weather-${weather}` : ""} ${outagePhase ? `outage-${outagePhase}` : ""} ${isAirborne ? "is-airborne" : ""} ${hasRocketBoots ? "has-rocket-boots" : ""} ${hasMikuCostume ? "has-miku-costume" : ""}`}
       ref={rootRef}
+      data-leviathan-response={mood === "fishing" ? leviathanResponse : ""}
       style={{
         "--buddy-x": `${x}px`,
         "--buddy-y": `${y}px`,
@@ -1843,7 +1863,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
 
           <BuddySprite
             className="screen-buddy-sprite"
-            expression={isHappy ? "happy" : isAsleep ? "sleep" : fishingPhase === "bite" || fishingPhase === "omen" ? "surprised" : mood === "hunt" || outagePhase === "fix" || fishingPhase === "fight" ? "focus" : "idle"}
+            expression={isHappy || (mood === "fishing" && leviathanResponse === "signal") ? "happy" : isAsleep ? "sleep" : ["bite", "omen", "monster"].includes(fishingPhase) && !leviathanResponse ? "surprised" : mood === "hunt" || outagePhase === "fix" || fishingPhase === "fight" || (fishingPhase === "monster" && leviathanResponse === "steady") ? "focus" : "idle"}
             facing={facing}
             friendshipLevel={friendshipLevel}
             inventory={inventory}

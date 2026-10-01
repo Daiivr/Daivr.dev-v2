@@ -21,7 +21,7 @@ export function recordDailyRun(user, game, score, now = Date.now()) {
   const complete = progress.complete || (player.completedDates || []).includes(challenge.date) || best >= challenge.goal;
   const firstCompletion = complete && !progress.complete && !(player.completedDates || []).includes(challenge.date);
   players[user.id] = {
-    ...player, daily: { date: challenge.date, best, complete },
+    ...player, profile: { id: user.id, username: user.username, avatarUrl: user.avatarUrl }, daily: { date: challenge.date, best, complete },
     challengeCount: (player.challengeCount || 0) + (firstCompletion ? 1 : 0),
     cosmetics: [...new Set([...(player.cosmetics || []), ...(complete ? [challenge.reward] : [])])],
     // Retain the completion calendar so long streaks and earned badges survive.
@@ -30,4 +30,5 @@ export function recordDailyRun(user, game, score, now = Date.now()) {
   const next = players[user.id];
   players[user.id] = reconcileProgression(next, challengeBadges(next.challengeCount, challengeStats(next, now).bestStreak).filter((badge) => badge.earned), now).saved;
   writePlayers(players);
+  return { ...challenge, complete, xp: players[user.id].xpAwards[`daily:${challenge.date}`] || 0, firstCompletion };
 }

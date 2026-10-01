@@ -1,12 +1,15 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useRef, useState } from "react";
-import { Award, ChevronDown, Flame, Inbox, LockKeyhole, SlidersHorizontal, Trophy, X } from "lucide-react";
+import { ArrowLeft, Award, ChevronLeft, ChevronRight, Flame, Inbox, LockKeyhole, SlidersHorizontal, Trophy, X } from "lucide-react";
 import { PLAYER_GAMES } from "../../shared/player-catalog.mjs";
 import { CommunityInbox } from "./CommunityInbox";
 import { PlayerBadge } from "./PlayerBadge";
+import { PlayerRankings } from "./PlayerRankings";
 
 export function PlayerHub({ onPlay, theme = "crt" }) {
   const [open, setOpen] = useState(false);
+  const [view, setView] = useState("passport");
+  const [badgePage, setBadgePage] = useState(0);
   const [data, setData] = useState(null);
   const [edit, setEdit] = useState(null);
   const [message, setMessage] = useState("");
@@ -72,17 +75,25 @@ export function PlayerHub({ onPlay, theme = "crt" }) {
   const card = data?.passport;
   const challenge = data?.challenge;
   const collection = card ? [...card.badges, ...(card.milestones || []).filter((badge) => !badge.earned && !card.badges.some((earned) => earned.id === badge.id) && !badge.secret)] : [];
-  return <Dialog.Root open={open} onOpenChange={setOpen}>
+  const pageCount = Math.max(1, Math.ceil(collection.length / 4));
+  const page = Math.min(badgePage, pageCount - 1);
+  const titles = { passport: "Player passport", challenge: "Daily challenge", records: "Personal bests", customize: "Customize passport", inbox: "Conversations", rankings: "Player rankings" };
+  return <Dialog.Root open={open} onOpenChange={(next) => { setOpen(next); if (next) setView("passport"); }}>
     {notice ? <div className="player-xp-toast" role="status"><Award size={20} aria-hidden="true" /><span>{notice}</span><button type="button" aria-label="Dismiss player reward" onClick={() => setNotice("")}><X size={16} /></button></div> : null}
     <Dialog.Trigger asChild><button className="player-hub-trigger arcade-focus" type="button"><Award size={16} aria-hidden="true" /><span>Player</span>{data?.inbox?.unread ? <b aria-label={`${data.inbox.unread} unread notifications`}>{data.inbox.unread}</b> : null}</button></Dialog.Trigger>
     <Dialog.Portal><Dialog.Overlay className={`player-hub-overlay ${theme === "glitch" ? "theme-glitch" : ""}`} /><Dialog.Content className={`player-hub-dialog ${theme === "glitch" ? "theme-glitch" : ""}`}>
-      <header className="player-hub-heading"><div><div className="player-hub-kicker"><span className="player-hub-window-dots" aria-hidden="true"><i /><i /><i /></span><span>~/cabinet/player.save</span></div><Dialog.Title>Player passport<span aria-hidden="true">_</span></Dialog.Title><Dialog.Description>Your identity, records, and next challenge.</Dialog.Description></div><Dialog.Close asChild><button type="button" aria-label="Close player panel"><X size={20} /></button></Dialog.Close></header>
-      <div className="player-hub-body">
+      <header className="player-hub-heading"><div><div className="player-hub-kicker"><span className="player-hub-window-dots" aria-hidden="true"><i /><i /><i /></span><span>~/cabinet/player.save</span></div><Dialog.Title>{titles[view]}<span aria-hidden="true">_</span></Dialog.Title><Dialog.Description>{view === "rankings" ? "Three leaderboards. Five spots. Make your mark." : "Your identity, records, and next challenge."}</Dialog.Description></div><div className="player-hub-heading-actions">
+        {view !== "passport" ? <button type="button" aria-label="Back to passport" onClick={() => setView("passport")}><ArrowLeft size={18} /><span>Back</span></button> : null}
+        {view !== "rankings" ? <button type="button" aria-label="Open player rankings" onClick={() => setView("rankings")}><Trophy size={18} /></button> : null}
+        <Dialog.Close asChild><button type="button" aria-label="Close player panel"><X size={20} /></button></Dialog.Close>
+      </div></header>
+      <div className={`player-hub-body view-${view}`}>
       {message ? <p className="player-hub-status" role="status">{message}</p> : null}
       {!data ? <button type="button" onClick={() => load()}>Retry loading player panel</button> : null}
       {data && !data.user ? <p className="player-signin"><a href="/api/comments/auth/discord">Connect Discord</a> to save a passport, earn challenge rewards, and see your inbox.</p> : null}
-      <div className="player-hub-overview">
-      {card && edit ? <div className="player-hub-identity">
+      {view === "rankings" ? <PlayerRankings userId={data?.user?.id} /> : null}
+      {view === "passport" || view === "challenge" ? <div className="player-hub-overview">
+      {view === "passport" && card && edit ? <div className="player-hub-identity">
         <section className={`player-passport accent-${edit.accent.toLowerCase()}`} aria-label="Your passport preview">
           <div className="passport-card-label"><span>01 / PLAYER ID</span><span className="passport-collection-count"><Award size={14} aria-hidden="true" />{card.badges.length} badges earned</span></div>
           <img src={card.user.avatarUrl} alt="" /><div><small>{edit.title}</small><h3>{card.user.username}</h3><p>Favorite: {PLAYER_GAMES.find((game) => game.id === edit.favoriteGame)?.name || "Not chosen yet"}</p></div>
@@ -92,9 +103,8 @@ export function PlayerHub({ onPlay, theme = "crt" }) {
             <div className="passport-level-meta"><span>{card.progression.levelXp.toLocaleString()} / {card.progression.levelGoal.toLocaleString()} XP</span><span>{card.progression.remainingXp.toLocaleString()} to level {card.progression.level + 1}</span></div>
           </section> : null}
           <dl className="passport-stats"><div><dt>Buddy level</dt><dd>{card.level}</dd></div><div><dt>Quests</dt><dd>{card.quests}</dd></div><div><dt>Daily wins</dt><dd>{card.challengeCount}</dd></div></dl>
-          {edit.featuredBadges.length ? <div className="passport-badges" aria-label="Featured badges">{card.badges.filter((badge) => edit.featuredBadges.includes(badge.id)).map((badge) => <PlayerBadge key={badge.id} badge={badge} />)}</div> : null}
+          {edit.featuredBadges.length ? <div className="passport-badges" aria-label="Featured badges">{card.badges.filter((badge) => edit.featuredBadges.includes(badge.id)).map((badge) => <PlayerBadge key={badge.id} badge={badge} tooltip />)}</div> : null}
         </section>
-        <section className="passport-records-panel" aria-label="Personal bests"><h3><Trophy size={14} aria-hidden="true" />Personal bests</h3><div className="passport-records">{card.records.map((record) => <div key={record.game}><span>{PLAYER_GAMES.find((game) => game.id === record.game)?.name}</span><strong>{record.best === null ? "No run yet" : record.best.toLocaleString()}</strong></div>)}</div></section>
       </div> : null}
       {challenge ? <section className="daily-challenge" aria-label="Daily challenge">
         <div className="daily-challenge-heading"><span className="pixel-label">DAILY CHALLENGE</span><span>{challenge.complete ? "Completed" : "One run"}</span></div>
@@ -106,16 +116,16 @@ export function PlayerHub({ onPlay, theme = "crt" }) {
         <button type="button" onClick={() => { setOpen(false); onPlay(challenge.game); }}>Play challenge <span aria-hidden="true">↗</span></button>
         <small>{challenge.date} · Resets at 00:00 UTC.<br />{data?.user ? "Progress saves after an accepted run." : "Sign in before playing to save progress."}</small>
       </section> : null}
-      </div>
-      {card && edit ? <details className="player-hub-disclosure">
-        <summary><SlidersHorizontal size={16} aria-hidden="true" /><span>Customize passport<small>Title, favorite game, accent & badges</small></span><ChevronDown size={16} className="player-hub-chevron" aria-hidden="true" /></summary>
+      </div> : null}
+      {view === "records" && card ? <section className="passport-records-panel" aria-label="Personal bests"><h3><Trophy size={14} aria-hidden="true" />Your high scores</h3><div className="passport-records">{card.records.map((record) => <div key={record.game}><span>{PLAYER_GAMES.find((game) => game.id === record.game)?.name}</span><strong>{record.best === null ? "No run yet" : record.best.toLocaleString()}</strong></div>)}</div></section> : null}
+      {view === "customize" && card && edit ? <section className="passport-customize">
         <form className="passport-form" onSubmit={save}>
           <div className="passport-fields">
             <label>Title<select value={edit.title} disabled={busy} onChange={(event) => setEdit({ ...edit, title: event.target.value })}>{card.titles.map((title) => <option key={title}>{title}</option>)}</select></label>
             <label>Favorite game<select value={edit.favoriteGame} disabled={busy} onChange={(event) => setEdit({ ...edit, favoriteGame: event.target.value })}><option value="">Choose a game</option>{PLAYER_GAMES.map((game) => <option key={game.id} value={game.id}>{game.name}</option>)}</select></label>
             <label>Card accent<select value={edit.accent} disabled={busy} onChange={(event) => setEdit({ ...edit, accent: event.target.value })}>{["default", ...card.cosmetics].map((accent) => <option key={accent} value={accent}>{accent === "default" ? "Classic green" : accent}</option>)}</select></label>
           </div>
-          <fieldset disabled={busy}><legend>Badge collection · {edit.featuredBadges.length}/3 featured</legend><p className="passport-collection-hint">Choose up to three earned badges for your card. Streak badges stay yours after a missed day.</p><div className="passport-badge-options">{collection.map((badge) => {
+          <fieldset disabled={busy}><legend>Badge collection · {edit.featuredBadges.length}/3 featured</legend><p className="passport-collection-hint">Choose up to three earned badges. Earned streak badges stay yours.</p><div className="passport-badge-options">{collection.slice(page * 4, page * 4 + 4).map((badge) => {
             const earned = badge.earned !== false;
             return <label key={badge.id} className={earned ? "is-earned" : "is-locked"}>
               <input type="checkbox" aria-label={`Feature ${badge.label}`} checked={edit.featuredBadges.includes(badge.id)} disabled={!earned || (!edit.featuredBadges.includes(badge.id) && edit.featuredBadges.length >= 3)} onChange={(event) => setEdit({ ...edit, featuredBadges: event.target.checked ? [...edit.featuredBadges, badge.id] : edit.featuredBadges.filter((id) => id !== badge.id) })} />
@@ -124,12 +134,15 @@ export function PlayerHub({ onPlay, theme = "crt" }) {
               <span className="badge-unlock-status">{earned ? "Unlocked" : <><LockKeyhole size={11} aria-hidden="true" />{badge.progress} / {badge.target} {badge.metric === "streak" ? "best streak" : "daily wins"}</>}</span>
               {!earned ? <progress value={badge.progress} max={badge.target} aria-label={`${badge.label} progress`} /> : null}
             </label>;
-          })}</div></fieldset>
+          })}</div><div className="passport-badge-pagination"><button type="button" aria-label="Previous badges" disabled={page === 0} onClick={() => setBadgePage(page - 1)}><ChevronLeft size={16} /></button><span aria-live="polite">Page {page + 1} / {pageCount}</span><button type="button" aria-label="Next badges" disabled={page + 1 === pageCount} onClick={() => setBadgePage(page + 1)}><ChevronRight size={16} /></button></div></fieldset>
           <button type="submit" disabled={busy}>{busy ? "Saving…" : "Save passport"}</button>
         </form>
-      </details> : null}
-      {data?.user ? <details className="player-hub-disclosure player-hub-inbox"><summary><Inbox size={16} aria-hidden="true" /><span>Conversations<small>Mentions & replies</small></span><b>{data.inbox?.unread || 0} unread</b><ChevronDown size={16} className="player-hub-chevron" aria-hidden="true" /></summary><CommunityInbox inbox={data.inbox} onNavigate={() => setOpen(false)} /></details> : null}
+      </section> : null}
+      {view === "inbox" && data?.user ? <CommunityInbox inbox={data.inbox} onNavigate={() => setOpen(false)} /> : null}
       </div>
+      <nav className="player-hub-nav" aria-label="Passport sections">{[
+        ["passport", "Passport", Award], ["challenge", "Daily", Flame], ["records", "Records", Trophy], ["customize", "Customize", SlidersHorizontal], ["inbox", "Inbox", Inbox]
+      ].filter(([id]) => data?.user || ["passport", "challenge"].includes(id)).map(([id, label, Icon]) => <button key={id} type="button" aria-current={view === id ? "page" : undefined} onClick={() => setView(id)}><Icon size={15} aria-hidden="true" /><span>{label}</span>{id === "inbox" && data?.inbox?.unread ? <b>{data.inbox.unread}</b> : null}</button>)}</nav>
     </Dialog.Content></Dialog.Portal>
   </Dialog.Root>;
 }

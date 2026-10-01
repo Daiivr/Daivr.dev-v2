@@ -280,6 +280,7 @@
 				if (score === null) return;
 				trackScore(score);
 				var mode = readMode();
+				if (runStartedAt && window.parent !== window) window.parent.postMessage({ type: "daivr:daily-progress", game: "space-cadet-pinball", score: runBest, durationMs: Date.now() - runStartedAt }, parentOrigin);
 				if (mode && mode !== lastMode) {
 					lastMode = mode;
 					if (mode === 2) {

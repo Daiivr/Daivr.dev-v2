@@ -75,7 +75,7 @@ export async function handleSpaceCadetPinballRequest(request, response) {
     scores = scores.filter((entry) => String(entry.discordId) !== String(user.id)); writeScores(scores);
     return sendJson(response, 200, { score: null, leaderboard: leaderboard(scores) });
   }
-  if (request.method === "POST" && path === "score") {
+  if (request.method === "POST" && ["score", "challenge"].includes(path)) {
     if (!user) return sendJson(response, 401, { error: "Connect Discord to save Space Cadet scores." });
     if (rateLimited(user.id)) return sendJson(response, 429, { error: "Too many table runs submitted." });
     let body; try { body = await readBody(request); } catch { return sendJson(response, 400, { error: "Invalid score payload." }); }
@@ -83,6 +83,7 @@ export async function handleSpaceCadetPinballRequest(request, response) {
     const durationMs = Math.round(Number(body.durationMs));
     if (!Number.isFinite(score) || score < 0 || score > MAX_SCORE || !Number.isFinite(durationMs) || durationMs < 0 || durationMs > MAX_DURATION_MS) return sendJson(response, 400, { error: "Space Cadet score failed validation." });
     if (score > 0 && (durationMs < MIN_RUN_MS || score / (durationMs / 1000) > MAX_POINTS_PER_SECOND)) return sendJson(response, 422, { error: "Table run was faster than the validation floor." });
+    if (path === "challenge") return sendJson(response, 200, { daily: recordDailyRun(user, "space-cadet-pinball", score) || null });
     scores = readScores();
     const index = scores.findIndex((entry) => String(entry.discordId) === String(user.id));
     const current = index >= 0 ? scores[index] : null;

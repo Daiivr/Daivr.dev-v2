@@ -1,0 +1,102 @@
+@layer components {
+  .daily-game-notice { position: fixed; z-index: 250; top: max(18px, env(safe-area-inset-top)); right: max(18px, env(safe-area-inset-right)); width: min(360px, calc(100vw - 36px)); padding: 14px; border: 1px solid #ffcf67; background: url('/textures/arcade-grain.svg'), linear-gradient(135deg,#263b27fa,#071810fa); color: #def9e7; box-shadow: inset 0 1px #ffffff33, 0 6px 24px #000b; font: 11px/1.5 var(--font-mono); }
+  .daily-game-notice > div[role=status] { display: flex; gap: 10px; }
+  .daily-game-notice svg { flex-shrink: 0; color: #ffcf67; }
+  .daily-game-notice strong { display: block; font-size: 11px; color: #ffcf67; }
+  .daily-game-notice span { display: block; margin-top: 4px; font-size: 12px; }
+  .daily-game-notice p { margin: 5px 0 0; font-size: 10px; }
+  .daily-game-notice-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+  .daily-game-notice button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; width: auto; height: auto; padding: 8px 10px; min-height: 36px; white-space: nowrap; border: 1px solid #79a388; color: #def9e7; background: #0a2017; font: inherit; cursor: pointer; }
+  .daily-game-notice button:focus-visible { outline: 2px solid #ffcf67; outline-offset: 3px; }
+  .player-hub-dialog { width: min(1040px, calc(100vw - 28px)); }
+  .player-hub-heading { padding: 16px 20px 12px; }
+  .player-hub-kicker { margin-bottom: 5px; }
+  .player-hub-heading-actions { display: flex; flex-shrink: 0; gap: 7px; align-items: center; }
+  .player-hub-heading-actions button { display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 38px; height: 38px; padding: 8px; color: var(--color-cyan-arcade); }
+  .player-hub-body { padding: 16px 20px; scrollbar-width: none; scrollbar-gutter: auto; }
+  .player-hub-body::-webkit-scrollbar { display: none; }
+  .player-hub-overview { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 16px; }
+  .player-hub-body .player-passport { padding: 12px; gap: 10px; }
+  .player-hub-body .passport-card-label { padding-bottom: 8px; }
+  .player-hub-body .passport-level { padding: 10px 14px; }
+  .player-hub-body .passport-level-heading strong { font-size: 24px; padding-block: 2px; }
+  .player-hub-body .passport-stats, .player-hub-body .passport-badges { padding-top: 9px; }
+  .player-hub-body .passport-badges > .player-badge { padding: 8px 4px; }
+  .player-hub-body .daily-challenge { padding: 12px 16px; }
+  .player-hub-body .daily-challenge-heading { padding-bottom: 8px; }
+  .player-hub-body .daily-challenge h3 { margin-top: 10px; }
+  .player-hub-body .daily-xp-reward { padding: 8px 0; gap: 3px; }
+  .player-hub-body .daily-streak-panel { padding-block: 10px; margin-block: 8px; }
+  .player-hub-nav { display: flex; flex-shrink: 0; gap: 6px; padding: 12px 20px; border-top: 1px solid var(--player-border); background: var(--panel-grain), #06150dbb; }
+  .player-hub-nav button { flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px; min-width: 0; }
+  .player-hub-nav button[aria-current] { color: #07170e; background: var(--color-phosphor); border-color: var(--color-phosphor); }
+  .player-hub-nav b { font-size: 9px; }
+  .view-challenge .daily-challenge { width: min(100%, 620px); justify-self: center; }
+  .view-records .passport-records-panel { margin: 0; }
+  .view-records .passport-records > div { padding: 22px; }
+  .view-records .passport-records strong { font-size: 26px; }
+  .passport-customize .passport-form { padding: 0; }
+  .passport-customize .passport-fields { margin-bottom: 12px; }
+  .passport-customize .passport-badge-options { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .passport-badge-pagination { display: flex; align-items: center; justify-content: center; gap: 12px; margin-top: 10px; font-size: 10px; color: var(--player-muted); }
+  .passport-badge-pagination button { display: grid; place-items: center; }
+  .player-badge.has-tooltip { position: relative; cursor: help; }
+  .player-badge.has-tooltip:focus-visible { outline: 2px solid var(--badge-color); outline-offset: 2px; }
+  .player-badge-tooltip { position: absolute; z-index: 5; bottom: calc(100% - 3px); left: 50%; transform: translateX(-50%); width: 230px; max-width: 65vw; display: grid; gap: 6px; padding: 12px; text-align: left; color: #e0f5e8; border: 1px solid var(--badge-color); background: var(--panel-grain), linear-gradient(135deg, #253b30, #07140e); box-shadow: inset 0 1px #ffffff24, 0 6px 20px #000b; pointer-events: auto; font: 11px/1.5 var(--font-mono); }
+  .passport-badges > :first-child .player-badge-tooltip { left: 0; transform: none; }
+  .passport-badges > :last-child .player-badge-tooltip { left: auto; right: 0; transform: none; }
+  .player-badge-tooltip > small { font-size: 8px; letter-spacing: .08em; color: var(--badge-color); }
+  .player-badge-tooltip > strong { font-size: 12px; color: var(--badge-color); }
+  .player-badge-tooltip > b { padding-top: 6px; border-top: 1px dashed #ffffff25; color: #ffcf67; font-size: 10px; }
+  .player-rankings .rankings-intro { display: flex; justify-content: space-between; gap: 10px; margin: 0 0 14px; font-size: 12px; color: var(--color-cabinet); }
+  .rankings-intro span { color: var(--player-muted); font-size: 10px; }
+  .player-ranking-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+  .player-ranking-board { position: relative; padding: 4px; border: 1px solid var(--player-border); border-top-color: #9aaf83; background: var(--panel-grain), repeating-linear-gradient(112deg,#ffffff04 0 1px,transparent 1px 4px), linear-gradient(135deg,#3b5140,#15271d 45%,#263e2e); box-shadow: inset 0 0 0 2px #07150db0, inset 0 0 0 3px #8dac7333, 0 4px 10px #0005; }
+  .player-ranking-board::before, .player-ranking-board::after { content: ''; position: absolute; top: 6px; width: 3px; height: 3px; background: #091a11; border-top: 1px solid #acbf9c; box-shadow: 0 1px 1px #000b; }
+  .player-ranking-board::before { left: 6px; }
+  .player-ranking-board::after { right: 6px; }
+  .player-ranking-board h3 { display: flex; align-items: center; gap: 9px; margin: 0; padding: 12px 10px; border-bottom: 1px solid #bea56466; color: var(--color-cabinet); text-shadow: 0 2px #000a; background: repeating-linear-gradient(0deg,#0002 0 1px,transparent 1px 3px), linear-gradient(110deg,#a79b5330,#06150d50); box-shadow: inset 0 1px #ffffff14,0 2px 0 #0005; font: 800 12px var(--font-mono); }
+  .player-ranking-board h3 svg { flex-shrink: 0; width: 30px; height: 30px; padding: 6px; border: 1px solid #b49b5466; background: linear-gradient(135deg,#b7ac6033,#04150bcc); box-shadow: inset 0 1px #f2e3a433,inset 0 -2px #0008; }
+  .player-ranking-board ol { padding: 5px; margin: 0; list-style: none; }
+  .player-ranking-board li { --rank-metal: #75977c; display: grid; grid-template-columns: 25px 32px minmax(0, 1fr); gap: 5px 8px; align-items: center; min-height: 70px; padding: 9px 7px; border: 1px solid #8fa68126; border-bottom-color: #000a; background: var(--panel-grain), repeating-linear-gradient(0deg,#ffffff03 0 1px,transparent 1px 3px), linear-gradient(110deg,#0b1b13bb,#31443245); box-shadow: inset 0 1px #d3e7be0c; }
+  .player-ranking-board li + li { margin-top: 4px; }
+  .player-ranking-board li:nth-child(1) { --rank-metal: #edca76; background: var(--panel-grain),linear-gradient(110deg,#a18a3933,#101e1699); }
+  .player-ranking-board li:nth-child(2) { --rank-metal: #b1c5c5; }
+  .player-ranking-board li:nth-child(3) { --rank-metal: #c39571; }
+  .player-ranking-board li:first-child .ranking-place { color: var(--color-cabinet); }
+  .player-ranking-board .is-you { background: color-mix(in srgb, var(--color-phosphor) 8%, transparent); }
+  .ranking-place { grid-row: span 2; display: grid; place-items: center; height: 30px; border: 1px solid color-mix(in srgb,var(--rank-metal) 50%,transparent); color: var(--rank-metal); font-size: 11px; text-shadow: 0 2px #000; background: repeating-linear-gradient(0deg,#ffffff0a 0 1px,transparent 1px 3px),linear-gradient(145deg,#dce9cb24,#021009bb 55%,#bfd2ab18); box-shadow: inset 0 1px #ffffff30,inset 0 -2px #0008,0 2px 3px #0005; clip-path: polygon(4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%,0 4px); }
+  .player-ranking-board .ranking-avatar { grid-row: span 2; width: 32px; height: 32px; }
+  .ranking-player { min-width: 0; }
+  .ranking-player strong { display: block; font-size: 11px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .ranking-player small { display: block; color: var(--player-muted); font-size: 9px; margin-top: 3px; }
+  .ranking-value { grid-column: 3; color: var(--color-phosphor); font-size: 12px; }
+  .player-rankings .rankings-note { color: var(--player-muted); font-size: 10px; margin: 12px 0 0; }
+  .player-rankings .ranking-empty { color: var(--player-muted); padding: 16px; font-size: 11px; }
+  .rankings-tabs { display: none; }
+  @media (max-width: 760px) {
+    .player-hub-heading { padding: 14px; gap: 6px; }
+    .player-hub-heading h2 { font-size: 19px; }
+    .player-hub-heading p { font-size: 9px; }
+    .player-hub-heading-actions { gap: 4px; }
+    .player-hub-heading-actions button { min-width: 32px; height: 34px; padding: 6px; }
+    .player-hub-heading-actions button span { display: none; }
+    .player-hub-body { padding: 14px; }
+    .player-hub-overview { grid-template-columns: minmax(0, 1fr); }
+    .view-passport:has(.player-hub-identity) .daily-challenge { display: none; }
+    .player-hub-nav { padding: 10px; gap: 4px; }
+    .player-hub-nav button { flex-direction: column; gap: 4px; padding: 7px 3px; font-size: 9px; }
+    .passport-customize .passport-fields { grid-template-columns: 1fr; gap: 8px; }
+    .passport-customize .passport-badge-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .passport-customize .passport-badge-options label { padding: 10px 8px; }
+    .passport-customize .badge-emblem { width: 44px; height: 50px; }
+    .passport-customize .badge-emblem-icon { top: 11px; width: 19px; }
+    .passport-customize .badge-emblem-number, .passport-customize .badge-emblem-star { top: 29px; }
+    .player-ranking-grid { grid-template-columns: 1fr; }
+    .player-ranking-board:not(.is-active) { display: none; }
+    .rankings-tabs { display: flex; gap: 5px; margin-bottom: 12px; }
+    .rankings-tabs button { flex: 1; font-size: 9px; padding: 6px; }
+    .rankings-tabs button[aria-pressed=true] { border-color: var(--color-cabinet); color: var(--color-cabinet); }
+    .player-ranking-board li { min-height: 64px; }
+  }
+}

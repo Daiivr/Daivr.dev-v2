@@ -6,6 +6,9 @@ const SECRET_BADGES = [
   { id: "first-boot", label: "Hello, world", tier: "bronze", xp: 75, description: "Booted Dai.exe for the first time.", icon: "boot", test: (a) => a.daiBooted },
   { id: "fish-archivist", label: "Deep-sea archivist", tier: "diamond", xp: 2000, description: "Caught every fish species in the Buddy journal.", icon: "fish", test: (a) => FISH_CATALOG.filter((fish) => fish.kind === "fish").every((fish) => a.fishCollection?.[fish.id] > 0) },
   { id: "abyss-witness", label: "Abyss witness", tier: "gold", xp: 500, description: "Witnessed the Void Leviathan at the surface.", icon: "sighting", test: (a) => a.leviathanSightings > 0 },
+  { id: "abyss-familiar", label: "A familiar shadow", tier: "gold", target: 3, xp: 750, description: "Shared 3 sightings of the Void Leviathan with Buddy.", icon: "sighting", test: (a) => a.leviathanSightings >= 3 },
+  { id: "abyss-keeper", label: "Keeper of the deep", tier: "platinum", target: 10, xp: 1400, description: "Witnessed the Void Leviathan 10 times. The deep remembers you.", icon: "sighting", test: (a) => a.leviathanSightings >= 10 },
+  { id: "abyss-kindred", label: "Kindred of the abyss", tier: "diamond", target: 25, xp: 2500, description: "Shared 25 encounters with the Void Leviathan.", icon: "sighting", test: (a) => a.leviathanSightings >= 25 },
   { id: "night-owl", label: "Night owl", tier: "silver", xp: 150, description: "Woke Buddy during the late shift.", icon: "night", test: (a) => a.midnightWakeups > 0 },
   { id: "bug-hunter", label: "Bug exterminator", tier: "gold", xp: 400, description: "Helped Buddy defeat 25 bugs.", icon: "bug", test: (a) => a.bugsDefeated >= 25 }
 ];

@@ -2,6 +2,8 @@ import { ArrowLeft, Blocks, LogIn, RotateCcw, Trophy, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RankingAvatar } from "./RankingAvatar";
 import { ArcadeTvDetails } from "./ArcadeTvDetails";
+import { useDailyChallengeNotice } from "../hooks/useDailyChallengeNotice";
+import { DailyChallengeNotice } from "./DailyChallengeNotice";
 
 const BEST_KEY = "daivr.tower-block.best.v1";
 
@@ -21,6 +23,7 @@ export function TowerBlockModal({ open, onBack, onClose }) {
   const [rankingLoading, setRankingLoading] = useState(false);
   const [saveStatus, setSaveStatus] = useState("");
   const frameRef = useRef(null);
+  const daily = useDailyChallengeNotice({ game: "tower-block", open, frameRef });
 
   const loadLeaderboard = useCallback(async (quiet = false) => {
     if (!quiet) setRankingLoading(true);
@@ -95,6 +98,7 @@ export function TowerBlockModal({ open, onBack, onClose }) {
           <div className="tower-modal-stats"><span>LAST <b>{score}</b></span><span>BEST <b>{best}</b></span><button className={rankingOpen ? "is-active" : ""} type="button" onClick={() => setRankingOpen((value) => !value)} aria-label="Toggle Tower Block leaderboard"><Trophy size={16} /></button><button type="button" onClick={() => { setScore(0); setInstance((value) => value + 1); }} aria-label="Restart Tower Block"><RotateCcw size={16} /></button><button type="button" onClick={onClose} aria-label="Close Tower Block"><X size={18} /></button></div>
         </header>
         <div className="tower-modal-screen">
+          <DailyChallengeNotice notice={daily.notice} onDismiss={daily.dismiss} onRetry={daily.retry} onClose={onClose} />
           <iframe key={instance} ref={frameRef} src="/tower-block/index.html" title="Tower Block minigame" onLoad={(event) => { if (!rankingOpen) event.currentTarget.contentWindow?.focus(); }} />
           {rankingOpen ? <aside className="tower-ranking" aria-label="Tower Block leaderboard">
             <header><div><small>RANKING.SYS</small><strong>TOP BUILDERS</strong></div><button type="button" onClick={() => loadLeaderboard()}>REFRESH</button></header>

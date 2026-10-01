@@ -121,6 +121,21 @@ test("community API, safe storage, posting limits, passports and daily rewards",
   const challenge = dailyChallenge();
   assert.notEqual(dailyChallenge(Date.parse(`${challenge.date}T23:59:59Z`)).date, dailyChallenge(Date.parse(challenge.resetsAt)).date);
   assert.equal((await api(`/api/${challenge.game}/score`, null, { score: challenge.goal, durationMs: 60000 })).status, 401);
+  assert.equal((await api(`/api/${challenge.game}/challenge`, null, { score: challenge.goal, durationMs: 60000 })).status, 401);
+  assert.equal((await api(`/api/${challenge.game}/challenge`, bob, { score: challenge.goal, durationMs: 0 })).status, 422);
+  const checkpoint = await api(`/api/${challenge.game}/challenge`, bob, { score: challenge.goal, durationMs: 60000 });
+  assert.equal(checkpoint.status, 200);
+  assert.equal(checkpoint.data.daily.complete, true);
+  assert.equal(checkpoint.data.daily.firstCompletion, true);
+  assert.equal(checkpoint.data.daily.xp, 100);
+  assert.equal(JSON.parse(readFileSync(join(dir, `${challenge.game}-leaderboard.json`), "utf8")).scores.length, 0);
+  for (const game of ["tower-block", "cross-road", "space-cadet-pinball"].filter((game) => game !== challenge.game)) {
+    assert.equal((await api(`/api/${game}/challenge`, bob, { score: 500000, durationMs: 0 })).status >= 400, true);
+    const otherCheckpoint = await api(`/api/${game}/challenge`, bob, { score: 100, durationMs: 60000 });
+    assert.equal(otherCheckpoint.status, 200);
+    assert.equal(otherCheckpoint.data.daily, null);
+    assert.equal(JSON.parse(readFileSync(join(dir, `${game}-leaderboard.json`), "utf8")).scores.length, 0);
+  }
   assert.equal((await api(`/api/${challenge.game}/score`, bob, { score: challenge.goal, durationMs: 60000 })).status, 200);
   let player = (await api("/api/player")).data;
   assert.equal(player.challenge.complete, true);
@@ -168,6 +183,13 @@ test("community API, safe storage, posting limits, passports and daily rewards",
   assert.equal((await api("/api/buddy")).data.adventure.daiBooted, true);
   assert.equal((await api("/api/player")).data.passport.progression.totalXp, xpBeforeSecrets + 2575);
   assert.ok(!(await api("/api/player", alice)).data.passport.badges.some((badge) => badge.secret));
+  const ranked = (await api("/api/player?view=rankings", null)).data.rankings;
+  assert.equal(ranked.level[0].user.username, "Bob");
+  assert.equal(ranked.streak[0].bestStreak, 3);
+  assert.equal(ranked.completions[0].challengeCount, 25);
+  assert.ok(!JSON.stringify(ranked).includes("first-boot"));
+  assert.ok(!JSON.stringify(ranked).includes("xpAwards"));
+  assert.equal((await api("/api/player?view=rankings", bob, {})).status, 405);
 
   writeJsonStore("recover.json", [1], [], [], Array.isArray);
   writeJsonStore("recover.json", [1, 2], [], [], Array.isArray);

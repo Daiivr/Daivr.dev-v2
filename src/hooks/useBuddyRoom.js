@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { DEFAULT_ROOM, normalizeRoom } from "../../shared/buddy-room.mjs";
+import { AQUARIUM_SLOTS, DEFAULT_ROOM, normalizeRoom } from "../../shared/buddy-room.mjs";
 
 const keyFor = (user) => `daivr.buddyRoom.v1.${user || "guest"}`;
 function readRoom(user) {
@@ -54,7 +54,14 @@ export function useBuddyRoom() {
   }, []);
 
   function update(field, value) {
-    setRoom((current) => normalizeRoom({ ...current, [field]: value }));
+    setRoom((current) => {
+      const next = { ...current, [field]: value };
+      // Move an already displayed species to the selected slot.
+      if (value && AQUARIUM_SLOTS.includes(field)) {
+        for (const other of AQUARIUM_SLOTS) if (other !== field && next[other] === value) next[other] = "";
+      }
+      return normalizeRoom(next);
+    });
     setStatus("Previewing changes — save when it feels like home.");
   }
 

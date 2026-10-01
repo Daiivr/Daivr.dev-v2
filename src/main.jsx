@@ -26,6 +26,7 @@ import "./styles/buddy-animation-gear.css";
 import "./styles/buddy-body-water.css";
 import "./styles/buddy-rain-hunt.css";
 import "./styles/buddy-encounter-fishing.css";
+import "./styles/buddy-abyss.css";
 import "./styles/buddy-outage.css";
 import "./styles/pixel-birds.css";
 import "./styles/terminal-dialog.css";
@@ -43,6 +44,7 @@ import "./styles/community.css";
 import "./styles/discord-desk.css";
 import "./styles/game-collection.css";
 import "./styles/arcade-panels.css";
+import "./styles/player-passport.css";
 import "./styles/arcade-tv.css";
 import "./styles/panel-glitch.css";
 

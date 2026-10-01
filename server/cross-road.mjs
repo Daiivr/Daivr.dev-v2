@@ -64,7 +64,7 @@ export async function handleCrossRoadRequest(request, response) {
     scores = scores.filter((entry) => String(entry.discordId) !== String(user.id)); writeScores(scores);
     return sendJson(response, 200, { score: null, leaderboard: leaderboard(scores) });
   }
-  if (request.method === "POST" && path === "score") {
+  if (request.method === "POST" && ["score", "challenge"].includes(path)) {
     if (!user) return sendJson(response, 401, { error: "Connect Discord to save Cross Road scores." });
     if (rateLimited(user.id)) return sendJson(response, 429, { error: "Too many road runs submitted." });
     let body; try { body = await readBody(request); } catch { return sendJson(response, 400, { error: "Invalid score payload." }); }
@@ -72,6 +72,7 @@ export async function handleCrossRoadRequest(request, response) {
     const durationMs = Math.round(Number(body.durationMs));
     if (!Number.isFinite(score) || score < 0 || score > 100000 || !Number.isFinite(durationMs) || durationMs < 0 || durationMs > 24 * 60 * 60 * 1000) return sendJson(response, 400, { error: "Cross Road score failed validation." });
     if (score > 0 && durationMs < score * 150) return sendJson(response, 422, { error: "Road progress was faster than the validation floor." });
+    if (path === "challenge") return sendJson(response, 200, { daily: recordDailyRun(user, "cross-road", score) || null });
     scores = readScores();
     const index = scores.findIndex((entry) => String(entry.discordId) === String(user.id));
     const current = index >= 0 ? scores[index] : null;

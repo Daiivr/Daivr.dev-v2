@@ -1,8 +1,7 @@
 import { BuddyCollectibleIcon } from "./BuddyCollectibleIcon";
 
-export function BuddyRoomAquarium({ featured, collection }) {
-  // The chosen fish leads the school; companions also come from actual catches.
-  const school = featured ? [featured, ...collection.filter((item) => item.kind === "fish" && item.key !== featured.key)].slice(0, 3) : [];
+export function BuddyRoomAquarium({ featured, companions = [] }) {
+  const school = [featured, companions[0], companions[1]];
   return <span className="room-aquarium-world" aria-hidden="true">
     <svg className="room-aquarium-habitat" viewBox="0 0 180 110" preserveAspectRatio="none" shapeRendering="crispEdges">
       <path d="M0 0h180v110H0z" fill="#153545" /><path d="M0 0h180v30H0z" fill="#255968" /><path d="M0 30h180v27H0z" fill="#204b5b" /><path d="M0 57h180v25H0z" fill="#1a4050" />
@@ -16,9 +15,9 @@ export function BuddyRoomAquarium({ featured, collection }) {
       <path d="M45 94h5v-5h13v4h5v7H45z" fill="#8b9590" /><path d="M50 89h12v4H50zM47 94h8v2h-8z" fill="#b7c0b0" /><path d="M163 88h9v4h8v8h-21v-8h4z" fill="#707f7c" />
       <path d="M173 5h5v77h-5zM169 74h9v12h-9z" fill="#112a38" /><path d="M171 76h4v2h-4zM171 80h4v2h-4z" fill="#5a8487" />
     </svg>
-    {school.map((fish, index) => <span className={`room-swimmer swimmer-${index}`} key={fish.key}><span className="room-fish-facing"><BuddyCollectibleIcon id={fish.id} color={fish.color} /></span></span>)}
+    {school.map((fish, index) => fish ? <span className={`room-swimmer swimmer-${index}`} key={fish.key}><span className="room-fish-facing"><BuddyCollectibleIcon id={fish.id} color={fish.color} /></span></span> : null)}
     <span className="room-tank-bubble bubble-one" /><span className="room-tank-bubble bubble-two" /><span className="room-tank-bubble bubble-three" />
     <span className="room-tank-surface" /><span className="room-tank-glass" />
-    {!featured ? <span className="room-aquarium-invite">+ add fish</span> : null}
+    {!school.some(Boolean) ? <span className="room-aquarium-invite">+ add fish</span> : null}
   </span>;
 }

@@ -291,6 +291,7 @@ class Game {
             return this.endGame();
         }
         this.scoreContainer.innerHTML = String(this.blocks.length - 1);
+        if (this.runStartedAt) notifyCabinet('daivr:daily-progress', { game: 'tower-block', score: Math.max(0, this.blocks.length - 1), durationMs: Date.now() - this.runStartedAt });
         let newKidOnTheBlock = new Block(lastBlock);
         this.newBlocks.add(newKidOnTheBlock.mesh);
         this.blocks.push(newKidOnTheBlock);

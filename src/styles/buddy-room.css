@@ -32,6 +32,8 @@
   .room-fish-facing { display: block; width: 100%; height: 100%; animation: room-fish-turn var(--swim-time) steps(1, end) var(--swim-delay) infinite; }
   .room-fish-facing > svg { width: 100%; height: 100%; filter: drop-shadow(0 2px 0 #051e3180); }
   .room-swimmer.swimmer-1 { --swim-time: 19s; --swim-delay: -13s; top: 49%; width: 26%; height: 26%; opacity: .85; }
+  .room-swimmer.swimmer-0 { z-index: 1; }
+  .room-tank-glass, .room-tank-surface, .room-tank-bubble { z-index: 2; }
   .room-swimmer.swimmer-2 { --swim-time: 23s; --swim-delay: -7s; top: 6%; width: 23%; height: 24%; opacity: .7; }
   .room-swimmer .buddy-fish-tail { transform-box: fill-box; transform-origin: right center; animation: room-fin-wave .8s ease-in-out infinite alternate; }
   .room-swimmer .buddy-fish-fin { transform-box: fill-box; transform-origin: left top; animation: room-fin-wave 1s ease-in-out infinite alternate-reverse; }
@@ -81,6 +83,13 @@
   .room-slot-picker > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
   .room-slot-picker button { min-height: 42px; padding: 5px; border: 1px solid var(--buddy-border); color: var(--buddy-muted); background: var(--buddy-panel); font-size: 10px; }
   .room-slot-picker button[aria-pressed="true"] { border-color: var(--color-cyan-arcade); color: var(--color-cyan-arcade); background: color-mix(in srgb, var(--color-cyan-arcade) 8%, var(--buddy-sunken)); }
+  .room-fish-slots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin-top: 12px; }
+  .room-fish-slots button { display: grid; gap: 5px; min-width: 0; padding: 10px 6px; text-align: left; border: 1px solid #32654e; background: url('/textures/arcade-grain.svg'), #071d16; color: var(--buddy-muted); cursor: pointer; }
+  .room-fish-slots button[aria-pressed=true] { border-color: var(--color-cyan-arcade); box-shadow: inset 0 -2px var(--color-cyan-arcade); color: var(--color-cyan-arcade); }
+  .room-fish-slots button:focus-visible { outline: 2px solid var(--color-cyan-arcade); outline-offset: 2px; }
+  .room-fish-slots span { font-size: 10px; font-weight: 800; }
+  .room-fish-slots small { font-size: 8px; }
+  .room-fish-slots strong { color: #d4f0de; font-size: 9px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
   .room-collection-hint { font-size: 11px; line-height: 1.7; color: var(--buddy-muted); margin: 14px 0; }
   .room-collection { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; max-height: 290px; overflow-y: auto; padding: 3px; scrollbar-width: thin; }
   .room-item { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; min-height: 100px; padding: 10px 4px; border: 1px solid var(--buddy-border); background: radial-gradient(ellipse at 50% 15%, var(--buddy-hover), var(--buddy-sunken)); color: var(--buddy-text); }

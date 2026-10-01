@@ -2,6 +2,8 @@ import { ArrowLeft, Gamepad2, LogIn, Play, RotateCcw, Trophy, Volume2, VolumeX, 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RankingAvatar } from "./RankingAvatar";
 import { ArcadeTvDetails } from "./ArcadeTvDetails";
+import { useDailyChallengeNotice } from "../hooks/useDailyChallengeNotice";
+import { DailyChallengeNotice } from "./DailyChallengeNotice";
 
 const VOLUME_KEY = "daivr.pinballVolume.v1";
 // La mesa es ruidosa y el cartucho se abre sin avisar: arranca bajo y el que
@@ -57,6 +59,7 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
   const [volume, setVolume] = useState(readStoredVolume);
   const [gameOver, setGameOver] = useState(null);
   const frameRef = useRef(null);
+  const daily = useDailyChallengeNotice({ game, open, frameRef });
   const config = GAME_CONFIG[game];
   const ranking = config?.ranking;
   const hasRanking = Boolean(ranking);
@@ -160,6 +163,7 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
           <div>{hasRanking ? <button className={rankingOpen ? "is-active" : ""} type="button" onClick={() => setRankingOpen((value) => !value)} aria-label={`Toggle ${config.title} leaderboard`}><Trophy size={16} /></button> : null}<button type="button" onClick={() => { setGameOver(null); setInstance((value) => value + 1); }} aria-label={`Restart ${config.title}`}><RotateCcw size={16} /></button><button type="button" onClick={onClose} aria-label={`Close ${config.title}`}><X size={18} /></button></div>
         </header>
         <div className="arcade-embed-screen"><iframe key={instance} ref={frameRef} src={config.src} title={config.title} allow="autoplay; fullscreen" onLoad={(event) => { if (game === "cross-road" && !rankingOpen) event.currentTarget.contentWindow?.focus(); }} />
+          <DailyChallengeNotice notice={daily.notice} onDismiss={daily.dismiss} onRetry={daily.retry} onClose={onClose} />
           {gameOver ? (
             <div className="pinball-gameover" role="dialog" aria-modal="true" aria-label="Game over">
               <div>

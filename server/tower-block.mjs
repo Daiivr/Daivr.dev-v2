@@ -106,7 +106,7 @@ export async function handleTowerBlockRequest(request, response) {
     return sendJson(response, 200, { score: null, leaderboard: leaderboard(scores) });
   }
 
-  if (request.method === "POST" && path === "score") {
+  if (request.method === "POST" && ["score", "challenge"].includes(path)) {
     if (!user) return sendJson(response, 401, { error: "Connect Discord to save Tower Block scores." });
     if (rateLimited(user.id)) return sendJson(response, 429, { error: "Too many tower runs submitted." });
     let body;
@@ -117,6 +117,7 @@ export async function handleTowerBlockRequest(request, response) {
       return sendJson(response, 400, { error: "Tower score failed validation." });
     }
     if (score > 0 && durationMs < score * 100) return sendJson(response, 422, { error: "Tower was built faster than the validation floor." });
+    if (path === "challenge") return sendJson(response, 200, { daily: recordDailyRun(user, "tower-block", score) || null });
 
     scores = readScores();
     const index = scores.findIndex((entry) => String(entry.discordId) === String(user.id));

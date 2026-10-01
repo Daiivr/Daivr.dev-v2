@@ -6,6 +6,18 @@ import { reconcileProgression, secretBadges } from "../server/player-progression
 import { FISH_CATALOG } from "../shared/buddy-catches.mjs";
 
 const now = Date.parse("2026-10-01T12:00:00Z");
+test("Leviathan milestones remain secret until their exact count and pay only once", () => {
+  let saved = {};
+  for (const [count, expected, xp] of [[0, 0, 0], [1, 1, 500], [2, 1, 500], [3, 2, 1250], [9, 2, 1250], [10, 3, 2650], [24, 3, 2650], [25, 4, 5150], [100, 4, 5150]]) {
+    const badges = secretBadges({ leviathanSightings: count });
+    assert.equal(badges.length, expected);
+    assert.ok(badges.every((badge) => badge.secret && badge.earned));
+    const result = reconcileProgression(saved, badges, now);
+    assert.equal(result.progression.totalXp, xp);
+    assert.equal(reconcileProgression(result.saved, badges, now).newBadges.length, 0);
+    saved = result.saved;
+  }
+});
 test("player levels have exact boundaries and progressively higher costs", () => {
   assert.equal(playerProgression(0).level, 1);
   assert.equal(playerProgression(199).remainingXp, 1);

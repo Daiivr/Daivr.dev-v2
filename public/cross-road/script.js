@@ -74,6 +74,7 @@ const useGameStore = create((set, get) => ({
   score: 0,
   updateScore: rowIndex => {
     set(state => state.status === "running" ? { score: Math.max(rowIndex, state.score) } : state);
+    if (get().status === "running") notifyCabinet("daivr:daily-progress", { game: "cross-road", score: get().score, durationMs: Math.max(0, Date.now() - runStartedAt) });
   },
   endGame: () => {
     if (get().status !== "running") return;
