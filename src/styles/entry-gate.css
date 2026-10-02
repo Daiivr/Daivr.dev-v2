@@ -861,18 +861,33 @@
    offset that could expose the page below. Gate artwork stays clipped above
    it; overflow remains visible for Buddy's perch and launch. */
 .entry-gate-hud {
+  --hud-base: color-mix(in srgb, var(--color-phosphor) 5%, #090e0c);
+  --hud-ink: color-mix(in srgb, var(--color-phosphor) 10%, #07100c);
+  --hud-light: color-mix(in srgb, var(--color-phosphor-soft) 82%, #fff);
+  --hud-muted: color-mix(in srgb, var(--color-phosphor-soft) 62%, #59635d);
+  --hud-line: color-mix(in srgb, var(--color-phosphor) 27%, transparent);
+  --hud-wash: color-mix(in srgb, var(--color-phosphor) 6%, transparent);
+  --hud-button: color-mix(in srgb, var(--color-phosphor) 48%, var(--color-phosphor-soft));
+  --hud-button-line: color-mix(in srgb, var(--color-phosphor) 20%, #17231bcc);
   position: relative;
   z-index: 5;
   isolation: isolate;
   display: grid;
-  grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto;
+  grid-template-columns: minmax(170px, 1fr) minmax(160px, 440px) minmax(210px, 1fr);
   align-items: center;
   gap: clamp(1rem, 3vw, 2.6rem);
-  border-top: 1px solid color-mix(in srgb, var(--color-phosphor) 22%, transparent);
-  background: url('/textures/arcade-grain.svg'), repeating-linear-gradient(0deg, #c7d9c108 0 1px, transparent 1px 3px), linear-gradient(110deg, #16281e, #06120c 44%, #12231a);
-  box-shadow: inset 0 1px #c6e6b333, inset 0 4px #0004, 0 -5px 18px #0008;
+  border-top: 1px solid var(--hud-line);
+  background:
+    url('/textures/arcade-grain.svg'),
+    repeating-linear-gradient(0deg, #c7d9c108 0 1px, transparent 1px 3px),
+    linear-gradient(110deg, color-mix(in srgb, var(--color-phosphor-soft) 8%, var(--hud-base)), var(--hud-base) 44%, color-mix(in srgb, var(--color-phosphor-soft) 5%, var(--hud-base)));
+  box-shadow: inset 0 1px #edf6e51a, inset 0 4px var(--hud-wash), inset 0 -2px #0009, 0 -8px 28px #0006;
   padding: clamp(0.85rem, 2.2vh, 1.5rem) clamp(1.1rem, 5vw, 4rem);
 }
+
+.entry-gate-brand { display: flex; align-items: center; gap: 12px; }
+.entry-gate-hud::before { content: ""; position: absolute; top: -1px; left: clamp(1.1rem, 5vw, 4rem); width: 24px; height: 3px; background: var(--color-phosphor); box-shadow: 30px 0 var(--color-cyan-arcade), 60px 0 var(--hud-line); }
+.entry-gate-brand-mark { width: 42px; height: 42px; padding: 6px; flex: none; color: var(--hud-light); border: 1px solid var(--hud-line); background: var(--hud-wash); box-shadow: inset 0 1px var(--hud-line); }
 
 .entry-gate-brand strong {
   display: block;
@@ -886,87 +901,93 @@
 .entry-gate-brand span {
   display: block;
   margin-top: 0.28rem;
-  color: color-mix(in srgb, var(--color-phosphor-soft) 42%, transparent);
-  font-family: var(--font-pixel);
-  font-size: 0.36rem;
-  letter-spacing: 0.16em;
+  color: var(--hud-muted);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
 }
 
 .entry-gate-signal {
   display: grid;
-  gap: 0.5rem;
+  gap: 0.65rem;
   min-width: 0;
 }
 
 .entry-gate-signal-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .entry-gate-signal-heading > span { display: flex; align-items: center; gap: 7px; }
-.entry-gate-signal-heading > span > i { width: 5px; height: 5px; flex: none; background: currentColor; box-shadow: 0 0 7px currentColor; }
-.entry-gate-signal-heading > small { flex: none; font: 700 9px var(--font-mono); letter-spacing: .1em; color: var(--color-cyan-arcade); }
-.entry-gate-signal.is-open .entry-gate-signal-heading > small { color: var(--color-phosphor); }
+.entry-gate-signal-heading > span > i { width: 5px; height: 5px; flex: none; background: currentColor; box-shadow: 0 0 7px var(--hud-line); }
+.entry-gate-signal-heading > small { flex: none; padding: 3px 6px; border: 1px solid var(--hud-line); background: var(--hud-wash); font: 700 9px var(--font-mono); letter-spacing: .1em; color: var(--color-cyan-arcade); }
+.entry-gate-signal.is-open .entry-gate-signal-heading > small { color: var(--hud-light); }
 
 .entry-gate-signal span {
   overflow: hidden;
   color: var(--color-cyan-arcade);
-  font-family: var(--font-pixel);
-  font-size: 0.4rem;
-  letter-spacing: 0.14em;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.09em;
   text-overflow: ellipsis;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
 .entry-gate-signal.is-open span {
-  color: var(--color-phosphor);
+  color: var(--hud-muted);
 }
 
 .entry-gate-signal-meter {
   display: block;
   position: relative;
-  height: 15px;
-  padding: 3px;
-  border: 1px solid #4c74604d;
+  height: 6px;
+  padding: 0;
+  border: 0;
+  border-radius: 2px;
   overflow: hidden;
-  background: repeating-linear-gradient(90deg, transparent 0 7px, #83b0a312 7px 8px), linear-gradient(#010503, #091b11);
-  box-shadow: inset 0 2px 5px #000d, 0 1px #d3f5bc24;
+  background: var(--hud-ink);
+  box-shadow: inset 0 1px 2px #000b, 0 1px var(--hud-line);
   font-style: normal;
 }
 
-.entry-gate-signal-meter::after { position: absolute; inset: 3px; content: ""; pointer-events: none; background: repeating-linear-gradient(90deg, transparent 0 7px, #01120be6 7px 9px); }
+.entry-gate-signal-meter::after { position: absolute; inset: 0; content: ""; pointer-events: none; box-shadow: inset 0 1px var(--hud-line); border-radius: inherit; }
 
 .entry-gate-signal-meter b {
   position: relative;
   display: block;
   height: 100%;
-  background: linear-gradient(180deg, #d6ffeab3, transparent 45%, #001c1680), linear-gradient(90deg, #2aaba3, var(--color-phosphor));
-  box-shadow: 0 0 8px color-mix(in srgb, var(--color-phosphor) 28%, transparent);
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--color-cyan-arcade), var(--color-phosphor));
+  box-shadow: 0 0 8px var(--hud-line);
   transition: width 280ms ease-out;
 }
 
-.entry-gate-signal.is-streaming .entry-gate-signal-meter::before { content: ""; position: absolute; inset: 3px; background: linear-gradient(90deg, transparent, #d5fff02e, transparent); transform: translateX(-100%); animation: gate-signal-scan 2.4s ease-in-out infinite; }
+.entry-gate-signal.is-streaming .entry-gate-signal-meter::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, #d5fff02e, transparent); transform: translateX(-100%); animation: gate-signal-scan 2.4s ease-in-out infinite; }
 @keyframes gate-signal-scan { to { transform: translateX(100%); } }
 @media (prefers-reduced-motion: reduce) { .entry-gate-signal.is-streaming .entry-gate-signal-meter::before { animation: none; } .entry-gate-signal-meter b { transition: none; } }
 
 .entry-gate-enter {
+  position: relative;
   display: inline-flex;
+  justify-self: end;
+  justify-content: space-between;
+  min-width: 210px;
   align-items: center;
   gap: 1rem;
-  border: 1px solid color-mix(in srgb, var(--color-phosphor) 56%, transparent);
+  border: 1px solid var(--color-phosphor);
   background:
-    url('/textures/arcade-grain.svg'),
-    repeating-linear-gradient(0deg, #d4eed90a 0 1px, transparent 1px 3px),
-    linear-gradient(135deg, color-mix(in srgb, var(--color-phosphor) 20%, transparent), color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent)),
-    rgba(2, 10, 7, 0.92);
-  padding: 0.72rem 1.15rem;
-  color: #f4fff8;
-  box-shadow: inset 0 1px #d6ffd94d, inset 0 -4px #0008;
-  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+    repeating-linear-gradient(0deg, var(--hud-wash) 0 1px, transparent 1px 4px),
+    linear-gradient(135deg, color-mix(in srgb, var(--color-phosphor) 12%, #16201b), var(--hud-ink) 70%);
+  padding: 0.82rem 1rem 0.82rem 1.25rem;
+  color: var(--hud-light);
+  box-shadow: inset 0 0 0 3px var(--hud-ink), inset 0 0 0 4px var(--hud-line), inset 0 7px var(--hud-wash), inset 0 -7px #0005;
+  border-radius: 0;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
   transition:
     transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
     border-color 260ms ease,
     box-shadow 260ms ease,
     opacity 260ms ease;
 }
+.entry-gate-enter::before { content: ""; position: absolute; left: 8px; top: 17px; width: 2px; height: 4px; background: var(--color-phosphor); box-shadow: 0 7px var(--color-phosphor), 0 14px var(--color-phosphor); opacity: .7; }
 
 .entry-gate-enter strong {
   display: block;
@@ -975,21 +996,32 @@
   font-weight: 900;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  text-shadow: 0 0 12px var(--hud-line), 1px 2px #000;
 }
 
 .entry-gate-enter small {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   margin-top: 0.22rem;
-  color: color-mix(in srgb, var(--color-phosphor-soft) 56%, transparent);
-  font-family: var(--font-pixel);
-  font-size: 0.35rem;
-  letter-spacing: 0.16em;
+  color: var(--hud-muted);
+  font-family: var(--font-mono);
+  font-size: 0.55rem;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
 }
+.entry-gate-enter kbd { padding: 1px 4px; border: 1px solid var(--hud-line); border-bottom-width: 2px; background: var(--hud-wash); border-radius: 0; color: var(--hud-light); font: inherit; line-height: 1.3; }
 
 .entry-gate-enter svg {
   flex: none;
-  color: var(--color-phosphor);
+  color: var(--hud-ink);
+  width: 32px;
+  height: 32px;
+  padding: 6px;
+  background: linear-gradient(135deg, var(--hud-light), var(--hud-button));
+  border: 1px solid var(--hud-light);
+  box-shadow: inset 0 1px #fff7, inset -2px -3px #0003, 2px 3px #0009;
+  transition: transform 200ms ease;
 }
 
 .entry-gate-enter:not(:disabled) {
@@ -998,20 +1030,23 @@
 
 .entry-gate-enter:not(:disabled):hover,
 .entry-gate-enter:not(:disabled):focus-visible {
-  border-color: var(--color-phosphor);
-  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.45), 0 0 32px color-mix(in srgb, var(--color-phosphor) 24%, transparent);
-  outline: none;
+  border-color: var(--hud-light);
+  box-shadow: inset 0 0 0 3px var(--hud-ink), inset 0 0 0 4px var(--color-phosphor), inset 0 0 24px var(--hud-wash);
+  outline: 2px solid var(--hud-line);
+  outline-offset: 3px;
   transform: translateY(-2px);
 }
+.entry-gate-enter:not(:disabled):hover svg { transform: translateX(2px); }
+.entry-gate-enter:not(:disabled):active { transform: translateY(1px); }
+.entry-gate-enter:not(:disabled):active svg { box-shadow: inset 1px 2px #0004; transform: translate(1px, 2px); }
 
 .entry-gate-enter:disabled {
   cursor: progress;
-  opacity: 0.42;
+  opacity: 0.5;
 }
 
 .entry-gate.is-armed .entry-gate-enter:not(:disabled) {
-  border-color: var(--color-phosphor);
-  animation: entry-gate-enter-armed 2.6s ease-in-out infinite;
+  border-color: var(--hud-light);
 }
 
 /* The perched buddy now sits on the HUD rail instead of on a floating card,
@@ -1228,8 +1263,11 @@
   }
 
   .entry-gate-brand { grid-area: brand; }
+  .entry-gate-brand { gap: 8px; }
+  .entry-gate-brand-mark { width: 32px; height: 36px; padding: 3px; }
+  .entry-gate-brand span { max-width: 120px; font-size: .5rem; }
   .entry-gate-signal { grid-area: signal; }
-  .entry-gate-enter { grid-area: enter; }
+  .entry-gate-enter { grid-area: enter; min-width: 0; }
 
   /* Buddy is the host down here, so the perch would be a second copy. */
   .entry-gate .splash-buddy {
@@ -1251,6 +1289,11 @@
     font-size: 0.78rem;
     padding: 0.8rem 0.9rem 1.05rem;
   }
+}
+
+@media (max-width: 360px) {
+  .entry-gate-brand-mark { display: none; }
+  .entry-gate-brand span { max-width: 90px; font-size: .45rem; }
 }
 
 /* Landscape phones and short laptops: the marquee is the first thing to go,

@@ -457,8 +457,12 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
 
       <footer className="entry-gate-hud">
         <div className="entry-gate-brand">
-          <strong>DAI.EXE</strong>
-          <span>interactive portfolio</span>
+          <svg className="entry-gate-brand-mark" viewBox="0 0 32 32" aria-hidden="true" shapeRendering="crispEdges">
+            <path d="M7 5h18v23H7z" fill="none" stroke="currentColor" strokeWidth="2" />
+            <path d="M12 10h8v18h-8z" fill="currentColor" opacity=".2" />
+            <path d="M15 12h2v12h-2M4 28h24v2H4zM20 18h2v2h-2z" fill="currentColor" />
+          </svg>
+          <div><strong>DAI.EXE</strong><span>interactive portfolio</span></div>
         </div>
 
         <div className={`entry-gate-signal ${streaming ? "is-streaming" : "is-open"}`}>
@@ -477,7 +481,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
         >
           <span>
             <strong>{opening ? "opening..." : buttonLabel}</strong>
-            <small>{buttonHint}</small>
+            <small>{gateReady && !opening ? <><kbd>Enter</kbd><span>to step inside</span></> : buttonHint}</small>
           </span>
           <ArrowRight aria-hidden="true" size={20} />
         </button>

@@ -18,7 +18,7 @@ export function useHangingSign() {
     if (reducedMotion()) return;
     animation.current = node.animate(
       [...(fromRest ? [0] : []), angle, -angle * .65, angle * .35, -angle * .15, 0].map((value) => ({ transform: swingTransform(value) })),
-      { duration: 1500, easing: "ease-in-out" }
+      { duration: 2600, easing: "ease-in-out" }
     );
   }
 
