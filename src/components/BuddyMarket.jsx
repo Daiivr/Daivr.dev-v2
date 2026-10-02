@@ -38,7 +38,7 @@ export function BuddyMarketStand({ onClick }) {
   const { open, stock } = useMarketOpen();
   return <button type="button" className={`buddy-market-stand ${open ? "is-open" : "is-closed"}`} onClick={onClick} aria-label={`Woodland market: ${open ? "open today" : "closed"}. ${MARKET_SCHEDULE}. Browse the stand.`}>
     <MarketStandArt open={open} items={stock} />
-    <span className="market-stand-tip">{open ? "The stand is open!" : "Back Wednesday & Saturday"}<small>Browse woodland goods ↗</small></span>
+    <span className="market-stand-sign" aria-hidden="true">Woodland Market</span>
   </button>;
 }
 

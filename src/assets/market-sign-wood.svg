@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="328" height="88" viewBox="0 0 328 88">
+  <defs>
+    <linearGradient id="wood" x2="0" y2="1">
+      <stop stop-color="#b68a50"/>
+      <stop offset=".18" stop-color="#93673a"/>
+      <stop offset=".65" stop-color="#80532f"/>
+      <stop offset="1" stop-color="#aa7b44"/>
+    </linearGradient>
+    <filter id="fiber">
+      <feTurbulence type="fractalNoise" baseFrequency=".025 .65" numOctaves="3" seed="17"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feBlend in="SourceGraphic" mode="soft-light"/>
+    </filter>
+  </defs>
+  <path fill="url(#wood)" d="M0 0h328v88H0z"/>
+  <g fill="none" stroke="#482c18" stroke-width="1.4" opacity=".45">
+    <path d="M0 9c23 3 29-5 51-2s39 7 71 4 63-5 92-2 66 3 114-3M0 17c25 3 31-12 54-7s37 12 74 8 78-7 112-1 57 2 88-1"/>
+    <path d="M0 26c22 0 26-16 49-14s25 13 53 14 70-4 105-3 85 5 121-1M0 34c22 1 28-9 52-8s31 9 62 8 79-5 118-3 64 4 96 0"/>
+    <path d="M0 42c30-4 70 3 108-1s92 4 124 0 63 2 96-2M0 50c33-3 62 5 109 0s80 6 121 0 70 3 98-1M0 58c48 2 59-4 97 1s75-3 102-2 59-2 74-1 29 4 55 1"/>
+    <path d="M0 69c42-4 69 2 105-2s66-1 92-3 43-7 65-6 24 14 66 8M0 77c42-3 75 2 118-3s72 4 98-1 39-11 54-10 26 17 58 11M0 84c43-5 91 1 130-3s65 3 97-2 51-4 101 3"/>
+    <path d="M33 18c2-8 29-7 33 1-3 8-27 8-33-1zm8 0c4-4 14-4 18 1-4 4-14 3-18-1zM250 69c6-8 26-6 31 3-8 7-24 5-31-3zm9 1c4-3 10-2 14 2-4 3-11 2-14-2z"/>
+  </g>
+  <g fill="none" stroke="#e6ba75" opacity=".3">
+    <path d="M0 7c32 4 52-7 79 1s66-4 105-2 94 5 144-2M0 31c28 2 39-12 62-3s80 1 105 0 102 5 161-1M0 61c47 1 60-3 97 2s75-3 102-2 51-5 74-3M0 82c48-4 100 2 131-3s69 4 97-2"/>
+  </g>
+  <path fill="#9e7645" opacity=".24" filter="url(#fiber)" d="M0 0h328v88H0z"/>
+  <path fill="#edc184" opacity=".45" d="M7 2h42v1H7m78-1h21v1H85m148-1h67v1h-67M2 7h1v15H2m323 31h1v19h-1M20 85h33v1H20m167-1h45v1h-45"/>
+</svg>

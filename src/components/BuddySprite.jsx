@@ -484,7 +484,7 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
         <path d="M36 16h3v1h-3m0 6h3v1h-3" fill="#f4fff8" opacity=".8" />
         <rect className="buddy-power" x="36" y="29" width="4" height="2" fill="#3fff97" />
 
-        {/* Ear cushions and the boom sit in front of the casing and wig.
+        {/* Ear cushions sit in front of the casing and wig.
             Raise the headband over the hair when both accessories are worn. */}
         {hasItem("headset") ? (
           <g className="buddy-fitted-headset">
@@ -501,11 +501,6 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
             <path d="M6 17h2v9H6zM40 17h2v9h-2z" fill="#31415b" />
             <path d="M3 19h1v4H3zM44 19h1v4h-1z" fill="#21829c" />
             <path d="M2 26h3v1H2zM43 26h3v1h-3z" fill="#ef80b6" />
-            <path d="M43 25h3v5h-3v2H32v-4h10v-3z" fill="#132536" />
-            <path d="M43 26h1v3h-2v1h-9v-1h9v-1h1z" fill="#82b8c9" />
-            <path d="M29 27h6v1h1v3h-7z" fill="#172638" />
-            <path d="M30 28h3v1h-3z" fill="#78dce0" />
-            <path d="M34 28h1v2h-1z" fill="#f18bbd" />
           </g>
         ) : null}
 
@@ -556,6 +551,17 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
               <path d="M29 41h2v2h-2m3-2h2v2h-2m3-5h2v2h-2" fill="#ffd68c" />
             </g>
             <path d="M28 32h7v4h-7z" fill="#a93b76" /><path d="M29 32h5v2h-5z" fill="#ff94c6" />
+          </g>
+        ) : null}
+
+        {/* The boom stays above clothing and follows the same motion as the ear cups. */}
+        {hasItem("headset") ? (
+          <g className="buddy-upper-body buddy-headset-microphone">
+            <path d="M43 25h3v5h-3v2H32v-4h10v-3z" fill="#132536" />
+            <path d="M43 26h1v3h-2v1h-9v-1h9v-1h1z" fill="#82b8c9" />
+            <path d="M29 27h6v1h1v3h-7z" fill="#172638" />
+            <path d="M30 28h3v1h-3z" fill="#78dce0" />
+            <path d="M34 28h1v2h-1z" fill="#f18bbd" />
           </g>
         ) : null}
 
