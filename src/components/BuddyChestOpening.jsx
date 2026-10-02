@@ -94,7 +94,7 @@ export function BuddyMarketWallet({ adventure }) {
   }
   const close = () => { setReceipt(null); busy.current = false; };
   return <>
-    <section ref={walletRef} {...signEvents} tabIndex={0} className="market-wallet market-hanging-sign" aria-label="Gold and treasure chests" aria-description="Drag sideways or press Enter to sway the sign.">
+    <section ref={walletRef} {...signEvents} tabIndex={0} className="market-wallet market-hanging-sign" aria-label="Gold and treasure chests" aria-description="Drag up or down, tap, or press Enter to swing the sign back and forth.">
       <div className="market-wallet-total"><PixelCoin /><strong>{adventure.market.coins}<small>GOLD</small></strong></div>
       <button ref={opener} type="button" disabled={!adventure.market.unopened || !!receipt} onClick={openChest}>Open chest <span aria-hidden="true">↗</span></button>
       <small>{adventure.market.unopened} unopened {adventure.market.unopened === 1 ? "chest" : "chests"} · {CHEST_MIN_COINS}–{CHEST_MAX_COINS} gold each</small>

@@ -28,7 +28,7 @@ function MarketCountdown({ now, nextOpening }) {
   const hours = Math.floor(seconds % 86400 / 3600);
   const minutes = Math.floor(seconds % 3600 / 60);
   const pad = (number) => String(number).padStart(2, "0");
-  return <div ref={signRef} {...signEvents} tabIndex={0} role="group" aria-label="Market opening sign" aria-description={`Opens ${openingFormat.format(nextOpening)} at midnight, New York time. Drag sideways or press Enter to sway the sign.`} className="market-countdown market-hanging-sign">
+  return <div ref={signRef} {...signEvents} tabIndex={0} role="group" aria-label="Market opening sign" aria-description={`Opens ${openingFormat.format(nextOpening)} at midnight, New York time. Drag up or down, tap, or press Enter to swing the sign back and forth.`} className="market-countdown market-hanging-sign">
     <span>Opens in</span>
     <strong role="timer" aria-label={`Opens in ${days} days, ${hours} hours, ${minutes} minutes, ${seconds % 60} seconds`}><b>{days}<small>D</small></b><i>:</i><b>{pad(hours)}<small>H</small></b><i>:</i><b>{pad(minutes)}<small>M</small></b><i>:</i><b>{pad(seconds % 60)}<small>S</small></b></strong>
   </div>;
