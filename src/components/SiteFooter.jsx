@@ -6,6 +6,8 @@ import { ScreenBuddy } from "./ScreenBuddy";
 import { FooterScenery } from "./FooterScenery";
 import { FooterWildlife } from "./FooterWildlife";
 
+const VISIT_COUNTED_KEY = "daivr.visitCounted.v1";
+
 export function SiteFooter({ buddy, onBuddyPet, onPowerOutage, onOpenMarket }) {
   const [visitCount, setVisitCount] = useState(null);
   const [visitError, setVisitError] = useState(false);
@@ -17,12 +19,26 @@ export function SiteFooter({ buddy, onBuddyPet, onPowerOutage, onOpenMarket }) {
   const spotify = presence.data?.listening_to_spotify && presence.data.spotify ? presence.data.spotify : null;
 
   useEffect(() => {
+    // Una pestana cuenta una vez: las recargas solo leen el contador. El
+    // servidor tambien ignora repeticiones del mismo visitante durante 30 min.
+    function visitAlreadyCounted() {
+      try {
+        if (window.sessionStorage.getItem(VISIT_COUNTED_KEY)) return true;
+        window.sessionStorage.setItem(VISIT_COUNTED_KEY, "1");
+      } catch {
+        // Sin sessionStorage se cuenta; el servidor sigue deduplicando.
+      }
+      return false;
+    }
+
     async function hitVisit() {
       try {
-        const response = await fetch("/api/visits/hit", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" }
-        });
+        const response = visitAlreadyCounted()
+          ? await fetch("/api/visits", { cache: "no-store" })
+          : await fetch("/api/visits/hit", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+          });
         if (!response.ok) throw new Error("visit failed");
         const payload = await response.json();
         if (typeof payload.count === "number") setVisitCount(payload.count);
@@ -133,7 +149,9 @@ export function SiteFooter({ buddy, onBuddyPet, onPowerOutage, onOpenMarket }) {
                   <span className="footer-pill-led-core" />
                   <span className="footer-pill-led-ping" />
                 </span>
-                <span className="footer-pill-label">players_online</span>
+                {/* Es el contador historico de visitas; la gente conectada ahora
+                    sale en la barra superior ("N in the arcade"). */}
+                <span className="footer-pill-label">total_visits</span>
                 <span className="footer-pill-value tabular-nums">
                   {visitError ? "—" : visitCount === null ? "..." : visitCount.toLocaleString("en-US")}
                 </span>

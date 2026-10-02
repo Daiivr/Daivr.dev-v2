@@ -156,6 +156,21 @@
         var lastSubmitKey = "";
         var lastSavedLevel = restoreCompletedLevel;
         var submissionChain = Promise.resolve();
+        // Server-signed run token requested as the game opens. The server
+        // measures level pacing from this moment with its own clock, so the
+        // packets below cannot claim more progress than real time allows.
+        var runTokenRequest = discordId
+          ? fetch("/api/drive-mad/run", { method: "POST", credentials: "include" })
+              .then(function (res) {
+                return res.ok ? res.json() : {};
+              })
+              .then(function (data) {
+                return data && typeof data.token === "string" ? data.token : "";
+              })
+              .catch(function () {
+                return "";
+              })
+          : Promise.resolve("");
 
         function clockMs() {
           if (window.performance && typeof window.performance.now === "function") {
@@ -361,13 +376,16 @@
           // otherwise let a later level reach the server before the previous
           // score mutation had committed.
           submissionChain = submissionChain.then(function () {
-            return fetch("/api/drive-mad/progress", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              credentials: "include",
-              body: JSON.stringify(payload),
+            return runTokenRequest.then(function (runToken) {
+              payload.runToken = runToken;
+              return fetch("/api/drive-mad/progress", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                credentials: "include",
+                body: JSON.stringify(payload),
+              });
             })
             .then(function (res) {
               return res

@@ -1883,6 +1883,47 @@
     opacity: 0;
   }
 
+  /* Insignia sobre el primer fotograma: el GIF completo se abre en el visor. */
+  .comment-gif-play {
+    position: absolute;
+    left: 0.85rem;
+    bottom: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 60%, transparent);
+    background: rgba(2, 6, 4, 0.82);
+    padding: 0.3rem 0.55rem 0.3rem 0.45rem;
+    color: var(--color-cyan-arcade);
+    font-size: 0.6rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+    transition: background 160ms, color 160ms;
+  }
+
+  .comment-gif-play i {
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 8px solid currentColor;
+  }
+
+  .comment-gif:hover .comment-gif-play,
+  .comment-gif:focus-visible .comment-gif-play {
+    background: var(--color-cyan-arcade);
+    color: var(--color-ink-950);
+  }
+
+  .comment-gif.is-loading .comment-gif-play {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .comment-gif-play { transition: none; }
+  }
+
   /* Hilo de respuestas. Antes cada respuesta era otra caja con el mismo
      peso visual que el comentario original, asi que un hilo parecia tres
      comentarios sueltos y el segundo nivel solo se notaba por 1rem de

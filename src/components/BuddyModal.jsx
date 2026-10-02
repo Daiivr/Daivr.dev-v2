@@ -1,3 +1,5 @@
+import "../styles/buddy-modal.css";
+import "../styles/buddy-workshop.css";
 import { BuddyMarket } from "./BuddyMarket";
 import { memo, useEffect, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";

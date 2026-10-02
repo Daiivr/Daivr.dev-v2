@@ -1,7 +1,8 @@
+import "../styles/patch-notes.css";
 import { useEffect, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Check, ChevronLeft, ChevronRight, Code2, Image as ImageIcon, Link as LinkIcon, MessageSquareText, Plus, Search, Shuffle, X, ZoomIn } from "lucide-react";
-import { patchNotes } from "../data/site";
+import { patchNotes } from "../data/patchNotes";
 import { patchStories } from "../data/patchStories";
 import { patchDeskObjects } from "../data/patchDesk";
 import { PatchDeskObject } from "./PatchDeskObject";

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useCabinetSignal } from "../lib/cabinetSignals";
 
 const IDLE_MS = 5 * 60 * 1000;
 const AFTER_BUDDY_SLEEP_MS = 3000;
@@ -23,7 +24,9 @@ const HIGH_SCORES = [
   INSERTAR UNA MONEDA (click o Enter — el boton recibe foco al abrir) para
   volver al sitio. La moneda cae, acredita CREDIT 01 y la sesion se reanuda.
 */
-export function AttractMode({ enabled, score = 0 }) {
+export function AttractMode({ enabled }) {
+  // La fila YOU muestra la XP real del pasaporte; sin sesion, ceros.
+  const playerXp = useCabinetSignal("player")?.progression?.totalXp ?? 0;
   const [active, setActive] = useState(false);
   const [closing, setClosing] = useState(false);
   const [coinDropping, setCoinDropping] = useState(false);
@@ -135,7 +138,7 @@ export function AttractMode({ enabled, score = 0 }) {
 
   if (!active) return null;
 
-  const playerScore = String(Math.max(0, score) * 1000).padStart(6, "0");
+  const playerScore = String(Math.max(0, playerXp)).padStart(6, "0");
   const rows = [...HIGH_SCORES, ["YOU", playerScore]];
 
   return (

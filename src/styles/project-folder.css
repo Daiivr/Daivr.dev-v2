@@ -19,7 +19,7 @@
       linear-gradient(rgba(69, 216, 255, 0.035) 1px, transparent 1px),
       linear-gradient(90deg, rgba(63, 255, 151, 0.03) 1px, transparent 1px),
       linear-gradient(rgba(2, 6, 4, 0.08), rgba(2, 6, 4, 0.3)),
-      url("../assets/project-archive-background.png");
+      url("../assets/project-archive-background.webp");
     background-position: center, center, center, center;
     background-repeat: repeat, repeat, no-repeat, no-repeat;
     background-size: 18px 18px, 18px 18px, cover, cover;

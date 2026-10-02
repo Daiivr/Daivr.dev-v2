@@ -2,19 +2,9 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
-import { handleBuddyRequest } from "./server/buddy.mjs";
-import { handleCommentsRequest } from "./server/comments.mjs";
-import { handleCrossRoadRequest } from "./server/cross-road.mjs";
-import { handleSpaceCadetPinballRequest } from "./server/space-cadet-pinball.mjs";
-import { handleDiscordProfileFrameRequest } from "./server/discord-profile-frame.mjs";
-import { handleDiscordStreakRequest, startDiscordStreakPolling } from "./server/discord-streak.mjs";
-import { handleMadraceRequest } from "./server/madrace.mjs";
+import { startDiscordStreakPolling } from "./server/discord-streak.mjs";
 import { loadLocalEnv } from "./server/env.mjs";
-import { handleSteamPlaytimeRequest } from "./server/steam-playtime.mjs";
-import { handleTradeDexVirusTotalRequest } from "./server/virustotal.mjs";
-import { handleTowerBlockRequest } from "./server/tower-block.mjs";
-import { handleVisitsRequest } from "./server/visits.mjs";
-import { handlePlayerRequest } from "./server/player.mjs";
+import { handleApiRequest } from "./server/routes.mjs";
 
 loadLocalEnv();
 
@@ -27,65 +17,20 @@ export default defineConfig({
       name: "daivr-local-api",
       configureServer(server) {
         startDiscordStreakPolling();
-        server.middlewares.use("/api/player", handlePlayerRequest);
-
-        server.middlewares.use("/api/tradedex", (request, response, next) => {
-          if (request.url?.startsWith("/info") || request.url?.startsWith("/scan")) {
-            request.url = `/api/tradedex${request.url}`;
-            handleTradeDexVirusTotalRequest(request, response);
-            return;
+        // Misma tabla que server.mjs (server/routes.mjs). Sin ruta de montaje,
+        // asi que los handlers reciben la URL completa igual que en produccion.
+        server.middlewares.use(async (request, response, next) => {
+          try {
+            if (!(await handleApiRequest(request, response))) next();
+          } catch (error) {
+            console.error(`[dev api] ${request.method} ${request.url}`, error?.stack || error);
+            if (response.headersSent) {
+              response.end();
+              return;
+            }
+            response.writeHead(500, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+            response.end(JSON.stringify({ error: "Server route failed." }));
           }
-
-          next();
-        });
-
-        server.middlewares.use("/api/discord-streak", (request, response) => {
-          handleDiscordStreakRequest(request, response);
-        });
-
-        server.middlewares.use("/api/discord-profile-frame", (request, response) => {
-          handleDiscordProfileFrameRequest(request, response);
-        });
-
-        server.middlewares.use("/api/steam-playtime", (request, response) => {
-          handleSteamPlaytimeRequest(request, response);
-        });
-
-        server.middlewares.use("/api/madrace", (request, response) => {
-          request.url = `/api/madrace${request.url}`;
-          handleMadraceRequest(request, response);
-        });
-
-        server.middlewares.use("/api/drive-mad", (request, response) => {
-          request.url = `/api/drive-mad${request.url}`;
-          handleMadraceRequest(request, response);
-        });
-
-        server.middlewares.use("/api/tower-block", (request, response) => {
-          request.url = `/api/tower-block${request.url}`;
-          handleTowerBlockRequest(request, response);
-        });
-
-        server.middlewares.use("/api/cross-road", (request, response) => {
-          request.url = `/api/cross-road${request.url}`;
-          handleCrossRoadRequest(request, response);
-        });
-
-        server.middlewares.use("/api/space-cadet-pinball", (request, response) => {
-          request.url = `/api/space-cadet-pinball${request.url}`;
-          handleSpaceCadetPinballRequest(request, response);
-        });
-
-        server.middlewares.use("/api/comments", (request, response) => {
-          handleCommentsRequest(request, response);
-        });
-
-        server.middlewares.use("/api/visits", (request, response) => {
-          handleVisitsRequest(request, response);
-        });
-
-        server.middlewares.use("/api/buddy", (request, response) => {
-          handleBuddyRequest(request, response);
         });
       }
     }

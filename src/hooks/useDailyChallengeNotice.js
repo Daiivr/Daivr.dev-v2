@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { runTokenFor } from "../lib/runTokens";
 
 export function useDailyChallengeNotice({ game, open, frameRef }) {
   const [notice, setNotice] = useState(null);
@@ -33,7 +34,8 @@ export function useDailyChallengeNotice({ game, open, frameRef }) {
       pending = true;
       setNotice({ state: "saving", name: challenge.name });
       try {
-        const response = await fetch(`/api/${game}/challenge`, { method: "POST", credentials: "include", signal: controller.signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ score: sample.score, durationMs: sample.durationMs }) });
+        const runToken = await runTokenFor(game);
+        const response = await fetch(`/api/${game}/challenge`, { method: "POST", credentials: "include", signal: controller.signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ score: sample.score, durationMs: sample.durationMs, runToken }) });
         if (!response.ok) throw new Error("Reward save failed");
         const value = await response.json();
         if (controller.signal.aborted) return;

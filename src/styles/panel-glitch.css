@@ -87,24 +87,6 @@
 .app-shell.theme-glitch .game-collection :is(.game-card-review strong,.game-card-review-copy,.game-card-review-kicker) { color: #40264d; border-color: #88639255; }
 .app-shell.theme-glitch .game-collection .game-card-review-action { color: #ffe2f5; border-color: #996188; background: #663653; }
 .app-shell.theme-glitch .game-collection .game-shelf-readout { background: #21102c; }
-
-/* Patch desk: purple lacquer, pink edge lighting and themed SVG materials. */
-.app-shell.theme-glitch .patch-desk-scene { border-color: #b6498c; background: radial-gradient(ellipse at 50% 30%,#ff3d9d1c,transparent 60%),radial-gradient(circle,#b799ce26 .65px,transparent .9px) 0 0 / 5px 5px,repeating-linear-gradient(90deg,transparent 0 159px,#0005 160px 162px,#d8a6e311 163px 164px),linear-gradient(110deg,#170c20,#321b37 55%,#1c1029); box-shadow: inset 0 0 0 5px #14091c,inset 0 0 0 6px #ff69b855,inset 0 0 70px #0008,0 10px 30px #0005; }
-.app-shell.theme-glitch .patch-desk-wall { color: #d8b7db; }
-.app-shell.theme-glitch .patch-desk-shelf { border-top-color: #ff7fc8; border-bottom-color: #210e27; background: repeating-linear-gradient(90deg,transparent 0 12px,#e8c4ef15 12px 13px),linear-gradient(#75446b,#371d3b); box-shadow: 0 -2px 12px #ff3d9d40,0 2px #24102e,0 10px 18px #0009; }
-.app-shell.theme-glitch .patch-desk-surface { border-top-color: #b775b266; border-bottom-color: #291533; background: linear-gradient(180deg,#100817b3,transparent 25%),radial-gradient(ellipse at 90% 90%,#b986ff16,transparent 60%),repeating-linear-gradient(2deg,#e9c7ed09 0 1px,#19092026 2px 3px,transparent 4px 9px),repeating-linear-gradient(0deg,transparent 0 94px,#15091daa 95px 97px,#d0a8da22 98px,transparent 99px 190px),linear-gradient(115deg,#492947,#27162e 52%,#482b4c); box-shadow: inset 0 -2px #ff69b980,inset 0 -5px #1b0e25; }
-.app-shell.theme-glitch .patch-desk-surface::after { border-color: #b986ff99; outline-color: #e3b2f033; background: linear-gradient(#b986ff10 1px,transparent 1px) 0 0 / 24px 24px,linear-gradient(90deg,#b986ff10 1px,transparent 1px) 0 0 / 24px 24px,repeating-linear-gradient(45deg,#d4b3e008 0 1px,transparent 1px 3px),linear-gradient(#2a1738,#160b22); box-shadow: 0 0 10px #b986ff26,0 5px 10px #0008,inset 0 1px #e1b5ff44; }
-.app-shell.theme-glitch .patch-desk-object .patch-object-label { border-color: #ac65a680; background: var(--material-brush),linear-gradient(#49253f,#211029); box-shadow: inset 0 1px #e6b7f022,inset 0 -2px #0008,0 3px 5px #0006; }
-.app-shell.theme-glitch .patch-desk-object:is(:hover,:focus-visible) .patch-object-label { color: #ffe1f4; background: #693352; border-color: var(--patch-secondary); box-shadow: inset 0 -2px #0008,0 0 12px #ff3d9d33; }
-.app-shell.theme-glitch .patch-desk-object.is-discovered .patch-object-label { box-shadow: inset 0 -2px #ff6bb755,0 3px 5px #0006; }
-.app-shell.theme-glitch .patch-desk-footer button { border-color: #a868ac; background: var(--material-brush),linear-gradient(#47223f,#1c1028); box-shadow: inset 0 1px #f0b9ee22,inset 0 -3px #0008,0 2px #100818; }
-.app-shell.theme-glitch .patch-desk-footer button:is(:hover,:focus-visible) { color: #f9d6ff; background: #623154; box-shadow: inset 0 -3px #0008,0 0 12px #ff3d9d26; }
-.app-shell.theme-glitch .patch-desk-scene {
-  --patch-plastic-1: #88718e; --patch-plastic-2: #59425e; --patch-plastic-3: #35273f; --patch-plastic-4: #231a2d;
-  --patch-blue-1: #a394c4; --patch-blue-2: #6e5989; --patch-blue-3: #47355f; --patch-blue-4: #2b203d;
-  --patch-metal-1: #8b7c96; --patch-metal-2: #e1cde5; --patch-metal-3: #b8a0c0; --patch-metal-4: #e6d4ef; --patch-metal-5: #7d638c;
-  --patch-glass-1: #4b2147; --patch-glass-2: #250f28; --patch-glass-3: #110818;
-}
 /* The coffee stays coffee; tint the keepsakes' physical materials only. */
 .app-shell.theme-glitch .discord-desk-keepsakes #desk-cassette-shell stop:first-child { stop-color: #765276; }
 .app-shell.theme-glitch .discord-desk-keepsakes #desk-cassette-shell stop:last-child { stop-color: #39213f; }

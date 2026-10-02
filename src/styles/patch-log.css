@@ -1,0 +1,38 @@
+/* Seccion Patch.log. El escritorio (PatchNotes y patch-notes.css) viaja en su
+   propio chunk; aqui solo queda lo que se ve antes: el hueco reservado y el
+   marcador de carga, con la misma altura aproximada para que la pagina no salte
+   cuando llega. */
+@layer components {
+  .patch-log-placeholder {
+    display: grid;
+    min-height: clamp(420px, 70vh, 760px);
+    place-items: center;
+    border: 1px dashed color-mix(in srgb, var(--color-phosphor) 24%, transparent);
+    background:
+      repeating-linear-gradient(0deg, color-mix(in srgb, var(--color-phosphor) 3%, transparent) 0 1px, transparent 1px 4px),
+      color-mix(in srgb, var(--color-ink-950) 86%, transparent);
+    color: color-mix(in srgb, var(--color-phosphor-soft) 70%, transparent);
+    font: 700 11px var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .patch-log-placeholder span { display: inline-flex; align-items: center; gap: 9px; }
+  .patch-log-placeholder span::before {
+    content: "";
+    width: 5px;
+    height: 5px;
+    background: var(--color-phosphor);
+    box-shadow: 0 0 10px var(--color-phosphor);
+    animation: patch-log-wait 1.2s steps(2, end) infinite;
+  }
+  @media (max-width: 640px) {
+    #patchlog { scroll-margin-top: 100px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .patch-log-placeholder span::before { animation: none; }
+  }
+}
+
+@keyframes patch-log-wait {
+  50% { opacity: 0.25; }
+}

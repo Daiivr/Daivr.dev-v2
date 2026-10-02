@@ -1,9 +1,4 @@
 @layer components {
-  /* Pixel-sized equipment, with the same art on the shelf and the companion. */
-  .buddy-loot-cell { grid-template-columns: 54px minmax(0,1fr) 18px; column-gap: 12px; }
-  .buddy-loot-cell > .buddy-gear-icon { width: 48px; height: 48px; padding: 3px; box-sizing: content-box; background: linear-gradient(135deg,#10322a99,#041310); border: 1px solid var(--buddy-border); box-shadow: inset 0 1px #b8f7ff19; filter: none; }
-  .buddy-loot-cell:hover > .buddy-gear-icon { filter: none; border-color: var(--color-cyan-arcade); }
-  .buddy-equip-slot .buddy-gear-icon { filter: drop-shadow(0 1px 0 #000); }
   .buddy-worn-gear { pointer-events: none; image-rendering: pixelated; }
   .buddy-worn-scarf { transform-origin: 10px 32px; animation: gear-scarf-breeze 3s steps(5,end) infinite; }
   .screen-buddy-root:is(.is-walk,.is-dance) .buddy-worn-scarf { animation-duration: .9s; }
@@ -52,8 +47,6 @@
   .screen-buddy-root.is-fishing:has(.is-catch) .screen-buddy-sprite { animation: companion-pet .72s ease-out both; }
   .buddy-fishing-rig.tier-rare .buddy-fishing-loot { filter: drop-shadow(0 0 3px #ffd16688); }
   @media (max-width: 700px) {
-    .buddy-loot-cell { grid-template-columns: 42px minmax(0,1fr) 18px; }
-    .buddy-loot-cell > .buddy-gear-icon { width: 36px; height: 36px; padding: 2px; }
   }
   @media (prefers-reduced-motion: reduce) {
     .screen-buddy-root *, .buddy-worn-scarf { animation: none !important; transition: none !important; }

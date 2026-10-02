@@ -1,3 +1,7 @@
+/* Hoja perezosa: llega con el chunk de BuddyModal (import en BuddyModal.jsx,
+   antes que buddy-workshop.css y buddy-room.css, que es su orden de siempre).
+   Lo que tambien pintan componentes siempre cargados (tarjeta de Buddy en la
+   barra lateral, iconos de coleccion) vive en buddy-shared.css. */
 @layer components {
   .buddy-room-recovery { padding: clamp(24px,5vw,60px); color: var(--text, #d7eee2); }
   .buddy-room-recovery h3 { margin: 16px 0 10px; font-size: 1.25rem; }
@@ -5,42 +9,7 @@
   .buddy-room-recovery > div { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 24px; }
   .buddy-room-recovery button { border: 1px solid #3fff9780; padding: 12px 16px; background: #102c23; color: #d7eee2; cursor: pointer; }
   .buddy-room-recovery button:hover, .buddy-room-recovery button:focus-visible { background: #194235; outline: 2px solid #45d8ff; outline-offset: 3px; }
-  .buddy-nav-card {
-    display: grid;
-    gap: 0.45rem;
-  }
 
-  .buddy-nav-title {
-    margin-bottom: 0;
-  }
-
-  .buddy-nav-card-stats {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.35rem;
-  }
-
-  .buddy-nav-card-stats span {
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 18%, transparent);
-    background: color-mix(in srgb, var(--color-ink-950) 82%, transparent);
-    padding: 0.45rem 0.35rem;
-    color: color-mix(in srgb, var(--color-phosphor-soft) 76%, transparent);
-    font-size: 0.56rem;
-    font-weight: 900;
-    text-transform: uppercase;
-  }
-
-  .buddy-nav-card-stats b {
-    color: var(--color-cabinet);
-  }
-
-  .buddy-nav-actions {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.5rem;
-  }
-
-  .buddy-nav-actions button,
   .buddy-modal-actions button {
     display: inline-flex;
     align-items: center;
@@ -56,12 +25,6 @@
     transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease, box-shadow 160ms ease, text-shadow 160ms ease;
   }
 
-  .buddy-nav-actions button svg {
-    flex: 0 0 auto;
-  }
-
-  .buddy-nav-actions button:hover,
-  .buddy-nav-actions button:focus-visible,
   .buddy-modal-actions button:hover,
   .buddy-modal-actions button:focus-visible,
   .buddy-modal-actions button.is-active {
@@ -212,6 +175,7 @@
   .buddy-window-dots i { width: 7px; height: 7px; background: currentColor; color: var(--color-phosphor); box-shadow: 0 0 6px currentColor, 0 0 16px color-mix(in srgb, currentColor 60%, transparent); }
   .buddy-window-dots i:first-child { color: var(--color-glitch); }
   .buddy-window-dots i:nth-child(2) { color: var(--color-cabinet); }
+  /* Copia de buddy-shared.css: dentro del chunk tiene que seguir en este sitio del orden. */
   .buddy-modal-kicker { color: var(--color-cyan-arcade); text-shadow: 0 0 12px color-mix(in srgb, var(--color-cyan-arcade) 55%, transparent); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
   .buddy-modal-header h2 { margin: 6px 0; color: var(--buddy-text); text-shadow: 0 0 14px color-mix(in srgb, var(--color-phosphor) 32%, transparent), 0 0 38px color-mix(in srgb, var(--color-cyan-arcade) 18%, transparent); font-family: var(--font-display); font-size: clamp(22px, 3vw, 28px); font-weight: 800; line-height: 1.35; }
   .buddy-modal-description { margin: 0; color: var(--buddy-muted); font-size: 12px; line-height: 1.6; }
@@ -295,6 +259,7 @@
   .buddy-equipped-chip:is(:hover, :focus-visible) { text-shadow: 0 0 10px color-mix(in srgb, currentColor 62%, transparent), 0 0 22px color-mix(in srgb, currentColor 30%, transparent); }
   .buddy-equipped-chip b { font-size: 11px; font-weight: 600; text-transform: capitalize; white-space: nowrap; }
   .buddy-equipped-chip > svg:last-child { flex: none; margin-left: auto; opacity: .65; }
+  /* Copia de buddy-shared.css: dentro del chunk tiene que seguir en este sitio del orden. */
   .buddy-gear-icon { flex: none; width: 28px; height: 28px; overflow: visible; color: currentColor; filter: drop-shadow(0 0 4px color-mix(in srgb, currentColor 55%, transparent)) drop-shadow(0 0 12px color-mix(in srgb, currentColor 28%, transparent)); transition: filter 160ms ease; }
   .buddy-equipped-chip .buddy-gear-icon { width: 16px; height: 16px; }
   .buddy-loot-panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; gap: 16px; padding: 24px; }
@@ -403,6 +368,7 @@
   .buddy-journal { display: grid; grid-template-columns: 320px minmax(0, 1fr); flex: 1; min-height: 0; }
   .buddy-journal-stage { display: grid; align-content: start; gap: 20px; min-height: 0; overflow-y: auto; padding: 20px; border-right: 1px solid var(--buddy-border); background: color-mix(in srgb, var(--buddy-sunken) 74%, transparent); }
 
+  /* Copia de buddy-shared.css: dentro del chunk tiene que seguir en este sitio del orden. */
   .buddy-collectible-icon { display: block; width: 68px; height: 50px; overflow: visible; image-rendering: pixelated; }
   .buddy-journal-search { display: flex; align-items: center; gap: 8px; flex: 1; max-width: 260px; min-width: 180px; min-height: 38px; padding: 0 10px; border: 1px solid var(--buddy-border); color: var(--buddy-muted); background: #0002; }
   .buddy-journal-search input { width: 100%; min-width: 0; padding: 8px 0; background: transparent; color: var(--buddy-text); font-size: 11px; }
@@ -595,6 +561,6 @@
     .buddy-quest-total { text-align: left; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .buddy-modal *, .buddy-nav-actions button { animation: none !important; transition: none !important; }
+    .buddy-modal * { animation: none !important; transition: none !important; }
   }
 }

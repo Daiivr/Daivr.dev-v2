@@ -1,3 +1,7 @@
+/* Hoja perezosa: llega con el chunk de SeasonalEvent, que solo se monta con
+   una temporada activa. Los tintes de la pagina (.season-* sobre el fondo y
+   los paneles) viven en seasonal-tints.css para pintarse desde el primer frame,
+   y la decoracion de la puerta en seasonal-splash.css. */
 /* Seasonal scenery stays behind the cabinet UI. Only the small event notice
    and the April Fools takeover enter the interface layer. */
 .seasonal-world{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;isolation:isolate}
@@ -11,11 +15,6 @@
    de panel, mientras las particulas y criaturas aereas siguen fijas. */
 .halloween-decor-piles,.april-decor-piles,.birthday-decor-piles,.anniversary-decor-piles{position:absolute;left:0;top:0;z-index:38;display:block;pointer-events:none}
 .halloween-decor-physics,.april-decor-physics,.birthday-decor-physics,.anniversary-decor-physics{position:fixed;inset:0;z-index:39;width:100vw;height:100vh;pointer-events:none}
-
-/* WINTER */
-.season-winter{--color-phosphor:#a8f2ff;--color-phosphor-soft:#d9fbff;--color-cyan-arcade:#7ab8ff;--seasonal-accent:#8de8ff}
-.season-winter .arcade-bg{filter:hue-rotate(38deg) saturate(.76) brightness(.82)}
-.season-winter .panel,.season-winter .panel-strong{box-shadow:inset 0 1px rgba(229,250,255,.1),0 24px 70px rgba(0,20,40,.2)}
 .seasonal-winter{background:linear-gradient(180deg,rgba(5,26,48,.38),transparent 62%)}
 .seasonal-winter::before{content:"";position:absolute;inset:0;background:radial-gradient(140% 90% at -8% -6%,rgba(190,235,255,.1),transparent 32%),radial-gradient(150% 100% at 108% -10%,rgba(170,225,255,.08),transparent 30%),radial-gradient(160% 110% at 50% 118%,rgba(150,215,255,.07),transparent 38%)}
 .seasonal-aurora{position:absolute;inset:-24vh -8vw 42vh;filter:blur(34px);opacity:.35;transform:skewX(-10deg)}
@@ -25,12 +24,6 @@
 .seasonal-aurora i:nth-child(3){right:2%;background:radial-gradient(ellipse,rgba(185,134,255,.24),transparent 68%);animation-delay:-7s}
 .seasonal-icicles{position:absolute;left:292px;right:0;top:67px;display:flex;justify-content:space-around;opacity:.34}
 .seasonal-icicles i{width:clamp(3px,.4vw,6px);height:calc(9px + (var(--ice) % 5) * 4px);background:linear-gradient(90deg,rgba(255,255,255,.8),rgba(110,202,255,.2));clip-path:polygon(0 0,100% 0,55% 100%);filter:drop-shadow(0 2px 3px rgba(69,216,255,.28))}
-
-/* HALLOWEEN */
-.season-halloween{--color-phosphor:#b8ff52;--color-phosphor-soft:#e2ffab;--color-cabinet:#ff9f1c;--color-cyan-arcade:#b986ff;--seasonal-accent:#ff8a20}
-.season-halloween .arcade-bg{filter:hue-rotate(292deg) saturate(1.34) contrast(1.05)}
-.season-halloween .arcade-bg::after{opacity:.46;background:repeating-linear-gradient(112deg,transparent 0 38px,rgba(255,111,0,.045) 39px 40px);animation:halloween-static 7s steps(2,end) infinite}
-.season-halloween .panel,.season-halloween .panel-strong{border-color:rgba(255,133,33,.16);box-shadow:inset 2px 0 rgba(185,134,255,.04),inset -2px 0 rgba(184,255,82,.04)}
 .seasonal-halloween{background:radial-gradient(circle at 66% 22%,rgba(255,124,31,.08),transparent 20%),linear-gradient(180deg,rgba(27,4,38,.24),transparent 65%)}
 .seasonal-halloween::before{content:"";position:absolute;inset:0;background:radial-gradient(120% 80% at -6% -4%,rgba(90,40,140,.16),transparent 34%),radial-gradient(130% 90% at 106% -8%,rgba(255,124,31,.07),transparent 30%),radial-gradient(150% 100% at 50% 116%,rgba(60,20,90,.18),transparent 40%)}
 .seasonal-halloween .seasonal-particles>i{width:1px;height:clamp(20px,4vw,50px);background:linear-gradient(transparent,rgba(185,134,255,.38),transparent);opacity:.42;animation-name:halloween-data-rain}
@@ -46,11 +39,6 @@
 .seasonal-corruption-band{position:absolute;left:292px;right:0;bottom:0;height:18px;border-top:1px solid rgba(255,61,157,.12);background:linear-gradient(90deg,rgba(255,61,157,.03),rgba(185,134,255,.08),transparent);opacity:.55}
 .seasonal-corruption-band span{position:absolute;left:4%;bottom:4px;color:rgba(185,134,255,.45);font-family:var(--font-pixel);font-size:.38rem}
 .seasonal-corruption-band i{position:absolute;bottom:4px;width:12%;height:2px;background:#ff3d9d;opacity:.2;animation:corruption-pulse 2.8s steps(4,end) infinite}.seasonal-corruption-band i:nth-of-type(1){left:24%}.seasonal-corruption-band i:nth-of-type(2){left:52%;animation-delay:-.9s}.seasonal-corruption-band i:nth-of-type(3){right:5%;animation-delay:-1.8s}
-
-/* BIRTHDAY */
-.season-birthday{--color-phosphor:#72ffd9;--color-cabinet:#ffe66d;--color-cyan-arcade:#7ee8fa;--seasonal-accent:#ff4da6}
-.season-birthday .arcade-bg{filter:hue-rotate(315deg) saturate(1.18) brightness(1.03)}
-.season-birthday .cart-slot{background-image:linear-gradient(90deg,rgba(255,61,157,.05),rgba(69,216,255,.05),rgba(255,209,102,.05))}
 .seasonal-birthday{background:radial-gradient(circle at 38% 10%,rgba(255,61,157,.08),transparent 24%),radial-gradient(circle at 85% 26%,rgba(69,216,255,.06),transparent 22%)}
 .seasonal-birthday .seasonal-particles>i{border-radius:1px;background:hsl(var(--hue) 90% 64%);box-shadow:0 0 5px hsl(var(--hue) 90% 64%);opacity:.7;animation-name:birthday-confetti}
 .seasonal-party-lights{position:absolute;left:292px;right:0;top:70px;display:flex;justify-content:space-around;padding-inline:3vw;opacity:.52}
@@ -73,12 +61,6 @@
 .seasonal-scene-cake i:nth-child(n+3)::before{content:"";position:absolute;left:50%;top:-9px;width:6px;height:9px;translate:-50% 0;border-radius:50% 50% 45% 45%;background:radial-gradient(circle at 50% 78%,#fff3c4 0 28%,#ffb347 62%,transparent 72%);filter:drop-shadow(0 0 5px rgba(255,180,80,.8));transform-origin:bottom;animation:scene-cake-flame 1.1s ease-in-out infinite}
 .seasonal-scene-cake i:nth-child(4)::before{animation-delay:-.4s}.seasonal-scene-cake i:nth-child(5)::before{animation-delay:-.75s}
 .seasonal-party-beam{position:absolute;top:-30vh;width:24vw;height:120vh;opacity:.045;filter:blur(30px);transform-origin:top}.beam-a{left:24%;background:linear-gradient(90deg,transparent,#ff3d9d,transparent);animation:party-beam 9s ease-in-out infinite alternate}.beam-b{right:8%;background:linear-gradient(90deg,transparent,#45d8ff,transparent);animation:party-beam 10s -4s ease-in-out infinite alternate-reverse}
-
-/* ANNIVERSARY */
-.season-anniversary{--seasonal-accent:#ffd166}
-.season-anniversary .arcade-bg{filter:saturate(1.2) brightness(1.02)}
-/* Filo dorado arriba: los paneles llevan galon de gala. */
-.season-anniversary .panel,.season-anniversary .panel-strong{box-shadow:inset 0 1px 0 rgba(255,209,102,.16),inset 0 0 0 1px rgba(255,209,102,.05),0 25px 80px rgba(0,0,0,.28)}
 .seasonal-anniversary{background:radial-gradient(circle at 68% 18%,rgba(255,209,102,.06),transparent 30%)}
 .seasonal-anniversary::before{content:"";position:absolute;inset:0;background:radial-gradient(120% 80% at -6% -4%,rgba(255,209,102,.08),transparent 32%),radial-gradient(130% 90% at 106% -8%,rgba(69,216,255,.07),transparent 30%),radial-gradient(150% 100% at 50% 116%,rgba(255,61,157,.06),transparent 40%)}
 .seasonal-anniversary .seasonal-particles>i{background:hsl(var(--hue) 90% 68%);box-shadow:0 0 5px hsl(var(--hue) 90% 64%);opacity:.5;animation-name:anniversary-spark;top:var(--top)}
@@ -94,10 +76,6 @@
 .seasonal-anniversary-grid{position:absolute;left:calc(292px + 5vw);bottom:8vh;display:grid;grid-template-columns:auto auto;align-items:end;gap:3px 9px;opacity:.15;color:#b4ffcf;font-family:var(--font-pixel)}
 .seasonal-anniversary-grid::before{content:"";position:absolute;inset:-18px;border:1px solid rgba(63,255,151,.35);clip-path:polygon(0 0,35% 0,35% 2px,65% 2px,65% 0,100% 0,100% 100%,72% 100%,72% calc(100% - 2px),28% calc(100% - 2px),28% 100%,0 100%)}
 .seasonal-anniversary-grid span,.seasonal-anniversary-grid em{font-size:.35rem;font-style:normal}.seasonal-anniversary-grid b{grid-row:1/3;grid-column:2;font-family:var(--font-display);font-size:2rem;color:#ffd166}
-
-/* APRIL FOOLS */
-.season-april-fools{--color-phosphor:#6fd2ff;--color-cabinet:#fff;--seasonal-accent:#4ba8ff}
-.season-april-fools .arcade-bg{filter:hue-rotate(125deg) saturate(.72)}
 .seasonal-april-fools{background:radial-gradient(circle at 72% 18%,rgba(8,120,209,.09),transparent 32%)}
 /* Lluvia de ventanitas DaiOS dando tumbos en vez de pixeles sosos. */
 .seasonal-april-fools .seasonal-particles>i{width:11px;height:9px;background:linear-gradient(#0878d1 0 2.5px,#dfeeff 2.5px);border:1px solid rgba(111,210,255,.55);opacity:.2;box-shadow:0 0 6px rgba(8,120,209,.3);animation-name:april-window-fall}
@@ -122,51 +100,7 @@
 .seasonal-april-dialog:nth-of-type(1){left:9vw;top:24vh;rotate:-1deg}
 .seasonal-april-dialog:nth-of-type(2){right:6vw;top:58vh;rotate:1.2deg}
 .seasonal-april-dialog:nth-of-type(3){left:40vw;bottom:9vh;rotate:-.6deg}
-/* Cabina rota: los paneles cuelgan torcidos como cuadros mal puestos y de vez
-   en cuando dan un respingo con un microglitch. Se usa `rotate`/`translate`
-   (no `transform`) para no pisar el drag de la consola ni los hover-lift. */
-.season-april-fools .now-card:nth-child(odd){rotate:.5deg}
-.season-april-fools .now-card:nth-child(even){rotate:-.45deg}
-.season-april-fools .status-sidecar{rotate:-.4deg}
-.season-april-fools .project-console{rotate:-.3deg}
-.season-april-fools .game-shelf{rotate:.6deg}
-.season-april-fools .link-console{rotate:.9deg}
-.season-april-fools .patch-console{rotate:-.8deg}
-.season-april-fools .comments-console{rotate:-.35deg}
-.season-april-fools .panel:not(.hero-console),.season-april-fools .panel-strong:not(.hero-console){animation:april-panel-flinch 13s steps(1,end) infinite}
-.season-april-fools .panel:nth-of-type(2n),.season-april-fools .panel-strong:nth-of-type(2n){animation-delay:-5s}
-.season-april-fools .panel:nth-of-type(3n),.season-april-fools .panel-strong:nth-of-type(3n){animation-delay:-9s}
 
-/* Splash de entrada tematizado: el evento se ve antes de entrar. La paleta ya
-   se tinta sola via variables de .season-*; esto anade el decorado visible. */
-.entry-splash-season{position:absolute;inset:0;z-index:1;overflow:hidden;pointer-events:none}
-.entry-splash-season.is-winter{background:radial-gradient(120% 80% at -5% -5%,rgba(190,235,255,.12),transparent 34%),radial-gradient(130% 90% at 105% -8%,rgba(170,225,255,.09),transparent 32%)}
-.entry-splash-season.is-halloween{background:radial-gradient(120% 80% at -6% -4%,rgba(90,40,140,.2),transparent 36%),radial-gradient(130% 90% at 106% -8%,rgba(255,124,31,.09),transparent 30%)}
-.splash-flake{position:absolute;left:var(--left);top:-8%;color:rgba(233,247,255,.75);font-size:var(--size);font-style:normal;line-height:1;text-shadow:0 0 8px rgba(168,232,255,.55);animation:seasonal-fall var(--duration) var(--delay) linear infinite}
-.splash-web{position:absolute;left:-6px;top:-6px;width:clamp(110px,14vw,180px);height:auto;color:rgba(224,214,255,.35)}
-.splash-spider{position:absolute;left:clamp(64px,9vw,120px);top:0;width:1px;height:74px;background:linear-gradient(rgba(224,214,255,.42),rgba(224,214,255,.22));transform-origin:top center;animation:splash-spider-swing 4.2s ease-in-out infinite alternate}
-.splash-spider i{position:absolute;left:50%;bottom:-8px;width:9px;height:12px;transform:translateX(-50%);background:radial-gradient(circle at 50% 30%,#241436 0 40%,transparent 41%),radial-gradient(circle at 50% 68%,#241436 0 52%,transparent 53%);filter:drop-shadow(0 0 3px rgba(185,134,255,.5))}
-.splash-spider i::before,.splash-spider i::after{content:"";position:absolute;top:42%;width:9px;height:9px;background:linear-gradient(rgba(185,134,255,.55),rgba(185,134,255,.55)) 0 1px/9px 1px no-repeat,linear-gradient(rgba(185,134,255,.5),rgba(185,134,255,.5)) 0 4px/8px 1px no-repeat,linear-gradient(rgba(185,134,255,.45),rgba(185,134,255,.45)) 0 7px/7px 1px no-repeat}
-.splash-spider i::before{right:100%;transform:rotate(22deg)}
-.splash-spider i::after{left:100%;transform:rotate(-22deg) scaleX(-1)}
-.splash-bats i{position:absolute;width:17px;height:8px;animation:seasonal-bat 9s ease-in-out infinite}
-.splash-bats i::before,.splash-bats i::after{content:"";position:absolute;width:10px;height:7px;background:#150a24;clip-path:polygon(0 0,100% 45%,70% 100%,50% 55%,0 85%);transform-origin:right center;animation:bat-wing .42s ease-in-out infinite alternate;filter:drop-shadow(0 0 2px rgba(185,134,255,.4))}
-.splash-bats i::after{left:8px;transform:scaleX(-1);transform-origin:left center}
-.splash-bats i:nth-child(1){top:16%;right:14%}
-.splash-bats i:nth-child(2){top:26%;right:28%;animation-delay:-3s;scale:.7}
-.splash-bats i:nth-child(3){top:12%;right:40%;animation-delay:-6s;scale:.55}
-
-/* Aviso de evento: vive en el splash de entrada, no como toast a posteriori.
-   El acento por temporada llega via --seasonal-accent (definido en .season-*). */
-.splash-season-notice{position:absolute;right:clamp(14px,3vw,34px);top:clamp(14px,4vh,38px);z-index:3;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:12px;width:min(392px,calc(100vw - 28px));border:1px solid color-mix(in srgb,var(--seasonal-accent,#3fff97) 42%,transparent);background:linear-gradient(rgba(255,255,255,.03) 50%,transparent 50%) 0 0/100% 4px,rgba(2,6,4,.93);padding:11px 13px;box-shadow:0 18px 50px rgba(0,0,0,.55),0 0 26px color-mix(in srgb,var(--seasonal-accent,#3fff97) 12%,transparent);animation:splash-notice-in .5s .6s steps(6,end) both}
-.splash-season-notice::before{content:"";position:absolute;inset:0;border-left:3px solid var(--seasonal-accent,#3fff97);pointer-events:none}
-.splash-season-notice::after{content:"";position:absolute;right:-1px;top:-1px;width:11px;height:11px;background:linear-gradient(225deg,var(--seasonal-accent,#3fff97) 0 46%,transparent 48%);opacity:.75}
-.splash-season-notice-icon{display:grid;place-items:center;width:42px;height:42px;border:1px solid currentColor;color:var(--seasonal-accent,#ffd166);font-family:var(--font-pixel);box-shadow:inset 0 0 14px color-mix(in srgb,var(--seasonal-accent,#ffd166) 10%,transparent)}
-.splash-season-notice div{min-width:0}
-.splash-season-notice-kicker{display:flex;align-items:center;gap:6px;color:color-mix(in srgb,var(--seasonal-accent,#3fff97) 76%,#fff);font-family:var(--font-pixel);font-size:.38rem;letter-spacing:.18em;text-transform:uppercase}
-.splash-season-notice-kicker i{width:6px;height:6px;background:var(--seasonal-accent,#3fff97);box-shadow:0 0 8px var(--seasonal-accent,#3fff97);animation:splash-notice-live 1.4s steps(2,end) infinite}
-.splash-season-notice strong{display:block;margin-top:5px;color:#fff;font-family:var(--font-display);font-size:.68rem;letter-spacing:.07em}
-.splash-season-notice small{display:block;margin-top:4px;color:rgba(180,255,207,.66);font-size:.57rem;line-height:1.45;white-space:normal}
 
 /* April Fools takeover */
 .seasonal-update-takeover{position:fixed;inset:0;z-index:95;display:grid;place-items:center;overflow:hidden;background:radial-gradient(circle at center,#1687db,#0878d1 62%,#076bb9);color:#fff;font-family:"Segoe UI",Arial,sans-serif;animation:update-screen-in .3s steps(2,end) both}
@@ -186,14 +120,10 @@ body:has(.seasonal-update-takeover)>.page-perched-bird{display:none!important}
 .seasonal-update-card.is-looping{animation:update-loop-shake .55s steps(6,end)}
 .seasonal-update-card.is-looping .seasonal-update-progress span{background:#ff5f68;box-shadow:0 0 10px rgba(255,95,104,.6)}
 
-@keyframes seasonal-fall{to{transform:translate3d(var(--drift),105vh,0) rotate(420deg)}}
 @keyframes aurora-wave{0%{transform:translateX(-10%) skewX(-8deg) scaleY(.75)}100%{transform:translateX(14%) skewX(10deg) scaleY(1.12)}}
 @keyframes winter-twinkle{50%{opacity:.25;filter:brightness(1.7)}}
 @keyframes halloween-data-rain{to{transform:translate3d(var(--drift),105vh,0);opacity:.05}}
-@keyframes halloween-static{0%,95%,100%{transform:none}96%{transform:translateX(3px)}98%{transform:translateX(-4px)}}
 @keyframes halloween-lightning{0%,80%,82%,84%,100%{opacity:0}81%,83%{opacity:1}}
-@keyframes seasonal-bat{50%{transform:translate(-48px,20px) rotate(-7deg)}}
-@keyframes bat-wing{to{transform:rotateX(60deg)}}
 @keyframes halloween-fog{to{transform:translateX(20vw)}}
 @keyframes corruption-pulse{50%{opacity:.04;transform:scaleX(.6)}}
 @keyframes birthday-confetti{0%{transform:translateY(-10vh) rotate(0);opacity:0}12%{opacity:.65}100%{transform:translate3d(var(--drift),108vh,0) rotate(720deg);opacity:.25}}
@@ -214,30 +144,17 @@ body:has(.seasonal-update-takeover)>.page-perched-bird{display:none!important}
 /* Tres percances por ciclo de 13s: bajon de corriente, rasgado cromatico RGB
    y el espasmo con microglitch. Los delays negativos por nth-of-type los
    desincronizan entre paneles. */
-@keyframes april-panel-flinch{
-0%,30.9%,32.3%,63.9%,65.6%,96.4%,100%{translate:0 0;filter:none}
-31.2%{filter:brightness(.62) saturate(.55)}
-31.7%{filter:brightness(1.22) saturate(1.3)}
-64.2%{translate:-3px 0;filter:drop-shadow(3px 0 rgba(69,216,255,.42)) drop-shadow(-3px 0 rgba(255,61,157,.42)) saturate(1.35)}
-64.9%{translate:2px 1px;filter:hue-rotate(158deg) contrast(1.22)}
-96.8%{translate:2px 0;filter:hue-rotate(38deg) saturate(1.5) drop-shadow(-2px 0 rgba(255,61,157,.45)) drop-shadow(2px 0 rgba(69,216,255,.45))}
-97.4%{translate:-2px 1px;filter:contrast(1.35) brightness(1.12)}
-98%{translate:1px -1px;filter:none}
-}
 @keyframes april-dialog-cycle{0%,4%{opacity:0;transform:scale(.62)}6%{opacity:.6;transform:scale(1.05)}8%,30%{opacity:.52;transform:scale(1)}34%,100%{opacity:0;transform:scale(.97)}}
 @keyframes april-marquee{from{transform:translateX(-120%)}to{transform:translateX(400%)}}
 @keyframes hourglass-flip{to{transform:rotate(360deg)}}
 @keyframes hourglass-drift{0%{transform:translate(9vw,14vh)}26%{transform:translate(78vw,22vh) }52%{transform:translate(68vw,74vh)}76%{transform:translate(16vw,66vh)}100%{transform:translate(9vw,14vh)}}
 @keyframes update-progress-shine{from{background-position:180% 0}to{background-position:-40% 0}}
 @keyframes update-loop-shake{0%,100%{transform:none}18%{transform:translateX(-8px) rotate(-.5deg)}38%{transform:translateX(7px)}58%{transform:translateX(-5px) rotate(.4deg)}78%{transform:translateX(3px)}}
-@keyframes splash-notice-in{from{opacity:0;transform:translateX(26px)}}
-@keyframes splash-notice-live{50%{opacity:.25}}
-@keyframes splash-spider-swing{from{transform:rotate(-7deg)}to{transform:rotate(7deg)}}
 @keyframes update-spin{to{transform:rotate(360deg)}}
 @keyframes update-glare{to{transform:translateX(40%)}}
 @keyframes update-screen-in{from{opacity:0}to{opacity:1}}
 @keyframes update-worry{0%,96%,100%{filter:none}97%{filter:hue-rotate(100deg) contrast(1.3)}98%{filter:invert(1)}99%{filter:none}}
 
 @media(max-width:1023px){.seasonal-icicles,.seasonal-party-lights,.seasonal-corruption-band{left:0}.seasonal-birthday-watermark,.seasonal-anniversary-grid{left:5vw}}
-@media(max-width:700px){.splash-season-notice{left:0;right:0;top:0;display:flex;align-items:center;gap:9px;width:100%;border:0;border-bottom:1px solid color-mix(in srgb,var(--seasonal-accent,#3fff97) 45%,transparent);background:rgba(2,6,4,.96);padding:7px 12px}.splash-season-notice::before{border-left-width:2px}.splash-season-notice::after,.splash-season-notice-icon,.splash-season-notice small{display:none}.splash-season-notice div{display:flex;align-items:baseline;gap:9px;min-width:0}.splash-season-notice strong{margin-top:0;overflow:hidden;font-size:.54rem;text-overflow:ellipsis;white-space:nowrap}.splash-season-notice-kicker{flex:none;font-size:.34rem}.seasonal-moon,.seasonal-anniversary-mark{scale:.65;transform-origin:center}.seasonal-scene-cake{scale:.7;transform-origin:bottom right;right:4vw;bottom:4vh}.seasonal-bats i:nth-child(n+4),.seasonal-birthday-watermark,.seasonal-anniversary-grid,.seasonal-anniversary-watermark,.seasonal-balloons,.seasonal-april-dialog:nth-of-type(n+2){display:none}.seasonal-party-lights{opacity:.32}.seasonal-aurora{opacity:.25}}
-@media(prefers-reduced-motion:reduce){.seasonal-world *,.splash-season-notice,.splash-season-notice-kicker i,.seasonal-update-takeover,.seasonal-update-spinner,.entry-splash-season *,.update-hourglass,.seasonal-update-card.is-looping,.seasonal-update-progress::after,.season-april-fools .panel,.season-april-fools .panel-strong{animation:none!important}.seasonal-particles,.seasonal-fireworks,.seasonal-party-beam,.splash-flake,.splash-bats,.update-hourglass{display:none}}
+@media(max-width:700px){.seasonal-moon,.seasonal-anniversary-mark{scale:.65;transform-origin:center}.seasonal-scene-cake{scale:.7;transform-origin:bottom right;right:4vw;bottom:4vh}.seasonal-bats i:nth-child(n+4),.seasonal-birthday-watermark,.seasonal-anniversary-grid,.seasonal-anniversary-watermark,.seasonal-balloons,.seasonal-april-dialog:nth-of-type(n+2){display:none}.seasonal-party-lights{opacity:.32}.seasonal-aurora{opacity:.25}}
+@media(prefers-reduced-motion:reduce){.seasonal-world *,.seasonal-update-takeover,.seasonal-update-spinner,.update-hourglass,.seasonal-update-card.is-looping,.seasonal-update-progress::after{animation:none!important}.seasonal-particles,.seasonal-fireworks,.seasonal-party-beam,.update-hourglass{display:none}}

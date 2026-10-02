@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { addXpToState, normalizeXpState, xpForLevel } from "../../shared/arcade-xp.mjs";
 
 const glyphs = ["01", "{}", "fn", "=>", "dx", "AI", "VR", "++", "$", "</>"];
 const colors = ["#3fff97", "#45d8ff", "#ff3d9d", "#ffd166"];
@@ -8,6 +9,7 @@ const NODE_COUNT = 6;
 const BOOT_PHASE_COUNT = 6;
 const OVERCLOCK_FRAMES = 320;
 const OVERCLOCK_COOLDOWN = 540;
+const MAX_SYNC_INTERVAL_MS = 15_000;
 
 function randomBetween(min, max) {
   return min + Math.random() * (max - min);
@@ -44,10 +46,6 @@ function easeInOut(t) {
   return t < 0.5 ? 2 * t * t : 1 - ((-2 * t + 2) ** 2) / 2;
 }
 
-function xpForLevel(level) {
-  return Math.round(95 + level * 42 + level ** 1.45 * 18);
-}
-
 function formatCoreNumber(value) {
   if (value >= 1_000_000) {
     const amount = value / 1_000_000;
@@ -60,14 +58,6 @@ function formatCoreNumber(value) {
   }
 
   return String(Math.round(value));
-}
-
-function normalizeXpState(value = {}) {
-  return {
-    level: Math.max(1, Math.floor(Number(value.level) || 1)),
-    xp: Math.max(0, Math.floor(Number(value.xp) || 0)),
-    total: Math.max(0, Math.floor(Number(value.total) || 0))
-  };
 }
 
 function loadLocalXpState() {
@@ -98,13 +88,15 @@ async function fetchServerXpState(signal) {
   return normalizeXpState(await response.json());
 }
 
-async function saveServerXpState(state, signal) {
+// El servidor solo acepta lo ganado desde el ultimo guardado y devuelve el
+// nucleo compartido; ya no se le manda el estado entero.
+async function sendServerXpGain(delta, signal) {
   const response = await fetch(XP_ENDPOINT, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
     signal,
-    body: JSON.stringify(normalizeXpState(state))
+    body: JSON.stringify({ delta })
   });
   if (!response.ok) throw new Error(`Arcade XP save returned ${response.status}`);
   return normalizeXpState(await response.json());
@@ -146,30 +138,60 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
     let lastFrameAt = 0;
     let scrollTimer = 0;
     let saveTimer = 0;
-    let pendingSaveController = null;
+    // XP ganada aqui que el servidor todavia no ha confirmado.
+    let pendingXp = 0;
+    let syncing = false;
+    let syncAgain = false;
+    let lastSyncAt = performance.now();
     const loadController = new AbortController();
 
-    function applyXpState(state) {
-      xpState = normalizeXpState(state);
+    // El servidor manda: se adopta su nucleo y se le suma lo ganado mientras la
+    // peticion iba y venia. Las fuentes solo se rehacen si cambia el nivel,
+    // porque rehacerlas reinicia el ritmo de los paquetes.
+    function adoptXpState(state) {
+      const next = addXpToState(state, pendingXp);
+      const levelChanged = next.level !== xpState.level;
+      xpState = next;
       saveLocalXpState(xpState);
-      sources = makeSources();
-      layoutSources();
+      if (levelChanged) {
+        sources = makeSources();
+        layoutSources();
+      }
       scheduleDraw();
     }
 
-    function queueSaveXpState(state) {
-      saveLocalXpState(state);
-      window.clearTimeout(saveTimer);
-      saveTimer = window.setTimeout(async () => {
-        pendingSaveController?.abort();
-        pendingSaveController = new AbortController();
-        try {
-          const serverState = await saveServerXpState(state, pendingSaveController.signal);
-          if (serverState.total > xpState.total) applyXpState(serverState);
-        } catch {
-          // Keep local progress when the server is temporarily unavailable.
+    async function syncXp() {
+      if (syncing) {
+        syncAgain = true;
+        return;
+      }
+      const delta = pendingXp;
+      if (!delta) return;
+      pendingXp = 0;
+      syncing = true;
+      lastSyncAt = performance.now();
+      try {
+        adoptXpState(await sendServerXpGain(delta, loadController.signal));
+      } catch {
+        // Se reintenta con el siguiente paquete si el servidor no responde.
+        pendingXp += delta;
+      } finally {
+        syncing = false;
+        if (syncAgain) {
+          syncAgain = false;
+          queueSyncXp();
         }
-      }, 450);
+      }
+    }
+
+    // Espera a que paren los paquetes, pero con el nucleo encendido no paran
+    // nunca: cada 15 s se guarda igualmente, porque el servidor solo acepta
+    // unos minutos de XP acumulada por guardado.
+    function queueSyncXp() {
+      saveLocalXpState(xpState);
+      window.clearTimeout(saveTimer);
+      const overdue = performance.now() - lastSyncAt >= MAX_SYNC_INTERVAL_MS;
+      saveTimer = window.setTimeout(syncXp, overdue ? 0 : 450);
     }
 
     function getRuntime() {
@@ -223,7 +245,8 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
         xpState.level += 1;
       }
 
-      queueSaveXpState(xpState);
+      pendingXp += amount;
+      queueSyncXp();
     }
 
     function core() {
@@ -893,14 +916,7 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
     resize();
 
     fetchServerXpState(loadController.signal)
-      .then((serverState) => {
-        if (serverState.total >= xpState.total) {
-          applyXpState(serverState);
-          return;
-        }
-
-        queueSaveXpState(xpState);
-      })
+      .then(adoptXpState)
       .catch(() => {
         // Local XP is still used while offline or during a failed deploy.
       });
@@ -949,7 +965,6 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
       window.removeEventListener("resize", resize);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       loadController.abort();
-      pendingSaveController?.abort();
       window.clearTimeout(scrollTimer);
       window.clearTimeout(saveTimer);
       cancelAnimationFrame(animationId);

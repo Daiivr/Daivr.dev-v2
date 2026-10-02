@@ -1,9 +1,11 @@
+import "../styles/konami-games.css";
 import { ArrowLeft, Gamepad2, LogIn, Play, RotateCcw, Trophy, Volume2, VolumeX, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RankingAvatar } from "./RankingAvatar";
 import { ArcadeTvDetails } from "./ArcadeTvDetails";
 import { useDailyChallengeNotice } from "../hooks/useDailyChallengeNotice";
 import { DailyChallengeNotice } from "./DailyChallengeNotice";
+import { armRunToken, runTokenFor } from "../lib/runTokens";
 
 const VOLUME_KEY = "daivr.pinballVolume.v1";
 // La mesa es ruidosa y el cartucho se abre sin avisar: arranca bajo y el que
@@ -87,6 +89,12 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
     if (open && hasRanking) loadLeaderboard();
   }, [game, hasRanking, loadLeaderboard, open]);
 
+  // La ficha se pide al abrir (y en cada reinicio del iframe), antes de que el
+  // juego empiece a contar; el servidor mide las partidas desde ese momento.
+  useEffect(() => {
+    if (open && ranking) armRunToken(ranking.api);
+  }, [instance, open, ranking]);
+
   // El iframe es del mismo origen, asi que el volumen y el nombre viajan por
   // postMessage en vez de tocar su DOM: el juego los aplica sobre su propio
   // AudioContext y sobre la tabla de traducciones del wasm.
@@ -128,7 +136,7 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
       const durationMs = Math.max(0, Number(event.data.durationMs) || 0);
       setStatus(me ? ranking.saving(score) : "DISCORD LINK REQUIRED TO RANK");
       if (!me) return;
-      fetch(`/api/${ranking.api}/score`, { method:"POST", credentials:"include", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ score, durationMs }) })
+      runTokenFor(ranking.api).then((runToken) => fetch(`/api/${ranking.api}/score`, { method:"POST", credentials:"include", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ score, durationMs, runToken }) }))
         .then(async (response) => { const data = await response.json().catch(() => ({})); if (!response.ok) throw new Error(data.error || "save-failed"); setMyScore(data.score || null); setLeaderboard(data.leaderboard || []); setStatus(ranking.saved(score, data.score?.rank || "?")); window.dispatchEvent(new Event("daivr-player-progress")); })
         .catch((error) => setStatus(String(error.message || "SAVE FAILED").toUpperCase()));
     }

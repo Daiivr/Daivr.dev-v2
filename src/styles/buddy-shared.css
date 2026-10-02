@@ -1,0 +1,87 @@
+/* Piezas de Buddy que se ven fuera del modal: la tarjeta de la barra lateral y
+   los iconos de coleccion. Ocupan el sitio de buddy-modal.css en la cascada; el
+   resto del modal llega con su chunk. */
+@layer components {
+  .buddy-nav-card {
+    display: grid;
+    gap: 0.45rem;
+  }
+
+  .buddy-nav-title {
+    margin-bottom: 0;
+  }
+
+  .buddy-nav-card-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+
+  .buddy-nav-card-stats span {
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 18%, transparent);
+    background: color-mix(in srgb, var(--color-ink-950) 82%, transparent);
+    padding: 0.45rem 0.35rem;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 76%, transparent);
+    font-size: 0.56rem;
+    font-weight: 900;
+    text-transform: uppercase;
+  }
+
+  .buddy-nav-card-stats b {
+    color: var(--color-cabinet);
+  }
+
+  .buddy-nav-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .buddy-nav-actions button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.38rem;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 24%, transparent);
+    background: color-mix(in srgb, var(--color-ink-950) 86%, transparent);
+    padding: 0.62rem 0.48rem;
+    color: var(--color-phosphor-soft);
+    font-size: 0.62rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    transition: border-color 160ms ease, background 160ms ease, color 160ms ease, transform 160ms ease, box-shadow 160ms ease, text-shadow 160ms ease;
+  }
+
+  .buddy-nav-actions button svg {
+    flex: 0 0 auto;
+  }
+
+  .buddy-nav-actions button:hover,
+  .buddy-nav-actions button:focus-visible {
+    border-color: var(--color-phosphor);
+    background: color-mix(in srgb, var(--color-phosphor) 16%, transparent);
+    color: #fff;
+    transform: translateY(-1px);
+  }
+  .buddy-modal-kicker { color: var(--color-cyan-arcade); text-shadow: 0 0 12px color-mix(in srgb, var(--color-cyan-arcade) 55%, transparent); font-size: 10px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+  .buddy-gear-icon { flex: none; width: 28px; height: 28px; overflow: visible; color: currentColor; filter: drop-shadow(0 0 4px color-mix(in srgb, currentColor 55%, transparent)) drop-shadow(0 0 12px color-mix(in srgb, currentColor 28%, transparent)); transition: filter 160ms ease; }
+
+  .buddy-collectible-icon { display: block; width: 68px; height: 50px; overflow: visible; image-rendering: pixelated; }
+
+  /* Chrome ignora `scrollbar-width`/`scrollbar-color` en cuanto se definen, y a
+     cambio esas propiedades no saben separar la barra del marco. Aqui manda el
+     pseudo-elemento (borde transparente + background-clip para meter el pulgar
+     hacia dentro) y las propiedades estandar quedan solo para Firefox. */
+  @media (prefers-reduced-motion: reduce) {
+    .buddy-nav-actions button { animation: none !important; transition: none !important; }
+  }
+}
+
+@layer components {
+  .buddy-collectible-icon.is-unknown { filter: grayscale(1) brightness(.6); }
+  .buddy-fishing-svg .buddy-caught-specimen { width: 30px; height: 23px; overflow: visible; }
+  .pixel-leap-fish-svg.buddy-collectible-icon { width: 42px; height: 28px; }
+  @media (prefers-reduced-motion: reduce) {
+    .buddy-species-art, .buddy-fish-tail { animation: none !important; }
+  }
+}

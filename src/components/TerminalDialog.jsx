@@ -1,28 +1,23 @@
+import "../styles/terminal-dialog.css";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Activity, ChevronRight, Command, FolderCode, GripHorizontal, Radio, Send, Sparkles, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useCabinetSignal } from "../lib/cabinetSignals";
+import { commandSummary, terminalSuggestions } from "../lib/terminalCommands";
 
-const COMMAND_HINTS = [
-  { name: "help", detail: "command index" },
-  { name: "status", detail: "cabinet telemetry" },
-  { name: "scan", detail: "index cartridges" },
-  { name: "ls", detail: "list page nodes" },
-  { name: "goto", detail: "jump to a node" },
-  { name: "theme", detail: "crt / glitch" },
-  { name: "run", detail: "boot Dai.exe" },
-  { name: "attract", detail: "start arcade demo" },
-  { name: "leviathan", detail: "admin: summon a sighting" },
-  { name: "kraken", detail: "admin: summon a kraken sighting" },
-  { name: "blackout", detail: "admin: power outage" },
-  { name: "whoami", detail: "operator profile" },
-  { name: "now", detail: "current save-state" },
-  { name: "discord", detail: "presence link" },
-  { name: "contact", detail: "open channel" },
-  { name: "date", detail: "local clock" },
-  { name: "echo", detail: "repeat text" },
-  { name: "clear", detail: "clear output" },
-  { name: "exit", detail: "close terminal" }
-];
+// El historial sobrevive a recargas: es lo primero que se echa en falta al
+// volver a abrir una consola.
+const HISTORY_KEY = "daivr.terminalHistory.v1";
+const HISTORY_LIMIT = 40;
+
+function loadHistory() {
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(HISTORY_KEY) || "[]");
+    return Array.isArray(saved) ? saved.filter((item) => typeof item === "string" && item.length <= 200).slice(0, HISTORY_LIMIT) : [];
+  } catch {
+    return [];
+  }
+}
 
 const QUICK_COMMANDS = ["help", "status", "scan", "theme", "run", "attract"];
 
@@ -37,7 +32,10 @@ function lineTone(line) {
 
 export function TerminalDialog({ open, onOpenChange, onCommand, log, theme }) {
   const [value, setValue] = useState("");
-  const [history, setHistory] = useState([]);
+  const [history, setHistory] = useState(loadHistory);
+  const player = useCabinetSignal("player");
+  const isAdmin = player?.user?.isAdmin === true;
+  const operator = String(player?.user?.username || "guest").toLowerCase().replace(/[^a-z0-9_.-]/g, "").slice(0, 16) || "guest";
   const [historyIndex, setHistoryIndex] = useState(-1);
   const inputRef = useRef(null);
   const outputRef = useRef(null);
@@ -57,11 +55,16 @@ export function TerminalDialog({ open, onOpenChange, onCommand, log, theme }) {
     };
   }
 
-  const suggestions = useMemo(() => {
-    const query = value.trim().toLowerCase().split(/\s+/)[0];
-    if (!query) return [];
-    return COMMAND_HINTS.filter((item) => item.name.startsWith(query) && item.name !== query).slice(0, 4);
-  }, [value]);
+  // Los comandos de diagnostico y de admin solo se sugieren a admins con sesion.
+  const suggestions = useMemo(() => terminalSuggestions(value, { admin: isAdmin }), [isAdmin, value]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+    } catch {
+      // Sin almacenamiento el historial dura lo que la pestana.
+    }
+  }, [history]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -127,7 +130,7 @@ export function TerminalDialog({ open, onOpenChange, onCommand, log, theme }) {
   function execute(command) {
     const next = String(command || "").trim();
     if (!next) return;
-    setHistory((current) => [next, ...current.filter((item) => item !== next)].slice(0, 40));
+    setHistory((current) => [next, ...current.filter((item) => item !== next)].slice(0, HISTORY_LIMIT));
     setHistoryIndex(-1);
     onCommand(next);
     setValue("");
@@ -148,8 +151,7 @@ export function TerminalDialog({ open, onOpenChange, onCommand, log, theme }) {
 
     if (event.key === "Tab" && suggestions.length) {
       event.preventDefault();
-      const [, ...args] = value.trim().split(/\s+/);
-      setValue(`${suggestions[0].name}${args.length ? ` ${args.join(" ")}` : ""}`);
+      setValue(suggestions[0].value);
       return;
     }
 
@@ -217,11 +219,10 @@ export function TerminalDialog({ open, onOpenChange, onCommand, log, theme }) {
               </header>
               <div className="terminal-command-list">
                 {QUICK_COMMANDS.map((name, index) => {
-                  const hint = COMMAND_HINTS.find((item) => item.name === name);
                   return (
                     <button className="terminal-command-chip arcade-focus" key={name} type="button" onClick={() => execute(name)} data-command={name}>
                       <span className="terminal-command-chip-index">{String(index + 1).padStart(2, "0")}</span>
-                      <span className="terminal-command-chip-copy"><b>{name}</b><small>{hint?.detail}</small></span>
+                      <span className="terminal-command-chip-copy"><b>{name}</b><small>{commandSummary(name)}</small></span>
                       <ChevronRight size={14} aria-hidden="true" />
                     </button>
                   );
@@ -255,7 +256,7 @@ export function TerminalDialog({ open, onOpenChange, onCommand, log, theme }) {
               <em>Tab autocomplete enabled</em>
             </div>
             <div className="terminal-prompt-row">
-              <label htmlFor="terminal-input"><span className="sr-only">Terminal command</span><b>guest@daivr</b><i>:</i><strong>~$</strong></label>
+              <label htmlFor="terminal-input"><span className="sr-only">Terminal command</span><b>{operator}@daivr</b><i>:</i><strong>~$</strong></label>
               <input
                 autoComplete="off"
                 autoCapitalize="none"
@@ -280,8 +281,8 @@ export function TerminalDialog({ open, onOpenChange, onCommand, log, theme }) {
 
             <div className={`terminal-suggestions ${suggestions.length ? "is-visible" : ""}`} aria-live="polite">
               {suggestions.map((item) => (
-                <button key={item.name} type="button" onClick={() => { setValue(item.name); inputRef.current?.focus({ preventScroll: true }); }}>
-                  <b>{item.name}</b><span>{item.detail}</span>
+                <button key={item.value} type="button" onClick={() => { setValue(item.value); inputRef.current?.focus({ preventScroll: true }); }}>
+                  <b>{item.label}</b><span>{item.detail}</span>
                 </button>
               ))}
             </div>

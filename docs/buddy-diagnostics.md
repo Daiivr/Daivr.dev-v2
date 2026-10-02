@@ -5,7 +5,10 @@ Open the site terminal with `/` after entering the cabinet. Sign in through Disc
 - `leviathan`: opens a portal at a safe footer position, lets Buddy run over and cast, then guarantees the Leviathan sighting after the warning sequence.
 - `blackout`: starts the power outage and Buddy's flashlight/repair sequence.
 - `powerout` and `power-out`: existing aliases for `blackout`, with identical permissions.
-- `help --all`: lists these commands; the terminal also suggests the canonical names while typing.
+- `kraken`: the same flow with a guaranteed Abyss Kraken sighting.
+- `help --all`: lists these commands. Autocomplete suggests them only when the signed-in Discord account is an admin; everyone else can still type them, and the server check below still decides.
+
+All terminal commands are defined once in `src/lib/terminalCommands.js`; help, autocomplete, and dispatch read from that list.
 
 The receiver verifies `/api/comments/me` on every manual request, including direct browser events. Admin status comes from the server's configured Discord admin IDs, never a local profile flag. Guests, members, expired sessions, and unavailable authentication cannot start manual encounters. Natural random sightings and outages keep their existing behavior.
 

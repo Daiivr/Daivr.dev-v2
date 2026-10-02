@@ -1,0 +1,8 @@
+/* Avatar de las clasificaciones. Lo usan el pasaporte (siempre cargado) y los
+   juegos Konami (perezosos), asi que se queda fijo en el sitio que ocupaba
+   dentro de konami-library.css. */
+@layer components {
+  .ranking-avatar { display:grid; width:34px; height:34px; overflow:hidden; place-items:center; border:1px solid rgba(69,216,255,.34); background:linear-gradient(135deg,rgba(69,216,255,.14),rgba(63,255,151,.07)); color:#45d8ff; font-size:.62rem; font-weight:900; letter-spacing:.04em; line-height:1; }
+  .ranking-avatar img { display:block; width:100%!important; height:100%!important; object-fit:cover; image-rendering:auto; }
+  .ranking-avatar i { font-style:normal; }
+}

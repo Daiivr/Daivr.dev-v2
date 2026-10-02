@@ -70,6 +70,28 @@
   .cabinet-telemetry-cell small { color: var(--color-phosphor-soft); font-size: 0.48rem; letter-spacing: 0.07em; }
   .cabinet-telemetry-cell b { color: var(--color-phosphor-soft); font-size: 0.75rem; font-variant-numeric: tabular-nums; }
   .cabinet-telemetry-cell.is-score b { color: var(--color-cabinet); }
+  /* Progreso hacia el siguiente nivel del pasaporte, como un hilo bajo el numero. */
+  .cabinet-telemetry-cell.is-score { position: relative; }
+  .cabinet-telemetry-cell.is-score:not(.is-guest)::after {
+    content: "";
+    position: absolute;
+    right: 0.65rem;
+    bottom: -0.2rem;
+    left: 0.65rem;
+    height: 2px;
+    background: linear-gradient(90deg, var(--color-cabinet) calc(var(--xp-progress, 0) * 100%), color-mix(in srgb, var(--color-cabinet) 16%, transparent) 0);
+  }
+  .cabinet-telemetry-cell.is-guest b { color: color-mix(in srgb, var(--color-phosphor-soft) 55%, transparent); }
+  .cabinet-telemetry-cell.is-presence small { display: inline-flex; align-items: center; justify-content: flex-end; gap: 0.3rem; }
+  .cabinet-telemetry-cell.is-presence b { color: var(--color-phosphor); }
+  .cabinet-presence-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--color-phosphor);
+    box-shadow: 0 0 6px var(--color-phosphor);
+    animation: cabinet-presence-pulse 2.4s ease-in-out infinite;
+  }
 
   @media (max-width: 1279px) { .cabinet-topbar-track { display: none; } }
   @media (max-width: 600px) {
@@ -87,7 +109,13 @@
     .cabinet-topbar-route { animation: none; }
     .cabinet-topbar-track i,
     .cabinet-terminal-button { transition: none; }
+    .cabinet-presence-dot { animation: none; }
   }
+}
+
+@keyframes cabinet-presence-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
 }
 
 @keyframes cabinet-route-in {

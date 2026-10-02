@@ -1,3 +1,6 @@
+/* Hoja perezosa del chunk de BuddyModal, detras de buddy-modal.css. Al final
+   van, en su orden original, las reglas de hojas fijas posteriores que solo
+   tocaban el modal. */
 @layer components {
   .buddy-pose-controls { display: flex; justify-content: center; gap: 6px; }
   .buddy-pose-controls button { min-height: 32px; padding: 5px 12px; border: 1px solid var(--buddy-border); color: var(--buddy-muted); font-size: 10px; }
@@ -51,11 +54,10 @@
   .buddy-archive-tile.is-selected { background: linear-gradient(150deg, color-mix(in srgb, var(--journal-color) 9%, transparent), transparent 70%), var(--buddy-panel); box-shadow: inset 0 -2px var(--journal-color); }
   .buddy-archive-tile.is-unknown { border-color: var(--buddy-border); }
   .buddy-archive-tile.is-unknown .buddy-archive-art { background: none; }
+  /* Copia de buddy-shared.css: dentro del chunk tiene que seguir en este sitio del orden. */
   .buddy-collectible-icon.is-unknown { filter: grayscale(1) brightness(.6); }
   .buddy-archive-tile.is-found:is(:hover,:focus-visible) .buddy-species-art { animation: buddy-fish-inspect 700ms ease-in-out infinite alternate; transform-origin: center; }
   .buddy-specimen-tank.is-discovered .buddy-fish-tail { animation: buddy-tail-flick 1s steps(2,end) infinite; transform-origin: 14px 21px; }
-  .buddy-fishing-svg .buddy-caught-specimen { width: 30px; height: 23px; overflow: visible; }
-  .pixel-leap-fish-svg.buddy-collectible-icon { width: 42px; height: 28px; }
 
   .buddy-modal :is(button,select,input):focus-visible { outline: 2px solid var(--color-cyan-arcade); outline-offset: 2px; }
 
@@ -74,6 +76,7 @@
     .buddy-journal-sortbar select, .buddy-locker-toolbar select, .buddy-pose-controls button, .buddy-loadout-toggle { min-height: 44px; }
   }
   @media (prefers-reduced-motion: reduce) {
+    /* Copia de buddy-shared.css: dentro del chunk tiene que seguir en este sitio del orden. */
     .buddy-species-art, .buddy-fish-tail { animation: none !important; }
   }
 }
@@ -83,3 +86,47 @@
 @keyframes buddy-tank-bubble { 0% { transform: translateY(0); opacity: 0; } 20% { opacity: .4; } 85% { opacity: .2; } 100% { transform: translateY(-130px); opacity: 0; } }
 @keyframes buddy-fish-inspect { from { transform: translateX(-1px) rotate(-3deg); } to { transform: translateX(1px) rotate(3deg); } }
 @keyframes buddy-tail-flick { 50% { transform: scaleX(.8); } }
+
+/* Antes en buddy-animation-gear.css: solo tocan elementos de este chunk. */
+
+@layer components {
+  /* Pixel-sized equipment, with the same art on the shelf and the companion. */
+  .buddy-loot-cell { grid-template-columns: 54px minmax(0,1fr) 18px; column-gap: 12px; }
+  .buddy-loot-cell > .buddy-gear-icon { width: 48px; height: 48px; padding: 3px; box-sizing: content-box; background: linear-gradient(135deg,#10322a99,#041310); border: 1px solid var(--buddy-border); box-shadow: inset 0 1px #b8f7ff19; filter: none; }
+  .buddy-loot-cell:hover > .buddy-gear-icon { filter: none; border-color: var(--color-cyan-arcade); }
+  .buddy-equip-slot .buddy-gear-icon { filter: drop-shadow(0 1px 0 #000); }
+}
+
+@layer components {
+  @media (max-width: 700px) {
+    .buddy-loot-cell { grid-template-columns: 42px minmax(0,1fr) 18px; }
+    .buddy-loot-cell > .buddy-gear-icon { width: 36px; height: 36px; padding: 2px; }
+}
+}
+
+/* Antes en buddy-body-water.css: solo tocan elementos de este chunk. */
+
+@layer components {
+  /* Keep the frame readable under a full loadout instead of glowing through it. */
+  .buddy-preview-sprite { filter: drop-shadow(0 3px 0 #0006) drop-shadow(0 0 5px #68d8b826); }
+  /* Copia de buddy-body-water.css: dentro del chunk tiene que seguir en este sitio del orden. */
+  .buddy-fish-school .buddy-collectible-icon { overflow: visible; filter: none; }
+}
+
+/* Antes en buddy-market.css: solo tocan elementos de este chunk. */
+
+@layer components {
+  .buddy-modal.is-market { width: min(940px, calc(100vw - 32px)); border: 8px solid var(--woodland-dark); background: var(--woodland-surface); box-shadow: 0 30px 100px #0009, 0 0 0 1px #c9a46a55; }
+  .buddy-modal.is-market::before { clip-path: none; }
+  .buddy-modal.is-market::after { background: none; filter: none; box-shadow: inset 0 0 0 1px #cfb77b66, inset 0 0 16px #0004; }
+  .buddy-modal.is-market .buddy-modal-header { background: var(--woodland-surface); border-bottom: 1px solid #a5ad7130; padding-bottom: 16px; clip-path: none; box-shadow: 0 4px 14px #0003; }
+  .buddy-modal.is-market .buddy-modal-actions { display: none; }
+  .buddy-modal.is-market .buddy-modal-description { color: var(--woodland-muted); }
+  .buddy-modal.is-market .buddy-modal-kicker { color: var(--stand-lettering); }
+  /* The same mossy timber and ambient shadows as the stand outside. */
+  .buddy-modal-backdrop:has(.is-market) { background: #020e0dbd; backdrop-filter: blur(7px); }
+  .buddy-modal.is-market { box-shadow: var(--woodland-shadow), var(--woodland-inset); }
+  .buddy-modal.is-market::after { box-shadow: var(--woodland-inset); }
+  .buddy-modal.is-market .buddy-modal-header { box-shadow: 0 4px 12px #03151240; }
+  .buddy-modal.is-market .buddy-modal-header h2 { color: var(--woodland-text); }
+}

@@ -6,6 +6,13 @@ import { CommunityInbox } from "./CommunityInbox";
 import { PlayerBadge } from "./PlayerBadge";
 import { PlayerRankings } from "./PlayerRankings";
 
+// La barra superior, el modo attract y la consola leen el nivel real desde aqui
+// (src/lib/cabinetSignals.js) en vez de pedir /api/player otra vez.
+function announcePlayer(value) {
+  const detail = value?.user ? { user: value.user, progression: value.passport?.progression || null } : null;
+  window.dispatchEvent(new CustomEvent("daivr-player-card", { detail }));
+}
+
 export function PlayerHub({ onPlay, theme = "crt" }) {
   const [open, setOpen] = useState(false);
   const [view, setView] = useState("passport");
@@ -34,6 +41,7 @@ export function PlayerHub({ onPlay, theme = "crt" }) {
       }
       previousCard.current = after;
       setData(value);
+      announcePlayer(value);
       setEdit((current) => preserveEdit && current?.user.id === after?.user.id ? current : after || null);
       if (!preserveEdit) setMessage("");
     } catch (error) { if (error.name !== "AbortError" && id === requestId.current) setMessage("Player panel is unavailable. Try again shortly."); }
@@ -43,9 +51,12 @@ export function PlayerHub({ onPlay, theme = "crt" }) {
     load(controller.signal);
     const inbox = (event) => setData((current) => current ? { ...current, inbox: event.detail } : current);
     const refresh = () => load(controller.signal, true);
+    // La consola abre el pasaporte (o una vista concreta) con este evento.
+    const openPassport = (event) => { setView(event.detail?.view || "passport"); setOpen(true); };
     window.addEventListener("daivr-inbox", inbox);
     window.addEventListener("daivr-player-progress", refresh);
-    return () => { controller.abort(); window.removeEventListener("daivr-inbox", inbox); window.removeEventListener("daivr-player-progress", refresh); };
+    window.addEventListener("daivr-open-passport", openPassport);
+    return () => { controller.abort(); window.removeEventListener("daivr-inbox", inbox); window.removeEventListener("daivr-player-progress", refresh); window.removeEventListener("daivr-open-passport", openPassport); };
   }, []);
   useEffect(() => {
     if (!notice) return;
@@ -69,6 +80,7 @@ export function PlayerHub({ onPlay, theme = "crt" }) {
       ++requestId.current;
       previousCard.current = value.passport;
       setData(value); setEdit(value.passport); setSaveMessage("Passport saved.");
+      announcePlayer(value);
     } catch (error) { setSaveMessage(error.message); }
     finally { setBusy(false); }
   }

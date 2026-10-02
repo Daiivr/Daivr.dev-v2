@@ -19,3 +19,7 @@ data/comment-posting.json
 data/player-passports.json
 data/*.bak
 data/*.tmp
+data/arcade-xp.json
+
+# Tests locales (corepack pnpm test): no hacen falta para la web.
+scripts/test-*.mjs

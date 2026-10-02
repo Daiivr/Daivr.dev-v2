@@ -1,22 +1,12 @@
 import { createServer } from "node:http";
 import { extname, join, normalize } from "node:path";
 import { readFile, stat } from "node:fs/promises";
-import { handleArcadeXpRequest } from "./server/arcade-xp.mjs";
-import { handleBuddyRequest } from "./server/buddy.mjs";
-import { handleCommentsRequest } from "./server/comments.mjs";
-import { handleCrossRoadRequest } from "./server/cross-road.mjs";
-import { handleSpaceCadetPinballRequest } from "./server/space-cadet-pinball.mjs";
-import { handleDiscordProfileFrameRequest } from "./server/discord-profile-frame.mjs";
-import { handleDiscordStreakRequest, startDiscordStreakPolling } from "./server/discord-streak.mjs";
-import { handleMadraceRequest } from "./server/madrace.mjs";
+import { startDiscordStreakPolling } from "./server/discord-streak.mjs";
 import { loadLocalEnv } from "./server/env.mjs";
-import { handleSteamPlaytimeRequest } from "./server/steam-playtime.mjs";
-import { handleTradeDexVirusTotalRequest } from "./server/virustotal.mjs";
-import { handleTowerBlockRequest } from "./server/tower-block.mjs";
-import { handleVisitsRequest } from "./server/visits.mjs";
 import { getCacheControl as assetCacheControl, loadHashedAssets } from "./server/asset-cache.mjs";
 import { assertSessionConfiguration } from "./server/http-guards.mjs";
-import { handlePlayerRequest } from "./server/player.mjs";
+import { handleApiRequest } from "./server/routes.mjs";
+import { applySecurityHeaders } from "./server/security-headers.mjs";
 
 process.on("uncaughtException", (error) => {
   console.error("[server] uncaught exception", error?.stack || error);
@@ -33,13 +23,13 @@ const hashedAssets = loadHashedAssets(staticRoot);
 const getCacheControl = (file) => assetCacheControl(file, hashedAssets);
 loadLocalEnv(root);
 assertSessionConfiguration(true);
-const steamGridApiKey = process.env.STEAMGRID_API_KEY || "";
-const steamGridCache = new Map();
 
 const types = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
   ".js": "text/javascript; charset=utf-8",
+  ".mjs": "text/javascript; charset=utf-8",
+  ".txt": "text/plain; charset=utf-8",
   ".json": "application/json; charset=utf-8",
   ".png": "image/png",
   ".jpg": "image/jpeg",
@@ -87,136 +77,13 @@ function resolvePath(url) {
   return join(staticRoot, cleanPath);
 }
 
-async function getGameImageFromSteamGrid(gameName) {
-  if (!steamGridApiKey || !gameName) return null;
-
-  const key = gameName.trim().toLowerCase();
-  if (!key) return null;
-  if (steamGridCache.has(key)) return steamGridCache.get(key);
-
-  try {
-    const searchResponse = await fetch(
-      `https://www.steamgriddb.com/api/v2/search/autocomplete/${encodeURIComponent(gameName)}`,
-      {
-        headers: {
-          Authorization: `Bearer ${steamGridApiKey}`
-        }
-      }
-    );
-
-    if (!searchResponse.ok) throw new Error(`SteamGrid search returned ${searchResponse.status}`);
-
-    const searchPayload = await searchResponse.json();
-    const gameId = searchPayload?.data?.[0]?.id;
-    if (!gameId) {
-      steamGridCache.set(key, null);
-      return null;
-    }
-
-    const iconResponse = await fetch(`https://www.steamgriddb.com/api/v2/icons/game/${gameId}`, {
-      headers: {
-        Authorization: `Bearer ${steamGridApiKey}`
-      }
-    });
-
-    if (!iconResponse.ok) throw new Error(`SteamGrid icons returned ${iconResponse.status}`);
-
-    const iconPayload = await iconResponse.json();
-    const url = iconPayload?.data?.[0]?.url || null;
-    steamGridCache.set(key, url);
-    return url;
-  } catch (error) {
-    console.error("SteamGridDB error", error.message || error);
-    steamGridCache.set(key, null);
-    return null;
-  }
-}
-
 const appServer = createServer(async (request, response) => {
   try {
     const requestUrl = new URL(request.url || "/", `http://localhost:${port}`);
 
-    if (requestUrl.pathname === "/api/player") {
-      await handlePlayerRequest(request, response);
-      return;
-    }
+    applySecurityHeaders(request, response, requestUrl.pathname);
 
-    if (requestUrl.pathname.startsWith("/api/tradedex/")) {
-      await handleTradeDexVirusTotalRequest(request, response);
-      return;
-    }
-
-    if (requestUrl.pathname === "/api/discord-streak") {
-      await handleDiscordStreakRequest(request, response);
-      return;
-    }
-
-    if (requestUrl.pathname === "/api/discord-profile-frame") {
-      await handleDiscordProfileFrameRequest(request, response);
-      return;
-    }
-
-    if (requestUrl.pathname === "/api/steam-playtime") {
-      await handleSteamPlaytimeRequest(request, response);
-      return;
-    }
-
-    if (requestUrl.pathname === "/api/comments" || requestUrl.pathname.startsWith("/api/comments/")) {
-      await handleCommentsRequest(request, response);
-      return;
-    }
-
-    if (requestUrl.pathname === "/api/visits" || requestUrl.pathname.startsWith("/api/visits/")) {
-      await handleVisitsRequest(request, response);
-      return;
-    }
-
-    if (requestUrl.pathname === "/api/arcade-xp") {
-      await handleArcadeXpRequest(request, response);
-      return;
-    }
-
-    if (requestUrl.pathname.startsWith("/api/madrace/") || requestUrl.pathname.startsWith("/api/drive-mad/")) {
-      await handleMadraceRequest(request, response);
-      return;
-    }
-
-    if (requestUrl.pathname.startsWith("/api/tower-block/")) {
-      await handleTowerBlockRequest(request, response);
-      return;
-    }
-
-    if (requestUrl.pathname.startsWith("/api/cross-road/")) {
-      await handleCrossRoadRequest(request, response);
-      return;
-    }
-
-    if (requestUrl.pathname.startsWith("/api/space-cadet-pinball/")) {
-      await handleSpaceCadetPinballRequest(request, response);
-      return;
-    }
-
-    if (requestUrl.pathname === "/api/buddy" || requestUrl.pathname.startsWith("/api/buddy/")) {
-      await handleBuddyRequest(request, response);
-      return;
-    }
-
-    if (requestUrl.pathname === "/api/game-image") {
-      const name = requestUrl.searchParams.get("name");
-      if (!name) {
-        response.writeHead(400, { "Content-Type": "application/json; charset=utf-8" });
-        response.end(JSON.stringify({ error: "Missing name parameter" }));
-        return;
-      }
-
-      const url = await getGameImageFromSteamGrid(name);
-      response.writeHead(200, {
-        "Content-Type": "application/json; charset=utf-8",
-        "Cache-Control": "no-store"
-      });
-      response.end(JSON.stringify({ url }));
-      return;
-    }
+    if (await handleApiRequest(request, response)) return;
 
     const filePath = resolvePath(request.url || "/");
     let data;

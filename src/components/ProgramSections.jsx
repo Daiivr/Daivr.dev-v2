@@ -6,12 +6,54 @@ import { now, projects, roomStats, socialLinks, stack } from "../data/site";
 import { DecodeText } from "./DecodeText";
 import { DiscordPresencePanel } from "./DiscordPresencePanel";
 import { GameShelf } from "./GameShelf";
-import { PatchNotes } from "./PatchNotes";
 import { ProjectFolder } from "./ProjectFolder";
 import { ProjectStory } from "./ProjectStory";
 import { projectStories } from "../data/projectStories";
+import { ChunkBoundary, lazyChunk } from "../lib/chunkRecovery";
 
 const ProjectLanyard = lazy(() => import("./ProjectLanyard"));
+// El escritorio de Patch.log y sus 135 KB de notas solo se descargan cuando el
+// visitante se acerca a la seccion (o llega con un enlace a una version).
+const PatchNotes = lazyChunk(() => import("./PatchNotes"), (module) => module.PatchNotes);
+
+function wantsPatchLogNow() {
+  return new URLSearchParams(window.location.search).has("release") || window.location.hash === "#patchlog";
+}
+
+function LazyPatchLog({ theme, interactive }) {
+  const holderRef = useRef(null);
+  const [near, setNear] = useState(wantsPatchLogNow);
+
+  useEffect(() => {
+    if (near) return undefined;
+    const holder = holderRef.current;
+    if (!holder || typeof IntersectionObserver === "undefined") {
+      setNear(true);
+      return undefined;
+    }
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) setNear(true);
+    }, { rootMargin: "900px 0px" });
+    observer.observe(holder);
+    const onHash = () => { if (wantsPatchLogNow()) setNear(true); };
+    window.addEventListener("hashchange", onHash);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("hashchange", onHash);
+    };
+  }, [near]);
+
+  const placeholder = <div className="patch-log-placeholder" aria-busy="true"><span>Loading the desk…</span></div>;
+  return (
+    <div ref={holderRef}>
+      {near ? (
+        <ChunkBoundary fallback={<div className="patch-log-placeholder"><span>Patch.log is unavailable right now.</span></div>}>
+          <Suspense fallback={placeholder}><PatchNotes theme={theme} interactive={interactive} /></Suspense>
+        </ChunkBoundary>
+      ) : placeholder}
+    </div>
+  );
+}
 
 const socialIcons = {
   discord: FaDiscord,
@@ -309,7 +351,7 @@ export function ProgramSections({ theme, interactive }) {
 
       <section className="py-16 md:py-24" id="patchlog">
         <SectionHeading eyebrow="PATCH.LOG" title="Behind the cabinet." />
-        <PatchNotes theme={theme} interactive={interactive} />
+        <LazyPatchLog theme={theme} interactive={interactive} />
       </section>
     </>
   );

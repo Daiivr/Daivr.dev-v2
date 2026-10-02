@@ -38,13 +38,6 @@
   .market-stand-sign::before { content: ""; position: absolute; top: -11px; left: 19px; width: 3px; height: 12px; background: #c4b185; box-shadow: 116px 0 #c4b185, 1px 0 #5a4830, 117px 0 #5a4830; }
   .market-stand-sign::after { content: ""; position: absolute; top: 6px; left: 5px; width: 3px; height: 3px; background: #e1bf77; box-shadow: 144px 0 #e1bf77, 0 22px #5a3e26, 144px 22px #5a3e26; }
   .buddy-market-stand:hover .market-stand-sign, .buddy-market-stand:focus-visible .market-stand-sign { opacity: 1; visibility: visible; transform: translateY(0) rotate(-1deg); }
-  .buddy-modal.is-market { width: min(940px, calc(100vw - 32px)); border: 8px solid var(--woodland-dark); background: var(--woodland-surface); box-shadow: 0 30px 100px #0009, 0 0 0 1px #c9a46a55; }
-  .buddy-modal.is-market::before { clip-path: none; }
-  .buddy-modal.is-market::after { background: none; filter: none; box-shadow: inset 0 0 0 1px #cfb77b66, inset 0 0 16px #0004; }
-  .buddy-modal.is-market .buddy-modal-header { background: var(--woodland-surface); border-bottom: 1px solid #a5ad7130; padding-bottom: 16px; clip-path: none; box-shadow: 0 4px 14px #0003; }
-  .buddy-modal.is-market .buddy-modal-actions { display: none; }
-  .buddy-modal.is-market .buddy-modal-description { color: var(--woodland-muted); }
-  .buddy-modal.is-market .buddy-modal-kicker { color: var(--stand-lettering); }
   .buddy-market { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 22px 26px 18px; color: var(--woodland-text); scrollbar-color: #607757 var(--woodland-surface); }
   .market-welcome { display: grid; grid-template-columns: 180px 1fr 160px; gap: 24px; align-items: center; padding: 0 0 22px; border-bottom: 1px solid #a5ad7130; }
   .market-diorama { position: relative; height: 150px; display: grid; align-items: end; padding-bottom: 22px; background: radial-gradient(ellipse at 50% 65%, #c5b86c20, transparent 70%), repeating-linear-gradient(0deg, transparent 0 3px, #040e0b14 3px 4px); }
@@ -210,12 +203,6 @@
   .market-footer > span { margin-right: auto; color: #8ea28a; }
   .market-footer button { border: 0; padding: 7px 0; background: transparent; color: var(--stand-lettering); cursor: pointer; }
   .buddy-market button:focus-visible { outline: 2px solid #f4d68f; outline-offset: 3px; }
-  /* The same mossy timber and ambient shadows as the stand outside. */
-  .buddy-modal-backdrop:has(.is-market) { background: #020e0dbd; backdrop-filter: blur(7px); }
-  .buddy-modal.is-market { box-shadow: var(--woodland-shadow), var(--woodland-inset); }
-  .buddy-modal.is-market::after { box-shadow: var(--woodland-inset); }
-  .buddy-modal.is-market .buddy-modal-header { box-shadow: 0 4px 12px #03151240; }
-  .buddy-modal.is-market .buddy-modal-header h2 { color: var(--woodland-text); }
   .market-diorama { background: radial-gradient(ellipse at 50% 70%, #619b891a, transparent 70%); }
   .market-diorama .market-stand-art { filter: saturate(.78) brightness(.9) drop-shadow(0 3px 2px #03151280); }
   .market-stand-sign, .market-hanging-sign, .market-stall-awning > span, .market-price-sign,

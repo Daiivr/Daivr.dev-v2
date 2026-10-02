@@ -7,8 +7,9 @@ import { readJsonStore, writeJsonStore } from "./json-store.mjs";
 import { assertSessionConfiguration, readJsonBody, sameOrigin } from "./http-guards.mjs";
 import { reserveCommentPost } from "./comment-posting.mjs";
 import { buildInbox, markInboxRead } from "./community-inbox.mjs";
-import { normalizeGifUrl, updateGifFavorites } from "../shared/comment-gifs.mjs";
+import { canProxyGif, normalizeGifUrl, updateGifFavorites } from "../shared/comment-gifs.mjs";
 import { downloadCommentGif } from "./comment-gif-download.mjs";
+import { commentGifPreview } from "./comment-gif-preview.mjs";
 
 const COMMENTS_FILENAME = "comments.json";
 const PREFERENCES_FILENAME = "preferences.json";
@@ -187,16 +188,14 @@ function sortComments(comments) {
   });
 }
 
-function sanitizeGifUrl(value) {
+// Every visitor loads attached GIFs, so a URL on an arbitrary host would let
+// whoever posted it log the IP of everyone who opens the guestbook. Only the
+// GIF providers the picker uses are accepted (HTTPS, no custom port), both on
+// new posts and when older comments are read back.
+export function sanitizeGifUrl(value) {
   const url = String(value || "").trim();
-  if (!url) return "";
-  try {
-    const parsed = new URL(url);
-    if (!["http:", "https:"].includes(parsed.protocol)) return "";
-    return parsed.toString().slice(0, 700);
-  } catch {
-    return "";
-  }
+  if (!url || url.length > 700 || !canProxyGif(url)) return "";
+  return new URL(url).toString();
 }
 
 function normalizeReactionKey(value) {
@@ -1042,6 +1041,16 @@ async function routeCommentsRequest(request, response) {
   if (request.method === "GET" && parts.length === 2 && parts[0] === "gifs" && parts[1] === "download") {
     const { bytes, type, filename } = await downloadCommentGif(requestUrl.searchParams.get("url"));
     response.writeHead(200, { "Content-Type": type, "Content-Length": bytes.length, "Content-Disposition": `attachment; filename="${filename}"`, "X-Content-Type-Options": "nosniff", "Cache-Control": "private, max-age=300" });
+    response.end(bytes);
+    return;
+  }
+
+  if (request.method === "GET" && parts.length === 2 && parts[0] === "gifs" && parts[1] === "preview") {
+    const bytes = await commentGifPreview(String(requestUrl.searchParams.get("url") || "").trim(), {
+      isAttached: (url) => readComments().some((comment) => comment.gifUrl === url || (comment.replies || []).some((reply) => reply.gifUrl === url))
+    });
+    // El primer fotograma de una URL no cambia nunca: se puede cachear sin miedo.
+    response.writeHead(200, { "Content-Type": "image/gif", "Content-Length": bytes.length, "X-Content-Type-Options": "nosniff", "Cache-Control": "public, max-age=2592000, immutable" });
     response.end(bytes);
     return;
   }

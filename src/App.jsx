@@ -1,8 +1,53 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { commands, discord, games, navItems, profile, projects } from "./data/site";
+// Hojas de estilo del armario, en el mismo orden relativo que tenian en
+// main.jsx (el orden decide empates dentro de cada @layer). Las que pinta la
+// puerta de entrada (index, screen-buddy, entry-*) se cargan antes, desde main.
+import "./styles/attract-mode.css";
+import "./styles/cart-swap.css";
+import "./styles/discord-presence.css";
+import "./styles/game-shelf.css";
+import "./styles/hero-entry.css";
+import "./styles/workstation-materials.css";
+import "./styles/link-console.css";
+import "./styles/now-dashboard.css";
+import "./styles/project-console.css";
+import "./styles/project-folder.css";
+import "./styles/project-lanyard.css";
+import "./styles/toolbelt.css";
+import "./styles/comments-console.css";
+import "./styles/patch-log.css";
+import "./styles/perched-birds.css";
+import "./styles/site-footer.css";
+import "./styles/system-pages.css";
+import "./styles/footer-wildlife.css";
+import "./styles/buddy-shared.css";
+import "./styles/buddy-world-polish.css";
+import "./styles/buddy-animation-gear.css";
+import "./styles/buddy-body-water.css";
+import "./styles/buddy-rain-hunt.css";
+import "./styles/buddy-encounter-fishing.css";
+import "./styles/buddy-abyss.css";
+import "./styles/buddy-outage.css";
+import "./styles/pixel-birds.css";
+import "./styles/ranking-avatar.css";
+import "./styles/cursor.css";
+import "./styles/seasonal-tints.css";
+import "./styles/mobile.css";
+import "./styles/cabinet-sidebar.css";
+import "./styles/cabinet-topbar.css";
+import "./styles/community.css";
+import "./styles/discord-desk.css";
+import "./styles/game-collection.css";
+import "./styles/arcade-panels.css";
+import "./styles/player-passport.css";
+import "./styles/panel-glitch.css";
+import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { discord, games, navItems, profile, projects } from "./data/site";
+import { KONAMI_GAMES } from "./data/konamiGames";
 import { preloadImages } from "./lib/preloadImages";
-import { consumeGateReturn } from "./lib/gateReturn";
-import { buddyDiagnosticEvent } from "../shared/buddy-diagnostics.mjs";
+import { ChunkBoundary, lazyChunk } from "./lib/chunkRecovery";
+import { getSeasonalEvent } from "./lib/seasons";
+import { getCabinetSignal } from "./lib/cabinetSignals";
+import { runTerminalCommand } from "./lib/terminalCommands";
 import { useBuddyAdventure } from "./hooks/useBuddyAdventure";
 import { useBuddyFriendship } from "./hooks/useBuddyFriendship";
 import { useBuddyLoadout } from "./hooks/useBuddyLoadout";
@@ -11,39 +56,42 @@ import { getLatestFps } from "./hooks/useFps";
 import { useRandomGlitchWords } from "./hooks/useRandomGlitchWords";
 import { ArcadeBackground } from "./components/ArcadeBackground";
 import { CabinetTopbar } from "./components/CabinetTopbar";
-import { ArcadeEmbedModal } from "./components/ArcadeEmbedModal";
 import { AttractMode } from "./components/AttractMode";
 import { BuddyDrop } from "./components/BuddyDrop";
-import { BuddyModal } from "./components/BuddyModal";
 import { CommentsSection } from "./components/CommentsSection";
 import { SignalCursor } from "./components/SignalCursor";
 import { CursorTrail } from "./components/CursorTrail";
-import { EntrySplash } from "./components/EntrySplash";
 import { HeroStation } from "./components/HeroStation";
 import { LaunchOverlay } from "./components/LaunchOverlay";
-import { KONAMI_GAMES, KonamiGameLibrary } from "./components/KonamiGameLibrary";
-import { MadraceModal } from "./components/MadraceModal";
 import { PerchedBirds } from "./components/PerchedBirds";
 import { ProgramSections } from "./components/ProgramSections";
 import { Sidebar } from "./components/Sidebar";
 import { SiteFooter } from "./components/SiteFooter";
-import { TerminalDialog } from "./components/TerminalDialog";
-import { TowerBlockModal } from "./components/TowerBlockModal";
-import { getSeasonalEvent, SeasonalEvent } from "./components/SeasonalEvent";
 import { SystemGatePage } from "./components/SystemGatePage";
 
-const TERMINAL_NODES = [
-  ["home", "home"],
-  ["now", "now"],
-  ["builds", "builds"],
-  ["room", "room"],
-  ["games", "games"],
-  ["toolbelt", "toolbelt"],
-  ["patch", "patchlog"],
-  ["patchlog", "patchlog"],
-  ["comments", "contact"],
-  ["contact", "contact"]
-];
+// Piezas que solo hacen falta cuando se usan: se descargan la primera vez y
+// despues se quedan montadas (asi conservan sus animaciones de cierre).
+const BuddyModal = lazyChunk(() => import("./components/BuddyModal"), (module) => module.BuddyModal);
+const TerminalDialog = lazyChunk(() => import("./components/TerminalDialog"), (module) => module.TerminalDialog);
+const SeasonalEvent = lazyChunk(() => import("./components/SeasonalEvent"), (module) => module.SeasonalEvent);
+const KonamiGameLibrary = lazyChunk(() => import("./components/KonamiGameLibrary"), (module) => module.KonamiGameLibrary);
+const MadraceModal = lazyChunk(() => import("./components/MadraceModal"), (module) => module.MadraceModal);
+const TowerBlockModal = lazyChunk(() => import("./components/TowerBlockModal"), (module) => module.TowerBlockModal);
+const ArcadeEmbedModal = lazyChunk(() => import("./components/ArcadeEmbedModal"), (module) => module.ArcadeEmbedModal);
+const EMBED_GAMES = ["cross-road", "rubiks-cube", "space-cadet-pinball"];
+
+function useUsedOnce(active) {
+  const [used, setUsed] = useState(active);
+  useEffect(() => {
+    if (active) setUsed(true);
+  }, [active]);
+  return used || active;
+}
+
+function LazyPiece({ show, children }) {
+  if (!show) return null;
+  return <ChunkBoundary><Suspense fallback={null}>{children}</Suspense></ChunkBoundary>;
+}
 
 const ACCESS_DENIED_ROUTES = ["/403", "/access-denied", "/forbidden"];
 const PROTECTED_ROUTE_PREFIXES = ["/admin", "/private", "/restricted", "/system"];
@@ -54,7 +102,7 @@ function isAccessDeniedPath(pathname) {
     || PROTECTED_ROUTE_PREFIXES.some((prefix) => normalizedPath === prefix || normalizedPath.startsWith(`${prefix}/`));
 }
 
-export default function App() {
+export default function App(props) {
   const pathname = window.location.pathname;
 
   if (isAccessDeniedPath(pathname)) {
@@ -65,13 +113,14 @@ export default function App() {
     return <SystemGatePage requestedPath={pathname} variant="missing" />;
   }
 
-  return <CabinetApp />;
+  return <CabinetApp {...props} />;
 }
 
-function CabinetApp() {
+// La puerta y el .app-shell los pone CabinetRoot (chunk de entrada); aqui llega
+// si la puerta sigue abierta y por donde devolverle lo que necesita.
+function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass, onGateBridge }) {
   const [theme, setTheme] = useState("crt");
   const [terminalOpen, setTerminalOpen] = useState(false);
-  const [score, setScore] = useState(87);
   const [buildLog, setBuildLog] = useState("$ idle\nDai.exe offline\nnodes waiting for RUN command...");
   const [terminalLog, setTerminalLog] = useState("┌─ DAI.EXE COMMAND CONSOLE // v2.6\n│ cabinet shell mounted at ~/daivr\n│ history + completion modules online\n└─ Tip: type help, use Tab completion, or press ↑ for history.\n\n$ status\nshell ready // awaiting operator input");
   const [activeSection, setActiveSection] = useState("home");
@@ -79,9 +128,6 @@ function CabinetApp() {
   const [launchPhase, setLaunchPhase] = useState(0);
   const [launchComplete, setLaunchComplete] = useState(false);
   const [launchClosing, setLaunchClosing] = useState(false);
-  const [entrySplashOpen, setEntrySplashOpen] = useState(true);
-  const [splashReturn, setSplashReturn] = useState(null);
-  const [splashRevision, setSplashRevision] = useState(0);
   const [buddyDrop, setBuddyDrop] = useState(null);
   const [buddyModal, setBuddyModal] = useState(null);
   const [hasRun, setHasRun] = useState(false);
@@ -93,7 +139,6 @@ function CabinetApp() {
   const achievementTimerRef = useRef(0);
   const konamiIndexRef = useRef(0);
   const konamiCoversWarmedRef = useRef(false);
-  const shellRef = useRef(null);
   const friendship = useBuddyFriendship({ onMilestone: handleBuddyMilestone });
   const adventure = useBuddyAdventure({ onQuestComplete: handleBuddyQuestComplete });
   const loadout = useBuddyLoadout({ friendship, adventure });
@@ -103,18 +148,32 @@ function CabinetApp() {
   const openKonamiLibrary = useCallback(() => setKonamiView("library"), []);
   const selectKonamiGame = useCallback((game) => setKonamiView(game), []);
 
-  useEffect(() => {
-    const greetRestoredVisitor = (event) => {
-      if (!event.persisted) return;
-      const context = consumeGateReturn();
-      if (!context) return;
-      setSplashReturn(context);
-      setSplashRevision((revision) => revision + 1);
-      setEntrySplashOpen(true);
-    };
-    window.addEventListener("pageshow", greetRestoredVisitor);
-    return () => window.removeEventListener("pageshow", greetRestoredVisitor);
-  }, []);
+  const terminalUsed = useUsedOnce(terminalOpen);
+  const buddyModalUsed = useUsedOnce(Boolean(buddyModal));
+  const libraryUsed = useUsedOnce(konamiView === "library");
+  const madraceUsed = useUsedOnce(konamiView === "madrace");
+  const towerUsed = useUsedOnce(konamiView === "tower-block");
+  const embedUsed = useUsedOnce(EMBED_GAMES.includes(konamiView));
+  const shellClass = `${theme === "glitch" ? "theme-glitch" : ""} ${isLaunching ? "is-launching" : ""} ${powerOutage ? `has-power-outage outage-${powerOutage}` : ""} ${seasonalEvent ? `season-${seasonalEvent}` : ""}`;
+  const gateBridgeKey = JSON.stringify([seasonalEvent, friendship.level, adventure.inventoryIds, loadout.effectiveHiddenGear, loadout.unlockedGearIds]);
+
+  useLayoutEffect(() => {
+    onShellClass?.(shellClass);
+  }, [onShellClass, shellClass]);
+
+  // La puerta pinta el buddy con su equipo y la temporada activa; solo se le
+  // avisa cuando algo de eso cambia de verdad.
+  useLayoutEffect(() => {
+    onGateBridge?.({
+      seasonalEvent,
+      friendshipLevel: friendship.level,
+      inventory: adventure.inventoryIds,
+      hiddenGear: loadout.effectiveHiddenGear,
+      unlockedGear: loadout.unlockedGearIds,
+      launchBuddy: setBuddyDrop
+    });
+  }, [gateBridgeKey, onGateBridge]); // eslint-disable-line react-hooks/exhaustive-deps
+
   useRandomGlitchWords(theme === "glitch");
 
   useEffect(() => {
@@ -352,35 +411,6 @@ function CabinetApp() {
     setTerminalLog((value) => `${value}\n\n$ ${command}\n${response}`.trim());
   }
 
-  async function verifyDiscordAdmin(input, commandLabel, unchangedMessage) {
-    let operator;
-
-    try {
-      const response = await fetch("/api/comments/me", {
-        credentials: "include",
-        cache: "no-store",
-        headers: { Accept: "application/json" }
-      });
-      if (!response.ok) throw new Error(`Discord session check returned ${response.status}`);
-      operator = (await response.json())?.user || null;
-    } catch {
-      appendTerminal(input, `AUTH BUS OFFLINE // Discord admin session could not be verified.\n${unchangedMessage}`);
-      return null;
-    }
-
-    if (!operator) {
-      appendTerminal(input, `ACCESS DENIED // Sign in through Discord with an admin account before using ${commandLabel}.\n${unchangedMessage}`);
-      return null;
-    }
-
-    if (!operator.isAdmin) {
-      appendTerminal(input, `ACCESS DENIED // Discord operator ${operator.username || operator.id} is not an admin.\n${unchangedMessage}`);
-      return null;
-    }
-
-    return operator;
-  }
-
   function runBuild() {
     if (isLaunching) {
       return "Dai.exe is already running. Let the cabinet finish booting.";
@@ -410,7 +440,7 @@ function CabinetApp() {
     const lines = [
       "$ run Dai.exe",
       ...nodeLines,
-      "Dai.exe online // +07 XP"
+      "Dai.exe online // all nodes green"
     ];
 
     setIsLaunching(true);
@@ -429,7 +459,7 @@ function CabinetApp() {
     );
 
     timers.push(window.setTimeout(() => {
-      setBuildLog((value) => `${value}\nDai.exe online // +07 XP`);
+      setBuildLog((value) => `${value}\nDai.exe online // all nodes green`);
       setLaunchComplete(true);
     }, finishDelay - 360));
 
@@ -438,7 +468,6 @@ function CabinetApp() {
     }, finishDelay + 920);
 
     window.setTimeout(() => {
-      setScore((value) => Math.min(999, value + 7));
       setIsLaunching(false);
       setLaunchComplete(false);
       setLaunchClosing(false);
@@ -450,226 +479,63 @@ function CabinetApp() {
     return "Launching Dai.exe...\nwatch the cabinet warm up.";
   }
 
-  async function runCommand(rawInput) {
-    const input = rawInput.trim();
-    if (!input) return;
-    const [rawName, ...args] = input.split(/\s+/);
-    const name = rawName.toLowerCase();
-    const arg = args.join(" ").trim();
+  // Los comandos viven en src/lib/terminalCommands.js; aqui solo se les da
+  // acceso al estado del armario.
+  function openLinkedProject(slug) {
+    const target = `#project-${slug}`;
+    if (window.location.hash === target) window.dispatchEvent(new HashChangeEvent("hashchange"));
+    else window.location.hash = target;
+  }
 
-    if (name === "help") {
-      const advanced = args.some((item) => ["--all", "-a", "advanced"].includes(item.toLowerCase()));
-      appendTerminal(input, advanced
-        ? "COMMAND INDEX // ALL\n  help [--all]       command directory\n  status             cabinet telemetry\n  ls                 list page nodes\n  goto <node>        navigate the cabinet\n  theme [crt|glitch] set or toggle theme\n  run                boot Dai.exe\n  attract            start arcade demo mode\n  whoami / now / scan / discord / contact\n  date / echo <text> / clear / exit\n\nDIAGNOSTIC BUS // use responsibly\n  fish / forage / wildlife / debugbug\n  leviathan          admin: guaranteed Leviathan sighting\n  kraken             admin: guaranteed Kraken sighting\n  blackout           admin: power outage sequence\n    aliases: powerout / power-out\n  season [event]     admin: mount a seasonal cartridge\n  unlockall [off]    admin: unlock all buddy cosmetics"
-        : "COMMAND INDEX\n  status             cabinet telemetry\n  ls                 list page nodes\n  goto <node>        navigate the cabinet\n  theme [crt|glitch] set or toggle theme\n  run                boot Dai.exe\n  attract            start arcade demo mode\n  whoami / now / scan / discord / contact\n  date / echo <text> / clear / exit\n\nHint: type help --all for diagnostics and admin commands.");
-      return;
-    }
-
-    if (name === "theme") {
-      const requested = args[0]?.toLowerCase();
-      if (requested && !["crt", "glitch", "toggle"].includes(requested)) {
-        appendTerminal(input, "Usage: theme [crt|glitch|toggle]");
-        return;
-      }
-      const nextTheme = requested && requested !== "toggle" ? requested : theme === "crt" ? "glitch" : "crt";
-      updateThemePreference(nextTheme);
-      appendTerminal(input, `Theme set: ${nextTheme.toUpperCase()} // palette bus synchronized.`);
-      return;
-    }
-
-    if (name === "season" || name === "event") {
-      const operator = await verifyDiscordAdmin(input, "season", "No seasonal settings were changed.");
-      if (!operator) return;
-
-      const requested = (args[0] || "status").toLowerCase();
-      const aliases = {
-        april: "april-fools",
-        aprilfools: "april-fools",
-        "april-fools": "april-fools",
-        birthday: "birthday",
-        anniversary: "anniversary",
-        halloween: "halloween",
-        winter: "winter"
-      };
-
-      if (requested === "status") {
-        appendTerminal(input, [
-          "SEASONAL EVENT BUS",
-          `  active       ${seasonalEvent || "none"}`,
-          `  scheduler    ${seasonalOverride === null ? "automatic" : "manual"}`,
-          "Usage: season <halloween|winter|birthday|anniversary|april-fools|auto|off>"
-        ].join("\n"));
-        return;
-      }
-
-      if (requested === "auto") {
-        const scheduled = getSeasonalEvent();
-        setSeasonalOverride(null);
-        setSeasonalEvent(scheduled);
-        appendTerminal(input, `Season scheduler restored // ${scheduled || "no event scheduled today"}.`);
-        return;
-      }
-
-      if (["off", "none", "clear"].includes(requested)) {
-        setSeasonalOverride("off");
-        setSeasonalEvent(null);
-        appendTerminal(input, "Seasonal effects suspended for this session.");
-        return;
-      }
-
-      const nextSeason = aliases[requested];
-      if (!nextSeason) {
-        appendTerminal(input, "Unknown seasonal cartridge.\nAvailable: halloween, winter, birthday, anniversary, april-fools, auto, off");
-        return;
-      }
-
-      setSeasonalOverride(nextSeason);
-      setSeasonalEvent(nextSeason);
-      appendTerminal(input, `Seasonal cartridge mounted: ${nextSeason.toUpperCase()} // environment reskin online.`);
-      showAchievement(`Seasonal event activated: ${nextSeason}`, 3000);
-      return;
-    }
-
-    if (name === "run") {
-      appendTerminal(input, runBuild());
-      return;
-    }
-
-    if (name === "clear") {
-      setTerminalLog("");
-      return;
-    }
-
-    if (name === "exit" || name === "close") {
-      appendTerminal(input, "Session detached. Press / to reconnect.");
-      setTerminalOpen(false);
-      return;
-    }
-
-    if (name === "status") {
-      appendTerminal(input, [
-        "CABINET TELEMETRY",
-        `  dai.exe       ${hasRun ? "ONLINE" : isLaunching ? "BOOTING" : "OFFLINE"}`,
-        `  theme         ${theme.toUpperCase()}`,
-        `  score         ${String(score).padStart(3, "0")}`,
-        `  fps           ${getLatestFps()}`,
-        `  active_node   ${activeSection}`,
-        `  buddy_level   ${String(friendship.level).padStart(2, "0")}`,
-        `  power_bus     ${powerOutage || "nominal"}`,
-        "status complete // all readable systems polled"
-      ].join("\n"));
-      return;
-    }
-
-    if (name === "ls") {
-      appendTerminal(input, "~/daivr nodes\n  home/  now/  builds/  room/  games/\n  toolbelt/  patchlog/  comments/\nUsage: goto <node>");
-      return;
-    }
-
-    if (name === "goto" || name === "cd") {
-      const requested = arg.toLowerCase().replace(/^#/, "");
-      const nodeId = TERMINAL_NODES.find(([alias]) => alias === requested)?.[1];
-      const node = nodeId ? document.getElementById(nodeId) : null;
-      if (!node) {
-        appendTerminal(input, `Node not found: ${arg || "(missing)"}\nRun ls to list valid cabinet nodes.`);
-        return;
-      }
-      node.scrollIntoView({ behavior: "smooth", block: "start" });
-      appendTerminal(input, `Mounted #${nodeId} // viewport routing accepted.`);
-      return;
-    }
-
-    if (name === "date" || name === "time") {
-      appendTerminal(input, `${new Date().toLocaleString()}\nlocal cabinet clock synchronized.`);
-      return;
-    }
-
-    if (name === "echo") {
-      appendTerminal(input, arg || "Usage: echo <text>");
-      return;
-    }
-
-    if (name === "attract" || name === "demo") {
-      appendTerminal(input, "ATTRACT.MODE requested.\nHanding controls to the coin slot...");
-      setTerminalOpen(false);
-      window.dispatchEvent(new CustomEvent("daivr-attract-request"));
-      return;
-    }
-
-    if (name === "contact") {
-      appendTerminal(input, `Open channel: ${profile.email}`);
-      return;
-    }
-
-    // Hidden cabinet diagnostics double as easter-egg commands. They are kept
-    // out of help so normal visitors discover the encounters organically.
-    const buddySignals = {
-      fish: ["daivr-buddy-fish", "Buddy fishing diagnostic queued."],
-      forage: ["daivr-buddy-find", "Footer loot scanner pulsed."],
-      wildlife: ["daivr-buddy-creature", "Environmental creature ping sent."],
-      debugbug: ["daivr-buddy-enemy", "Hostile bug simulation started."]
-    };
-    if (buddySignals[name]) {
-      const [eventName, response] = buddySignals[name];
-      window.dispatchEvent(new CustomEvent(eventName));
-      appendTerminal(input, response);
-      return;
-    }
-
-    const diagnosticEvent = buddyDiagnosticEvent(name);
-    if (diagnosticEvent) {
-      const result = await new Promise((resolve) => {
-        const timeout = window.setTimeout(() => resolve("unavailable"), 6500);
-        window.dispatchEvent(new CustomEvent(diagnosticEvent, {
-          detail: { reply: (status) => { window.clearTimeout(timeout); resolve(status); } }
-        }));
-      });
-      const messages = {
-        "signed-out": "ACCESS DENIED // Sign in through Discord with an admin account to use this command.",
-        denied: "ACCESS DENIED // This command requires a Discord admin account.",
-        offline: "AUTH BUS OFFLINE // Admin session could not be verified. No event started.",
-        busy: "BUDDY BUSY // Let the current encounter or landing finish, then try again.",
-        "reduced-motion": "Event paused // These sequences require motion. Enable animations before trying again.",
-        unavailable: "BUDDY OFFLINE // The event could not start. Try again once Buddy is ready."
-      };
-      appendTerminal(input, result === "started"
-        ? ["leviathan", "kraken"].includes(name)
-          ? `ADMIN // ${name.toUpperCase()}_OVERRIDE accepted.\nWatch the water by Buddy // sighting guaranteed.`
-          : "ADMIN // BREAKER_OVERRIDE accepted.\nPower outage started // flashlight crew notified."
-        : messages[result] || messages.unavailable);
-      if (result === "started") {
-        setTerminalOpen(false);
-        window.requestAnimationFrame(() => document.querySelector(".app-footer-zone")?.scrollIntoView({ behavior: "smooth", block: "end" }));
-      }
-      return;
-    }
-
-    if (["unlockall", "unlock-all", "unlockcosmetics"].includes(name)) {
-      const operator = await verifyDiscordAdmin(input, "unlockall", "No buddy gear was changed.");
-      if (!operator) return;
-
-      const disable = ["off", "lock", "reset", "clear", "false", "0"].includes((args[0] || "").toLowerCase());
-      window.dispatchEvent(new CustomEvent("daivr-buddy-admin-unlock", { detail: { value: !disable } }));
-      appendTerminal(input, disable
-        ? "ADMIN // cosmetic override cleared.\nBuddy loadout back to earned unlocks."
-        : "ADMIN // GEAR_OVERRIDE accepted.\nAll buddy cosmetics unlocked // open the buddy inventory to equip.");
-      if (!disable) showAchievement("Admin override: all buddy cosmetics unlocked", 3200);
-      return;
-    }
-
-    const command = commands.find(([commandName]) => commandName === name);
-    if (command) {
-      appendTerminal(input, command[1]);
-      return;
-    }
-
-    appendTerminal(input, `Command not found: ${input}\nTip: run help, use Tab completion, or try ls.`);
+  function runCommand(rawInput) {
+    return runTerminalCommand(rawInput, {
+      print: appendTerminal,
+      clear: () => setTerminalLog(""),
+      close: () => setTerminalOpen(false),
+      status: () => ({
+        hasRun,
+        isLaunching,
+        theme,
+        fps: getLatestFps(),
+        activeSection,
+        buddyLevel: friendship.level,
+        powerOutage,
+        player: getCabinetSignal("player"),
+        online: getCabinetSignal("online")
+      }),
+      setTheme: updateThemePreference,
+      runBuild,
+      achievement: showAchievement,
+      openGame: selectKonamiGame,
+      openProject: openLinkedProject,
+      openPassport: (view) => window.dispatchEvent(new CustomEvent("daivr-open-passport", { detail: { view } })),
+      season: () => ({
+        current: seasonalEvent,
+        manual: seasonalOverride !== null,
+        restore: () => {
+          const scheduled = getSeasonalEvent();
+          setSeasonalOverride(null);
+          setSeasonalEvent(scheduled);
+          return scheduled;
+        },
+        suspend: () => {
+          setSeasonalOverride("off");
+          setSeasonalEvent(null);
+        },
+        mount: (next) => {
+          setSeasonalOverride(next);
+          setSeasonalEvent(next);
+        }
+      })
+    });
   }
 
   return (
-    <div ref={shellRef} className={`app-shell ${theme === "glitch" ? "theme-glitch" : ""} ${isLaunching ? "is-launching" : ""} ${powerOutage ? `has-power-outage outage-${powerOutage}` : ""} ${seasonalEvent ? `season-${seasonalEvent}` : ""}`} data-glitch-root>
+    <>
       <ArcadeBackground />
-      <SeasonalEvent event={seasonalEvent} entrySplashOpen={entrySplashOpen} />
+      <LazyPiece show={Boolean(seasonalEvent)}>
+        <SeasonalEvent event={seasonalEvent} entrySplashOpen={entrySplashOpen} />
+      </LazyPiece>
       <CursorTrail theme={theme} />
       <SignalCursor theme={theme} />
       <PerchedBirds />
@@ -678,23 +544,6 @@ function CabinetApp() {
           <span className="power-outage-noise" aria-hidden="true" />
           <span className="power-outage-label">{powerOutage === "restore" ? "POWER RESTORING" : "CABINET POWER LOST"}</span>
         </div>
-      ) : null}
-      {entrySplashOpen ? (
-        <EntrySplash
-          key={splashRevision}
-          returnContext={splashReturn}
-          onBuddyLaunch={setBuddyDrop}
-          onEnter={() => {
-            setEntrySplashOpen(false);
-            window.setTimeout(() => window.dispatchEvent(new Event("daivr-content-ready")), 50);
-            window.requestAnimationFrame(() => document.getElementById("main")?.focus({ preventScroll: true }));
-          }}
-          seasonalEvent={seasonalEvent}
-          friendshipLevel={buddy.friendship.level}
-          inventory={buddy.adventure.inventoryIds}
-          hiddenGear={buddy.effectiveHiddenGear}
-          unlockedGear={buddy.unlockedGearIds}
-        />
       ) : null}
       {buddyDrop ? (
         <BuddyDrop
@@ -731,7 +580,7 @@ function CabinetApp() {
         />
 
         <div className="min-w-0">
-          <CabinetTopbar activeSection={activeSection} score={score} cartPhase={cartPhase} onOpenTerminal={openTerminal} onPlay={selectKonamiGame} theme={theme} />
+          <CabinetTopbar activeSection={activeSection} cartPhase={cartPhase} onOpenTerminal={openTerminal} onPlay={selectKonamiGame} theme={theme} />
 
           <main className={`cart-stage mx-auto w-[min(1180px,calc(100%-clamp(28px,6vw,76px)))] ${cartPhase ? `is-cart-${cartPhase}` : ""}`} id="main" tabIndex={-1}>
             <HeroStation
@@ -755,31 +604,43 @@ function CabinetApp() {
         </div>
       ) : null}
 
-      <AttractMode enabled={!entrySplashOpen} score={score} />
+      <AttractMode enabled={!entrySplashOpen} />
 
-      <KonamiGameLibrary open={konamiView === "library"} onClose={closeKonami} onSelect={selectKonamiGame} />
-      <MadraceModal open={konamiView === "madrace"} onBack={openKonamiLibrary} onClose={closeKonami} />
-      <TowerBlockModal open={konamiView === "tower-block"} onBack={openKonamiLibrary} onClose={closeKonami} />
-      <ArcadeEmbedModal game={konamiView} open={["cross-road", "rubiks-cube", "space-cadet-pinball"].includes(konamiView)} onBack={openKonamiLibrary} onClose={closeKonami} />
+      <LazyPiece show={libraryUsed}>
+        <KonamiGameLibrary open={konamiView === "library"} onClose={closeKonami} onSelect={selectKonamiGame} />
+      </LazyPiece>
+      <LazyPiece show={madraceUsed}>
+        <MadraceModal open={konamiView === "madrace"} onBack={openKonamiLibrary} onClose={closeKonami} />
+      </LazyPiece>
+      <LazyPiece show={towerUsed}>
+        <TowerBlockModal open={konamiView === "tower-block"} onBack={openKonamiLibrary} onClose={closeKonami} />
+      </LazyPiece>
+      <LazyPiece show={embedUsed}>
+        <ArcadeEmbedModal game={konamiView} open={EMBED_GAMES.includes(konamiView)} onBack={openKonamiLibrary} onClose={closeKonami} />
+      </LazyPiece>
 
-      <BuddyModal
-        buddy={buddy}
-        mode={buddyModal}
-        seasonalEvent={seasonalEvent}
-        onClose={() => setBuddyModal(null)}
-        onModeChange={setBuddyModal}
-        theme={theme}
-      />
+      <LazyPiece show={buddyModalUsed}>
+        <BuddyModal
+          buddy={buddy}
+          mode={buddyModal}
+          seasonalEvent={seasonalEvent}
+          onClose={() => setBuddyModal(null)}
+          onModeChange={setBuddyModal}
+          theme={theme}
+        />
+      </LazyPiece>
 
       <LaunchOverlay active={isLaunching} closing={launchClosing} complete={launchComplete} phase={launchPhase} />
 
-      <TerminalDialog
-        log={terminalLog}
-        onCommand={runCommand}
-        onOpenChange={setTerminalOpen}
-        open={terminalOpen}
-        theme={theme}
-      />
-    </div>
+      <LazyPiece show={terminalUsed}>
+        <TerminalDialog
+          log={terminalLog}
+          onCommand={runCommand}
+          onOpenChange={setTerminalOpen}
+          open={terminalOpen}
+          theme={theme}
+        />
+      </LazyPiece>
+    </>
   );
 }

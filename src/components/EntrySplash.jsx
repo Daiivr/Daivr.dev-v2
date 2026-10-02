@@ -6,7 +6,7 @@ import { AvatarScenePlaceholder } from "./AvatarScenePlaceholder";
 import { BuddySprite } from "./BuddySprite";
 import { GatePatina } from "./GatePatina";
 import { GateLamp } from "./GateLamp";
-import { SeasonalSplashNotice } from "./SeasonalEvent";
+import { SeasonalSplashNotice } from "./SeasonalSplashNotice";
 
 // El anfitrion VRM arrastra three.js + @pixiv/three-vrm. Cargarlo aparte deja
 // que la puerta pinte sin esperar a ese chunk, y el splash movil (que nunca
@@ -89,7 +89,11 @@ function buildScript({ gateReturn, hostName, linked, seasonalEvent, visitorName 
   return lines;
 }
 
-export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [], returnContext = null }) {
+// cabinetReady: el armario (App) ya esta montado detras de la puerta. La puerta
+// se pinta antes desde el chunk de entrada, pero no deja pasar hasta entonces, y
+// el buddy no sale hasta tener su equipo (lo sabe App) para no cambiarse de ropa
+// a la vista.
+export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [], returnContext = null, cabinetReady = true }) {
   // Bajo 800px no se monta la escena 3D: ahi el anfitrion es Buddy, el mismo
   // sprite que luego vive en el footer.
   const [compact, setCompact] = useState(() => window.matchMedia("(max-width: 800px)").matches);
@@ -132,7 +136,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   );
 
   const hostPresent = compact
-    ? buddyAwake
+    ? buddyAwake && cabinetReady
     : hostOverdue || hostStage === "greeting" || hostStage === "waving" || hostStage === "error";
   const talking = hostPresent && authChecked && returnChecked && !opening;
   const line = script[lineIndex] ?? "";
@@ -142,7 +146,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   // La puerta no se abre hasta que la barra del HUD esta llena. hostPresent ya
   // cubre las salidas de emergencia (host caido, WebGL ausente, los 9s de
   // HOST_PATIENCE_MS), asi que esperar aqui no puede dejar a nadie encerrado.
-  const gateReady = authChecked && hostPresent;
+  const gateReady = authChecked && hostPresent && cabinetReady;
   const canEnter = gateReady && !opening;
 
   useEffect(() => {
@@ -326,7 +330,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
 
   const buttonLabel = gateReady ? "open the gate" : "warming up";
   const buttonHint = !gateReady
-    ? (streaming ? "linking host" : "stand by")
+    ? (streaming ? "linking host" : cabinetReady ? "stand by" : "loading cabinet")
     : opening ? "gate opening" : "press enter";
   const moreToSay = talking && (!lineComplete || !lastLine);
 
@@ -453,10 +457,10 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
         </section>
         <div className={`entry-gate-host ${hostPresent ? "is-present" : ""}`} ref={hostRef}>
           {compact ? (
-            <div className={`entry-gate-buddy ${buddyAwake ? "is-awake" : ""}`}>
+            <div className={`entry-gate-buddy ${hostPresent ? "is-awake" : ""}`}>
               <BuddySprite
                 className="entry-gate-buddy-sprite"
-                expression={buddyAwake ? "happy" : "idle"}
+                expression={hostPresent ? "happy" : "idle"}
                 friendshipLevel={Math.max(friendshipLevel, buddyLevel)}
                 inventory={inventory}
                 hiddenGear={hiddenGear}
@@ -527,14 +531,14 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
 
         <span className="entry-gate-footer-note">A little code. A little chaos.</span>
         <div className={`splash-buddy ${opening ? "is-launched" : ""}`} aria-hidden="true" ref={perchRef}>
-          <BuddySprite
+          {cabinetReady ? <BuddySprite
             className="splash-buddy-sprite"
             expression={hostPresent ? "happy" : "idle"}
             friendshipLevel={Math.max(friendshipLevel, buddyLevel)}
             inventory={inventory}
             hiddenGear={hiddenGear}
             unlockedGear={unlockedGear}
-          />
+          /> : null}
         </div>
       </footer>
     </div>

@@ -346,6 +346,14 @@ function isMobileViewport() {
   return typeof window !== "undefined" && window.matchMedia("(max-width: 760px)").matches;
 }
 
+// El libro de visitas muestra el primer fotograma (lo recorta el servidor, unos
+// 50 KB) y el GIF completo solo se descarga al abrirlo en el visor. Antes cada
+// GIF se pedia entero y con prioridad alta nada mas cargar la pagina: uno de
+// ellos pesaba 11 MB, dos tercios de toda la descarga.
+function commentGifPreviewUrl(gifUrl) {
+  return `/api/comments/gifs/preview?url=${encodeURIComponent(gifUrl)}`;
+}
+
 function CommentMedia({ gifUrl, onPreview }) {
   const imageRef = useRef(null);
   const [mediaState, setMediaState] = useState(() => ({
@@ -370,25 +378,25 @@ function CommentMedia({ gifUrl, onPreview }) {
       className={`comment-gif is-${loadState}`}
       type="button"
       onClick={(event) => onPreview(gifUrl, event.currentTarget)}
-      aria-label="Preview attached GIF"
+      aria-label="Play attached GIF"
       aria-haspopup="dialog"
       aria-busy={loadState === "loading"}
     >
       {loadState !== "loaded" ? (
         <span className="comment-gif-status" aria-live="polite">
-          {loadState === "error" ? "GIF signal unavailable" : "loading GIF signal..."}
+          {loadState === "error" ? "Preview unavailable // tap to play" : "loading GIF signal..."}
         </span>
       ) : null}
       <img
         ref={imageRef}
-        src={gifUrl}
-        alt="Attached GIF"
-        loading="eager"
+        src={commentGifPreviewUrl(gifUrl)}
+        alt="Attached GIF, first frame"
+        loading="lazy"
         decoding="async"
-        fetchPriority="high"
         onLoad={() => setMediaState({ url: gifUrl, status: "loaded" })}
         onError={() => setMediaState({ url: gifUrl, status: "error" })}
       />
+      <span className="comment-gif-play" aria-hidden="true"><i />GIF</span>
     </button>
   );
 }
@@ -608,9 +616,12 @@ export function CommentsSection() {
     function handleStreamError() {
       setStreamState("reconnecting");
       setStatus("live stream reconnecting...");
+      // Sin stream no se sabe cuanta gente hay: la barra superior oculta el contador.
+      window.dispatchEvent(new CustomEvent("daivr-presence", { detail: { count: null } }));
     }
 
-    // Presencia en vivo: se re-emite como evento global para el footer y el buddy.
+    // Presencia en vivo: se re-emite como evento global (la barra superior la
+    // muestra como "N in the arcade").
     function handlePresence(event) {
       try {
         const payload = JSON.parse(event.data);

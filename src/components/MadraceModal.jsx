@@ -1,3 +1,4 @@
+import "../styles/konami-games.css";
 import { ArrowLeft, LogIn, RotateCcw, Trophy, Volume2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RankingAvatar } from "./RankingAvatar";

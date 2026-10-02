@@ -1,9 +1,11 @@
+import "../styles/konami-games.css";
 import { ArrowLeft, Blocks, LogIn, RotateCcw, Trophy, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RankingAvatar } from "./RankingAvatar";
 import { ArcadeTvDetails } from "./ArcadeTvDetails";
 import { useDailyChallengeNotice } from "../hooks/useDailyChallengeNotice";
 import { DailyChallengeNotice } from "./DailyChallengeNotice";
+import { armRunToken, runTokenFor } from "../lib/runTokens";
 
 const BEST_KEY = "daivr.tower-block.best.v1";
 
@@ -45,6 +47,11 @@ export function TowerBlockModal({ open, onBack, onClose }) {
     }
   }, []);
 
+  // Cada reinicio monta un iframe nuevo, asi que la ficha se renueva con el.
+  useEffect(() => {
+    if (open) armRunToken("tower-block");
+  }, [instance, open]);
+
   useEffect(() => {
     if (!open) return;
     setRankingOpen(false);
@@ -68,10 +75,10 @@ export function TowerBlockModal({ open, onBack, onClose }) {
       });
       setSaveStatus(me ? `SAVING STACK ${next}...` : "DISCORD LINK REQUIRED TO RANK");
       if (me) {
-        fetch("/api/tower-block/score", {
+        runTokenFor("tower-block").then((runToken) => fetch("/api/tower-block/score", {
           method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ score: next, durationMs })
-        }).then(async (response) => {
+          body: JSON.stringify({ score: next, durationMs, runToken })
+        })).then(async (response) => {
           const data = await response.json().catch(() => ({}));
           if (!response.ok) throw new Error(data.error || "save-failed");
           setMyScore(data.score || null);

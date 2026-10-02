@@ -16,6 +16,38 @@ let lastPollAt = 0;
 let lastPollState = null;
 let pollTimer = null;
 
+// Nombres de actividad vistos en Lanyard. /api/game-image solo gasta la cuota
+// de SteamGridDB en nombres que de verdad han salido en el panel de presencia,
+// no en cualquier texto que un visitante le mande.
+const ACTIVITY_NAME_TTL_MS = 6 * 60 * 60 * 1000;
+const MAX_ACTIVITY_NAMES = 200;
+const recentActivityNames = new Map();
+
+function rememberActivityNames(activities, now) {
+  for (const activity of activities) {
+    const name = typeof activity?.name === "string" ? activity.name.trim().toLowerCase() : "";
+    // Tipo 4 es el estado personalizado; Spotify tiene su propia caratula.
+    if (!name || activity.type === 4 || name === "spotify") continue;
+    recentActivityNames.delete(name);
+    recentActivityNames.set(name, now);
+  }
+  for (const [name, seenAt] of recentActivityNames) {
+    if (now - seenAt <= ACTIVITY_NAME_TTL_MS && recentActivityNames.size <= MAX_ACTIVITY_NAMES) break;
+    recentActivityNames.delete(name);
+  }
+}
+
+export async function isKnownActivityName(value, now = Date.now()) {
+  const name = String(value || "").trim().toLowerCase();
+  if (!name) return false;
+  const seen = () => now - (recentActivityNames.get(name) ?? -Infinity) <= ACTIVITY_NAME_TTL_MS;
+  if (seen()) return true;
+  // Una actividad recien empezada puede ir por delante del sondeo de fondo; el
+  // sondeo tiene su propia cache de 15 s, asi que esto no martillea a Lanyard.
+  const state = await pollLanyardOnce();
+  return seen() || Object.keys(state.games || {}).some((game) => game.toLowerCase() === name);
+}
+
 function getLanyardUrl() {
   const discordId = process.env.DISCORD_USER_ID || "271701484922601472";
   return `https://api.lanyard.rest/v1/users/${discordId}`;
@@ -175,6 +207,7 @@ async function pollLanyardOnce(force = false) {
 
     const payload = await response.json();
     const activities = Array.isArray(payload?.data?.activities) ? payload.data.activities : [];
+    rememberActivityNames(activities, now);
     const mainGame = activities.find((activity) => activity?.type === 0 && activity.name);
 
     const state = readState();

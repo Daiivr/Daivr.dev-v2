@@ -1,6 +1,4 @@
 @layer components {
-  /* Keep the frame readable under a full loadout instead of glowing through it. */
-  .buddy-preview-sprite { filter: drop-shadow(0 3px 0 #0006) drop-shadow(0 0 5px #68d8b826); }
   .screen-buddy-root:not(.is-outage) .screen-buddy-sprite { filter: drop-shadow(0 2px 0 #00151080) drop-shadow(0 0 3px #68d8b826); }
   .buddy-green-visor { animation: none; filter: none; }
   .buddy-fitted-rocket-boot .buddy-rocket-flame { opacity: 0; filter: drop-shadow(0 0 1px #ffcc7840); }

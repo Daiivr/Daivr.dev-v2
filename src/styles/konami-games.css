@@ -1,0 +1,8 @@
+/* Hojas de los juegos Konami (biblioteca, Madrace, Tower Block, juegos en
+   iframe y la tele de detalles). Las importan los cuatro componentes
+   perezosos, asi que Vite las junta en un solo CSS que llega con el primer
+   juego que se abre. El orden es el de siempre y decide los empates. */
+@import "./madrace.css";
+@import "./konami-library.css";
+@import "./konami-shelves.css";
+@import "./arcade-tv.css";

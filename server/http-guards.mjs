@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 export async function readJsonBody(request, limit = 16_384) {
   let size = 0;
   const chunks = [];
@@ -20,6 +22,20 @@ export function sameOrigin(request) {
     const host = String(request.headers?.["x-forwarded-host"] || request.headers?.host || "").split(",")[0].trim();
     return new URL(origin).host === host;
   } catch { return false; }
+}
+
+// Produccion va detras del edge de Cloudflare de Render, que sobrescribe
+// cf-connecting-ip con la IP real. X-Forwarded-For queda de respaldo para
+// otros despliegues: su primera entrada la puede inventar el cliente, asi que
+// solo sirve para limites de cortesia, nunca para autorizar nada.
+export function clientAddress(request) {
+  const header = (name) => String(request.headers?.[name] || "").split(",")[0].trim();
+  return header("cf-connecting-ip") || header("true-client-ip") || header("x-forwarded-for") || request.socket?.remoteAddress || "unknown";
+}
+
+// Clave opaca por visitante para limites en memoria: no se guarda la IP en claro.
+export function clientKey(request, ...parts) {
+  return createHash("sha256").update([clientAddress(request), ...parts].join("\0")).digest("base64url").slice(0, 22);
 }
 
 export function assertSessionConfiguration(production = process.env.NODE_ENV === "production") {
