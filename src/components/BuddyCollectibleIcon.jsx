@@ -53,7 +53,34 @@ export function BuddyCollectibleIcon({ id, color = "#45d8ff", unknown = false, c
     case "starfin": artwork = <><FishBody color={color} accent="#f4fff8" tail="star" /><path d="m28 8 2 5 5 1-4 3 1 5-4-3-4 3 1-5-4-3 5-1z" fill="#f4fff8" /></>; break;
     case "crown-coelacanth": artwork = <><FishBody color={color} accent="#8a5428" long /><path d="M18 11V4l5 4 5-6 5 6 6-4v7z" fill="#ffd166" /><rect x="15" y="20" width="25" height="4" fill="#9a651f" /></>; break;
     case "aurora-arowana": artwork = <><FishBody color={color} accent="#c084fc" long /><path d="M13 16h8v-4h8v4h8v-4h8v5" fill="none" stroke="#3fff97" strokeWidth="3" /><path d="M15 25h9v4h9v-4h9" fill="none" stroke="#a78bfa" strokeWidth="3" /></>; break;
-    case "chrono-manta": artwork = <g shapeRendering="crispEdges"><path d="M3 23 19 7h21l13 16-13 8H19z" fill={color} /><path d="M25 12h10v10H25z" fill="#f4fff8" /><path d="M30 14v5l4 2" fill="none" stroke="#5b21b6" strokeWidth="2" /><path d="M18 30 9 40h14l7-9" fill="#7c3aed" /><rect x="42" y="18" width="3" height="3" fill="#020604" /></g>; break;
+    case "chrono-manta": artwork = <g shapeRendering="crispEdges">
+      {/* A whip tail and swept wings give the timekeeper a true ray silhouette. */}
+      <g className="buddy-fish-tail">
+        <path d="M19 20H9v3H4v6H0v-3h2v-6h5v-3h12z" fill="#322452" />
+        <path d="M18 19H8v3H3v5H1v2h3v-6h5v-2h9z" fill="#aa8ae8" />
+        <path d="M8 19h7v1H8m-5 3h1v3H3" fill="#e1d0ff" />
+      </g>
+      <path d="M17 20h3v-5h2V9h-2V3h5v2h4v3h4v4h5v3h5v-2h5v3h3v3h3v7h-3v3h-4v-2h-5v3h-5v4h-5v3h-5v3h-6v-4h2v-6h-2v-5h-4z" fill="#30234e" />
+      <path d="M19 21h3v-5h2V9h-2V5h3v2h4v3h3v4h5v3h7v-2h3v3h3v2h2v5h-3v2h-2v-2h-6v3h-5v4h-5v3h-5v3h-3v-2h2v-7h-2v-5h-4z" fill={color} />
+      <path d="M23 6h2v3h4v3h3v4h5v2h-7v-3h-3v-4h-3z" fill="#ead3ff" />
+      <path d="M24 14h3v4h4v3H21v-2h3zM24 26h8v3h-3v4h-3v3h-2v-2h1v-5h-1z" fill="#8963cb" />
+      <path d="M31 14h3v3h6v2h-8zM30 29h7v3h-5v3h-5v2h-2v-2h3v-3h2z" fill="#633c9e" />
+      <path d="M24 23h6v3h12v-2h7v-3h3v4h-3v2h-2v-2h-6v3h-5v2H26v-3h-2z" fill="#714aa6" />
+      {/* A brass-rimmed clock, with luminous ticks and distinct hands. */}
+      <path d="M31 17h7v2h2v7h-2v2h-7v-2h-2v-7h2z" fill="#48334f" />
+      <path d="M32 17h5v2h2v6h-2v2h-5v-2h-2v-6h2z" fill="#dfb879" />
+      <path d="M32 19h5v6h-5v-1h-1v-4h1z" fill="#f3e4c1" />
+      <path d="M34 19h1v3h2v1h-3z" fill="#624383" />
+      <path d="M33 17h2v1h-2m5 3h1v2h-1m-5 4h2v1h-2m-4-6h1v2h-1" fill="#fff4d3" />
+      {/* Bright eyes and curled cephalic fins frame the mouth. */}
+      <path d="M43 16h4v4h-4m0 5h4v3h-4" fill="#efe3ff" />
+      <path d="M45 17h2v3h-2m0 8h2v2h-2" fill="#211c3c" />
+      <path d="M49 19h4v2h-2v3h-2m-5-9h3v1h-3M43 28h3v1h-3" fill="#d6bdff" />
+      <path d="M47 22h3v1h-3" fill="#30234e" />
+      <path d="M25 18h2v1h-2m-2 5h2v1h-2m4 7h2v1h-2m10-16h2v1h-2" fill="#c3f1ea" />
+      <path d="M9 5h2v2h2v2h-2v2H9V9H7V7h2zM48 33h1v2h2v1h-2v2h-1v-2h-2v-1h2z" fill="#dfc7ff" />
+      <path d="M14 12h1v1h-1m24 24h2v2h-2" fill="#a085d8" />
+    </g>; break;
     case "moonkernel-sturgeon": artwork = <><FishBody color={color} accent="#a78bfa" long /><rect x="16" y="12" width="5" height="17" fill="#6b7280" /><rect x="24" y="12" width="5" height="17" fill="#94a3b8" /><rect x="32" y="13" width="5" height="15" fill="#6b7280" /><circle cx="25" cy="21" r="7" fill="#f4fff8" /><path d="M25 14a7 7 0 0 0 0 14 5 5 0 0 1 0-14" fill="#a78bfa" /></>; break;
     case "old-boot": artwork = <g shapeRendering="crispEdges"><path d="M12 4h22v21h9v3h7v10H7V17h5z" fill="#1d302c" />
 <path d="M14 6h18v20h10v4h6v5H9V19h5z" fill="#657c69" />

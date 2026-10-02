@@ -54,6 +54,44 @@
   .market-countdown b small { margin-left: 3px; font-size: 8px; color: #a5b094; }
   .market-countdown i { font-size: 11px; font-style: normal; color: #7c8f76; }
   .market-countdown > small { color: #99aa8f; font-size: 8px; }
+  .market-welcome { grid-template-columns: 180px minmax(0, 1fr) 196px; }
+  .market-hanging-sign {
+    position: relative; border: 4px solid #493321; outline: 1px solid #be965a;
+    background:
+      radial-gradient(circle at 9px 9px, #f1d08c 0 1px, #684725 2px 3px, transparent 4px),
+      radial-gradient(circle at calc(100% - 9px) 9px, #f1d08c 0 1px, #684725 2px 3px, transparent 4px),
+      linear-gradient(#30201640, #30201670), url("../assets/market-sign-wood.svg") center / 328px 88px repeat;
+    box-shadow: inset 0 0 0 1px #d4af74, inset 0 4px #dbb27a44, inset 0 -4px #2c201d77, 3px 6px 0 #06130e80, 0 12px 18px #0003;
+    transform-origin: 50% -23px; touch-action: pan-y; cursor: grab;
+    color: #ffebbd; text-shadow: 0 -1px #3d281dcc, 0 1px #c0935955, 1px 2px #4a321f; user-select: none;
+  }
+  .market-hanging-sign::before, .market-hanging-sign::after {
+    content: ""; position: absolute; top: -29px; width: 5px; height: 32px;
+    border-inline: 1px solid #513d26; border-radius: 2px;
+    background: repeating-linear-gradient(135deg, #ddc799 0 2px, #9c8054 2px 4px);
+    box-shadow: 1px 1px 0 #101b16, 0 -3px 0 2px #806241;
+    pointer-events: none;
+  }
+  .market-hanging-sign::before { left: 19px; }
+  .market-hanging-sign::after { right: 19px; }
+  .market-hanging-sign[data-dragging] { cursor: grabbing; }
+  .market-hanging-sign:focus-visible { outline: 2px solid #ffe0a0; outline-offset: 5px; }
+  .market-wallet.market-hanging-sign { margin-top: 27px; padding: 19px 14px 16px; }
+  .market-wallet.market-hanging-sign .market-wallet-total { margin: 0 0 15px; }
+  .market-wallet.market-hanging-sign > small { color: inherit; font-size: 9px; font-weight: 700; line-height: 1.6; }
+  .market-wallet.market-hanging-sign button {
+    min-height: 36px; padding: 9px; color: #fff0c8; border: 1px solid #d3af77;
+    background: linear-gradient(#2e241ce6, #463021e6); box-shadow: inset 0 1px #f4d99e2e, 0 2px #3a281c; text-shadow: 0 1px #21170d;
+  }
+  .market-wallet.market-hanging-sign button:not(:disabled):hover { background: #604728; border-color: #ffe6b0; }
+  .market-wallet.market-hanging-sign button:disabled { opacity: .65; }
+  .market-countdown.market-hanging-sign { display: grid; justify-items: center; width: min(310px, calc(100% - 10px)); margin: 34px auto 22px; padding: 11px 14px; gap: 6px; }
+  .market-countdown.market-hanging-sign > span { color: inherit; font-size: 11px; font-weight: 800; letter-spacing: 1.6px; text-align: center; }
+  .market-countdown.market-hanging-sign time { color: #fff0cd; }
+  .market-countdown.market-hanging-sign > strong { margin-left: 0; gap: 4px; color: inherit; font-size: 21px; }
+  .market-countdown.market-hanging-sign b { padding: 3px; min-width: 43px; background: #dcb27518; border: 1px solid #4c311d66; box-shadow: inset 0 1px 2px #301d1644, 0 1px #e9c18b66; }
+  .market-countdown.market-hanging-sign b small, .market-countdown.market-hanging-sign > small { color: inherit; }
+  .market-countdown.market-hanging-sign i { color: inherit; }
   .market-catalog-heading { display: flex; justify-content: space-between; gap: 10px; align-items: end; margin: 22px 0 0; }
   .market-catalog-heading .buddy-modal-kicker { font-size: 8px; letter-spacing: 1.8px; }
   .market-catalog-heading h3 { margin-top: 6px; font-size: 17px; color: #e9e5c9; }
@@ -153,11 +191,16 @@
     .buddy-market-stand { right: 12px; width: 116px; height: 82px; }
     .buddy-market { padding: 16px; }
     .market-welcome { grid-template-columns: 1fr 130px; gap: 14px; }
+    .market-welcome:has(.market-hanging-sign) { grid-template-columns: 1fr; gap: 8px; }
+    .market-wallet.market-hanging-sign { width: min(280px, 100%); justify-self: center; }
     .market-diorama { display: none; }
     .market-welcome-copy h3 { font-size: 26px; }
     .market-countdown { gap: 8px; }
     .market-countdown > span { width: 100%; }
     .market-countdown > strong { margin-left: 0; }
+    .market-countdown.market-hanging-sign { margin-inline: auto; padding: 11px 10px; }
+    .market-countdown.market-hanging-sign > strong { font-size: 21px; gap: 3px; }
+    .market-countdown.market-hanging-sign b { min-width: 43px; padding: 3px; }
     .market-countdown time { width: 100%; }
     .market-catalog-heading { align-items: start; flex-direction: column; }
     .market-catalog { grid-template-columns: 1fr; gap: 6px; }
@@ -184,5 +227,8 @@
     .market-footer { gap: 12px; }
     .market-footer > span { width: 100%; }
   }
-  @media (prefers-reduced-motion: reduce) { .market-product-art > svg, .market-stand-sign { transition: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .market-product-art > svg, .market-stand-sign { transition: none; }
+    .market-hanging-sign { cursor: default; }
+  }
 }

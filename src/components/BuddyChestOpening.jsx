@@ -4,6 +4,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { CHEST_MIN_COINS, CHEST_MAX_COINS } from "../../shared/buddy-market.mjs";
 import "../styles/buddy-chest-opening.css";
+import { useHangingSign } from "../hooks/useHangingSign";
 
 function TreasureChest() {
   return <svg viewBox="0 0 96 80" className="chest-reveal-chest" aria-hidden="true" shapeRendering="crispEdges">
@@ -82,7 +83,7 @@ export function BuddyMarketWallet({ adventure }) {
   const busy = useRef(false);
   const sequence = useRef(0);
   const opener = useRef(null);
-  const walletRef = useRef(null);
+  const { signRef: walletRef, signEvents } = useHangingSign();
   function openChest() {
     if (busy.current) return;
     busy.current = true;
@@ -93,7 +94,7 @@ export function BuddyMarketWallet({ adventure }) {
   }
   const close = () => { setReceipt(null); busy.current = false; };
   return <>
-    <section ref={walletRef} tabIndex={-1} className="market-wallet" aria-label="Gold and treasure chests">
+    <section ref={walletRef} {...signEvents} tabIndex={0} className="market-wallet market-hanging-sign" aria-label="Gold and treasure chests" aria-description="Drag sideways or press Enter to sway the sign.">
       <div className="market-wallet-total"><PixelCoin /><strong>{adventure.market.coins}<small>GOLD</small></strong></div>
       <button ref={opener} type="button" disabled={!adventure.market.unopened || !!receipt} onClick={openChest}>Open chest <span aria-hidden="true">↗</span></button>
       <small>{adventure.market.unopened} unopened {adventure.market.unopened === 1 ? "chest" : "chests"} · {CHEST_MIN_COINS}–{CHEST_MAX_COINS} gold each</small>

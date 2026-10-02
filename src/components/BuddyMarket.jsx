@@ -4,6 +4,7 @@ import { BuddyCoinIcon } from "./BuddyCoinIcon";
 import { MARKET_SCHEDULE, MARKET_TIME_ZONE, marketIsOpen, marketStock, nextMarketOpening } from "../../shared/buddy-market.mjs";
 import { BuddyMarketWallet } from "./BuddyChestOpening";
 import { MarketItemIcon, MarketStandArt } from "./BuddyMarketArt";
+import { useHangingSign } from "../hooks/useHangingSign";
 import "../styles/buddy-market.css";
 
 function useMarketOpen(refreshMs = 15000) {
@@ -21,16 +22,15 @@ function useMarketOpen(refreshMs = 15000) {
 
 const openingFormat = new Intl.DateTimeFormat("en-US", { weekday: "long", month: "short", day: "numeric", timeZone: MARKET_TIME_ZONE });
 function MarketCountdown({ now, nextOpening }) {
+  const { signRef, signEvents } = useHangingSign();
   const seconds = Math.max(0, Math.ceil((nextOpening - now) / 1000));
   const days = Math.floor(seconds / 86400);
   const hours = Math.floor(seconds % 86400 / 3600);
   const minutes = Math.floor(seconds % 3600 / 60);
   const pad = (number) => String(number).padStart(2, "0");
-  return <div className="market-countdown">
-    <span>BACK IN THE CLEARING</span>
-    <time dateTime={nextOpening.toISOString()}>{openingFormat.format(nextOpening)} · 12 AM</time>
+  return <div ref={signRef} {...signEvents} tabIndex={0} role="group" aria-label="Market opening sign" aria-description={`Opens ${openingFormat.format(nextOpening)} at midnight, New York time. Drag sideways or press Enter to sway the sign.`} className="market-countdown market-hanging-sign">
+    <span>Opens in</span>
     <strong role="timer" aria-label={`Opens in ${days} days, ${hours} hours, ${minutes} minutes, ${seconds % 60} seconds`}><b>{days}<small>D</small></b><i>:</i><b>{pad(hours)}<small>H</small></b><i>:</i><b>{pad(minutes)}<small>M</small></b><i>:</i><b>{pad(seconds % 60)}<small>S</small></b></strong>
-    <small>New York time</small>
   </div>;
 }
 
