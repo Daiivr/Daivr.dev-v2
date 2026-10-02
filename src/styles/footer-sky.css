@@ -312,6 +312,11 @@
   .app-footer-zone:is(.sky-dusk, .sky-dawn) :is(.footer-lantern-glow, .footer-lantern-pool) { opacity: 0.6; }
   .app-footer-zone:is(.sky-night, .sky-dusk) .footer-lantern-flies { opacity: 1; }
   .app-footer-zone.sky-dawn .footer-lantern-flies { opacity: 0.45; }
+  /* La hoguera arde siempre, pero de noche se ve su luz. */
+  .app-footer-zone.sky-night .footer-campfire-glow { opacity: 1; }
+  .app-footer-zone.sky-night .footer-campfire-pool { opacity: 0.85; }
+  .app-footer-zone:is(.sky-dusk, .sky-dawn) .footer-campfire-glow { opacity: 0.7; }
+  .app-footer-zone:is(.sky-dusk, .sky-dawn) .footer-campfire-pool { opacity: 0.55; }
   .app-footer-zone:is(.sky-night, .sky-dusk, .sky-dawn) .footer-lantern-glass { filter: drop-shadow(0 0 3px #ffd27a); }
   /* Con niebla de verdad la bruma del bosque se espesa, por delante de los arboles. */
   .app-footer-zone.sky-cover-fog .footer-forest-mist {

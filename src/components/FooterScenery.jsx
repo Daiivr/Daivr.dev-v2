@@ -74,6 +74,150 @@ function WoodlandBush({ kind }) {
   </svg>;
 }
 
+// Farolas del sendero. Cada una en su propio svg (con las coordenadas de
+// siempre, de ahi el viewBox) para ponerlas donde haga falta: una justo a la
+// izquierda del puesto del mercado y dos por el camino. Plantadas en el suelo
+// (y 95); de noche (y al atardecer y al alba) se encienden, alumbran el camino
+// y atraen luciernagas (footer-sky.css). Sitio en site-footer.css.
+const TRAIL_LAMPS = [
+  { id: "market", className: "is-market" },
+  { id: "trail-a", className: "is-trail-a" },
+  { id: "trail-b", className: "is-trail-b" }
+];
+
+function TrailLamp({ className }) {
+  return (
+    <svg className={`footer-lamp ${className}`} viewBox="590 20 100 76" width="100" height="76" aria-hidden="true">
+      <g shapeRendering="crispEdges">
+        <g className="footer-trail-lantern">
+          <circle className="footer-lantern-glow" cx="640" cy="71" r="44" fill="url(#footer-lantern-glow)" />
+          <ellipse className="footer-lantern-pool" cx="638" cy="95" rx="34" ry="5" fill="url(#footer-lantern-pool)" />
+          <path d="M619 92h11v3h-11zm1-1h9v1h-9zm2-38h5v38h-5zm1-4h3v4h-3zm1-2h1v2h-1zm-3 20h7v2h-7zm0 15h7v2h-7zm6-28h16v3h-16zm14-2h3v2h-3zm-14 9h2v2h-2zm2-2h2v2h-2zm2-2h2v2h-2zm2-2h1v1h-1z" fill="#1d3431" />
+          <path d="M623 53h2v38h-2zm4 3h14v1h-14zm-5 12h5v1h-5zm0 15h5v1h-5z" fill="#3e5b55" />
+          <path d="M623 54h1v12h-1zm0 16h1v11h-1zm4 2h1v-1h-1z" fill="#6f8f86" />
+          <path d="M639 58h2v3h-2zm-3 3h8v2h-8zm-2 2h12v2h-12zm1 2h10v12h-10zm-1 12h12v2h-12zm5 2h2v2h-2z" fill="#1f3532" />
+          <path d="M637 61h4v1h-4zm-2 2h6v1h-6z" fill="#4f6d68" />
+          <path className="footer-lantern-glass" d="M637 66h6v10h-6z" />
+          <g className="footer-lantern-flame">
+            <path d="M639 68h2v6h-2zm0-1h1v1h-1z" fill="#ffc768" />
+            <path d="M639 70h2v3h-2z" fill="#fff4d2" />
+          </g>
+        </g>
+        <g className="footer-lantern-flies">
+          {LANTERN_FLIES.map(([x, y], index) => (
+            <rect key={index} x={x} y={y} width="2" height="2" style={{ "--fly-delay": `${-index * 1.37}s`, "--fly-time": `${5.2 + (index % 3) * 1.4}s` }} />
+          ))}
+        </g>
+      </g>
+    </svg>
+  );
+}
+
+// Pixel art escrito como texto: cada caracter es un pixel del color de su
+// letra en la paleta ("." es vacio). Se convierte una vez a un path por color.
+function pixelPaths(rows, palette) {
+  const runs = new Map();
+  rows.forEach((row, y) => {
+    for (let x = 0; x < row.length;) {
+      const char = row[x];
+      let end = x;
+      while (row[end + 1] === char) end += 1;
+      if (palette[char]) runs.set(char, `${runs.get(char) || ""}M${x} ${y}h${end - x + 1}v1h-${end - x + 1}z`);
+      x = end + 1;
+    }
+  });
+  return [...runs].map(([char, d]) => ({ key: char, fill: palette[char], d }));
+}
+
+// Hoguera junto al puesto del mercado: anillo de piedras, dos troncos, llamas
+// de dos fotogramas que se alternan, chispas que suben y un hilo de humo. Arde
+// siempre; de noche su luz se ve mucho mas (footer-sky.css).
+const FIRE_COLORS = { o: "#ff7a3a", y: "#ffc247", w: "#fff2b5" };
+const CAMPFIRE_FLAMES = [
+  pixelPaths([
+    "............o...........",
+    "............oo..........",
+    "...........oyo..........",
+    ".......o...oyo...o......",
+    ".......oo.oyyo..oo......",
+    "........o.oywyo.oyo.....",
+    "........ooywwyooyyo.....",
+    ".......oyyywwwyyyyo.....",
+    ".......oyywwwwwyyo......",
+    "......oyyywwwwwyyyo.....",
+    "......oyywwwwwwwyyo.....",
+    ".......oyywwwwwyyo......",
+    "........ooyyyyyoo......."
+  ], FIRE_COLORS),
+  pixelPaths([
+    "..........o.............",
+    ".........oo.............",
+    "..........oyo...........",
+    "......o...oyo.....o.....",
+    "......oo..oyyo...oo.....",
+    "......oyo.oywyo..o......",
+    ".......oyooywwyo.oo.....",
+    ".......oyyywwwyyyyo.....",
+    "........oywwwwwyyo......",
+    "......oyyywwwwwyyyo.....",
+    "......oyywwwwwwwyyo.....",
+    ".......oyywwwwwyyo......",
+    "........ooyyyyyoo......."
+  ], FIRE_COLORS)
+];
+const CAMPFIRE_BASE = pixelPaths([
+  "........................",
+  "........................",
+  "........................",
+  "........................",
+  "........................",
+  "........................",
+  "........................",
+  "........................",
+  "........................",
+  "........................",
+  "........................",
+  "........................",
+  "....rLLLLLLLLLLLLLLr....",
+  "....rllllllllllllllr....",
+  "..rLLLLLLLLLLLLLLr......",
+  "..rlllllllllllllllr.....",
+  "..sSs.sSSs.eEe.sSSs.sSs.",
+  ".sSSSssSSSseEEesSSSssSSs",
+  ".ssssssssssssssssssssss.",
+  "..ssss.sssss.ssss.ssss.."
+], { r: "#b08a5a", L: "var(--wood-light)", l: "var(--wood-shadow)", s: "var(--stone-shadow)", S: "var(--stone-light)", e: "#ff5a2a", E: "#ffb347" });
+const CAMPFIRE_SPARKS = [[10, 4], [14, 2], [12, 6], [16, 5]];
+
+function Campfire() {
+  return (
+    <svg className="footer-campfire" viewBox="-20 -24 64 44" width="64" height="44" aria-hidden="true">
+      <circle className="footer-campfire-glow" cx="12" cy="8" r="24" fill="url(#footer-campfire-glow)" />
+      <ellipse className="footer-campfire-pool" cx="12" cy="19" rx="20" ry="3" fill="url(#footer-lantern-pool)" />
+      <g className="footer-campfire-smoke">
+        <circle cx="12" cy="-4" r="3" />
+        <circle cx="14" cy="-10" r="2.5" />
+      </g>
+      <g shapeRendering="crispEdges">
+        {CAMPFIRE_BASE.filter((layer) => ["r", "L", "l"].includes(layer.key)).map((layer) => <path key={layer.key} d={layer.d} fill={layer.fill} />)}
+        <g className="footer-campfire-flames">
+          {CAMPFIRE_FLAMES.map((frame, index) => (
+            <g className={`footer-campfire-frame is-frame-${index}`} key={index}>
+              {frame.map((layer) => <path key={layer.key} d={layer.d} fill={layer.fill} />)}
+            </g>
+          ))}
+        </g>
+        {CAMPFIRE_BASE.filter((layer) => !["r", "L", "l"].includes(layer.key)).map((layer) => <path key={layer.key} d={layer.d} fill={layer.fill} />)}
+        <g className="footer-campfire-sparks">
+          {CAMPFIRE_SPARKS.map(([x, y], index) => (
+            <rect key={index} x={x} y={y} width="1" height="1" style={{ "--spark-delay": `${-index * 0.45}s` }} />
+          ))}
+        </g>
+      </g>
+    </svg>
+  );
+}
+
 function WoodlandTree({ pine }) {
   return <svg className="footer-tree-art" viewBox="0 0 58 86" aria-hidden="true">
     <g shapeRendering="crispEdges">
@@ -191,6 +335,7 @@ export function FooterScenery() {
       </span>
       <span className="footer-forest-mist" />
       <svg className="footer-trail-details" viewBox="0 0 1200 96" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        {/* Degradados compartidos: los usan tambien las farolas y la hoguera. */}
         <defs>
           <radialGradient id="footer-lantern-glow">
             <stop offset="0" stopColor="#ffd98c" stopOpacity=".55" />
@@ -201,6 +346,11 @@ export function FooterScenery() {
             <stop offset="0" stopColor="#ffd38a" stopOpacity=".42" />
             <stop offset="1" stopColor="#ffd38a" stopOpacity="0" />
           </radialGradient>
+          <radialGradient id="footer-campfire-glow">
+            <stop offset="0" stopColor="#ffb35c" stopOpacity=".6" />
+            <stop offset=".35" stopColor="#ff8a3d" stopOpacity=".22" />
+            <stop offset="1" stopColor="#ff8a3d" stopOpacity="0" />
+          </radialGradient>
         </defs>
         <g shapeRendering="crispEdges">
           <path d="M95 89v-4h5v-4h11v4h6v4m350 0v-5h7v-3h12v4h5v4m407 0v-4h5v-5h13v4h7v5" fill="var(--stone-shadow)" />
@@ -208,30 +358,10 @@ export function FooterScenery() {
           <path d="M192 88v-7h3v7m12 0v-5h2v5m625 0v-7h3v7" fill="#799d91" />
           <path d="M187 80h4v-3h6v3h4v3h-14m17 0h8v3h-8m616-6h4v-3h6v3h4v3h-14" fill="var(--mushroom-cap)" />
           <path d="M191 79h3v2h-3m638-2h3v2h-3" fill="#c5cbbb" opacity=".7" />
-          {/* Farol del sendero, plantado en el suelo (y 95, no en la linea de las
-              piedras): de noche (y al atardecer y al alba) se enciende, alumbra
-              el camino y atrae luciernagas (footer-sky.css). */}
-          <g className="footer-trail-lantern">
-            <circle className="footer-lantern-glow" cx="640" cy="71" r="44" fill="url(#footer-lantern-glow)" />
-            <ellipse className="footer-lantern-pool" cx="638" cy="95" rx="34" ry="5" fill="url(#footer-lantern-pool)" />
-            <path d="M619 92h11v3h-11zm1-1h9v1h-9zm2-38h5v38h-5zm1-4h3v4h-3zm1-2h1v2h-1zm-3 20h7v2h-7zm0 15h7v2h-7zm6-28h16v3h-16zm14-2h3v2h-3zm-14 9h2v2h-2zm2-2h2v2h-2zm2-2h2v2h-2zm2-2h1v1h-1z" fill="#1d3431" />
-            <path d="M623 53h2v38h-2zm4 3h14v1h-14zm-5 12h5v1h-5zm0 15h5v1h-5z" fill="#3e5b55" />
-            <path d="M623 54h1v12h-1zm0 16h1v11h-1zm4 2h1v-1h-1z" fill="#6f8f86" />
-            <path d="M639 58h2v3h-2zm-3 3h8v2h-8zm-2 2h12v2h-12zm1 2h10v12h-10zm-1 12h12v2h-12zm5 2h2v2h-2z" fill="#1f3532" />
-            <path d="M637 61h4v1h-4zm-2 2h6v1h-6z" fill="#4f6d68" />
-            <path className="footer-lantern-glass" d="M637 66h6v10h-6z" />
-            <g className="footer-lantern-flame">
-              <path d="M639 68h2v6h-2zm0-1h1v1h-1z" fill="#ffc768" />
-              <path d="M639 70h2v3h-2z" fill="#fff4d2" />
-            </g>
-          </g>
-          <g className="footer-lantern-flies">
-            {LANTERN_FLIES.map(([x, y], index) => (
-              <rect key={index} x={x} y={y} width="2" height="2" style={{ "--fly-delay": `${-index * 1.37}s`, "--fly-time": `${5.2 + (index % 3) * 1.4}s` }} />
-            ))}
-          </g>
         </g>
       </svg>
+      {TRAIL_LAMPS.map((lamp) => <TrailLamp key={lamp.id} className={lamp.className} />)}
+      <Campfire />
       <span className="footer-fireflies">{[11, 27, 44, 65, 82, 95].map((left, index) => <i key={left} style={{ left: `${left}%`, bottom: `${17 + index % 3 * 12}px`, "--spark-delay": `${-index * 1.7}s` }} />)}</span>
       <span className="footer-grass-bed">
         {GRASS.map((grass) => (
