@@ -17,6 +17,7 @@ import { getCabinetSignal } from "./cabinetSignals.js";
 import { CABINET_WEATHER_LINES, formatTemperature, weatherCondition } from "./buddyContext.js";
 import { compareBuilds, DEV_BUILD } from "../../shared/build-stamp.mjs";
 import { currentBuild, fetchLatestBuild } from "./buildUpdate.js";
+import { SKY_COVERS } from "./footerSky.js";
 
 const NODE_ALIASES = { patch: "patchlog", comments: "contact", guestbook: "contact", carts: "builds", projects: "builds" };
 const NODES = navItems.map(([label, href]) => ({ id: href.slice(1), label }));
@@ -492,6 +493,34 @@ export const TERMINAL_COMMANDS = [
       ctx.close();
       window.requestAnimationFrame(() => document.querySelector(".app-footer-zone")?.scrollIntoView({ behavior: "smooth", block: "end" }));
       return "Test visitor dispatched to the footer.";
+    }
+  },
+  {
+    name: "sky",
+    usage: "sky [hour] [weather|auto]",
+    summary: "preview the footer sky at any hour",
+    group: "diagnostic",
+    complete: () => [
+      ...["06:45", "12:00", "19:30", "23:00"].map((value) => ({ value, detail: "hour" })),
+      ...SKY_COVERS.map((value) => ({ value, detail: "weather" })),
+      { value: "auto", detail: "back to the real clock and weather" }
+    ],
+    run: ({ args, ctx }) => {
+      const detail = {};
+      for (const arg of args.map((value) => value.toLowerCase())) {
+        const time = /^(\d{1,2})(?::(\d{2}))?$/.exec(arg);
+        if (time && Number(time[1]) < 24 && Number(time[2] || 0) < 60) detail.minutes = Number(time[1]) * 60 + Number(time[2] || 0);
+        else if (SKY_COVERS.includes(arg)) detail.cover = arg;
+        else if (["auto", "reset", "off"].includes(arg)) detail.reset = true;
+        else return `Usage: sky [hour] [weather|auto]\nWeather: ${SKY_COVERS.join(", ")}`;
+      }
+      if (!args.length) detail.reset = true;
+      window.dispatchEvent(new CustomEvent("daivr-sky-test", { detail }));
+      ctx.close();
+      window.requestAnimationFrame(() => document.querySelector(".app-footer-zone")?.scrollIntoView({ behavior: "smooth", block: "end" }));
+      if (detail.reset) return "SKY // back to the real clock and weather.";
+      const hour = detail.minutes != null ? `${String(Math.floor(detail.minutes / 60)).padStart(2, "0")}:${String(detail.minutes % 60).padStart(2, "0")}` : "";
+      return `SKY // preview${hour ? ` at ${hour}` : ""}${detail.cover ? `, ${detail.cover}` : ""}. Run sky auto to go back.`;
     }
   },
   { name: "leviathan", usage: "leviathan", summary: "guaranteed Leviathan sighting", group: "admin", run: (call) => runBuddyDiagnostic(call, "leviathan") },

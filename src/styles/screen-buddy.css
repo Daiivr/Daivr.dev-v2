@@ -1555,9 +1555,11 @@
     animation-delay: calc(var(--splash-i) * 0.13s);
   }
 
+  /* La lluvia sale de la base de la nube que FooterSky forma encima de Buddy
+     (106px sobre el riel; .buddy-weather empieza a 95px), no de mas arriba. */
   .buddy-rain-field {
     position: absolute;
-    inset: -34px -18px 0;
+    inset: -11px -18px 0;
     overflow: hidden;
   }
 
@@ -2450,9 +2452,10 @@
       opacity: 0.82;
     }
 
+    /* De la base de la nube a la cupula del paraguas hay poco: 15px. */
     100% {
       opacity: 0;
-      transform: translate(-7px, 52px) rotate(7deg);
+      transform: translate(-5px, 29px) rotate(7deg);
     }
   }
 

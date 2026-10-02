@@ -35,7 +35,7 @@ const FISHING_COOLDOWN_MS = 100000;
 const FISHING_SWIFT_COOLDOWN_MS = 55000;
 const FISHING_CAST_MS = 560;
 const RAIN_COOLDOWN_MS = 85000;
-const RAIN_DURATION_MS = 7000;
+const RAIN_DURATION_MS = 9000;
 const FIND_COOLDOWN_MS = 70000;
 const ENEMY_COOLDOWN_MS = 95000;
 const CREATURE_COOLDOWN_MS = 45000;
@@ -1146,7 +1146,8 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       const generation = moodGenRef.current;
       // Si tambien llueve de verdad donde esta el jugador, Buddy lo nota.
       say(isRainingOutside(weatherRef.current) ? pickLine(EVENT_LINES.rainBoth) : pickLine(LINES.rain), 2600, { topic: "rain" });
-      window.dispatchEvent(new CustomEvent("daivr-footer-rain", { detail: { active: true } }));
+      // El cielo (FooterSky) forma la nube justo encima de Buddy.
+      window.dispatchEvent(new CustomEvent("daivr-footer-rain", { detail: { active: true, x: xRef.current + SPRITE_WIDTH / 2, duration: RAIN_DURATION_MS } }));
 
       schedule(() => {
         setWeather("");
@@ -1872,7 +1873,11 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         const response = await fetch("/api/weather", { cache: "no-store", headers: { Accept: "application/json" } });
         if (response.ok) {
           const weather = await response.json();
-          if (!disposed && weather?.available) weatherRef.current = weather;
+          if (!disposed && weather?.available) {
+            weatherRef.current = weather;
+            // El cielo del footer pinta este mismo tiempo.
+            window.dispatchEvent(new CustomEvent("daivr-outside-weather", { detail: weather }));
+          }
         }
       } catch {
         // Sin el tiempo de fuera, Buddy usa el parte del armario.
@@ -1888,7 +1893,10 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     // `weather` en la consola (o pruebas): pone el tiempo y Buddy lo comenta.
     function onWeatherSignal(event) {
       const detail = event.detail || {};
-      if (detail.weather?.available) weatherRef.current = detail.weather;
+      if (detail.weather?.available) {
+        weatherRef.current = detail.weather;
+        window.dispatchEvent(new CustomEvent("daivr-outside-weather", { detail: detail.weather }));
+      }
       if (!detail.announce) return;
       const lines = contextLines({ weather: weatherRef.current, locale: navigator.language }).filter((entry) => entry.topic === "weather").map((entry) => entry.line);
       chat(lines, "weather", 3200);

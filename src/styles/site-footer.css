@@ -16,41 +16,75 @@
     --leaf-shadow: #153d36; --leaf-mid: #285c4b;
     --leaf-light: #3e7860; --leaf-glint: #649480;
     --wood-shadow: #213d36; --wood-light: #4d6c53;
-    --stone-shadow: #233e3d; --stone-light: #58716b; --mushroom-cap: #8c6687;
+    --stone-shadow: #233e3d; --stone-light: #58716b; --mushroom-cap: #8c6687; --berry: #c2577a; --berry-light: #f2a5bd;
     position: absolute; right: 0; bottom: calc(100% - 2px); left: 0;
     z-index: 3; height: 96px; overflow: hidden; pointer-events: none;
+    /* cqw para las hojas que cruzan con el viento. */
+    container-type: size;
     mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
   }
   .footer-forest-light { position: absolute; inset: 0; background: radial-gradient(ellipse at 58% 95%, #54887c1c, transparent 66%), linear-gradient(0deg, #143c382e, transparent 80%); transition: opacity 1s; }
-  .footer-distant-woods { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .8; }
+  /* Siluetas opacas (el cielo de FooterSky va detras: el sol no debe verse a traves);
+     la profundidad la da el brillo, que FooterSky ajusta segun la hora. */
+  .footer-distant-woods { position: absolute; inset: 0; width: 100%; height: 100%; filter: brightness(var(--woods-light, .8)) saturate(var(--woods-sat, 1)); }
   .footer-forest-stars, .footer-fireflies { position: absolute; inset: 0; }
   .footer-forest-stars i { position: absolute; width: 1px; height: 1px; background: #98bdb0; opacity: .4; animation: forest-star-glimmer 7s ease-in-out var(--spark-delay) infinite; }
-  .footer-pixel-tree { position: absolute; bottom: 1px; width: 58px; height: 86px; transform-origin: bottom center; }
-  .footer-pixel-tree.is-far { scale: .72; opacity: .58; }
-  .footer-pixel-tree.is-near { opacity: .85; }
-  .footer-tree-art { display: block; width: 100%; height: 100%; overflow: visible; }
-  .footer-tree-leaves { transform-origin: 29px 62px; animation: forest-canopy-breeze 7s ease-in-out infinite; }
-  .footer-pixel-tree:nth-of-type(2n) .footer-tree-leaves { animation-delay: -2.4s; animation-duration: 8.5s; }
-  .footer-pixel-tree:nth-of-type(3n) .footer-tree-leaves { animation-delay: -4.1s; }
+  /* El bosque (FOREST en FooterScenery): arboles (.footer-pixel-tree) y matas
+     (.footer-plant), todo dibujado a mano. La profundidad es tamaño y brillo, nunca
+     transparencia: el cielo va detras. */
+  .footer-pixel-tree, .footer-plant {
+    position: absolute; bottom: 1px; transform-origin: bottom center;
+    filter: brightness(calc(var(--tree-depth, 1) * var(--tree-light, 1))) saturate(var(--tree-sat, 1)) sepia(var(--tree-warmth, 0));
+    /* Cuanto se mece: el viento de fuera, lo flexible que es la planta y hacia donde mira. */
+    --sway: calc(max(var(--wind-strength, 1), var(--rain-gust, 0)) * var(--plant-sway, 1) * var(--plant-flip, 1));
+  }
+  .footer-pixel-tree { width: 58px; height: 86px; }
+  .is-back { scale: .5; --tree-depth: .42; bottom: 4px; }
+  .is-far { scale: .72; --tree-depth: .66; }
+  .is-near { --tree-depth: .9; }
+  .footer-plant.is-ground { bottom: 0; --tree-depth: .86; }
+  /* Volteadas: la copa se mece al reves dentro del svg girado, asi que se compensa. */
+  .is-flipped { --plant-flip: -1; }
+  .is-flipped > svg { scale: -1 1; }
+  .footer-tree-art, .footer-plant-art { display: block; overflow: visible; }
+  .footer-tree-art { width: 100%; height: 100%; }
+  /* Rafagas que cruzan de derecha a izquierda (--gust-delay segun la posicion):
+     los arboles mueven la copa; los arbustos, enteros desde el suelo. */
+  .footer-tree-leaves { transform-origin: 29px 62px; }
+  .footer-tree-leaves, .footer-plant.is-ground {
+    animation: footer-gust 8s ease-in-out var(--gust-delay, 0s) infinite;
+  }
+  .footer-plant.is-ground { --plant-flip: 1; }
   .footer-forest-mist { position: absolute; left: -4%; bottom: 6px; width: 108%; height: 19px; background: radial-gradient(ellipse at 25% 80%, #79afa218, transparent 48%), radial-gradient(ellipse at 75% 80%, #619ab618, transparent 40%); animation: forest-mist-drift 24s ease-in-out infinite alternate; }
   .footer-trail-details { position: absolute; inset: 0; width: 100%; height: 100%; }
-  .footer-trail-lantern { filter: drop-shadow(0 0 4px #e6c58438); }
+  /* Farol del sendero: apagado de dia; al caer la tarde FooterSky lo enciende
+     (luz, charco de luz en el camino y luciernagas: footer-sky.css). */
+  .footer-lantern-glass { fill: #2f4542; transition: fill 1.2s; }
+  .footer-lantern-flame, .footer-lantern-glow, .footer-lantern-pool, .footer-lantern-flies { opacity: 0; transition: opacity 1.2s; }
+  .footer-lantern-glow { mix-blend-mode: screen; transform-box: fill-box; transform-origin: center; }
+  .footer-lantern-flies { filter: drop-shadow(0 0 1px #ffffff) drop-shadow(0 0 4px #e9ff8a); }
+  .footer-lantern-flies rect { fill: #e8f59c; animation: lantern-firefly var(--fly-time) ease-in-out var(--fly-delay) infinite; }
+  .footer-lantern-flies rect:nth-child(even) { fill: #c9f3c6; animation-name: lantern-firefly-b; }
   .footer-fireflies i { position: absolute; width: 2px; height: 2px; background: #c7d59a; box-shadow: 0 0 5px #bedba94d; opacity: .4; animation: forest-firefly-drift 9s ease-in-out var(--spark-delay) infinite; }
   .footer-fireflies i:nth-child(even) { background: #81bfc2; animation-duration: 12s; }
   .footer-scenery-horizon { position: absolute; right: 0; bottom: 0; left: 0; height: 5px; background: linear-gradient(0deg, #132f32 0 2px, transparent 2px), repeating-linear-gradient(90deg, #406b54 0 7px, #203f39 7px 19px, #52745d 19px 22px, #243f39 22px 39px); box-shadow: 0 -2px 0 #142f2780; }
   .footer-grass-bed { position: absolute; inset: 0; z-index: 4; }
-  .footer-grass { position: absolute; bottom: 2px; width: 24px; height: 14px; background: linear-gradient(90deg, #22473a 0 28%, #3b7050 28% 68%, #628768 68%); clip-path: polygon(0 100%,0 75%,12% 75%,12% 45%,20% 45%,20% 75%,32% 75%,32% 20%,40% 20%,40% 65%,48% 65%,48% 0,56% 0,56% 80%,68% 80%,68% 35%,76% 35%,76% 75%,88% 75%,88% 55%,96% 55%,96% 100%); opacity: .76; transform: scale(var(--grass-scale)); transform-origin: center bottom; animation: footer-grass-wind 4.8s ease-in-out var(--grass-delay) infinite alternate; }
+  .footer-grass { position: absolute; bottom: 2px; width: 24px; height: 14px; background: linear-gradient(90deg, #22473a 0 28%, #3b7050 28% 68%, #628768 68%); clip-path: polygon(0 100%,0 75%,12% 75%,12% 45%,20% 45%,20% 75%,32% 75%,32% 20%,40% 20%,40% 65%,48% 65%,48% 0,56% 0,56% 80%,68% 80%,68% 35%,76% 35%,76% 75%,88% 75%,88% 55%,96% 55%,96% 100%); opacity: .76; transform: scale(var(--grass-scale)); transform-origin: center bottom; --sway: calc(max(var(--wind-strength, 1), var(--rain-gust, 0)) * 2.4); animation: footer-grass-gust 8s ease-in-out var(--grass-delay) infinite; }
   .footer-grass:nth-child(3n) { height: 9px; opacity: .6; }
   .footer-grass:nth-child(4n) { width: 30px; }
   .footer-grass.is-stepped { animation: footer-grass-step .34s cubic-bezier(.2,.8,.3,1) both; }
   .footer-scenery:not(.is-in-view) * { animation-play-state: paused; }
   .footer-scenery.is-raining .footer-forest-light { opacity: .35; }
   .footer-scenery.is-raining .footer-fireflies { opacity: 0; transition: opacity .6s; }
-  .footer-scenery.is-raining .footer-tree-leaves { animation-duration: 3.5s; }
+  /* Con lluvia sopla mas (nunca menos de lo que ya soplaba). */
+  .footer-scenery.is-raining { --rain-gust: 1.7; }
+  /* Hojas que se lleva el viento (cuantas, segun sopla: footer-sky.css). */
+  .footer-wind-leaves { position: absolute; inset: 0; z-index: 4; opacity: 0; transition: opacity 1.5s; }
+  .footer-wind-leaves i { position: absolute; left: 0; width: 3px; height: 2px; background: var(--leaf-light); box-shadow: 1px 1px 0 var(--leaf-shadow); animation: footer-leaf-drift var(--leaf-time) linear var(--leaf-delay) infinite; }
   .footer-scenery.is-raining .footer-forest-mist { opacity: 1; }
   @media (max-width: 600px) {
     .footer-pixel-tree { width: 46px; height: 72px; }
-    .footer-pixel-tree:nth-of-type(2n) { opacity: .38; scale: .72; }
+    :is(.footer-pixel-tree, .footer-plant).is-optional { display: none; }
     .footer-grass:nth-child(2n), .footer-fireflies i:nth-child(2n) { display: none; }
     .footer-trail-details { width: 800px; left: calc(50% - 400px); }
   }
@@ -58,10 +92,16 @@
     .footer-scenery * { animation: none !important; transition: none !important; }
   }
   @keyframes forest-star-glimmer { 0%,100% { opacity: .25; } 50% { opacity: .55; } }
-  @keyframes forest-canopy-breeze { 0%,100% { transform: skewX(-.5deg); } 50% { transform: skewX(1deg) translateX(.5px); } }
+  /* Un ciclo de viento: brisa, rafaga fuerte, rebote y calma. Inclinarse a la izquierda es positivo. */
+  @keyframes footer-gust { 0%,100% { transform: skewX(calc(var(--sway) * .2deg)); } 10% { transform: skewX(calc(var(--sway) * .9deg)); } 18% { transform: skewX(calc(var(--sway) * 2.3deg)); } 25% { transform: skewX(calc(var(--sway) * .7deg)); } 33% { transform: skewX(calc(var(--sway) * 1.5deg)); } 44% { transform: skewX(calc(var(--sway) * -.3deg)); } 58% { transform: skewX(calc(var(--sway) * .8deg)); } 74% { transform: skewX(calc(var(--sway) * .1deg)); } }
+  @keyframes footer-leaf-drift { 0% { transform: translate(calc(100cqw + 6px), 0) rotate(0); } 25% { transform: translate(75cqw, 10px) rotate(-200deg); } 50% { transform: translate(50cqw, 2px) rotate(-380deg); } 75% { transform: translate(25cqw, 13px) rotate(-560deg); } 100% { transform: translate(-8px, 6px) rotate(-760deg); } }
   @keyframes forest-mist-drift { from { transform: translateX(-2%); } to { transform: translateX(2%); } }
   @keyframes forest-firefly-drift { 0%,100% { opacity: 0; transform: translate(0,0); } 20% { opacity: .65; } 45% { opacity: .25; transform: translate(9px,-6px); } 65% { opacity: .7; transform: translate(15px,-3px); } 85% { opacity: 0; transform: translate(7px,-10px); } }
-  @keyframes footer-grass-wind { from { transform: scale(var(--grass-scale)) skewX(-3deg); } to { transform: scale(var(--grass-scale)) skewX(5deg); } }
+  @keyframes lantern-firefly { 0%,100% { transform: translate(0,0); opacity: 0; } 12% { opacity: 1; } 30% { transform: translate(7px,-5px); } 48% { opacity: .35; } 55% { transform: translate(12px,2px); opacity: .95; } 78% { transform: translate(4px,7px); opacity: .6; } 90% { opacity: 0; } }
+  @keyframes lantern-firefly-b { 0%,100% { transform: translate(0,0); opacity: 0; } 15% { opacity: .9; } 35% { transform: translate(-8px,-4px); } 52% { transform: translate(-12px,3px); opacity: .3; } 70% { transform: translate(-5px,8px); opacity: 1; } 88% { opacity: 0; } }
+  @keyframes lantern-flicker { 0%,100% { opacity: 1; } 25% { opacity: .82; } 50% { opacity: .96; } 75% { opacity: .88; } }
+  @keyframes lantern-glow-breathe { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
+  @keyframes footer-grass-gust { 0%,100% { transform: scale(var(--grass-scale)) skewX(calc(var(--sway) * .2deg)); } 10% { transform: scale(var(--grass-scale)) skewX(calc(var(--sway) * .9deg)); } 18% { transform: scale(var(--grass-scale)) skewX(calc(var(--sway) * 2.3deg)); } 25% { transform: scale(var(--grass-scale)) skewX(calc(var(--sway) * .7deg)); } 33% { transform: scale(var(--grass-scale)) skewX(calc(var(--sway) * 1.5deg)); } 44% { transform: scale(var(--grass-scale)) skewX(calc(var(--sway) * -.3deg)); } 58% { transform: scale(var(--grass-scale)) skewX(calc(var(--sway) * .8deg)); } 74% { transform: scale(var(--grass-scale)) skewX(calc(var(--sway) * .1deg)); } }
   @keyframes footer-grass-step { 0% { transform: scale(var(--grass-scale)) skewX(0); } 45% { transform: scale(var(--grass-scale)) skewX(28deg) scaleY(.52); } 100% { transform: scale(var(--grass-scale)) skewX(-10deg) scaleY(.82); } }
 
   .app-footer::before,
@@ -560,7 +600,7 @@
     --forest-far: #201728; --forest-mid: #2b1d37;
     --leaf-shadow: #35263e; --leaf-mid: #624469; --leaf-light: #906486; --leaf-glint: #b082a8;
     --wood-shadow: #302737; --wood-light: #706075;
-    --stone-shadow: #363045; --stone-light: #70617c; --mushroom-cap: #699ea0;
+    --stone-shadow: #363045; --stone-light: #70617c; --mushroom-cap: #699ea0; --berry: #59cfc4; --berry-light: #b8f4ee;
   }
   .theme-glitch .footer-forest-light { background: radial-gradient(ellipse at 58% 95%, #b27fac22, transparent 66%); }
   .theme-glitch .footer-scenery-horizon { background: repeating-linear-gradient(90deg, #57465e 0 7px, #352d3f 7px 19px, #746180 19px 22px, #352d3f 22px 39px); }
@@ -599,8 +639,8 @@
       grid-template-columns: 1fr;
     }
 
-    .footer-pixel-tree:nth-of-type(3),
-    .footer-pixel-tree:nth-of-type(6) {
+    /* Menos fila lejana en tablet; en movil se van todas las opcionales. */
+    :is(.footer-pixel-tree, .footer-plant).is-optional:is(.is-back, .is-ground) {
       display: none;
     }
   }

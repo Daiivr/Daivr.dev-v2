@@ -5,6 +5,22 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.61.0",
+    codename: "SKYLIGHT",
+    date: "2026-10-02",
+    summary: "The footer gets a sky. The sun and moon follow your clock, pixel clouds drift past with the wind, the weather where you are shows up overhead, and when Buddy opens its umbrella the rain finally comes from a cloud.",
+    entries: [
+      ["new", "The sun rises, crosses and sets with your local time, and lights the sky gold at dawn and dusk. At night the moon comes out in its real phase, with stars."],
+      ["new", "Pixel-art clouds fill the sky in four layers, from high thin wisps to big puffy cumulus, towering clouds and long low banks. Each puff is shaded on its own, and the lit side faces the sun or the moon."],
+      ["new", "When the real weather is available, the sky follows it: clear, scattered clouds, overcast, fog, rain curtains, snow or distant lightning, with sunrise and sunset for where you are."],
+      ["new", "When Buddy opens its umbrella, a rain cloud condenses right above it before the first drop, and the rain falls from that cloud. As the shower eases, the cloud stretches, lightens and drifts off with the wind. Showers also last a little longer."],
+      ["new", "More trees and bushes in the forest, some with berries, plus a faint row of distant trees. Gusts of wind roll across from right to left, bending the grass, bushes and treetops in a wave, harder when it is windy or raining where you are, and a few leaves blow past."],
+      ["new", "The trail lamp is taller and lights up at dusk: a flickering flame, a warm glow on the trees and the path, and fireflies circling it all night."],
+      ["buff", "The forest follows the time of day: trees catch the daylight, the far hills turn hazy, and fireflies only come out after dark."],
+      ["fix", "The hills and trees are solid now, so the sun and moon set behind them instead of showing through."]
+    ]
+  },
+  {
     version: "v2.60.0",
     codename: "HOT SWAP",
     date: "2026-10-02",

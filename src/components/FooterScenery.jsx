@@ -1,20 +1,78 @@
 import { useEffect, useRef } from "react";
+import { gustDelay, PLANT_SWAY } from "../lib/footerPlants";
 
-const TREES = [
-  { id: "pine-a", className: "is-pine is-far", left: "4%" },
-  { id: "round-a", className: "is-round is-near", left: "15%" },
-  { id: "pine-b", className: "is-pine is-near", left: "31%" },
-  { id: "round-b", className: "is-round is-far", left: "52%" },
-  { id: "pine-c", className: "is-pine is-near", left: "70%" },
-  { id: "round-c", className: "is-round is-near", left: "87%" }
+// El bosque, de atras hacia delante, todo con el mismo pixel art dibujado a
+// mano: pinos y arboles redondos (WoodlandTree) y matas (WoodlandBush).
+// `depth`: back (fila lejana, pequeña y oscura), far, near, ground (matas).
+// `flip` lo voltea para que no parezcan copias; `phone: false` lo quita en
+// pantallas estrechas.
+const FOREST = [
+  { id: "back-1", art: "pine", depth: "back", left: 10 },
+  { id: "back-2", art: "round", depth: "back", left: 45, phone: false },
+  { id: "back-3", art: "pine", depth: "back", left: 82, flip: true, phone: false },
+  { id: "pine-a", art: "pine", depth: "far", left: 4 },
+  { id: "round-b", art: "round", depth: "far", left: 52 },
+  { id: "pine-d", art: "pine", depth: "far", left: 63, flip: true, phone: false },
+  { id: "round-a", art: "round", depth: "near", left: 15 },
+  { id: "pine-b", art: "pine", depth: "near", left: 31 },
+  { id: "round-d", art: "round", depth: "near", left: 41, flip: true, phone: false },
+  { id: "pine-c", art: "pine", depth: "near", left: 70 },
+  { id: "round-c", art: "round", depth: "near", left: 87 },
+  { id: "bush-1", art: "shrub", depth: "ground", left: 22 },
+  { id: "bush-2", art: "berry", depth: "ground", left: 36, flip: true, phone: false },
+  { id: "bush-3", art: "bush", depth: "ground", left: 58 },
+  { id: "bush-4", art: "shrub", depth: "ground", left: 77, flip: true, phone: false },
+  { id: "bush-5", art: "berry", depth: "ground", left: 93 }
 ];
+
+// Hojas que se lleva el viento cuando sopla (mas cuanto mas sopla).
+const WIND_LEAVES = Array.from({ length: 4 }, (_, index) => ({
+  id: index,
+  top: 20 + ((index * 37) % 48),
+  seconds: 10 + ((index * 5) % 7),
+  delay: -index * 3.1
+}));
+
+// Luciernagas que rondan el farol del sendero (unidades del svg del sendero).
+const LANTERN_FLIES = [[628, 64], [652, 62], [647, 82], [631, 79], [657, 73], [621, 71], [642, 54]];
 
 const GRASS = Array.from({ length: 28 }, (_, index) => ({
   id: `grass-${index}`,
   left: `${1.5 + index * 3.55}%`,
   scale: (0.72 + (index % 5) * 0.09).toFixed(2),
-  delay: `${-(index % 7) * 0.19}s`
+  delay: `${gustDelay(1.5 + index * 3.55)}s`
 }));
+
+// Matas del suelo, con el mismo trazo que los arboles: silueta en sombra,
+// cuerpo, bloques de luz arriba a la izquierda y algun brillo. `berry` es la
+// mata grande con bayas. Se mecen enteras desde el suelo (en CSS).
+function WoodlandBush({ kind }) {
+  if (kind === "shrub") {
+    return <svg className="footer-plant-art" viewBox="0 0 26 14" width="26" height="14" aria-hidden="true">
+      <g shapeRendering="crispEdges">
+        <path d="M8 1h9v2h4v3h3v4h1v4H1v-3h1V6h3V3h3z" fill="var(--leaf-shadow)" />
+        <path d="M9 3h8v2h4v3h2v3h1v1H3v-1h1V7h3V5h2z" fill="var(--leaf-mid)" />
+        <path d="M9 4h6v2h-3v2H9v2H6V8h1V6h2z" fill="var(--leaf-light)" />
+        <path d="M10 5h2v1h-2zm-3 4h2v1H7z" fill="var(--leaf-glint)" />
+        <path d="M2 12h22v2H2z" fill="var(--leaf-shadow)" />
+      </g>
+    </svg>;
+  }
+  return <svg className="footer-plant-art" viewBox="0 0 40 20" width="40" height="20" aria-hidden="true">
+    <g shapeRendering="crispEdges">
+      <path d="M10 3h10V1h8v3h5v3h4v4h2v9H1v-6h2V8h4V5h3z" fill="var(--leaf-shadow)" />
+      <path d="M11 5h10V3h6v3h5v3h4v4h2v6H3v-4h2V10h4V7h2z" fill="var(--leaf-mid)" />
+      <path d="M11 6h8v3h-4v3h-5v3H6v-3h2v-2h3zm11-2h4v3h-4z" fill="var(--leaf-light)" />
+      <path d="M27 8h6v3h3v4h-4v3h-6v-4h1z" fill="var(--leaf-light)" opacity=".5" />
+      <path d="M12 7h3v2h-3zm11-2h2v1h-2zm-15 7h2v2H8zm23 0h2v2h-2z" fill="var(--leaf-glint)" />
+      <path d="M20 11h2v5h-2zM3 17h35v3H3z" fill="var(--leaf-shadow)" />
+      {kind === "berry" ? <>
+        <path d="M13 10h2v2h-2zm12-3h2v2h-2zm-6 6h2v2h-2zm11 0h2v2h-2zm-23 1h2v2H7z" fill="var(--berry)" />
+        <path d="M13 10h1v1h-1zm12-3h1v1h-1zm-6 6h1v1h-1zm11 0h1v1h-1zm-23 1h1v1H7z" fill="var(--berry-light)" />
+      </> : null}
+    </g>
+  </svg>;
+}
 
 function WoodlandTree({ pine }) {
   return <svg className="footer-tree-art" viewBox="0 0 58 86" aria-hidden="true">
@@ -116,23 +174,61 @@ export function FooterScenery() {
       </svg>
       <span className="footer-forest-stars">{[7, 22, 39, 58, 76, 91].map((left, index) => <i key={left} style={{ left: `${left}%`, top: `${8 + index % 3 * 9}px`, "--spark-delay": `${-index * 1.3}s` }} />)}</span>
       <span className="footer-scenery-horizon" />
-      {TREES.map((tree) => (
-        <span className={`footer-pixel-tree ${tree.className}`} style={{ left: tree.left }} key={tree.id}>
-          <WoodlandTree pine={tree.className.includes("is-pine")} />
-        </span>
-      ))}
+      {FOREST.map((plant) => {
+        const handDrawn = plant.art === "pine" || plant.art === "round";
+        const className = `${handDrawn ? "footer-pixel-tree" : "footer-plant"} is-${plant.art} is-${plant.depth} ${plant.flip ? "is-flipped" : ""} ${plant.phone === false ? "is-optional" : ""}`;
+        const style = { left: `${plant.left}%`, "--gust-delay": `${gustDelay(plant.left)}s`, "--plant-sway": PLANT_SWAY[plant.art] };
+        return (
+          <span className={className} style={style} key={plant.id}>
+            {handDrawn ? <WoodlandTree pine={plant.art === "pine"} /> : <WoodlandBush kind={plant.art} />}
+          </span>
+        );
+      })}
+      <span className="footer-wind-leaves">
+        {WIND_LEAVES.map((leaf) => (
+          <i key={leaf.id} style={{ top: `${leaf.top}px`, "--leaf-time": `${leaf.seconds}s`, "--leaf-delay": `${leaf.delay}s` }} />
+        ))}
+      </span>
       <span className="footer-forest-mist" />
       <svg className="footer-trail-details" viewBox="0 0 1200 96" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <defs>
+          <radialGradient id="footer-lantern-glow">
+            <stop offset="0" stopColor="#ffd98c" stopOpacity=".55" />
+            <stop offset=".3" stopColor="#ffbf6e" stopOpacity=".2" />
+            <stop offset="1" stopColor="#ffbf6e" stopOpacity="0" />
+          </radialGradient>
+          <radialGradient id="footer-lantern-pool">
+            <stop offset="0" stopColor="#ffd38a" stopOpacity=".42" />
+            <stop offset="1" stopColor="#ffd38a" stopOpacity="0" />
+          </radialGradient>
+        </defs>
         <g shapeRendering="crispEdges">
           <path d="M95 89v-4h5v-4h11v4h6v4m350 0v-5h7v-3h12v4h5v4m407 0v-4h5v-5h13v4h7v5" fill="var(--stone-shadow)" />
           <path d="M101 83h9v2h-9m372 0h11v2h-11m410-1h11v2h-11" fill="var(--stone-light)" />
           <path d="M192 88v-7h3v7m12 0v-5h2v5m625 0v-7h3v7" fill="#799d91" />
           <path d="M187 80h4v-3h6v3h4v3h-14m17 0h8v3h-8m616-6h4v-3h6v3h4v3h-14" fill="var(--mushroom-cap)" />
           <path d="M191 79h3v2h-3m638-2h3v2h-3" fill="#c5cbbb" opacity=".7" />
+          {/* Farol del sendero, plantado en el suelo (y 95, no en la linea de las
+              piedras): de noche (y al atardecer y al alba) se enciende, alumbra
+              el camino y atrae luciernagas (footer-sky.css). */}
           <g className="footer-trail-lantern">
-            <path d="M624 88V62h3v26m-2-26h16v3h-16m12 0h2v6h-2" fill="var(--wood-light)" />
-            <path d="M633 70h10v13h-10z" fill="#233b3e" /><path d="M635 72h6v8h-6z" fill="#bca674" />
-            <path d="M636 73h3v5h-3z" fill="#f4dfac" /><path d="M631 69h14v2h-14m1 11h12v2h-12" fill="#466663" />
+            <circle className="footer-lantern-glow" cx="640" cy="71" r="44" fill="url(#footer-lantern-glow)" />
+            <ellipse className="footer-lantern-pool" cx="638" cy="95" rx="34" ry="5" fill="url(#footer-lantern-pool)" />
+            <path d="M619 92h11v3h-11zm1-1h9v1h-9zm2-38h5v38h-5zm1-4h3v4h-3zm1-2h1v2h-1zm-3 20h7v2h-7zm0 15h7v2h-7zm6-28h16v3h-16zm14-2h3v2h-3zm-14 9h2v2h-2zm2-2h2v2h-2zm2-2h2v2h-2zm2-2h1v1h-1z" fill="#1d3431" />
+            <path d="M623 53h2v38h-2zm4 3h14v1h-14zm-5 12h5v1h-5zm0 15h5v1h-5z" fill="#3e5b55" />
+            <path d="M623 54h1v12h-1zm0 16h1v11h-1zm4 2h1v-1h-1z" fill="#6f8f86" />
+            <path d="M639 58h2v3h-2zm-3 3h8v2h-8zm-2 2h12v2h-12zm1 2h10v12h-10zm-1 12h12v2h-12zm5 2h2v2h-2z" fill="#1f3532" />
+            <path d="M637 61h4v1h-4zm-2 2h6v1h-6z" fill="#4f6d68" />
+            <path className="footer-lantern-glass" d="M637 66h6v10h-6z" />
+            <g className="footer-lantern-flame">
+              <path d="M639 68h2v6h-2zm0-1h1v1h-1z" fill="#ffc768" />
+              <path d="M639 70h2v3h-2z" fill="#fff4d2" />
+            </g>
+          </g>
+          <g className="footer-lantern-flies">
+            {LANTERN_FLIES.map(([x, y], index) => (
+              <rect key={index} x={x} y={y} width="2" height="2" style={{ "--fly-delay": `${-index * 1.37}s`, "--fly-time": `${5.2 + (index % 3) * 1.4}s` }} />
+            ))}
           </g>
         </g>
       </svg>

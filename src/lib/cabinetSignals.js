@@ -5,7 +5,7 @@ import { useSyncExternalStore } from "react";
 // siempre (`daivr-player-card` desde PlayerHub, `daivr-presence` desde el
 // stream del libro de visitas); aqui solo se guarda el ultimo para que quien
 // monte tarde no se quede sin dato y para no re-renderizar App entero.
-const values = { player: null, online: null, visitHello: null, visitRoster: [] };
+const values = { player: null, online: null, visitHello: null, visitRoster: [], weather: null };
 const listeners = new Set();
 
 function update(key, value) {
@@ -23,6 +23,8 @@ if (typeof window !== "undefined") {
   // Visitas de buddies: token de esta pestaña y buddies conectados.
   window.addEventListener("daivr-visits-hello", (event) => update("visitHello", event.detail || null));
   window.addEventListener("daivr-visits-roster", (event) => update("visitRoster", Array.isArray(event.detail) ? event.detail : []));
+  // El tiempo de fuera (/api/weather), que carga ScreenBuddy: lo usa el cielo del footer.
+  window.addEventListener("daivr-outside-weather", (event) => update("weather", event.detail?.available ? event.detail : null));
 }
 
 function subscribe(listener) {

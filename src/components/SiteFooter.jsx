@@ -1,10 +1,11 @@
 import { BuddyMarketStand } from "./BuddyMarket";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { discord, profile } from "../data/site";
 import { useLanyardPresence } from "../hooks/useLanyardPresence";
 import { ScreenBuddy } from "./ScreenBuddy";
 import { BuddyVisitors } from "./BuddyVisitors";
 import { FooterScenery } from "./FooterScenery";
+import { FooterSky } from "./FooterSky";
 import { FooterWildlife } from "./FooterWildlife";
 
 const VISIT_COUNTED_KEY = "daivr.visitCounted.v1";
@@ -13,6 +14,12 @@ export function SiteFooter({ buddy, onBuddyPet, onPowerOutage, onOpenMarket }) {
   const [visitCount, setVisitCount] = useState(null);
   const [visitError, setVisitError] = useState(false);
   const [discordUser, setDiscordUser] = useState(null);
+  // Fase del dia, cielo y viento (FooterSky), para que el bosque se ponga a juego.
+  const [sky, setSky] = useState({ phase: "night", cover: "fair", wind: 1 });
+  const onSkyPhase = useCallback((next) => {
+    setSky((current) => (current.phase === next.phase && current.cover === next.cover && current.wind === next.wind ? current : next));
+  }, []);
+  const windClass = sky.wind < 0.8 ? "wind-calm" : sky.wind >= 1.4 ? "wind-gusty" : "wind-breeze";
   const year = new Date().getFullYear();
   const promptHost = discordUser?.username || profile.handle;
 
@@ -81,7 +88,8 @@ export function SiteFooter({ buddy, onBuddyPet, onPowerOutage, onOpenMarket }) {
   }, [spotify]);
 
   return (
-    <div className={`app-footer-zone ${spotify ? "is-spotify-live" : ""}`}>
+    <div className={`app-footer-zone sky-${sky.phase} sky-cover-${sky.cover} ${windClass} ${spotify ? "is-spotify-live" : ""}`} style={{ "--wind-strength": sky.wind }}>
+      <FooterSky onPhase={onSkyPhase} />
       <FooterScenery />
       <FooterWildlife />
       <BuddyMarketStand onClick={onOpenMarket} />

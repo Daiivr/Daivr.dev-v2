@@ -1,0 +1,422 @@
+@layer components {
+  /* Cielo del footer (FooterSky), detras del bosque de FooterScenery (z 3) y
+     de Buddy (z 5). Mide 156px: los 96 del bosque y 60 mas por encima, que se
+     le hacen sitio al footer, para que quepan una nube por encima del paraguas
+     de Buddy (99px) y un sol que suba de verdad. Los colores llegan en linea
+     (skyPalette en lib/footerSky.js) y cambian con la hora. */
+  /* 156px de cielo menos el relleno de abajo de la ultima seccion (el libro de
+     visitas: py-16, md:py-24), para que el cielo no pise su barra inferior. */
+  .app-footer-zone {
+    margin-top: 60px;
+  }
+
+  @media (max-width: 767px) {
+    .app-footer-zone {
+      margin-top: 92px;
+    }
+  }
+
+  .footer-sky {
+    --moon-lit: #e8f0e4;
+    --moon-dark: #1c2a38;
+    --moon-crater: #b7c4bd;
+    --storm-rim: color-mix(in srgb, var(--cloud-rim) 46%, #56656f);
+    --storm-light: color-mix(in srgb, var(--cloud-light) 40%, #3d4a55);
+    --storm-mid: color-mix(in srgb, var(--cloud-mid) 34%, #2b3640);
+    --storm-shade: color-mix(in srgb, var(--cloud-shade) 32%, #222c35);
+    --storm-shadow: color-mix(in srgb, var(--cloud-shadow) 30%, #19222a);
+    position: absolute;
+    right: 0;
+    bottom: calc(100% - 2px);
+    left: 0;
+    z-index: 2;
+    height: 156px;
+    overflow: hidden;
+    pointer-events: none;
+    container-type: size;
+    mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
+  }
+
+  .footer-sky > *,
+  .footer-sky-stars i,
+  .footer-sky-snow i {
+    position: absolute;
+  }
+
+  /* Arriba se funde con la pagina; abajo, el color del horizonte, que sube
+     hasta asomar por encima del bosque lejano (llega a ~66px). */
+  /* Translucido a proposito: deja ver el fondo de la pagina a traves. */
+  .footer-sky-gradient {
+    inset: 0;
+    background: linear-gradient(0deg, var(--sky-horizon) 0%, var(--sky-horizon) 30%, var(--sky-mid) 66%, transparent 96%);
+    opacity: calc(var(--sky-alpha) * 0.6);
+    transition: opacity 1.2s ease;
+  }
+
+  /* Resplandor del horizonte bajo el sol (al salir y al ponerse, fuerte). */
+  .footer-sky-glow {
+    inset: 0;
+    background: radial-gradient(ellipse 38% 82% at var(--glow-x) 72%, var(--sky-glow), transparent 72%);
+    opacity: calc(var(--sky-glow-alpha) * 0.8);
+  }
+
+  .footer-sky.phase-night .footer-sky-glow {
+    opacity: 0;
+  }
+
+  .footer-sky-stars {
+    inset: 0;
+    opacity: var(--star-alpha);
+    transition: opacity 1.2s ease;
+  }
+
+  .footer-sky-stars i {
+    width: 1px;
+    height: 1px;
+    background: #cfe5dd;
+    opacity: 0.55;
+    animation: sky-star-twinkle var(--twinkle) ease-in-out var(--twinkle-delay) infinite;
+  }
+
+  .footer-sky-stars i.is-big {
+    width: 2px;
+    height: 2px;
+    background: #eef8f1;
+    box-shadow: 0 0 4px #b9e6ff66;
+  }
+
+  /* Sol y luna: centrados en su punto del arco, con su halo. */
+  .footer-sky-sun,
+  .footer-sky-moon {
+    display: grid;
+    place-items: center;
+    translate: -50% 50%;
+    transition: opacity 1.2s ease, filter 1.2s ease;
+  }
+
+  .footer-sky-sun svg,
+  .footer-sky-moon svg {
+    position: relative;
+    display: block;
+  }
+
+  .footer-sky-halo {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    translate: -50% -50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--sun-glow) 55%, transparent) 0%, color-mix(in srgb, var(--sun-glow) 16%, transparent) 30%, transparent 66%);
+  }
+
+  .footer-sky-sun svg {
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--sun-glow) 70%, transparent));
+  }
+
+  .footer-sky-moon .footer-sky-halo {
+    width: 84px;
+    height: 84px;
+    opacity: calc(0.25 + var(--moon-light) * 0.75);
+    background: radial-gradient(circle, #cfe2ff33 0%, #b6d2ff12 34%, transparent 66%);
+  }
+
+  .footer-sky-moon svg {
+    filter: drop-shadow(0 0 4px #d8ecff40);
+  }
+
+  /* Cielo tapado: un velo gris que apaga sol, luna y estrellas. */
+  .footer-sky-veil {
+    inset: 0;
+    background: linear-gradient(0deg, color-mix(in srgb, var(--sky-mid) 45%, #6c777c) 0%, color-mix(in srgb, var(--sky-mid) 70%, #3a4448) 60%, transparent 100%);
+    opacity: 0;
+    transition: opacity 1.4s ease;
+  }
+
+  /* Nubes: cruzan de derecha a izquierda (con el viento de la lluvia). */
+  .footer-sky-clouds {
+    inset: 0;
+    transition: filter 1.4s ease;
+  }
+
+  .footer-cloud {
+    position: absolute;
+    left: 0;
+    display: block;
+    animation: sky-cloud-drift var(--drift) linear var(--drift-delay) infinite;
+    will-change: transform;
+  }
+
+  .footer-cloud svg {
+    display: block;
+    overflow: visible;
+  }
+
+  /* Cada capa trae su opacidad (CLOUD_LAYERS): las lejanas se funden con el cielo. */
+  .footer-cloud {
+    opacity: calc(var(--cloud-alpha) * var(--layer-alpha, 1));
+  }
+
+  /* La luz les da del lado del sol (o de la luna): el sombreado esta pintado
+     con la luz a la izquierda y se voltea cuando el astro esta a la derecha. */
+  .footer-sky.light-right :is(.footer-cloud, .footer-sky-storm) svg {
+    transform: scaleX(-1);
+  }
+
+  /* Cortinas de lluvia bajo las nubes cercanas, cuando llueve de verdad. */
+  .footer-cloud-veil {
+    position: absolute;
+    top: 82%;
+    left: 14%;
+    width: 72%;
+    height: 90px;
+    background: repeating-linear-gradient(102deg, #9fc6d455 0 1px, transparent 1px 6px);
+    background-size: 100% 240px;
+    opacity: 0.55;
+    mask-image: linear-gradient(180deg, #000, transparent);
+    animation: sky-rain-veil 0.9s linear infinite;
+  }
+
+  .footer-sky.cover-cloudy .footer-sky-veil { opacity: 0.4; }
+  .footer-sky.cover-fog .footer-sky-veil { opacity: 0.45; }
+  .footer-sky.cover-snow .footer-sky-veil { opacity: 0.35; }
+  .footer-sky.cover-rain .footer-sky-veil { opacity: 0.55; }
+  .footer-sky.cover-storm .footer-sky-veil { opacity: 0.68; }
+
+  .footer-sky:is(.cover-cloudy, .cover-fog, .cover-snow) :is(.footer-sky-sun, .footer-sky-moon) { opacity: 0.5; }
+  .footer-sky:is(.cover-rain, .cover-storm) :is(.footer-sky-sun, .footer-sky-moon) { opacity: 0.28; }
+  .footer-sky:is(.cover-cloudy, .cover-fog, .cover-snow, .cover-rain, .cover-storm) .footer-sky-stars { opacity: calc(var(--star-alpha) * 0.2); }
+
+  .footer-sky.cover-cloudy .footer-sky-clouds { filter: saturate(0.6) brightness(0.92); }
+  .footer-sky.cover-snow .footer-sky-clouds { filter: saturate(0.4) brightness(1.06); }
+  .footer-sky.cover-rain .footer-sky-clouds { filter: saturate(0.45) brightness(0.76); }
+  .footer-sky.cover-storm .footer-sky-clouds { filter: saturate(0.4) brightness(0.6); }
+
+  /* Niebla: bruma baja que se mueve despacio. */
+  .footer-sky-fog {
+    right: -10%;
+    bottom: 0;
+    left: -10%;
+    height: 70px;
+    background:
+      radial-gradient(ellipse 30% 60% at 20% 80%, #9fb3b244, transparent 70%),
+      radial-gradient(ellipse 34% 55% at 62% 85%, #a9bcbb3d, transparent 70%),
+      linear-gradient(0deg, #8da3a338, transparent);
+    animation: sky-fog-drift 40s ease-in-out infinite alternate;
+  }
+
+  .footer-sky-snow {
+    inset: 0;
+  }
+
+  .footer-sky-snow i {
+    top: -4px;
+    width: 2px;
+    height: 2px;
+    background: #eef7f4;
+    opacity: 0.75;
+    box-shadow: 0 0 2px #ffffff55;
+    animation: sky-snow-fall var(--fall) linear var(--fall-delay) infinite;
+  }
+
+  .footer-sky-snow i.is-big {
+    width: 3px;
+    height: 3px;
+    opacity: 0.9;
+  }
+
+  /* Tormenta de verdad: relampagos lejanos dentro de las nubes. */
+  .footer-sky-flash {
+    inset: 0;
+    background: radial-gradient(ellipse 30% 45% at 64% 22%, #e4ecff66, transparent 70%);
+    opacity: 0;
+    animation: sky-storm-flash 11s steps(1, end) infinite;
+  }
+
+  /* Nube de la lluvia de Buddy: se condensa encima de el antes de la primera
+     gota (palida y deshilachada, y se va cargando), la lluvia sale de su base,
+     y cuando amaina se estira, se aclara y se la lleva el viento. */
+  .footer-sky-storm {
+    position: absolute;
+    display: block;
+    z-index: 1;
+    transform-origin: 50% 100%;
+  }
+
+  .footer-sky-storm svg {
+    display: block;
+    filter: drop-shadow(0 3px 6px #0a12184d);
+  }
+
+  .footer-sky-storm.is-gather {
+    animation:
+      sky-storm-gather 0.85s cubic-bezier(0.2, 0.8, 0.3, 1) both,
+      sky-storm-loiter var(--loiter-ms) linear both;
+  }
+
+  .footer-sky-storm.is-clear {
+    animation: sky-storm-clear 2.4s cubic-bezier(0.4, 0, 0.7, 1) forwards;
+  }
+
+  /* Cortina de agua bajo la nube, hasta el suelo: rayas finas y difusas por
+     detras de las gotas de Buddy, para que se vea que la lluvia sale de ahi. */
+  .footer-sky-storm-shaft {
+    position: absolute;
+    top: calc(100% - 4px);
+    left: 12%;
+    width: 76%;
+    height: 106px;
+    background: repeating-linear-gradient(97deg, #a8cad640 0 1px, transparent 1px 5px);
+    background-size: 100% 200px;
+    opacity: 0;
+    mask-image:
+      linear-gradient(90deg, transparent, #000 22%, #000 78%, transparent),
+      linear-gradient(180deg, #000 30%, transparent);
+    mask-composite: intersect;
+    animation:
+      sky-storm-shaft var(--squall-ms) linear both,
+      sky-rain-veil 0.7s linear infinite;
+  }
+
+  .footer-sky-storm.is-clear .footer-sky-storm-shaft {
+    animation: sky-storm-shaft-out 0.7s ease-out forwards;
+  }
+
+  /* Mientras llueve encima de Buddy, el resto del cielo tambien se nubla. */
+  .footer-sky.is-squall .footer-sky-veil { opacity: 0.5; }
+  .footer-sky.is-squall .footer-sky-clouds { filter: saturate(0.5) brightness(0.8); }
+  .footer-sky.is-squall :is(.footer-sky-sun, .footer-sky-moon) { opacity: 0.35; }
+
+  .footer-sky:not(.is-in-view) * {
+    animation-play-state: paused !important;
+  }
+
+  /* Lo de alrededor sigue a la hora: de dia no hay luciernagas ni estrellas en
+     el bosque, los arboles cogen luz y el farol no hace falta. */
+  .app-footer-zone:is(.sky-day, .sky-dawn) .footer-forest-stars { opacity: 0; transition: opacity 1.2s; }
+  .app-footer-zone.sky-day .footer-fireflies { opacity: 0; transition: opacity 1.2s; }
+  .app-footer-zone.sky-dawn .footer-fireflies { opacity: 0.4; }
+  /* Luz del bosque por hora (variables de site-footer.css): de dia los montes
+     lejanos se aclaran con la bruma y los arboles cogen luz; al amanecer y al
+     atardecer, un punto calido. Siguen siendo siluetas opacas. */
+  .app-footer-zone.sky-day { --tree-light: 1.16; --tree-sat: 1.06; --woods-light: 1.4; --woods-sat: 0.85; }
+  .app-footer-zone:is(.sky-dawn, .sky-dusk) { --tree-light: 1.04; --tree-warmth: 0.14; --woods-light: 1.05; }
+  .app-footer-zone.sky-day .footer-trail-details { filter: brightness(1.16) saturate(1.06); }
+  /* El farol se enciende al atardecer, alumbra toda la noche y se apaga con el
+     dia; las luciernagas lo rondan mientras esta oscuro. */
+  .app-footer-zone:is(.sky-night, .sky-dusk, .sky-dawn) .footer-lantern-glass { fill: #f1c26a; }
+  .app-footer-zone:is(.sky-night, .sky-dusk, .sky-dawn) .footer-lantern-flame { opacity: 1; animation: lantern-flicker 2.6s steps(4, end) infinite; }
+  .app-footer-zone:is(.sky-night, .sky-dusk, .sky-dawn) .footer-lantern-glow { animation: lantern-glow-breathe 3.4s ease-in-out infinite; }
+  .app-footer-zone.sky-night :is(.footer-lantern-glow, .footer-lantern-pool) { opacity: 1; }
+  .app-footer-zone:is(.sky-dusk, .sky-dawn) :is(.footer-lantern-glow, .footer-lantern-pool) { opacity: 0.6; }
+  .app-footer-zone:is(.sky-night, .sky-dusk) .footer-lantern-flies { opacity: 1; }
+  .app-footer-zone.sky-dawn .footer-lantern-flies { opacity: 0.45; }
+  .app-footer-zone:is(.sky-night, .sky-dusk, .sky-dawn) .footer-lantern-glass { filter: drop-shadow(0 0 3px #ffd27a); }
+  /* Con niebla de verdad la bruma del bosque se espesa, por delante de los arboles. */
+  .app-footer-zone.sky-cover-fog .footer-forest-mist {
+    bottom: 0;
+    height: 48px;
+    opacity: 1;
+    background:
+      radial-gradient(ellipse 30% 70% at 22% 85%, #a3b8b64d, transparent 70%),
+      radial-gradient(ellipse 36% 64% at 70% 90%, #9cb2b247, transparent 70%),
+      linear-gradient(0deg, #93a8a842, transparent 85%);
+  }
+
+  /* Hojas al viento: ninguna en calma, un par con brisa, todas con rafagas. */
+  .app-footer-zone:is(.wind-breeze, .wind-gusty) .footer-wind-leaves { opacity: 1; }
+  .app-footer-zone.wind-breeze .footer-wind-leaves i:nth-child(n + 3) { display: none; }
+
+  .app-footer-zone:has(.leviathan-stage) .footer-sky { opacity: 0.25; }
+
+  /* Tema glitch: el mismo cielo, girado a la paleta rosa y violeta. */
+  .theme-glitch .footer-sky {
+    filter: hue-rotate(118deg) saturate(0.85);
+  }
+
+  @media (max-width: 600px) {
+    .footer-cloud.is-optional {
+      display: none;
+    }
+  }
+
+  /* Sin movimiento: las nubes se quedan quietas repartidas por el cielo. */
+  @media (prefers-reduced-motion: reduce) {
+    .footer-sky * {
+      animation: none !important;
+      transition: none !important;
+    }
+
+    .footer-cloud {
+      transform: translateX(calc(100cqw - var(--start) * (100cqw + 100%)));
+    }
+
+    .footer-sky-storm-shaft {
+      opacity: 0.6;
+    }
+  }
+}
+
+@keyframes sky-cloud-drift {
+  from { transform: translateX(100cqw); }
+  to { transform: translateX(-100%); }
+}
+
+@keyframes sky-star-twinkle {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.9; }
+}
+
+@keyframes sky-rain-veil {
+  from { background-position: 0 0; }
+  to { background-position: -10px 240px; }
+}
+
+@keyframes sky-fog-drift {
+  from { transform: translateX(-3%); }
+  to { transform: translateX(3%); }
+}
+
+@keyframes sky-snow-fall {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(-6px, 40px); }
+  50% { transform: translate(2px, 80px); }
+  75% { transform: translate(-8px, 120px); }
+  100% { transform: translate(-3px, 162px); }
+}
+
+@keyframes sky-storm-flash {
+  0%, 61%, 62.4%, 64%, 100% { opacity: 0; }
+  61.6% { opacity: 0.9; }
+  63.2% { opacity: 0.5; }
+}
+
+@keyframes sky-storm-gather {
+  0% { opacity: 0; scale: 0.42 0.26; filter: brightness(1.9) saturate(0.6); }
+  35% { opacity: 0.72; scale: 0.8 0.6; filter: brightness(1.45) saturate(0.8); }
+  70% { opacity: 1; scale: 1.05 0.97; filter: brightness(1.1); }
+  100% { opacity: 1; scale: 1; filter: brightness(1); }
+}
+
+@keyframes sky-storm-loiter {
+  from { translate: 0 0; }
+  to { translate: -14px 0; }
+}
+
+@keyframes sky-storm-clear {
+  0% { opacity: 1; translate: -14px 0; scale: 1; filter: brightness(1); }
+  45% { opacity: 0.75; scale: 1.06 0.88; filter: brightness(1.35) saturate(0.85); }
+  100% { opacity: 0; translate: -72px -6px; scale: 1.16 0.68; filter: brightness(1.8) saturate(0.6); }
+}
+
+@keyframes sky-storm-shaft-out {
+  from { opacity: 0.85; }
+  to { opacity: 0; }
+}
+
+@keyframes sky-storm-shaft {
+  0%, 9% { opacity: 0; }
+  18%, 78% { opacity: 1; }
+  86%, 100% { opacity: 0; }
+}
