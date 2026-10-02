@@ -61,7 +61,7 @@ export function PlayerBadge({ badge, tooltip = false }) {
     window.addEventListener("scroll", update, true);
     return () => { observer.disconnect(); window.removeEventListener("resize", update); window.removeEventListener("scroll", update, true); };
   }, [visible, tooltip]);
-  return <span ref={anchorRef} className={`player-badge badge-tier-${badge.tier || "base"} ${tooltip ? "has-tooltip" : ""}`}
+  return <span ref={anchorRef} className={`player-badge badge-tier-${badge.tier || "base"} ${tooltip ? "player-badge-interactive" : ""}`}
     {...(tooltip ? { tabIndex: 0, role: "button", "aria-label": `${badge.label} badge details`, "aria-describedby": visible ? tooltipId : undefined,
       onMouseEnter: show, onMouseLeave: hide, onFocus: show, onBlur: () => setVisible(false), onClick: show,
       onKeyDown: (event) => { if (event.key === "Escape") { event.stopPropagation(); setVisible(false); } else if (["Enter", " "].includes(event.key)) { event.preventDefault(); setVisible((value) => !value); } }
