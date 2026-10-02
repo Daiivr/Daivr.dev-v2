@@ -1,3 +1,4 @@
+import { MARKET_GEAR } from "../../shared/buddy-market.mjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BUDDY_INVENTORY } from "./useBuddyAdventure";
 
@@ -47,7 +48,7 @@ export const JOURNAL_GEAR = [
   { id: "miku-costume", label: "miku costume" }
 ];
 
-export const HEADWEAR_IDS = ["party-hat", "star-cap", "pixel-crown", "miku-wig"];
+export const HEADWEAR_IDS = ["market-beanie", "party-hat", "star-cap", "pixel-crown", "miku-wig"];
 export const FACE_GEAR_IDS = ["sunglasses", "green-visor"];
 export const MOBILITY_IDS = ["rocket-boots", "parachute-upgrade"];
 export const COSTUME_IDS = ["miku-costume"];
@@ -68,7 +69,8 @@ const ALL_COSMETICS = [
   ...JOURNAL_GEAR,
   ...ROD_GEAR,
   ...LURE_GEAR,
-  ...BUDDY_INVENTORY
+  ...BUDDY_INVENTORY,
+  ...MARKET_GEAR
 ];
 
 function readHiddenGear(key = GEAR_STORAGE_KEY) {

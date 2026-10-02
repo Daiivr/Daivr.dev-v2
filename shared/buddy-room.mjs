@@ -1,3 +1,4 @@
+import { MARKET_ITEMS } from "./buddy-market.mjs";
 import { FISH_CATALOG } from "./buddy-catches.mjs";
 
 export const ROOM_PALETTES = ["aurora", "plum", "amber"];
@@ -12,9 +13,10 @@ const catchKinds = new Map(FISH_CATALOG.map((item) => [item.id, item.kind]));
 
 // The fish: prefix means fishing-journal origin, not necessarily a living fish.
 export function isRoomDisplayAllowed(slot, key) {
-  if (typeof key !== "string" || !/^(fish|find):[a-z0-9-]{1,60}$/.test(key)) return false;
+  if (typeof key !== "string" || !/^(fish|find|shop):[a-z0-9-]{1,60}$/.test(key)) return false;
   const shelf = slot === "shelfLeft" || slot === "shelfRight";
   const [origin, id] = key.split(":");
+  if (origin === "shop") return shelf && MARKET_ITEMS.some((item) => item.id === id && item.category === "decor");
   if (origin === "find") return shelf;
   const kind = catchKinds.get(id);
   return AQUARIUM_SLOTS.includes(slot) ? kind === "fish" : shelf && (kind === "junk" || kind === "treasure");
@@ -45,6 +47,7 @@ export function normalizeRoom(value) {
 
 export function ownedRoomDisplays(adventure) {
   return [
+    ...MARKET_ITEMS.filter((item) => item.category === "decor" && adventure.market?.owned?.includes(item.id)).map((item) => ({ ...item, name: item.label, key: `shop:${item.id}`, rarity: "market decor", discovered: true })),
     ...(adventure.fishJournal || []).filter((item) => item.discovered).map((item) => ({ ...item, key: `fish:${item.id}` })),
     ...(adventure.finds || []).filter((item) => item.discovered).map((item) => ({ ...item, key: `find:${item.id}` }))
   ];

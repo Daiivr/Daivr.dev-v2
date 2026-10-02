@@ -1,4 +1,6 @@
+import { BuddyMarketArt } from "./BuddyMarketArt";
 export function BuddyGearArt({ id }) {
+  if (id.startsWith("market-")) return <BuddyMarketArt id={id} />;
   let artwork;
 
   switch (id) {

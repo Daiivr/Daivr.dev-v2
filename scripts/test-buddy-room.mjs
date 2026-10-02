@@ -1,3 +1,4 @@
+import { marketWallet, marketStock, purchaseMarketItem } from "../shared/buddy-market.mjs";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createHmac } from "node:crypto";
@@ -114,4 +115,17 @@ test("room API persists per account without changing friendship, gear, or collec
   assert.equal((await api("alice")).data.adventure.krakenSightings, 2);
   await api("alice", { action: "save-room", owner: "alice", room: { palette: "amber" } });
   assert.equal((await api("alice")).data.room.aquarium, "");
+  const marketDate = new Date("2026-10-07T16:00:00Z");
+  const beforePurchase = { fishCollection: { "token-chest": 30 }, market: { rewards: Array(30).fill(5), purchases: {} } };
+  const purchase = purchaseMarketItem(beforePurchase, marketStock(marketDate)[0].id, marketDate).adventure;
+  await api("alice", { action: "sync-adventure", adventure: purchase });
+  await api("alice", { action: "sync-adventure", adventure: beforePurchase });
+  const restoredMarket = (await api("alice")).data.adventure;
+  assert.equal(marketWallet(restoredMarket).coins, 100);
+  assert.equal(marketWallet(restoredMarket).unopened, 0);
+  assert.deepEqual(marketWallet(restoredMarket).owned, ["market-beanie"]);
+  assert.equal(marketWallet((await api("bob")).data.adventure).coins, 0);
+  await api("alice", { action: "save-room", owner: "alice", room: { shelfLeft: "shop:market-terrarium" } });
+  assert.equal((await api("alice")).data.room.shelfLeft, "shop:market-terrarium");
+
 });

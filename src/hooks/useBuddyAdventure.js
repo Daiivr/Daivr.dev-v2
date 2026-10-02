@@ -1,3 +1,4 @@
+import { normalizeMarket, mergeMarket, marketWallet, openMarketChest, purchaseMarketItem, MARKET_GEAR } from "../../shared/buddy-market.mjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FIELD_FINDS, FISH_CATALOG, KRAKEN, LEVIATHAN } from "../data/buddyWorld";
 
@@ -76,6 +77,7 @@ function createInitialState() {
     daiBooted: false,
     bugsDefeated: 0,
     completed: [],
+    market: { opened: 0, rewards: [], purchases: {} },
     inventory: []
   };
 }
@@ -112,6 +114,7 @@ function normalizeState(value) {
     daiBooted: source.daiBooted === true,
     bugsDefeated: Math.max(0, Math.floor(Number(source.bugsDefeated) || 0)),
     completed: normalizeList(source.completed),
+    market: normalizeMarket(source.market, source.fishCollection),
     inventory: normalizeList(source.inventory)
   };
   normalized.totalCatches = Math.max(normalized.totalCatches, normalized.voidCatches);
@@ -138,6 +141,7 @@ function mergeStates(leftValue, rightValue) {
     voidCatches: Math.max(left.voidCatches, right.voidCatches),
     totalCatches: Math.max(left.totalCatches, right.totalCatches),
     fishCollection: mergeCounterMaps(left.fishCollection, right.fishCollection),
+    market: mergeMarket(left.market, right.market, mergeCounterMaps(left.fishCollection, right.fishCollection)),
     foundObjects: mergeCounterMaps(left.foundObjects, right.foundObjects),
     leviathanSightings: Math.max(left.leviathanSightings, right.leviathanSightings),
     krakenSightings: Math.max(left.krakenSightings, right.krakenSightings),
@@ -264,7 +268,7 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
         });
         if (!syncResponse.ok || cancelled) return;
         const synced = await syncResponse.json();
-        const confirmed = resolveQuestRewards(mergeStates(stateRef.current, synced.adventure));
+        const confirmed = resolveQuestRewards(mergeStates(synced.adventure, stateRef.current));
         stateRef.current = confirmed;
         setState(confirmed);
         writeState(confirmed, STORAGE_KEY);
@@ -287,8 +291,14 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ action: "sync-adventure", adventure: next })
-    }).then((response) => {
-      if (response.ok) window.dispatchEvent(new Event("daivr-player-progress"));
+    }).then(async (response) => {
+      if (!response.ok) return;
+      const payload = await response.json();
+      const confirmed = resolveQuestRewards(mergeStates(payload.adventure, stateRef.current));
+      stateRef.current = confirmed;
+      setState(confirmed);
+      writeState(confirmed, storageKeyRef.current);
+      window.dispatchEvent(new Event("daivr-player-progress"));
     }).catch(() => {
       // Local progress remains queued implicitly and merges on the next load.
     });
@@ -396,8 +406,8 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
   })), [state]);
 
   const inventory = useMemo(
-    () => BUDDY_INVENTORY.filter((item) => state.inventory.includes(item.id)),
-    [state.inventory]
+    () => [...BUDDY_INVENTORY.filter((item) => state.inventory.includes(item.id)), ...MARKET_GEAR.filter((item) => Object.hasOwn(state.market.purchases, item.id))],
+    [state.inventory, state.market]
   );
 
   const fishJournal = useMemo(() => FISH_CATALOG.map((item) => ({
@@ -415,7 +425,10 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
   return {
     quests,
     inventory,
-    inventoryIds: state.inventory,
+    inventoryIds: inventory.map((item) => item.id),
+    market: marketWallet(state),
+    openChest() { const result = openMarketChest(stateRef.current); if (result.adventure !== stateRef.current) apply(result.adventure); return result.message; },
+    buyItem(id) { const result = purchaseMarketItem(stateRef.current, id); if (result.adventure !== stateRef.current) apply(result.adventure); return result.message; },
     completedCount: state.completed.length,
     totalCatches: state.totalCatches,
     rareCatches: state.voidCatches,

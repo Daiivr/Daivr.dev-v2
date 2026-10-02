@@ -1,3 +1,4 @@
+import { BuddyMarketStand } from "./BuddyMarket";
 import { useEffect, useState } from "react";
 import { discord, profile } from "../data/site";
 import { useLanyardPresence } from "../hooks/useLanyardPresence";
@@ -5,7 +6,7 @@ import { ScreenBuddy } from "./ScreenBuddy";
 import { FooterScenery } from "./FooterScenery";
 import { FooterWildlife } from "./FooterWildlife";
 
-export function SiteFooter({ buddy, onBuddyPet, onPowerOutage }) {
+export function SiteFooter({ buddy, onBuddyPet, onPowerOutage, onOpenMarket }) {
   const [visitCount, setVisitCount] = useState(null);
   const [visitError, setVisitError] = useState(false);
   const [discordUser, setDiscordUser] = useState(null);
@@ -66,6 +67,7 @@ export function SiteFooter({ buddy, onBuddyPet, onPowerOutage }) {
     <div className={`app-footer-zone ${spotify ? "is-spotify-live" : ""}`}>
       <FooterScenery />
       <FooterWildlife />
+      <BuddyMarketStand onClick={onOpenMarket} />
       <ScreenBuddy
         onPet={onBuddyPet}
         onPowerOutage={onPowerOutage}

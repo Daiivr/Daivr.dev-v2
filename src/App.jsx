@@ -745,7 +745,7 @@ function CabinetApp() {
             <ProgramSections theme={theme} interactive={!entrySplashOpen} />
             <CommentsSection />
           </main>
-          <SiteFooter buddy={buddy} onBuddyPet={handleBuddyPet} onPowerOutage={setPowerOutage} />
+          <SiteFooter onOpenMarket={() => setBuddyModal("market")} buddy={buddy} onBuddyPet={handleBuddyPet} onPowerOutage={setPowerOutage} />
         </div>
       </div>
 

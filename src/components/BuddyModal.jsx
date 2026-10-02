@@ -1,6 +1,7 @@
+import { BuddyMarket } from "./BuddyMarket";
 import { memo, useEffect, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Backpack, BookOpen, Check, Home, Lock, ScrollText, Search, Trophy, X } from "lucide-react";
+import { Backpack, BookOpen, Check, Home, Lock, ScrollText, Search, Store, Trophy, X } from "lucide-react";
 import { COSTUME_IDS, FACE_GEAR_IDS, HEADWEAR_IDS, LURE_IDS, MOBILITY_IDS, ROD_IDS } from "../hooks/useBuddyLoadout";
 import { useScrollEdges } from "../hooks/useScrollEdges";
 import { BuddyChuteCanopy, BuddyRodIcon, BuddySprite } from "./BuddySprite";
@@ -18,7 +19,7 @@ const BUDDY_SLOTS = [
   { id: "face", label: "face", accepts: FACE_GEAR_IDS },
   { id: "antenna", label: "antenna", accepts: ["gold-antenna"] },
   { id: "neck", label: "neck", accepts: ["scarf"] },
-  { id: "utility", label: "utility", accepts: ["wrench", "cartridge", "coffee", "headset"] },
+  { id: "utility", label: "utility", accepts: ["wrench", "cartridge", "coffee", "headset", "market-lantern", "market-vest"] },
   { id: "mobility", label: "mobility", accepts: MOBILITY_IDS },
   { id: "rod", label: "rod", accepts: ROD_IDS },
   { id: "lure", label: "lure", accepts: LURE_IDS }
@@ -361,6 +362,7 @@ const BUDDY_VIEWS = [
   { id: "room", label: "Room", icon: Home, title: "Buddy’s Room", description: "A home for your companion. A little space for everything you find." },
   { id: "inventory", label: "Inventory", icon: Backpack, title: "Buddy Inventory", description: "A little gear. A lot of personality. Make Buddy your own." },
   { id: "quests", label: "Quests", icon: ScrollText, title: "Buddy Quests", description: "Follow your curiosity. Explore the station. Find something new." },
+  { id: "market", label: "Market", icon: Store, title: "The Woodland Stand", description: "Little treasures for a life beside the void." },
   { id: "journal", label: "Journal", icon: BookOpen, title: "Catch Journal", description: "Every catch has a story. Keep a record of the things you find." }
 ];
 
@@ -394,12 +396,12 @@ export function BuddyModal({ buddy, mode, onClose, onModeChange, theme, seasonal
                 {BUDDY_VIEWS.map(({ id, label, icon: Icon }) => (
                   <button className={view.id === id ? "is-active" : ""} type="button" key={id} onClick={() => onModeChange(id)} aria-current={view.id === id ? "page" : undefined}>
                     <Icon size={16} aria-hidden="true" />{label}
-                    {id !== "room" ? <span>{id === "inventory" ? buddy.gearItems.length : id === "quests" ? buddy.adventure.quests.filter((quest) => !quest.complete).length : buddy.adventure.discoveredFishCount}</span> : null}
+                    {id !== "room" && id !== "market" ? <span>{id === "inventory" ? buddy.gearItems.length : id === "quests" ? buddy.adventure.quests.filter((quest) => !quest.complete).length : buddy.adventure.discoveredFishCount}</span> : null}
                   </button>
                 ))}
               </nav>
             </header>
-            {view.id === "room" ? <BuddyRoomBoundary onClose={onClose}><BuddyRoom buddy={buddy} seasonalEvent={seasonalEvent} /></BuddyRoomBoundary> : view.id === "inventory" ? <BuddyInventoryView buddy={buddy} /> : view.id === "journal" ? <BuddyJournal buddy={buddy} /> : <BuddyQuestView buddy={buddy} />}
+            {view.id === "market" ? <BuddyMarket buddy={buddy} onNavigate={onModeChange} /> : view.id === "room" ? <BuddyRoomBoundary onClose={onClose}><BuddyRoom buddy={buddy} seasonalEvent={seasonalEvent} /></BuddyRoomBoundary> : view.id === "inventory" ? <BuddyInventoryView buddy={buddy} /> : view.id === "journal" ? <BuddyJournal buddy={buddy} /> : <BuddyQuestView buddy={buddy} />}
           </Dialog.Content>
         </Dialog.Overlay>
       </Dialog.Portal>

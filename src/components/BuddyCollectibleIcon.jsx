@@ -1,3 +1,4 @@
+import { BuddyMarketArt } from "./BuddyMarketArt";
 function FishBody({ color, accent = "#f4fff8", tail = "normal", long = false }) {
   return (
     <g shapeRendering="crispEdges">
@@ -30,6 +31,9 @@ export function BuddyCollectibleIcon({ id, color = "#45d8ff", unknown = false, c
 
   let artwork;
   switch (id) {
+    case "market-terrarium":
+    case "market-moon":
+    case "market-arcade": artwork = <g transform="translate(9 1) scale(1.6)"><BuddyMarketArt id={id} /></g>; break;
     case "byte-minnow": artwork = <><FishBody color={color} /><rect x="18" y="21" width="4" height="3" fill="#020604" /><rect x="25" y="21" width="4" height="3" fill="#020604" /></>; break;
     case "cache-carp": artwork = <><FishBody color={color} accent="#b8f7ff" /><rect x="15" y="17" width="5" height="5" fill="#159c65" /><rect x="27" y="22" width="5" height="5" fill="#159c65" /></>; break;
     case "pixel-perch": artwork = <><FishBody color={color} accent="#ff8c69" /><path d="M18 12h4V7h4v5h4V7h4v5" fill="#ff8c69" /></>; break;

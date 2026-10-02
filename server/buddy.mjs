@@ -1,3 +1,4 @@
+import { normalizeMarket, mergeMarket } from "../shared/buddy-market.mjs";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { getSessionUser } from "./comments.mjs";
@@ -25,7 +26,8 @@ const EMPTY_ADVENTURE = Object.freeze({
   daiBooted: false,
   bugsDefeated: 0,
   completed: [],
-  inventory: []
+  market: { opened: 0, rewards: [], purchases: {} },
+    inventory: []
 });
 
 // Pets acumulados necesarios para cada nivel (nivel = indice + 1).
@@ -91,6 +93,7 @@ function normalizeAdventure(value) {
     daiBooted: source.daiBooted === true,
     bugsDefeated: boundedCount(source.bugsDefeated),
     completed: normalizeIdList(source.completed),
+    market: normalizeMarket(source.market, source.fishCollection),
     inventory: normalizeIdList(source.inventory)
   };
   adventure.totalCatches = Math.max(adventure.totalCatches, adventure.voidCatches);
@@ -117,6 +120,7 @@ function mergeAdventure(storedValue, incomingValue) {
     voidCatches: Math.max(stored.voidCatches, incoming.voidCatches),
     totalCatches: Math.max(stored.totalCatches, incoming.totalCatches),
     fishCollection: mergeCounterMaps(stored.fishCollection, incoming.fishCollection),
+    market: mergeMarket(stored.market, incoming.market, mergeCounterMaps(stored.fishCollection, incoming.fishCollection)),
     foundObjects: mergeCounterMaps(stored.foundObjects, incoming.foundObjects),
     leviathanSightings: Math.max(stored.leviathanSightings, incoming.leviathanSightings),
     krakenSightings: Math.max(stored.krakenSightings, incoming.krakenSightings),

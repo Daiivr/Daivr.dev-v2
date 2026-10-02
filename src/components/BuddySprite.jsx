@@ -293,7 +293,7 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
   const hasSparkAntenna = showFriendshipGear("gold-antenna", 5);
   const hasMikuWig = hasGear("miku-wig");
   const hasRocketBoots = hasGear("rocket-boots");
-  const hasHeadAccessory = showFriendshipGear("party-hat", 2) || hasGear("star-cap") || hasGear("pixel-crown") || hasMikuWig;
+  const hasHeadAccessory = showFriendshipGear("party-hat", 2) || hasGear("star-cap") || hasGear("pixel-crown") || hasMikuWig || hasGear("market-beanie");
 
   if (hasGear("miku-costume")) {
     return (
@@ -491,6 +491,7 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
 
         {/* gorro de fiesta: amistad lv2+ */}
         {showFriendshipGear("party-hat", 2) ? <g className="buddy-headgear"><BuddyWornGear id="party-hat" x={12} y={-1} width={24} height={15} /></g> : null}
+        {hasGear("market-beanie") ? <g className="buddy-headgear"><BuddyWornGear id="market-beanie" x={9} y={-3} width={30} height={18} /></g> : null}
         {hasGear("star-cap") ? <g className="buddy-headgear"><BuddyWornGear id="star-cap" x={10} y={0} width={30} height={15} /></g> : null}
         {hasGear("pixel-crown") ? <g className="buddy-headgear"><BuddyWornGear id="pixel-crown" x={11} y={-1} width={26} height={15} /></g> : null}
 
@@ -519,6 +520,8 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
             </>}
           </g>
         </g>
+        {hasItem("market-vest") ? <BuddyWornGear id="market-vest" x={9} y={30} width={29} height={13} /> : null}
+        {hasItem("market-lantern") ? <g className="buddy-carry-item"><BuddyWornGear id="market-lantern" x={-3} y={31} width={13} height={16} /></g> : null}
         {hasItem("wrench") ? <g className="buddy-tool-wrench buddy-carry-item"><BuddyWornGear id="wrench" x={35} y={30} width={15} height={16} /></g> : null}
         {hasItem("cartridge") ? <g className="buddy-loot-cartridge buddy-carry-item"><BuddyWornGear id="cartridge" x={36} y={31} width={13} height={15} /></g> : null}
         {hasItem("coffee") ? <g className="buddy-coffee"><BuddyWornGear id="coffee" x={0} y={32} width={14} height={13} /></g> : null}
