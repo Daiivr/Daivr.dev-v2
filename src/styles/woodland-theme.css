@@ -1,0 +1,26 @@
+@layer components {
+  /* Shared by the clearing, shop and reward portal. */
+  :where(.buddy-market-stand, .buddy-modal.is-market, .chest-reveal) {
+    --stand-canvas: #839780; --stand-canvas-edge: #758b74;
+    --stand-awning: #355e50; --stand-awning-edge: #2d5045;
+    --stand-wood: #4b5140; --stand-wood-light: #788367;
+    --stand-wood-grain: #687257; --stand-lettering: #c1c9a2;
+    --stand-mist: #619b89;
+    --woodland-surface: #102622; --woodland-raised: #19332b;
+    --woodland-edge: #3c584a; --woodland-dark: #203b32;
+    --woodland-text: #e0e7ce; --woodland-muted: #a4b8a9;
+    --woodland-shadow: 0 18px 60px #020e0db3, 0 4px 12px #03151280;
+    --woodland-inset: inset 0 0 0 1px #91ac8033, inset 0 0 28px #03151266;
+    --woodland-timber: url("../assets/market-sign-wood.svg") center / 328px 88px repeat var(--stand-wood);
+  }
+  :where(.theme-glitch .buddy-market-stand, .theme-glitch .buddy-modal.is-market,
+    body:has(.buddy-modal-backdrop.theme-glitch) .chest-reveal) {
+    --stand-canvas: #918294; --stand-canvas-edge: #7e7085;
+    --stand-awning: #59475f; --stand-awning-edge: #453a50;
+    --stand-wood: #514552; --stand-wood-light: #89758a;
+    --stand-wood-grain: #726276; --stand-lettering: #c8b9c4; --stand-mist: #a380ac;
+    --woodland-surface: #201e2a; --woodland-raised: #302b3b;
+    --woodland-edge: #594a62; --woodland-dark: #302b38;
+    --woodland-text: #e3dbe4; --woodland-muted: #b8a9bb;
+  }
+}
