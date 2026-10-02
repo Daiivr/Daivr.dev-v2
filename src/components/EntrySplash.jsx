@@ -410,7 +410,27 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
         <section className="entry-gate-intro" aria-labelledby="entry-gate-title">
           <div className="entry-gate-intro-copy">
             <p className="entry-gate-eyebrow"><span aria-hidden="true">01 /</span> WELCOME TO MY WORLD</p>
-            <h1 className="entry-gate-title" id="entry-gate-title">A little code.<br />A lot of <span>play.</span></h1>
+            <svg className="entry-gate-lettering-filters" aria-hidden="true" width="0" height="0">
+              <defs>
+                <filter id="gate-cut-lettering" x="-5%" y="-15%" width="110%" height="140%" colorInterpolationFilters="sRGB">
+                  <feOffset in="SourceAlpha" dx="0" dy="1" result="rimOffset" />
+                  <feComposite in="rimOffset" in2="SourceAlpha" operator="out" result="rim" />
+                  <feFlood floodColor="#d7e6ce" floodOpacity=".42" />
+                  <feComposite in2="rim" operator="in" result="metalEdge" />
+                  <feOffset in="SourceAlpha" dx="1.2" dy="2.4" result="cutOffset" />
+                  <feComposite in="SourceAlpha" in2="cutOffset" operator="out" result="cut" />
+                  <feGaussianBlur in="cut" stdDeviation=".65" />
+                  <feComposite in2="SourceAlpha" operator="in" result="innerEdge" />
+                  <feFlood floodColor="#020806" floodOpacity=".95" />
+                  <feComposite in2="innerEdge" operator="in" result="cutShadow" />
+                  <feMerge><feMergeNode in="metalEdge" /><feMergeNode in="SourceGraphic" /><feMergeNode in="cutShadow" /></feMerge>
+                </filter>
+              </defs>
+            </svg>
+            <h1 className="entry-gate-title" id="entry-gate-title">
+              <span className="entry-gate-title-line">A little <span className="entry-gate-painted-word">code.<svg className="entry-gate-paint-run is-short" viewBox="0 0 18 34" aria-hidden="true"><path d="M0 0H18C17 4 12 3 11 7C10 11 12 17 11 21C10 26 5 26 5 22C5 18 7 14 6 9C5 4 1 5 0 0Z" /></svg></span></span>
+              <span className="entry-gate-title-line">A lot of <span className="entry-gate-painted-word is-accent">play.<svg className="entry-gate-paint-run is-long" viewBox="0 0 18 34" aria-hidden="true"><path d="M0 0H18C17 4 11 3 10 8C9 13 11 21 10 25C13 32 5 35 4 29C3 25 6 22 6 18L5 8C5 4 1 4 0 0Z" /></svg><svg className="entry-gate-paint-run is-bead" viewBox="0 0 18 34" aria-hidden="true"><path d="M0 0H18C16 5 12 3 11 8C10 12 13 17 10 19C6 22 4 17 5 13C7 7 3 5 0 0Z" /></svg></span></span>
+            </h1>
             <p className="entry-gate-description">Step into Dai’s arcade. Projects, experiments,<br className="entry-gate-desktop-break" /> and a few distractions worth discovering.</p>
             <div className="entry-gate-categories" aria-label="Inside the portfolio"><span>BUILD</span><i aria-hidden="true" /><span>EXPLORE</span><i aria-hidden="true" /><span>PLAY</span></div>
           </div>
@@ -486,6 +506,18 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
       </div>
 
       <footer className="entry-gate-hud">
+        <svg className="entry-gate-paint-spill" viewBox="0 0 210 54" aria-hidden="true" focusable="false">
+          <g className="entry-gate-spill-mint">
+            <path d="M12 8C17 5 25 7 30 5C39 1 47 5 51 6C60 5 69 6 72 9C69 12 57 11 49 12C43 13 46 21 42 23C37 24 40 15 36 13C27 11 16 13 12 8Z" />
+            <ellipse cx="5" cy="7" rx="2.5" ry="1.2" /><ellipse cx="28" cy="2" rx="2" ry="1" />
+          </g>
+          <g className="entry-gate-spill-green">
+            <path d="M48 9C53 6 65 7 71 5C79 2 87 5 94 6C105 3 115 6 122 5C128 3 135 6 140 7C149 6 160 7 164 10C158 14 147 12 140 13C134 14 137 23 133 24C128 25 130 17 127 14C121 12 112 13 107 14C103 17 108 29 104 33C99 37 96 30 99 26C101 20 97 15 94 14C88 12 80 14 76 12C67 13 55 13 48 9Z" />
+            <ellipse cx="174" cy="9" rx="5" ry="1.8" /><ellipse cx="187" cy="6" rx="2" ry="1" />
+            <ellipse cx="115" cy="23" rx="1.6" ry="2.2" /><ellipse cx="154" cy="18" rx="2.2" ry="1.4" />
+          </g>
+          <path className="entry-gate-spill-shine" d="M20 8Q34 5 45 8M66 9Q82 5 93 8M109 8Q119 6 126 8M101 17Q103 23 101 27" />
+        </svg>
         <div className={`entry-gate-signal ${streaming ? "is-streaming" : "is-open"}`}>
           <div className="entry-gate-signal-heading"><span><i aria-hidden="true" />{signalCopy}</span><small>{streaming ? `${signalProgress}%` : "READY"}</small></div>
           {streaming ? <i className="entry-gate-signal-meter" role="progressbar" aria-label="Host loading progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={streaming && signalProgress === 0 ? undefined : signalProgress} aria-valuetext={streaming ? `${signalCopy}, ${signalProgress}%` : signalCopy}>
