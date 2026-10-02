@@ -1,0 +1,127 @@
+@layer components {
+  /* Buddies de visita (BuddyVisitors): el mismo cuerpo, paseo y burbuja que el
+     buddy de casa (.screen-buddy-root), pero proyectados como holograma: algo
+     translucidos, con tinte cian, lineas de barrido y una etiqueta con el
+     nombre de su jugador. Entran y salen materializandose en el borde en vez
+     de cruzar la pantalla desde fuera. */
+  .screen-buddy-root.is-visitor {
+    z-index: 4;
+  }
+
+  /* El relleno amplia la caja de la mascara para que no recorte la antena,
+     los gorros ni el brillo, que se salen del svg. */
+  .buddy-visitor-holo {
+    position: relative;
+    display: block;
+    margin: -26px -14px 0;
+    padding: 26px 14px 0;
+    opacity: 0.86;
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--color-cyan-arcade) 50%, transparent)) saturate(0.8) brightness(1.08);
+    -webkit-mask-image: repeating-linear-gradient(180deg, #000 0 2px, rgba(0, 0, 0, 0.6) 2px 3px);
+    mask-image: repeating-linear-gradient(180deg, #000 0 2px, rgba(0, 0, 0, 0.6) 2px 3px);
+    animation: buddy-visitor-flicker 7s steps(1, end) infinite;
+  }
+
+  .screen-buddy-root.is-visitor.is-fade-in .buddy-visitor-holo {
+    animation: buddy-visitor-materialize 650ms ease-out both;
+  }
+
+  .screen-buddy-root.is-visitor.is-fade-out .buddy-visitor-holo {
+    animation: buddy-visitor-dematerialize 650ms ease-in both;
+  }
+
+  .screen-buddy-root.is-visitor .screen-buddy-shadow {
+    opacity: 0.5;
+  }
+
+  .screen-buddy-root.is-visitor.is-fade-in .screen-buddy-shadow,
+  .screen-buddy-root.is-visitor.is-fade-out .screen-buddy-shadow {
+    opacity: 0;
+    transition: opacity 400ms;
+  }
+
+  .screen-buddy-root.is-visitor .screen-buddy {
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+
+  .buddy-visitor-tag {
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    max-width: 120px;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 34%, transparent);
+    background: rgba(2, 6, 4, 0.82);
+    padding: 1px 5px;
+    color: color-mix(in srgb, var(--color-cyan-arcade) 82%, white);
+    font-size: 0.5rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+    pointer-events: none;
+    transform: translateX(-50%);
+    transition: opacity 160ms ease;
+  }
+
+  .screen-buddy-root.is-visitor.is-speaking .buddy-visitor-tag,
+  .screen-buddy-root.is-visitor.is-fade-in .buddy-visitor-tag,
+  .screen-buddy-root.is-visitor.is-fade-out .buddy-visitor-tag {
+    opacity: 0;
+  }
+
+  /* Burbuja cian para que se distinga de la del buddy de casa, con el nombre
+     de quien habla arriba. */
+  .screen-buddy-root.is-visitor .screen-buddy-bubble {
+    border-color: color-mix(in srgb, var(--color-cyan-arcade) 50%, transparent);
+    color: color-mix(in srgb, var(--color-cyan-arcade) 78%, white);
+    box-shadow: 0 0 16px color-mix(in srgb, var(--color-cyan-arcade) 16%, transparent);
+  }
+
+  .screen-buddy-root.is-visitor .screen-buddy-bubble::after {
+    border-color: color-mix(in srgb, var(--color-cyan-arcade) 50%, transparent);
+  }
+
+  .screen-buddy-root.is-visitor .screen-buddy-bubble small {
+    display: block;
+    margin-bottom: 1px;
+    color: color-mix(in srgb, var(--color-cyan-arcade) 58%, transparent);
+    font-size: 0.48rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .buddy-visitor-holo,
+    .screen-buddy-root.is-visitor.is-fade-in .buddy-visitor-holo {
+      animation: none;
+    }
+
+    .screen-buddy-root.is-visitor.is-fade-out .buddy-visitor-holo {
+      animation: none;
+      opacity: 0;
+    }
+  }
+}
+
+/* Parpadeos sueltos de holograma; el resto del ciclo, quieto. */
+@keyframes buddy-visitor-flicker {
+  0%, 46%, 49%, 81%, 84%, 100% { opacity: 0.86; transform: none; }
+  47% { opacity: 0.48; }
+  48% { opacity: 0.8; }
+  82% { opacity: 0.62; transform: translateX(1px); }
+  83% { opacity: 0.86; transform: translateX(-1px); }
+}
+
+@keyframes buddy-visitor-materialize {
+  from { opacity: 0; clip-path: inset(100% -20px -4px -20px); filter: brightness(2.4) drop-shadow(0 0 10px var(--color-cyan-arcade)); }
+  60% { opacity: 0.95; }
+  to { opacity: 0.86; clip-path: inset(-40px -20px -4px -20px); }
+}
+
+@keyframes buddy-visitor-dematerialize {
+  from { opacity: 0.86; clip-path: inset(-40px -20px -4px -20px); }
+  to { opacity: 0; clip-path: inset(-40px -20px 100% -20px); filter: brightness(2.4) drop-shadow(0 0 10px var(--color-cyan-arcade)); }
+}

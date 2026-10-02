@@ -12,6 +12,9 @@ import { navItems, now, profile, projects } from "../data/site.js";
 import { projectStories } from "../data/projectStories.js";
 import { buddyDiagnosticEvent } from "../../shared/buddy-diagnostics.mjs";
 import { dailyChallenge, PLAYER_GAMES } from "../../shared/player-catalog.mjs";
+import { VISITS_STORAGE_KEY } from "../../shared/buddy-visits.mjs";
+import { getCabinetSignal } from "./cabinetSignals.js";
+import { CABINET_WEATHER_LINES, formatTemperature, weatherCondition } from "./buddyContext.js";
 
 const NODE_ALIASES = { patch: "patchlog", comments: "contact", guestbook: "contact", carts: "builds", projects: "builds" };
 const NODES = navItems.map(([label, href]) => ({ id: href.slice(1), label }));
@@ -123,6 +126,14 @@ async function runBuddyDiagnostic({ input, ctx }, name) {
   return ["leviathan", "kraken"].includes(name)
     ? `ADMIN // ${name.toUpperCase()}_OVERRIDE accepted.\nWatch the water by Buddy // sighting guaranteed.`
     : "ADMIN // BREAKER_OVERRIDE accepted.\nPower outage started // flashlight crew notified.";
+}
+
+function visitsEnabled() {
+  try {
+    return window.localStorage.getItem(VISITS_STORAGE_KEY) !== "off";
+  } catch {
+    return true;
+  }
 }
 
 function buddySignal(eventName, response) {
@@ -294,6 +305,59 @@ export const TERMINAL_COMMANDS = [
     }
   },
   {
+    name: "weather",
+    aliases: ["forecast"],
+    usage: "weather",
+    summary: "what it's like outside",
+    group: "cabinet",
+    run: async () => {
+      let weather = null;
+      try {
+        weather = await fetchJson("/api/weather");
+      } catch {
+        weather = null;
+      }
+      // Buddy lo comenta en el footer con el mismo dato.
+      window.dispatchEvent(new CustomEvent("daivr-buddy-weather", { detail: { weather, announce: true } }));
+      if (!weather?.available) {
+        return `OUTSIDE // no window in this cabinet.\nCabinet forecast: ${CABINET_WEATHER_LINES[Math.floor(Math.random() * CABINET_WEATHER_LINES.length)]}`;
+      }
+      const condition = weatherCondition(weather.code) || "mixed";
+      const sky = weather.isDay === false && condition === "clear" ? "clear night" : condition;
+      return `OUTSIDE // ${formatTemperature(weather.temperature, navigator.language)}, ${sky}, wind ${weather.wind} km/h\nApproximate, from your connection. Buddy has thoughts.`;
+    }
+  },
+  {
+    name: "visits",
+    aliases: ["visitors"],
+    usage: "visits [on|off|status]",
+    summary: "buddy visits from other players",
+    group: "cabinet",
+    complete: () => [
+      { value: "status", detail: "who could drop by" },
+      { value: "on", detail: "open the door (shows your Discord name)" },
+      { value: "off", detail: "no visits either way" }
+    ],
+    run: ({ args }) => {
+      const requested = (args[0] || "status").toLowerCase();
+      if (!["on", "off", "status"].includes(requested)) return "Usage: visits [on|off|status]";
+      if (requested !== "status") {
+        window.dispatchEvent(new CustomEvent("daivr-buddy-visits", { detail: { enabled: requested === "on" } }));
+        return requested === "on"
+          ? "BUDDY VISITS // door open.\nYour Buddy can drop by other players' footers and theirs can visit yours.\nSigned-in players show their Discord name on their Buddy."
+          : "BUDDY VISITS // door closed.\nYour Buddy stays home and nobody drops by. Run visits on to reopen.";
+      }
+      const online = (getCabinetSignal("visitRoster") || []).length;
+      return [
+        "BUDDY VISITS",
+        `  door         ${visitsEnabled() ? "open" : "closed"}`,
+        `  online       ${online} other ${online === 1 ? "buddy" : "buddies"}`,
+        "  rules        up to 2 visitors at a time, each stays at least a minute",
+        "Usage: visits [on|off]"
+      ].join("\n");
+    }
+  },
+  {
     name: "run",
     usage: "run",
     summary: "boot Dai.exe",
@@ -387,6 +451,18 @@ export const TERMINAL_COMMANDS = [
   { name: "forage", usage: "forage", summary: "footer loot scanner", group: "diagnostic", run: buddySignal("daivr-buddy-find", "Footer loot scanner pulsed.") },
   { name: "wildlife", usage: "wildlife", summary: "environmental creature ping", group: "diagnostic", run: buddySignal("daivr-buddy-creature", "Environmental creature ping sent.") },
   { name: "debugbug", usage: "debugbug", summary: "hostile bug simulation", group: "diagnostic", run: buddySignal("daivr-buddy-enemy", "Hostile bug simulation started.") },
+  {
+    name: "visit",
+    usage: "visit",
+    summary: "summon a test visitor buddy",
+    group: "diagnostic",
+    run: ({ ctx }) => {
+      window.dispatchEvent(new CustomEvent("daivr-buddy-visit-test"));
+      ctx.close();
+      window.requestAnimationFrame(() => document.querySelector(".app-footer-zone")?.scrollIntoView({ behavior: "smooth", block: "end" }));
+      return "Test visitor dispatched to the footer.";
+    }
+  },
   { name: "leviathan", usage: "leviathan", summary: "guaranteed Leviathan sighting", group: "admin", run: (call) => runBuddyDiagnostic(call, "leviathan") },
   { name: "kraken", usage: "kraken", summary: "guaranteed Kraken sighting", group: "admin", run: (call) => runBuddyDiagnostic(call, "kraken") },
   { name: "blackout", aliases: ["powerout", "power-out"], usage: "blackout", summary: "power outage sequence", group: "admin", run: (call) => runBuddyDiagnostic(call, call.name) },

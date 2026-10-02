@@ -12,6 +12,7 @@ import { handleSteamPlaytimeRequest } from "./steam-playtime.mjs";
 import { handleTowerBlockRequest } from "./tower-block.mjs";
 import { handleVisitsRequest } from "./visits.mjs";
 import { handleTradeDexVirusTotalRequest } from "./virustotal.mjs";
+import { handleWeatherRequest } from "./weather.mjs";
 
 // Tabla unica de la API. La usan server.mjs (produccion) y el middleware de
 // vite.config.js (desarrollo): antes cada uno tenia su propia lista y se
@@ -40,7 +41,8 @@ export const API_ROUTES = [
   { match: below("/api/cross-road"), handle: handleCrossRoadRequest },
   { match: below("/api/space-cadet-pinball"), handle: handleSpaceCadetPinballRequest },
   { match: under("/api/buddy"), handle: handleBuddyRequest },
-  { match: exact("/api/game-image"), handle: handleGameImageRequest }
+  { match: exact("/api/game-image"), handle: handleGameImageRequest },
+  { match: exact("/api/weather"), handle: (request, response) => handleWeatherRequest(request, response) }
 ];
 
 export function findApiRoute(pathname) {

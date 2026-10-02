@@ -5,6 +5,34 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.58.0",
+    codename: "SMALL TALK",
+    date: "2026-10-02",
+    summary: "Buddy pays more attention to your world. It talks about the real weather where you are, notices the day and the hour, remembers when you last came by, and reacts when you wander off and come back. Visiting Buddies chime in on all of it.",
+    entries: [
+      ["new", "Buddy comments on the real weather outside: sun, rain, snow, storms, heat, cold, and wind, with the temperature in your units. If it rains in the footer while it's raining where you are, it notices."],
+      ["new", "The weather command in the console reports what it's like outside, and Buddy adds its own opinion. Without a location, it shares the cabinet forecast instead."],
+      ["new", "Buddy knows the day and the hour: Monday sympathy, Friday cheer, weekend browsing, lunch breaks, evening shifts, and very late nights."],
+      ["new", "Buddy greets first-time players with a tip, and returning players with how long it's been. It also marks how long you've been in the arcade: 5, 15, 30, and 60 minutes."],
+      ["new", "Buddy notices when you come back to the tab, scroll back down to the footer, or lose your connection. It also mentions how many players are around, today's daily challenge, and your passport level."],
+      ["buff", "New tips that point to things worth finding, and a few stories about Buddy's past. Visiting Buddies have replies for all of the new topics."],
+      ["fix", "Visitors no longer answer a moment that has already passed, like mentioning rain right after it stopped."]
+    ]
+  },
+  {
+    version: "v2.57.0",
+    codename: "HOUSE CALL",
+    date: "2026-10-02",
+    summary: "Buddy gets company. When other players have the cabinet open, their Buddies drop by your footer as little holograms: they say hi, hang out for a while, chat about whatever your Buddy is up to, and say goodbye before heading home.",
+    entries: [
+      ["new", "Other players' Buddies can visit your footer, wearing the gear their players picked. One or two at a time (one on phones), and each stays for at least a minute."],
+      ["new", "Visitors walk in and greet your Buddy, and your Buddy greets them back. When it's time to go they say goodbye, your Buddy waves them off, and they fade out."],
+      ["new", "Visitors react to what your Buddy is doing: a rare catch, a rain shower, a bug hunt, a song on Spotify, a pet, a dance. A second visitor says hi to the first."],
+      ["new", "Click a visiting Buddy to say hi. Signed-in players show their Discord name on their Buddy; guests show up as guest."],
+      ["new", "The console's visits command shows who could drop by, and visits off keeps your Buddy home and the door closed to visitors."]
+    ]
+  },
+  {
     version: "v2.56.0",
     codename: "TRAVEL LIGHT",
     date: "2026-10-02",

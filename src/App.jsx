@@ -40,6 +40,7 @@ import "./styles/game-collection.css";
 import "./styles/arcade-panels.css";
 import "./styles/player-passport.css";
 import "./styles/panel-glitch.css";
+import "./styles/buddy-visitors.css";
 import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { discord, games, navItems, profile, projects } from "./data/site";
 import { KONAMI_GAMES } from "./data/konamiGames";

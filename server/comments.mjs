@@ -10,6 +10,7 @@ import { buildInbox, markInboxRead } from "./community-inbox.mjs";
 import { canProxyGif, normalizeGifUrl, updateGifFavorites } from "../shared/comment-gifs.mjs";
 import { downloadCommentGif } from "./comment-gif-download.mjs";
 import { commentGifPreview } from "./comment-gif-preview.mjs";
+import { applyVisitLook, attachVisitor, visitRosterFor } from "./buddy-visits.mjs";
 
 const COMMENTS_FILENAME = "comments.json";
 const PREFERENCES_FILENAME = "preferences.json";
@@ -422,6 +423,7 @@ async function broadcastComments(event = "comments:update") {
 }
 
 // Presencia en vivo: cuantas pestañas estan conectadas al stream ahora mismo.
+// Cada alta o baja puede cambiar tambien la lista de buddies de visita.
 function broadcastPresence() {
   for (const client of streamClients) {
     try {
@@ -430,6 +432,25 @@ function broadcastPresence() {
       streamClients.delete(client);
     }
   }
+  scheduleVisitsBroadcast();
+}
+
+// Buddies de visita: cada pestaña recibe su propia lista (sin sus otras
+// pestañas). Se agrupan los cambios de un momento en un solo envio.
+let visitsBroadcastTimer = null;
+function scheduleVisitsBroadcast() {
+  if (visitsBroadcastTimer) return;
+  visitsBroadcastTimer = setTimeout(() => {
+    visitsBroadcastTimer = null;
+    for (const client of streamClients) {
+      try {
+        sendEvent(client.response, "visits:update", { visitors: visitRosterFor(client, streamClients, getUser) });
+      } catch {
+        streamClients.delete(client);
+      }
+    }
+  }, 300);
+  visitsBroadcastTimer.unref?.();
 }
 
 function broadcastTyping(user) {
@@ -458,6 +479,10 @@ async function handleCommentsStream(request, response) {
   sendEvent(response, "comments:init", await getCommentsPayload(request));
 
   const client = { request, response };
+  const visit = attachVisitor(client);
+  // El token solo lo recibe esta pestaña: con el publica el aspecto de su buddy.
+  sendEvent(response, "visits:hello", { id: visit.id, token: visit.token });
+  sendEvent(response, "visits:update", { visitors: visitRosterFor(client, streamClients, getUser) });
   streamClients.add(client);
   broadcastPresence();
   const keepAlive = setInterval(() => {
@@ -1090,6 +1115,12 @@ async function routeCommentsRequest(request, response) {
   if (request.method === "GET" && parts[0] === "me") {
     sendJson(response, 200, getAuthStatus(request));
     return;
+  }
+
+  if (request.method === "POST" && parts.length === 2 && parts[0] === "stream" && parts[1] === "look") {
+    const result = applyVisitLook(streamClients, await readBody(request));
+    if (result.changed) scheduleVisitsBroadcast();
+    return sendJson(response, result.status, result.error ? { error: result.error } : { ok: true });
   }
 
   if (request.method === "GET" && parts[0] === "stream") {

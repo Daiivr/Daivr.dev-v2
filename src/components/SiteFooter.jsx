@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { discord, profile } from "../data/site";
 import { useLanyardPresence } from "../hooks/useLanyardPresence";
 import { ScreenBuddy } from "./ScreenBuddy";
+import { BuddyVisitors } from "./BuddyVisitors";
 import { FooterScenery } from "./FooterScenery";
 import { FooterWildlife } from "./FooterWildlife";
 
@@ -94,6 +95,15 @@ export function SiteFooter({ buddy, onBuddyPet, onPowerOutage, onOpenMarket }) {
         hiddenGear={buddy.effectiveHiddenGear}
         unlockedGear={buddy.unlockedGearIds}
         nowPlaying={spotify ? { song: spotify.song, artist: spotify.artist } : null}
+      />
+      {/* Despues de ScreenBuddy: FooterScenery/FooterWildlife buscan al buddy
+          de casa con el primer .screen-buddy-root del footer. */}
+      <BuddyVisitors
+        friendshipLevel={buddy.friendship.level}
+        inventory={buddy.adventure.inventoryIds}
+        hiddenGear={buddy.effectiveHiddenGear}
+        unlockedGear={buddy.unlockedGearIds}
+        hostName={discordUser?.username || ""}
       />
       <footer className="app-footer">
         {spotify ? (

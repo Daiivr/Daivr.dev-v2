@@ -661,6 +661,28 @@ export function CommentsSection() {
       setStatus("live stream reconnecting...");
       // Sin stream no se sabe cuanta gente hay: la barra superior oculta el contador.
       window.dispatchEvent(new CustomEvent("daivr-presence", { detail: { count: null } }));
+      // El token de visitas era de la conexion caida; al reconectar llega otro.
+      window.dispatchEvent(new CustomEvent("daivr-visits-hello", { detail: null }));
+    }
+
+    // Buddies de visita (BuddyVisitors en el footer): el token con el que esta
+    // pestaña publica su buddy y la lista de buddies conectados.
+    function handleVisitsHello(event) {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload?.token) window.dispatchEvent(new CustomEvent("daivr-visits-hello", { detail: { id: payload.id, token: payload.token } }));
+      } catch {
+        // Sin token esta pestaña simplemente no se comparte.
+      }
+    }
+
+    function handleVisitsUpdate(event) {
+      try {
+        const payload = JSON.parse(event.data);
+        if (Array.isArray(payload?.visitors)) window.dispatchEvent(new CustomEvent("daivr-visits-roster", { detail: payload.visitors }));
+      } catch {
+        // Lista invalida: se queda la anterior.
+      }
     }
 
     // Presencia en vivo: se re-emite como evento global (la barra superior la
@@ -688,6 +710,8 @@ export function CommentsSection() {
     }
 
     stream.addEventListener("presence:update", handlePresence);
+    stream.addEventListener("visits:hello", handleVisitsHello);
+    stream.addEventListener("visits:update", handleVisitsUpdate);
     stream.addEventListener("typing:update", handleRemoteTyping);
     stream.addEventListener("comments:init", handleStreamMessage);
     stream.addEventListener("comments:update", handleStreamMessage);

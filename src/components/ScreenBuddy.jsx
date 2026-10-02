@@ -15,6 +15,9 @@ import { PixelBird } from "./PixelBird";
 import { BuddyWornGear } from "./BuddyGearIcon";
 import { BuddyCollectibleIcon } from "./BuddyCollectibleIcon";
 import { LeviathanEncounter } from "./LeviathanEncounter";
+import { HOST_REPLY_LINES, pickVisitLine } from "../../shared/buddy-visits.mjs";
+import { contextLines, EVENT_LINES, isRainingOutside, returnLines, sessionMilestone } from "../lib/buddyContext";
+import { getCabinetSignal } from "../lib/cabinetSignals";
 
 const SLEEP_AFTER_MS = 5 * 60 * 1000;
 const ATTRACT_WAKE_DELAY_MS = 1000;
@@ -113,6 +116,29 @@ const LINES = {
     "typing detected... incoming comment ETA: when it is perfect.",
     "comment buffer filling up. i will pretend not to peek.",
     "new signal being written... stand by for transmission."
+  ],
+  // Pistas de verdad sobre el armario: ayudan a descubrir cosas.
+  tips: [
+    "tip: press / to open the terminal.",
+    "tip: double-click me for a flip.",
+    "tip: you can drag me around. gently.",
+    "psst... ever tried the konami code?",
+    "the market stand trades gear for coins.",
+    "pet me a lot. good things happen.",
+    "the guestbook up there is live. say hi!",
+    "type weather in the terminal. i'll check outside.",
+    "type visits in the terminal to see who's around.",
+    "patch.log has the whole history of this place."
+  ],
+  // Un poco de historia de Buddy, para que se note que vive aqui.
+  lore: [
+    "i was compiled on a tuesday. it was raining.",
+    "my first word was 'beep'. my second was also 'beep'.",
+    "i used to live on a floppy disk. tight fit.",
+    "dai built me out of leftover pixels.",
+    "i've counted every pixel down here. twice.",
+    "one day i'll visit the header. one day.",
+    "the rainbow line hums at night. i checked."
   ]
 };
 
@@ -142,6 +168,51 @@ const MIKU_LINES = {
   fishRare: ["rare catch—spotlight!", "a legendary duet partner!"],
   leviathan: ["that is NOT a stage prop!", "producer, the audience is enormous!"]
 };
+
+// Tema de cada frase, para que los buddies de visita sepan de que se esta
+// hablando y contesten a juego (BuddyVisitors escucha `daivr-buddy-said`).
+const LINE_TOPICS = new Map(
+  [...Object.entries(LINES), ...Object.entries(MIKU_LINES)].flatMap(([topic, lines]) => lines.map((line) => [line, topic]))
+);
+const EVENT_TOPICS = { fishing: "fishWait", rain: "rain", find: "find", hunt: "bugHunt", outage: "outage", "flying-fish": "fishSight" };
+// Frases generadas (tiempo, hora, arcade...) con el tema que traian.
+const DYNAMIC_TOPICS = new Map();
+const LAST_SEEN_KEY = "daivr.buddyLastSeen.v1";
+const WEATHER_REFRESH_MS = 30 * 60_000;
+const TAB_AWAY_MS = 60_000;
+const FOOTER_AWAY_MS = 90_000;
+
+// Saludo segun la visita anterior. Se calcula una vez por carga de pagina (y
+// deja apuntada esta): el doble render de StrictMode no debe pisarlo.
+let pageReturnLines = null;
+function visitReturnLines() {
+  if (pageReturnLines) return pageReturnLines;
+  try {
+    const lastSeen = Number(window.localStorage.getItem(LAST_SEEN_KEY)) || 0;
+    window.localStorage.setItem(LAST_SEEN_KEY, String(Date.now()));
+    pageReturnLines = returnLines(lastSeen || null);
+  } catch {
+    // Sin almacenamiento no se sabe si es la primera vez: mejor no decir nada.
+    pageReturnLines = [];
+  }
+  return pageReturnLines;
+}
+
+function rememberTopic(line, topic) {
+  if (DYNAMIC_TOPICS.size > 400) DYNAMIC_TOPICS.clear();
+  DYNAMIC_TOPICS.set(line, topic);
+  return line;
+}
+
+function lineTopic(line, eventName = "") {
+  if (DYNAMIC_TOPICS.has(line)) return DYNAMIC_TOPICS.get(line);
+  if (LINE_TOPICS.has(line)) return LINE_TOPICS.get(line);
+  if (/^(RARE|LEGENDARY|MYTHIC|TREASURE):/.test(line)) return "fishRare";
+  if (/^caught:/.test(line)) return "fishCommon";
+  if (line.startsWith("♪")) return "music";
+  if (eventName.startsWith("creature:")) return "birdHello";
+  return EVENT_TOPICS[eventName] || "idle";
+}
 
 const reduceMotionQuery =
   typeof window !== "undefined" && typeof window.matchMedia === "function"
@@ -240,6 +311,14 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
   const pendingDragRef = useRef(null);
   const onPowerOutageRef = useRef(onPowerOutage);
   const userRef = useRef({ name: "guest", discord: false });
+  // Mientras habla un buddy de visita, la charla de relleno de este espera.
+  const visitorFloorRef = useRef(0);
+  const lastVisitorReplyRef = useRef("");
+  // Contexto de la visita: el tiempo de fuera, cuando empezo la sesion, que
+  // hitos de tiempo ya comento y como saludar segun la ultima visita.
+  const weatherRef = useRef(null);
+  const sessionStartRef = useRef(Date.now());
+  const milestoneRef = useRef(0);
 
   useEffect(() => {
     onPowerOutageRef.current = onPowerOutage;
@@ -370,6 +449,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
 
     activeBubbleRef.current = next;
     setBubble(next.line);
+    window.dispatchEvent(new CustomEvent("daivr-buddy-said", { detail: { line: next.line, topic: next.topic, ms: next.ms } }));
     bubbleTimerRef.current = window.setTimeout(() => {
       bubbleTimerRef.current = 0;
       activeBubbleRef.current = null;
@@ -384,7 +464,8 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
   function say(line, ms = 2400, options = {}) {
     if (!line) return;
     const priority = options.priority === "ambient" ? "ambient" : "event";
-    const item = { line, ms: Math.max(MIN_DIALOGUE_MS, ms), priority, key: options.key || "" };
+    const topic = options.topic || lineTopic(line, activeEventRef.current);
+    const item = { line, ms: Math.max(MIN_DIALOGUE_MS, ms), priority, key: options.key || "", topic };
     const active = activeBubbleRef.current;
 
     if (active?.line === line || bubbleQueueRef.current.some((entry) => entry.line === line)) return;
@@ -392,6 +473,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
 
     if (priority === "ambient") {
       if (activeEventRef.current) return;
+      if (Date.now() < visitorFloorRef.current) return;
       if (active || bubbleGapTimerRef.current || bubbleQueueRef.current.length) return;
     } else {
       // Events are never discarded, but stale ambient chatter should not make
@@ -521,6 +603,17 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       );
     }
 
+    // Lo de fuera y lo de ahora: el tiempo, el dia, el arcade.
+    const context = contextLines({
+      date: new Date(),
+      weather: weatherRef.current,
+      locale: typeof navigator === "undefined" ? "" : navigator.language,
+      online: getCabinetSignal("online"),
+      level: getCabinetSignal("player")?.level ?? null
+    });
+    context.forEach(({ line, topic }) => pool.push(rememberTopic(line, topic)));
+    pool.push(...LINES.tips, ...LINES.lore);
+
     return pool;
   }
 
@@ -530,6 +623,9 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       ? [...LINES.boot, `hello, ${identity.name}!`, `${identity.name} signal linked.`, `welcome back, ${identity.name}.`]
       : [...LINES.boot, "hello, guest!", "guest session linked. stay awhile."];
     if (mikuCostumeRef.current) pool.push(...MIKU_LINES.boot, ...MIKU_LINES.boot);
+    // Primera visita o vuelta tras unos dias: casi siempre gana el saludo personal.
+    const returning = visitReturnLines().map((line) => rememberTopic(line, "returning"));
+    if (returning.length && Math.random() < 0.75) return returning;
     return pool;
   }
 
@@ -578,7 +674,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     const petLine = !wasAsleep && !wasFishing && identity.discord && Math.random() < 0.35
       ? `${identity.name}! ${buddyLine("pet")}`
       : wasAsleep ? pickLine(LINES.wake) : wasFishing ? buddyLine("fishInterrupt") : buddyLine("pet");
-    say(petLine, 1900, { key: "pet" });
+    say(petLine, 1900, { key: "pet", topic: wasAsleep ? "wake" : wasFishing ? "fishInterrupt" : "pet" });
     onPet?.();
     settleDown(1700);
   }
@@ -834,7 +930,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       updateMood("talk");
       const noticeGeneration = moodGenRef.current;
       clearDialogue();
-      say("the floor cracked... there's water underneath!", 2600);
+      say("the floor cracked... there's water underneath!", 2600, { topic: "fishCast" });
 
       function beginSession() {
         // En el sprite base facing 1 apunta a la izquierda. Cerca de un borde
@@ -872,7 +968,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         schedule(() => {
           if (!stillFishing()) return;
           setFishingPhase("bite");
-          say("!", 900);
+          say("!", 900, { topic: "fishFight" });
         }, FISHING_CAST_MS + waitMs);
 
         function landCatch(catchItem) {
@@ -919,7 +1015,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
             setFishingCatch("mythic");
             setFishingCatchId(monster.id);
             clearDialogue();
-            say("the water went quiet. something is coming.", 5000);
+            say("the water went quiet. something is coming.", 5000, { topic: "leviathan" });
             schedule(() => {
               if (!stillFishing()) return;
               setFishingPhase("monster");
@@ -948,7 +1044,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
               leviathanInteractionRef.current = null;
               setFishingPhase("retreat");
               clearDialogue();
-              say("until next time, big friend.", 2600);
+              say("until next time, big friend.", 2600, { topic: "fishEscape" });
               endSessionAfter(3500);
             }, 19000);
             return;
@@ -1016,7 +1112,8 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       setWeather("rain");
       updateMood("rain");
       const generation = moodGenRef.current;
-      say(pickLine(LINES.rain), 2600);
+      // Si tambien llueve de verdad donde esta el jugador, Buddy lo nota.
+      say(isRainingOutside(weatherRef.current) ? pickLine(EVENT_LINES.rainBoth) : pickLine(LINES.rain), 2600, { topic: "rain" });
       window.dispatchEvent(new CustomEvent("daivr-footer-rain", { detail: { active: true } }));
 
       schedule(() => {
@@ -1024,7 +1121,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         window.dispatchEvent(new CustomEvent("daivr-footer-rain", { detail: { active: false } }));
         if (moodGenRef.current === generation && moodRef.current === "rain") {
           updateMood("idle");
-          say("rain stopped. patrol resumed.", 2000);
+          say("rain stopped. patrol resumed.", 2000, { topic: "rainEnd" });
         }
         endBuddyEvent("rain");
       }, RAIN_DURATION_MS);
@@ -1059,7 +1156,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
           setFieldFind(null);
           if (moodGenRef.current === findGeneration && moodRef.current === "find") {
             updateMood("idle");
-            say("loot signal expired...", 1600);
+            say("loot signal expired...", 1600, { topic: "findMiss" });
           }
           endBuddyEvent("find");
         }, 11000);
@@ -1204,7 +1301,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         setOutagePhase("restore");
         onPowerOutageRef.current?.("restore");
         playFx("static", 900);
-        say("POWER RESTORED. totally intentional.", 2800);
+        say("POWER RESTORED. totally intentional.", 2800, { topic: "outageFix" });
       }, 7600);
 
       // La pagina vuelve a la normalidad y la caja se despide con un
@@ -1255,6 +1352,16 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       }
 
       if (currentMood === "talk") return;
+
+      // Cuanto llevas aqui: 5, 15, 30 y 60 minutos, una vez cada uno.
+      const milestone = sessionMilestone(Date.now() - sessionStartRef.current, milestoneRef.current);
+      if (milestone) {
+        milestoneRef.current = milestone.minutes;
+        updateMood("talk");
+        say(milestone.line, 3000, { priority: "ambient", key: "ambient", topic: "session" });
+        settleDown(3100);
+        return;
+      }
 
       const roll = Math.random();
       // El swift lure acorta tambien la espera entre sesiones.
@@ -1502,7 +1609,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       const line = username && username.toLowerCase() !== "someone" && Math.random() < 0.45
         ? `${username} is composing a transmission... stand by.`
         : pickLine(LINES.commentTyping);
-      say(line, 3600, { key: "comment-typing" });
+      say(line, 3600, { key: "comment-typing", topic: "commentTyping" });
       if (canPause) settleDown(3700);
     }
 
@@ -1529,6 +1636,29 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         updateMood("idle");
         say(pickLine(greetingPool()), 2600);
       }
+    }
+
+    // Buddies de visita (BuddyVisitors): saludar cuando entran, despedirse
+    // cuando se van, y callar la charla de relleno mientras ellos hablan.
+    function onVisitorSignal(event) {
+      const detail = event.detail || {};
+      if (detail.phase === "talking") {
+        visitorFloorRef.current = Math.max(visitorFloorRef.current, Number(detail.until) || 0);
+        return;
+      }
+      if (!bootedRef.current || moodRef.current === "off") return;
+      const pool = HOST_REPLY_LINES[detail.name ? detail.phase : `${detail.phase}Guest`] || HOST_REPLY_LINES[detail.phase];
+      if (!pool) return;
+      const line = pickVisitLine(pool, { name: detail.name }, Math.random, lastVisitorReplyRef.current);
+      if (!line) return;
+      lastVisitorReplyRef.current = line;
+      const asleep = moodRef.current === "sleep";
+      if (!asleep && !activeEventRef.current && ["idle", "talk"].includes(moodRef.current) && Number.isFinite(detail.x)) {
+        updateFacing(facingForDirection(detail.x > xRef.current ? 1 : -1));
+        updateMood("talk");
+        settleDown(2600);
+      }
+      say(asleep ? `zz... ${line}` : line, 2400, { key: "visitor", topic: "visitor" });
     }
 
     function clampToStage() {
@@ -1579,15 +1709,80 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     creatureCooldownRef.current = Date.now() - CREATURE_COOLDOWN_MS + 18000;
     outageCooldownRef.current = Date.now();
 
+    // --- Lo que pasa alrededor: volver al footer o a la pestaña, perder la
+    // conexion, y el tiempo de verdad donde esta el jugador.
+    let footerHiddenAt = 0;
+    let tabHiddenAt = 0;
+
+    function canChat() {
+      return bootedRef.current
+        && !activeEventRef.current
+        && !attractModeRef.current
+        && !["off", "held", "chute", "outage", "hunt", "fishing", "sleep", "sleepy"].includes(moodRef.current);
+    }
+
+    function chat(lines, topic, ms = 2600, priority = "event") {
+      if (!canChat()) return;
+      updateMood("talk");
+      say(rememberTopic(pickLine(lines), topic), ms, { priority, key: priority === "ambient" ? "ambient" : topic, topic });
+      settleDown(ms + 100);
+    }
+
+    function onTabVisibility() {
+      if (document.visibilityState === "hidden") {
+        tabHiddenAt = Date.now();
+        return;
+      }
+      const away = tabHiddenAt ? Date.now() - tabHiddenAt : 0;
+      tabHiddenAt = 0;
+      if (away >= TAB_AWAY_MS && visibleRef.current) chat(EVENT_LINES.tabReturn, "tabReturn");
+    }
+
+    function onOffline() {
+      chat(EVENT_LINES.offline, "offline", 3000);
+    }
+
+    function onOnline() {
+      chat(EVENT_LINES.online, "online");
+    }
+
+    let weatherTimer = 0;
+    async function loadWeather() {
+      try {
+        const response = await fetch("/api/weather", { cache: "no-store", headers: { Accept: "application/json" } });
+        if (response.ok) {
+          const weather = await response.json();
+          if (!disposed && weather?.available) weatherRef.current = weather;
+        }
+      } catch {
+        // Sin el tiempo de fuera, Buddy usa el parte del armario.
+      }
+      if (!disposed) weatherTimer = window.setTimeout(loadWeather, WEATHER_REFRESH_MS);
+    }
+
+    // `weather` en la consola (o pruebas): pone el tiempo y Buddy lo comenta.
+    function onWeatherSignal(event) {
+      const detail = event.detail || {};
+      if (detail.weather?.available) weatherRef.current = detail.weather;
+      if (!detail.announce) return;
+      const lines = contextLines({ weather: weatherRef.current, locale: navigator.language }).filter((entry) => entry.topic === "weather").map((entry) => entry.line);
+      chat(lines, "weather", 3200);
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = entries.some((entry) => entry.isIntersecting);
         visibleRef.current = visible;
         if (visible && !bootedRef.current && !dropInFlightRef.current) bootUp();
+        // Vuelve a bajar al footer despues de un rato: Buddy se da por enterado.
+        if (!visible) footerHiddenAt = Date.now();
+        else if (footerHiddenAt && Date.now() - footerHiddenAt >= FOOTER_AWAY_MS && Math.random() < 0.6) chat(EVENT_LINES.footer, "footer", 2600, "ambient");
+        if (visible) footerHiddenAt = 0;
       },
       { threshold: 0.15 }
     );
     if (stage) observer.observe(stage);
+    loadWeather();
 
     const brainTimer = window.setInterval(brainTick, BRAIN_TICK_MS);
     const activityEvents = ["pointerdown", "keydown", "wheel", "touchstart"];
@@ -1612,6 +1807,11 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     window.addEventListener("daivr-buddy-leviathan", onLeviathanSignal);
     window.addEventListener("daivr-buddy-kraken", onKrakenSignal);
     window.addEventListener("daivr-attract-mode", reactToAttractMode);
+    window.addEventListener("daivr-buddy-visitor", onVisitorSignal);
+    window.addEventListener("daivr-buddy-weather", onWeatherSignal);
+    window.addEventListener("offline", onOffline);
+    window.addEventListener("online", onOnline);
+    document.addEventListener("visibilitychange", onTabVisibility);
     window.addEventListener("resize", clampToStage);
 
     return () => {
@@ -1641,6 +1841,12 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       window.removeEventListener("daivr-buddy-leviathan", onLeviathanSignal);
       window.removeEventListener("daivr-buddy-kraken", onKrakenSignal);
       window.removeEventListener("daivr-attract-mode", reactToAttractMode);
+      window.removeEventListener("daivr-buddy-visitor", onVisitorSignal);
+      window.removeEventListener("daivr-buddy-weather", onWeatherSignal);
+      window.removeEventListener("offline", onOffline);
+      window.removeEventListener("online", onOnline);
+      document.removeEventListener("visibilitychange", onTabVisibility);
+      window.clearTimeout(weatherTimer);
       window.removeEventListener("resize", clampToStage);
       clearDialogue(false);
       window.clearTimeout(fxTimerRef.current);
