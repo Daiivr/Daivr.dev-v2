@@ -1623,7 +1623,13 @@
 }
 
 @media (max-width: 800px) {
-  .entry-gate { --gate-panel-inset: 18px 16px 90px; --gate-lamp-x: calc(100% - 54px); }
+  /* The lamp hangs over the door seam, right above Buddy, so its cone and the
+     pool of light on the floor are centred under it instead of leaning left
+     towards where the desktop host stands. */
+  .entry-gate { --gate-panel-inset: 18px 16px 90px; --gate-lamp-x: 50%; }
+  .entry-gate-room-light { left: calc(var(--gate-lamp-x) - 32vw); }
+  .entry-gate-room-light::before { clip-path: polygon(calc(50% - 32px) 0, calc(50% + 32px) 0, 100% 100%, 0 100%); }
+  .entry-gate-floor { left: var(--gate-lamp-x); }
   .entry-gate-topbar { padding: 18px 24px; }
   .entry-gate-topbar .entry-gate-brand { grid-column: 1 / -1; padding-left: 0; }
   .entry-gate-nameplate { padding: 8px 4px; }
@@ -1651,7 +1657,9 @@
   .entry-gate-actions .entry-gate-enter { width: 100%; min-width: 0; min-height: 68px; padding: 14px 20px; }
   .entry-gate-actions .entry-gate-enter strong { font-size: 14px; }
   .entry-gate-hud { grid-template-columns: minmax(0, 1fr) auto; padding: 12px 20px; min-height: 46px; gap: 12px; }
-  .entry-gate-paint-spill { left: 41%; width: 84px; top: -6px; }
+  /* Just right of the door seam; on narrow phones it stops short of the
+     footer note on the right. */
+  .entry-gate-paint-spill { left: min(calc(50% + 56px), calc(100% - 224px)); width: 84px; top: -6px; }
   .entry-gate-footer-note { font-size: 8px; max-width: 120px; }
   .entry-gate-signal span { font-size: 8px; }
   .entry-gate .splash-season-notice { top: 0; right: 0; }

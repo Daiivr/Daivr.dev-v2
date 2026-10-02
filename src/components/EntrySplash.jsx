@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { getLocalBuddyLevel } from "../hooks/useBuddyFriendship";
+import { currentBuild } from "../lib/buildUpdate";
 import { consumeGateReturn } from "../lib/gateReturn";
 import { AvatarScenePlaceholder } from "./AvatarScenePlaceholder";
 import { BuddySprite } from "./BuddySprite";
@@ -47,6 +48,20 @@ const SEASON_ASIDES = {
 function buildReturnLines({ gateReturn, hostName, linked, visitorName }) {
   const who = linked ? visitorName : "you";
   const greeting = linked ? `oh — ${visitorName}. you made it back.` : "oh — you're back.";
+
+  // Recargo desde el aviso de version nueva: se le cuenta que trae.
+  if (gateReturn.variant === "updated") {
+    const { version, codename } = currentBuild();
+    const fresh = Boolean(version) && version !== gateReturn.from;
+    return [
+      greeting,
+      fresh
+        ? `you're on the new build now: ${version}${codename ? `, "${codename.toLowerCase()}"` : ""}.`
+        : "fresh build's in. same version, fewer bugs. probably.",
+      fresh ? "patch.log has the full list of what changed." : "nothing to read up on. the good kind of boring.",
+      "everything you had is right where you left it."
+    ];
+  }
 
   if (gateReturn.variant === "denied") {
     return [

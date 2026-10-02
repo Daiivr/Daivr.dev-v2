@@ -24,13 +24,14 @@ function trimPath(pathname) {
   return clean.length > MAX_PATH ? `${clean.slice(0, MAX_PATH - 1)}…` : clean;
 }
 
-export function recordGateReturn(variant, pathname) {
+// "updated": recargo para coger una version nueva (UpdateNotice); `from` es la
+// version que tenia, para que la puerta sepa si de verdad hay notas nuevas.
+export function recordGateReturn(variant, pathname, { from = "" } = {}) {
+  const note = variant === "updated"
+    ? { variant: "updated", from: String(from).slice(0, 24), at: Date.now() }
+    : { variant: variant === "denied" ? "denied" : "missing", path: trimPath(pathname), at: Date.now() };
   try {
-    window.sessionStorage.setItem(GATE_RETURN_KEY, JSON.stringify({
-      variant: variant === "denied" ? "denied" : "missing",
-      path: trimPath(pathname),
-      at: Date.now()
-    }));
+    window.sessionStorage.setItem(GATE_RETURN_KEY, JSON.stringify(note));
   } catch {
     // Modo privado o almacenamiento lleno: el saludo normal sigue funcionando.
   }
@@ -51,8 +52,9 @@ export function consumeGateReturn() {
 
   try {
     const parsed = JSON.parse(raw);
-    if (!parsed || !["missing", "denied"].includes(parsed.variant)) return null;
+    if (!parsed || !["missing", "denied", "updated"].includes(parsed.variant)) return null;
     if (typeof parsed.at !== "number" || Date.now() - parsed.at > GATE_RETURN_TTL_MS) return null;
+    if (parsed.variant === "updated") return { variant: "updated", from: typeof parsed.from === "string" ? parsed.from : "" };
     return { variant: parsed.variant, path: typeof parsed.path === "string" ? parsed.path : "/unknown" };
   } catch {
     return null;

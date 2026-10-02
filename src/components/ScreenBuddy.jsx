@@ -15,8 +15,8 @@ import { PixelBird } from "./PixelBird";
 import { BuddyWornGear } from "./BuddyGearIcon";
 import { BuddyCollectibleIcon } from "./BuddyCollectibleIcon";
 import { LeviathanEncounter } from "./LeviathanEncounter";
-import { HOST_REPLY_LINES, pickVisitLine } from "../../shared/buddy-visits.mjs";
-import { contextLines, EVENT_LINES, isRainingOutside, returnLines, sessionMilestone } from "../lib/buddyContext";
+import { ACTION_LINES, actionComment, actionTopic, HOST_REPLY_LINES, hostAnswerTo, hostQuestion, pickVisitLine, replyTopic } from "../../shared/buddy-visits.mjs";
+import { contextLines, EVENT_LINES, isRainingOutside, returnLines, sessionMilestone, updateLines } from "../lib/buddyContext";
 import { getCabinetSignal } from "../lib/cabinetSignals";
 
 const SLEEP_AFTER_MS = 5 * 60 * 1000;
@@ -181,6 +181,12 @@ const LAST_SEEN_KEY = "daivr.buddyLastSeen.v1";
 const WEATHER_REFRESH_MS = 30 * 60_000;
 const TAB_AWAY_MS = 60_000;
 const FOOTER_AWAY_MS = 90_000;
+// Charla con las visitas: como mucho una respuesta o comentario cada tanto,
+// y a veces se va detras de una que sale a pasear.
+const VISITOR_CHAT_COOLDOWN_MS = 7000;
+const VISITOR_QUESTION_CHANCE = 0.35;
+const TAG_ALONG_CHANCE = 0.2;
+const TAG_ALONG_GAP = 92;
 
 // Saludo segun la visita anterior. Se calcula una vez por carga de pagina (y
 // deja apuntada esta): el doble render de StrictMode no debe pisarlo.
@@ -314,6 +320,11 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
   // Mientras habla un buddy de visita, la charla de relleno de este espera.
   const visitorFloorRef = useRef(0);
   const lastVisitorReplyRef = useRef("");
+  // Visitas presentes ({id, name, look, x}) y cuando puede volver a darles charla.
+  const visitorsRef = useRef(new Map());
+  const visitorChatAtRef = useRef(0);
+  // Version nueva publicada: se dice en el siguiente momento tranquilo.
+  const pendingUpdateRef = useRef(null);
   // Contexto de la visita: el tiempo de fuera, cuando empezo la sesion, que
   // hitos de tiempo ya comento y como saludar segun la ultima visita.
   const weatherRef = useRef(null);
@@ -356,9 +367,19 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
   }, [inventory]);
 
   function updateMood(next) {
+    const previous = moodRef.current;
     moodGenRef.current += 1;
     moodRef.current = next;
     setMood(next);
+    // Las visitas se enteran de cuando se duerme y se despierta.
+    if (next === "sleep" && previous !== "sleep") announceAction("sleep");
+    else if (previous === "sleep" && next !== "sleep") announceAction("wake");
+  }
+
+  // Lo que hace Buddy, para que sus visitas lo comenten (BuddyVisitors).
+  function announceAction(action, extra = {}) {
+    if (!visitorsRef.current.size) return;
+    window.dispatchEvent(new CustomEvent("daivr-buddy-action", { detail: { actor: "host", action, x: xRef.current, ...extra } }));
   }
 
   function beginBuddyEvent(name) {
@@ -449,7 +470,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
 
     activeBubbleRef.current = next;
     setBubble(next.line);
-    window.dispatchEvent(new CustomEvent("daivr-buddy-said", { detail: { line: next.line, topic: next.topic, ms: next.ms } }));
+    window.dispatchEvent(new CustomEvent("daivr-buddy-said", { detail: { line: next.line, topic: next.topic, ms: next.ms, to: next.to } }));
     bubbleTimerRef.current = window.setTimeout(() => {
       bubbleTimerRef.current = 0;
       activeBubbleRef.current = null;
@@ -465,7 +486,8 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     if (!line) return;
     const priority = options.priority === "ambient" ? "ambient" : "event";
     const topic = options.topic || lineTopic(line, activeEventRef.current);
-    const item = { line, ms: Math.max(MIN_DIALOGUE_MS, ms), priority, key: options.key || "", topic };
+    // `to`: id de la visita a la que se lo dice (una pregunta, una respuesta).
+    const item = { line, ms: Math.max(MIN_DIALOGUE_MS, ms), priority, key: options.key || "", topic, to: options.to || "" };
     const active = activeBubbleRef.current;
 
     if (active?.line === line || bubbleQueueRef.current.some((entry) => entry.line === line)) return;
@@ -847,11 +869,19 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       }, fallMs + 200);
     }
 
-    function startWalk() {
+    // Paseo a un punto al azar, o a `destination` (junto a una visita, cuyo id
+    // va en `towardId` para que esa le espere).
+    function startWalk(destination = null, towardId = "") {
       const maxX = Math.max(WALK_MARGIN, stageWidth() - SPRITE_WIDTH - WALK_MARGIN);
-      const target = WALK_MARGIN + Math.random() * (maxX - WALK_MARGIN);
+      // Al azar, pero sin plantarse encima de una visita.
+      const guests = [...visitorsRef.current.values()].map((guest) => guest.x).filter(Number.isFinite);
+      let target = destination == null ? null : clamp(destination, WALK_MARGIN, maxX);
+      for (let tries = 0; target == null && tries < 6; tries += 1) {
+        const spot = WALK_MARGIN + Math.random() * (maxX - WALK_MARGIN);
+        if (tries === 5 || guests.every((x) => Math.abs(x - spot) >= 72)) target = spot;
+      }
       const distance = Math.abs(target - xRef.current);
-      if (distance < 56) return;
+      if (distance < 56) return false;
 
       const ms = Math.min(8000, (distance / WALK_SPEED_PX_S) * 1000);
       faceTravelDirection(target > xRef.current ? 1 : -1);
@@ -859,6 +889,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       const generation = moodGenRef.current;
       setWalkMs(ms);
       moveTo(target);
+      announceAction("walk", { targetX: target, ms, toward: towardId });
 
       schedule(() => {
         if (moodGenRef.current !== generation || moodRef.current !== "walk") return;
@@ -870,6 +901,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
           updateMood("idle");
         }
       }, ms + 80);
+      return true;
     }
 
     // En desktop camina hasta la esquina mas cercana del footer y duerme ahi;
@@ -1353,6 +1385,16 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
 
       if (currentMood === "talk") return;
 
+      // Hay version nueva: lo cuenta ahora que no esta pescando ni durmiendo.
+      if (pendingUpdateRef.current) {
+        const update = pendingUpdateRef.current;
+        pendingUpdateRef.current = null;
+        updateMood("talk");
+        say(rememberTopic(pickLine(updateLines(update)), "update"), 3400, { key: "update", topic: "update" });
+        settleDown(3500);
+        return;
+      }
+
       // Cuanto llevas aqui: 5, 15, 30 y 60 minutos, una vez cada uno.
       const milestone = sessionMilestone(Date.now() - sessionStartRef.current, milestoneRef.current);
       if (milestone) {
@@ -1390,16 +1432,30 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         startWalk();
       } else if (roll < 0.46) {
         updateMood("talk");
-        say(pickLine(contextIdlePool()), 2600, { priority: "ambient", key: "ambient" });
+        // Con visitas, a veces les saca tema a ellas.
+        const question = visitorsRef.current.size && Math.random() < VISITOR_QUESTION_CHANCE
+          ? hostQuestion([...visitorsRef.current.values()], Math.random, lastVisitorReplyRef.current)
+          : null;
+        if (question) {
+          const guest = visitorsRef.current.get(question.to);
+          if (Number.isFinite(guest?.x)) updateFacing(facingForDirection(guest.x > xRef.current ? 1 : -1));
+          lastVisitorReplyRef.current = question.line;
+          say(question.line, 2600, { priority: "ambient", key: "ambient", topic: question.topic, to: question.to });
+        } else {
+          say(pickLine(contextIdlePool()), 2600, { priority: "ambient", key: "ambient" });
+        }
         settleDown(2700);
       } else if (roll < 0.51 && !reduceMotion) {
         updateMood("dance");
         if (Math.random() < 0.5) say(buddyLine("dance"), 2200, { priority: "ambient", key: "ambient" });
+        else announceAction("dance");
         settleDown(2600);
       } else if (roll < 0.58 && !reduceMotion) {
         playFx("static", 700);
+        announceAction("glitch");
       } else if (roll < 0.66 && !reduceMotion) {
         playFx("scan", 1600);
+        announceAction("scan");
       }
     }
 
@@ -1642,10 +1698,19 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     // cuando se van, y callar la charla de relleno mientras ellos hablan.
     function onVisitorSignal(event) {
       const detail = event.detail || {};
+      const known = visitorsRef.current.get(detail.id);
+      if (known && Number.isFinite(detail.x)) known.x = detail.x;
       if (detail.phase === "talking") {
         visitorFloorRef.current = Math.max(visitorFloorRef.current, Number(detail.until) || 0);
+        answerVisitor(detail);
         return;
       }
+      if (detail.phase === "arrive" && detail.id) {
+        visitorsRef.current.set(detail.id, { id: detail.id, name: detail.name || "", look: detail.look || null, x: detail.x });
+      } else if (["leave", "gone"].includes(detail.phase)) {
+        visitorsRef.current.delete(detail.id);
+      }
+      if (detail.phase === "gone") return;
       if (!bootedRef.current || moodRef.current === "off") return;
       const pool = HOST_REPLY_LINES[detail.name ? detail.phase : `${detail.phase}Guest`] || HOST_REPLY_LINES[detail.phase];
       if (!pool) return;
@@ -1659,6 +1724,61 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         settleDown(2600);
       }
       say(asleep ? `zz... ${line}` : line, 2400, { key: "visitor", topic: "visitor" });
+    }
+
+    // Una visita le dijo algo (o le contesto): a veces responde, cuando ella
+    // termina y si para entonces no habla nadie mas.
+    function answerVisitor(detail) {
+      const { topic, to, id, name, until } = detail;
+      if (!topic || (to && to !== "host")) return;
+      const now = Date.now();
+      if (now < visitorChatAtRef.current) return;
+      const line = hostAnswerTo(topic, { name }, Math.random, lastVisitorReplyRef.current);
+      if (!line) return;
+      visitorChatAtRef.current = now + VISITOR_CHAT_COOLDOWN_MS;
+      schedule(() => talkToVisitor(line, { topic: replyTopic(topic), to: id }), Math.max(0, (Number(until) || now) - now) + 250);
+    }
+
+    function talkToVisitor(line, { topic, to }) {
+      if (!canChat()) return;
+      lastVisitorReplyRef.current = line;
+      // Parado, se gira hacia quien le habla; andando, contesta sin pararse.
+      if (["idle", "talk"].includes(moodRef.current)) {
+        const x = visitorsRef.current.get(to)?.x;
+        if (Number.isFinite(x)) updateFacing(facingForDirection(x > xRef.current ? 1 : -1));
+        updateMood("talk");
+        settleDown(2600);
+      }
+      say(line, 2400, { priority: "ambient", key: "visitor-chat", topic, to });
+    }
+
+    // Una visita hizo algo: lo comenta, o se va con ella si sale a pasear.
+    function onBuddyAction(event) {
+      const detail = event.detail || {};
+      if (detail.actor !== "visitor") return;
+      const known = visitorsRef.current.get(detail.id);
+      if (!known) return;
+      known.x = Number.isFinite(detail.targetX) ? detail.targetX : detail.x;
+      if (!canChat()) return;
+      const now = Date.now();
+      if (now < visitorChatAtRef.current) return;
+
+      if (detail.action === "roam" && moodRef.current === "idle" && !reduceMotion && Math.random() < TAG_ALONG_CHANCE) {
+        visitorChatAtRef.current = now + VISITOR_CHAT_COOLDOWN_MS;
+        const side = xRef.current < detail.targetX ? -1 : 1;
+        schedule(() => {
+          if (moodRef.current !== "idle" || activeEventRef.current) return;
+          if (startWalk(detail.targetX + side * TAG_ALONG_GAP, detail.id)) {
+            say(pickVisitLine(ACTION_LINES.byHost.tagAlong, {}, Math.random, lastVisitorReplyRef.current), 2200, { priority: "ambient", key: "visitor-chat", topic: "end", to: detail.id });
+          }
+        }, 900);
+        return;
+      }
+
+      const line = actionComment("byHost", detail.action, { name: detail.name }, Math.random, lastVisitorReplyRef.current);
+      if (!line) return;
+      visitorChatAtRef.current = now + VISITOR_CHAT_COOLDOWN_MS;
+      schedule(() => talkToVisitor(line, { topic: actionTopic(detail.action), to: detail.id }), Math.max(700, visitorFloorRef.current - now + 250));
     }
 
     function clampToStage() {
@@ -1760,6 +1880,11 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       if (!disposed) weatherTimer = window.setTimeout(loadWeather, WEATHER_REFRESH_MS);
     }
 
+    // UpdateNotice encontro una version nueva: Buddy la anuncia cuando pueda.
+    function onUpdateAvailable(event) {
+      if (event.detail?.build) pendingUpdateRef.current = event.detail;
+    }
+
     // `weather` en la consola (o pruebas): pone el tiempo y Buddy lo comenta.
     function onWeatherSignal(event) {
       const detail = event.detail || {};
@@ -1808,6 +1933,8 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     window.addEventListener("daivr-buddy-kraken", onKrakenSignal);
     window.addEventListener("daivr-attract-mode", reactToAttractMode);
     window.addEventListener("daivr-buddy-visitor", onVisitorSignal);
+    window.addEventListener("daivr-buddy-action", onBuddyAction);
+    window.addEventListener("daivr-update-available", onUpdateAvailable);
     window.addEventListener("daivr-buddy-weather", onWeatherSignal);
     window.addEventListener("offline", onOffline);
     window.addEventListener("online", onOnline);
@@ -1842,6 +1969,8 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       window.removeEventListener("daivr-buddy-kraken", onKrakenSignal);
       window.removeEventListener("daivr-attract-mode", reactToAttractMode);
       window.removeEventListener("daivr-buddy-visitor", onVisitorSignal);
+      window.removeEventListener("daivr-buddy-action", onBuddyAction);
+      window.removeEventListener("daivr-update-available", onUpdateAvailable);
       window.removeEventListener("daivr-buddy-weather", onWeatherSignal);
       window.removeEventListener("offline", onOffline);
       window.removeEventListener("online", onOnline);

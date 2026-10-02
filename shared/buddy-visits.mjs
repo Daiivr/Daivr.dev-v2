@@ -127,19 +127,21 @@ export const VISITOR_LINES = {
     "my tab is calling. bye!",
     "logging off this footer. bye bye!"
   ],
-  idle: [
-    "nice footer you've got.",
-    "{from} says hi!",
-    "my footer has way more dust.",
-    "is that a market stand? fancy.",
-    "beep boop. just visiting.",
-    "the arcade is busy today.",
-    "i like it here. good lighting.",
-    "weather report from my tab: sunny, mostly pixels.",
-    "it's cozier down here than in my footer.",
-    "does your footer get fish too?"
-  ],
   poke: ["hey! that tickles.", "boop received.", "i'm just visiting!", "hi there!", "careful, i'm a guest."],
+  // Al despertar de una siesta (se echa una si el de casa se duerme).
+  napWake: ["huh? i wasn't sleeping.", "five more minutes...", "what did i miss?"],
+  // Remate cuando el de casa le contesta.
+  rejoin: ["hehe.", "right?", "true!", "ha!", "fair.", "beep. agreed."],
+  // Cuando le alaban un baile, un salto...
+  praised: ["hehe. thanks!", "i've been practising.", "thank you, thank you.", "{from} taught me that."],
+  thanks: ["thanks! {from} picked it.", "aw, thank you!", "it's new!", "you noticed!"],
+  // Preguntas del buddy de casa (HOST_ASKS), una respuesta por pregunta.
+  askFooter: ["dustier than this one.", "cozy, but no fish.", "{from} keeps it tidy. mostly."],
+  askTab: ["far away. three tabs over.", "just down the tab bar.", "a tab with way too many cookies."],
+  askStay: ["a little while, if that's ok!", "until {from} calls me back.", "can't leave yet. too comfy."],
+  askGame: ["don't ask. it was rough.", "{from} is on a streak!", "they're practising. a lot."],
+  askFish: ["YES. please.", "i'll bring a bucket.", "only if i can hold the rod."],
+  askMonster: ["a what now?", "is it safe?", "nope. and i'd like to keep it that way."],
   // Respuestas a lo que dice el buddy de casa, por tema.
   chat: ["same.", "true.", "hehe.", "beep. agreed.", "real.", "you talk a lot. i like it."],
   night: ["late shift here too.", "{from} is up late as well."],
@@ -190,6 +192,7 @@ export const VISITOR_LINES = {
   online: ["phew.", "we're back!", "still here!"],
   footer: ["they found us!", "hi from down here!"],
   tips: ["good tip.", "wait, really?!", "noted."],
+  update: ["ooh, patch day!", "{from} should reload too.", "new build? fancy.", "i'll tell my tab."],
   lore: ["same, actually.", "tell me more.", "that explains a lot."]
 };
 
@@ -203,13 +206,6 @@ export const GEAR_COMPLIMENTS = {
   "miku-wig": "love the twin-tails.",
   "market-beanie": "cozy beanie!"
 };
-
-// Lo que un visitante dice por su cuenta: relleno general mas cumplidos por
-// el aspecto del buddy de casa.
-export function visitorIdlePool(hostLook) {
-  const worn = sanitizeVisitLook(hostLook)?.worn || [];
-  return [...VISITOR_LINES.idle, ...worn.map((id) => GEAR_COMPLIMENTS[id]).filter(Boolean)];
-}
 
 // Tema del buddy de casa -> grupo de respuestas del visitante y probabilidad
 // de que conteste (los sucesos llaman mas la atencion que la charla).
@@ -230,7 +226,11 @@ export const HOST_TOPIC_REPLIES = {
   weather: ["weather", 0.45], time: ["time", 0.35], session: ["session", 0.5], returning: ["returning", 0.6],
   arcade: ["arcade", 0.5], daily: ["daily", 0.45], level: ["level", 0.6], tabReturn: ["tabReturn", 0.7],
   offline: ["offline", 0.8], online: ["online", 0.6], footer: ["footer", 0.6],
-  tips: ["tips", 0.3], lore: ["lore", 0.5]
+  tips: ["tips", 0.3], lore: ["lore", 0.5], update: ["update", 0.6],
+  // Lo que el de casa le dice a un visitante en concreto (ver "Charla entre todos").
+  askFooter: ["askFooter", 0.95], askTab: ["askTab", 0.95], askStay: ["askStay", 0.95], askGame: ["askGame", 0.95],
+  askFish: ["askFish", 0.95], askMonster: ["askMonster", 0.95],
+  compliment: ["thanks", 0.9], praise: ["praised", 0.45], answer: ["rejoin", 0.3]
 };
 
 export const HOST_REPLY_LINES = {
@@ -260,4 +260,222 @@ export function visitorReplyTo(topic, values = {}, rng = Math.random, avoid = ""
   const [pool, chance] = entry;
   if (rng() >= chance) return "";
   return pickVisitLine(VISITOR_LINES[pool], values, rng, avoid);
+}
+
+// --- Charla entre todos ---------------------------------------------------------
+//
+// Todos hablan con todos: el de casa con sus visitas, las visitas entre ellas,
+// y cada uno comenta lo que hacen los demas. Cada frase lleva un tema y a quien
+// va (`to`: "host", el id de un visitante, o nadie). Tres temas cierran la
+// conversacion para que no haya bucles: una respuesta ("answer") a veces se
+// remata, un elogio ("praise") o un cumplido ("compliment") se agradece, y el
+// remate o el agradecimiento ("end") ya no los contesta nadie.
+
+// Lo que un visitante le cuenta al buddy de casa. Un tema = una idea, para
+// que cualquier respuesta del tema pegue con cualquier frase del tema.
+export const VISITOR_TALK = {
+  footer: ["nice footer you've got.", "it's cozier down here than in my footer.", "i like it here. good lighting."],
+  dust: ["my footer has way more dust.", "do you dust down here? it's spotless."],
+  hello: ["{from} says hi!", "{from} sends their regards."],
+  market: ["is that a market stand? fancy.", "what's good at the market stand?"],
+  arcade: ["the arcade is busy today."],
+  weather: ["weather report from my tab: sunny, mostly pixels."],
+  fish: ["does your footer get fish too?", "is it true you fish in the floor?"],
+  favorite: ["what's your favourite cartridge?", "best game in the cabinet? go."],
+  bored: ["do you ever get bored down here?"],
+  player: ["how's {host} treating you?", "is your player nice to you?"],
+  snack: ["anyone got a spare byte? i'm starving."],
+  cat: ["my tab has a cat gif. you'd love it."],
+  tabs: ["{from} has like forty tabs open. it's crowded in there."]
+};
+
+// Lo que dice al llegar a un sitio nuevo del footer.
+export const EXPLORE_LINES = ["ooh, nice view from over here.", "what's over here?", "hello? echo!", "this spot's comfy.", "found a dust bunny.", "the rainbow line is warm here too."];
+
+// Lo que un visitante le dice al otro ({other} = el jugador del otro).
+export const GUEST_TALK = {
+  firstTime: ["first time in this footer?"],
+  known: ["{other}'s buddy, right? i've seen you around."],
+  secret: ["this footer's nicer than mine. don't tell {from}."],
+  leak: ["how's your footer? mine has a leaky pixel."],
+  race: ["race you to the other side?"],
+  danceLater: ["wanna dance later?"],
+  fishing: ["psst. this buddy fishes in the floor."],
+  leviathan: ["i heard there's a leviathan down there."]
+};
+
+// El buddy de casa contesta a sus visitas ({name} = el jugador del visitante).
+export const HOST_ANSWERS = {
+  footer: ["thanks! it's home.", "make yourself comfy.", "the rainbow line keeps it warm."],
+  dust: ["i sweep it every night.", "dust doesn't stand a chance down here."],
+  hello: ["tell {name} i said hi back!", "hi back!", "say hi to your player for me."],
+  market: ["it trades gear for coins.", "the beanie is cozy. trust me."],
+  arcade: ["busiest arcade on the web.", "everyone wants a turn today."],
+  weather: ["pixels with a chance of confetti down here.", "same forecast here."],
+  fish: ["there's a whole sea under this floor.", "fish? oh, you have no idea.", "stick around. i might cast a line."],
+  favorite: ["the secret ones. konami knows.", "whichever one my player picks.", "the one with my high score on it."],
+  bored: ["never. there's fish under the floor.", "bored? there's always a bug to squash.", "i count pixels. it's relaxing."],
+  player: ["the best. i get pets.", "they keep me company.", "they let me nap. ten out of ten."],
+  snack: ["i have half a coffee byte.", "try the market stand.", "you can have a crumb of my cache."],
+  cat: ["a cat gif? jealous.", "does it do the loaf thing?"],
+  tabs: ["forty tabs?! how do you find your way home?", "and i thought this footer was busy."],
+  explore: ["that's my favourite spot!", "careful, the floor cracks sometimes.", "find anything good?", "the view's better from the middle."],
+  napWake: ["you were snoring in hologram.", "nothing much. welcome back."],
+  compliment: ["thank you! it's new.", "aw, thanks!", "you have good taste.", "my player picked it."],
+  praise: ["hehe. thanks!", "years of practice.", "i've been working on it."],
+  answer: ["hehe.", "right?", "exactly.", "ha!", "beep. agreed."]
+};
+// Las preguntas casi siempre tienen respuesta; el comentario suelto, a veces.
+export const HOST_ANSWER_CHANCE = {
+  favorite: 0.95, bored: 0.95, player: 0.95, snack: 0.85, fish: 0.85, compliment: 0.9,
+  hello: 0.7, market: 0.7, cat: 0.7, tabs: 0.7, dust: 0.6, napWake: 0.6, footer: 0.5, arcade: 0.5, weather: 0.5,
+  explore: 0.45, praise: 0.45, answer: 0.3
+};
+
+// Un visitante contesta al otro ({from} = el que contesta).
+export const GUEST_ANSWERS = {
+  firstTime: ["nope, regular here.", "first time! it's nice."],
+  known: ["guilty. that's me.", "the one and only."],
+  secret: ["my lips are sealed.", "mine's dustier, trust me."],
+  leak: ["a leaky pixel? yikes.", "mine's fine. dusty, but fine."],
+  race: ["you're on!", "later. i'm comfy."],
+  danceLater: ["only if there's music.", "you're on!"],
+  fishing: ["in the floor?!", "no way."],
+  leviathan: ["a WHAT down there?", "i'm staying up here, then."],
+  compliment: VISITOR_LINES.thanks,
+  praise: VISITOR_LINES.praised,
+  answer: VISITOR_LINES.rejoin
+};
+export const GUEST_ANSWER_CHANCE = {
+  firstTime: 0.9, known: 0.9, secret: 0.85, leak: 0.85, race: 0.9, danceLater: 0.9, fishing: 0.9, leviathan: 0.9,
+  compliment: 0.9, praise: 0.45, answer: 0.3
+};
+
+// El buddy de casa tambien saca tema a sus visitas.
+export const HOST_ASKS = {
+  askFooter: ["how's your footer, {name}'s buddy?", "is your footer as cozy as mine?"],
+  askTab: ["where's your tab at?", "where did you walk in from?"],
+  askStay: ["you staying for a while?", "comfy? stay as long as you like."],
+  askGame: ["has {name} played the daily yet?", "how's your player doing on the leaderboard?"],
+  askFish: ["want to see me fish later?"],
+  askMonster: ["ever seen a leviathan?"]
+};
+
+// Lo que hace cada buddy y lo que comentan los demas. El de casa anuncia
+// walk/dance/scan/glitch/sleep/wake; las visitas roam/back/follow/dance/flip/
+// hop/look/nap/wake.
+export const ACTION_LINES = {
+  // Un visitante, sobre lo que hace el de casa (`follow`: el que se va detras).
+  onHost: {
+    walk: ["where are you off to?", "patrol time?", "going somewhere?"],
+    follow: ["wait up!", "lead the way!", "right behind you!", "tour time?"],
+    dance: ["dance battle?", "ooh, i know this one!", "teach me that one!"],
+    scan: ["what are you looking for?", "did you hear something too?"],
+    glitch: ["you glitched a little there.", "bless you?", "static! you ok?"],
+    sleep: ["shh. i'll keep watch.", "night night."]
+  },
+  // Un visitante, sobre lo que hace el otro.
+  onGuest: {
+    roam: ["don't get lost over there!", "find anything good?"],
+    back: ["oh, you're back.", "welcome back."],
+    dance: ["go, {other}'s buddy, go!", "nice moves!", "ok, i'm joining."],
+    flip: ["show-off.", "ooh, a flip!"],
+    hop: ["boing.", "someone's excited."],
+    look: ["what are you looking at?", "see something?"],
+    nap: ["they fell asleep. guests these days.", "shh."],
+    wake: ["good nap?", "morning!"]
+  },
+  // El de casa, sobre lo que hace un visitante.
+  byHost: {
+    roam: ["exploring, {name}'s buddy?", "make yourself at home!", "careful, the floor cracks sometimes.", "the market stand is over there."],
+    back: ["welcome back over here!", "missed me?"],
+    follow: ["ha, you're following me?", "tour mode: on.", "this way, this way!"],
+    dance: ["nice moves, {name}'s buddy!", "ooh, show me that one!", "dance party!"],
+    flip: ["whoa, a flip!", "show-off!", "10/10 landing."],
+    hop: ["bouncy guest!", "someone's excited."],
+    look: ["looking for something?", "the fish live under the floor, if you're wondering."],
+    nap: ["did my guest just fall asleep?", "shh. guest napping."],
+    wake: ["morning, sleepy guest!", "good nap?"],
+    // Cuando se va detras del visitante a enseñarle el sitio.
+    tagAlong: ["wait, i'll show you around!", "ooh, let me come too.", "tour guide coming through!"]
+  }
+};
+// Lo raro llama mas la atencion que pasear.
+export const ACTION_CHANCE = {
+  walk: 0.3, roam: 0.3, back: 0.3, look: 0.3, scan: 0.3, hop: 0.35,
+  glitch: 0.45, sleep: 0.5, follow: 0.55, dance: 0.55, wake: 0.55, nap: 0.6, flip: 0.65, tagAlong: 1
+};
+const PRAISED_ACTIONS = new Set(["dance", "flip", "hop"]);
+
+const CLOSING_TOPICS = new Set(["answer", "praise", "compliment"]);
+
+// Tema de una respuesta: contestar a algo abre "answer"; contestar a una
+// respuesta, un elogio o un cumplido cierra ("end").
+export function replyTopic(topic) {
+  return CLOSING_TOPICS.has(topic) ? "end" : "answer";
+}
+
+// Comentar un baile o un salto es un elogio (se agradece); lo demas, no.
+export function actionTopic(action) {
+  return PRAISED_ACTIONS.has(action) ? "praise" : "end";
+}
+
+function chanceReply(pools, chances, topic, values, rng, avoid) {
+  const pool = pools[topic];
+  if (!pool || rng() >= (chances[topic] ?? 0)) return "";
+  return pickVisitLine(pool, values, rng, avoid);
+}
+
+// Lo que contesta el buddy de casa a una visita, o "" si calla.
+export function hostAnswerTo(topic, values = {}, rng = Math.random, avoid = "") {
+  return chanceReply(HOST_ANSWERS, HOST_ANSWER_CHANCE, topic, values, rng, avoid);
+}
+
+// Lo que contesta un visitante a otro, o "" si calla.
+export function guestAnswerTo(topic, values = {}, rng = Math.random, avoid = "") {
+  return chanceReply(GUEST_ANSWERS, GUEST_ANSWER_CHANCE, topic, values, rng, avoid);
+}
+
+// Comentario de `group` (onHost, onGuest, byHost) sobre una accion, o "".
+export function actionComment(group, action, values = {}, rng = Math.random, avoid = "") {
+  return chanceReply(ACTION_LINES[group] || {}, ACTION_CHANCE, action, values, rng, avoid);
+}
+
+const complimentsFor = (look) => (sanitizeVisitLook(look)?.worn || [])
+  .map((id) => GEAR_COMPLIMENTS[id])
+  .filter(Boolean)
+  .map((line) => ({ line, topic: "compliment" }));
+const talkEntries = (talk) => Object.entries(talk).flatMap(([topic, lines]) => lines.map((line) => ({ line, topic })));
+
+// Lo que un visitante le puede contar al de casa: charla general y cumplidos
+// por lo que lleva puesto. `online` = buddies conectados contando este.
+export function visitorTalkPool(hostLook, online = 0) {
+  return [
+    ...talkEntries(VISITOR_TALK),
+    ...complimentsFor(hostLook),
+    ...(online > 2 ? [{ line: `${online} buddies online right now.`, topic: "arcade" }] : [])
+  ];
+}
+
+// Lo que un visitante le puede decir al otro.
+export function guestTalkPool(otherLook) {
+  return [...talkEntries(GUEST_TALK), ...complimentsFor(otherLook)];
+}
+
+// Elige una entrada {line, topic} con la frase ya rellenada, o null.
+export function pickTalk(entries, values = {}, rng = Math.random, avoid = "") {
+  const usable = entries
+    .map((entry) => ({ ...entry, line: fillLine(entry.line, values) }))
+    .filter((entry) => !/\{\w+\}/.test(entry.line));
+  const options = usable.filter((entry) => entry.line !== avoid);
+  const list = options.length ? options : usable;
+  return list.length ? list[Math.floor(rng() * list.length)] : null;
+}
+
+// Pregunta (o cumplido) del de casa a una de sus visitas ({id, name, look}).
+export function hostQuestion(visitors, rng = Math.random, avoid = "") {
+  if (!visitors.length) return null;
+  const visitor = visitors[Math.floor(rng() * visitors.length)];
+  const entry = pickTalk([...talkEntries(HOST_ASKS), ...complimentsFor(visitor.look)], { name: visitor.name }, rng, avoid);
+  return entry ? { ...entry, to: visitor.id } : null;
 }

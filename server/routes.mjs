@@ -10,6 +10,7 @@ import { handlePlayerRequest } from "./player.mjs";
 import { handleSpaceCadetPinballRequest } from "./space-cadet-pinball.mjs";
 import { handleSteamPlaytimeRequest } from "./steam-playtime.mjs";
 import { handleTowerBlockRequest } from "./tower-block.mjs";
+import { handleVersionRequest } from "./version.mjs";
 import { handleVisitsRequest } from "./visits.mjs";
 import { handleTradeDexVirusTotalRequest } from "./virustotal.mjs";
 import { handleWeatherRequest } from "./weather.mjs";
@@ -42,7 +43,8 @@ export const API_ROUTES = [
   { match: below("/api/space-cadet-pinball"), handle: handleSpaceCadetPinballRequest },
   { match: under("/api/buddy"), handle: handleBuddyRequest },
   { match: exact("/api/game-image"), handle: handleGameImageRequest },
-  { match: exact("/api/weather"), handle: (request, response) => handleWeatherRequest(request, response) }
+  { match: exact("/api/weather"), handle: (request, response) => handleWeatherRequest(request, response) },
+  { match: exact("/api/version"), handle: (request, response) => handleVersionRequest(request, response) }
 ];
 
 export function findApiRoute(pathname) {

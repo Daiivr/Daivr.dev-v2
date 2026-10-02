@@ -1,5 +1,6 @@
 import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { EntrySplash } from "./components/EntrySplash";
+import { consumeReloadSpot, restoreReloadSpot } from "./lib/buildUpdate";
 import { ChunkBoundary, lazyChunk } from "./lib/chunkRecovery";
 import { consumeGateReturn } from "./lib/gateReturn";
 import { getSeasonalEvent } from "./lib/seasons";
@@ -59,6 +60,10 @@ function CabinetShell() {
     setGateOpen(false);
     window.setTimeout(() => window.dispatchEvent(new Event("daivr-content-ready")), 50);
     window.requestAnimationFrame(() => document.getElementById("main")?.focus({ preventScroll: true }));
+    // Si recargo para actualizar, vuelve a donde estaba (pescando en el footer,
+    // por ejemplo). Dos intentos: lo de abajo termina de cargar un poco despues.
+    const spot = consumeReloadSpot();
+    if (spot) [250, 1400].forEach((ms) => window.setTimeout(() => restoreReloadSpot(shellRef.current, spot), ms));
   }, []);
 
   const launchBuddy = useCallback((start) => bridge?.launchBuddy(start), [bridge]);

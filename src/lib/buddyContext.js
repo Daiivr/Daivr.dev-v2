@@ -155,3 +155,21 @@ export const EVENT_LINES = {
   footer: ["oh hi! you scrolled all the way down.", "welcome to the footer. population: me."],
   rainBoth: ["rain in here AND outside? double umbrella.", "it's raining out there too. matching weather!"]
 };
+
+// Version nueva publicada (UpdateNotice): Buddy lo cuenta en cuanto esta libre.
+// Con nota de parche nueva, dice cual; si solo son arreglos, lo dice en general.
+export function updateLines({ version = "", codename = "", newRelease = false } = {}) {
+  if (newRelease && version) {
+    const name = codename ? `"${codename.toLowerCase()}"` : version;
+    return [
+      `psst. ${version} just shipped. reload when you're ready.`,
+      `patch day! ${name} is out. reload to see it.`,
+      `new build on the server: ${name}. my catches are saved, reload whenever.`
+    ];
+  }
+  return [
+    "psst. a fresh build just shipped. reload when you're ready.",
+    "new build on the server. fewer bugs, probably. reload whenever.",
+    "patch day! reload when your line's in."
+  ];
+}

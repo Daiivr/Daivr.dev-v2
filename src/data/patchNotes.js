@@ -5,6 +5,35 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.60.0",
+    codename: "HOT SWAP",
+    date: "2026-10-02",
+    summary: "Long fishing sessions no longer leave you on yesterday's cabinet. When a new version goes live while your tab is open, the cabinet lets you know, tells you what's new, and waits for you to reload when it suits you.",
+    entries: [
+      ["new", "A notice appears when a newer version of the site is live, with the patch name and a Reload button. It checks every few minutes, when you come back to the tab, and right after an update goes out."],
+      ["new", "Buddy mentions the update too, as soon as it isn't busy."],
+      ["new", "If Buddy is fishing, choose Reload after the catch and the page waits for the line to come in first."],
+      ["new", "Later tucks the notice into a small Update ready chip, which opens again after half an hour."],
+      ["new", "After reloading, the gate tells you what changed and you land back where you were, footer included."],
+      ["new", "The version command in the console shows which build you're on and checks for a newer one."]
+    ]
+  },
+  {
+    version: "v2.59.0",
+    codename: "OPEN HOUSE",
+    date: "2026-10-02",
+    summary: "Visiting Buddies make themselves at home. They wander the whole footer instead of waiting by the door, tag along when your Buddy goes for a walk, and everyone talks to everyone: your Buddy, its guests, and the guests with each other, each commenting on what the others get up to.",
+    entries: [
+      ["new", "Visitors explore the footer: they stroll from end to end, stop to look around, dance, flip, hop, and wander back to your Buddy now and then."],
+      ["new", "When your Buddy sets off on a walk, a visitor may follow it and stop at its side. Sometimes your Buddy goes after a wandering guest to show it around."],
+      ["new", "Your Buddy answers what its guests say, asks them about their own footer, their player, and the daily, and compliments the gear they're wearing."],
+      ["new", "Two visitors chat with each other: first meetings, dares, compliments on each other's gear, and rumours about what lives under the floor."],
+      ["new", "Every Buddy comments on what the others do: a dance, a flip, a walk, a glitch, a nap. Praise gets a thank-you; most chats run a line or two and wind down on their own."],
+      ["new", "If your Buddy falls asleep, guests tiptoe or doze off too, and wake up when it does."],
+      ["buff", "Guests hold still and watch while your Buddy fishes or hunts a bug, and their replies now wait for a pause instead of getting lost mid-catch."]
+    ]
+  },
+  {
     version: "v2.58.0",
     codename: "SMALL TALK",
     date: "2026-10-02",

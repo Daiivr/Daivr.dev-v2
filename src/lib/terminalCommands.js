@@ -15,6 +15,8 @@ import { dailyChallenge, PLAYER_GAMES } from "../../shared/player-catalog.mjs";
 import { VISITS_STORAGE_KEY } from "../../shared/buddy-visits.mjs";
 import { getCabinetSignal } from "./cabinetSignals.js";
 import { CABINET_WEATHER_LINES, formatTemperature, weatherCondition } from "./buddyContext.js";
+import { compareBuilds, DEV_BUILD } from "../../shared/build-stamp.mjs";
+import { currentBuild, fetchLatestBuild } from "./buildUpdate.js";
 
 const NODE_ALIASES = { patch: "patchlog", comments: "contact", guestbook: "contact", carts: "builds", projects: "builds" };
 const NODES = navItems.map(([label, href]) => ({ id: href.slice(1), label }));
@@ -325,6 +327,35 @@ export const TERMINAL_COMMANDS = [
       const condition = weatherCondition(weather.code) || "mixed";
       const sky = weather.isDay === false && condition === "clear" ? "clear night" : condition;
       return `OUTSIDE // ${formatTemperature(weather.temperature, navigator.language)}, ${sky}, wind ${weather.wind} km/h\nApproximate, from your connection. Buddy has thoughts.`;
+    }
+  },
+  {
+    name: "version",
+    aliases: ["update", "build"],
+    usage: "version",
+    summary: "check for a newer build",
+    group: "cabinet",
+    run: async () => {
+      const current = currentBuild();
+      const label = [current.version || "unknown", current.codename].filter(Boolean).join(" ");
+      if (!current.build || current.build === DEV_BUILD) {
+        return `BUILD // ${label} (dev server)\nLive reload is on here; update checks only run on the published site.`;
+      }
+      let latest = null;
+      try {
+        latest = await fetchLatestBuild();
+      } catch {
+        return `BUILD // ${label} (${current.build})\nCould not reach the server to check for updates.`;
+      }
+      const update = compareBuilds(current, latest);
+      if (!update) return `BUILD // ${label} (${current.build})\nUp to date. This is the newest version of the cabinet.`;
+      // Abre el aviso (UpdateNotice) con su boton de recargar.
+      window.dispatchEvent(new CustomEvent("daivr-update-found", { detail: update }));
+      return [
+        `BUILD // ${label} (${current.build})`,
+        `NEW BUILD LIVE // ${update.newRelease ? [update.version, update.codename].filter(Boolean).join(" ") : "same version, fresh fixes"} (${update.build})`,
+        "Reload the page to update. Your Buddy, catches and progress are saved."
+      ].join("\n");
     }
   },
   {

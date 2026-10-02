@@ -1,18 +1,62 @@
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
-import { fileURLToPath } from "node:url";
+import { stat, writeFile } from "node:fs/promises";
+import { join, resolve } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { defineConfig } from "vite";
 import { startDiscordStreakPolling } from "./server/discord-streak.mjs";
 import { loadLocalEnv } from "./server/env.mjs";
 import { handleApiRequest } from "./server/routes.mjs";
+import { BUILD_META, BUILD_STAMP_FILE, buildIdFromFiles, DEV_BUILD, encodeRelease, RELEASE_META, releaseFrom } from "./shared/build-stamp.mjs";
 
 loadLocalEnv();
+
+// Huella del build (shared/build-stamp.mjs): el id sale de los nombres con hash
+// de lo que genera Vite y va al index.html (<meta>, lo que tiene cada pestaña)
+// y a dist/version.json (lo que sirve /api/version). Si no coinciden, la
+// pestaña es de un deploy anterior y avisa de que hay version nueva.
+function buildStamp() {
+  let buildId = DEV_BUILD;
+  let outDir = "dist";
+
+  // La ultima nota de parche, leida de nuevo si cambio (en desarrollo se edita).
+  async function latestRelease() {
+    const file = fileURLToPath(new URL("src/data/patchNotes.js", import.meta.url));
+    const { mtimeMs } = await stat(file);
+    const { patchNotes } = await import(`${pathToFileURL(file).href}?v=${Math.trunc(mtimeMs)}`);
+    return releaseFrom(patchNotes);
+  }
+
+  return {
+    name: "daivr-build-stamp",
+    configResolved(config) {
+      outDir = resolve(config.root, config.build.outDir);
+    },
+    transformIndexHtml: {
+      // "post": en el build ya existe la lista final de archivos con hash.
+      order: "post",
+      async handler(html, context) {
+        buildId = context.bundle ? buildIdFromFiles(Object.keys(context.bundle)) : DEV_BUILD;
+        const release = await latestRelease();
+        return [
+          { tag: "meta", attrs: { name: BUILD_META, content: buildId }, injectTo: "head" },
+          { tag: "meta", attrs: { name: RELEASE_META, content: encodeRelease(release) }, injectTo: "head" }
+        ];
+      }
+    },
+    async writeBundle() {
+      const release = await latestRelease();
+      await writeFile(join(outDir, BUILD_STAMP_FILE), `${JSON.stringify({ build: buildId, ...release, builtAt: new Date().toISOString() }, null, 2)}\n`);
+    }
+  };
+}
 
 export default defineConfig({
   assetsInclude: ["**/*.glb"],
   plugins: [
     react(),
     tailwindcss(),
+    buildStamp(),
     {
       name: "daivr-local-api",
       configureServer(server) {

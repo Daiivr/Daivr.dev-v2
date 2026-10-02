@@ -41,6 +41,7 @@ import "./styles/arcade-panels.css";
 import "./styles/player-passport.css";
 import "./styles/panel-glitch.css";
 import "./styles/buddy-visitors.css";
+import "./styles/update-notice.css";
 import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { discord, games, navItems, profile, projects } from "./data/site";
 import { KONAMI_GAMES } from "./data/konamiGames";
@@ -68,6 +69,7 @@ import { PerchedBirds } from "./components/PerchedBirds";
 import { ProgramSections } from "./components/ProgramSections";
 import { Sidebar } from "./components/Sidebar";
 import { SiteFooter } from "./components/SiteFooter";
+import { UpdateNotice } from "./components/UpdateNotice";
 import { SystemGatePage } from "./components/SystemGatePage";
 
 // Piezas que solo hacen falta cuando se usan: se descargan la primera vez y
@@ -606,6 +608,8 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
       ) : null}
 
       <AttractMode enabled={!entrySplashOpen} />
+
+      <UpdateNotice hidden={entrySplashOpen} shellRef={shellRef} />
 
       <LazyPiece show={libraryUsed}>
         <KonamiGameLibrary open={konamiView === "library"} onClose={closeKonami} onSelect={selectKonamiGame} />

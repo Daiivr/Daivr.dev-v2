@@ -1,0 +1,209 @@
+@layer components {
+  /* Aviso de version nueva (UpdateNotice): panel de esquina cortada bajo la
+     barra superior, por encima de toasts y barra (40/50) y por debajo del modo
+     attract (70), la consola y los modales. "Later" lo deja en una pastilla. */
+  .update-notice {
+    position: fixed;
+    top: 76px;
+    right: 16px;
+    z-index: 60;
+    width: min(348px, calc(100vw - 32px));
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 46%, transparent);
+    background:
+      linear-gradient(135deg, color-mix(in srgb, var(--color-phosphor) 11%, transparent), transparent 55%),
+      color-mix(in srgb, var(--color-ink-950) 95%, transparent);
+    padding: 0.85rem 0.95rem 0.9rem;
+    color: var(--color-phosphor-soft);
+    font-family: var(--font-mono);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.45), 0 0 22px color-mix(in srgb, var(--color-phosphor) 14%, transparent);
+    clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+    backdrop-filter: blur(14px);
+    animation: update-notice-in 320ms cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+  }
+
+  .update-notice.is-collapsed {
+    width: auto;
+    border: 0;
+    background: none;
+    padding: 0;
+    box-shadow: none;
+    clip-path: none;
+    backdrop-filter: none;
+  }
+
+  .update-notice-kicker {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin: 0 0 0.35rem;
+    color: var(--color-phosphor);
+    font: 900 0.6rem / 1 var(--font-display);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+
+  .update-notice-led {
+    width: 7px;
+    height: 7px;
+    background: var(--color-phosphor);
+    box-shadow: 0 0 10px var(--color-phosphor);
+    animation: update-notice-blink 1.4s steps(2, end) infinite;
+  }
+
+  .update-notice-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.2rem 0.55rem;
+    margin: 0 0 0.45rem;
+    color: white;
+    font: 900 1.02rem / 1.15 var(--font-display);
+  }
+
+  .update-notice-title span {
+    color: var(--color-cabinet);
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .update-notice-summary,
+  .update-notice-copy,
+  .update-notice-hint {
+    margin: 0 0 0.55rem;
+    font-size: 0.7rem;
+    line-height: 1.5;
+  }
+
+  /* Las notas de parche son largas: tres lineas y el resto en Patch.log. */
+  .update-notice-summary {
+    display: -webkit-box;
+    overflow: hidden;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 88%, transparent);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+  }
+
+  .update-notice-copy {
+    color: color-mix(in srgb, var(--color-phosphor-soft) 70%, transparent);
+  }
+
+  .update-notice-hint {
+    border-left: 2px solid var(--color-cyan-arcade);
+    padding-left: 0.55rem;
+    color: var(--color-cyan-arcade);
+  }
+
+  .update-notice-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.15rem;
+  }
+
+  .update-notice-button,
+  .update-notice-chip {
+    display: inline-flex;
+    min-height: 34px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 42%, transparent);
+    background: color-mix(in srgb, var(--color-phosphor) 7%, transparent);
+    padding: 0.4rem 0.7rem;
+    color: var(--color-phosphor);
+    font: 900 0.62rem / 1 var(--font-display);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    cursor: pointer;
+    clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+    transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .update-notice-button:hover,
+  .update-notice-button:focus-visible,
+  .update-notice-chip:hover,
+  .update-notice-chip:focus-visible {
+    background: color-mix(in srgb, var(--color-phosphor) 18%, transparent);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--color-phosphor) 26%, transparent);
+  }
+
+  .update-notice-button:focus-visible,
+  .update-notice-chip:focus-visible {
+    outline: 2px solid var(--color-phosphor);
+    outline-offset: 2px;
+  }
+
+  .update-notice-button.is-primary {
+    border-color: var(--color-phosphor);
+    background: var(--color-phosphor);
+    color: var(--color-ink-950);
+  }
+
+  .update-notice-button.is-primary:hover,
+  .update-notice-button.is-primary:focus-visible {
+    background: var(--color-phosphor-soft);
+  }
+
+  .update-notice-button.is-quiet {
+    border-color: transparent;
+    background: none;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 62%, transparent);
+  }
+
+  .update-notice-chip {
+    border-color: var(--color-phosphor);
+    background: color-mix(in srgb, var(--color-ink-950) 92%, var(--color-phosphor));
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.4), 0 0 14px color-mix(in srgb, var(--color-phosphor) 20%, transparent);
+  }
+
+  .update-notice-waiting svg {
+    animation: update-notice-spin 2.4s linear infinite;
+  }
+
+  .update-notice-waiting {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--color-cyan-arcade);
+    font: 900 0.62rem / 1 var(--font-display);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 759px) {
+    .update-notice {
+      top: 68px;
+      right: 16px;
+      left: 16px;
+      width: auto;
+    }
+
+    .update-notice.is-collapsed {
+      left: auto;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .update-notice,
+    .update-notice-led,
+    .update-notice-waiting svg {
+      animation: none;
+    }
+  }
+}
+
+@keyframes update-notice-in {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes update-notice-blink {
+  50% { opacity: 0.25; }
+}
+
+@keyframes update-notice-spin {
+  to { transform: rotate(360deg); }
+}
