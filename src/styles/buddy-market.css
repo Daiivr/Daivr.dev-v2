@@ -1,5 +1,6 @@
 @layer components {
-  .buddy-market-stand { position: absolute; z-index: 15; right: clamp(14px, 5vw, 88px); bottom: calc(100% - 3px); width: 144px; height: 102px; padding: 0; border: 0; background: transparent; cursor: pointer; transform-origin: bottom center; }
+  /* Above the forest (3), behind walking Buddy (5). */
+  .buddy-market-stand { position: absolute; z-index: 4; right: clamp(14px, 5vw, 88px); bottom: calc(100% - 3px); width: 144px; height: 102px; padding: 0; border: 0; background: transparent; cursor: pointer; transform-origin: bottom center; }
   .market-stand-art { display: block; width: 100%; height: 100%; overflow: visible; image-rendering: pixelated; }
   .buddy-market-stand:hover .market-stand-art, .buddy-market-stand:focus-visible .market-stand-art { filter: brightness(1.15) drop-shadow(0 0 10px #dfc48c25); }
   .buddy-market-stand:focus-visible { outline: 2px dashed #ffe1a3; outline-offset: 4px; }
@@ -32,7 +33,18 @@
   .market-wallet strong small { display: block; margin-top: 6px; font-size: 9px; letter-spacing: 2px; }
   .market-wallet p { margin: 13px 0; color: #9cac92; font-size: 9px; line-height: 1.6; }
   .market-wallet > small { display: block; margin-top: 8px; font-size: 8px; color: #a4b297; }
+  .market-wallet button:disabled { opacity: .5; cursor: default; }
+  .market-wallet { min-width: 0; }
+  .market-wallet > small { line-height: 1.6; }
   .market-wallet button { display: flex; justify-content: space-between; width: 100%; border: 1px solid #b4a46966; background: #dfc38812; color: #e9d397; padding: 8px; font-size: 10px; cursor: pointer; }
+  .market-countdown { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; padding: 12px 15px; margin-top: 16px; border: 1px solid #b6aa683b; background: #c5b87506; }
+  .market-countdown > span { font-size: 8px; letter-spacing: 1.3px; color: #a3b294; }
+  .market-countdown time { color: #e6d7ab; font-size: 11px; }
+  .market-countdown > strong { display: flex; gap: 6px; align-items: baseline; margin-left: auto; color: #f4d68f; font-size: 18px; font-variant-numeric: tabular-nums; }
+  .market-countdown b { min-width: 28px; text-align: center; }
+  .market-countdown b small { margin-left: 3px; font-size: 8px; color: #a5b094; }
+  .market-countdown i { font-size: 11px; font-style: normal; color: #7c8f76; }
+  .market-countdown > small { color: #99aa8f; font-size: 8px; }
   .market-catalog-heading { display: flex; justify-content: space-between; gap: 10px; align-items: end; margin: 22px 0 0; }
   .market-catalog-heading .buddy-modal-kicker { font-size: 8px; letter-spacing: 1.8px; }
   .market-catalog-heading h3 { margin-top: 6px; font-size: 17px; color: #e9e5c9; }
@@ -79,20 +91,17 @@
   .market-footer { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: 18px; padding-top: 14px; border-top: 1px solid #a5ad7130; font-size: 10px; }
   .market-footer > span { margin-right: auto; color: #8ea28a; }
   .market-footer button { border: 0; padding: 7px 0; background: transparent; color: #d7c28b; cursor: pointer; }
-  .buddy-market button:focus-visible, .buddy-chest-wallet button:focus-visible { outline: 2px solid #f4d68f; outline-offset: 3px; }
-  .buddy-chest-wallet { display: grid; grid-template-columns: 40px 1fr; gap: 10px; padding: 14px; border: 1px solid #c8ad6350; background: #d3b16c0b; }
-  .buddy-chest-wallet > svg { width: 40px; height: 40px; }
-  .buddy-chest-wallet strong { color: #f3d99a; font-size: 16px; }
-  .buddy-chest-wallet p { font-size: 10px; color: #bbc4a3; line-height: 1.5; margin-top: 4px; }
-  .buddy-chest-wallet > button, .buddy-chest-wallet > p { grid-column: 1 / -1; }
-  .buddy-chest-wallet button { border: 1px solid #c8ad6380; padding: 9px; background: #c8ad6320; color: #f3d99a; font-size: 11px; cursor: pointer; }
-  .buddy-chest-wallet button:disabled { opacity: .45; cursor: default; }
+  .buddy-market button:focus-visible { outline: 2px solid #f4d68f; outline-offset: 3px; }
   @media (max-width: 680px) {
     .buddy-market-stand { right: 12px; width: 116px; height: 82px; }
     .buddy-market { padding: 16px; }
     .market-welcome { grid-template-columns: 1fr 130px; gap: 14px; }
     .market-diorama { display: none; }
     .market-welcome-copy h3 { font-size: 26px; }
+    .market-countdown { gap: 8px; }
+    .market-countdown > span { width: 100%; }
+    .market-countdown > strong { margin-left: 0; }
+    .market-countdown time { width: 100%; }
     .market-catalog-heading { align-items: start; flex-direction: column; }
     .market-catalog { grid-template-columns: 1fr; gap: 6px; }
     .market-product { display: grid; grid-template-columns: 115px minmax(0, 1fr); }

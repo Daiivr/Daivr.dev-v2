@@ -1,11 +1,27 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { MARKET_ITEMS, marketIsOpen, marketStock, normalizeMarket, mergeMarket, marketWallet, openMarketChest, purchaseMarketItem } from "../shared/buddy-market.mjs";
+import { MARKET_ITEMS, marketIsOpen, marketStock, nextMarketOpening, normalizeMarket, mergeMarket, marketWallet, openMarketChest, purchaseMarketItem } from "../shared/buddy-market.mjs";
 import { isRoomDisplayAllowed, normalizeRoom, ownedRoomDisplays } from "../shared/buddy-room.mjs";
 
 const wednesday = new Date("2026-10-07T16:00:00Z");
 const saturday = new Date("2026-10-10T16:00:00Z");
 const rich = () => ({ fishCollection: { "token-chest": 100 }, market: { rewards: Array(100).fill(5), purchases: {} } });
+
+test("opening countdown targets New York midnight across DST and year changes", () => {
+  for (const [now, expected] of [
+    ["2026-10-02T00:30:00Z", "2026-10-03T04:00:00.000Z"],
+    ["2026-10-07T03:59:59Z", "2026-10-07T04:00:00.000Z"],
+    ["2026-10-07T04:00:00Z", "2026-10-10T04:00:00.000Z"],
+    ["2026-03-07T18:00:00Z", "2026-03-11T04:00:00.000Z"],
+    ["2026-10-31T18:00:00Z", "2026-11-04T05:00:00.000Z"],
+    ["2026-12-31T12:00:00Z", "2027-01-02T05:00:00.000Z"]
+  ]) {
+    const opening = nextMarketOpening(new Date(now));
+    assert.equal(opening.toISOString(), expected, now);
+    assert.equal(marketIsOpen(opening), true);
+    assert.equal(marketIsOpen(new Date(opening - 1)), false);
+  }
+});
 
 test("market opens only Wednesday/Saturday in New York, including midnight and DST boundaries", () => {
   assert.equal(marketIsOpen(wednesday), true);

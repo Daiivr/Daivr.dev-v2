@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
 import { CHEST_MIN_COINS, CHEST_MAX_COINS } from "../../shared/buddy-market.mjs";
-import { BuddyCollectibleIcon } from "./BuddyCollectibleIcon";
 import "../styles/buddy-chest-opening.css";
 
 function TreasureChest() {
@@ -77,7 +76,7 @@ function ChestReveal({ receipt, wallet, onClose, onAnother, opener, walletRef })
   </Dialog.Root>;
 }
 
-export function BuddyChestWallet({ adventure }) {
+export function BuddyMarketWallet({ adventure }) {
   const [receipt, setReceipt] = useState(null);
   const [message, setMessage] = useState("");
   const busy = useRef(false);
@@ -94,11 +93,11 @@ export function BuddyChestWallet({ adventure }) {
   }
   const close = () => { setReceipt(null); busy.current = false; };
   return <>
-    <section ref={walletRef} tabIndex={-1} className="buddy-chest-wallet" aria-label="Treasure chests">
-      <BuddyCollectibleIcon id="token-chest" />
-      <div><strong>{adventure.market.coins} coins</strong><p>{adventure.market.unopened} unopened chests · {CHEST_MIN_COINS}–{CHEST_MAX_COINS} coins each</p></div>
-      <button ref={opener} type="button" disabled={!adventure.market.unopened || !!receipt} onClick={openChest}>Open chest</button>
-      <p role="status">{receipt ? "Your chest is opening…" : message || "Fish up Token Chests to spend at the footer market."}</p>
+    <section ref={walletRef} tabIndex={-1} className="market-wallet" aria-label="Gold and treasure chests">
+      <div className="market-wallet-total"><PixelCoin /><strong>{adventure.market.coins}<small>GOLD</small></strong></div>
+      <button ref={opener} type="button" disabled={!adventure.market.unopened || !!receipt} onClick={openChest}>Open chest <span aria-hidden="true">↗</span></button>
+      <small>{adventure.market.unopened} unopened {adventure.market.unopened === 1 ? "chest" : "chests"} · {CHEST_MIN_COINS}–{CHEST_MAX_COINS} gold each</small>
+      <small role="status">{receipt ? "Your chest is opening…" : message || (!adventure.market.unopened ? "Fish up a Token Chest to find more gold." : "Open them here, even when the shop is closed.")}</small>
     </section>
     {receipt ? <ChestReveal key={receipt.id} receipt={receipt} wallet={adventure.market} opener={opener} walletRef={walletRef} onClose={close} onAnother={() => { if (sequence.current !== receipt.id) return; busy.current = false; openChest(); }} /> : null}
   </>;

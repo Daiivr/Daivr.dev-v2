@@ -1,4 +1,3 @@
-import { BuddyChestWallet } from "./BuddyChestOpening";
 import { useState } from "react";
 import { Bug, Fish, PackageSearch, Radar, Search } from "lucide-react";
 import { FISH_CATALOG } from "../data/buddyWorld";
@@ -105,7 +104,6 @@ export function BuddyJournal({ buddy }) {
   return (
     <div className="buddy-journal" ref={pageRef}>
       <div className="buddy-journal-stage" ref={stageRef}>
-        <BuddyChestWallet adventure={buddy.adventure} />
         <SpecimenFile entry={selected} set={set} />
         <div className="buddy-journal-summary"><span>Total catches<strong>{buddy.adventure.totalCatches}</strong></span><span>Rare catches<strong>{buddy.adventure.rareCatches}</strong></span><span>Catalogue<strong>{pct(discovered, total)}%</strong></span></div>
 

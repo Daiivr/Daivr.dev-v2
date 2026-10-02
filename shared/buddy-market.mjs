@@ -13,16 +13,30 @@ export const MARKET_ITEMS = [
 export const MARKET_GEAR = MARKET_ITEMS.filter((item) => item.category !== "decor").map((item) => ({ ...item, source: "Footer market" }));
 const count = (value) => Number.isFinite(Number(value)) ? Math.max(0, Math.min(999999, Math.floor(Number(value)))) : 0;
 const dayFormat = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: MARKET_TIME_ZONE });
+const calendarFormat = new Intl.DateTimeFormat("en-US", { year: "numeric", month: "numeric", day: "numeric", timeZone: MARKET_TIME_ZONE });
+const hourFormat = new Intl.DateTimeFormat("en-US", { hour: "numeric", hourCycle: "h23", timeZone: MARKET_TIME_ZONE });
+function marketCalendarDay(date) {
+  const parts = calendarFormat.formatToParts(date);
+  const part = (name) => Number(parts.find((entry) => entry.type === name).value);
+  return new Date(Date.UTC(part("year"), part("month") - 1, part("day")));
+}
 export function marketIsOpen(date = new Date()) {
   return Number.isFinite(date.getTime()) && ["Wed", "Sat"].includes(dayFormat.format(date));
+}
+
+export function nextMarketOpening(date = new Date()) {
+  const day = marketCalendarDay(date);
+  do { day.setUTCDate(day.getUTCDate() + 1); } while (![3, 6].includes(day.getUTCDay()));
+  // Wednesday/Saturday never contain New York's Sunday DST transition. Using
+  // the target day's offset keeps midnight correct across either clock change.
+  const noon = new Date(day.getTime() + 12 * 3600000);
+  return new Date(day.getTime() + (12 - Number(hourFormat.format(noon))) * 3600000);
 }
 
 // Closed days preview the next opening's stock. Calendar math uses a New York
 // date rather than elapsed hours, so daylight-saving changes do not shift it.
 export function marketStock(date = new Date()) {
-  const parts = new Intl.DateTimeFormat("en-US", { year: "numeric", month: "numeric", day: "numeric", timeZone: MARKET_TIME_ZONE }).formatToParts(date);
-  const part = (name) => Number(parts.find((entry) => entry.type === name).value);
-  const day = new Date(Date.UTC(part("year"), part("month") - 1, part("day")));
+  const day = marketCalendarDay(date);
   while (![3, 6].includes(day.getUTCDay())) day.setUTCDate(day.getUTCDate() + 1);
   const second = day.getUTCDay() === 6;
   const ids = second ? ["market-vest", "market-moon", "market-arcade"] : ["market-beanie", "market-lantern", "market-terrarium"];
@@ -78,6 +92,6 @@ export function purchaseMarketItem(adventure, id, date = new Date()) {
   if (wallet.owned.includes(id)) return { adventure, message: "You already own this item." };
   if (!marketIsOpen(date)) return { adventure, message: "The stand opens on Wednesdays and Saturdays." };
   if (!marketStock(date).some((entry) => entry.id === id)) return { adventure, message: "That item is not in today's stock. Check the next market day." };
-  if (wallet.coins < item.price) return { adventure, message: `You need ${item.price - wallet.coins} more coins. Open a chest in the journal.` };
+  if (wallet.coins < item.price) return { adventure, message: `You need ${item.price - wallet.coins} more coins. Open a chest here in the shop.` };
   return { adventure: { ...adventure, market: { opened: wallet.opened, rewards: wallet.rewards, purchases: { ...wallet.purchases, [id]: date.toISOString() } } }, message: `${item.label} is yours! Find it in ${item.category === "decor" ? "Room → Collection, on either shelf" : "Inventory"}.` };
 }
