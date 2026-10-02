@@ -11,7 +11,7 @@ export const patchNotes = [
     summary: "The cabinet packs lighter. The entry gate shows up right away, guestbook GIFs wait for a tap before they play, and the bigger features download the first time you use them. On a throttled phone test the first visit now moves about a third of the data it used to.",
     entries: [
       ["buff", "The entry gate appears as soon as the page arrives. It used to wait for the whole cabinet to download first; now the cabinet loads behind it, and the enter button lights up once it's ready."],
-      ["buff", "Guestbook GIFs show a still of their first frame with a GIF tag, and play when you tap them. The guestbook used to download every animation in full when the page opened, about 15 MB; the stills come to around 200 KB."],
+      ["buff", "Guestbook GIFs show a still of their first frame with a GIF tag and play right there when you hover over them (or tap to open them on a phone). The guestbook used to download every animation in full when the page opened, about 15 MB; the stills come to around 200 KB, and a GIF only downloads once someone wants to watch it."],
       ["buff", "Buddy's window, the command console, the Konami games, and seasonal events now download the first time you open them, each with its own styles, instead of on every visit. Patch.log arrives as you scroll toward it, with a placeholder holding its spot."],
       ["fix", "If the site updates while you have it open, opening one of those features reloads the page once to pick up the new version instead of failing."],
       ["buff", "The project archive background is a 35 KB image instead of 1.3 MB, with no visible difference."]

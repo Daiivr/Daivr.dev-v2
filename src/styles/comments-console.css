@@ -1920,8 +1920,28 @@
     display: none;
   }
 
+  /* El GIF completo se pone encima del fotograma fijo, con el mismo recorte, y
+     solo aparece cuando ya ha llegado: mientras tanto sigue el fotograma. */
+  .comment-gif .comment-gif-live {
+    position: absolute;
+    inset: 0.35rem;
+    width: calc(100% - 0.7rem);
+    height: calc(100% - 0.7rem);
+    max-height: none;
+    object-fit: cover;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 140ms;
+  }
+
+  .comment-gif.is-playing .comment-gif-live { opacity: 1; }
+  .comment-gif.is-playing .comment-gif-status { display: none; }
+  .comment-gif.is-playing .comment-gif-play { opacity: 0; }
+  .comment-gif.is-buffering .comment-gif-play i { animation: comment-gif-buffer 0.7s steps(2, end) infinite; }
+
   @media (prefers-reduced-motion: reduce) {
-    .comment-gif-play { transition: none; }
+    .comment-gif-play,
+    .comment-gif .comment-gif-live { transition: none; }
   }
 
   /* Hilo de respuestas. Antes cada respuesta era otra caja con el mismo
@@ -2757,6 +2777,8 @@
 @keyframes guestbook-caret { to { opacity: 0; } }
 @keyframes guestbook-wave { 0%, 100% { transform: scaleY(0.25); opacity: 0.3; } 50% { transform: scaleY(1); opacity: 0.8; } }
 @media (prefers-reduced-motion: reduce) { .comments-invite-title > span, .comments-guest-wave i { animation: none; } }
+
+@keyframes comment-gif-buffer { 50% { opacity: 0.25; } }
 
 @keyframes comment-transmission-in {
   from {

@@ -347,19 +347,28 @@ function isMobileViewport() {
 }
 
 // El libro de visitas muestra el primer fotograma (lo recorta el servidor, unos
-// 50 KB) y el GIF completo solo se descarga al abrirlo en el visor. Antes cada
-// GIF se pedia entero y con prioridad alta nada mas cargar la pagina: uno de
-// ellos pesaba 11 MB, dos tercios de toda la descarga.
+// 50 KB). El GIF completo se descarga la primera vez que el raton se para encima
+// y se reproduce en su sitio; al salir vuelve el fotograma fijo, y el siguiente
+// hover ya sale de la cache. En pantallas tactiles no hay hover: tocarlo abre
+// el visor. Antes cada GIF se pedia entero y con prioridad alta nada mas cargar
+// la pagina: uno de ellos pesaba 11 MB, dos tercios de toda la descarga.
 function commentGifPreviewUrl(gifUrl) {
   return `/api/comments/gifs/preview?url=${encodeURIComponent(gifUrl)}`;
 }
 
+// Un raton que solo pasa de largo (o la pagina desplazandose bajo el cursor) no
+// llega a pedir el GIF.
+const GIF_HOVER_DELAY_MS = 150;
+
 function CommentMedia({ gifUrl, onPreview }) {
   const imageRef = useRef(null);
+  const hoverTimerRef = useRef(0);
   const [mediaState, setMediaState] = useState(() => ({
     url: gifUrl,
     status: "loading"
   }));
+  // idle (fotograma fijo) -> loading (pidiendo el GIF) -> ready (reproduciendo).
+  const [live, setLive] = useState("idle");
   const loadState = mediaState.url === gifUrl ? mediaState.status : "loading";
 
   useEffect(() => {
@@ -372,12 +381,35 @@ function CommentMedia({ gifUrl, onPreview }) {
     });
   }, [gifUrl]);
 
+  useEffect(() => () => window.clearTimeout(hoverTimerRef.current), []);
+
+  const startLive = () => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    window.clearTimeout(hoverTimerRef.current);
+    hoverTimerRef.current = window.setTimeout(() => setLive((state) => (state === "idle" ? "loading" : state)), GIF_HOVER_DELAY_MS);
+  };
+  const stopLive = () => {
+    window.clearTimeout(hoverTimerRef.current);
+    setLive("idle");
+  };
+
   if (!gifUrl) return null;
   return (
     <button
-      className={`comment-gif is-${loadState}`}
+      className={`comment-gif is-${loadState} ${live === "loading" ? "is-buffering" : ""} ${live === "ready" ? "is-playing" : ""}`}
       type="button"
-      onClick={(event) => onPreview(gifUrl, event.currentTarget)}
+      onClick={(event) => {
+        stopLive();
+        onPreview(gifUrl, event.currentTarget);
+      }}
+      onPointerEnter={(event) => {
+        if (event.pointerType !== "touch") startLive();
+      }}
+      onPointerLeave={stopLive}
+      onFocus={(event) => {
+        if (event.currentTarget.matches(":focus-visible")) startLive();
+      }}
+      onBlur={stopLive}
       aria-label="Play attached GIF"
       aria-haspopup="dialog"
       aria-busy={loadState === "loading"}
@@ -396,6 +428,17 @@ function CommentMedia({ gifUrl, onPreview }) {
         onLoad={() => setMediaState({ url: gifUrl, status: "loaded" })}
         onError={() => setMediaState({ url: gifUrl, status: "error" })}
       />
+      {live !== "idle" ? (
+        <img
+          className="comment-gif-live"
+          src={gifUrl}
+          alt=""
+          aria-hidden="true"
+          decoding="async"
+          onLoad={() => setLive((state) => (state === "loading" ? "ready" : state))}
+          onError={() => setLive("idle")}
+        />
+      ) : null}
       <span className="comment-gif-play" aria-hidden="true"><i />GIF</span>
     </button>
   );

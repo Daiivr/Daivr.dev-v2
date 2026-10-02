@@ -1562,9 +1562,26 @@
 .entry-gate-actions .entry-gate-enter strong { font-size: 16px; }
 .entry-gate-actions .entry-gate-enter small { margin-top: 6px; font-size: 9px; }
 .entry-gate-actions .entry-gate-enter svg { width: 38px; height: 38px; }
-.entry-gate-host { position: absolute; left: calc(19.5vw - max(0px, (100vw - 1680px) / 2)); bottom: 0; max-width: 100%; height: min(100%, var(--host-h)); max-height: var(--host-h); translate: -50% 0; }
+/* The bubble is measured from the host's box, not the stage. She stands on the
+   bottom edge and stops growing at --host-h (49rem), while the stage keeps
+   growing on tall screens; with top as a % of the stage and left in vw, the
+   bubble floated above her head at 2560x1300. Both offsets are now fractions of
+   her real height (min(stage, --host-h), where 100cqh is the stage height) and
+   match the old placement at 1920x950: 0.82 keeps it at face height including
+   the 1.06 immersive scale, 0.14 sits just outside her hair. */
+.entry-gate-scene { container-type: size; }
+.entry-gate { --gate-host-x: calc(19.5vw - max(0px, (100vw - 1680px) / 2)); }
+.entry-gate-host { position: absolute; left: var(--gate-host-x); bottom: 0; max-width: 100%; height: min(100%, var(--host-h)); max-height: var(--host-h); translate: -50% 0; }
 .entry-gate.is-immersive .entry-gate-host { scale: 1.06; transform-origin: center bottom; }
-.entry-gate-speech { left: calc(25vw - max(0px, (100vw - 1680px) / 2)); right: auto; top: 18%; bottom: auto; width: clamp(200px, 19vw, 260px); translate: none; }
+.entry-gate-speech {
+  --gate-host-box: min(100cqh, var(--host-h));
+  left: calc(var(--gate-host-x) + var(--gate-host-box) * 0.14);
+  right: auto;
+  top: calc(100cqh - var(--gate-host-box) * 0.82);
+  bottom: auto;
+  width: clamp(200px, 19vw, 260px);
+  translate: none;
+}
 .entry-gate-speech::after { left: -6px; right: auto; bottom: 20px; border-left: 1px solid var(--gate-line); border-bottom: 1px solid var(--gate-line); border-top: 0; border-right: 0; transform: rotate(45deg); }
 .entry-gate-hud { grid-template-columns: minmax(0, 320px) auto; grid-template-areas: none; justify-content: space-between; min-height: 54px; padding: 12px clamp(28px, 6vw, 112px); gap: 24px; }
 .entry-gate-hud .entry-gate-signal { grid-area: auto; }
@@ -1602,7 +1619,7 @@
   .entry-gate-categories { margin-top: 14px; }
   .entry-gate-actions { margin-top: 25px; }
   .entry-gate-intro { padding-bottom: 0; }
-  .entry-gate-speech { top: 12%; }
+  .entry-gate-speech { top: calc(100cqh - var(--gate-host-box) * 0.88); }
 }
 
 @media (max-width: 800px) {
@@ -1616,7 +1633,7 @@
   .entry-gate-topbar .entry-gate-brand-mark { display: block; width: 32px; height: 32px; }
   .entry-gate-topbar .entry-gate-brand span { max-width: none; }
   .entry-gate-edition { display: none; }
-  .entry-gate-scene { display: flex; flex-direction: column; justify-content: center; gap: 12px; padding: 12px 24px 24px; overflow-y: auto; }
+  .entry-gate-scene { display: flex; flex-direction: column; justify-content: center; gap: 12px; padding: 12px 24px 24px; overflow-y: auto; container-type: normal; }
   .entry-gate-intro { display: contents; }
   .entry-gate-intro-copy { order: 1; text-align: center; flex: none; }
   .entry-gate-eyebrow { justify-content: center; margin-bottom: 14px; font-size: 8px; }
