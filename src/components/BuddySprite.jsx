@@ -258,6 +258,26 @@ function BuddyMikuCostume({ expression = "idle", rocketBoots = false }) {
   );
 }
 
+function BuddyFittedTrailVest() {
+  return (
+    <g className="buddy-upper-body buddy-fitted-trail-vest" data-gear="market-vest">
+      {/* Two tailored panels wrap the casing, leaving the face and leg joints clear. */}
+      <path d="M7 23h5v5h3v3h6v7H8v-2H6V26h1m28-3h5v3h1v10h-2v2H26v-7h6v-3h3z" fill="#443a29" />
+      <path d="M8 24h3v5h3v3h6v5H9v-2H7v-8h1m28-3h3v3h1v8h-2v2H27v-5h6v-3h3z" fill="#b98c54" />
+      {/* Folded lapels, shaded side seams and stitched canvas hems. */}
+      <path d="M8 24h3v5h3v2h3v2h-4v-2h-3v-3H8m28-4h3v4h-2v3h-3v2h-4v-2h3v-2h3z" fill="#e2c18a" />
+      <path d="M8 25h1v3H8m30-3h1v3h-1M7 30h2v5h1v2H9v-2H7m31-5h2v5h-2v2h-1v-2h1" fill="#806347" />
+      {/* Flap pockets have a dark welt and a single brass snap. */}
+      <path d="M10 32h8v4h-8m19-4h8v4h-8" fill="#785637" />
+      <path d="M11 33h6v2h-6m19-2h6v2h-6" fill="#c79e65" />
+      <path d="M10 32h8v1h-8m19-1h8v1h-8" fill="#efd49b" />
+      <path d="M13 33h2v1h-2m19-1h2v1h-2" fill="#f2ce72" />
+      <path d="M11 37h2v1h-2m4-1h2v1h-2m13-1h2v1h-2m2-1h2v1h-2" fill="#d6b580" />
+      <path d="M20 33h7v2h-7z" fill="#6b5035" /><path d="M22 33h3v2h-3z" fill="#e1b861" /><path d="M23 33h1v1h-1z" fill="#fff0be" />
+    </g>
+  );
+}
+
 function BuddyFittedRocketBoot({ x, side }) {
   return (
     <g className="buddy-fitted-rocket-boot" transform={`translate(${x} 34)`}>
@@ -520,7 +540,7 @@ export function BuddySprite({ className = "", expression = "idle", facing = 1, f
             </>}
           </g>
         </g>
-        {hasItem("market-vest") ? <BuddyWornGear id="market-vest" x={9} y={30} width={29} height={13} /> : null}
+        {hasItem("market-vest") ? <BuddyFittedTrailVest /> : null}
         {hasItem("market-lantern") ? <g className="buddy-carry-item"><BuddyWornGear id="market-lantern" x={-3} y={31} width={13} height={16} /></g> : null}
         {hasItem("wrench") ? <g className="buddy-tool-wrench buddy-carry-item"><BuddyWornGear id="wrench" x={35} y={30} width={15} height={16} /></g> : null}
         {hasItem("cartridge") ? <g className="buddy-loot-cartridge buddy-carry-item"><BuddyWornGear id="cartridge" x={36} y={31} width={13} height={15} /></g> : null}

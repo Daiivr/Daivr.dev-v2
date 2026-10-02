@@ -50,6 +50,7 @@ export const JOURNAL_GEAR = [
 
 export const HEADWEAR_IDS = ["market-beanie", "party-hat", "star-cap", "pixel-crown", "miku-wig"];
 export const FACE_GEAR_IDS = ["sunglasses", "green-visor"];
+export const BODY_GEAR_IDS = ["scarf", "market-vest"];
 export const MOBILITY_IDS = ["rocket-boots", "parachute-upgrade"];
 export const COSTUME_IDS = ["miku-costume"];
 
@@ -115,7 +116,7 @@ export function slotForGear(id) {
   if (HEADWEAR_IDS.includes(id)) return "head";
   if (FACE_GEAR_IDS.includes(id)) return "face";
   if (id === "gold-antenna") return "antenna";
-  if (id === "scarf") return "neck";
+  if (BODY_GEAR_IDS.includes(id)) return "body";
   if (ROD_IDS.includes(id)) return "rod";
   if (LURE_IDS.includes(id)) return "lure";
   if (["wrench", "cartridge", "coffee", "headset"].includes(id)) return "utility";
@@ -227,6 +228,8 @@ export function useBuddyLoadout({ friendship, adventure }) {
   const equippedHeadwear = [...availableHeadwearIds].reverse().find((id) => !hiddenGear.includes(id)) || "";
   const availableFaceGearIds = unlockedGearIds.filter((id) => FACE_GEAR_IDS.includes(id));
   const equippedFaceGear = availableFaceGearIds.find((id) => !hiddenGear.includes(id)) || "";
+  const availableBodyGearIds = unlockedGearIds.filter((id) => BODY_GEAR_IDS.includes(id));
+  const equippedBodyGear = [...availableBodyGearIds].reverse().find((id) => !hiddenGear.includes(id)) || "";
   const availableMobilityIds = unlockedGearIds.filter((id) => MOBILITY_IDS.includes(id));
   const equippedMobility = availableMobilityIds.find((id) => !hiddenGear.includes(id)) || "";
   const availableCostumeIds = unlockedGearIds.filter((id) => COSTUME_IDS.includes(id));
@@ -244,12 +247,13 @@ export function useBuddyLoadout({ friendship, adventure }) {
     ...hiddenGear,
     ...availableHeadwearIds.filter((id) => id !== equippedHeadwear),
     ...availableFaceGearIds.filter((id) => id !== equippedFaceGear),
+    ...availableBodyGearIds.filter((id) => id !== equippedBodyGear),
     ...availableMobilityIds.filter((id) => id !== equippedMobility),
     ...availableCostumeIds.filter((id) => id !== equippedCostume),
     ...availableRodIds.filter((id) => id !== equippedRod),
     ...availableLureIds.filter((id) => id !== equippedLure),
     ...availableCarryItemIds.filter((id) => id !== equippedCarryItem)
-  ]), [availableCarryItemIds, availableCostumeIds, availableFaceGearIds, availableHeadwearIds, availableLureIds, availableMobilityIds, availableRodIds, equippedCarryItem, equippedCostume, equippedFaceGear, equippedHeadwear, equippedLure, equippedMobility, equippedRod, hiddenGear]);
+  ]), [availableBodyGearIds, availableCarryItemIds, availableCostumeIds, availableFaceGearIds, availableHeadwearIds, availableLureIds, availableMobilityIds, availableRodIds, equippedBodyGear, equippedCarryItem, equippedCostume, equippedFaceGear, equippedHeadwear, equippedLure, equippedMobility, equippedRod, hiddenGear]);
 
   const activeGearCount = gearItems.filter((item) => !effectiveHiddenGear.includes(item.id)).length;
 
@@ -284,6 +288,11 @@ export function useBuddyLoadout({ friendship, adventure }) {
       if (FACE_GEAR_IDS.includes(id)) {
         const nonFaceGearHidden = current.filter((itemId) => !availableFaceGearIds.includes(itemId));
         return [...nonFaceGearHidden, ...availableFaceGearIds.filter((itemId) => itemId !== id)];
+      }
+
+      if (BODY_GEAR_IDS.includes(id)) {
+        const nonBodyGearHidden = current.filter((itemId) => !BODY_GEAR_IDS.includes(itemId));
+        return [...nonBodyGearHidden, ...BODY_GEAR_IDS.filter((itemId) => itemId !== id)];
       }
 
       if (MOBILITY_IDS.includes(id)) {

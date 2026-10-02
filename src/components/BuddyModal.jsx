@@ -1,8 +1,8 @@
 import { BuddyMarket } from "./BuddyMarket";
 import { memo, useEffect, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Backpack, BookOpen, Check, Home, Lock, ScrollText, Search, Store, Trophy, X } from "lucide-react";
-import { COSTUME_IDS, FACE_GEAR_IDS, HEADWEAR_IDS, LURE_IDS, MOBILITY_IDS, ROD_IDS } from "../hooks/useBuddyLoadout";
+import { Backpack, BookOpen, Check, Home, Lock, ScrollText, Search, Trophy, X } from "lucide-react";
+import { BODY_GEAR_IDS, COSTUME_IDS, FACE_GEAR_IDS, HEADWEAR_IDS, LURE_IDS, MOBILITY_IDS, ROD_IDS } from "../hooks/useBuddyLoadout";
 import { useScrollEdges } from "../hooks/useScrollEdges";
 import { BuddyChuteCanopy, BuddyRodIcon, BuddySprite } from "./BuddySprite";
 import { BuddyGearIcon } from "./BuddyGearIcon";
@@ -18,8 +18,8 @@ const BUDDY_SLOTS = [
   { id: "head", label: "head", accepts: HEADWEAR_IDS },
   { id: "face", label: "face", accepts: FACE_GEAR_IDS },
   { id: "antenna", label: "antenna", accepts: ["gold-antenna"] },
-  { id: "neck", label: "neck", accepts: ["scarf"] },
-  { id: "utility", label: "utility", accepts: ["wrench", "cartridge", "coffee", "headset", "market-lantern", "market-vest"] },
+  { id: "body", label: "body", accepts: BODY_GEAR_IDS },
+  { id: "utility", label: "utility", accepts: ["wrench", "cartridge", "coffee", "headset", "market-lantern"] },
   { id: "mobility", label: "mobility", accepts: MOBILITY_IDS },
   { id: "rod", label: "rod", accepts: ROD_IDS },
   { id: "lure", label: "lure", accepts: LURE_IDS }
@@ -362,13 +362,14 @@ const BUDDY_VIEWS = [
   { id: "room", label: "Room", icon: Home, title: "Buddy’s Room", description: "A home for your companion. A little space for everything you find." },
   { id: "inventory", label: "Inventory", icon: Backpack, title: "Buddy Inventory", description: "A little gear. A lot of personality. Make Buddy your own." },
   { id: "quests", label: "Quests", icon: ScrollText, title: "Buddy Quests", description: "Follow your curiosity. Explore the station. Find something new." },
-  { id: "market", label: "Market", icon: Store, title: "The Woodland Stand", description: "Little treasures for a life beside the void." },
   { id: "journal", label: "Journal", icon: BookOpen, title: "Catch Journal", description: "Every catch has a story. Keep a record of the things you find." }
 ];
 
+const MARKET_VIEW = { id: "market", label: "Market", title: "The Woodland Stand", description: "Little treasures for a life beside the void." };
+
 export function BuddyModal({ buddy, mode, onClose, onModeChange, theme, seasonalEvent }) {
   const opener = useRef(null);
-  const view = BUDDY_VIEWS.find((item) => item.id === mode) || BUDDY_VIEWS[0];
+  const view = mode === "market" ? MARKET_VIEW : BUDDY_VIEWS.find((item) => item.id === mode) || BUDDY_VIEWS[0];
 
   // El portal cuelga del body, fuera de `.app-shell`, que es donde vive la
   // clase del tema: sin repetirla aqui el modal se queda verde mientras el
@@ -392,14 +393,14 @@ export function BuddyModal({ buddy, mode, onClose, onModeChange, theme, seasonal
                 </div>
                 <Dialog.Close className="buddy-modal-close" aria-label="Close buddy modal"><X size={20} aria-hidden="true" /></Dialog.Close>
               </div>
-              <nav className="buddy-modal-actions" aria-label="Buddy views">
+              {view.id !== "market" ? <nav className="buddy-modal-actions" aria-label="Buddy views">
                 {BUDDY_VIEWS.map(({ id, label, icon: Icon }) => (
                   <button className={view.id === id ? "is-active" : ""} type="button" key={id} onClick={() => onModeChange(id)} aria-current={view.id === id ? "page" : undefined}>
                     <Icon size={16} aria-hidden="true" />{label}
-                    {id !== "room" && id !== "market" ? <span>{id === "inventory" ? buddy.gearItems.length : id === "quests" ? buddy.adventure.quests.filter((quest) => !quest.complete).length : buddy.adventure.discoveredFishCount}</span> : null}
+                    {id !== "room" ? <span>{id === "inventory" ? buddy.gearItems.length : id === "quests" ? buddy.adventure.quests.filter((quest) => !quest.complete).length : buddy.adventure.discoveredFishCount}</span> : null}
                   </button>
                 ))}
-              </nav>
+              </nav> : null}
             </header>
             {view.id === "market" ? <BuddyMarket buddy={buddy} onNavigate={onModeChange} /> : view.id === "room" ? <BuddyRoomBoundary onClose={onClose}><BuddyRoom buddy={buddy} seasonalEvent={seasonalEvent} /></BuddyRoomBoundary> : view.id === "inventory" ? <BuddyInventoryView buddy={buddy} /> : view.id === "journal" ? <BuddyJournal buddy={buddy} /> : <BuddyQuestView buddy={buddy} />}
           </Dialog.Content>
