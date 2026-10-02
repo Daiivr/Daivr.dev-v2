@@ -90,15 +90,15 @@ export function DiscordPlayerCard() {
               alt={`${displayName} Discord avatar`}
               onError={(event) => { const fallback = new URL(discord.fallbackAvatar || profile.avatar, window.location.href).href; if (event.currentTarget.src !== fallback) event.currentTarget.src = fallback; }}
             />
-            {decorationUrl ? (
-              <img
-                className="discord-avatar-decoration"
-                src={decorationUrl}
-                alt=""
-                aria-hidden="true"
-              />
-            ) : null}
           </span>
+          {decorationUrl ? (
+            <img
+              className="discord-avatar-decoration"
+              src={decorationUrl}
+              alt=""
+              aria-hidden="true"
+            />
+          ) : null}
         </a>
 
         <div className="discord-player-nameplate">
