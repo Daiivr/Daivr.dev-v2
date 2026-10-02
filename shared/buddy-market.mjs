@@ -69,7 +69,7 @@ export function openMarketChest(adventure, random = Math.random) {
   const wallet = marketWallet(adventure);
   if (!wallet.unopened) return { adventure, message: "No unopened chests. Let Buddy fish for more." };
   const reward = Math.min(CHEST_MAX_COINS, Math.max(CHEST_MIN_COINS, Math.floor(random() * CHEST_MAX_COINS) + CHEST_MIN_COINS));
-  return { adventure: { ...adventure, market: { opened: wallet.opened + 1, rewards: [...wallet.rewards, reward], purchases: wallet.purchases } }, message: `Chest opened! +${reward} ${reward === 1 ? "coin" : "coins"}.` };
+  return { reward, adventure: { ...adventure, market: { opened: wallet.opened + 1, rewards: [...wallet.rewards, reward], purchases: wallet.purchases } }, message: `Chest opened! +${reward} ${reward === 1 ? "coin" : "coins"}.` };
 }
 export function purchaseMarketItem(adventure, id, date = new Date()) {
   const item = MARKET_ITEMS.find((entry) => entry.id === id);

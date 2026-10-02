@@ -49,7 +49,7 @@ export function MarketItemIcon({ id, className = "" }) {
   return <svg className={className} viewBox="0 0 24 24" aria-hidden="true"><BuddyMarketArt id={id} /></svg>;
 }
 
-export function MarketStandArt({ open }) {
+export function MarketStandArt({ open, items = [] }) {
   return <svg viewBox="0 0 144 102" aria-hidden="true" className="market-stand-art" shapeRendering="crispEdges">
     <ellipse cx="74" cy="98" rx="65" ry="3" fill="#031917" opacity=".65" />
     <path d="M20 29h6v66h-6m94-66h6v66h-6" fill="#4f3b2b" /><path d="M21 30h2v63h-2m92-63h2v63h-2" fill="#b38a55" />
@@ -62,16 +62,13 @@ export function MarketStandArt({ open }) {
     <path d="M37 10h13v1H37m57 4h12v1H94" fill="#b09260" />
     <text x="72" y="15" textAnchor="middle" fill="#f7e4b5" fontSize="6" fontFamily="monospace" letterSpacing="1">WOODLAND GOODS</text>
     {open ? <>
-      <path d="M44 51h12v13H44z" fill="#284e46" /><path d="M46 53h8v8h-8z" fill="#a2d4a2" /><path d="M48 52h4v2h-4" fill="#e7b681" />
-      <path d="M79 45h17v18H79z" fill="#7d795d" /><path d="M82 48h11v9H82z" fill="#153b33" /><path d="M84 51h2v2h-2m5-2h2v2h-2" fill="#a8dfab" />
-      <path d="M61 60v-9h4v-3h9v3h4v9z" fill="#b98a5a" /><path d="M63 59h13v3H63z" fill="#efce98" />
+      {items.map((item, index) => <g key={item.id} transform={`translate(${33 + index * 27} 44)`}><path d="M-2 17h24v4H-2z" fill="#b39360" /><g transform="scale(.72)"><BuddyMarketArt id={item.id} /></g></g>)}
     </> : <><path d="M27 42h87v23H27z" fill="#48584a" />{[45, 51, 57, 63].map((y) => <path key={y} d={`M28 ${y}h85v1H28z`} fill="#273e34" />)}</>}
     <path d="M17 64h111v7H17z" fill="#372d25" /><path d="M18 64h109v3H18z" fill="#c19b65" />
     <path d="M24 71h97v22H24z" fill="#765137" />
     {[73, 81, 89].map((y) => <g key={y}><path d={`M25 ${y}h95v1H25z`} fill="#ac8151" /><path d={`M25 ${y + 6}h95v1H25z`} fill="#483729" /></g>)}
     <path d="M31 76h15v1H31m7 1h14v1H38m50 6h23v1H88m-54 7h24v1H34m55-16h12v1h-12M25 70h3v23h-3m88-23h3v23h-3" fill="#c09a62" opacity=".65" />
-    <path d="M51 73h42v15H51z" fill="#322c25" /><path d="M53 75h38v11H53z" fill={open ? "#28483b" : "#584738"} />
-    <text x="72" y="83" textAnchor="middle" fontSize="7" letterSpacing="1" fontFamily="monospace" fill="#ffe2a5">{open ? "OPEN" : "CLOSED"}</text>
+    {open ? items.map((item, index) => <g key={item.id} transform={`translate(${31 + index * 28} 73)`}><path d="M3-3h1v5H3m14-5h1v5h-1" fill="#dbc48b" /><path d="M0 1h23v12H0z" fill="#3d2e21" /><path d="M1 2h21v10H1z" fill="#aa8351" /><text x="11" y="10" textAnchor="middle" fontSize="7" fontFamily="monospace" fill="#ffefba">{item.price}</text></g>) : <><path d="M51 73h42v15H51z" fill="#322c25" /><path d="M53 75h38v11H53z" fill="#584738" /><text x="72" y="83" textAnchor="middle" fontSize="7" letterSpacing="1" fontFamily="monospace" fill="#ffe2a5">CLOSED</text></>}
     <path d="M21 92h103v4H21m8 0h5v4h-5m78-4h5v4h-5" fill="#45392b" />
     <path d="M9 71h12v25H7V74h2z" fill="#6e5035" /><path d="M8 78h13v2H8m0 9h13v2H8" fill="#b49560" />
     <path d="M9 68h10v4H9m1-8h3v5h-3m4-8h2v8h-2" fill="#759463" />

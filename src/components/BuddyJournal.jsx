@@ -1,4 +1,4 @@
-import { CHEST_MIN_COINS, CHEST_MAX_COINS } from "../../shared/buddy-market.mjs";
+import { BuddyChestWallet } from "./BuddyChestOpening";
 import { useState } from "react";
 import { Bug, Fish, PackageSearch, Radar, Search } from "lucide-react";
 import { FISH_CATALOG } from "../data/buddyWorld";
@@ -70,7 +70,6 @@ export function BuddyJournal({ buddy }) {
   const pageRef = useScrollEdges();
   const stageRef = useScrollEdges();
   const gridRef = useScrollEdges();
-  const [chestMessage, setChestMessage] = useState("");
   const [dataset, setDataset] = useState("fish");
   const [filter, setFilter] = useState("all");
   const [query, setQuery] = useState("");
@@ -106,12 +105,7 @@ export function BuddyJournal({ buddy }) {
   return (
     <div className="buddy-journal" ref={pageRef}>
       <div className="buddy-journal-stage" ref={stageRef}>
-        <section className="buddy-chest-wallet" aria-label="Treasure chests">
-          <BuddyCollectibleIcon id="token-chest" />
-          <div><strong>{buddy.adventure.market.coins} coins</strong><p>{buddy.adventure.market.unopened} unopened chests · {CHEST_MIN_COINS}–{CHEST_MAX_COINS} coins each</p></div>
-          <button type="button" disabled={!buddy.adventure.market.unopened} onClick={() => setChestMessage(buddy.adventure.openChest())}>Open chest</button>
-          <p role="status">{chestMessage || "Fish up Token Chests to spend at the footer market."}</p>
-        </section>
+        <BuddyChestWallet adventure={buddy.adventure} />
         <SpecimenFile entry={selected} set={set} />
         <div className="buddy-journal-summary"><span>Total catches<strong>{buddy.adventure.totalCatches}</strong></span><span>Rare catches<strong>{buddy.adventure.rareCatches}</strong></span><span>Catalogue<strong>{pct(discovered, total)}%</strong></span></div>
 

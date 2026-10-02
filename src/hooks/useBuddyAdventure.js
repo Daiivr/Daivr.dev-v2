@@ -427,7 +427,7 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
     inventory,
     inventoryIds: inventory.map((item) => item.id),
     market: marketWallet(state),
-    openChest() { const result = openMarketChest(stateRef.current); if (result.adventure !== stateRef.current) apply(result.adventure); return result.message; },
+    openChest() { const result = openMarketChest(stateRef.current); if (result.adventure !== stateRef.current) apply(result.adventure); return { reward: result.reward || 0, message: result.message }; },
     buyItem(id) { const result = purchaseMarketItem(stateRef.current, id); if (result.adventure !== stateRef.current) apply(result.adventure); return result.message; },
     completedCount: state.completed.length,
     totalCatches: state.totalCatches,
