@@ -2767,7 +2767,12 @@
   .comments-console .comments-stream { padding-inline: 0.85rem; }
   .comments-console .comments-stream .comment-avatar img,
   .comments-console .comments-stream .comment-avatar > span { width: 30px; height: 30px; padding: 1px; }
-  .comments-console .comment-card-head .comment-time { margin-left: 0; flex-basis: 100%; font-size: 0.57rem; }
+  /* Los botones (enlace, responder, fijar, borrar) suben a la fila del nombre,
+     en la esquina de arriba a la derecha como en las respuestas; la hora baja a
+     su propia linea debajo. Antes ocupaban una fila entera entre la hora y el
+     mensaje. */
+  .comments-console .comment-card-head .comment-actions { order: 1; margin-left: auto; width: auto; }
+  .comments-console .comment-card-head .comment-time { order: 2; margin-left: 0; flex-basis: 100%; font-size: 0.57rem; }
   .comments-console .comment-card p { font-size: 0.86rem; line-height: 1.75; }
   .comments-console .reaction-chip,
   .comments-console .reaction-add-btn { min-height: 44px; min-width: 44px; }

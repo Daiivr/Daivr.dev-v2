@@ -912,11 +912,6 @@
     transform: translate(0, 0) rotate(45deg);
   }
 
-  .comment-actions {
-    justify-content: flex-start;
-    width: 100%;
-  }
-
   .comment-body,
   .comment-body p {
     min-width: 0;
