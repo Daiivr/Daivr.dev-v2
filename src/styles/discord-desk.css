@@ -32,7 +32,7 @@
   .app-shell .discord-desk .discord-presence-led { width: 6px; height: 6px; box-shadow: none; }
   .discord-notebook-photo { position: relative; container-type: inline-size; width: min(162px, 90%); margin: 15px auto 6px; padding: 10px 8px 19px; background: #c5cbb3; box-shadow: 1px 3px 5px #493b4250; transform: rotate(3deg); }
   .discord-notebook-photo::before { position: absolute; content: ""; top: -8px; left: 22%; z-index: 0; width: 56%; height: 19px; background: repeating-linear-gradient(90deg, #f0deb34d 0 1px, transparent 1px 4px), #d2bc84bb; border-inline: 2px dotted #e2d3a57a; box-shadow: 0 1px 2px #53422733; transform: rotate(-7deg); pointer-events: none; }
-  /* Share the photo's stacking context: portrait below the frame, decoration and status above it. */
+  /* Shared stacking order: portrait, frame, decoration, then status indicator. */
   .app-shell .discord-desk .discord-presence-avatar { z-index: auto; isolation: auto; display: block; margin: 0; width: 100%; aspect-ratio: 1; }
   .app-shell .discord-desk .discord-presence-avatar::before, .app-shell .discord-desk .discord-presence-avatar::after { display: none; }
   .app-shell .discord-desk .discord-presence-avatar > img:first-child { z-index: 1; border: 1px solid #5a684666; box-shadow: none; }
@@ -45,7 +45,11 @@
     width: calc(var(--discord-frame-width) + var(--discord-top-frame-extra));
     left: calc(var(--discord-frame-left-offset) - var(--discord-top-frame-extra) / 2);
   }
-  .app-shell .discord-desk .discord-profile-frame-profile .discord-profile-frame-layer.is-bottom { display: block; }
+  .app-shell .discord-desk .discord-profile-frame-profile .discord-profile-frame-layer.is-bottom {
+    display: block;
+    /* Soften the middle of the lower frame while retaining its solid outer edges. */
+    mask-image: linear-gradient(to right, #000 12%, #000b 40%, #000b 60%, #000 88%);
+  }
   .app-shell .discord-desk .discord-profile-frame-profile .discord-profile-frame-layer.is-bottom.is-staple {
     --discord-bottom-frame-extra: 12%;
     width: calc(var(--discord-frame-width) + var(--discord-bottom-frame-extra));

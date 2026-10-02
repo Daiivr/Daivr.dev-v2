@@ -97,6 +97,54 @@
   .market-product-copy button:disabled { color: #95a18a; background: #ffffff04; border-color: #81916840; cursor: default; }
   .market-stall-base { height: 27px; margin: 0 -9px; display: grid; place-items: center; border-top: 4px solid #ad8653; border-bottom: 3px solid #3f3424; background: repeating-linear-gradient(0deg, #b89a6810 0 1px, transparent 1px 5px), #694f33; box-shadow: inset 0 2px #3d322466; }
   .market-stall-base span { color: #ddc292; font-size: 7px; letter-spacing: 2px; }
+  /* Match the hanging sign's timber, with grain running along each surface. */
+  .market-stall {
+    background: url("../assets/market-post-wood.svg") left top / 24px 240px repeat;
+    box-shadow: 0 7px 20px #0004, inset 1px 0 #d7b77c, inset -1px 0 #d7b77c;
+  }
+  .market-stall-awning {
+    background:
+      repeating-linear-gradient(0deg, #f7edc51a 0 1px, #12291f1c 1px 2px, transparent 2px 4px),
+      repeating-linear-gradient(90deg, #f4e6bb12 0 1px, transparent 1px 3px),
+      repeating-linear-gradient(90deg, #132b252b 0 2px, transparent 3px 33px, #fff3c91c 35px 37px, #132b2540 37px 38px),
+      linear-gradient(0deg, #1a372b70, transparent 65%, #fff1bf24),
+      repeating-linear-gradient(90deg, #436853 0 38px, #c4bd97 38px 76px);
+  }
+  .market-stall-awning::after {
+    background: repeating-linear-gradient(0deg, #efe0b61a 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, #365640 0 38px, #a6a081 38px 76px);
+    border-bottom: 2px solid #c3ba8e66;
+  }
+  .market-stall-awning > span, .market-price-sign {
+    background: url("../assets/market-sign-wood.svg") center / 100% 100% no-repeat, #895e37;
+    box-shadow: inset 0 0 0 1px #d0ad70, inset 0 3px #c39a5d80, inset 0 -3px #533b2880, 2px 3px 0 #05130d80;
+  }
+  .market-product-art {
+    background:
+      radial-gradient(ellipse at 50% 55%, #b4bb792b, transparent 68%),
+      repeating-linear-gradient(0deg, transparent 0 23px, #a2ac7333 23px 24px, #091d1480 24px 26px),
+      url("../assets/market-sign-wood.svg"), #233b2c;
+    background-size: auto, auto, 240px 78px, auto;
+    background-blend-mode: normal, normal, soft-light, normal;
+  }
+  .market-product:nth-child(2) .market-product-art { background-position: center, center, -85px 26px, center; }
+  .market-product:nth-child(3) .market-product-art { background-position: center, center, -160px 52px, center; }
+  .market-product-art::before {
+    bottom: -9px; height: 9px;
+    background: url("../assets/market-sign-wood.svg") left center / 240px 40px repeat-x;
+    box-shadow: inset 0 1px #ddbb81, inset 0 -2px #4d3824;
+  }
+  .market-display-plinth {
+    background: linear-gradient(90deg, transparent 46%, #442f2177 47% 49%, #d1a56a66 50%, transparent 51%), url("../assets/market-sign-wood.svg") center / 164px 44px, #987448;
+  }
+  .market-display-plinth.is-wear {
+    background: repeating-linear-gradient(0deg, #dfd9b12e 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, #293e3144 0 1px, transparent 1px 3px), linear-gradient(#84947b, #536f58);
+    border-inline-color: #87643f;
+  }
+  .market-stall-base {
+    background: linear-gradient(#33271938, #33271938), url("../assets/market-sign-wood.svg") center / 328px 60px repeat-x, #694f33;
+    box-shadow: inset 0 1px #e1bc7b88, inset 0 -2px #38291e;
+  }
+  .market-stall-base span { text-shadow: 0 1px #392817; }
   .market-footer { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-top: 18px; padding-top: 14px; border-top: 1px solid #a5ad7130; font-size: 10px; }
   .market-footer > span { margin-right: auto; color: #8ea28a; }
   .market-footer button { border: 0; padding: 7px 0; background: transparent; color: #d7c28b; cursor: pointer; }
