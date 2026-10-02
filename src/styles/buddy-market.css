@@ -17,8 +17,10 @@
   .market-stand-sign::before { content: ""; position: absolute; top: -11px; left: 19px; width: 3px; height: 12px; background: #c4b185; box-shadow: 116px 0 #c4b185, 1px 0 #5a4830, 117px 0 #5a4830; }
   .market-stand-sign::after { content: ""; position: absolute; top: 6px; left: 5px; width: 3px; height: 3px; background: #e1bf77; box-shadow: 144px 0 #e1bf77, 0 22px #5a3e26, 144px 22px #5a3e26; }
   .buddy-market-stand:hover .market-stand-sign, .buddy-market-stand:focus-visible .market-stand-sign { opacity: 1; visibility: visible; transform: translateY(0) rotate(-1deg); }
-  .buddy-modal.is-market { width: min(940px, calc(100vw - 32px)); border-color: #667451; background: #10251f; box-shadow: 0 30px 100px #0009, inset 0 0 0 4px #ffffff03; }
-  .buddy-modal.is-market .buddy-modal-header { background: #10251f; border-bottom: 1px solid #a5ad7130; padding-bottom: 16px; }
+  .buddy-modal.is-market { width: min(940px, calc(100vw - 32px)); border: 8px solid #61482d; border-image: url("../assets/market-sign-wood.svg") 12 stretch; background: #10251f; box-shadow: 0 30px 100px #0009, 0 0 0 1px #c9a46a55; }
+  .buddy-modal.is-market::before { clip-path: none; }
+  .buddy-modal.is-market::after { background: none; filter: none; box-shadow: inset 0 0 0 1px #cfb77b66, inset 0 0 16px #0004; }
+  .buddy-modal.is-market .buddy-modal-header { background: #10251f; border-bottom: 1px solid #a5ad7130; padding-bottom: 16px; clip-path: none; box-shadow: 0 4px 14px #0003; }
   .buddy-modal.is-market .buddy-modal-actions { display: none; }
   .buddy-modal.is-market .buddy-modal-description { color: #adc0ad; }
   .buddy-modal.is-market .buddy-modal-kicker { color: #c7b882; }

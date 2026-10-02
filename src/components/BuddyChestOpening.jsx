@@ -64,7 +64,11 @@ function ChestReveal({ receipt, wallet, onClose, onAnother, opener, walletRef })
           <div className="chest-reveal-flying-coins">{[-1, 0, 1].map((side) => <span key={side} style={{ "--coin-x": `${side * 76}px`, "--coin-rotation": `${side * 32}deg` }}><PixelCoin /></span>)}</div>
           <div className="chest-reveal-prize"><PixelCoin /><strong>+{receipt.reward}</strong><span>GOLD {receipt.reward === 1 ? "COIN" : "COINS"}</span></div>
           <div className="chest-reveal-box"><TreasureChest /></div>
-          <span className="chest-reveal-floor" />
+          <div className="chest-reveal-table">
+            <i className="chest-table-leg is-left" /><i className="chest-table-leg is-right" />
+            <span className="chest-table-stretcher" />
+            <span className="chest-table-top" /><span className="chest-table-apron" />
+          </div>
         </div>
         <div className="chest-reveal-result" role="status" aria-live="polite">{revealed ? receipt.message : "Opening your token chest…"}</div>
         <div className="chest-reveal-balance"><PixelCoin /><span>{revealed ? <><b>{wallet.coins}</b> gold in your pouch</> : "Your reward is safely tucked away."}</span></div>

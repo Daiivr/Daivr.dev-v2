@@ -1,16 +1,24 @@
 @layer components {
   .chest-reveal-backdrop { position: fixed; inset: 0; z-index: 280; background: #020b09c9; backdrop-filter: blur(7px); }
-  .chest-reveal { position: fixed; z-index: 281; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 32px 28px 23px; border: 1px solid #b5a36a; background: radial-gradient(ellipse at 50% 45%, #5c613728, transparent 65%), repeating-linear-gradient(0deg, #ffffff02 0 1px, transparent 1px 4px), #0c211b; color: #e5e7cb; box-shadow: 0 25px 100px #000a, inset 0 0 0 5px #e2c58a08, 0 0 65px #c8a55215; text-align: center; font-family: var(--font-mono, monospace); animation: chest-panel-in .22s ease-out; }
+  .chest-reveal { position: fixed; z-index: 281; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 28px 24px 22px; border: 8px solid #61482d; border-image: url("../assets/market-sign-wood.svg") 12 stretch; background: radial-gradient(ellipse at 50% 45%, #6c754326, transparent 65%), linear-gradient(#0b201bf2, #0b201bf2), url("../assets/market-sign-wood.svg") center / 328px 88px repeat; color: #e5e7cb; box-shadow: 0 25px 100px #000a, inset 0 0 0 1px #cfb77b66, inset 0 0 40px #0006, 0 0 65px #c8a55215; text-align: center; font-family: var(--font-mono, monospace); animation: chest-panel-in .22s ease-out; }
   .chest-reveal-close { position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 30px; height: 30px; color: #b2c2a3; background: transparent; border: 1px solid #b5a36a35; cursor: pointer; }
   .chest-reveal-kicker { display: block; margin-top: 8px; color: #cbb97f; font-size: 9px; font-weight: 700; letter-spacing: 2.3px; }
   .chest-reveal-title { margin: 13px 0 9px; color: #fff1cd; font-size: clamp(18px, 4.5vw, 23px); font-weight: 800; line-height: 1.25; letter-spacing: -.7px; }
   .chest-reveal-description { margin: 0; color: #a4b69b; font-size: 11px; line-height: 1.6; }
-  .chest-reveal-stage { position: relative; height: 270px; overflow: hidden; isolation: isolate; }
-  .chest-reveal-box { position: absolute; z-index: 3; width: 190px; left: calc(50% - 95px); bottom: 5px; transform-origin: 50% 85%; }
-  .chest-reveal-chest { width: 100%; overflow: visible; image-rendering: pixelated; }
+  .chest-reveal-stage { position: relative; height: 300px; overflow: hidden; isolation: isolate; }
+  .chest-reveal-box { position: absolute; z-index: 3; width: 190px; left: calc(50% - 95px); bottom: 46px; transform-origin: 50% 85%; }
+  .chest-reveal-chest { display: block; width: 100%; overflow: visible; image-rendering: pixelated; }
   .chest-reveal-lid { transform-origin: 48px 37px; }
   .chest-reveal-seam { opacity: 0; }
-  .chest-reveal-floor { position: absolute; width: 220px; height: 1px; bottom: 23px; left: calc(50% - 110px); background: linear-gradient(90deg, transparent, #b6a26870, transparent); }
+  .chest-reveal-table { position: absolute; z-index: 2; bottom: 12px; left: 50%; translate: -50% 0; width: 260px; max-width: 94%; height: 52px; filter: drop-shadow(0 7px 5px #0006); }
+  .chest-table-top { position: absolute; inset: 0 0 auto; height: 20px; background: linear-gradient(#e9c38340, #52341b33), url("../assets/market-sign-wood.svg") center / cover; clip-path: polygon(5% 0, 95% 0, 100% 64%, 100% 100%, 0 100%, 0 64%); box-shadow: inset 0 2px #e1bd7b, inset 0 -5px #4a301e; }
+  .chest-table-apron { position: absolute; left: 6px; right: 6px; top: 19px; height: 12px; border: 1px solid #412c1d; background: linear-gradient(#36201555, #36201555), url("../assets/market-sign-wood.svg") center / cover; box-shadow: inset 0 1px #cda36799, 0 2px #1c1c1466; }
+  .chest-table-apron::before, .chest-table-apron::after { content: ""; position: absolute; top: 3px; width: 3px; height: 3px; background: #cfaf6b; box-shadow: 1px 1px #32251a; }
+  .chest-table-apron::before { left: 15px; } .chest-table-apron::after { right: 15px; }
+  .chest-table-leg { position: absolute; top: 20px; bottom: 0; width: 17px; background: url("../assets/market-post-wood.svg") center / 20px 180px; border: 2px solid #3d2b1d; box-shadow: inset 2px 0 #cc9c5c77, 2px 2px #0004; }
+  .chest-table-leg.is-left { left: 18px; } .chest-table-leg.is-right { right: 18px; }
+  .chest-table-stretcher { position: absolute; bottom: 8px; left: 34px; right: 34px; height: 7px; background: url("../assets/market-sign-wood.svg") center / 240px 44px; border-block: 1px solid #422c1e; }
+
   .chest-reveal-halo { position: absolute; inset: 20px 0 0; opacity: 0; background: radial-gradient(ellipse, #ffe3a445, #e6c37310 45%, transparent 70%); }
   .chest-reveal-rays { position: absolute; z-index: -1; width: 260px; height: 260px; left: calc(50% - 130px); top: 0; opacity: 0; background: repeating-conic-gradient(from 10deg, transparent 0deg 23deg, #ffe4a61a 23deg 30deg); mask-image: radial-gradient(circle, #000, transparent 69%); }
   .chest-reveal-sparks, .chest-reveal-flying-coins { position: absolute; z-index: 4; left: 50%; top: 66%; }
@@ -25,12 +33,14 @@
   .chest-reveal-result { min-height: 18px; color: #efdcaa; font-size: 12px; font-weight: 700; }
   .chest-reveal-balance { display: flex; justify-content: center; align-items: center; gap: 7px; margin: 12px 0 20px; color: #a9b798; font-size: 11px; }
   .chest-reveal-balance svg, .chest-reveal-balance b { color: #e4c889; }
-  .chest-reveal-actions { display: grid; gap: 9px; min-height: 91px; align-content: center; }
-  .chest-reveal-actions button { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 40px; padding: 10px 14px; border: 1px solid #b5a36a50; color: #d6c493; background: #e2c58a06; font-size: 11px; cursor: pointer; }
-  .chest-reveal-actions .chest-reveal-primary { background: #e9d39c; color: #233d2c; border-color: #fff0c1; font-weight: 800; }
-  .chest-reveal-actions button:hover { filter: brightness(1.12); }
+  .chest-reveal-actions { display: grid; gap: 12px; min-height: 100px; align-content: center; }
+  .chest-reveal-actions button { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 44px; padding: 11px 16px; border: 2px solid #89643c; color: #f6dfaa; background: linear-gradient(#2c211872, #2c211872), url("../assets/market-sign-wood.svg") center / cover; box-shadow: inset 0 1px #eac58a55, inset 0 -2px #251b1477, 0 3px #21190f; text-shadow: 0 1px 1px #20170f; font-size: 11px; cursor: pointer; transition: filter .15s ease, translate .15s ease, box-shadow .15s ease; }
+  .chest-reveal-actions .chest-reveal-primary { background: linear-gradient(#e8b86d19, #51311922), url("../assets/market-sign-wood.svg") center / cover; color: #fff0c9; border-color: #d1ac6a; box-shadow: inset 0 0 0 1px #f4dba357, inset 0 2px #ffe4ae55, inset 0 -3px #4c321d88, 0 4px #352417, 0 5px #b5925155; font-weight: 800; }
+  .chest-reveal-actions button:hover { filter: brightness(1.13); translate: 0 -1px; }
+  .chest-reveal-actions button:active { translate: 0 2px; box-shadow: inset 0 2px 3px #27180f66, 0 1px #352417; }
   .chest-reveal button:focus-visible { outline: 2px solid #fff0c1; outline-offset: 3px; }
   .chest-reveal-actions button span { font-size: 10px; }
+  .chest-reveal-primary > span { display: grid; place-items: center; width: 24px; height: 24px; margin: -3px 0; background: #33251e66; border: 1px solid #e6c38166; box-shadow: inset 0 1px 2px #0006; color: #ffdfa0; font-size: 14px; }
   .chest-reveal-actions p { margin: 6px 0; color: #92a58a; font-size: 10px; }
   .chest-reveal-note { display: block; margin-top: 12px; color: #809479; font-size: 9px; line-height: 1.5; }
   .chest-reveal.is-opening .chest-reveal-box { animation: chest-rattle 1.15s ease-in-out both; }
@@ -42,8 +52,8 @@
   .chest-reveal.is-revealed .chest-reveal-lid { transform: translateY(-10px) rotate(-9deg) scaleY(.65); }
   .chest-reveal.is-revealed .chest-reveal-halo, .chest-reveal.is-revealed .chest-reveal-rays, .chest-reveal.is-revealed .chest-reveal-seam { opacity: 1; }
   .chest-reveal.is-revealed .chest-reveal-prize { opacity: 1; transform: none; animation: chest-prize-arrive .35s ease-out; }
-  @media (max-width: 480px) { .chest-reveal { padding: 28px 20px 18px; } .chest-reveal-stage { height: 245px; } .chest-reveal-box { width: 164px; left: calc(50% - 82px); } }
-  @media (max-height: 680px) { .chest-reveal-stage { height: 215px; } .chest-reveal { padding-top: 22px; } .chest-reveal-box { width: 150px; left: calc(50% - 75px); } .chest-reveal-prize strong { font-size: 34px; } .chest-reveal-prize > svg { width: 28px; height: 31px; } }
+  @media (max-width: 480px) { .chest-reveal { padding: 28px 20px 18px; } .chest-reveal-stage { height: 275px; } .chest-reveal-box { width: 164px; left: calc(50% - 82px); } }
+  @media (max-height: 680px) { .chest-reveal-stage { height: 250px; } .chest-reveal { padding-top: 22px; } .chest-reveal-box { width: 150px; left: calc(50% - 75px); } .chest-reveal-prize strong { font-size: 34px; } .chest-reveal-prize > svg { width: 28px; height: 31px; } }
   @media (prefers-reduced-motion: reduce) { .chest-reveal, .chest-reveal * { animation: none !important; transition: none !important; } }
 }
 @keyframes chest-panel-in { from { opacity: 0; translate: 0 6px; } to { opacity: 1; translate: 0 0; } }
