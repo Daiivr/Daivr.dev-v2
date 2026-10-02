@@ -1,9 +1,5 @@
-/* Entry gate ----------------------------------------------------------------
-   The welcome screen is one idea now: a host standing in front of a shut
-   cabinet gate. They greet you, they finish talking, the gate opens. Nothing
-   else shares the frame — no status card, no boot log, no progress dashboard.
-   Only the signal strip and the launch control at the bottom, which are the
-   two things a visitor can actually act on. */
+/* Entry gate: a playable title screen in front of the textured cabinet doors.
+   The introduction and entrance control sit beside the greeting host. */
 
 .entry-gate {
   --gate-line: color-mix(in srgb, var(--color-phosphor) 46%, transparent);
@@ -113,18 +109,41 @@
   mask-image: linear-gradient(#000, transparent 84%);
 }
 
-/* Light spills from the hanging fixture, with a soft falloff rather than a
-   hard trapezoid extending from outside the screen. */
+/* A small glow at the bulb, with the directional spill painted over the doors. */
 .entry-gate-halo {
   left: var(--gate-lamp-x);
   top: calc(var(--gate-lamp-drop) + 54px);
-  width: min(84vw, 64rem);
-  height: 90%;
-  background: radial-gradient(ellipse 48% 80% at 50% 0%, rgba(174, 245, 175, .19), rgba(105, 225, 152, .06) 48%, transparent 76%);
+  width: 160px;
+  height: 140px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(174, 245, 175, .19), transparent 72%);
   filter: blur(16px);
   opacity: 1;
   transform: translateX(-50%);
 }
+
+/* The shade casts a soft cone beneath the fixture. The wider left edge reaches
+   the host; the right edge falls away before the introduction and controls. */
+.entry-gate-room-light {
+  position: absolute;
+  left: calc(var(--gate-lamp-x) - 42vw);
+  top: calc(var(--gate-lamp-drop) + 54px);
+  bottom: 54px;
+  width: 64vw;
+  z-index: 2;
+  pointer-events: none;
+  filter: blur(14px);
+  mix-blend-mode: screen;
+  transition: opacity 220ms ease;
+}
+.entry-gate-room-light::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  clip-path: polygon(calc(65.625% - 48px) 0, calc(65.625% + 48px) 0, 100% 100%, 0 100%);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--color-phosphor-soft) 16%, transparent), color-mix(in srgb, var(--color-phosphor-soft) 7%, transparent) 48%, transparent 100%);
+}
+.entry-gate.is-lamp-off .entry-gate-room-light { opacity: 0; }
+.entry-gate.is-opening .entry-gate-room-light { animation: entry-gate-host-vanish 240ms ease-in forwards; }
 
 .entry-gate-halo,
 .entry-gate-floor,
@@ -134,8 +153,11 @@
 .entry-gate.is-lamp-off .entry-gate-floor,
 .entry-gate.is-lamp-off .entry-gate-motes { opacity: 0; }
 
-.entry-gate.is-lamp-off .entry-gate-doors { filter: brightness(.68); }
-.entry-gate.is-lamp-off .entry-gate-buddy-sprite { filter: brightness(.6); }
+/* Use the transparent canvas silhouette so the wall shadow follows the actual
+   hair, ears, and waving hand without another model or render pass. */
+.entry-gate.is-lamp-on .entry-avatar-scene canvas {
+  filter: saturate(.94) contrast(1.03) drop-shadow(clamp(-54px, -2.8vw, -24px) 22px 7px #0009);
+}
 .entry-gate.is-lamp-off .entry-avatar-scene canvas { filter: saturate(.85) brightness(.7); }
 
 /* The fixture hangs independently of the moving panels. Only the chain is
@@ -270,9 +292,9 @@
 /* Pool of light where the cone lands, right where her legs meet the rail, plus
    the lit edge of the floor itself. */
 .entry-gate-floor {
-  left: 50%;
+  left: calc(var(--gate-lamp-x) - 10vw);
   bottom: 0;
-  width: min(68vw, 52rem);
+  width: 54vw;
   height: 24%;
   background: radial-gradient(ellipse 42% 66% at 50% 100%, color-mix(in srgb, var(--color-phosphor) 20%, transparent), transparent 72%);
   filter: blur(8px);
@@ -860,7 +882,7 @@
 /* HUD: paint the opaque bar on the first frame, with no entrance fade or
    offset that could expose the page below. Gate artwork stays clipped above
    it; overflow remains visible for Buddy's perch and launch. */
-.entry-gate-hud {
+.entry-gate {
   --hud-base: color-mix(in srgb, var(--color-phosphor) 5%, #090e0c);
   --hud-ink: color-mix(in srgb, var(--color-phosphor) 10%, #07100c);
   --hud-light: color-mix(in srgb, var(--color-phosphor-soft) 82%, #fff);
@@ -869,6 +891,9 @@
   --hud-wash: color-mix(in srgb, var(--color-phosphor) 6%, transparent);
   --hud-button: color-mix(in srgb, var(--color-phosphor) 48%, var(--color-phosphor-soft));
   --hud-button-line: color-mix(in srgb, var(--color-phosphor) 20%, #17231bcc);
+}
+
+.entry-gate-hud {
   position: relative;
   z-index: 5;
   isolation: isolate;
@@ -1421,4 +1446,159 @@
 
   .entry-gate-seam::after { transition: none; }
   .entry-gate.is-host-waiting .entry-gate-speech { transition: none; }
+}
+/* Title-screen composition: introduction and launch control share one focal
+   point; the host owns the other half. Door and host animations stay intact. */
+.entry-gate {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  --host-h: min(49rem, calc(100dvh - 7rem));
+  --gate-lamp-x: 34%;
+  --gate-panel-inset: clamp(20px, 4vh, 44px) clamp(18px, 2vw, 40px) clamp(72px, 10vh, 104px);
+}
+.entry-gate-topbar {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  width: 100%;
+  max-width: 1680px;
+  margin-inline: auto;
+  padding: calc(clamp(24px, 6vh, 64px) + 14px) clamp(28px, 6vw, 112px) 14px;
+}
+.entry-gate-sky,
+.entry-gate-doors,
+.entry-gate .entry-splash-season { grid-row: 1 / -1; }
+.entry-gate-topbar .entry-gate-brand { grid-column: 2; grid-row: 1; padding-left: clamp(28px, 4vw, 70px); }
+.entry-gate-nameplate {
+  position: relative;
+  padding: 0;
+  --engraving-ink: color-mix(in srgb, var(--color-phosphor-soft) 46%, #1b2924);
+  --engraving-edge: color-mix(in srgb, var(--color-phosphor-soft) 42%, transparent);
+}
+.entry-gate-brand .entry-gate-nameplate strong { display: flex; align-items: baseline; gap: 2px; color: var(--engraving-ink); font-size: 32px; line-height: 1; letter-spacing: .06em; text-shadow: 0 -1px 1px #000, 0 1px 0 var(--engraving-edge); }
+.entry-gate-nameplate strong > b { color: inherit; font-size: 24px; letter-spacing: .03em; }
+.entry-gate-brand .entry-gate-nameplate > span { max-width: none; margin-top: 8px; color: var(--engraving-ink); font-size: 8px; letter-spacing: .19em; text-shadow: 0 -1px 1px #000, 0 1px 0 var(--engraving-edge); }
+.entry-gate-edition { display: flex; align-items: center; gap: 12px; grid-column: 2; grid-row: 1; justify-self: end; color: var(--hud-muted); font: 10px var(--font-mono); letter-spacing: .15em; }
+.entry-gate-edition i { width: 4px; height: 4px; background: var(--color-phosphor); box-shadow: 0 0 8px var(--color-phosphor); }
+.entry-gate-scene {
+  grid-row: 2;
+  width: 100%;
+  max-width: 1680px;
+  margin-inline: auto;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: minmax(0, 1fr);
+  align-content: stretch;
+  align-items: center;
+  padding: 0 clamp(28px, 6vw, 112px);
+}
+.entry-gate-intro { position: relative; z-index: 3; grid-column: 2; grid-row: 1; justify-self: start; padding: 0 0 4vh clamp(28px, 4vw, 70px); }
+.entry-gate-eyebrow { display: flex; align-items: center; gap: 14px; margin: 0 0 26px; color: var(--color-cyan-arcade); font: 700 10px var(--font-mono); letter-spacing: .18em; }
+.entry-gate-eyebrow > span { color: var(--hud-muted); }
+.entry-gate-title {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip-path: none;
+  white-space: normal;
+  margin: 0;
+  color: var(--hud-light);
+  font: 900 clamp(38px, 4.5vw, 76px)/1.13 var(--font-display);
+  letter-spacing: -.045em;
+  text-shadow: 0 3px #0008;
+}
+.entry-gate-title > span { color: var(--color-phosphor); text-shadow: 0 0 36px var(--hud-line), 3px 4px #0009; }
+.entry-gate-description { margin: 25px 0 0; color: var(--hud-muted); font: 13px/1.9 var(--font-mono); max-width: 430px; }
+.entry-gate-categories { display: flex; align-items: center; gap: 14px; margin-top: 24px; color: var(--color-cyan-arcade); font: 9px var(--font-mono); letter-spacing: .18em; }
+.entry-gate-categories i { width: 3px; height: 3px; background: var(--hud-muted); opacity: .6; }
+.entry-gate-actions { position: relative; width: fit-content; margin-top: 42px; }
+.entry-gate-actions .entry-gate-enter { grid-area: auto; min-width: 290px; min-height: 78px; padding: 18px 22px; gap: 30px; }
+.entry-gate-actions .entry-gate-enter strong { font-size: 16px; }
+.entry-gate-actions .entry-gate-enter small { margin-top: 6px; font-size: 9px; }
+.entry-gate-actions .entry-gate-enter svg { width: 38px; height: 38px; }
+.entry-gate-host { position: absolute; left: calc(19.5vw - max(0px, (100vw - 1680px) / 2)); bottom: 0; max-width: 100%; height: min(100%, var(--host-h)); max-height: var(--host-h); translate: -50% 0; }
+.entry-gate.is-immersive .entry-gate-host { scale: 1.06; transform-origin: center bottom; }
+.entry-gate-speech { left: calc(25vw - max(0px, (100vw - 1680px) / 2)); right: auto; top: 18%; bottom: auto; width: clamp(200px, 19vw, 260px); translate: none; }
+.entry-gate-speech::after { left: -6px; right: auto; bottom: 20px; border-left: 1px solid var(--gate-line); border-bottom: 1px solid var(--gate-line); border-top: 0; border-right: 0; transform: rotate(45deg); }
+.entry-gate-hud { grid-template-columns: minmax(0, 320px) auto; grid-template-areas: none; justify-content: space-between; min-height: 54px; padding: 12px clamp(28px, 6vw, 112px); gap: 24px; }
+.entry-gate-hud .entry-gate-signal { grid-area: auto; }
+.entry-gate-signal.is-open .entry-gate-signal-heading { justify-content: start; gap: 16px; }
+.entry-gate-signal.is-open .entry-gate-signal-heading > span { color: var(--color-phosphor); }
+.entry-gate-signal.is-open .entry-gate-signal-heading > small { display: none; }
+.entry-gate-footer-note { color: var(--hud-muted); font: 10px var(--font-mono); letter-spacing: .06em; text-align: right; }
+.entry-gate-patina .gate-paint-tag { opacity: .12; }
+.entry-gate-patina.is-left .gate-paint-tag { top: 58%; left: 56%; width: 28%; }
+.entry-gate .splash-season-notice { top: 90px; right: 24px; }
+.entry-gate.is-opening .entry-gate-intro,
+.entry-gate.is-opening .entry-gate-topbar { animation: entry-gate-lift-out 220ms ease-in forwards; }
+
+@media (max-width: 1500px) { .entry-gate-edition { display: none; } }
+@media (min-width: 801px) { .entry-gate-hud .splash-buddy { display: block; } }
+
+@media (min-width: 801px) and (max-height: 650px) {
+  .entry-gate-topbar { padding-top: calc(clamp(24px, 6vh, 64px) + 10px); padding-bottom: 10px; }
+  .entry-gate-title { font-size: clamp(34px, 4.3vw, 58px); }
+  .entry-gate-eyebrow { margin-bottom: 14px; }
+  .entry-gate-description { margin-top: 16px; }
+  .entry-gate-categories { margin-top: 14px; }
+  .entry-gate-actions { margin-top: 25px; }
+  .entry-gate-intro { padding-bottom: 0; }
+  .entry-gate-speech { top: 12%; }
+}
+
+@media (max-width: 800px) {
+  .entry-gate { --gate-panel-inset: 18px 16px 90px; --gate-lamp-x: calc(100% - 54px); }
+  .entry-gate-topbar { padding: 18px 24px; }
+  .entry-gate-topbar .entry-gate-brand { grid-column: 1 / -1; padding-left: 0; }
+  .entry-gate-nameplate { padding: 8px 4px; }
+  .entry-gate-brand .entry-gate-nameplate strong { font-size: 24px; }
+  .entry-gate-nameplate strong > b { font-size: 18px; }
+  .entry-gate-brand .entry-gate-nameplate > span { font-size: 7px; }
+  .entry-gate-topbar .entry-gate-brand-mark { display: block; width: 32px; height: 32px; }
+  .entry-gate-topbar .entry-gate-brand span { max-width: none; }
+  .entry-gate-edition { display: none; }
+  .entry-gate-scene { display: flex; flex-direction: column; justify-content: center; gap: 12px; padding: 12px 24px 24px; overflow-y: auto; }
+  .entry-gate-intro { display: contents; }
+  .entry-gate-intro-copy { order: 1; text-align: center; flex: none; }
+  .entry-gate-eyebrow { justify-content: center; margin-bottom: 14px; font-size: 8px; }
+  .entry-gate-title { font-size: clamp(32px, 6.5vw, 48px); line-height: 1.12; }
+  .entry-gate-description { font-size: 11px; line-height: 1.7; margin-top: 16px; max-width: 350px; }
+  .entry-gate-desktop-break { display: none; }
+  .entry-gate-categories { justify-content: center; margin-top: 16px; font-size: 8px; }
+  .entry-gate-host { position: relative; left: auto; bottom: auto; order: 2; align-self: center; width: 172px; height: clamp(110px, 19dvh, 165px); flex: none; translate: none; }
+  .entry-gate-buddy { min-height: 0; grid-template-rows: minmax(0, 1fr); }
+  .entry-gate-buddy-sprite { height: 100%; max-height: 100%; width: auto; }
+  .entry-gate-speech { order: 3; position: relative; inset: auto; translate: none; width: min(100%, 350px); flex: none; }
+  .entry-gate-speech::after { top: -6px; bottom: auto; left: calc(50% - 6px); right: auto; border: 0; border-top: 1px solid var(--gate-line); border-left: 1px solid var(--gate-line); }
+  .entry-gate-bubble { font-size: 12px; padding: 12px 16px 16px; }
+  .entry-gate-actions { order: 4; margin-top: 8px; flex: none; width: min(100%, 350px); }
+  .entry-gate-actions .entry-gate-enter { width: 100%; min-width: 0; min-height: 68px; padding: 14px 20px; }
+  .entry-gate-actions .entry-gate-enter strong { font-size: 14px; }
+  .entry-gate-hud { grid-template-columns: minmax(0, 1fr) auto; padding: 12px 20px; min-height: 46px; gap: 12px; }
+  .entry-gate-footer-note { font-size: 8px; max-width: 120px; }
+  .entry-gate-signal span { font-size: 8px; }
+  .entry-gate .splash-season-notice { top: 0; right: 0; }
+  .entry-gate:has(.splash-season-notice) .entry-gate-topbar { padding-top: 44px; }
+  .entry-gate.is-opening .entry-gate-intro-copy,
+  .entry-gate.is-opening .entry-gate-actions { animation: entry-gate-lift-out 220ms ease-in forwards; }
+}
+@media (max-width: 800px) and (max-height: 700px) {
+  .entry-gate-scene { justify-content: flex-start; gap: 8px; }
+  .entry-gate-eyebrow, .entry-gate-categories { display: none; }
+  .entry-gate-title { font-size: 30px; }
+  .entry-gate-description { margin-top: 10px; }
+  .entry-gate-host { height: 100px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .entry-gate-room-light,
+  .entry-gate-intro-copy,
+  .entry-gate-actions,
+  .entry-gate-topbar,
+  .entry-gate-hud,
+  .entry-gate-speech { transition: none; }
+  .entry-gate.is-opening .entry-gate-intro,
+  .entry-gate.is-opening .entry-gate-intro-copy,
+  .entry-gate.is-opening .entry-gate-actions,
+  .entry-gate.is-opening .entry-gate-topbar { animation: none; }
 }

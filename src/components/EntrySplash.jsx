@@ -322,7 +322,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
       : "linking host signal"
     : hostStage === "error" && !compact
       ? "host offline // gate still open"
-      : "channel open";
+      : "system ready";
 
   const buttonLabel = gateReady ? "open the gate" : "warming up";
   const buttonHint = !gateReady
@@ -353,6 +353,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
         <i className="entry-gate-seam" />
       </div>
 
+      <div className="entry-gate-room-light" aria-hidden="true" />
       <GateLamp on={lampOn} onToggle={() => setLampOn((value) => !value)} disabled={opening} reducedMotion={reducedMotion} />
 
       {seasonalEvent === "winter" || seasonalEvent === "halloween" ? (
@@ -394,13 +395,42 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
 
       {seasonalEvent ? <SeasonalSplashNotice event={seasonalEvent} /> : null}
 
-      <span className="entry-gate-marquee" aria-hidden="true">DAI.EXE</span>
+      <header className="entry-gate-topbar">
+        <div className="entry-gate-brand">
+          <div className="entry-gate-nameplate">
+            <strong>DAI<b>.EXE</b></strong>
+            <span>INTERACTIVE PORTFOLIO</span>
+          </div>
+        </div>
 
-      <h1 className="entry-gate-title" id="entry-gate-title">
-        {`Dai.exe — ${visitorName === "guest" ? "welcome" : `welcome back, ${visitorName}`}. The host greets you before the gate opens.`}
-      </h1>
+        <span className="entry-gate-edition">PERSONAL ARCADE <i aria-hidden="true" /> PLAYER ONE</span>
+      </header>
 
       <div className="entry-gate-scene">
+        <section className="entry-gate-intro" aria-labelledby="entry-gate-title">
+          <div className="entry-gate-intro-copy">
+            <p className="entry-gate-eyebrow"><span aria-hidden="true">01 /</span> WELCOME TO MY WORLD</p>
+            <h1 className="entry-gate-title" id="entry-gate-title">A little code.<br />A lot of <span>play.</span></h1>
+            <p className="entry-gate-description">Step into Dai’s arcade. Projects, experiments,<br className="entry-gate-desktop-break" /> and a few distractions worth discovering.</p>
+            <div className="entry-gate-categories" aria-label="Inside the portfolio"><span>BUILD</span><i aria-hidden="true" /><span>EXPLORE</span><i aria-hidden="true" /><span>PLAY</span></div>
+          </div>
+          <div className="entry-gate-actions">
+            <button
+              className="entry-gate-enter"
+              type="button"
+              onClick={requestEnter}
+              disabled={!canEnter}
+              aria-label={canEnter ? "Open the gate and enter the Dai.exe portfolio" : "The host is still arriving"}
+            >
+              <span>
+                <strong>{opening ? "opening..." : buttonLabel}</strong>
+                <small>{gateReady && !opening ? <><kbd>Enter</kbd><span>to step inside</span></> : buttonHint}</small>
+              </span>
+              <ArrowRight aria-hidden="true" size={20} />
+            </button>
+
+          </div>
+        </section>
         <div className={`entry-gate-host ${hostPresent ? "is-present" : ""}`} ref={hostRef}>
           {compact ? (
             <div className={`entry-gate-buddy ${buddyAwake ? "is-awake" : ""}`}>
@@ -456,36 +486,14 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
       </div>
 
       <footer className="entry-gate-hud">
-        <div className="entry-gate-brand">
-          <svg className="entry-gate-brand-mark" viewBox="0 0 32 32" aria-hidden="true" shapeRendering="crispEdges">
-            <path d="M7 5h18v23H7z" fill="none" stroke="currentColor" strokeWidth="2" />
-            <path d="M12 10h8v18h-8z" fill="currentColor" opacity=".2" />
-            <path d="M15 12h2v12h-2M4 28h24v2H4zM20 18h2v2h-2z" fill="currentColor" />
-          </svg>
-          <div><strong>DAI.EXE</strong><span>interactive portfolio</span></div>
-        </div>
-
         <div className={`entry-gate-signal ${streaming ? "is-streaming" : "is-open"}`}>
           <div className="entry-gate-signal-heading"><span><i aria-hidden="true" />{signalCopy}</span><small>{streaming ? `${signalProgress}%` : "READY"}</small></div>
-          <i className="entry-gate-signal-meter" role="progressbar" aria-label="Host loading progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={streaming && signalProgress === 0 ? undefined : signalProgress} aria-valuetext={streaming ? `${signalCopy}, ${signalProgress}%` : signalCopy}>
+          {streaming ? <i className="entry-gate-signal-meter" role="progressbar" aria-label="Host loading progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={streaming && signalProgress === 0 ? undefined : signalProgress} aria-valuetext={streaming ? `${signalCopy}, ${signalProgress}%` : signalCopy}>
             <b style={{ width: `${signalProgress}%` }} />
-          </i>
+          </i> : null}
         </div>
 
-        <button
-          className="entry-gate-enter"
-          type="button"
-          onClick={requestEnter}
-          disabled={!canEnter}
-          aria-label={canEnter ? "Open the gate and enter the Dai.exe portfolio" : "The host is still arriving"}
-        >
-          <span>
-            <strong>{opening ? "opening..." : buttonLabel}</strong>
-            <small>{gateReady && !opening ? <><kbd>Enter</kbd><span>to step inside</span></> : buttonHint}</small>
-          </span>
-          <ArrowRight aria-hidden="true" size={20} />
-        </button>
-
+        <span className="entry-gate-footer-note">A little code. A little chaos.</span>
         <div className={`splash-buddy ${opening ? "is-launched" : ""}`} aria-hidden="true" ref={perchRef}>
           <BuddySprite
             className="splash-buddy-sprite"
