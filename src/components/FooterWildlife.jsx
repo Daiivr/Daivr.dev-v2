@@ -3,7 +3,6 @@ import { PixelFrog } from "./PixelFrog";
 import { PixelLeapFish } from "./PixelLeapFish";
 import { fishArc, fishContact, fishRebound, reboundPoint } from "../../shared/footer-fish-motion.mjs";
 
-const FISH_COLORS = ["#45d8ff", "#3fff97", "#ffd166", "#ff3d9d", "#a78bfa"];
 const FISH_SPECIES = ["byte-minnow", "cache-carp", "pixel-perch", "syntax-salmon", "neon-tetra"];
 
 function randomBetween(min, max) {
@@ -75,7 +74,6 @@ export function FooterWildlife() {
         height: randomBetween(61, 85),
         species: FISH_SPECIES[Math.floor(Math.random() * FISH_SPECIES.length)],
         duration: randomBetween(1.35, 1.75),
-        color: FISH_COLORS[Math.floor(Math.random() * FISH_COLORS.length)],
         facing: direction
       };
       activeFishRef.current = id;
@@ -205,7 +203,7 @@ export function FooterWildlife() {
           }}
         >
           <span className="footer-fish-splash is-launch"><i /><b /><b /><b /></span>
-          <span className="footer-fish-flight"><PixelLeapFish color={item.color} species={item.species} /></span>
+          <span className="footer-fish-flight"><PixelLeapFish species={item.species} /></span>
           <span className="footer-fish-impact"><i /><i /><i /><i /></span>
           <span className="footer-fish-splash is-land"><i /><b /><b /><b /></span>
         </span>

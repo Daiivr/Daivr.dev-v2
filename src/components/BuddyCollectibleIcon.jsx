@@ -1,4 +1,9 @@
 import { BuddyMarketArt } from "./BuddyMarketArt";
+import { BuddyFishArt, hasFishArt } from "./BuddyFishArt";
+import { BuddyRelicDetails } from "./BuddyRelicDetails";
+import { FISH_CATALOG } from "../../shared/buddy-catches.mjs";
+
+const speciesColors = Object.fromEntries(FISH_CATALOG.map(({ id, color }) => [id, color]));
 function FishBody({ color, accent = "#f4fff8", tail = "normal", long = false }) {
   return (
     <g shapeRendering="crispEdges">
@@ -19,7 +24,7 @@ function FishBody({ color, accent = "#f4fff8", tail = "normal", long = false }) 
   );
 }
 
-export function BuddyCollectibleIcon({ id, color = "#45d8ff", unknown = false, className = "", ...svgProps }) {
+export function BuddyCollectibleIcon({ id, color = speciesColors[id] || "#45d8ff", unknown = false, className = "", ...svgProps }) {
   if (unknown) {
     return (
       <svg className={`buddy-collectible-icon is-unknown ${className}`} viewBox="0 0 56 42" aria-hidden="true">
@@ -30,29 +35,11 @@ export function BuddyCollectibleIcon({ id, color = "#45d8ff", unknown = false, c
   }
 
   let artwork;
-  switch (id) {
+  if (hasFishArt(id)) artwork = <BuddyFishArt id={id} color={color} />;
+  else switch (id) {
     case "market-terrarium":
     case "market-moon":
     case "market-arcade": artwork = <g transform="translate(9 1) scale(1.6)"><BuddyMarketArt id={id} /></g>; break;
-    case "byte-minnow": artwork = <><FishBody color={color} /><rect x="18" y="21" width="4" height="3" fill="#020604" /><rect x="25" y="21" width="4" height="3" fill="#020604" /></>; break;
-    case "cache-carp": artwork = <><FishBody color={color} accent="#b8f7ff" /><rect x="15" y="17" width="5" height="5" fill="#159c65" /><rect x="27" y="22" width="5" height="5" fill="#159c65" /></>; break;
-    case "pixel-perch": artwork = <><FishBody color={color} accent="#ff8c69" /><path d="M18 12h4V7h4v5h4V7h4v5" fill="#ff8c69" /></>; break;
-    case "buffer-bass": artwork = <><FishBody color={color} accent="#45d8ff" long /><rect x="16" y="17" width="6" height="3" fill="#071b1c" /><rect x="24" y="17" width="12" height="3" fill="#f4fff8" /><rect x="16" y="23" width="18" height="3" fill="#246c8d" /></>; break;
-    case "cursor-guppy": artwork = <><FishBody color={color} accent="#45d8ff" /><rect x="20" y="16" width="3" height="11" fill="#020604" /><rect x="23" y="24" width="7" height="3" fill="#020604" /></>; break;
-    case "ping-sardine": artwork = <><FishBody color={color} accent="#b8f7ff" long /><path d="M13 9c7-6 17-6 24 0M16 6c5-4 12-4 17 0" fill="none" stroke="#45d8ff" strokeWidth="2" /></>; break;
-    case "syntax-salmon": artwork = <><FishBody color={color} accent="#ffd166" long /><path d="M18 19h4v4h4v-4h4v4h4v-4" fill="none" stroke="#ffd166" strokeWidth="2" /></>; break;
-    case "neon-tetra": artwork = <><FishBody color={color} accent="#45d8ff" /><rect x="15" y="20" width="25" height="3" fill="#45d8ff" /><rect x="23" y="25" width="13" height="2" fill="#f4fff8" /></>; break;
-    case "circuit-catfish": artwork = <><FishBody color={color} accent="#ffd166" long /><path d="M43 23h9v-5m-9 8h11v5M19 16h4v4h5v5h5" fill="none" stroke="#b8f7ff" strokeWidth="2" /></>; break;
-    case "cobalt-cod": artwork = <><FishBody color={color} accent="#67e8f9" /><rect x="18" y="12" width="4" height="18" fill="#172554" /><rect x="28" y="12" width="4" height="18" fill="#172554" /><rect x="38" y="15" width="3" height="12" fill="#172554" /></>; break;
-    case "packet-puffer": artwork = <g shapeRendering="crispEdges"><path d="M11 16H6v-4H2v17h4v-4h5M14 10h6V6h18v4h7v7h5v12h-5v6h-7v3H20v-3h-6v-6H9V17h5z" fill={color} /><path d="M16 26h5v5h21v-4h5v7h-8v4H21v-3h-5z" fill="#c48635" /><path d="M18 12h5V9h14v4H23v4h-8v-3h3z" fill="#fff3b0" /><path d="M18 7V2h3v5m12-1V1h3v6m10 8h6v3h-6M17 34v6h3v-5m17 0v6h3v-7" fill="#f78c61" /><path d="M20 20h3v3h-3m7-7h3v3h-3m0 11h3v3h-3m6-4h3v3h-3" fill="#b8782c" /><path className="buddy-fish-fin" d="M28 25h8v3h-4v4h-4z" fill="#ffe99a" /><rect x="39" y="16" width="7" height="7" fill="#fff9d8" /><rect x="43" y="18" width="3" height="4" fill="#18262b" /><path d="M47 25h4v2h-4" fill="#18262b" /></g>; break;
-    case "void-eel": artwork = <><path d="M3 26h4v-8h9v3h6v7h6v-5h5v-9h13v3h6v10h-9v-3h-3v7h-7v5H20v-6h-8v-4H8v8H3z" fill={color} /><path d="M8 19h7v3h7v7h6v-5h6v-8h11" fill="none" stroke="#eadbff" strokeWidth="2" /><path d="M12 25h5v3h-5m10 6h7v-2m7-9h4" stroke="#43306f" strokeWidth="2" /><rect x="45" y="18" width="5" height="5" fill="#fff" /><rect x="48" y="19" width="2" height="3" fill="#ff3d9d" /></>; break;
-    case "glitch-koi": artwork = <><FishBody color={color} accent="#45d8ff" /><rect x="17" y="14" width="7" height="7" fill="#f4fff8" /><rect x="28" y="22" width="8" height="6" fill="#45d8ff" /><rect x="5" y="8" width="9" height="3" fill="#ff3d9d" opacity=".65" /></>; break;
-    case "recursion-ray": artwork = <g shapeRendering="crispEdges"><path d="M9 23H3v-3h14v-5h5V9h6V3h4v8h8v4h7v4h5v7h-5v4h-7v4h-8v5h-4v-6h-6v-5h-5v-5z" fill={color} /><path d="M24 15h6V9h2v6h7v4h6v6h-6v4h-7v5h-2v-6h-6v-5h-6v-4h6z" fill="#167a9f" /><path d="M29 18h7v3h5v3h-5v4h-7v-4h-5v-3h5z" fill="#b8f7ff" /><path d="M2 20h12v2H5v4H1" fill="#b8f7ff" /><rect x="41" y="17" width="3" height="3" fill="#061b30" /><rect x="41" y="26" width="3" height="3" fill="#061b30" /><path d="M46 21h5v2h-5" fill="#061b30" /></g>; break;
-    case "firewall-fangfish": artwork = <><FishBody color={color} accent="#ffd166" /><path d="m40 22 5-5v10zm-7 0 4-4v8z" fill="#f4fff8" /><path d="M14 12V6m7 6V4m7 8V6" stroke="#ff8c69" strokeWidth="3" /></>; break;
-    case "prism-piranha": artwork = <><FishBody color={color} accent="#f4fff8" /><path d="m17 13 6 8-6 8-6-8zm12 0 6 8-6 8-6-8z" fill="#45d8ff" /><path d="m35 14 6 7-6 7" fill="#ffd166" /></>; break;
-    case "starfin": artwork = <><FishBody color={color} accent="#f4fff8" tail="star" /><path d="m28 8 2 5 5 1-4 3 1 5-4-3-4 3 1-5-4-3 5-1z" fill="#f4fff8" /></>; break;
-    case "crown-coelacanth": artwork = <><FishBody color={color} accent="#8a5428" long /><path d="M18 11V4l5 4 5-6 5 6 6-4v7z" fill="#ffd166" /><rect x="15" y="20" width="25" height="4" fill="#9a651f" /></>; break;
-    case "aurora-arowana": artwork = <><FishBody color={color} accent="#c084fc" long /><path d="M13 16h8v-4h8v4h8v-4h8v5" fill="none" stroke="#3fff97" strokeWidth="3" /><path d="M15 25h9v4h9v-4h9" fill="none" stroke="#a78bfa" strokeWidth="3" /></>; break;
     case "chrono-manta": artwork = <g shapeRendering="crispEdges">
       {/* A whip tail and swept wings give the timekeeper a true ray silhouette. */}
       <g className="buddy-fish-tail">
@@ -154,12 +141,15 @@ export function BuddyCollectibleIcon({ id, color = "#45d8ff", unknown = false, c
 <path d="M24 4h9v3h-9z" fill="#56776d" /><path d="M26 4h4v1h-4" fill="#d2e2c4" />
 <path d="M25 13h9l-4 6h5l-10 12 3-10h-5z" fill="#ecd48d" />
 <path d="M16 15h4v5h-4m2 7h5v5h-5m15-18h6v4h-6m0 11h5v4h-5" fill="#ad552f" /><path d="M17 17h2v2h-2m18-3h3v1h-3m-15 13h2v2h-2" fill="#e79254" /></g>; break;
-    case "tangled-cable": artwork = <g shapeRendering="crispEdges"><path d="M8 12h13v19h19V14h7v20H27V20H15v16" fill="none" stroke="#182d2a" strokeWidth="8" />
-<path d="M8 12h13v19h19V14h7v20H27V20H15v16" fill="none" stroke="#668f81" strokeWidth="5" />
-<path d="M10 10h12v17m1 6h16m-9-12h6m10-6v15" fill="none" stroke="#a1c9ae" strokeWidth="1" />
-<path d="M24 27h6v9h-6z" fill="#25443e" /><path d="M24 27h5v2h-5" fill="#d4b97c" />
-<path d="M2 6h10v12H2m41-9h10v10H41" fill="#304940" /><path d="M3 5h8v5H3M43 5h7v5h-7" fill="#bdcfc0" />
-<path d="M5 6h2v3H5M45 6h2v3h-2" fill="#5d8c88" /><path d="M14 35v5m3-5v3" stroke="#cd9665" strokeWidth="2" /></g>; break;
+    case "tangled-cable": artwork = <g shapeRendering="crispEdges">
+      <path d="M8 12C6 21 17 32 30 33s17-8 13-13-15-7-20-1-1 16 8 15 14-20 16-22M24 21C11 13 8 30 17 36" fill="none" stroke="#1c3531" strokeWidth="7" />
+      <path d="M8 12C6 21 17 32 30 33s17-8 13-13-15-7-20-1-1 16 8 15 14-20 16-22M24 21C11 13 8 30 17 36" fill="none" stroke="#729383" strokeWidth="4" />
+      <path d="M8 15c1 9 13 17 24 16m-7-13c6-5 13-2 16 1m-26 5c-3 3-1 7 2 9m27-15 2-4" fill="none" stroke="#b4cdb0" strokeWidth="1" />
+      <path d="M23 23h4v5h-4m11-1h4v5h-4" fill="#36584a" /><path d="M23 23h4v1h-4m11 3h4v1h-4" fill="#d7b875" />
+      <path d="M3 6h10v10H3m39-10h10v10H42" fill="#35584e" /><path d="M4 3h8v6H4m39-6h8v6h-8" fill="#b9cfbc" />
+      <path d="M5 4h2v3H5m39-3h2v3h-2M4 10h7v1H4m39-1h7v1h-7" fill="#759d8f" />
+      <path d="M17 34v5m3-4v3" stroke="#d9b37e" strokeWidth="1" />
+    </g>; break;
     case "wet-keyboard": artwork = <g shapeRendering="crispEdges"><path d="M7 9h42v5h3v14h3v10H1V24h3V13h3z" fill="#203831" /><path d="M8 11h39v4h3v19H4V25h3z" fill="#69877a" />
 <path d="M9 12h36v2H9m-4 13h2v6H5" fill="#bad4b5" /><path d="M9 16h36v14H7z" fill="#28473f" />
 <path d="M10 17h4v4h-4m6-4h4v4h-4m6-4h4v4h-4m6-4h4v4h-4m6-4h4v4h-4m6-4h3v4h-3M9 24h5v4H9m8-4h19v4H17m21-4h6v4h-6" fill="#b4c7ab" />
@@ -197,8 +187,8 @@ export function BuddyCollectibleIcon({ id, color = "#45d8ff", unknown = false, c
       <path d="M19 13h17v11H19z" fill="#638f9e" /><path d="M20 21h4v-4h4v-3h3v7h4v2H20z" fill="#c7dcca" />
       <path d="M22 31h3v6h-3m6-6h3v6h-3m5-6h2v6h-2" fill="#d5b56c" /><path d="M17 8h21v1H17" fill="#555b80" />
     </g>; break;
-    default: artwork = <FishBody color={color} />;
+    default: artwork = <BuddyFishArt id="byte-minnow" color={color} />;
   }
 
-  return <svg className={`buddy-collectible-icon ${className}`} viewBox="0 0 56 42" aria-hidden="true" {...svgProps}><g className="buddy-species-art">{artwork}</g></svg>;
+  return <svg className={`buddy-collectible-icon ${className}`} viewBox="0 0 56 42" aria-hidden="true" {...svgProps}><g className="buddy-species-art">{artwork}<BuddyRelicDetails id={id} /></g></svg>;
 }
