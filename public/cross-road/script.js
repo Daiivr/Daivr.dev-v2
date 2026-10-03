@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { create } from "zustand";
+import { generateRows, logPositions, onLog, trainMotion, trainHits } from "./world.js";
 
 const h = React.createElement;
 const tileSize = 42;
@@ -17,6 +18,8 @@ const palette = {
   cars: ["#ef6950", "#f2c94b", "#68b6cf", "#b58aca", "#e7eee1"],
 };
 let runStartedAt = 0;
+let worldTime = 0;
+let worldDelta = 0;
 const playerState = { currentRow: 0, currentTile: 0, movesQueue: [], ref: null, stepElapsed: 0 };
 
 function notifyCabinet(type, detail = {}) {
@@ -24,7 +27,7 @@ function notifyCabinet(type, detail = {}) {
 }
 
 const useGameStore = create((set, get) => ({
-  status: "ready", score: 0, row: 0, run: 0,
+  status: "ready", score: 0, row: 0, run: 0, reason: "traffic",
   start: () => {
     if (get().status !== "ready") return;
     runStartedAt = Date.now();
@@ -35,13 +38,15 @@ const useGameStore = create((set, get) => ({
     set({ row, score: Math.max(row, get().score) });
     notifyCabinet("daivr:daily-progress", { game: "cross-road", score: get().score, durationMs: Date.now() - runStartedAt });
   },
-  endGame: () => {
+  endGame: (reason = "traffic") => {
     if (get().status !== "running") return;
     playerState.movesQueue = [];
-    set({ status: "over" });
+    set({ status: "over", reason });
     notifyCabinet("daivr:cross-score", { score: get().score, durationMs: Date.now() - runStartedAt });
   },
   reset: () => {
+    worldTime = 0;
+    worldDelta = 0;
     Object.assign(playerState, { currentRow: 0, currentTile: 0, movesQueue: [], stepElapsed: 0 });
     if (playerState.ref) {
       playerState.ref.position.set(0, 0, 0);
@@ -51,7 +56,7 @@ const useGameStore = create((set, get) => ({
     }
     useMapStore.getState().reset();
     runStartedAt = Date.now();
-    set({ status: "running", score: 0, row: 0, run: get().run + 1 });
+    set({ status: "running", score: 0, row: 0, run: get().run + 1, reason: "traffic" });
   },
 }));
 
@@ -68,15 +73,15 @@ function queueMove(direction) {
   const next = calculateFinalPosition(playerState, [...playerState.movesQueue, direction]);
   if (next.row < 0 || next.tile < minTileIndex || next.tile > maxTileIndex) return;
   const row = useMapStore.getState().rows[next.row - 1];
-  const trees = next.row === 0 ? clearingTrees : row?.type === "forest" ? row.trees : [];
-  if (trees.some((tree) => tree.tileIndex === next.tile)) return;
+  const obstacles = next.row === 0 ? clearingTrees : row?.type === "forest" ? [...row.trees, ...row.rocks] : [];
+  if (obstacles.some((obstacle) => obstacle.tileIndex === next.tile)) return;
   playerState.movesQueue.push(direction);
 }
 
 function calculateFinalPosition(position, moves) {
   return moves.reduce((next, move) => ({
     row: next.row + (move === "forward" ? 1 : move === "backward" ? -1 : 0),
-    tile: next.tile + (move === "right" ? 1 : move === "left" ? -1 : 0),
+    tile: Math.round(next.tile) + (move === "right" ? 1 : move === "left" ? -1 : 0),
   }), { row: position.currentRow, tile: position.currentTile });
 }
 
@@ -84,6 +89,11 @@ function stepCompleted() {
   const next = calculateFinalPosition(playerState, [playerState.movesQueue.shift()]);
   playerState.currentRow = next.row;
   playerState.currentTile = next.tile;
+  const landed = useMapStore.getState().rows[next.row - 1];
+  if (landed?.type === "river" && !onLog(landed, next.tile * tileSize, worldTime)) {
+    useGameStore.getState().endGame("water");
+    return;
+  }
   if (next.row >= useMapStore.getState().rows.length - 16) useMapStore.getState().addRows();
   useGameStore.getState().updateScore(next.row);
 }
@@ -117,14 +127,15 @@ function Voxels({ boxes, castShadow = true }) {
   return h("instancedMesh", { ref, args: [voxelGeometry, voxelMaterial, boxes.length], castShadow, receiveShadow: true, dispose: null });
 }
 
-function treeBoxes(x, y, height = 55, variant = 0) {
-  const leaves = palette.leaves[variant % palette.leaves.length];
+function treeBoxes(x, y, height = 55, variant = 0, biome = "woodland") {
+  const leafColors = biome === "autumn" ? ["#ac683e", "#c08748", "#d5a957"] : palette.leaves;
+  const leaves = leafColors[variant % leafColors.length];
   return [
     voxel(x, y, 12, 9, 10, 24, palette.bark),
     voxel(x - 1, y, 17, 4, 11, 12, "#a07349"),
     voxel(x, y, height * 0.55, 30, 28, height * 0.6, leaves),
     voxel(x - 3, y + 1, height * 0.83, 23, 22, height * 0.4, leaves),
-    voxel(x - 8, y - 8, height * 0.52, 16, 16, 14, "#559957"),
+    voxel(x - 8, y - 8, height * 0.52, 16, 16, 14, biome === "autumn" ? "#cf9550" : "#559957"),
   ];
 }
 
@@ -133,19 +144,23 @@ function seeded(seed) {
   return () => { value = (Math.imul(value, 1664525) + 1013904223) >>> 0; return value / 4294967296; };
 }
 
-function sceneryBoxes(rowIndex, trees) {
+function sceneryBoxes(rowIndex, trees, rocks, biome) {
   const random = seeded(rowIndex * 733 + 9781);
   const boxes = [];
   // Woodland stays outside the playable grid so it cannot hide traffic.
   for (const side of [-1, 1]) {
     for (let i = 0; i < 4; i++) {
       const x = side * (420 + i * 44 + random() * 16);
-      boxes.push(...treeBoxes(x, random() * 22 - 11, 42 + random() * 45, Math.floor(random() * 3)));
+      boxes.push(...treeBoxes(x, random() * 22 - 11, 42 + random() * 45, Math.floor(random() * 3), biome));
     }
     boxes.push(voxel(side * 384, 0, 8, 22, 18, 16, "#669849"));
     if (rowIndex % 3 === 0) boxes.push(voxel(side * 368, -7, 5, 12, 10, 10, "#a4b09b"));
   }
-  for (const tree of trees) boxes.push(...treeBoxes(tree.tileIndex * tileSize, 0, tree.height, Math.abs(tree.tileIndex) % 3));
+  for (const tree of trees) boxes.push(...treeBoxes(tree.tileIndex * tileSize, 0, tree.height, Math.abs(tree.tileIndex) % 3, biome));
+  for (const rock of rocks) {
+    const x = rock.tileIndex * tileSize;
+    boxes.push(voxel(x, 0, 7, 27, 25, 14, "#899895"), voxel(x - 3, 2, 17, 20, 19, 10, "#b1b9a9"), voxel(x - 7, -8, 9, 13, 8, 12, "#9fae98"));
+  }
   for (let i = 0; i < 22; i++) {
     const x = (random() - 0.5) * 740;
     const y = (random() - 0.5) * 34;
@@ -158,16 +173,17 @@ function sceneryBoxes(rowIndex, trees) {
   return boxes;
 }
 
-function Ground({ rowIndex, road = false }) {
+function Ground({ rowIndex, road = false, biome = "woodland" }) {
+  const grass = biome === "autumn" ? ["#a9af67", "#b9b775", "#a5ac60", "#b1b56d"] : biome === "meadow" ? ["#a0c966", "#add273", "#96c35d", "#b1d37b"] : palette.grass;
   return h("mesh", { position: [0, 0, -1], receiveShadow: true },
     h("boxGeometry", { args: [2200, tileSize, 4] }),
-    h("meshLambertMaterial", { color: road ? palette.road : palette.grass[((rowIndex % 4) + 4) % 4] }));
+    h("meshLambertMaterial", { color: road ? palette.road : grass[((rowIndex % 4) + 4) % 4] }));
 }
 
-function Grass({ rowIndex, trees }) {
-  const boxes = useMemo(() => sceneryBoxes(rowIndex, trees), [rowIndex, trees]);
+function Grass({ rowIndex, trees, rocks = emptyTrees, biome = "woodland" }) {
+  const boxes = useMemo(() => sceneryBoxes(rowIndex, trees, rocks, biome), [rowIndex, trees, rocks, biome]);
   return h("group", { position: [0, rowIndex * tileSize, 0] },
-    h(Ground, { rowIndex }), h(Voxels, { boxes }));
+    h(Ground, { rowIndex, biome }), h(Voxels, { boxes }));
 }
 
 function Road({ rowIndex, data }) {
@@ -244,6 +260,91 @@ function Vehicle({ rowIndex, initialTileIndex, direction, speed, color, type }) 
   return h("group", { ref, position: [initialTileIndex * tileSize, 0, 0], rotation: [0, 0, direction ? 0 : Math.PI] }, h(Voxels, { boxes }));
 }
 
+function WorldClock() {
+  useFrame((_, delta) => {
+    worldDelta = document.hidden || useGameStore.getState().status === "over" ? 0 : Math.min(delta, 0.05);
+    worldTime += worldDelta;
+  }, -2);
+  return null;
+}
+
+function trainBoxes() {
+  const boxes = [];
+  for (const x of [-112, 0, 112]) {
+    boxes.push(voxel(x, 0, 23, 104, 31, 32, "#dc8555"), voxel(x, 0, 42, 106, 33, 6, "#efe6cd"), voxel(x, 0, 9, 106, 31, 6, "#36494e"));
+    for (const side of [-1, 1]) {
+      boxes.push(voxel(x, side * 16, 18, 104, 1, 5, "#f1cc77"));
+      for (let window = -36; window <= 36; window += 24) boxes.push(voxel(x + window, side * 16, 31, 16, 1, 12, "#b8dcdd"));
+      for (const wheel of [-33, 33]) boxes.push(voxel(x + wheel, side * 14, 6, 15, 6, 12, "#29383d"));
+    }
+  }
+  boxes.push(voxel(167, 0, 28, 6, 30, 21, "#e9b268"), voxel(171, 0, 33, 1, 23, 11, "#a4cdd4"), voxel(171, -10, 19, 2, 6, 5, "#fff6bf"), voxel(171, 10, 19, 2, 6, 5, "#fff6bf"));
+  return boxes;
+}
+
+function RailSignal({ x, data }) {
+  const left = useRef();
+  const right = useRef();
+  const post = useMemo(() => [voxel(0, 0, 23, 4, 5, 46, "#e4dcc0"), voxel(0, 0, 46, 26, 8, 14, "#33474a"), voxel(0, 0, 3, 13, 12, 6, "#849084"), voxel(0, 0, 59, 24, 3, 5, "#f3d181"), voxel(0, 0, 59, 5, 3, 21, "#f3d181")], []);
+  useFrame(() => {
+    const warning = trainMotion(data, worldTime).warning;
+    const alternate = Math.floor(worldTime * 3) % 2 === 0;
+    left.current.material.color.set(warning && (reducedMotion || alternate) ? "#ff654b" : "#643d35");
+    right.current.material.color.set(warning && (reducedMotion || !alternate) ? "#ff654b" : "#643d35");
+  });
+  return h("group", { position: [x, 18, 0] }, h(Voxels, { boxes: post }),
+    h("mesh", { ref: left, position: [-7, -4.5, 46] }, h("boxGeometry", { args: [7, 1, 7] }), h("meshBasicMaterial", { color: "#643d35" })),
+    h("mesh", { ref: right, position: [7, -4.5, 46] }, h("boxGeometry", { args: [7, 1, 7] }), h("meshBasicMaterial", { color: "#643d35" })));
+}
+
+function Railway({ rowIndex, data }) {
+  const train = useRef();
+  const body = useMemo(trainBoxes, []);
+  const track = useMemo(() => {
+    const boxes = [];
+    for (let x = -1050; x <= 1050; x += 22) boxes.push(voxel(x, 0, 2, 9, 32, 4, "#766756"));
+    boxes.push(voxel(0, -11, 5, 2200, 3, 3, "#b7c1b8"), voxel(0, 11, 5, 2200, 3, 3, "#b7c1b8"));
+    for (const side of [-1, 1]) for (let x = -336; x <= 336; x += 21) boxes.push(voxel(x, side * 20, 1, 10, 2, 1, "#e4be70"));
+    return boxes;
+  }, []);
+  useFrame(() => {
+    const motion = trainMotion(data, worldTime);
+    train.current.visible = motion.active;
+    train.current.position.x = motion.x;
+    const player = playerState.ref;
+    if (player && useGameStore.getState().status === "running" && trainHits(data, player.position.x, player.position.y - rowIndex * tileSize, worldTime, worldDelta)) useGameStore.getState().endGame("train");
+  });
+  return h("group", { position: [0, rowIndex * tileSize, 0] },
+    h("mesh", { receiveShadow: true, position: [0, 0, -2] }, h("boxGeometry", { args: [2200, 42, 4] }), h("meshLambertMaterial", { color: "#8a8b78" })),
+    h(Voxels, { boxes: track, castShadow: false }),
+    h(RailSignal, { x: -365, data }), h(RailSignal, { x: 365, data }),
+    h("group", { ref: train, visible: false, rotation: [0, 0, data.direction === 1 ? 0 : Math.PI] }, h(Voxels, { boxes: body })));
+}
+
+function River({ rowIndex, data }) {
+  const logs = useRef();
+  const ripples = useRef();
+  const wood = useMemo(() => {
+    const length = data.logLength;
+    const boxes = [voxel(0, 0, 0, length, 28, 12, "#987049"), voxel(0, 0, 6, length - 8, 22, 2, "#bf965d"), voxel(0, -14, -1, length - 8, 2, 7, "#785337")];
+    for (const side of [-1, 1]) boxes.push(voxel(side * length / 2, 0, 1, 2, 22, 8, "#e3bb7b"), voxel(side * (length / 2 + 1), 0, 1, 1, 12, 4, "#b08550"));
+    for (let x = -length / 2 + 16; x < length / 2 - 10; x += 24) boxes.push(voxel(x, -2, 7.3, 14, 2, 0.7, "#926e41"));
+    return boxes;
+  }, [data.logLength]);
+  const foam = useMemo(() => {
+    const random = seeded(rowIndex * 201);
+    return Array.from({ length: 34 }, () => voxel((random() - 0.5) * 1600, (random() - 0.5) * 34, -2.8, 8 + random() * 22, 1.3, 0.5, random() > 0.5 ? "#86ced0" : "#4b9db6"));
+  }, [rowIndex]);
+  useFrame(() => {
+    logPositions(data, worldTime).forEach((x, index) => { logs.current.children[index].position.x = x; });
+    ripples.current.position.x = reducedMotion ? 0 : Math.sin(worldTime * 0.7) * 5;
+  });
+  return h("group", { position: [0, rowIndex * tileSize, 0] },
+    h("mesh", { receiveShadow: true, position: [0, 0, -5] }, h("boxGeometry", { args: [2200, 42, 4] }), h("meshLambertMaterial", { color: rowIndex % 2 ? "#4b9eb1" : "#438fa8" })),
+    h("group", { ref: ripples }, h(Voxels, { boxes: foam, castShadow: false })),
+    h("group", { ref: logs }, Array.from({ length: 6 }, (_, index) => h("group", { key: index }, h(Voxels, { boxes: wood })))));
+}
+
 const chickenBoxes = [
   voxel(0, -2, 14, 16, 18, 18, "#fff6de"),
   voxel(0, 4, 24, 14, 14, 15, "#fffcf0"),
@@ -272,12 +373,18 @@ function Player() {
     const status = useGameStore.getState().status;
     if (status === "over") {
       body.scale.z = THREE.MathUtils.damp(body.scale.z, 0.35, 14, delta);
-      body.position.z = THREE.MathUtils.damp(body.position.z, 0, 14, delta);
+      body.position.z = THREE.MathUtils.damp(body.position.z, useGameStore.getState().reason === "water" ? -12 : 0, 14, delta);
       return;
     }
+    const lane = useMapStore.getState().rows[playerState.currentRow - 1];
     if (!playerState.movesQueue.length) {
       body.scale.set(1, 1, reducedMotion ? 1 : 1 + Math.sin(clock.elapsedTime * 3) * 0.025);
-      body.position.z = 0;
+      body.position.z = lane?.type === "river" ? 8 : 0;
+      if (status === "running" && lane?.type === "river") {
+        player.position.x += lane.direction * lane.speed * worldDelta;
+        playerState.currentTile = player.position.x / tileSize;
+        if (Math.abs(player.position.x) > maxTileIndex * tileSize + 12 || !onLog(lane, player.position.x, worldTime)) useGameStore.getState().endGame("water");
+      }
       return;
     }
     playerState.stepElapsed += Math.min(delta, 0.05);
@@ -286,15 +393,16 @@ function Player() {
     const next = calculateFinalPosition(playerState, [move]);
     player.position.x = THREE.MathUtils.lerp(playerState.currentTile * tileSize, next.tile * tileSize, progress);
     player.position.y = THREE.MathUtils.lerp(playerState.currentRow * tileSize, next.row * tileSize, progress);
-    body.position.z = Math.sin(progress * Math.PI) * (reducedMotion ? 4 : 13);
+    const destination = useMapStore.getState().rows[next.row - 1];
+    body.position.z = THREE.MathUtils.lerp(lane?.type === "river" ? 8 : 0, destination?.type === "river" ? 8 : 0, progress) + Math.sin(progress * Math.PI) * (reducedMotion ? 4 : 13);
     body.scale.z = 1 + Math.sin(progress * Math.PI) * 0.09;
     body.rotation.z = { forward: 0, backward: Math.PI, left: Math.PI / 2, right: -Math.PI / 2 }[move];
     if (progress >= 1) {
       playerState.stepElapsed = 0;
-      body.position.z = 0;
+      body.position.z = destination?.type === "river" ? 8 : 0;
       stepCompleted();
     }
-  });
+  }, -1);
   return h("group", { ref }, h("group", null, h(Voxels, { boxes: chickenBoxes })));
 }
 
@@ -349,9 +457,8 @@ function Map() {
     else {
       const data = rows[row - 1];
       if (!data) continue;
-      visible.push(data.type === "forest"
-        ? h(Grass, { key: `${run}-${row}`, rowIndex: row, trees: data.trees })
-        : h(Road, { key: `${run}-${row}`, rowIndex: row, data }));
+      const Component = data.type === "forest" ? Grass : data.type === "rail" ? Railway : data.type === "river" ? River : Road;
+      visible.push(h(Component, { key: `${run}-${row}`, rowIndex: row, data, trees: data.trees, rocks: data.rocks, biome: data.biome }));
     }
   }
   return visible;
@@ -364,7 +471,7 @@ function Scene() {
     gl: { antialias: true, alpha: false, powerPreference: "high-performance" },
     onCreated: ({ gl }) => { gl.setClearColor("#91bb68"); gl.toneMapping = THREE.NoToneMapping; },
   }, h("ambientLight", { intensity: 1.15, color: "#d8edff" }),
-  h(Player), h(Map), h(CameraRig));
+  h(WorldClock), h(Player), h(Map), h(CameraRig));
 }
 
 function useControls() {
@@ -398,6 +505,11 @@ function Game() {
   useControls();
   const status = useGameStore((state) => state.status);
   const score = useGameStore((state) => state.score);
+  const currentRow = useGameStore((state) => state.row);
+  const reason = useGameStore((state) => state.reason);
+  const rows = useMapStore((state) => state.rows);
+  const nextLane = rows[currentRow];
+  const biome = rows[Math.max(0, currentRow - 1)]?.biome || "woodland";
   const touchStart = useRef(null);
   function pointerDown(event) {
     if (event.target.tagName !== "CANVAS") return;
@@ -416,7 +528,8 @@ function Game() {
     h(Scene),
     h("header", { className: "hud" },
       h("div", { className: "score", "aria-label": `${score} lanes crossed` }, h("span", null, "LANES"), h("strong", { id: "score" }, String(score).padStart(2, "0"))),
-      h("div", { className: "edition" }, h("span", null, "DAIVR ARCADE"), h("strong", null, "WOODLAND RUN"), h("i", null, "03"))),
+      h("div", { className: "edition" }, h("span", null, "DAIVR ARCADE"), h("strong", null, `${biome.toUpperCase()} RUN`), h("i", null, "03"))),
+    status === "running" && ["rail", "river"].includes(nextLane?.type) && h("div", { className: "route-tip" }, nextLane.type === "rail" ? "RAIL CROSSING · WATCH THE SIGNALS" : "RIVER CROSSING · LAND ON A LOG"),
     status === "ready" && h("section", { className: "title-screen", "aria-label": "Welcome to Cross Road" },
       h("p", { className: "eyebrow" }, "A LITTLE CHICKEN. A BIG ADVENTURE."),
       h("h1", null, h("span", null, "CROSS"), h("span", null, "ROAD")),
@@ -426,42 +539,13 @@ function Game() {
       h("p", { className: "start-hint" }, "PRESS SPACE OR TAP TO START")),
     status === "over" && h("section", { className: "result-container", "aria-label": "Run complete", "aria-live": "polite" },
       h("div", { className: "result" }, h("span", { className: "eyebrow" }, "END OF THE ROAD"),
-        h("h1", null, "OH, CLUCK."), h("strong", { className: "final-score" }, score),
+        h("h1", null, reason === "water" ? "SPLASH DOWN." : reason === "train" ? "TRAIN TROUBLE." : "OH, CLUCK."), h("strong", { className: "final-score" }, score),
         h("p", null, `${score === 1 ? "LANE" : "LANES"} CROSSED`),
         h("button", { autoFocus: true, className: "play-button", onClick: () => useGameStore.getState().reset() }, "HOP AGAIN", h("span", { "aria-hidden": true }, "↗")),
         h("small", null, "THE OTHER SIDE IS STILL WAITING."))),
     h("footer", { className: "game-footer" },
       h("span", { className: "control-hint" }, h("b", null, "ONE HOP AT A TIME"), h("span", { className: "desktop-hint" }, "ARROWS / WASD TO MOVE"), h("span", { className: "touch-hint" }, "TAP TO HOP · SWIPE TO TURN")),
       h(Controls), h("span", { className: "route-tag" }, "TAKE THE", h("b", null, "SCENIC ROUTE"))));
-}
-
-function randomElement(array) { return array[Math.floor(Math.random() * array.length)]; }
-function generateRows(amount, offset) {
-  return Array.from({ length: amount }, (_, index) => {
-    const row = offset + index + 1;
-    const type = row === 1 || row === 4 ? "forest" : row === 2 || row === 3 ? "car" : randomElement(["car", "truck", "forest", "forest"]);
-    if (type === "forest") {
-      const occupied = new Set();
-      const trees = [];
-      while (trees.length < 4) {
-        const tileIndex = THREE.MathUtils.randInt(minTileIndex, maxTileIndex);
-        if (occupied.has(tileIndex) || (row === 1 && Math.abs(tileIndex) < 2)) continue;
-        occupied.add(tileIndex);
-        trees.push({ tileIndex, height: randomElement([42, 55, 68]) });
-      }
-      return { type, trees };
-    }
-    const occupied = new Set();
-    const vehicles = [];
-    const radius = type === "truck" ? 2 : 1;
-    while (vehicles.length < (type === "truck" ? 2 : 3)) {
-      const initialTileIndex = THREE.MathUtils.randInt(minTileIndex, maxTileIndex);
-      if (occupied.has(initialTileIndex)) continue;
-      for (let tile = initialTileIndex - radius; tile <= initialTileIndex + radius; tile++) occupied.add(tile);
-      vehicles.push({ initialTileIndex, color: randomElement(palette.cars) });
-    }
-    return { type, direction: Math.random() > 0.5, speed: randomElement([125, 156, 188]), vehicles };
-  });
 }
 
 createRoot(document.getElementById("root")).render(h(Game));

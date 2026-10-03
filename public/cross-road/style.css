@@ -33,6 +33,7 @@ button:focus-visible { outline: 3px solid #fff; outline-offset: 6px; }
 .control-hint b, .route-tag b { font-size: 15px; font-weight: 800; }
 .route-tag { text-align: right; }
 .touch-hint { display: none; }
+.route-tip { position: absolute; top: 90px; left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100% - 28px); padding: 7px 12px; border: 1px solid #ead798; background: #263c32ed; color: #ffdf8c; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-align: center; pointer-events: none; z-index: 2; }
 .controls { display: grid; grid-template-columns: repeat(4, 45px); gap: 7px; pointer-events: auto; }
 .controls button { height: 45px; border: 2px solid #2d4435; background: #fff8e5; color: #2d4435; box-shadow: 3px 4px 0 #2d4435; font-family: Arial, sans-serif; font-size: 28px; font-weight: 900; line-height: 1; transition: transform .1s, background .1s; }
 .controls button:hover { background: #ffdd78; transform: translateY(-2px); }

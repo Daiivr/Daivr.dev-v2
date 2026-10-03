@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { RefreshCw } from "lucide-react";
+import { CabinetNotice } from "./CabinetNotice";
+import "../styles/update-notice.css";
 import { useCabinetSignal } from "../lib/cabinetSignals";
 import {
   checkForUpdate,
@@ -27,7 +29,7 @@ const AFTER_CATCH_MS = 2600;
   El comando `version` de la consola y `daivr-update-found` (pruebas) lo abren
   tambien.
 */
-export function UpdateNotice({ hidden = false, shellRef }) {
+export function UpdateNotice({ hidden = false, shellRef, playingGame = false }) {
   const [update, setUpdate] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
   const [buddyEvent, setBuddyEvent] = useState(() => document.documentElement.dataset.buddyEvent || "");
@@ -119,58 +121,23 @@ export function UpdateNotice({ hidden = false, shellRef }) {
   if (!update || hidden) return null;
 
   const reload = () => reloadIntoUpdate({ shell: shellRef?.current });
-  const title = update.newRelease ? update.version : "A fresh build just shipped";
+  const title = update.newRelease ? update.version : "A fresh build is ready";
+  const noticeClass = `update-notice ${playingGame ? "update-notice--game" : "update-notice--page"}`;
 
   if (collapsed) {
-    return (
-      <aside className="update-notice is-collapsed" aria-label="New version available">
-        <button className="update-notice-chip" type="button" onClick={() => setCollapsed(false)}>
-          <RefreshCw aria-hidden="true" size={13} strokeWidth={2.6} />
-          Update ready
-        </button>
-      </aside>
-    );
+    return <CabinetNotice className={noticeClass} label="New version available" collapsed>
+      <button type="button" onClick={() => setCollapsed(false)}><RefreshCw aria-hidden="true" size={13} />Update ready</button>
+    </CabinetNotice>;
   }
 
-  return (
-    <aside className="update-notice" aria-labelledby="update-notice-title" aria-live="polite">
-      <p className="update-notice-kicker">
-        <span className="update-notice-led" aria-hidden="true" />
-        New build live
-      </p>
-      <h2 className="update-notice-title" id="update-notice-title">
-        {title}
-        {update.newRelease && update.codename ? <span>{update.codename}</span> : null}
-      </h2>
-      {update.newRelease && update.summary ? <p className="update-notice-summary">{update.summary}</p> : null}
-      <p className="update-notice-copy">
-        You&apos;re on an older version of the cabinet. Reload to get the latest. Your Buddy, catches and progress are saved.
-      </p>
-      {fishing && !armed ? (
-        <p className="update-notice-hint">Buddy&apos;s line is out. Reload after the catch so you don&apos;t lose it.</p>
-      ) : null}
-      <div className="update-notice-actions">
-        {armed ? (
-          <>
-            <span className="update-notice-waiting" role="status">
-              <RefreshCw aria-hidden="true" size={13} strokeWidth={2.6} />
-              {fishing ? "Reloading after the catch…" : "Reloading…"}
-            </span>
-            <button className="update-notice-button is-quiet" type="button" onClick={() => setArmed(false)}>Cancel</button>
-          </>
-        ) : (
-          <>
-            {fishing ? (
-              <button className="update-notice-button is-primary" type="button" onClick={() => setArmed(true)}>Reload after the catch</button>
-            ) : null}
-            <button className={`update-notice-button ${fishing ? "" : "is-primary"}`} type="button" onClick={reload}>
-              <RefreshCw aria-hidden="true" size={13} strokeWidth={2.6} />
-              Reload now
-            </button>
-            <button className="update-notice-button is-quiet" type="button" onClick={() => setCollapsed(true)}>Later</button>
-          </>
-        )}
-      </div>
-    </aside>
-  );
+  return <CabinetNotice className={noticeClass} label="New build available" channel={playingGame ? "SYSTEM UPDATE" : "NEW BUILD LIVE"}
+    actions={armed ? <><span className="cabinet-notice-waiting"><RefreshCw size={12} aria-hidden="true" />{fishing ? "After this catch…" : "Reloading…"}</span><button type="button" onClick={() => setArmed(false)}>Cancel</button></> : <>
+      {fishing ? <button className="is-primary" type="button" onClick={() => setArmed(true)}>After catch</button> : null}
+      <button className={fishing ? "" : "is-primary"} type="button" onClick={reload}><RefreshCw size={12} aria-hidden="true" />Reload now</button>
+      <button type="button" onClick={() => setCollapsed(true)}>Later</button>
+    </>}>
+    <h2>{title}</h2>
+    {update.newRelease && update.codename ? <p className="cabinet-notice-subtitle" title={update.summary || update.codename}>{update.codename}</p> : null}
+    <p>{fishing ? "Buddy is fishing. Reload after the catch to keep it." : "Reload for the latest. Your Buddy, catches and progress are saved."}</p>
+  </CabinetNotice>;
 }

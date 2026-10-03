@@ -81,7 +81,43 @@ export function BuddyCollectibleIcon({ id, color = "#45d8ff", unknown = false, c
       <path d="M9 5h2v2h2v2h-2v2H9V9H7V7h2zM48 33h1v2h2v1h-2v2h-1v-2h-2v-1h2z" fill="#dfc7ff" />
       <path d="M14 12h1v1h-1m24 24h2v2h-2" fill="#a085d8" />
     </g>; break;
-    case "moonkernel-sturgeon": artwork = <><FishBody color={color} accent="#a78bfa" long /><rect x="16" y="12" width="5" height="17" fill="#6b7280" /><rect x="24" y="12" width="5" height="17" fill="#94a3b8" /><rect x="32" y="13" width="5" height="15" fill="#6b7280" /><circle cx="25" cy="21" r="7" fill="#f4fff8" /><path d="M25 14a7 7 0 0 0 0 14 5 5 0 0 1 0-14" fill="#a78bfa" /></>; break;
+    case "moonkernel-sturgeon": artwork = <g shapeRendering="crispEdges">
+      {/* An uneven fork and narrow tail root give the silhouette a swimming sweep. */}
+      <g className="buddy-fish-tail">
+        <path d="M15 20h-3v-3h-2v-3H8v-3H6V8H3v5h1v5h2v4h2v2H6v3H4v3H2v3h4v-2h3v-2h3v-4h4z" fill="#66738e" />
+        <path d="M14 21h-3v-3H9v-3H7v-3H5v5h1v3h2v3h3v2H8v3H6v2H4v1h2v-1h3v-2h3v-3h3z" fill="#c4bbeb" />
+        <path d="M5 10h1v4h2v3h2v2h1v2H9v-2H7v-3H6v-3H5zM6 29h3v-2h2v-2h2v2h-2v2H8v1H6z" fill={color} />
+      </g>
+      {/* Low dorsal and pelvic fins follow the back instead of forming square tabs. */}
+      <path d="M17 18v-4h1v-3h2V8h3v3h2v3h3v3zM17 25h8v3h-2v3h-3v2h-2v-4h-1z" fill="#7885a5" />
+      <path d="M19 16v-3h1v-2h2v3h2v2zM19 27h4v1h-2v3h-1v-2h-1z" fill="#c4bbeb" />
+      {/* Fine pixel steps round the shoulder and taper into the long sturgeon snout. */}
+      <path d="M12 20h3v-2h4v-2h5v-2h9v1h6v2h5v2h4v1h4v1h3v3h-5v1h-6v2h-5v2h-6v1H23v-1h-5v-2h-4v-2h-2z" fill="#485e72" />
+      <path d="M13 21h3v-2h4v-2h5v-2h8v1h6v2h5v2h4v1h4v1h2v1h-5v1h-6v2h-5v2h-6v1h-8v-1h-5v-2h-4v-2h-2z" fill="#9baebc" />
+      <path d="M16 21h5v-2h5v-2h7v1h6v2h5v2h-4v2h-6v3H24v-1h-5v-2h-3z" fill="#c8d6d7" />
+      <path d="M20 26h5v1h8v-1h7v-2h6v-1h6v1h-8v2h-5v2h-6v1h-9v-1h-4z" fill="#e1e8df" />
+      <path d="M14 23h5v1h5v1h10v-1h6v-1h3v2h-5v2H24v-1h-5v-1h-5z" fill="#7e94aa" />
+      {/* Small overlapping scutes replace the full-height armor stripes. */}
+      <path d="M17 18h3v2h-1v1h-2zm6-3h3v2h-1v1h-2zm7-2h3v2h-1v1h-2zm7 2h3v2h-1v1h-2z" fill="#71839f" />
+      <path d="M17 18h2v1h-2m6-3h2v1h-2m7-3h2v1h-2m7 2h2v1h-2" fill={color} />
+      <path d="M18 22h2v1h1v1h-3zm5-2h2v1h1v1h-3zm7 0h2v1h1v1h-3zm6 1h2v1h1v1h-3z" fill="#a49dcc" />
+      {/* A little crescent nestles into the flank, without a large circular housing. */}
+      <path d="M28 17h3v1h-2v2h-1v3h2v2h3v1h-5v-1h-2v-2h-1v-3h1v-2h2z" fill="#9e91cb" />
+      <path d="M28 17h2v1h-2v2h-1v3h1v1h2v1h3v1h-5v-1h-2v-2h-1v-3h1v-2h2z" fill={color} />
+      <path d="M31 19h1v1h-1m2 3h1v1h-1" fill="#effffc" />
+      {/* A swept pectoral fin, gill seam, small eye, and sensory barbels. */}
+      <g className="buddy-fish-fin">
+        <path d="M34 25h5v3h-1v3h-2v2h-2v2h-3v-3h1v-4h2z" fill="#657997" />
+        <path d="M35 26h3v2h-1v2h-2v2h-2v-3h1v-2h1z" fill="#b9b7dc" />
+        <path d="M35 26h2v1h-1v2h-1v1h-1v-2h1z" fill={color} />
+      </g>
+      <path d="M39 20h1v2h1v3h-2v-1h1v-2h-1z" fill="#63788d" />
+      <path d="M42 19h3v3h-3z" fill={color} />
+      <path d="M43 20h2v2h-2z" fill="#122c3c" />
+      <path d="M43 20h1v1h-1M47 21h4v1h-4" fill="#fff" />
+      <path d="M46 24h3v1h-3" fill="#3f586c" />
+      <path d="M46 25v3h-1v1h-1v-1h1v-3m4-1v3h-1v1h-1v-1h1v-3" fill="#c4bbeb" />
+    </g>; break;
     case "old-boot": artwork = <g shapeRendering="crispEdges"><path d="M12 4h22v21h9v3h7v10H7V17h5z" fill="#1d302c" />
 <path d="M14 6h18v20h10v4h6v5H9V19h5z" fill="#657c69" />
 <path d="M15 7h14v4H15zM11 21h3v10h-3" fill="#a4b39a" />

@@ -41,7 +41,6 @@ import "./styles/arcade-panels.css";
 import "./styles/player-passport.css";
 import "./styles/panel-glitch.css";
 import "./styles/buddy-visitors.css";
-import "./styles/update-notice.css";
 import "./styles/footer-sky.css";
 import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { discord, games, navItems, profile, projects } from "./data/site";
@@ -608,9 +607,9 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
         </div>
       ) : null}
 
-      <AttractMode enabled={!entrySplashOpen} />
+      <AttractMode enabled={!entrySplashOpen && !konamiView} />
 
-      <UpdateNotice hidden={entrySplashOpen} shellRef={shellRef} />
+      <UpdateNotice hidden={entrySplashOpen} shellRef={shellRef} playingGame={konamiView === "madrace" || konamiView === "tower-block" || EMBED_GAMES.includes(konamiView)} />
 
       <LazyPiece show={libraryUsed}>
         <KonamiGameLibrary open={konamiView === "library"} onClose={closeKonami} onSelect={selectKonamiGame} />

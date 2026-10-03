@@ -52,7 +52,21 @@ export function AttractMode({ enabled }) {
 
   useEffect(() => {
     enabledRef.current = enabled;
-    if (!enabled) lastActivityRef.current = Date.now();
+    // Iframe input does not bubble to the parent. Suspend attract mode for the
+    // whole game session, then give the player a fresh idle window on exit.
+    lastActivityRef.current = Date.now();
+    buddySleepAtRef.current = 0;
+    if (!enabled) {
+      timersRef.current.forEach((timer) => window.clearTimeout(timer));
+      timersRef.current.clear();
+      if (activeRef.current) window.dispatchEvent(new CustomEvent("daivr-attract-mode", { detail: { active: false } }));
+      activeRef.current = false;
+      closingRef.current = false;
+      setActive(false);
+      setClosing(false);
+      setCoinDropping(false);
+      setCredit(false);
+    }
   }, [enabled]);
 
   useEffect(() => {
@@ -74,7 +88,7 @@ export function AttractMode({ enabled }) {
     }
 
     function recordBuddySleep() {
-      buddySleepAtRef.current = Date.now();
+      if (enabledRef.current) buddySleepAtRef.current = Date.now();
     }
 
     function checkIdle() {

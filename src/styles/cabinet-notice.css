@@ -1,0 +1,45 @@
+/* Compact companion to the arcade TV. Both notifications share one corner. */
+.cabinet-notice {
+  --notice-light: #d6e5be;
+  position: fixed; top: max(30px, env(safe-area-inset-top)); right: max(18px, env(safe-area-inset-right));
+  z-index: 2000; isolation: isolate; box-sizing: border-box;
+  width: min(312px, calc(100vw - 28px)); height: 180px;
+  display: grid; grid-template-rows: 16px minmax(0, 1fr) 34px; gap: 7px; padding: 10px 11px 12px;
+  border: 2px solid #81917a; border-right-color: #354939; border-bottom-color: #243629; border-radius: 17px;
+  background: url('/textures/arcade-grain.svg'), linear-gradient(125deg, #566452, #304737 45%, #263a2d 75%, #485b40);
+  background-size: 150px 150px, auto;
+  box-shadow: inset 2px 2px 1px #d1d6b74d, inset -3px -4px 2px #0b1b13c9, 0 4px 0 #122219, 0 10px 25px #0009;
+  color: #e1e8ce; font: 11px/1.5 var(--font-mono, monospace); text-align: left;
+  animation: cabinet-notice-in .22s ease-out;
+}
+.cabinet-notice-header { display: flex; justify-content: space-between; align-items: center; min-width: 0; gap: 8px; font-size: 8px; line-height: 1; letter-spacing: .09em; color: #d0ddba; }
+.cabinet-notice-header > span { display: flex; align-items: center; gap: 6px; font-weight: 700; }
+.cabinet-notice-header i { width: 5px; height: 5px; border-radius: 50%; background: #c7f99a; box-shadow: 0 0 6px #baff85; }
+.cabinet-notice-header > b { font: italic 800 9px/1 var(--font-display, sans-serif); color: #c9cfa9; white-space: nowrap; }
+.cabinet-notice-screen { position: relative; min-height: 0; overflow: auto; padding: 8px 10px; border: 2px solid #132219; border-bottom-color: #667b5b; border-radius: 9px;
+  background: linear-gradient(120deg, #cceba807, transparent 45%), #0b1b13;
+  box-shadow: 0 0 0 1px #75846980, inset 0 2px 5px #000c; scrollbar-width: thin; scrollbar-color: #6a815a #102016; }
+.cabinet-notice h2 { display: flex; align-items: center; gap: 7px; margin: 0 0 4px; color: #edf3d6; font: 800 14px/1.35 var(--font-display, sans-serif); letter-spacing: -.01em; }
+.cabinet-notice h2 svg { flex-shrink: 0; color: #edce7c; }
+.cabinet-notice p { margin: 3px 0 0; font-size: 10px; line-height: 1.45; color: #b8c9a6; }
+.cabinet-notice p.cabinet-notice-subtitle { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 0; color: #dce9c7; font-size: 11px; }
+.cabinet-notice-xp { color: #def4a5; font-weight: 800; }
+.cabinet-notice-actions { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.cabinet-notice button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; min-width: 0; min-height: 34px; flex: 1; padding: 6px 8px; border: 1px solid #788e6e; border-bottom: 3px solid #17291b; border-radius: 6px; background: linear-gradient(#435c42, #283f2f); color: #e3edd0; box-shadow: inset 0 1px #dce7bc38, 0 1px 2px #0008; font: 700 10px/1.2 var(--font-mono, monospace); cursor: pointer; }
+.cabinet-notice button.is-primary { border-color: #d2d5a2; border-bottom-color: #60704b; background: linear-gradient(#e4e9c6, #bdcca1); color: #243b29; }
+.cabinet-notice button:hover { filter: brightness(1.13); }
+.cabinet-notice button:active { transform: translateY(1px); }
+.cabinet-notice button:focus-visible { outline: 2px solid #efffbf; outline-offset: 3px; }
+.cabinet-notice-waiting { display: inline-flex; align-items: center; gap: 6px; flex: 1; color: #d9e3bd; font-size: 10px; }
+.cabinet-notice-waiting svg { animation: cabinet-notice-spin 2s linear infinite; flex-shrink: 0; }
+.cabinet-notice.is-saving .cabinet-notice-header i { background: #edce7c; box-shadow: 0 0 6px #edce7c; }
+.cabinet-notice.is-error .cabinet-notice-header i { background: #efa48b; box-shadow: 0 0 6px #efa48b; }
+.cabinet-notice.is-error h2 { color: #f2b6a1; }
+.cabinet-notice.is-collapsed { display: block; width: auto; height: auto; padding: 6px; border-radius: 10px; }
+/* A completed challenge takes priority. The update returns when it is dismissed. */
+body:has(.daily-game-notice) .update-notice { display: none; }
+@media (pointer: coarse) { .cabinet-notice { grid-template-rows: 16px minmax(0, 1fr) 44px; } .cabinet-notice button { min-height: 44px; } }
+@media (max-width: 600px) { .cabinet-notice { top: max(12px, env(safe-area-inset-top)); right: max(14px, env(safe-area-inset-right)); } }
+@media (prefers-reduced-motion: reduce) { .cabinet-notice, .cabinet-notice-waiting svg { animation: none; } }
+@keyframes cabinet-notice-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes cabinet-notice-spin { to { transform: rotate(360deg); } }
