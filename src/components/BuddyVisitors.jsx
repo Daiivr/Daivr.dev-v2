@@ -27,11 +27,13 @@ import {
   Buddies de visita: el buddy de otro jugador conectado se pasa por el footer.
   - Como mucho 2 a la vez (1 en pantallas estrechas), y cada uno se queda al
     menos un minuto (VISIT_RULES en shared/buddy-visits.mjs).
-  - Se materializa en un borde, camina hasta el buddy de casa, saluda, y este
-    le contesta (evento `daivr-buddy-visitor` que escucha ScreenBuddy).
-  - Mientras esta, hace su vida: pasea por todo el footer, vuelve junto al de
-    casa, le sigue cuando este se pone a andar, baila, salta, mira alrededor,
-    y si el de casa se duerme, anda de puntillas o se echa una siesta.
+  - Se materializa en un borde, camina hasta cerca del buddy de casa (sin
+    pegarse: le deja sitio), saluda, y este le contesta (evento
+    `daivr-buddy-visitor` que escucha ScreenBuddy).
+  - Mientras esta, hace su vida: pasea por todo el footer, se vuelve a acercar
+    de vez en cuando, a veces le sigue de lejos cuando este se pone a andar,
+    baila, salta, mira alrededor, y si el de casa se duerme, anda de puntillas
+    o se echa una siesta. Este donde este, parado siempre mira al de casa.
   - Todos hablan con todos: contesta a lo que dice el de casa
     (`daivr-buddy-said`), le cuenta cosas y le hace caso cuando pregunta,
     charla con el otro visitante, y cada uno comenta lo que hacen los demas
@@ -51,11 +53,17 @@ const MAX_WALK_MS = 5000;
 const MAX_STROLL_MS = 11_000;
 const STROLL_PX = [110, 480];
 const MATERIALIZE_MS = 650;
-const HOST_GAP = 96;
+// Espacio que deja libre alrededor del de casa (nunca se planta delante), y
+// distancia de charla cuando se acerca a el.
+const HOST_SPACE = 140;
+const TALK_PX = 300;
 const NEIGHBOR_GAP = 80;
-// Mas cerca que esto del de casa, le mira; mas lejos, va a lo suyo.
-const NEAR_HOST_PX = 260;
+// Mas lejos que esto del de casa, a veces se vuelve a acercar.
+const NEAR_HOST_PX = 360;
 const TICK_MS = 1000;
+// Cada cuanto comprueba hacia donde queda el de casa para girarse.
+const TRACK_MS = 300;
+const GLANCE_MS = 1500;
 const FLOOR_GAP_MS = 450;
 const LINE_MS = 2500;
 const REPLY_COOLDOWN_MS = 6000;
@@ -63,7 +71,7 @@ const OWN_LINE_MS = [22_000, 40_000];
 // Cada cuanto se le ocurre hacer algo: pasear, volver, bailar, mirar...
 const ACT_MS = [8_000, 16_000];
 const NAP_MS = [25_000, 45_000];
-const FOLLOW_CHANCE = 0.45;
+const FOLLOW_CHANCE = 0.3;
 const EXPLORE_LINE_CHANCE = 0.35;
 const GUEST_TALK_CHANCE = 0.4;
 // Saludo y despedida esperan turno como mucho esto; una respuesta al de casa,
@@ -187,7 +195,6 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
     const zone = () => anchorRef.current?.parentElement || null;
     const stageWidth = () => zone()?.clientWidth || 640;
     const maxX = () => Math.max(EDGE, stageWidth() - SPRITE_WIDTH - EDGE);
-    const clampX = (x) => Math.min(maxX(), Math.max(EDGE, x));
     const hostNode = () => zone()?.querySelector(".screen-buddy-root:not(.is-visitor)") || null;
     const hostReady = () => Boolean(hostNode()) && !hostNode().classList.contains("is-off");
     const hostAsleep = () => Boolean(hostNode()?.classList.contains("is-sleep"));
@@ -226,20 +233,50 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
 
     const faceHost = (visitor) => faceTowards(visitor, hostX());
 
-    // Sitio libre junto a `anchor` (el buddy de casa, o adonde va): primero
-    // pegado a el (del lado preferido y, si esta ocupado, del otro), y solo
-    // despues mas lejos. Asi un segundo visitante se pone al otro lado en vez
-    // de hacer cola detras.
-    function freeSpotNear(anchor, preferredSide, selfId) {
+    // Aparta la vista del de casa un momento (para hablarle a la otra visita,
+    // o mirar alrededor); luego trackHost le vuelve a girar hacia el.
+    function glanceAt(visitor, x, ms) {
+      visitor.glanceUntil = Date.now() + ms;
+      faceTowards(visitor, x);
+    }
+
+    // Parado, siempre mira al de casa: si este pasa por delante o se va al
+    // otro lado, se gira. Andando mira adonde va; dormido, no se mueve.
+    function trackHost() {
+      if (!map.size) return;
+      const host = hostX();
+      const now = Date.now();
+      for (const visitor of map.values()) {
+        if (visitor.walkMs || visitor.napping || visitor.fade || now < visitor.glanceUntil) continue;
+        if (Math.abs(host - liveX(visitor)) < 10) continue;
+        faceHost(visitor);
+      }
+    }
+
+    // Sitio libre alrededor de `anchor` (el buddy de casa, o adonde va), a una
+    // distancia entre `min` y `max`: del lado preferido y, si no cabe, del
+    // otro. Nunca pegado al de casa ni encima de la otra visita; si no hay
+    // hueco a esa distancia, cualquiera que respete eso, y si no, el borde
+    // mas lejano.
+    function spotAround(anchor, preferredSide, selfId, [min, max] = [HOST_SPACE, TALK_PX]) {
       const taken = [...map.values()].filter((visitor) => visitor.id !== selfId).map((visitor) => visitor.targetX);
-      for (let step = 0; step < 3; step += 1) {
-        for (const side of [preferredSide, -preferredSide]) {
-          const x = anchor + side * (HOST_GAP + step * NEIGHBOR_GAP);
-          if (x < EDGE || x > maxX()) continue;
-          if (taken.every((other) => Math.abs(other - x) >= NEIGHBOR_GAP - 8)) return { x, side };
+      const host = hostX();
+      const fits = (x) => x >= EDGE && x <= maxX()
+        && Math.abs(x - anchor) >= HOST_SPACE - 8
+        && Math.abs(x - host) >= HOST_SPACE - 8
+        && taken.every((other) => Math.abs(other - x) >= NEIGHBOR_GAP - 8);
+      for (const side of [preferredSide, -preferredSide]) {
+        for (let tries = 0; tries < 6; tries += 1) {
+          const x = anchor + side * (min + Math.random() * (max - min));
+          if (fits(x)) return { x, side };
         }
       }
-      return { x: clampX(anchor + preferredSide * HOST_GAP), side: preferredSide };
+      for (let tries = 0; tries < 10; tries += 1) {
+        const x = EDGE + Math.random() * (maxX() - EDGE);
+        if (fits(x)) return { x, side: x >= anchor ? 1 : -1 };
+      }
+      const x = anchor < stageWidth() / 2 ? maxX() : EDGE;
+      return { x, side: x >= anchor ? 1 : -1 };
     }
 
     function walkTo(visitor, target, done, { speed = WALK_PX_S, maxMs = MAX_WALK_MS, mood = "walk" } = {}) {
@@ -272,9 +309,10 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
       noticeGuestAction(visitor, action);
     }
 
-    function speak(visitor, line, { ms = LINE_MS, mood = "talk", topic = "", to = "", then } = {}) {
+    function speak(visitor, line, { ms = LINE_MS, mood = "talk", topic = "", to = "", lookAt = null, then } = {}) {
       if (!line || !alive(visitor)) return;
       const now = Date.now();
+      if (lookAt && !visitor.walkMs) glanceAt(visitor, lookAt(), ms + 300);
       visitor.bubble = line;
       visitor.lastLine = line;
       if (!["walk", "sleepy"].includes(visitor.mood)) visitor.mood = mood;
@@ -315,12 +353,12 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
     }
 
     // Contestar: espera a que el otro termine, y si para entonces ya habla
-    // alguien mas, se lo calla.
-    function answer(visitor, line, { delay, face, ...options }) {
+    // alguien mas, se lo calla. Al de casa ya le esta mirando; a la otra
+    // visita (`lookAt`) se gira mientras le habla.
+    function answer(visitor, line, { delay, ...options }) {
       visitor.replyAt = Date.now() + REPLY_COOLDOWN_MS;
       later(delay, () => {
         if (!alive(visitor) || visitor.phase !== "visiting") return;
-        if (face != null && !visitor.walkMs) faceTowards(visitor, face());
         speakWhenFree(visitor, line, { patience: 1500, dropWhenLate: true, ...options });
       });
     }
@@ -352,7 +390,7 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
     function arrive(entry, options = {}) {
       if (map.has(entry.id)) return;
       const host = hostX();
-      const spot = freeSpotNear(host, host < stageWidth() / 2 ? 1 : -1, entry.id);
+      const spot = spotAround(host, host < stageWidth() / 2 ? 1 : -1, entry.id);
       const edgeX = spot.side < 0 ? EDGE : maxX();
       const visitor = {
         id: entry.id,
@@ -375,6 +413,7 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
         actAt: 0,
         napping: false,
         napUntil: 0,
+        glanceUntil: 0,
         lastLine: ""
       };
       map.set(visitor.id, visitor);
@@ -431,7 +470,8 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
 
     // --- Lo que hace por su cuenta -------------------------------------------
 
-    // Paseo a cualquier punto del footer que no este pegado a nadie.
+    // Paseo a cualquier punto del footer que no este pegado a nadie (y menos
+    // al de casa).
     function stroll(visitor, { tiptoe = false } = {}) {
       const from = liveX(visitor);
       const host = hostX();
@@ -441,7 +481,7 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
         const x = EDGE + Math.random() * (maxX() - EDGE);
         const distance = Math.abs(x - from);
         if (distance < STROLL_PX[0] || distance > STROLL_PX[1]) continue;
-        if (Math.abs(x - host) < 72 || others.some((other) => Math.abs(other - x) < NEIGHBOR_GAP - 8)) continue;
+        if (Math.abs(x - host) < HOST_SPACE || others.some((other) => Math.abs(other - x) < NEIGHBOR_GAP - 8)) continue;
         target = x;
       }
       if (target == null) return false;
@@ -453,9 +493,11 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
       return true;
     }
 
+    // Se vuelve a acercar, hasta distancia de charla y por su lado: sin
+    // cruzarse ni plantarse delante del de casa.
     function comeBack(visitor) {
       const host = hostX();
-      const spot = freeSpotNear(host, liveX(visitor) < host ? -1 : 1, visitor.id);
+      const spot = spotAround(host, liveX(visitor) < host ? -1 : 1, visitor.id);
       announceAction(visitor, "back", { targetX: spot.x });
       walkTo(visitor, spot.x, () => faceHost(visitor), { speed: STROLL_PX_S, maxMs: MAX_STROLL_MS });
     }
@@ -480,11 +522,13 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
       });
     }
 
+    // Mira un momento hacia el otro lado y vuelve a mirar al de casa.
     function lookAround(visitor) {
       playFx(visitor, "scan", 1600);
+      visitor.glanceUntil = Date.now() + 800 + GLANCE_MS;
       later(800, () => {
         if (!alive(visitor) || visitor.walkMs) return;
-        visitor.facing = -visitor.facing;
+        visitor.facing = -facingFor(hostX() > liveX(visitor) ? 1 : -1);
         render();
       });
       announceAction(visitor, "look");
@@ -520,9 +564,10 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
         else stroll(visitor, { tiptoe: true });
         return;
       }
-      const away = Math.abs(liveX(visitor) - hostX()) > NEAR_HOST_PX - 30;
+      // Pasea mucho, y solo se vuelve a acercar si se ha ido lejos.
+      const away = Math.abs(liveX(visitor) - hostX()) > NEAR_HOST_PX;
       const roll = Math.random();
-      if (roll < 0.45 || (roll < 0.62 && !away)) {
+      if (roll < 0.5 || (roll < 0.62 && !away)) {
         if (!stroll(visitor) && away) comeBack(visitor);
       } else if (roll < 0.62) comeBack(visitor);
       else if (roll < 0.74) {
@@ -560,7 +605,7 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
       const mood = topic === "dance" ? "dance" : ["party", "fishRare", "bugWin", "outageFix"].includes(topic) ? "party" : "talk";
       // En plena pesca el de casa encadena frases: espera a la siguiente pausa
       // en vez de rendirse a la primera.
-      answer(visitor, reply, { delay: duration + FLOOR_GAP_MS, face: to ? hostX : null, mood, topic: replyTopic(topic), to: "host", patience: HOST_REPLY_PATIENCE_MS });
+      answer(visitor, reply, { delay: duration + FLOOR_GAP_MS, mood, topic: replyTopic(topic), to: "host", patience: HOST_REPLY_PATIENCE_MS });
     }
 
     // Un visitante le hablo a otro: este a veces contesta.
@@ -570,7 +615,7 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
       if (!listener || listener.phase !== "visiting" || listener.napping || listener.bubble) return;
       const reply = guestAnswerTo(topic, lineValues(listener), Math.random, listener.lastLine);
       if (!reply) return;
-      answer(listener, reply, { delay: 0, face: () => liveX(speaker), topic: replyTopic(topic), to: speaker.id });
+      answer(listener, reply, { delay: 0, lookAt: () => liveX(speaker), topic: replyTopic(topic), to: speaker.id });
     }
 
     // El buddy de casa hizo algo (se puso a andar, a bailar, se durmio...).
@@ -599,17 +644,18 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
       if (action === "dance" && !visitor.walkMs && !reduceMotion() && Math.random() < 0.35) later(500, () => moodFor(visitor, "dance", 2400));
       const line = actionComment("onHost", action, lineValues(visitor), Math.random, visitor.lastLine);
       if (!line) return;
-      answer(visitor, line, { delay: 600 + Math.random() * 500, face: action === "walk" ? null : hostX, mood: action === "dance" ? "dance" : "talk", topic: actionTopic(action), to: "host" });
+      answer(visitor, line, { delay: 600 + Math.random() * 500, mood: action === "dance" ? "dance" : "talk", topic: actionTopic(action), to: "host" });
     }
 
-    // El de casa se pone a andar: a veces un visitante se va detras, a su lado.
+    // El de casa se pone a andar: a veces un visitante se va detras, pero
+    // por su lado y a distancia de charla, sin adelantarle ni ponersele delante.
     function follow({ targetX, ms }) {
       if (reduceMotion() || !Number.isFinite(targetX) || Math.random() >= FOLLOW_CHANCE) return false;
       // Tambien uno que iba de paseo: cambia de idea y se va con el.
       const candidates = visiting().filter((visitor) => free(visitor));
       if (!candidates.length) return false;
       const visitor = pickOne(candidates);
-      const spot = freeSpotNear(targetX, liveX(visitor) <= targetX ? -1 : 1, visitor.id);
+      const spot = spotAround(targetX, liveX(visitor) <= targetX ? -1 : 1, visitor.id);
       visitor.actAt = Date.now() + (Number(ms) || 0) + between(ACT_MS);
       visitor.replyAt = Date.now() + REPLY_COOLDOWN_MS;
       later(400 + Math.random() * 500, () => {
@@ -631,7 +677,7 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
       if (Math.random() >= 0.6) return;
       const line = actionComment("onGuest", action, lineValues(watcher), Math.random, watcher.lastLine);
       if (!line) return;
-      answer(watcher, line, { delay: 700 + Math.random() * 600, face: () => liveX(actor), topic: actionTopic(action), to: actor.id });
+      answer(watcher, line, { delay: 700 + Math.random() * 600, lookAt: () => liveX(actor), topic: actionTopic(action), to: actor.id });
     }
 
     function tick() {
@@ -671,15 +717,12 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
         if (visitor.walkMs || visitor.bubble) continue;
         const x = liveX(visitor);
 
-        // El buddy de casa se le ha echado encima: se aparta.
+        // El buddy de casa se le ha echado encima: se aparta, dejandole sitio.
         if (Math.abs(host - x) < 48 && !reduceMotion()) {
-          const away = x >= host ? 1 : -1;
-          let target = clampX(x + away * 84);
-          if (Math.abs(target - host) < 48) target = clampX(host - away * 84);
-          walkTo(visitor, target, () => faceHost(visitor));
+          const spot = spotAround(host, x >= host ? 1 : -1, visitor.id, [HOST_SPACE, HOST_SPACE + 60]);
+          walkTo(visitor, spot.x, () => faceHost(visitor));
           continue;
         }
-        if (visitor.mood === "idle" && Math.abs(host - x) < NEAR_HOST_PX && facingFor(host > x ? 1 : -1) !== visitor.facing) faceHost(visitor);
 
         // Mientras el de casa pesca, caza un bicho, se moja... se queda
         // mirando: ni saca temas ni se va de paseo (contestar, si).
@@ -691,8 +734,7 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
           const pool = toGuest ? guestTalkPool(other.look) : visitorTalkPool(hostLookRef.current, (rosterRef.current || []).length + 1);
           const talk = pickTalk(pool, lineValues(visitor), Math.random, visitor.lastLine);
           if (!talk) continue;
-          faceTowards(visitor, toGuest ? liveX(other) : host);
-          speakWhenFree(visitor, talk.line, { topic: talk.topic, to: toGuest ? other.id : "host" });
+          speakWhenFree(visitor, talk.line, { topic: talk.topic, to: toGuest ? other.id : "host", lookAt: toGuest ? () => liveX(other) : null });
         } else if (now >= visitor.actAt) {
           act(visitor, now);
         }
@@ -760,6 +802,7 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
     else footerVisible = true;
 
     const ticker = window.setInterval(tick, TICK_MS);
+    const tracker = window.setInterval(trackHost, TRACK_MS);
     window.addEventListener("daivr-buddy-said", onHostSaid);
     window.addEventListener("daivr-buddy-action", onBuddyAction);
     window.addEventListener("daivr-buddy-visits", onVisitsToggle);
@@ -770,6 +813,7 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
     return () => {
       observer?.disconnect();
       window.clearInterval(ticker);
+      window.clearInterval(tracker);
       timers.forEach((timer) => window.clearTimeout(timer));
       timers.clear();
       window.removeEventListener("daivr-buddy-said", onHostSaid);

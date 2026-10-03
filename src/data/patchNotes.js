@@ -18,6 +18,7 @@ export const patchNotes = [
       ["new", "Three taller lamps now line the trail, one right beside the Woodland Goods stand. They light up at dusk: a flickering flame, a warm glow on the trees and the path, and fireflies circling them all night."],
       ["new", "A small campfire crackles next to the market stand, with flickering flames, rising sparks and a wisp of smoke. After dark its light spills across the clearing."],
       ["buff", "The forest follows the time of day: trees catch the daylight, the far hills turn hazy, and fireflies only come out after dark."],
+      ["buff", "Visiting Buddies give yours some room. They spread out across the footer instead of crowding in front of it, keep a friendly distance when they come back or follow it on a walk, and always turn to look at your Buddy wherever it goes."],
       ["fix", "The hills and trees are solid now, so the sun and moon set behind them instead of showing through."]
     ]
   },

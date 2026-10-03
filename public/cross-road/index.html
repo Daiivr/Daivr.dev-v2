@@ -2,15 +2,27 @@
 <html lang="en" >
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Cross Road // DAIVR Arcade</title>
   <link rel="stylesheet" href="./style.css">
 
 </head>
 <body>
 
-<div class="cross-brand"><span>KONAMI CARTRIDGE // 03</span><strong>CROSS.ROAD</strong></div>
 <div id="root"></div>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@19.1.0",
+    "react/jsx-runtime": "https://esm.sh/react@19.1.0/jsx-runtime",
+    "react-dom": "https://esm.sh/react-dom@19.1.0?external=react",
+    "react-dom/client": "https://esm.sh/react-dom@19.1.0/client?external=react",
+    "three": "https://esm.sh/three@0.185.1",
+    "@react-three/fiber": "https://esm.sh/@react-three/fiber@9.7.0?external=react,react-dom,three",
+    "zustand": "https://esm.sh/zustand@5.0.8?external=react"
+  }
+}
+</script>
 
 <script>window.addEventListener('keydown',function(event){if(event.key==='Escape'&&window.parent!==window)window.parent.postMessage({type:'daivr:arcade-close'},window.location.origin)},true)</script>
 <script type="module" src="./script.js"></script>
