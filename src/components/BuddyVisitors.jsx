@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BuddySprite } from "./BuddySprite";
 import { useCabinetSignal } from "../lib/cabinetSignals";
+import { sendBuddyWave } from "../lib/buddyWaves";
 import {
   ACTION_LINES,
   actionComment,
@@ -39,6 +40,9 @@ import {
     charla con el otro visitante, y cada uno comenta lo que hacen los demas
     (`daivr-buddy-action`, que lanzan tanto ScreenBuddy como este componente).
   - Al irse se despide, el de casa le dice adios, y se desmaterializa.
+  - Un clic en un visitante le saluda de verdad: el saludo llega a la pestaña
+    de su jugador (lib/buddyWaves). Si quien te saluda tiene aqui a su buddy
+    de visita, ese tambien saluda.
   El aspecto y el nombre son de verdad (llegan por el stream del libro de
   visitas); lo que dicen y hacen se genera aqui, en cada pantalla.
 */
@@ -414,6 +418,7 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
         napping: false,
         napUntil: 0,
         glanceUntil: 0,
+        waveNote: "",
         lastLine: ""
       };
       map.set(visitor.id, visitor);
@@ -777,8 +782,35 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
       render();
     }
 
+    // Saludo de verdad al jugador de este visitante; una notita dice si llego.
+    function wave(visitor) {
+      sendBuddyWave(visitor.id).then(({ ok, status }) => {
+        const note = ok ? "wave sent" : status === 429 ? "already waved" : "";
+        if (!note || !alive(visitor)) return;
+        visitor.waveNote = note;
+        render();
+        later(2400, () => {
+          if (!alive(visitor) || visitor.waveNote !== note) return;
+          visitor.waveNote = "";
+          render();
+        });
+      });
+    }
+
+    // Te saludan desde otro footer: si el que saluda tiene aqui a su buddy,
+    // ese saluda tambien (el de casa lo cuenta por su lado).
+    function onWaveReceived(event) {
+      const visitor = map.get(event.detail?.from);
+      if (!visitor || visitor.phase !== "visiting") return;
+      if (visitor.napping) wakeUp(visitor, { quiet: true });
+      faceHost(visitor);
+      if (!visitor.walkMs && !reduceMotion()) moodFor(visitor, "pet", 650);
+      later(2600, () => speakWhenFree(visitor, () => pickVisitLine(VISITOR_LINES.waved, lineValues(visitor), Math.random, visitor.lastLine), { patience: 4000, topic: "end", to: "host" }));
+    }
+
     pokeRef.current = (id) => {
       const visitor = map.get(id);
+      if (visitor?.phase === "visiting") wave(visitor);
       if (!visitor || visitor.phase !== "visiting" || visitor.bubble) return;
       if (visitor.napping) {
         wakeUp(visitor);
@@ -808,6 +840,7 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
     window.addEventListener("daivr-buddy-visits", onVisitsToggle);
     window.addEventListener("daivr-buddy-visit-test", onTestVisit);
     window.addEventListener("daivr-attract-mode", onAttract);
+    window.addEventListener("daivr-visits-wave", onWaveReceived);
     window.addEventListener("resize", onResize);
 
     return () => {
@@ -821,6 +854,7 @@ export function BuddyVisitors({ friendshipLevel = 1, inventory = [], hiddenGear 
       window.removeEventListener("daivr-buddy-visits", onVisitsToggle);
       window.removeEventListener("daivr-buddy-visit-test", onTestVisit);
       window.removeEventListener("daivr-attract-mode", onAttract);
+      window.removeEventListener("daivr-visits-wave", onWaveReceived);
       window.removeEventListener("resize", onResize);
       pokeRef.current = null;
       map.clear();
@@ -861,10 +895,11 @@ function VisitingBuddy({ visitor, stageWidth, onPoke }) {
         {visitor.bubble}
       </div>
       <span className="buddy-visitor-tag" aria-hidden="true">{label}</span>
+      {visitor.waveNote ? <span className="buddy-visitor-wave-note" role="status">{visitor.waveNote}</span> : null}
       <button
         className="screen-buddy buddy-visitor"
         type="button"
-        aria-label={visitor.napping ? `${label}'s Buddy is napping. Wake it up` : `${label}'s Buddy is visiting. Say hi`}
+        aria-label={visitor.napping ? `${label}'s Buddy is napping. Wake it up and wave` : `${label}'s Buddy is visiting. Wave hello`}
         onClick={() => onPoke(visitor.id)}
       >
         <span className="buddy-visitor-holo">

@@ -193,7 +193,21 @@ export const VISITOR_LINES = {
   footer: ["they found us!", "hi from down here!"],
   tips: ["good tip.", "wait, really?!", "noted."],
   update: ["ooh, patch day!", "{from} should reload too.", "new build? fancy.", "i'll tell my tab."],
-  lore: ["same, actually.", "tell me more.", "that explains a lot."]
+  lore: ["same, actually.", "tell me more.", "that explains a lot."],
+  // Saludos entre jugadores: al de casa le han saludado, o el que saludo es
+  // justo este visitante.
+  wave: ["a wave! who from?", "aw, someone misses you.", "wave back!"],
+  waved: ["hi from over here!", "{from} says hi!", "*waves*", "that was {from}, by the way."],
+  // Noches de hoguera.
+  campfire: ["ooh, a campfire!", "save me a seat.", "cozy."],
+  campfireCook: ["smells amazing.", "is that for me?", "medium rare, please."],
+  marshmallow: ["golden brown, please!", "can i have one?", "perfect toast."],
+  burnt: ["crispy!", "that one is charcoal.", "i like them burnt, honestly."],
+  // El cielo.
+  shootingStar: ["make a wish!", "did you see that?!", "whoa, a shooting star!"],
+  meteors: ["so many! meteor shower!", "best night ever.", "i am wishing on all of them."],
+  fullMoon: ["big moon tonight.", "full moon! the fish are restless."],
+  rainbow: ["a rainbow!", "where is the pot of gold?", "worth the rain."]
 };
 
 // Cumplidos para el buddy de casa segun lo que lleve puesto.
@@ -227,6 +241,9 @@ export const HOST_TOPIC_REPLIES = {
   arcade: ["arcade", 0.5], daily: ["daily", 0.45], level: ["level", 0.6], tabReturn: ["tabReturn", 0.7],
   offline: ["offline", 0.8], online: ["online", 0.6], footer: ["footer", 0.6],
   tips: ["tips", 0.3], lore: ["lore", 0.5], update: ["update", 0.6],
+  wave: ["wave", 0.6], campfire: ["campfire", 0.6], campfireCook: ["campfireCook", 0.7], marshmallow: ["marshmallow", 0.6],
+  marshmallowBurnt: ["burnt", 0.8], shootingStar: ["shootingStar", 0.8], meteorShower: ["meteors", 0.8], fullMoon: ["fullMoon", 0.6],
+  rainbow: ["rainbow", 0.8],
   // Lo que el de casa le dice a un visitante en concreto (ver "Charla entre todos").
   askFooter: ["askFooter", 0.95], askTab: ["askTab", 0.95], askStay: ["askStay", 0.95], askGame: ["askGame", 0.95],
   askFish: ["askFish", 0.95], askMonster: ["askMonster", 0.95],

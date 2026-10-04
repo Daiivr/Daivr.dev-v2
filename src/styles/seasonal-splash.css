@@ -5,11 +5,36 @@
 
 /* Paleta de cada temporada: tinta tambien la puerta, que se pinta antes de que
    llegue SeasonalEvent (y su hoja de estilos) con el resto del armario. */
-.season-winter{--color-phosphor:#a8f2ff;--color-phosphor-soft:#d9fbff;--color-cyan-arcade:#7ab8ff;--seasonal-accent:#8de8ff}
-.season-halloween{--color-phosphor:#b8ff52;--color-phosphor-soft:#e2ffab;--color-cabinet:#ff9f1c;--color-cyan-arcade:#b986ff;--seasonal-accent:#ff8a20}
-.season-birthday{--color-phosphor:#72ffd9;--color-cabinet:#ffe66d;--color-cyan-arcade:#7ee8fa;--seasonal-accent:#ff4da6}
-.season-anniversary{--seasonal-accent:#ffd166}
-.season-april-fools{--color-phosphor:#6fd2ff;--color-cabinet:#fff;--seasonal-accent:#4ba8ff}
+.season-winter{--color-phosphor:#a8e9f5;--color-phosphor-soft:#e0f6ff;--color-cabinet:#e5c48e;--color-cyan-arcade:#93baff;--seasonal-accent:#9bdcf1;--seasonal-secondary:#a7b5ed;--seasonal-surface:#0a1725;--seasonal-deep:#040c16}
+.season-halloween{--color-phosphor:#eeb36d;--color-phosphor-soft:#ffdfb1;--color-cabinet:#ff9f1c;--color-cyan-arcade:#c0a0e7;--seasonal-accent:#f0a45e;--seasonal-secondary:#ad8ed5;--seasonal-surface:#201324;--seasonal-deep:#0e0913}
+.season-birthday{--color-phosphor:#f6a6ca;--color-phosphor-soft:#ffe0ef;--color-cabinet:#f6d588;--color-cyan-arcade:#91e4db;--seasonal-accent:#f2a0c5;--seasonal-secondary:#8cdbd5;--seasonal-surface:#231326;--seasonal-deep:#100b18}
+.season-anniversary{--color-phosphor:#e9c785;--color-phosphor-soft:#fff0cd;--color-cabinet:#f3d999;--color-cyan-arcade:#b6d6d0;--seasonal-accent:#e9c785;--seasonal-secondary:#b5d7d1;--seasonal-surface:#201d17;--seasonal-deep:#0e0e0d}
+.season-april-fools{--color-phosphor:#a7d7f0;--color-phosphor-soft:#dcefff;--color-cabinet:#f0dca4;--color-cyan-arcade:#c0b0e6;--seasonal-accent:#90bfdf;--seasonal-secondary:#c6b0dc;--seasonal-surface:#152431;--seasonal-deep:#080f1b}
+
+/* Carry the palette through the actual metalwork, not just the event badge. */
+:is(.season-winter,.season-halloween,.season-birthday,.season-anniversary,.season-april-fools) .entry-gate {
+  --hud-base: var(--seasonal-deep);
+  --hud-ink: var(--seasonal-deep);
+  --hud-muted: color-mix(in srgb, var(--color-phosphor-soft) 75%, #777);
+}
+:is(.season-winter,.season-halloween,.season-birthday,.season-anniversary,.season-april-fools) .entry-gate-sky {
+  background: radial-gradient(ellipse at 6% 10%, color-mix(in srgb, var(--seasonal-secondary) 18%, transparent), transparent 45%), radial-gradient(ellipse at 95% 90%, color-mix(in srgb, var(--seasonal-accent) 12%, transparent), transparent 45%), linear-gradient(160deg, var(--seasonal-surface), var(--seasonal-deep) 75%);
+}
+:is(.season-winter,.season-halloween,.season-birthday,.season-anniversary,.season-april-fools) .entry-gate-door {
+  background: radial-gradient(ellipse at var(--door-light-x) 48%, color-mix(in srgb, var(--seasonal-accent) 7%, transparent), transparent 65%), linear-gradient(var(--door-sweep), transparent, color-mix(in srgb, var(--seasonal-deep) 85%, transparent));
+}
+:is(.season-winter,.season-halloween,.season-birthday,.season-anniversary,.season-april-fools) .entry-gate-door::after {
+  border-color: color-mix(in srgb, var(--seasonal-accent) 30%, transparent);
+  border-top-color: color-mix(in srgb, var(--seasonal-accent) 55%, transparent);
+  background: linear-gradient(var(--seasonal-accent), var(--seasonal-accent)) 6px 6px / 25px 1px no-repeat, linear-gradient(var(--seasonal-secondary), var(--seasonal-secondary)) calc(100% - 6px) calc(100% - 6px) / 25px 1px no-repeat, repeating-linear-gradient(0deg, #ffffff04 0 1px, transparent 1px 3px), linear-gradient(180deg, color-mix(in srgb, var(--seasonal-accent) 5%, transparent), transparent 30%, #0003);
+  box-shadow: 0 0 0 1px #000c, inset 0 0 0 4px #0006, inset 0 0 0 5px color-mix(in srgb, var(--seasonal-secondary) 18%, transparent), inset 0 10px 18px #0007;
+}
+:is(.season-winter,.season-halloween,.season-birthday,.season-anniversary,.season-april-fools) .entry-gate-door-texture {
+  background: url('/textures/gate-metal.svg') 0 0 / 384px 384px repeat, repeating-linear-gradient(90deg, transparent 0 39px, #ffffff0a 40px, transparent 41px 113px), radial-gradient(ellipse at 22% 30%, color-mix(in srgb, var(--seasonal-secondary) 25%, transparent), transparent 60%);
+  background-clip: padding-box;
+  opacity: .4;
+}
+:is(.season-winter,.season-halloween,.season-birthday,.season-anniversary,.season-april-fools) .entry-gate-door-shade { background: linear-gradient(var(--door-sweep), var(--seasonal-surface), var(--seasonal-deep)); }
 
 /* Splash de entrada tematizado: el evento se ve antes de entrar. La paleta ya
    se tinta sola via variables de .season-*; esto anade el decorado visible. */
@@ -40,7 +65,8 @@
 .splash-season-notice-kicker{display:flex;align-items:center;gap:6px;color:color-mix(in srgb,var(--seasonal-accent,#3fff97) 76%,#fff);font-family:var(--font-pixel);font-size:.38rem;letter-spacing:.18em;text-transform:uppercase}
 .splash-season-notice-kicker i{width:6px;height:6px;background:var(--seasonal-accent,#3fff97);box-shadow:0 0 8px var(--seasonal-accent,#3fff97);animation:splash-notice-live 1.4s steps(2,end) infinite}
 .splash-season-notice strong{display:block;margin-top:5px;color:#fff;font-family:var(--font-display);font-size:.68rem;letter-spacing:.07em}
-.splash-season-notice small{display:block;margin-top:4px;color:rgba(180,255,207,.66);font-size:.57rem;line-height:1.45;white-space:normal}
+.splash-season-notice small{display:block;margin-top:4px;color:color-mix(in srgb,var(--color-phosphor-soft) 78%,#777);font-size:.57rem;line-height:1.45;white-space:normal}
+.splash-season-notice-icon svg{width:23px;height:23px;stroke-width:1.5}
 
 @keyframes seasonal-fall{to{transform:translate3d(var(--drift),105vh,0) rotate(420deg)}}
 @keyframes seasonal-bat{50%{transform:translate(-48px,20px) rotate(-7deg)}}

@@ -5,6 +5,27 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.62.0",
+    codename: "NIGHT SHIFT",
+    date: "2026-10-04",
+    summary: "Night falls on the footer. Buddy waves to other players, sits by the campfire to grill the day's catch, and the sky puts on a show: shooting stars to wish on, real meteor showers, full moons and rainbows. And for the first time, you can hear the footer.",
+    entries: [
+      ["new", "Wave at visiting Buddies: clicking a visitor sends a real wave to its player. Their Buddy tells them who waved, and clicking their Buddy right after waves back. If the player who waved has their Buddy visiting you, it waves too."],
+      ["new", "Campfire nights: after dark, Buddy walks to the campfire by the Woodland Goods stand, sits down and grills a fish it has caught for 2 coins (up to three a night), or toasts a marshmallow that sometimes catches fire. Visitors have opinions about both. Type campfire in the terminal to send it over any time."],
+      ["new", "Shooting stars cross the night sky. Click one to make a wish: Buddy grants a coin, up to five a night."],
+      ["new", "Real meteor showers on their peak nights (Quadrantids, Lyrids, Eta Aquariids, Perseids, Orionids, Leonids and Geminids) fill the sky with shooting stars, and Buddy tells you which one it is."],
+      ["new", "On full moon nights the moon glows brighter, and rare fish bite more often."],
+      ["new", "When Buddy's shower clears in daylight, a pixel rainbow opens over it."],
+      ["new", "Footer ambience, off by default: crickets at night, rain, a crackling campfire, the hum of the lamps and a little wind, all generated in your browser to match the sky. Turn it on with the ambience switch in the footer, or type sound."],
+      ["buff", "Coins from the campfire and from wishes count in the market, alongside chest coins."],
+      ["buff", "Now.log's status panel shows Dai's real local time in Alaska, how far ahead or behind you that is, and a 24-hour strip of Dai's day with the current hour lit. The runtime line follows that clock, and the random bar chart is gone."],
+      ["buff", "Each Now.log card ends with real tags from what it describes (the bots, the games, the topics) instead of an identical fake meter, and shows its own state."],
+      ["buff", "LINKS.SH got a cleaner look that matches Now.log: dark route cards with a numbered rail, each in its own brand colour, and the real profile address on every card. Hovering lights the port and the launch button in that colour."],
+      ["buff", "Under the hood, Buddy is now split into smaller pieces (fishing, weather, encounters, blackout, chat, grabbing, campfire and sky), so new tricks are safer to add."],
+      ["new", "The sky command can preview a meteor shower or a full moon: sky 23:00 meteors, or sky fullmoon."]
+    ]
+  },
+  {
     version: "v2.61.0",
     codename: "SKYLIGHT",
     date: "2026-10-02",
@@ -18,8 +39,10 @@ export const patchNotes = [
       ["new", "Three taller lamps now line the trail, one right beside the Woodland Goods stand. They light up at dusk: a flickering flame, a warm glow on the trees and the path, and fireflies circling them all night."],
       ["new", "A small campfire crackles next to the market stand, with flickering flames, rising sparks and a wisp of smoke. After dark its light spills across the clearing."],
       ["buff", "The forest follows the time of day: trees catch the daylight, the far hills turn hazy, and fireflies only come out after dark."],
+      ["buff", "On the gate, Buddy no longer pops into view: it peeks over the edge for a moment, then hops up and lands with a little puff of dust."],
       ["buff", "Visiting Buddies give yours some room. They spread out across the footer instead of crowding in front of it, keep a friendly distance when they come back or follow it on a walk, and always turn to look at your Buddy wherever it goes."],
-      ["fix", "The hills and trees are solid now, so the sun and moon set behind them instead of showing through."]
+      ["fix", "The hills and trees are solid now, so the sun and moon set behind them instead of showing through."],
+      ["fix", "Patch.log is ready by the time you scroll down to it. Its desk loads quietly in the background a moment after you enter, instead of showing a loading box for a few seconds."]
     ]
   },
   {

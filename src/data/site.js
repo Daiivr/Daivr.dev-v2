@@ -34,24 +34,34 @@ export const navItems = [
   ["Comments", "#contact"]
 ];
 
+// state: estado corto de la tarjeta (arriba a la derecha); tags: lo que
+// sale en el pie, sacado del propio texto.
 export const now = [
   {
     label: "currently building",
     title: "Discord tools with personality",
-    body: "Queue flows, bot commands, embeds, web panels, and small systems that make community servers easier to run."
+    body: "Queue flows, bot commands, embeds, web panels, and small systems that make community servers easier to run.",
+    state: "in progress",
+    tags: ["bot commands", "embeds", "web panels", "queue flows"]
   },
   {
     label: "currently playing",
     title: "Fallout, Minecraft, VRChat, DBD",
-    body: "The site borrows from the stuff that lives in the background while I code: launchers, inventories, lobbies, and late-night voice chat."
+    body: "The site borrows from the stuff that lives in the background while I code: launchers, inventories, lobbies, and late-night voice chat.",
+    state: "in rotation",
+    tags: ["Fallout", "Minecraft", "VRChat", "Dead by Daylight"]
   },
   {
     label: "currently learning",
     title: "Cleaner interfaces, stronger systems",
-    body: "Less random glow, more deliberate hierarchy. More arcade station, more terminal personality, more Dai."
+    body: "Less random glow, more deliberate hierarchy. More arcade station, more terminal personality, more Dai.",
+    state: "ongoing",
+    tags: ["hierarchy", "systems", "terminal UX"]
   }
 ];
 
+// status.ini en Now.log. El valor de "runtime" lo pone la hora de verdad de
+// Dai (lib/daiTime: night mode, morning boot, day shift, evening build).
 export const roomStats = [
   ["coffee", "cold but loyal"],
   ["playlist", "lo-fi / anime OPs"],

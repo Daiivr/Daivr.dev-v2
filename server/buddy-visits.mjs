@@ -60,3 +60,36 @@ export function visitRosterFor(recipient, clients, getUser) {
   }
   return roster;
 }
+
+// Saludos entre jugadores: quien ve un buddy de visita puede saludarle y el
+// saludo llega a la pestaña de ese jugador (`visits:wave`), que puede
+// devolverlo. Solo a quien de verdad te puede visitar (el mismo filtro que la
+// lista), uno cada pocos segundos y no al mismo buddy una y otra vez.
+const WAVE_MIN_INTERVAL_MS = 3000;
+const WAVE_PAIR_COOLDOWN_MS = 20_000;
+const WAVE_MEMORY = 24;
+
+export function applyVisitWave(clients, body, getUser, now = Date.now()) {
+  const token = cleanId(body?.token);
+  const to = cleanId(body?.to);
+  if (!token || !to) return { status: 400, error: "Missing wave target." };
+  const sender = [...clients].find((entry) => entry.visit?.token === token);
+  if (!sender) return { status: 404, error: "That stream connection is gone." };
+  const target = [...clients].find((entry) => entry.visit?.id === to);
+  if (!target || !visitRosterFor(sender, [target], getUser).length) return { status: 404, error: "That buddy already went home." };
+
+  const visit = sender.visit;
+  visit.waves ||= new Map();
+  if (visit.lastWaveAt && now - visit.lastWaveAt < WAVE_MIN_INTERVAL_MS) return { status: 429, error: "Slow down." };
+  if (visit.waves.has(to) && now - visit.waves.get(to) < WAVE_PAIR_COOLDOWN_MS) return { status: 429, error: "You just waved at them." };
+  visit.lastWaveAt = now;
+  visit.waves.set(to, now);
+  if (visit.waves.size > WAVE_MEMORY) visit.waves.delete(visit.waves.keys().next().value);
+
+  const user = getUser(sender.request);
+  return {
+    status: 200,
+    target,
+    payload: { from: visit.id, name: user?.username ? String(user.username).slice(0, 32) : null, look: visit.look }
+  };
+}

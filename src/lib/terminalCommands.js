@@ -308,6 +308,33 @@ export const TERMINAL_COMMANDS = [
     }
   },
   {
+    name: "sound",
+    aliases: ["ambience"],
+    usage: "sound [on|off]",
+    summary: "footer ambience: crickets, rain, campfire",
+    group: "cabinet",
+    complete: () => [
+      { value: "on", detail: "crickets, rain, campfire, lamps" },
+      { value: "off", detail: "quiet footer" }
+    ],
+    run: ({ args, ctx }) => {
+      const requested = args[0]?.toLowerCase();
+      if (requested && !["on", "off"].includes(requested)) return "Usage: sound [on|off]";
+      let current = false;
+      try {
+        current = window.localStorage.getItem("daivr.footerSound.v1") === "on";
+      } catch {
+        // Sin almacenamiento se trata como apagado.
+      }
+      const enabled = requested ? requested === "on" : !current;
+      window.dispatchEvent(new CustomEvent("daivr-footer-sound", { detail: { enabled } }));
+      if (!enabled) return "AMBIENCE // off. the footer goes quiet.";
+      ctx.close();
+      window.requestAnimationFrame(() => document.querySelector(".app-footer-zone")?.scrollIntoView({ behavior: "smooth", block: "end" }));
+      return "AMBIENCE // on. crickets at night, rain, the campfire and the lamps.";
+    }
+  },
+  {
     name: "weather",
     aliases: ["forecast"],
     usage: "weather",
@@ -483,6 +510,7 @@ export const TERMINAL_COMMANDS = [
   { name: "forage", usage: "forage", summary: "footer loot scanner", group: "diagnostic", run: buddySignal("daivr-buddy-find", "Footer loot scanner pulsed.") },
   { name: "wildlife", usage: "wildlife", summary: "environmental creature ping", group: "diagnostic", run: buddySignal("daivr-buddy-creature", "Environmental creature ping sent.") },
   { name: "debugbug", usage: "debugbug", summary: "hostile bug simulation", group: "diagnostic", run: buddySignal("daivr-buddy-enemy", "Hostile bug simulation started.") },
+  { name: "campfire", usage: "campfire", summary: "send buddy to the campfire", group: "diagnostic", run: buddySignal("daivr-buddy-campfire", "Buddy is heading to the campfire.") },
   {
     name: "visit",
     usage: "visit",
@@ -497,12 +525,14 @@ export const TERMINAL_COMMANDS = [
   },
   {
     name: "sky",
-    usage: "sky [hour] [weather|auto]",
+    usage: "sky [hour] [weather] [meteors|fullmoon|auto]",
     summary: "preview the footer sky at any hour",
     group: "diagnostic",
     complete: () => [
       ...["06:45", "12:00", "19:30", "23:00"].map((value) => ({ value, detail: "hour" })),
       ...SKY_COVERS.map((value) => ({ value, detail: "weather" })),
+      { value: "meteors", detail: "a meteor shower tonight" },
+      { value: "fullmoon", detail: "a full moon tonight" },
       { value: "auto", detail: "back to the real clock and weather" }
     ],
     run: ({ args, ctx }) => {
@@ -511,8 +541,10 @@ export const TERMINAL_COMMANDS = [
         const time = /^(\d{1,2})(?::(\d{2}))?$/.exec(arg);
         if (time && Number(time[1]) < 24 && Number(time[2] || 0) < 60) detail.minutes = Number(time[1]) * 60 + Number(time[2] || 0);
         else if (SKY_COVERS.includes(arg)) detail.cover = arg;
+        else if (["meteors", "meteor", "shower"].includes(arg)) detail.shower = "perseids";
+        else if (["fullmoon", "full-moon", "moon"].includes(arg)) detail.fullMoon = true;
         else if (["auto", "reset", "off"].includes(arg)) detail.reset = true;
-        else return `Usage: sky [hour] [weather|auto]\nWeather: ${SKY_COVERS.join(", ")}`;
+        else return `Usage: sky [hour] [weather] [meteors|fullmoon|auto]\nWeather: ${SKY_COVERS.join(", ")}`;
       }
       if (!args.length) detail.reset = true;
       window.dispatchEvent(new CustomEvent("daivr-sky-test", { detail }));
@@ -520,7 +552,8 @@ export const TERMINAL_COMMANDS = [
       window.requestAnimationFrame(() => document.querySelector(".app-footer-zone")?.scrollIntoView({ behavior: "smooth", block: "end" }));
       if (detail.reset) return "SKY // back to the real clock and weather.";
       const hour = detail.minutes != null ? `${String(Math.floor(detail.minutes / 60)).padStart(2, "0")}:${String(detail.minutes % 60).padStart(2, "0")}` : "";
-      return `SKY // preview${hour ? ` at ${hour}` : ""}${detail.cover ? `, ${detail.cover}` : ""}. Run sky auto to go back.`;
+      const extras = [detail.cover, detail.shower ? "meteor shower" : "", detail.fullMoon ? "full moon" : ""].filter(Boolean).join(", ");
+      return `SKY // preview${hour ? ` at ${hour}` : ""}${extras ? `, ${extras}` : ""}. Run sky auto to go back.`;
     }
   },
   { name: "leviathan", usage: "leviathan", summary: "guaranteed Leviathan sighting", group: "admin", run: (call) => runBuddyDiagnostic(call, "leviathan") },

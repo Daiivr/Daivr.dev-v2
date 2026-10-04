@@ -1,5 +1,9 @@
 export const CHEST_MIN_COINS = 1;
 export const CHEST_MAX_COINS = 10;
+// Monedas que se ganan fuera de los cofres: cada pez asado en la hoguera y
+// cada deseo a una estrella fugaz.
+export const CAMPFIRE_MEAL_COINS = 2;
+export const STAR_WISH_COINS = 1;
 export const MARKET_TIME_ZONE = "America/New_York";
 export const MARKET_SCHEDULE = "Wednesdays & Saturdays · New York time";
 export const MARKET_ITEMS = [
@@ -43,13 +47,21 @@ export function marketStock(date = new Date()) {
   return MARKET_ITEMS.filter((item) => ids.includes(item.id));
 }
 
+// Lo ganado en la hoguera y con las estrellas. Nunca se asan mas peces de los
+// pescados; los contadores solo suben, igual que los cofres.
+export function bonusCoins(adventure = {}) {
+  const meals = Math.min(count(adventure.campfireMeals), count(adventure.totalCatches));
+  return meals * CAMPFIRE_MEAL_COINS + count(adventure.starWishes) * STAR_WISH_COINS;
+}
+
 // Save a monotonic chest count and dated, unique purchases, never a mutable
 // coin balance. Replaying an old save cannot refund coins or reopen a chest.
-export function normalizeMarket(value, fishCollection = {}) {
+// `bonus`: monedas de bonusCoins(), que tambien pagan compras.
+export function normalizeMarket(value, fishCollection = {}, bonus = 0) {
   const rewards = (Array.isArray(value?.rewards) ? value.rewards : []).slice(0, Math.min(999, count(fishCollection["token-chest"]))).map((reward) => Math.max(CHEST_MIN_COINS, Math.min(CHEST_MAX_COINS, count(reward))));
   const opened = rewards.length;
   const purchases = {};
-  let budget = rewards.reduce((sum, reward) => sum + reward, 0);
+  let budget = rewards.reduce((sum, reward) => sum + reward, 0) + count(bonus);
   const receipts = value?.purchases && typeof value.purchases === "object" ? value.purchases : {};
   for (const item of MARKET_ITEMS) {
     const timestamp = receipts[item.id];
@@ -59,12 +71,12 @@ export function normalizeMarket(value, fishCollection = {}) {
   }
   return { opened, rewards, purchases };
 }
-export function mergeMarket(left, right, fishCollection) {
-  const a = normalizeMarket(left, fishCollection);
-  const b = normalizeMarket(right, fishCollection);
+export function mergeMarket(left, right, fishCollection, bonus = 0) {
+  const a = normalizeMarket(left, fishCollection, bonus);
+  const b = normalizeMarket(right, fishCollection, bonus);
   const rewards = [...a.rewards, ...b.rewards.slice(a.rewards.length)];
   const purchases = { ...a.purchases };
-  let balance = rewards.reduce((sum, reward) => sum + reward, 0) - MARKET_ITEMS.filter((item) => Object.hasOwn(purchases, item.id)).reduce((sum, item) => sum + item.price, 0);
+  let balance = rewards.reduce((sum, reward) => sum + reward, 0) + count(bonus) - MARKET_ITEMS.filter((item) => Object.hasOwn(purchases, item.id)).reduce((sum, item) => sum + item.price, 0);
   // Preserve confirmed purchases when two devices spend the same balance.
   // Accept only affordable additions; never replace an already-owned piece.
   for (const item of MARKET_ITEMS) {
@@ -72,12 +84,13 @@ export function mergeMarket(left, right, fishCollection) {
     purchases[item.id] = b.purchases[item.id];
     balance -= item.price;
   }
-  return normalizeMarket({ rewards, purchases }, fishCollection);
+  return normalizeMarket({ rewards, purchases }, fishCollection, bonus);
 }
 export function marketWallet(adventure) {
-  const market = normalizeMarket(adventure.market, adventure.fishCollection);
+  const bonus = bonusCoins(adventure);
+  const market = normalizeMarket(adventure.market, adventure.fishCollection, bonus);
   const owned = Object.keys(market.purchases);
-  return { ...market, owned, coins: market.rewards.reduce((sum, reward) => sum + reward, 0) - MARKET_ITEMS.filter((item) => owned.includes(item.id)).reduce((sum, item) => sum + item.price, 0), unopened: Math.min(999, count(adventure.fishCollection?.["token-chest"])) - market.opened };
+  return { ...market, owned, bonus, coins: market.rewards.reduce((sum, reward) => sum + reward, 0) + bonus - MARKET_ITEMS.filter((item) => owned.includes(item.id)).reduce((sum, item) => sum + item.price, 0), unopened: Math.min(999, count(adventure.fishCollection?.["token-chest"])) - market.opened };
 }
 export function openMarketChest(adventure, random = Math.random) {
   const wallet = marketWallet(adventure);

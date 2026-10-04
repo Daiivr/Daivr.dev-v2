@@ -1,5 +1,11 @@
 import "../styles/seasonal-events.css";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { SeasonalScenery } from "./SeasonalScenery";
+import { fillSpriteTexture } from "./seasonalArtTextures";
+import { drawHalloweenBat, drawHalloweenHat } from "./halloweenSprites";
+import { buildGlassFracture as buildShatterWeb, drawFracturedGlass as drawShatter, drawDamagedCables as drawWires, drawRepairDialog as drawBrokenDialog } from "./aprilSprites";
+import { drawWrappedGift as drawGiftBox, drawFrostedTier as drawCakeTier, drawPipedCupcake, drawEngravedTrophy as drawTrophy, drawCelebrationBottle as drawChampagne } from "./celebrationSprites";
+import { drawSnowCrystal, drawWinterLedge } from "./winterSprites";
 
 const UPDATE_MESSAGES = [
   [0, "Preparing DaiOS 95"],
@@ -41,8 +47,6 @@ function HalloweenScene() {
   return (
     <div className="seasonal-halloween-scene">
       <span className="seasonal-halloween-lightning" />
-      <span className="seasonal-moon" />
-      <div className="seasonal-bats"><i /><i /><i /><i /><i /></div>
       <div className="seasonal-fog fog-a" /><div className="seasonal-fog fog-b" />
       <div className="seasonal-corruption-band"><span>0x31</span><i /><i /><i /></div>
     </div>
@@ -53,7 +57,7 @@ function WinterScene() {
   return (
     <div className="seasonal-winter-scene">
       <div className="seasonal-aurora"><i /><i /><i /></div>
-      <div className="seasonal-icicles">{Array.from({ length: 18 }, (_, index) => <i key={index} style={{ "--ice": index }} />)}</div>
+      <div className="seasonal-icicles">{Array.from({ length: 18 }, (_, index) => <i key={index} style={{ "--ice-height": `${9 + index % 5 * 4}px` }} />)}</div>
     </div>
   );
 }
@@ -745,6 +749,41 @@ function WinterSnowPhysics({ active }) {
       ctx.fillStyle = gradient;
       ctx.fill();
       ctx.shadowBlur = 0;
+      ctx.save();
+      ctx.clip();
+      fillSpriteTexture(ctx, "snow", left, top - maxHeight, surface.width, maxHeight + 3, .42);
+      // Blue pockets below the crust and a few frost grains break up the fill.
+      ctx.strokeStyle = "#76b4d33b";
+      ctx.lineWidth = .65;
+      for (let grain = 2; grain < count - 2; grain += 5) {
+        if (bins[grain] < 3) continue;
+        const gx = left + grain * step;
+        const gy = top - bins[grain] * .42;
+        ctx.beginPath();
+        ctx.moveTo(gx - 2, gy);
+        ctx.quadraticCurveTo(gx, gy + 1.5, gx + 2.5, gy - .5);
+        ctx.stroke();
+      }
+      ctx.restore();
+      // Short translucent icicles hang only where enough snow has collected.
+      for (let ice = 3; ice < count - 2; ice += 19) {
+        if (bins[ice] < 4) continue;
+        const ix = left + ice * step;
+        const length = 3 + fract(surface.pile.seed * (ice + 1)) * 6;
+        const iceFill = ctx.createLinearGradient(ix - 2, top, ix + 2, top + length);
+        iceFill.addColorStop(0, "#c6ecf1b3");
+        iceFill.addColorStop(.5, "#75aabd80");
+        iceFill.addColorStop(1, "#e9f9ff55");
+        ctx.fillStyle = iceFill;
+        ctx.beginPath();
+        ctx.moveTo(ix - 1.8, top);
+        ctx.lineTo(ix + 1.8, top);
+        ctx.lineTo(ix + .25, top + length);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = "#e3faffbb";
+        ctx.fillRect(ix - .7, top + 1, .5, length * .5);
+      }
 
       // Destellos: la nieve chispea con puntitos que titilan.
       const sparkCount = Math.min(9, Math.max(2, Math.floor(surface.width / 110)));
@@ -761,6 +800,7 @@ function WinterSnowPhysics({ active }) {
       }
       ctx.globalAlpha = 1;
       ctx.restore();
+      drawWinterLedge(ctx, surface, now, ox, oy, reducedMotion);
     }
 
     function drawClumps() {
@@ -791,32 +831,7 @@ function WinterSnowPhysics({ active }) {
           context.fill();
           continue;
         }
-        const arm = flake.radius * 2.3;
-        context.globalAlpha = flake.opacity * .16;
-        context.beginPath();
-        context.arc(flake.x, flake.y, arm, 0, Math.PI * 2);
-        context.fill();
-        context.globalAlpha = flake.opacity;
-        context.lineWidth = Math.max(.8, flake.radius * .34);
-        context.beginPath();
-        for (let armIndex = 0; armIndex < 6; armIndex += 1) {
-          const angle = flake.rot + (armIndex * Math.PI) / 3;
-          const cosA = Math.cos(angle);
-          const sinA = Math.sin(angle);
-          context.moveTo(flake.x, flake.y);
-          context.lineTo(flake.x + cosA * arm, flake.y + sinA * arm);
-          const branchX = flake.x + cosA * arm * .55;
-          const branchY = flake.y + sinA * arm * .55;
-          const branch = arm * .34;
-          context.moveTo(branchX, branchY);
-          context.lineTo(branchX + Math.cos(angle + Math.PI / 3.2) * branch, branchY + Math.sin(angle + Math.PI / 3.2) * branch);
-          context.moveTo(branchX, branchY);
-          context.lineTo(branchX + Math.cos(angle - Math.PI / 3.2) * branch, branchY + Math.sin(angle - Math.PI / 3.2) * branch);
-        }
-        context.stroke();
-        context.beginPath();
-        context.arc(flake.x, flake.y, Math.max(.7, flake.radius * .4), 0, Math.PI * 2);
-        context.fill();
+        drawSnowCrystal(context, flake);
       }
       context.globalAlpha = 1;
     }
@@ -1023,7 +1038,7 @@ function makeWebSpider(seed) {
     nextMoveAt: 0,
     phase: fract(seed * 2.37) * Math.PI * 2,
     scaredUntil: 0,
-    size: .8 + .5 * fract(seed * 6.91),
+    size: 1.05 + .55 * fract(seed * 6.91),
     swingAmp: .05 + .08 * fract(seed * 4.73),
     swingW: .8 + .9 * fract(seed * 8.19),
     targetLen: baseLen,
@@ -1092,11 +1107,11 @@ function HalloweenDecorPhysics({ active }) {
       const ghostCount = (width < 700 ? 2 : 3) + (fract(cornerSeed * 11.7) < .4 ? 1 : 0);
       for (let index = 0; index < ghostCount; index += 1) {
         ghosts.push({
-          alpha: .3 + .15 * fract(cornerSeed * (13.9 + index * 3.7)),
+          alpha: .47 + .15 * fract(cornerSeed * (13.9 + index * 3.7)),
           initialized: false,
           phase: fract(cornerSeed * (5.3 + index * 9.1)) * Math.PI * 2,
           seed: fract(cornerSeed * (2.9 + index * 4.3)) * 10,
-          size: 9 + 7 * fract(cornerSeed * (8.3 + index * 6.1)),
+          size: 14 + 9 * fract(cornerSeed * (8.3 + index * 6.1)),
           speed: .7 + .6 * fract(cornerSeed * (4.7 + index * 2.9)),
           vx: 0,
           vy: 0,
@@ -1160,7 +1175,12 @@ function HalloweenDecorPhysics({ active }) {
       ctx.save();
       ctx.translate(ghost.x, ghost.y);
       ctx.rotate(lean);
-      ctx.fillStyle = "#e4f4ff";
+      const cloth = ctx.createRadialGradient(-s * .36, -s * .48, s * .08, s * .2, s * .25, s * 1.6);
+      cloth.addColorStop(0, "#f5f0e6");
+      cloth.addColorStop(.4, "#d2d1df");
+      cloth.addColorStop(.75, "#9495b4");
+      cloth.addColorStop(1, "#64698844");
+      ctx.fillStyle = cloth;
 
       // Estela: un eco tenue que queda por detras cuando acelera.
       if (speed > 26) {
@@ -1175,6 +1195,26 @@ function HalloweenDecorPhysics({ active }) {
       ghostBodyPath(ctx, ghost, t, s, drag, rippleSpeed, rippleAmp);
       ctx.fill();
 
+      // The weave and folds move with the sheet, with a softly lit left edge.
+      ctx.save();
+      ctx.clip();
+      fillSpriteTexture(ctx, "linen", -s * 1.7, -s, s * 3.4, s * 2.7, .8);
+      for (const fold of [-.64, -.15, .4, .74]) {
+        const fx = fold * s;
+        ctx.strokeStyle = fold < 0 ? "#fffaea55" : "#44446844";
+        ctx.lineWidth = s * .055;
+        ctx.beginPath();
+        ctx.moveTo(fx * .72, -s * .48);
+        ctx.bezierCurveTo(fx, s * .1, fx + drag * .25, s * .68, fx + drag, s * 1.42);
+        ctx.stroke();
+      }
+      ctx.restore();
+      ctx.strokeStyle = "#f2e9ff66";
+      ctx.lineWidth = .65;
+      ctx.beginPath();
+      ctx.arc(0, 0, s * .96, Math.PI * 1.04, Math.PI * 1.72);
+      ctx.stroke();
+
       // Ojos que miran hacia donde va y parpadean de vez en cuando.
       const look = Math.max(-s * .1, Math.min(s * .1, ghost.vx * .002));
       const blinkT = fract((t + ghost.seed * 2.7) / (3.4 + fract(ghost.seed * 3.3) * 2));
@@ -1184,11 +1224,39 @@ function HalloweenDecorPhysics({ active }) {
       ctx.ellipse(-s * .34 + look, s * .05, s * .11, s * .16 * blink, 0, 0, Math.PI * 2);
       ctx.ellipse(s * .34 + look, s * .05, s * .11, s * .16 * blink, 0, 0, Math.PI * 2);
       ctx.fill();
+      ctx.strokeStyle = "#eee6fb80";
+      ctx.lineWidth = .6;
+      ctx.stroke();
+      if (blink > .6) {
+        ctx.fillStyle = "#e2d8ffb0";
+        ctx.fillRect(-s * .36 + look, -s * .02, .75, .9);
+        ctx.fillRect(s * .32 + look, -s * .02, .75, .9);
+      }
+      ctx.fillStyle = "#191527cc";
       if (s > 12) {
         // La boca se abre un poco mas cuando coge carrerilla.
         ctx.beginPath();
         ctx.ellipse(look * .6, s * .46, s * .1, s * (.12 + Math.min(.08, speed * .0006)), 0, 0, Math.PI * 2);
         ctx.fill();
+      }
+      // A tiny hand-mended patch and loose hem threads, never a flat icon.
+      if (ghost.seed > 4) {
+        ctx.save();
+        ctx.translate(-s * .5 + drag * .35, s * .7);
+        ctx.rotate(-.2);
+        ctx.fillStyle = "#c6c0d755";
+        ctx.fillRect(-s * .12, -s * .13, s * .24, s * .26);
+        ctx.strokeStyle = "#615978aa";
+        ctx.lineWidth = .55;
+        for (let stitch = -1; stitch <= 1; stitch += 1) {
+          ctx.beginPath();
+          ctx.moveTo(stitch * s * .08, -s * .17);
+          ctx.lineTo(stitch * s * .08, -s * .09);
+          ctx.moveTo(stitch * s * .08, s * .09);
+          ctx.lineTo(stitch * s * .08, s * .17);
+          ctx.stroke();
+        }
+        ctx.restore();
       }
       ctx.globalAlpha = 1;
       ctx.restore();
@@ -1274,7 +1342,7 @@ function HalloweenDecorPhysics({ active }) {
         if (fract(seed * (corner === "tl" ? 17.9 : 21.3)) < .5) {
           deco.hats.push({
             corner,
-            size: 18 + 9 * fract(seed * (corner === "tl" ? 5.9 : 8.7)),
+            size: 23 + 7 * fract(seed * (corner === "tl" ? 5.9 : 8.7)),
             tilt: (fract(seed * 14.3) - .5) * .4
           });
           break;
@@ -1291,7 +1359,7 @@ function HalloweenDecorPhysics({ active }) {
         ? { corner: topWebs[hostIndex].corner, ...makeWebSpider(seed + 4) }
         : null;
       deco.pumpkin = edgeWidth > 270 && fract(seed * 5.77) < .5
-        ? { seed: fract(seed * 3.33) * 10, size: 9 + 5 * fract(seed * 7.31), x01: .16 + .68 * fract(seed * 12.9) }
+        ? { seed: fract(seed * 3.33) * 10, size: 12 + 6 * fract(seed * 7.31), x01: .16 + .68 * fract(seed * 12.9) }
         : null;
       // Bolsa de caramelos junto a la calabaza, al lado contrario de las velas.
       const candlesLeft = fract(seed * 4.9) < .5;
@@ -1404,6 +1472,7 @@ function HalloweenDecorPhysics({ active }) {
     function updateSpiderSprite(spider, anchorX, anchorY, now, delta) {
       spider.ax = anchorX;
       spider.ay = anchorY;
+      spider.step = reducedMotion ? 0 : Math.sin(now / 190 + spider.phase) * (spider.scaredUntil > now ? 1.2 : .3);
       if (reducedMotion) {
         spider.len = spider.baseLen * .6;
         spider.x = anchorX;
@@ -1442,7 +1511,7 @@ function HalloweenDecorPhysics({ active }) {
           driftY: (Math.random() - .5) * 9,
           flapW: 4.5 + Math.random() * 3,
           phase: Math.random() * 9,
-          scale: .55 + Math.random() * .75,
+          scale: .7 + Math.random() * .55,
           vx: speed * (.9 + Math.random() * .2),
           wobAmp: 8 + Math.random() * 18,
           wobW: 1.1 + Math.random() * 1.5,
@@ -1490,6 +1559,19 @@ function HalloweenDecorPhysics({ active }) {
       }
       ctx.stroke();
       // Reflejos: la seda atrapa la luz de la luna a ratos.
+      // Small dewdrops sit at silk intersections, including in reduced motion.
+      for (let bead = 0; bead < 5; bead += 1) {
+        const spoke = web.spokes[(bead * 3 + 1) % web.spokes.length];
+        const rr = web.rings[(bead * 2 + 1) % web.rings.length];
+        const bx = cx + Math.cos(spoke.angle) * spoke.length * rr * web.dirX;
+        const by = cy + Math.sin(spoke.angle) * spoke.length * rr * web.dirY;
+        ctx.fillStyle = "#b6b1d74d";
+        ctx.beginPath();
+        ctx.ellipse(bx, by + .45, .85, 1.3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#fff4e8ad";
+        ctx.fillRect(bx - .45, by - .5, .55, .6);
+      }
       if (!reducedMotion) {
         ctx.fillStyle = "rgba(240,236,255,.92)";
         for (let glint = 0; glint < 2; glint += 1) {
@@ -1516,41 +1598,83 @@ function HalloweenDecorPhysics({ active }) {
       const x = spider.x + ox;
       const y = spider.y + oy;
       const s = spider.size;
+      ctx.save();
       ctx.strokeStyle = "rgba(224,214,255,.32)";
-      ctx.lineWidth = .8;
+      ctx.lineWidth = .65;
       ctx.beginPath();
       ctx.moveTo(ax, ay);
-      ctx.lineTo(x, y);
+      ctx.quadraticCurveTo(ax + (x - ax) * .35 - s, (ay + y) * .5, x, y - 3 * s);
       ctx.stroke();
-      ctx.strokeStyle = "rgba(185,134,255,.6)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
+      ctx.lineCap = "round";
       for (const side of [-1, 1]) {
         for (let leg = 0; leg < 4; leg += 1) {
-          ctx.moveTo(x + side * 1.6 * s, y + .4 * s);
-          ctx.quadraticCurveTo(
-            x + side * (4.6 + leg * .5) * s,
-            y - 2.6 * s + leg * 2 * s,
-            x + side * (6.4 + leg * .8) * s,
-            y + (leg - 1.5) * 2.4 * s + 1.2 * s
-          );
+          const twitch = (spider.step || 0) * (leg % 2 ? 1 : -1);
+          const jointX = x + side * (4.6 + leg * .45) * s;
+          const jointY = y + (-4.8 + leg * 2.45 + twitch) * s;
+          const tipX = x + side * (7 + leg * .38) * s;
+          const tipY = y + (leg - 1.3) * 3.1 * s;
+          ctx.beginPath();
+          ctx.moveTo(x + side * 1.35 * s, y - s + leg * .55 * s);
+          ctx.lineTo(jointX, jointY);
+          ctx.lineTo(tipX, tipY);
+          ctx.strokeStyle = "#211729";
+          ctx.lineWidth = 1.8 * s;
+          ctx.stroke();
+          ctx.strokeStyle = "#a69aacb3";
+          ctx.lineWidth = .55 * s;
+          ctx.stroke();
+          ctx.fillStyle = "#c2afba99";
+          ctx.beginPath();
+          ctx.arc(jointX, jointY, .6 * s, 0, Math.PI * 2);
+          ctx.fill();
         }
       }
-      ctx.stroke();
-      ctx.fillStyle = "#241436";
-      ctx.strokeStyle = "rgba(185,134,255,.55)";
-      ctx.lineWidth = .8;
+      const shell = ctx.createRadialGradient(x - s, y, .1, x, y + 2 * s, 4.4 * s);
+      shell.addColorStop(0, "#918092");
+      shell.addColorStop(.34, "#493a53");
+      shell.addColorStop(.75, "#251d33");
+      shell.addColorStop(1, "#120e1c");
+      ctx.fillStyle = shell;
+      ctx.strokeStyle = "#aaa0bc80";
+      ctx.lineWidth = .65;
       ctx.beginPath();
-      ctx.ellipse(x, y + 1.8 * s, 2.6 * s, 3.1 * s, 0, 0, Math.PI * 2);
+      ctx.ellipse(x, y + 1.8 * s, 3 * s, 3.8 * s, 0, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
+      ctx.save();
+      ctx.clip();
+      fillSpriteTexture(ctx, "shell", x - 3 * s, y - 2 * s, 6 * s, 8 * s, .8);
+      ctx.restore();
+      // Velvet hairs and a muted ochre marking catch the rim light.
+      ctx.strokeStyle = "#ab9eb269";
+      ctx.lineWidth = .45;
+      for (let hair = 0; hair < 12; hair += 1) {
+        const a = hair * Math.PI / 6;
+        ctx.beginPath();
+        ctx.moveTo(x + Math.cos(a) * 2.8 * s, y + 1.8 * s + Math.sin(a) * 3.5 * s);
+        ctx.lineTo(x + Math.cos(a) * 3.5 * s, y + 1.8 * s + Math.sin(a) * 4.1 * s);
+        ctx.stroke();
+      }
+      ctx.fillStyle = "#dba45b99";
+      ctx.beginPath();
+      ctx.moveTo(x - s, y + .4 * s);
+      ctx.lineTo(x + s, y + .4 * s);
+      ctx.lineTo(x, y + 1.5 * s);
+      ctx.lineTo(x + s * .8, y + 2.7 * s);
+      ctx.lineTo(x - s * .8, y + 2.7 * s);
+      ctx.lineTo(x, y + 1.5 * s);
+      ctx.fill();
+      ctx.fillStyle = shell;
       ctx.beginPath();
       ctx.arc(x, y - 1.6 * s, 1.7 * s, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
-      ctx.fillStyle = "rgba(255,159,28,.9)";
-      ctx.fillRect(x - 1.1 * s, y - 2 * s, .9, .9);
-      ctx.fillRect(x + .3 * s, y - 2 * s, .9, .9);
+      ctx.fillStyle = "#f3c783";
+      ctx.beginPath();
+      ctx.arc(x - .7 * s, y - 2.15 * s, .43 * s, 0, Math.PI * 2);
+      ctx.arc(x + .7 * s, y - 2.15 * s, .43 * s, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
     }
 
     function drawPumpkin(ctx, pumpkin, x, edgeY, now) {
@@ -1559,26 +1683,59 @@ function HalloweenDecorPhysics({ active }) {
         : .55 + .45 * (.5 + .5 * Math.sin(now / 137 + pumpkin.seed * 9)) * (.6 + .4 * Math.sin(now / 43 + pumpkin.seed * 31));
       const s = pumpkin.size;
       const cy = edgeY - s * .62;
-      ctx.fillStyle = `rgba(255,140,26,${(.05 + .08 * flick).toFixed(3)})`;
+      const candleGlow = ctx.createRadialGradient(x, cy, s * .45, x, cy, s * 2);
+      candleGlow.addColorStop(0, `rgba(255,157,51,${.1 + .12 * flick})`);
+      candleGlow.addColorStop(.5, `rgba(255,131,33,${.05 * flick})`);
+      candleGlow.addColorStop(1, "#ff831f00");
+      ctx.fillStyle = candleGlow;
       ctx.beginPath();
       ctx.arc(x, cy, s * 2, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = "#b95c10";
+      // A contact shadow, shaded rind and curved seams make the small ledge
+      // pumpkins read as objects instead of three flat overlapping circles.
+      ctx.fillStyle = "#0005";
+      ctx.beginPath();
+      ctx.ellipse(x + s * .12, edgeY, s * 1.14, s * .16, 0, 0, Math.PI * 2);
+      ctx.fill();
+      const rind = ctx.createLinearGradient(x - s, cy - s * .65, x + s, cy + s * .7);
+      rind.addColorStop(0, "#d18c46");
+      rind.addColorStop(.34, "#c66d25");
+      rind.addColorStop(.7, "#a34e1e");
+      rind.addColorStop(1, "#593025");
+      ctx.fillStyle = rind;
       ctx.beginPath();
       ctx.ellipse(x, cy, s * .98, s * .68, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = "#e8760f";
+      ctx.save();
+      ctx.clip();
+      fillSpriteTexture(ctx, "rind", x - s, cy - s, s * 2, s * 2, .7);
+      ctx.restore();
+      ctx.fillStyle = "#efa35833";
       ctx.beginPath();
       ctx.ellipse(x, cy, s * .72, s * .7, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = "#f98a1b";
+      ctx.fillStyle = "#ffd18b22";
       ctx.beginPath();
       ctx.ellipse(x, cy, s * .4, s * .72, 0, 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = "#2c7a3f";
-      ctx.fillRect(x - 1.2, cy - s * .72 - 3.2, 2.4, 3.6);
+      ctx.strokeStyle = "#60362566";
+      ctx.lineWidth = .65;
+      for (const side of [-1, 1]) {
+        ctx.beginPath();
+        ctx.moveTo(x + side * s * .1, cy - s * .64);
+        ctx.bezierCurveTo(x + side * s * .8, cy - s * .5, x + side * s * .75, cy + s * .48, x + side * s * .15, cy + s * .67);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = "#657249";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(x, cy - s * .64);
+      ctx.quadraticCurveTo(x - 1, cy - s * .85, x + 2, cy - s * .98);
+      ctx.stroke();
       // Cara tallada, iluminada por la vela interior.
       ctx.fillStyle = `rgba(255,196,84,${(.45 + .55 * flick).toFixed(3)})`;
+      ctx.strokeStyle = "#693c23";
+      ctx.lineWidth = 1.25;
       const eyeY = cy - s * .16;
       ctx.beginPath();
       ctx.moveTo(x - s * .46, eyeY);
@@ -1589,6 +1746,7 @@ function HalloweenDecorPhysics({ active }) {
       ctx.lineTo(x + s * .16, eyeY);
       ctx.lineTo(x + s * .31, eyeY - s * .26);
       ctx.closePath();
+      ctx.stroke();
       ctx.fill();
       const mouthY = cy + s * .18;
       ctx.beginPath();
@@ -1600,64 +1758,59 @@ function HalloweenDecorPhysics({ active }) {
       ctx.lineTo(x + s * .3, mouthY + s * .4);
       ctx.lineTo(x - s * .3, mouthY + s * .4);
       ctx.closePath();
+      ctx.stroke();
       ctx.fill();
     }
 
     function drawBat(ctx, bat, now) {
-      const s = bat.scale;
-      const wingLift = Math.sin((now / 1000) * bat.flapW * Math.PI * 2 + bat.phase) * 7 * s;
-      const x = bat.x;
-      const y = bat.y;
-      ctx.fillStyle = "#150a24";
-      ctx.strokeStyle = "rgba(185,134,255,.38)";
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(x, y - 1.4 * s);
-      ctx.quadraticCurveTo(x - 6.5 * s, y - 6 * s - wingLift * .5, x - 13 * s, y - 1.5 * s - wingLift);
-      ctx.quadraticCurveTo(x - 8.5 * s, y + 2.6 * s - wingLift * .3, x - 5 * s, y + 1.6 * s);
-      ctx.quadraticCurveTo(x - 2.6 * s, y + 3.4 * s, x, y + 2.2 * s);
-      ctx.quadraticCurveTo(x + 2.6 * s, y + 3.4 * s, x + 5 * s, y + 1.6 * s);
-      ctx.quadraticCurveTo(x + 8.5 * s, y + 2.6 * s - wingLift * .3, x + 13 * s, y - 1.5 * s - wingLift);
-      ctx.quadraticCurveTo(x + 6.5 * s, y - 6 * s - wingLift * .5, x, y - 1.4 * s);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(x - 1.7 * s, y - 1.8 * s);
-      ctx.lineTo(x - .7 * s, y - 4 * s);
-      ctx.lineTo(x - .1 * s, y - 2 * s);
-      ctx.moveTo(x + 1.7 * s, y - 1.8 * s);
-      ctx.lineTo(x + .7 * s, y - 4 * s);
-      ctx.lineTo(x + .1 * s, y - 2 * s);
-      ctx.fill();
-      if (s > .85) {
-        ctx.fillStyle = "rgba(255,159,28,.85)";
-        ctx.fillRect(x - 1.3 * s, y - 1 * s, 1, 1);
-        ctx.fillRect(x + .5 * s, y - 1 * s, 1, 1);
-      }
+      drawHalloweenBat(ctx, bat, now);
     }
 
     function drawCandles(ctx, cluster, x, edgeY, now) {
       for (let index = 0; index < cluster.count; index += 1) {
         const cx = x + (index - (cluster.count - 1) / 2) * 6.4;
         // Surtido de velas: altas y finas, bajas y gruesas tipo pilar.
-        const waxHeight = 4.5 + fract(cluster.seed * (3.1 + index * 1.7)) * 8.5;
-        const waxWidth = 2.2 + fract(cluster.seed * (7.9 + index * 2.3)) * 2;
+        const waxHeight = 7 + fract(cluster.seed * (3.1 + index * 1.7)) * 10;
+        const waxWidth = 3 + fract(cluster.seed * (7.9 + index * 2.3)) * 2;
         const flick = reducedMotion
           ? .8
           : (.55 + .45 * Math.sin(now / 85 + cluster.seed * 9 + index * 2.4)) * (.7 + .3 * Math.sin(now / 31 + index * 1.3));
         const flameHeight = (2.2 + waxHeight * .3 + waxWidth * .4) * (.7 + .5 * flick);
         const sway = reducedMotion ? 0 : Math.sin(now / 240 + cluster.seed * 3 + index * 1.7) * .6;
         // Resplandor de la llama sobre la repisa.
-        ctx.fillStyle = `rgba(255,170,60,${(.05 + .07 * flick).toFixed(3)})`;
+        const halo = ctx.createRadialGradient(cx, edgeY - waxHeight - 3, 1, cx, edgeY - waxHeight - 3, 11 + waxWidth);
+        halo.addColorStop(0, `rgba(255,188,97,${.18 + .12 * flick})`);
+        halo.addColorStop(1, "#ff982000");
+        ctx.fillStyle = halo;
         ctx.beginPath();
         ctx.arc(cx, edgeY - waxHeight - 3, 7 + waxWidth + 2 * flick, 0, Math.PI * 2);
         ctx.fill();
         // Cera con sombra lateral y pabilo.
-        ctx.fillStyle = "#e3dbc8";
+        ctx.fillStyle = "#b7976555";
+        ctx.beginPath();
+        ctx.ellipse(cx, edgeY, waxWidth * 1.2, 1.3, 0, 0, Math.PI * 2);
+        ctx.fill();
+        const wax = ctx.createLinearGradient(cx - waxWidth / 2, 0, cx + waxWidth / 2, 0);
+        wax.addColorStop(0, "#ab9479");
+        wax.addColorStop(.35, "#f5e7cb");
+        wax.addColorStop(.7, "#d4bea0");
+        wax.addColorStop(1, "#8d745f");
+        ctx.fillStyle = wax;
         ctx.fillRect(cx - waxWidth / 2, edgeY - waxHeight, waxWidth, waxHeight);
         ctx.fillStyle = "rgba(40,24,12,.25)";
         ctx.fillRect(cx + waxWidth / 2 - waxWidth * .3, edgeY - waxHeight, waxWidth * .3, waxHeight);
+        ctx.strokeStyle = "#f5e6cce6";
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.moveTo(cx - waxWidth * .28, edgeY - waxHeight + .5);
+        ctx.lineTo(cx - waxWidth * .28, edgeY - waxHeight * .48);
+        ctx.moveTo(cx + waxWidth * .14, edgeY - waxHeight + .5);
+        ctx.lineTo(cx + waxWidth * .14, edgeY - waxHeight * .72);
+        ctx.stroke();
+        ctx.fillStyle = "#806146";
+        ctx.beginPath();
+        ctx.ellipse(cx, edgeY - waxHeight, waxWidth * .38, .7, 0, 0, Math.PI * 2);
+        ctx.fill();
         ctx.fillStyle = "#3a2c22";
         ctx.fillRect(cx - .4, edgeY - waxHeight - 1.5, .8, 1.5);
         // Llama exterior e interior, con vaiven de vela.
@@ -1674,35 +1827,7 @@ function HalloweenDecorPhysics({ active }) {
 
     // Sombrero de bruja posado en una esquina recta del panel.
     function drawWitchHat(ctx, hat, cornerX, edgeY, inward) {
-      const s = hat.size;
-      ctx.save();
-      ctx.translate(cornerX + inward * s * .55, edgeY);
-      ctx.rotate(hat.tilt);
-      ctx.fillStyle = "#1d1130";
-      ctx.strokeStyle = "rgba(185,134,255,.45)";
-      ctx.lineWidth = .8;
-      ctx.beginPath();
-      ctx.ellipse(0, -1.2, s * .78, s * .2, 0, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-      // Cono con la punta vencida, como manda la tradicion.
-      ctx.beginPath();
-      ctx.moveTo(-s * .38, -1.8);
-      ctx.quadraticCurveTo(-s * .1, -s * .62, s * .02, -s * .94);
-      ctx.quadraticCurveTo(s * .28, -s * 1.12, s * .34, -s * .9);
-      ctx.quadraticCurveTo(s * .18, -s * .86, s * .12, -s * .62);
-      ctx.quadraticCurveTo(s * .3, -s * .3, s * .38, -1.8);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      // Banda morada con hebilla dorada.
-      ctx.fillStyle = "#4a2a6e";
-      ctx.fillRect(-s * .32, -s * .3, s * .64, s * .15);
-      ctx.fillStyle = "#ffd166";
-      ctx.fillRect(-s * .08, -s * .31, s * .16, s * .17);
-      ctx.fillStyle = "#1d1130";
-      ctx.fillRect(-s * .04, -s * .27, s * .08, s * .09);
-      ctx.restore();
+      drawHalloweenHat(ctx, hat, cornerX, edgeY, inward);
     }
 
     // Cubo de truco-o-trato con caramelos asomando y uno caido al lado.
@@ -1714,7 +1839,11 @@ function HalloweenDecorPhysics({ active }) {
       ctx.beginPath();
       ctx.arc(x, edgeY - s + 1, s * .34, Math.PI, 0);
       ctx.stroke();
-      ctx.fillStyle = "#5b2d86";
+      const bucket = ctx.createLinearGradient(x - s * .5, 0, x + s * .5, 0);
+      bucket.addColorStop(0, "#9371a4");
+      bucket.addColorStop(.3, "#6b4684");
+      bucket.addColorStop(1, "#2b1b41");
+      ctx.fillStyle = bucket;
       ctx.beginPath();
       ctx.moveTo(x - s * .48, edgeY - s * .78);
       ctx.lineTo(x + s * .48, edgeY - s * .78);
@@ -1722,11 +1851,20 @@ function HalloweenDecorPhysics({ active }) {
       ctx.lineTo(x - s * .38, edgeY);
       ctx.closePath();
       ctx.fill();
+      ctx.save();
+      ctx.clip();
+      fillSpriteTexture(ctx, "plastic", x - s * .5, edgeY - s, s, s, .8);
+      ctx.restore();
       ctx.strokeStyle = "rgba(185,134,255,.5)";
       ctx.lineWidth = .8;
       ctx.stroke();
       ctx.fillStyle = "rgba(255,159,28,.8)";
       ctx.fillRect(x - s * .42, edgeY - s * .52, s * .84, s * .16);
+      ctx.strokeStyle = "#dfc1ebaa";
+      ctx.lineWidth = .7;
+      ctx.beginPath();
+      ctx.ellipse(x, edgeY - s * .78, s * .46, s * .07, 0, 0, Math.PI * 2);
+      ctx.stroke();
       for (let candy = 0; candy < 3; candy += 1) {
         ctx.fillStyle = candyColors[Math.floor(fract(bag.seed * (3.7 + candy)) * candyColors.length)];
         ctx.beginPath();
@@ -2184,169 +2322,6 @@ function createLedgeDecorEngine(config) {
 
 /* Geometria del reventon precalculada una vez por panel: rayos con quiebro y
    ramitas, facetas entre rayos y una esquirla desprendida que deja hueco. */
-function buildShatterWeb(seed) {
-  const rayCount = 7 + Math.floor(fract(seed * 11.7) * 4);
-  const rays = [];
-  for (let ray = 0; ray < rayCount; ray += 1) {
-    rays.push({
-      angle: (ray / rayCount) * Math.PI * 2 + (fract(seed * (3.1 + ray)) - .5) * .62,
-      branch: fract(seed * (14.9 + ray * 2.7)) < .5,
-      kinkTurn: (fract(seed * (9.1 + ray)) - .5) * .58,
-      length: .55 + .45 * fract(seed * (7.7 + ray * 1.3)),
-      mid: .4 + .24 * fract(seed * (5.3 + ray))
-    });
-  }
-  return {
-    glintSeed: fract(seed * 4.91) * 10,
-    missing: fract(seed * 6.67) < .6 ? Math.floor(fract(seed * 8.23) * rayCount) : -1,
-    rays
-  };
-}
-
-function drawShatter(ctx, crack, surface, now, ox, oy, reducedMotion) {
-  const x = surface.left + crack.x01 * surface.width + ox;
-  const y = surface.top + (surface.bottom - surface.top) * crack.y01 + oy;
-  const radius = crack.radius;
-  const { missing, rays } = crack.web;
-  const rayTip = (ray, scale) => [x + Math.cos(ray.angle) * ray.length * radius * scale, y + Math.sin(ray.angle) * ray.length * radius * scale];
-  ctx.save();
-  // El reventon vive EN el panel: se recorta a su caja.
-  ctx.beginPath();
-  ctx.rect(surface.rawLeft + ox, surface.top + oy, surface.rawRight - surface.rawLeft, surface.bottom - surface.top);
-  ctx.clip();
-
-  // Facetas: cunas de cristal que atrapan la luz con brillos desiguales.
-  for (let index = 0; index < rays.length; index += 1) {
-    if (index === missing) continue;
-    const shade = fract(crack.seed * (3.7 + index * 1.7));
-    if (shade < .48) continue;
-    const [ax, ay] = rayTip(rays[index], .74);
-    const [bx, by] = rayTip(rays[(index + 1) % rays.length], .74);
-    const glow = ctx.createLinearGradient(x, y, (ax + bx) / 2, (ay + by) / 2);
-    glow.addColorStop(0, `rgba(215,240,255,${(.05 + shade * .07).toFixed(3)})`);
-    glow.addColorStop(1, "rgba(215,240,255,0)");
-    ctx.fillStyle = glow;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(ax, ay);
-    ctx.lineTo(bx, by);
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  // Hueco de esquirla caida: se ve el vacio oscuro del interior de la cabina,
-  // con el canto fracturado brillando alrededor.
-  if (missing >= 0) {
-    const a = rays[missing];
-    const b = rays[(missing + 1) % rays.length];
-    const [ax, ay] = rayTip(a, .58);
-    const [bx, by] = rayTip(b, .58);
-    const jagAngle = (a.angle + b.angle) / 2 + (a.angle > b.angle ? Math.PI : 0);
-    const [jx, jy] = [x + Math.cos(jagAngle) * radius * .78, y + Math.sin(jagAngle) * radius * .78];
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(ax, ay);
-    ctx.lineTo(jx, jy);
-    ctx.lineTo(bx, by);
-    ctx.closePath();
-    ctx.fillStyle = "rgba(2,8,14,.9)";
-    ctx.fill();
-    ctx.strokeStyle = "rgba(225,245,255,.55)";
-    ctx.lineWidth = .9;
-    ctx.stroke();
-  }
-
-  // Rayos: gruesos junto al impacto, finos al morir, con quiebro y ramita.
-  for (const ray of rays) {
-    const length = ray.length * radius;
-    const [mx, my] = [x + Math.cos(ray.angle) * length * ray.mid, y + Math.sin(ray.angle) * length * ray.mid];
-    const kink = ray.angle + ray.kinkTurn;
-    const [ex, ey] = [mx + Math.cos(kink) * length * (1 - ray.mid), my + Math.sin(kink) * length * (1 - ray.mid)];
-    ctx.strokeStyle = "rgba(222,244,255,.6)";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(x, y);
-    ctx.lineTo(mx, my);
-    ctx.stroke();
-    ctx.strokeStyle = "rgba(198,232,255,.34)";
-    ctx.lineWidth = .7;
-    ctx.beginPath();
-    ctx.moveTo(mx, my);
-    ctx.lineTo(ex, ey);
-    if (ray.branch) {
-      const branchAngle = kink + (ray.kinkTurn > 0 ? -.9 : .9);
-      ctx.moveTo(mx, my);
-      ctx.lineTo(mx + Math.cos(branchAngle) * length * .3, my + Math.sin(branchAngle) * length * .3);
-    }
-    ctx.stroke();
-  }
-
-  // Anillos concentricos parciales cosiendo rayos vecinos.
-  ctx.strokeStyle = "rgba(205,235,255,.28)";
-  ctx.lineWidth = .7;
-  ctx.beginPath();
-  for (const ringScale of [.3, .55]) {
-    for (let ray = 0; ray < rays.length; ray += 1) {
-      if (ray === missing || fract(crack.seed * (13.7 + ray * 2.1 + ringScale * 10)) < .3) continue;
-      const [ax, ay] = rayTip(rays[ray], ringScale);
-      const [bx, by] = rayTip(rays[(ray + 1) % rays.length], ringScale);
-      ctx.moveTo(ax, ay);
-      ctx.lineTo(bx, by);
-    }
-  }
-  ctx.stroke();
-
-  // Nucleo del impacto: punto blanco con halo polvoriento.
-  const core = ctx.createRadialGradient(x, y, 0, x, y, 7);
-  core.addColorStop(0, "rgba(245,252,255,.9)");
-  core.addColorStop(.4, "rgba(225,245,255,.28)");
-  core.addColorStop(1, "rgba(225,245,255,0)");
-  ctx.fillStyle = core;
-  ctx.beginPath();
-  ctx.arc(x, y, 7, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Esquirlas caidas: cristalitos tumbados en el borde inferior del panel.
-  const chipBase = surface.bottom + oy - 1.4;
-  for (let chip = 0; chip < 4; chip += 1) {
-    const u = fract(crack.seed * (17.3 + chip * 3.9));
-    if (chip > 1 && u < .4) continue;
-    const chipX = x + (u - .5) * radius * 2.6;
-    const chipW = 3 + u * 4;
-    const chipH = 2 + fract(u * 7.7) * 2.5;
-    ctx.fillStyle = "rgba(210,238,255,.3)";
-    ctx.strokeStyle = "rgba(235,250,255,.5)";
-    ctx.lineWidth = .6;
-    ctx.beginPath();
-    ctx.moveTo(chipX - chipW / 2, chipBase);
-    ctx.lineTo(chipX + chipW / 2, chipBase);
-    ctx.lineTo(chipX + chipW * (fract(u * 13.1) - .5) * .5, chipBase - chipH);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-  }
-
-  // Destello especular: cada pocos segundos una luz recorre la zona rota.
-  if (!reducedMotion) {
-    const phase = ((now / 1000) * .16 + crack.web.glintSeed) % 1;
-    if (phase < .1) {
-      const sweep = phase / .1;
-      const alpha = Math.sin(sweep * Math.PI) * .5;
-      const glintAngle = -.7;
-      const offset = (sweep - .5) * radius * 2.2;
-      const [gx, gy] = [x + Math.cos(glintAngle + Math.PI / 2) * offset, y + Math.sin(glintAngle + Math.PI / 2) * offset];
-      ctx.globalCompositeOperation = "lighter";
-      ctx.strokeStyle = `rgba(235,250,255,${alpha.toFixed(3)})`;
-      ctx.lineWidth = 1.6;
-      ctx.beginPath();
-      ctx.moveTo(gx - Math.cos(glintAngle) * radius, gy - Math.sin(glintAngle) * radius);
-      ctx.lineTo(gx + Math.cos(glintAngle) * radius, gy + Math.sin(glintAngle) * radius);
-      ctx.stroke();
-    }
-  }
-  ctx.restore();
-}
-
 /* Bandas de corrupcion: el panel "rasga" medio segundo cada varios segundos,
    con cortes RGB desplazados que saltan de sitio a golpe de reloj. */
 function drawGlitchBands(ctx, glitch, surface, now, ox, oy) {
@@ -2384,77 +2359,6 @@ function drawGlitchBands(ctx, glitch, surface, now, ox, oy) {
 
 /* Cables pelados asomando por un boquete del borde superior; el cable vivo
    escupe un chispazo de vez en cuando. */
-const WIRE_COLORS = ["#d98038", "#3d6fd9", "#2a2f3a"];
-
-function drawWires(ctx, wires, surface, now, ox, oy, reducedMotion) {
-  const isLeft = wires.corner === "tl";
-  const baseX = (isLeft ? surface.left + 16 + wires.offset : surface.right - 16 - wires.offset) + ox;
-  const topY = surface.top + oy;
-  const t = reducedMotion ? 0 : now / 1000;
-  // Boquete oscuro con canto irregular.
-  ctx.fillStyle = "rgba(3,7,10,.92)";
-  ctx.beginPath();
-  ctx.moveTo(baseX - 11, topY);
-  ctx.lineTo(baseX - 6, topY + 4 + fract(wires.seed * 3.1) * 3);
-  ctx.lineTo(baseX - 1, topY + 2.5);
-  ctx.lineTo(baseX + 4, topY + 6 + fract(wires.seed * 5.7) * 3);
-  ctx.lineTo(baseX + 9, topY + 3);
-  ctx.lineTo(baseX + 12, topY);
-  ctx.closePath();
-  ctx.fill();
-  ctx.strokeStyle = "rgba(140,190,220,.28)";
-  ctx.lineWidth = .8;
-  ctx.stroke();
-
-  let liveX = baseX;
-  let liveY = topY;
-  for (let wire = 0; wire < wires.count; wire += 1) {
-    const sway = reducedMotion ? 0 : Math.sin(t * (1.1 + wire * .37) + wires.seed * 3 + wire * 2.1) * (2 + wire * 1.3);
-    const length = wires.length * (.6 + .4 * fract(wires.seed * (3.3 + wire)));
-    const endX = baseX + (wire - (wires.count - 1) / 2) * 5.5 + sway;
-    const endY = topY + length;
-    ctx.strokeStyle = WIRE_COLORS[wire % WIRE_COLORS.length];
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.moveTo(baseX + (wire - (wires.count - 1) / 2) * 2.5, topY + 2);
-    ctx.quadraticCurveTo(baseX + (wire - (wires.count - 1) / 2) * 7 + sway * .4, topY + length * .62, endX, endY);
-    ctx.stroke();
-    // Punta pelada de cobre.
-    ctx.fillStyle = "#e8c26a";
-    ctx.fillRect(endX - 1.2, endY - 1, 2.4, 3.4);
-    if (wire === wires.count - 1) {
-      liveX = endX;
-      liveY = endY + 2;
-    }
-  }
-
-  if (!reducedMotion) {
-    const sparkPeriod = 2.4 + fract(wires.seed * 7.7) * 3.2;
-    const sparkPhase = (t * .55 + wires.seed) % sparkPeriod;
-    if (sparkPhase < .13) {
-      const flash = Math.sin((sparkPhase / .13) * Math.PI);
-      ctx.save();
-      ctx.globalCompositeOperation = "lighter";
-      ctx.globalAlpha = flash;
-      ctx.fillStyle = "rgba(255,244,180,.9)";
-      ctx.beginPath();
-      ctx.arc(liveX, liveY, 2.6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = "rgba(255,238,150,.95)";
-      ctx.lineWidth = 1.1;
-      ctx.beginPath();
-      for (let tick = 0; tick < 5; tick += 1) {
-        const tickAngle = fract(Math.sin(Math.floor(now / 60) * 3.3 + tick * 17.9 + wires.seed) * 43758.5453) * Math.PI * 2;
-        const reach = 4 + fract(tickAngle * 9.31) * 6;
-        ctx.moveTo(liveX + Math.cos(tickAngle) * 2, liveY + Math.sin(tickAngle) * 2);
-        ctx.lineTo(liveX + Math.cos(tickAngle) * reach, liveY + Math.sin(tickAngle) * reach);
-      }
-      ctx.stroke();
-      ctx.restore();
-    }
-  }
-}
-
 function drawTape(ctx, tape, surface, ox, oy) {
   const isLeft = tape.corner === "tl";
   const anchorX = (isLeft ? surface.rawLeft : surface.rawRight) + ox;
@@ -2464,6 +2368,7 @@ function drawTape(ctx, tape, surface, ox, oy) {
   const start = isLeft ? -tape.length * .35 : -tape.length * .65;
   ctx.fillStyle = "rgba(255,209,102,.82)";
   ctx.fillRect(start, -6.5, tape.length, 13);
+  fillSpriteTexture(ctx, "linen", start, -6.5, tape.length, 13, .8);
   ctx.fillStyle = "rgba(10,10,8,.85)";
   for (let stripe = 2; stripe < tape.length - 6; stripe += 14) {
     ctx.beginPath();
@@ -2477,39 +2382,21 @@ function drawTape(ctx, tape, surface, ox, oy) {
   ctx.strokeStyle = "rgba(20,16,4,.6)";
   ctx.lineWidth = 1;
   ctx.strokeRect(start, -6.5, tape.length, 13);
-  ctx.restore();
-}
-
-function drawBrokenDialog(ctx, dialog, surface, now, ox, oy, reducedMotion) {
-  const x = surface.left + dialog.x01 * surface.width + ox;
-  const t = now / 1000;
-  // Resbalon periodico: pierde agarre un instante y se recoloca.
-  const pulse = reducedMotion ? 0 : Math.max(0, Math.sin(t * .35 + dialog.seed * 7) - .985) / .015;
-  const w = dialog.w;
-  const h = dialog.h;
-  ctx.save();
-  ctx.translate(x, surface.top + oy + pulse * 2);
-  ctx.rotate(dialog.tilt * (1 + pulse * .3));
-  ctx.fillStyle = "rgba(6,26,44,.95)";
-  ctx.fillRect(-w / 2, -h, w, h);
-  ctx.strokeStyle = "rgba(111,210,255,.55)";
-  ctx.lineWidth = .8;
-  ctx.strokeRect(-w / 2, -h, w, h);
-  ctx.fillStyle = "#0878d1";
-  ctx.fillRect(-w / 2, -h, w, 7);
-  ctx.fillStyle = "#ff5f68";
-  ctx.fillRect(w / 2 - 7, -h + 1.5, 4.5, 4);
-  ctx.fillStyle = "rgba(160,200,230,.5)";
-  ctx.fillRect(-w / 2 + 5, -h + 11, w * .5, 2.5);
-  ctx.fillRect(-w / 2 + 5, -h + 16, w * .36, 2.5);
-  ctx.strokeStyle = "#ff5f68";
-  ctx.lineWidth = 1.4;
+  // Adhesive creases, rubbed edges and a lifted corner on the warning tape.
+  ctx.strokeStyle = "#fff0be66";
+  ctx.lineWidth = .6;
   ctx.beginPath();
-  ctx.moveTo(w / 2 - 14, -h + 11);
-  ctx.lineTo(w / 2 - 7, -h + 18);
-  ctx.moveTo(w / 2 - 7, -h + 11);
-  ctx.lineTo(w / 2 - 14, -h + 18);
+  ctx.moveTo(start + 4, -5.4);
+  ctx.lineTo(start + tape.length - 8, -5.4);
+  ctx.moveTo(start + tape.length * .36, -6);
+  ctx.lineTo(start + tape.length * .42, 6);
   ctx.stroke();
+  ctx.fillStyle = "#f2dca8";
+  ctx.beginPath();
+  ctx.moveTo(start + tape.length - 7, 6.5);
+  ctx.lineTo(start + tape.length, 0);
+  ctx.lineTo(start + tape.length, 6.5);
+  ctx.fill();
   ctx.restore();
 }
 
@@ -2520,11 +2407,11 @@ const AprilDecorPhysics = createLedgeDecorEngine({
     const seed = deco.seed;
     deco.crack = edgeWidth > 240 && fract(seed * 7.31) < .5
       ? {
-        radius: 20 + 26 * fract(seed * 5.51),
+        radius: 42 + 24 * fract(seed * 5.51),
         seed: fract(seed * 2.91) * 10,
         web: buildShatterWeb(fract(seed * 3.53) * 100),
-        x01: .18 + .64 * fract(seed * 3.17),
-        y01: .18 + .38 * fract(seed * 9.73)
+        x01: .71 + .15 * fract(seed * 3.17),
+        y01: .16 + .13 * fract(seed * 9.73)
       }
       : null;
     deco.tape = fract(seed * 13.9) < .32
@@ -2536,10 +2423,10 @@ const AprilDecorPhysics = createLedgeDecorEngine({
       : null;
     deco.dialog = edgeWidth > 300 && fract(seed * 17.3) < .38
       ? {
-        h: 25 + 9 * fract(seed * 2.63),
+        h: 37 + 6 * fract(seed * 2.63),
         seed: fract(seed * 6.11) * 10,
         tilt: (fract(seed * 12.7) < .5 ? -1 : 1) * (.1 + .16 * fract(seed * 9.41)),
-        w: 46 + 18 * fract(seed * 7.91),
+        w: 66 + 12 * fract(seed * 7.91),
         x01: .14 + .7 * fract(seed * 5.87)
       }
       : null;
@@ -2551,12 +2438,9 @@ const AprilDecorPhysics = createLedgeDecorEngine({
         seed: fract(seed * 23.9) * 10
       }
       : null;
-    deco.wires = edgeWidth > 220 && fract(seed * 23.1) < .3
+    deco.wires = edgeWidth > 220 && fract(seed * 23.1) < .52
       ? {
         corner: fract(seed * 29.7) < .5 ? "tl" : "tr",
-        count: 2 + (fract(seed * 33.1) < .5 ? 1 : 0),
-        length: 26 + 22 * fract(seed * 37.9),
-        offset: 10 * fract(seed * 41.3),
         seed: fract(seed * 3.71) * 10
       }
       : null;
@@ -2592,24 +2476,7 @@ const AprilDecorPhysics = createLedgeDecorEngine({
    confeti ambiental con reventones de petardo, globos que suben y un pop de
    confeti al barrer rapido con el cursor. */
 
-const PARTY_COLORS = ["#ff3d9d", "#45d8ff", "#ffd166", "#3fff97", "#b986ff"];
-
-function drawGiftBox(ctx, baseY, s, bodyColor, ribbonColor) {
-  const w = s * 1.15;
-  const h = s * .95;
-  ctx.fillStyle = bodyColor;
-  ctx.fillRect(-w / 2, baseY - h, w, h);
-  ctx.fillStyle = "rgba(0,0,0,.22)";
-  ctx.fillRect(w / 2 - w * .28, baseY - h, w * .28, h);
-  ctx.fillStyle = "rgba(255,255,255,.2)";
-  ctx.fillRect(-w / 2 - 1.5, baseY - h, w + 3, s * .22);
-  ctx.fillStyle = ribbonColor;
-  ctx.fillRect(-s * .1, baseY - h + s * .22, s * .2, h - s * .22);
-  ctx.beginPath();
-  ctx.ellipse(-s * .16, baseY - h - s * .08, s * .16, s * .09, -.5, 0, Math.PI * 2);
-  ctx.ellipse(s * .16, baseY - h - s * .08, s * .16, s * .09, .5, 0, Math.PI * 2);
-  ctx.fill();
-}
+const PARTY_COLORS = ["#c77d9e", "#77b0c1", "#dcc184", "#84b7a1", "#ad92c9"];
 
 function drawGift(ctx, gift, x, edgeY) {
   ctx.save();
@@ -2680,31 +2547,6 @@ function drawCakeCandle(ctx, cx, baseY, waxHeight, color, now, seed, reducedMoti
 
 /* Piso de tarta: bizcocho, sombra lateral, glaseado con goterones desiguales
    y confetis de azucar. */
-function drawCakeTier(ctx, x, baseY, w, h, body, seed) {
-  ctx.fillStyle = body;
-  ctx.fillRect(x - w / 2, baseY - h, w, h);
-  ctx.fillStyle = "rgba(120,40,80,.16)";
-  ctx.fillRect(x + w / 2 - w * .2, baseY - h, w * .2, h);
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(x - w / 2 - 1, baseY - h, w + 2, h * .24);
-  const dripCount = Math.max(3, Math.round(w / 9));
-  for (let drip = 0; drip < dripCount; drip += 1) {
-    const u = fract(seed * (3.3 + drip * 1.7));
-    const dripX = x - w / 2 + ((drip + .5) / dripCount) * w;
-    const dripLen = h * (.1 + u * .32);
-    ctx.fillRect(dripX - 1.5, baseY - h + h * .24 - 1, 3, dripLen);
-    ctx.beginPath();
-    ctx.arc(dripX, baseY - h + h * .24 + dripLen - 1, 1.5, 0, Math.PI);
-    ctx.fill();
-  }
-  for (let sprinkle = 0; sprinkle < dripCount + 2; sprinkle += 1) {
-    const u = fract(seed * (7.9 + sprinkle * 2.3));
-    if (u < .3) continue;
-    ctx.fillStyle = PARTY_COLORS[Math.floor(u * 31) % PARTY_COLORS.length];
-    ctx.fillRect(x - w / 2 + u * (w - 4) + 2, baseY - h * .52 + fract(u * 13.7) * h * .36, 2, 1.2);
-  }
-}
-
 /* Tarta de cumpleanos por pisos sobre plato, con velas encendidas arriba. */
 function drawCake(ctx, cake, x, edgeY, now, reducedMotion) {
   const s = cake.size;
@@ -2736,85 +2578,41 @@ function drawCake(ctx, cake, x, edgeY, now, reducedMotion) {
 /* Porcion de tarta en platito: cuna con capas de bizcocho y guinda arriba. */
 function drawCakeSlice(ctx, slice, x, edgeY) {
   const s = slice.size;
-  const w = s * 1.6;
-  const h = s * 1.1;
-  ctx.fillStyle = "#cfd8e6";
-  ctx.beginPath();
-  ctx.ellipse(x, edgeY - 1, s * 1.15, 1.8, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.save();
-  ctx.translate(x, edgeY - 1.6);
-  ctx.rotate(slice.tilt);
-  ctx.beginPath();
-  ctx.moveTo(-w / 2, 0);
-  ctx.lineTo(w / 2, 0);
-  ctx.lineTo(w / 2, -h);
-  ctx.closePath();
-  ctx.fillStyle = "#fbe7f3";
-  ctx.fill();
-  ctx.save();
-  ctx.clip();
-  ctx.fillStyle = "#e26fa8";
-  ctx.fillRect(-w / 2, -h * .4, w, 1.8);
-  ctx.fillRect(-w / 2, -h * .68, w, 1.4);
+  ctx.save(); ctx.translate(x, edgeY - 1.6); ctx.rotate(slice.tilt);
+  ctx.fillStyle = "#0006";
+  ctx.beginPath(); ctx.ellipse(1, 1.5, s * 1.3, 2, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#9daeb4";
+  ctx.beginPath(); ctx.ellipse(0, 0, s * 1.3, 2.4, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = "#e8e9db99"; ctx.lineWidth = .6; ctx.stroke();
+  // The cut face has horizontal sponge and jam layers; its top recedes.
+  ctx.beginPath(); ctx.moveTo(-s, -1); ctx.lineTo(s * .7, -1);
+  ctx.lineTo(s * .7, -s); ctx.lineTo(-s, -s); ctx.closePath();
+  const crumb = ctx.createLinearGradient(-s, -s, s, 0);
+  crumb.addColorStop(0, "#eed6b6"); crumb.addColorStop(1, "#bf8d8c");
+  ctx.fillStyle = crumb; ctx.fill();
+  ctx.save(); ctx.clip();
+  fillSpriteTexture(ctx, "crumb", -s, -s, s * 2, s, .85);
+  for (const at of [.3, .65]) {
+    ctx.fillStyle = "#9d5571"; ctx.fillRect(-s, -s * at, s * 2, 1.4);
+    ctx.fillStyle = "#f4e6cf"; ctx.fillRect(-s, -s * at - 1, s * 2, .7);
+  }
   ctx.restore();
-  // Glaseado siguiendo la hipotenusa.
-  ctx.strokeStyle = "#fff";
-  ctx.lineWidth = 2.2;
-  ctx.beginPath();
-  ctx.moveTo(-w / 2 - .5, -1);
-  ctx.lineTo(w / 2 - .5, -h - 1);
-  ctx.stroke();
-  // Guinda con brillo en la esquina alta.
-  ctx.fillStyle = "#ff4155";
-  ctx.beginPath();
-  ctx.arc(w / 2 - 1.5, -h - 3, 2.1, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "rgba(255,255,255,.6)";
-  ctx.beginPath();
-  ctx.arc(w / 2 - 2.2, -h - 3.7, .7, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-s, -s); ctx.lineTo(s * .7, -s);
+  ctx.lineTo(s * .95, -s * 1.5); ctx.closePath();
+  ctx.fillStyle = "#f7e5d3"; ctx.fill();
+  ctx.beginPath(); ctx.moveTo(s * .7, -1); ctx.lineTo(s * .95, -s * .5);
+  ctx.lineTo(s * .95, -s * 1.5); ctx.lineTo(s * .7, -s); ctx.closePath();
+  ctx.fillStyle = "#bd91a2"; ctx.fill();
+  ctx.strokeStyle = "#fff0dc"; ctx.lineWidth = 1.8;
+  ctx.beginPath(); ctx.moveTo(-s, -s); ctx.lineTo(s * .7, -s); ctx.lineTo(s * .95, -s * 1.5); ctx.stroke();
+  ctx.fillStyle = "#a94661"; ctx.beginPath(); ctx.arc(s * .45, -s * 1.3, 2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = "#f4cbbb"; ctx.beginPath(); ctx.arc(s * .45 - .6, -s * 1.3 - .6, .6, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
 }
 
 /* Magdalena: capsula plisada, remolino de frosting y guinda. */
 function drawCupcake(ctx, cup, x, edgeY) {
-  const s = cup.size;
-  ctx.fillStyle = PARTY_COLORS[cup.wrap];
-  ctx.beginPath();
-  ctx.moveTo(-s * .8 + x, edgeY - s);
-  ctx.lineTo(s * .8 + x, edgeY - s);
-  ctx.lineTo(s * .55 + x, edgeY);
-  ctx.lineTo(-s * .55 + x, edgeY);
-  ctx.closePath();
-  ctx.fill();
-  ctx.strokeStyle = "rgba(0,0,0,.28)";
-  ctx.lineWidth = .8;
-  ctx.beginPath();
-  for (let pleat = -1; pleat <= 1; pleat += 1) {
-    ctx.moveTo(x + pleat * s * .32, edgeY - s + 1);
-    ctx.lineTo(x + pleat * s * .24, edgeY - 1);
-  }
-  ctx.stroke();
-  ctx.fillStyle = "#fdeef7";
-  for (const [dy, r] of [[1.05, .78], [1.5, .56], [1.86, .34]]) {
-    ctx.beginPath();
-    ctx.arc(x, edgeY - s * dy, s * r, 0, Math.PI * 2);
-    ctx.fill();
-  }
-  for (let sprinkle = 0; sprinkle < 5; sprinkle += 1) {
-    const u = fract(cup.seed * (5.1 + sprinkle * 1.9));
-    ctx.fillStyle = PARTY_COLORS[Math.floor(u * 29) % PARTY_COLORS.length];
-    ctx.fillRect(x + (u - .5) * s * 1.1, edgeY - s * (1 + u * .8), 1.6, 1);
-  }
-  ctx.fillStyle = "#ff4155";
-  ctx.beginPath();
-  ctx.arc(x, edgeY - s * 2.06, 1.8, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "rgba(255,255,255,.6)";
-  ctx.beginPath();
-  ctx.arc(x - .6, edgeY - s * 2.12, .6, 0, Math.PI * 2);
-  ctx.fill();
+  drawPipedCupcake(ctx, cup, x, edgeY, PARTY_COLORS);
 }
 
 const BirthdayDecorPhysics = createLedgeDecorEngine({
@@ -2833,7 +2631,7 @@ const BirthdayDecorPhysics = createLedgeDecorEngine({
         deco.gifts.push({
           color,
           ribbon: (color + 1 + Math.floor(fract(seed * (11.3 + index)) * 3)) % PARTY_COLORS.length,
-          size: 10 + 8 * fract(seed * (3.29 + index * 2.3)),
+          size: 17 + 7 * fract(seed * (3.29 + index * 2.3)),
           stacked: fract(seed * (8.77 + index)) < .35,
           tilt: (fract(seed * (4.99 + index)) - .5) * .14,
           x01: .12 + .74 * fract(seed * (6.43 + index * 3.7))
@@ -2848,7 +2646,7 @@ const BirthdayDecorPhysics = createLedgeDecorEngine({
     deco.cake = edgeWidth > 340 && fract(seed * 15.73) < .45
       ? {
         seed: fract(seed * 4.51) * 10,
-        size: Math.min(14 + 7 * fract(seed * 6.67), edgeWidth * .045),
+        size: Math.min(20 + 6 * fract(seed * 6.67), edgeWidth * .046),
         tiers: 2 + (edgeWidth > 480 && fract(seed * 9.19) < .45 ? 1 : 0),
         x01: .22 + .56 * fract(seed * 2.87)
       }
@@ -2863,7 +2661,7 @@ const BirthdayDecorPhysics = createLedgeDecorEngine({
     deco.cupcake = edgeWidth > 170 && fract(seed * 27.9) < .32
       ? {
         seed: fract(seed * 5.87) * 10,
-        size: 6.5 + 3 * fract(seed * 16.91),
+        size: 9 + 3 * fract(seed * 16.91),
         wrap: Math.floor(fract(seed * 18.23) * PARTY_COLORS.length),
         x01: .1 + .8 * fract(seed * 20.51)
       }
@@ -2968,10 +2766,24 @@ const BirthdayDecorPhysics = createLedgeDecorEngine({
     for (const balloon of state.balloons) {
       const color = PARTY_COLORS[balloon.color];
       ctx.globalAlpha = .85;
-      ctx.fillStyle = color;
+      const latex = ctx.createRadialGradient(balloon.x - balloon.size * .23, balloon.y - balloon.size * .34, balloon.size * .02, balloon.x + balloon.size * .14, balloon.y + balloon.size * .2, balloon.size);
+      latex.addColorStop(0, "#fff0e6");
+      latex.addColorStop(.23, color);
+      latex.addColorStop(.7, color);
+      latex.addColorStop(1, "#382139");
+      ctx.fillStyle = latex;
       ctx.beginPath();
       ctx.ellipse(balloon.x, balloon.y, balloon.size * .62, balloon.size * .78, 0, 0, Math.PI * 2);
       ctx.fill();
+      ctx.save();
+      ctx.clip();
+      fillSpriteTexture(ctx, "latex", balloon.x - balloon.size, balloon.y - balloon.size, balloon.size * 2, balloon.size * 2, .22);
+      ctx.restore();
+      ctx.strokeStyle = "#fbe3ff66";
+      ctx.lineWidth = .6;
+      ctx.beginPath();
+      ctx.ellipse(balloon.x, balloon.y, balloon.size * .57, balloon.size * .73, 0, Math.PI * 1.02, Math.PI * 1.73);
+      ctx.stroke();
       ctx.fillStyle = "rgba(255,255,255,.4)";
       ctx.beginPath();
       ctx.ellipse(balloon.x - balloon.size * .2, balloon.y - balloon.size * .26, balloon.size * .16, balloon.size * .22, -.4, 0, Math.PI * 2);
@@ -3001,6 +2813,8 @@ const BirthdayDecorPhysics = createLedgeDecorEngine({
       ctx.fillStyle = PARTY_COLORS[piece.color];
       if (piece.shape === "rect") {
         ctx.fillRect(-piece.w / 2, -piece.h / 2, piece.w, piece.h);
+        ctx.fillStyle = "#fff7";
+        ctx.fillRect(-piece.w / 2, -piece.h / 2, piece.w, .5);
       } else if (piece.shape === "circle") {
         ctx.beginPath();
         ctx.arc(0, 0, piece.w * .45, 0, Math.PI * 2);
@@ -3077,57 +2891,7 @@ function sampleShapePoints(text) {
   return points;
 }
 
-function drawChampagne(ctx, bottle, x, edgeY, now, reducedMotion) {
-  const s = bottle.size;
-  ctx.save();
-  ctx.translate(x, edgeY);
-  // Cuerpo verde botella con hombros, cuello y capuchon dorado.
-  ctx.fillStyle = "#173f2a";
-  ctx.beginPath();
-  ctx.moveTo(-s * .32, 0);
-  ctx.lineTo(-s * .32, -s * .78);
-  ctx.quadraticCurveTo(-s * .3, -s * 1.02, -s * .09, -s * 1.12);
-  ctx.lineTo(-s * .09, -s * 1.34);
-  ctx.lineTo(s * .09, -s * 1.34);
-  ctx.lineTo(s * .09, -s * 1.12);
-  ctx.quadraticCurveTo(s * .3, -s * 1.02, s * .32, -s * .78);
-  ctx.lineTo(s * .32, 0);
-  ctx.closePath();
-  ctx.fill();
-  // Brillo del cristal.
-  ctx.fillStyle = "rgba(190,255,215,.3)";
-  ctx.fillRect(-s * .22, -s * .95, s * .09, s * .84);
-  // Etiqueta.
-  ctx.fillStyle = "#f3e9d0";
-  ctx.fillRect(-s * .24, -s * .62, s * .48, s * .3);
-  ctx.fillStyle = "#a8842e";
-  ctx.fillRect(-s * .24, -s * .52, s * .48, s * .05);
-  // Boca abierta tras el descorche; capuchon dorado mientras siga cerrada.
-  if (now < bottle.poppedUntil) {
-    ctx.fillStyle = "#0c2418";
-    ctx.fillRect(-s * .09, -s * 1.36, s * .18, s * .06);
-  } else {
-    ctx.fillStyle = "#ffd166";
-    ctx.fillRect(-s * .11, -s * 1.44, s * .22, s * .12);
-    ctx.fillStyle = "rgba(255,255,255,.35)";
-    ctx.fillRect(-s * .11, -s * 1.44, s * .07, s * .12);
-  }
-  // Burbujitas saliendo de la boca tras el descorche.
-  if (!reducedMotion && now < bottle.foamUntil) {
-    const age = 1 - (bottle.foamUntil - now) / 900;
-    ctx.fillStyle = "rgba(255,250,220,.8)";
-    for (let bubble = 0; bubble < 5; bubble += 1) {
-      const u = fract(bottle.seed * (3.1 + bubble * 1.7));
-      const rise = age * (14 + u * 16) + bubble * 2;
-      ctx.globalAlpha = Math.max(0, .8 - age * .8);
-      ctx.beginPath();
-      ctx.arc((u - .5) * 8, -s * 1.4 - rise, .9 + u, 0, Math.PI * 2);
-      ctx.fill();
-    }
-    ctx.globalAlpha = 1;
-  }
-  ctx.restore();
-}
+const ANNIVERSARY_COLORS = ["#d8ba77", "#87a99f", "#dccfa8", "#98758b", "#b3a37c"];
 
 function drawBunting(ctx, bunting, surface, now, ox, oy, reducedMotion) {
   const t = now / 1000;
@@ -3152,58 +2916,64 @@ function drawBunting(ctx, bunting, surface, now, ox, oy, reducedMotion) {
       const qy = (1 - tt) * (1 - tt) * topY + 2 * (1 - tt) * tt * controlY + tt * tt * topY;
       const lean = reducedMotion ? 0 : Math.sin(t * 1.4 + bunting.seed * 3 + flag * 1.1 + segment * 2) * 1.6;
       const size = bunting.flagSize;
-      ctx.fillStyle = PARTY_COLORS[(flag + segment * 2 + bunting.colorOffset) % PARTY_COLORS.length];
+      const color = ANNIVERSARY_COLORS[(flag + segment * 2 + bunting.colorOffset) % ANNIVERSARY_COLORS.length];
+      const silk = ctx.createLinearGradient(qx - size * .5, qy, qx + size * .5, qy);
+      silk.addColorStop(0, color); silk.addColorStop(.38, color); silk.addColorStop(1, "#3a3037");
+      ctx.fillStyle = silk;
       ctx.beginPath();
       ctx.moveTo(qx - size * .5, qy);
       ctx.lineTo(qx + size * .5, qy);
-      ctx.lineTo(qx + lean * .4, qy + size * 1.15);
+      ctx.lineTo(qx + size * .4 + lean * .4, qy + size * 1.3);
+      ctx.lineTo(qx + lean * .4, qy + size * .98);
+      ctx.lineTo(qx - size * .4 + lean * .4, qy + size * 1.3);
       ctx.closePath();
       ctx.fill();
+      ctx.strokeStyle = "#e6d5ac9c"; ctx.lineWidth = .6; ctx.stroke();
+      ctx.save();
+      ctx.clip();
+      fillSpriteTexture(ctx, "linen", qx - size * .5, qy, size, size * 1.2, .65);
+      ctx.fillStyle = "#0003";
+      ctx.beginPath();
+      ctx.moveTo(qx, qy);
+      ctx.lineTo(qx + size * .5, qy);
+      ctx.lineTo(qx + lean * .4, qy + size * 1.15);
+      ctx.fill();
+      ctx.restore();
+      ctx.strokeStyle = "#f7e7bbcc"; ctx.lineWidth = .6;
+      ctx.beginPath(); ctx.ellipse(qx, qy + size * .52, size * .17, size * .24, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.fillStyle = "#f7e7bbcc";
+      ctx.fillRect(qx - size * .06, qy + size * .4, .5, size * .2);
+      ctx.fillRect(qx + size * .045, qy + size * .4, .5, size * .2);
+      ctx.strokeStyle = "#fff4";
+      ctx.lineWidth = .6;
+      ctx.beginPath();
+      ctx.moveTo(qx - size * .45, qy + .7);
+      ctx.lineTo(qx + size * .45, qy + .7);
+      ctx.stroke();
     }
   }
 }
 
-function drawTrophy(ctx, trophy, x, edgeY) {
-  const s = trophy.size;
-  ctx.fillStyle = "#ffd166";
-  ctx.fillRect(x - s * .32, edgeY - s * .12, s * .64, s * .12);
-  ctx.fillRect(x - s * .2, edgeY - s * .26, s * .4, s * .14);
-  ctx.fillRect(x - s * .06, edgeY - s * .44, s * .12, s * .2);
-  ctx.beginPath();
-  ctx.moveTo(x - s * .34, edgeY - s);
-  ctx.lineTo(x + s * .34, edgeY - s);
-  ctx.lineTo(x + s * .2, edgeY - s * .44);
-  ctx.lineTo(x - s * .2, edgeY - s * .44);
-  ctx.closePath();
-  ctx.fill();
-  ctx.strokeStyle = "#ffd166";
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.arc(x - s * .4, edgeY - s * .82, s * .15, Math.PI * .5, Math.PI * 1.5);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.arc(x + s * .4, edgeY - s * .82, s * .15, -Math.PI * .5, Math.PI * .5);
-  ctx.stroke();
-  // sombra, brillo y placa del 02
-  ctx.fillStyle = "rgba(0,0,0,.18)";
-  ctx.fillRect(x + s * .08, edgeY - s * .98, s * .12, s * .5);
-  ctx.fillStyle = "rgba(255,255,255,.5)";
-  ctx.fillRect(x - s * .18, edgeY - s * .94, s * .07, s * .38);
-  ctx.fillStyle = "#7a5a10";
-  ctx.fillRect(x - s * .11, edgeY - s * .8, s * .22, s * .18);
-}
-
 function drawStreamer(ctx, streamer, x, topY, now, reducedMotion) {
   const t = reducedMotion ? 0 : now / 1000;
-  ctx.strokeStyle = PARTY_COLORS[streamer.color];
   ctx.globalAlpha = .8;
-  ctx.lineWidth = 1.6;
-  ctx.beginPath();
-  ctx.moveTo(x, topY);
+  let previousX = x;
+  let previousY = topY;
   for (let along = 2; along <= streamer.length; along += 2) {
-    ctx.lineTo(x + Math.sin(along * .42 + t * 1.8 + streamer.seed) * (3 + along * .06), topY + along);
+    const phase = along * .42 + t * 1.8 + streamer.seed;
+    const nextX = x + Math.sin(phase) * (3 + along * .06);
+    ctx.beginPath();
+    ctx.moveTo(previousX, previousY);
+    ctx.lineTo(nextX, topY + along);
+    ctx.strokeStyle = ANNIVERSARY_COLORS[streamer.color % ANNIVERSARY_COLORS.length];
+    ctx.lineWidth = 1.2 + Math.abs(Math.cos(phase)) * 1.8;
+    ctx.stroke();
+    ctx.strokeStyle = Math.cos(phase) > 0 ? "#fff7" : "#201d344d";
+    ctx.lineWidth = .6;
+    ctx.stroke();
+    previousX = nextX;
+    previousY = topY + along;
   }
-  ctx.stroke();
   ctx.globalAlpha = 1;
 }
 
@@ -3231,14 +3001,14 @@ const AnniversaryDecorPhysics = createLedgeDecorEngine({
         nextPopAt: 0,
         poppedUntil: 0,
         seed: fract(seed * 8.11) * 10,
-        size: 17 + 5 * fract(seed * 12.53),
+        size: 26 + 6 * fract(seed * 12.53),
         x01: .12 + .76 * fract(seed * 16.37)
       }
       : null;
     deco.bunting = edgeWidth > 380 && fract(seed * 6.71) < .6
       ? {
         colorOffset: Math.floor(fract(seed * 9.1) * PARTY_COLORS.length),
-        flagSize: 7 + 3 * fract(seed * 3.77),
+        flagSize: 10 + 3 * fract(seed * 3.77),
         perSegment: 5 + Math.floor(fract(seed * 5.13) * 3),
         sag: 10 + 8 * fract(seed * 7.99),
         seed: fract(seed * 2.31) * 10,
@@ -3246,7 +3016,7 @@ const AnniversaryDecorPhysics = createLedgeDecorEngine({
       }
       : null;
     deco.trophy = edgeWidth > 300 && fract(seed * 11.83) < .3
-      ? { size: 15 + 6 * fract(seed * 4.57), x01: .14 + .72 * fract(seed * 8.29) }
+      ? { size: Math.min(27 + 6 * fract(seed * 4.57), edgeWidth * .075), x01: .14 + .72 * fract(seed * 8.29) }
       : null;
     deco.streamers = [];
     for (const corner of ["tl", "tr"]) {
@@ -3534,11 +3304,9 @@ const AnniversaryDecorPhysics = createLedgeDecorEngine({
 function BirthdayScene() {
   return (
     <div className="seasonal-birthday-scene">
-      <div className="seasonal-party-lights">{Array.from({ length: 14 }, (_, index) => <i key={index} style={{ "--bulb": index }} />)}</div>
-      <div className="seasonal-balloons">{Array.from({ length: 3 }, (_, index) => <i key={index} style={{ "--balloon": index }} />)}</div>
+      <div className="seasonal-party-lights">{Array.from({ length: 14 }, (_, index) => <i key={index} style={{ "--bulb": index, "--bulb-drop": `${index % 4 * 3}px` }} />)}</div>
+      <div className="seasonal-balloons">{Array.from({ length: 3 }, (_, index) => <i key={index} style={{ "--balloon": index, "--balloon-top": `${23 + index % 3 * 13}%` }} />)}</div>
       <div className="seasonal-birthday-watermark"><span>24</span><b>DAI DAY</b></div>
-      {/* Tarta de neon al fondo: dos pisos y tres velas con llama viva. */}
-      <div className="seasonal-scene-cake"><i /><i /><i /><i /><i /></div>
       <div className="seasonal-party-beam beam-a" /><div className="seasonal-party-beam beam-b" />
     </div>
   );
@@ -3549,7 +3317,7 @@ function AnniversaryScene() {
     <div className="seasonal-anniversary-scene">
       <div className="seasonal-fireworks">
         {Array.from({ length: 5 }, (_, burst) => (
-          <span key={burst} style={{ "--burst": burst }}>
+          <span key={burst} style={{ "--burst": burst, "--burst-top": `${17 + burst % 3 * 17}%` }}>
             {Array.from({ length: 10 }, (_, ray) => <i key={ray} style={{ "--ray": ray }} />)}
           </span>
         ))}
@@ -3557,7 +3325,6 @@ function AnniversaryScene() {
       {/* Numeral gigante de fondo + focos dorados barriendo el escenario. */}
       <span className="seasonal-anniversary-watermark">02</span>
       <div className="seasonal-party-beam anniv-beam-a" /><div className="seasonal-party-beam anniv-beam-b" />
-      <div className="seasonal-anniversary-mark"><i className="anniversary-mark-halo" /><strong>V2</strong><span>JUL 02</span></div>
       <div className="seasonal-anniversary-grid"><span>BUILD</span><b>02</b><em>ONLINE</em></div>
     </div>
   );
@@ -3566,12 +3333,6 @@ function AnniversaryScene() {
 function AprilScene() {
   return (
     <div className="seasonal-april-scene">
-      {/* Ventana DaiOS con reloj de arena y progreso que nunca termina. */}
-      <div className="seasonal-april-window">
-        <i /><i /><i /><i />
-        <span className="april-hourglass" />
-        <div className="april-window-progress"><span /></div>
-      </div>
       {/* Dialogos de error fantasma que aparecen y se esfuman en bucle. */}
       {APRIL_DIALOGS.map(([title, body, action], index) => (
         <div className="seasonal-april-dialog" key={title} style={{ "--dialog": index }}>
@@ -3632,6 +3393,7 @@ export function SeasonalEvent({ event, entrySplashOpen }) {
   return (
     <>
       <div className={`seasonal-world seasonal-${event}`} aria-hidden="true">
+        <SeasonalScenery event={event} />
         <div className="seasonal-particles">{particleField}</div>
         {event === "halloween" ? <HalloweenScene /> : null}
         {event === "winter" ? <WinterScene /> : null}

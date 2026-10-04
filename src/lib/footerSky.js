@@ -485,3 +485,71 @@ export const SKY_STARS = Array.from({ length: 28 }, (_, index) => {
     seconds: Number((3.5 + random(5) * 4).toFixed(2))
   };
 });
+
+// --- Eventos del cielo ------------------------------------------------------------
+
+// Luna llena: un dia a cada lado del pico (fase 0.5). Los raros pican mas.
+export function isFullMoon(phase) {
+  return Math.abs(phase - 0.5) < 0.034;
+}
+
+// Lluvias de estrellas de verdad: el dia del pico (hora local) y dos a cada
+// lado, cada vez mas flojas.
+export const METEOR_SHOWERS = [
+  { id: "quadrantids", name: "Quadrantids", month: 1, day: 3 },
+  { id: "lyrids", name: "Lyrids", month: 4, day: 22 },
+  { id: "eta-aquariids", name: "Eta Aquariids", month: 5, day: 6 },
+  { id: "perseids", name: "Perseids", month: 8, day: 12 },
+  { id: "orionids", name: "Orionids", month: 10, day: 21 },
+  { id: "leonids", name: "Leonids", month: 11, day: 17 },
+  { id: "geminids", name: "Geminids", month: 12, day: 14 }
+];
+const SHOWER_STRENGTH = [1, 0.6, 0.3];
+
+export function meteorShower(date) {
+  const day = Date.UTC(date.getFullYear(), date.getMonth(), date.getDate());
+  for (const shower of METEOR_SHOWERS) {
+    for (const year of [date.getFullYear() - 1, date.getFullYear(), date.getFullYear() + 1]) {
+      const away = Math.abs(Math.round((day - Date.UTC(year, shower.month - 1, shower.day)) / 86_400_000));
+      if (away < SHOWER_STRENGTH.length) return { id: shower.id, name: shower.name, strength: SHOWER_STRENGTH[away] };
+    }
+  }
+  return null;
+}
+
+// Cada cuanto cruza una estrella fugaz (ms): de vez en cuando una noche
+// cualquiera, cada pocos segundos en el pico de una lluvia.
+export function shootingStarDelay(shower, rng = Math.random) {
+  const strength = shower?.strength || 0;
+  if (!strength) return Math.round(between(rng, 25_000, 70_000));
+  return Math.round(between(rng, 3_000 + (1 - strength) * 6_000, 8_000 + (1 - strength) * 14_000));
+}
+
+// Recorrido de una estrella fugaz: entra por arriba, de derecha a izquierda y
+// bajando (como el viento del cielo). left en %, top y desplazamiento en px.
+export function shootingStarPath(rng = Math.random) {
+  return {
+    left: Number(between(rng, 18, 92).toFixed(1)),
+    top: Math.round(between(rng, 4, 24)),
+    dx: -Math.round(between(rng, 150, 300)),
+    dy: Math.round(between(rng, 20, 38)),
+    ms: Math.round(between(rng, 1700, 2500))
+  };
+}
+
+// Arcoiris de pixel: semicirculo con una banda por color, del exterior (rojo)
+// al interior (violeta). Un path por banda.
+export const RAINBOW_COLORS = ["#ff5f6d", "#ffa94d", "#ffe066", "#69db7c", "#4dabf7", "#9775fa"];
+
+export function rainbowPixels(radius = 44, band = 2) {
+  const width = radius * 2;
+  const bands = RAINBOW_COLORS.map(() => []);
+  for (let y = 0; y < radius; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const distance = Math.hypot(x + 0.5 - radius, radius - (y + 0.5));
+      const index = Math.floor((radius - distance) / band);
+      if (index >= 0 && index < bands.length) bands[index].push([x, y]);
+    }
+  }
+  return { width, height: radius, bands: bands.map((pixels, index) => ({ color: RAINBOW_COLORS[index], d: pathFrom(pixels) })) };
+}

@@ -1,4 +1,4 @@
-import { normalizeMarket, mergeMarket } from "../shared/buddy-market.mjs";
+import { bonusCoins, normalizeMarket, mergeMarket } from "../shared/buddy-market.mjs";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { getSessionUser } from "./comments.mjs";
@@ -25,6 +25,8 @@ const EMPTY_ADVENTURE = Object.freeze({
   krakenSightings: 0,
   daiBooted: false,
   bugsDefeated: 0,
+  campfireMeals: 0,
+  starWishes: 0,
   completed: [],
   market: { opened: 0, rewards: [], purchases: {} },
     inventory: []
@@ -92,8 +94,14 @@ function normalizeAdventure(value) {
     krakenSightings: boundedCount(source.krakenSightings),
     daiBooted: source.daiBooted === true,
     bugsDefeated: boundedCount(source.bugsDefeated),
+    campfireMeals: boundedCount(source.campfireMeals),
+    starWishes: boundedCount(source.starWishes),
     completed: normalizeIdList(source.completed),
-    market: normalizeMarket(source.market, source.fishCollection),
+    market: normalizeMarket(source.market, source.fishCollection, bonusCoins({
+      campfireMeals: source.campfireMeals,
+      starWishes: source.starWishes,
+      totalCatches: Math.max(boundedCount(source.totalCatches), boundedCount(source.voidCatches))
+    })),
     inventory: normalizeIdList(source.inventory)
   };
   adventure.totalCatches = Math.max(adventure.totalCatches, adventure.voidCatches);
@@ -120,12 +128,18 @@ function mergeAdventure(storedValue, incomingValue) {
     voidCatches: Math.max(stored.voidCatches, incoming.voidCatches),
     totalCatches: Math.max(stored.totalCatches, incoming.totalCatches),
     fishCollection: mergeCounterMaps(stored.fishCollection, incoming.fishCollection),
-    market: mergeMarket(stored.market, incoming.market, mergeCounterMaps(stored.fishCollection, incoming.fishCollection)),
+    market: mergeMarket(stored.market, incoming.market, mergeCounterMaps(stored.fishCollection, incoming.fishCollection), bonusCoins({
+      campfireMeals: Math.max(stored.campfireMeals, incoming.campfireMeals),
+      starWishes: Math.max(stored.starWishes, incoming.starWishes),
+      totalCatches: Math.max(stored.totalCatches, incoming.totalCatches)
+    })),
     foundObjects: mergeCounterMaps(stored.foundObjects, incoming.foundObjects),
     leviathanSightings: Math.max(stored.leviathanSightings, incoming.leviathanSightings),
     krakenSightings: Math.max(stored.krakenSightings, incoming.krakenSightings),
     daiBooted: stored.daiBooted || incoming.daiBooted,
     bugsDefeated: Math.max(stored.bugsDefeated, incoming.bugsDefeated),
+    campfireMeals: Math.max(stored.campfireMeals, incoming.campfireMeals),
+    starWishes: Math.max(stored.starWishes, incoming.starWishes),
     completed: normalizeIdList([...stored.completed, ...incoming.completed]),
     inventory: normalizeIdList([...stored.inventory, ...incoming.inventory])
   };

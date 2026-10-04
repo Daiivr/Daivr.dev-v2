@@ -1,25 +1,30 @@
 @layer components {
+  /* links.sh (LinkConsole en ProgramSections): el mismo lenguaje que Now.log
+     (now-dashboard.css). Consola oscura con rejilla, cabecera con luces y
+     tarjetas con riel (numero, traza, puerto), cada una con el color de su
+     marca. Al pasar por encima el puerto se enciende y el paquete recorre la
+     ruta. */
   .link-console {
     position: relative;
     container: link-console / inline-size;
     margin-top: clamp(1.4rem, 3vw, 2rem);
     display: grid;
-    gap: clamp(0.85rem, 2vw, 1rem);
+    gap: clamp(0.75rem, 1.6vw, 1rem);
     overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 30%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 26%, transparent);
+    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+    padding: clamp(0.8rem, 2vw, 1.3rem);
     background:
       linear-gradient(rgba(63, 255, 151, 0.035) 1px, transparent 1px),
       linear-gradient(90deg, rgba(69, 216, 255, 0.03) 1px, transparent 1px),
-      radial-gradient(circle at 12% 10%, color-mix(in srgb, var(--color-cyan-arcade) 12%, transparent), transparent 30%),
-      radial-gradient(circle at 90% 14%, color-mix(in srgb, var(--color-glitch) 9%, transparent), transparent 28%),
+      radial-gradient(circle at 4% 4%, color-mix(in srgb, var(--color-cyan-arcade) 10%, transparent), transparent 30%),
+      radial-gradient(circle at 96% 96%, color-mix(in srgb, var(--color-glitch) 8%, transparent), transparent 30%),
       rgba(2, 6, 4, 0.92);
     background-size: 18px 18px, 18px 18px, auto, auto, auto;
-    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
-    padding: clamp(1rem, 2.4vw, 1.45rem);
     box-shadow:
       inset 0 0 0 1px color-mix(in srgb, var(--color-phosphor) 8%, transparent),
-      0 28px 90px rgba(0, 0, 0, 0.62),
-      0 0 34px color-mix(in srgb, var(--color-phosphor) 8%, transparent);
+      inset 0 0 58px rgba(0, 0, 0, 0.34),
+      var(--shadow-crt);
   }
 
   .link-console::before {
@@ -28,52 +33,48 @@
     content: "";
     pointer-events: none;
     background:
-      linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-cyan-arcade) 12%, transparent), transparent),
-      linear-gradient(rgba(255, 255, 255, 0.035) 50%, transparent 50%);
-    background-size: auto, 100% 4px;
-    opacity: 0.2;
-    mix-blend-mode: screen;
-  }
-
-  .link-console::after {
-    position: absolute;
-    inset: 0 auto 0 0;
-    width: 3px;
-    content: "";
-    pointer-events: none;
-    background: linear-gradient(var(--color-phosphor), var(--color-cyan-arcade), var(--color-glitch));
-    opacity: 0.75;
-    box-shadow: 0 0 20px color-mix(in srgb, var(--color-cyan-arcade) 32%, transparent);
+      linear-gradient(90deg, var(--color-cyan-arcade), transparent 32%) 0 0 / 48% 1px no-repeat,
+      linear-gradient(180deg, var(--color-phosphor), transparent 72%) 0 0 / 2px 100% no-repeat,
+      linear-gradient(rgba(255, 255, 255, 0.03) 50%, transparent 50%);
+    background-size: 48% 1px, 2px 100%, 100% 4px;
+    opacity: 0.62;
   }
 
   .link-console-titlebar,
-  .link-console-grid {
+  .link-console-grid,
+  .link-console-prompt {
     position: relative;
     z-index: 1;
   }
 
+  /* Cabecera ------------------------------------------------------------- */
+
   .link-console-titlebar {
-    position: relative;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    display: flex;
+    min-height: 3.7rem;
     align-items: center;
-    gap: 1rem;
+    gap: 0.9rem;
     border: 1px solid color-mix(in srgb, var(--color-phosphor) 18%, transparent);
-    background: rgba(2, 6, 4, 0.58);
-    padding: 1rem;
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 8%, transparent), transparent 52%),
+      rgba(2, 6, 4, 0.76);
+    padding: 0.75rem 0.85rem;
+  }
+
+  .link-console-titlebar > div:nth-child(2) {
+    min-width: 0;
   }
 
   .link-console-lights {
-    display: grid;
-    gap: 0.35rem;
-    padding-top: 0.18rem;
+    display: flex;
+    flex: none;
+    gap: 0.3rem;
   }
 
   .link-console-lights span {
-    width: 0.5rem;
-    aspect-ratio: 1;
+    width: 6px;
+    height: 6px;
     background: var(--color-danger-arcade);
-    box-shadow: 0 0 12px currentColor;
   }
 
   .link-console-lights span:nth-child(2) {
@@ -82,56 +83,67 @@
 
   .link-console-lights span:nth-child(3) {
     background: var(--color-phosphor);
+    box-shadow: 0 0 8px var(--color-phosphor);
   }
 
   .link-console-titlebar h3 {
     color: var(--color-phosphor);
     font-family: var(--font-display);
-    font-size: clamp(1rem, 1.6vw, 1.35rem);
+    font-size: clamp(1rem, 1.6vw, 1.3rem);
     font-weight: 900;
+    line-height: 1.1;
     text-transform: uppercase;
+    text-shadow: 0 0 16px color-mix(in srgb, var(--color-phosphor) 30%, transparent);
   }
 
   .link-console-titlebar p {
-    margin-top: 0.35rem;
+    margin-top: 0.3rem;
+    overflow: hidden;
     color: var(--color-phosphor-soft);
-    font-size: 0.68rem;
+    font-size: 0.64rem;
     font-weight: 900;
+    text-overflow: ellipsis;
     text-transform: uppercase;
-    opacity: 0.68;
+    white-space: nowrap;
+    opacity: 0.66;
   }
 
   .link-console-status {
     display: grid;
+    flex: none;
     grid-template-columns: auto auto;
     align-items: center;
-    min-width: 10.5rem;
-    border-left: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 28%, transparent);
-    padding-left: 1rem;
+    column-gap: 0.85rem;
+    margin-left: auto;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 32%, transparent);
+    background: color-mix(in srgb, var(--color-cyan-arcade) 7%, rgba(2, 6, 4, 0.6));
+    padding: 0.45rem 0.7rem;
   }
 
   .link-console-status-label {
     color: var(--color-phosphor-soft);
-    font-size: 0.58rem;
+    font-size: 0.56rem;
     font-weight: 900;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    opacity: 0.58;
+    opacity: 0.6;
   }
 
   .link-console-status strong {
-    grid-row: span 2;
+    grid-column: 2;
+    grid-row: 1 / span 2;
     color: var(--color-cyan-arcade);
     font-family: var(--font-display);
-    font-size: 1.65rem;
+    font-size: 1.6rem;
     line-height: 1;
+    text-shadow: 0 0 14px color-mix(in srgb, var(--color-cyan-arcade) 40%, transparent);
   }
 
   .link-console-status-live {
     display: inline-flex;
     align-items: center;
     gap: 0.32rem;
-    margin-top: 0.22rem;
+    margin-top: 0.2rem;
     color: var(--color-phosphor);
     font-size: 0.56rem;
     font-weight: 900;
@@ -139,131 +151,180 @@
   }
 
   .link-console-status-live i {
-    width: 0.36rem;
-    aspect-ratio: 1;
-    border-radius: 50%;
+    width: 6px;
+    height: 6px;
     background: currentColor;
     box-shadow: 0 0 10px currentColor;
   }
 
+  /* Tarjetas ------------------------------------------------------------- */
+
   .link-console-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.85rem;
+    gap: 0.72rem;
   }
 
   .link-console-card {
     --link-accent: var(--color-cyan-arcade);
     position: relative;
     display: grid;
-    grid-template-rows: auto 1fr auto;
-    min-height: 13.5rem;
-    gap: 1.25rem;
+    grid-template-columns: 4.4rem minmax(0, 1fr);
+    min-height: 11rem;
     overflow: hidden;
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 18%, transparent);
+    border: 1px solid color-mix(in srgb, var(--link-accent) 28%, transparent);
     clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
     background:
-      linear-gradient(90deg, color-mix(in srgb, var(--link-accent) 9%, transparent), transparent 46%),
-      rgba(2, 6, 4, 0.68);
-    padding: 1.05rem 1.15rem 1rem;
+      linear-gradient(100deg, color-mix(in srgb, var(--link-accent) 8%, transparent), transparent 48%),
+      linear-gradient(rgba(255, 255, 255, 0.024) 50%, transparent 50%),
+      rgba(2, 6, 4, 0.82);
+    background-size: auto, 100% 4px, auto;
     color: var(--color-phosphor-soft);
     box-shadow:
-      inset 3px 0 0 color-mix(in srgb, var(--link-accent) 62%, transparent),
-      inset 0 1px 0 color-mix(in srgb, var(--link-accent) 18%, transparent),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.018),
-      inset 0 0 34px rgba(0, 0, 0, 0.28);
-    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+      inset 3px 0 0 color-mix(in srgb, var(--link-accent) 72%, transparent),
+      inset 0 1px 0 color-mix(in srgb, var(--link-accent) 20%, transparent),
+      inset 0 0 28px rgba(0, 0, 0, 0.28);
+    transition: transform 180ms ease, border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
   }
 
-  .link-console-card::before {
-    position: absolute;
-    inset: 0;
-    content: "";
-    pointer-events: none;
-    border-left: 3px solid var(--link-accent);
-    background:
-      linear-gradient(90deg, color-mix(in srgb, var(--link-accent) 8%, transparent), transparent 30%),
-      linear-gradient(135deg, transparent 0 78%, color-mix(in srgb, var(--link-accent) 5%, transparent) 78% 79%, transparent 79%);
-    opacity: 0.7;
-  }
+  /* Colores de cada marca, aclarados para leerse sobre el negro. */
+  .link-console-card.is-violet { --link-accent: #8f97ff; }
+  .link-console-card.is-white { --link-accent: #e6edf3; }
+  .link-console-card.is-cyan { --link-accent: #66c0f4; }
+  .link-console-card.is-purple { --link-accent: #b083ff; }
 
+  /* Barrido de luz al entrar. */
   .link-console-card::after {
     position: absolute;
     inset: 0;
     content: "";
     pointer-events: none;
-    background: linear-gradient(110deg, transparent 0 36%, color-mix(in srgb, var(--color-phosphor) 12%, transparent), transparent 64% 100%);
+    background: linear-gradient(110deg, transparent 0 35%, color-mix(in srgb, var(--link-accent) 14%, transparent), transparent 65% 100%);
     opacity: 0;
-    transform: translateX(-44%);
+    transform: translateX(-60%);
   }
 
   .link-console-card:hover,
   .link-console-card:focus-visible {
     transform: translateY(-2px);
-    border-color: color-mix(in srgb, var(--link-accent) 54%, var(--color-phosphor) 18%);
+    border-color: color-mix(in srgb, var(--link-accent) 62%, transparent);
     background:
-      linear-gradient(90deg, color-mix(in srgb, var(--link-accent) 13%, transparent), transparent 50%),
-      rgba(2, 16, 14, 0.74);
+      linear-gradient(100deg, color-mix(in srgb, var(--link-accent) 12%, transparent), transparent 54%),
+      linear-gradient(rgba(255, 255, 255, 0.03) 50%, transparent 50%),
+      rgba(2, 6, 4, 0.88);
+    background-size: auto, 100% 4px, auto;
     box-shadow:
-      inset 3px 0 0 color-mix(in srgb, var(--link-accent) 76%, transparent),
-      inset 0 1px 0 color-mix(in srgb, var(--link-accent) 26%, transparent),
-      inset 0 0 24px color-mix(in srgb, var(--link-accent) 8%, transparent),
-      0 18px 48px rgba(0, 0, 0, 0.36),
-      0 0 26px color-mix(in srgb, var(--link-accent) 10%, transparent);
-  }
-
-  .theme-glitch .link-console-card {
-    border-color: color-mix(in srgb, var(--color-phosphor) 26%, var(--link-accent) 18%);
-    box-shadow:
-      inset 3px 0 0 color-mix(in srgb, var(--color-phosphor) 58%, transparent),
-      inset -1px 0 0 color-mix(in srgb, var(--color-cyan-arcade) 28%, transparent),
-      inset 0 1px 0 color-mix(in srgb, var(--link-accent) 22%, transparent),
-      inset 0 0 34px rgba(0, 0, 0, 0.28);
+      inset 3px 0 0 var(--link-accent),
+      inset 0 1px 0 color-mix(in srgb, var(--link-accent) 30%, transparent),
+      0 18px 50px color-mix(in srgb, var(--link-accent) 10%, transparent),
+      0 22px 58px rgba(0, 0, 0, 0.42);
   }
 
   .link-console-card:hover::after,
   .link-console-card:focus-visible::after {
-    animation: card-scan 900ms ease-out;
+    animation: link-card-sweep 900ms ease-out;
   }
 
-  .link-console-card.is-violet {
-    --link-accent: #9495ff;
+  .link-console-card:focus-visible {
+    outline: 2px solid var(--link-accent);
+    outline-offset: -4px;
   }
 
-  .link-console-card.is-white {
-    --link-accent: #f5f7ff;
+  /* Riel: numero arriba, traza, y el puerto con el icono de la marca. */
+  .link-console-rail {
+    display: grid;
+    grid-template-rows: auto minmax(0.75rem, 1fr) auto;
+    align-self: stretch;
+    justify-items: center;
+    gap: 0.5rem;
+    border-right: 1px solid color-mix(in srgb, var(--link-accent) 18%, transparent);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--link-accent) 10%, transparent), transparent 72%),
+      rgba(2, 6, 4, 0.5);
+    padding: 0.9rem 0.6rem;
   }
 
-  .link-console-card.is-cyan {
-    --link-accent: var(--color-cyan-arcade);
-  }
-
-  .link-console-card.is-purple {
-    --link-accent: #b482ff;
-  }
-
-  /* El panel se anuncia como un selector de rutas, asi que la tarjeta se lee
-     como una: direccion monoespaciada, cable de parcheo y puerto. */
   .link-console-index {
-    border: 1px solid color-mix(in srgb, var(--link-accent) 26%, transparent);
-    background: color-mix(in srgb, var(--link-accent) 8%, transparent);
-    padding: 0.16rem 0.42rem;
     color: var(--link-accent);
-    font-family: var(--font-mono);
-    font-size: 0.63rem;
-    font-weight: 900;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-size: 0.88rem;
+    font-weight: 950;
+    text-shadow: 0 0 14px color-mix(in srgb, var(--link-accent) 34%, transparent);
   }
 
-  .link-console-card-topline,
-  .link-console-card-footer,
-  .link-console-identity {
+  .link-console-spine {
     position: relative;
-    z-index: 1;
+    width: 1px;
+    height: 100%;
+    overflow: hidden;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--link-accent) 55%, transparent), color-mix(in srgb, var(--link-accent) 14%, transparent));
+    box-shadow: 0 0 8px color-mix(in srgb, var(--link-accent) 22%, transparent);
   }
 
-  .link-console-card-topline,
+  .link-console-spine::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+    background: linear-gradient(transparent 65%, var(--link-accent) 95%, #fff);
+    animation: link-rail-packet 3.6s ease-in-out infinite;
+  }
+
+  .link-console-card:nth-child(2) .link-console-spine::after { animation-delay: -0.9s; }
+  .link-console-card:nth-child(3) .link-console-spine::after { animation-delay: -1.8s; }
+  .link-console-card:nth-child(4) .link-console-spine::after { animation-delay: -2.7s; }
+
+  .link-console-icon {
+    position: relative;
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--link-accent) 42%, transparent);
+    background: color-mix(in srgb, var(--link-accent) 9%, rgba(2, 6, 4, 0.72));
+    color: var(--link-accent);
+    box-shadow:
+      inset 0 0 14px color-mix(in srgb, var(--link-accent) 10%, transparent),
+      0 0 18px color-mix(in srgb, var(--link-accent) 10%, transparent);
+    transition: background 220ms ease, color 220ms ease, box-shadow 220ms ease;
+  }
+
+  .link-console-icon::before {
+    position: absolute;
+    inset: 3px;
+    content: "";
+    border-top: 1px solid color-mix(in srgb, var(--link-accent) 35%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--link-accent) 20%, transparent);
+    pointer-events: none;
+  }
+
+  .link-console-icon svg {
+    transition: transform 240ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  /* El puerto se enciende con el color de la marca. */
+  .link-console-card:hover .link-console-icon,
+  .link-console-card:focus-visible .link-console-icon {
+    background: var(--link-accent);
+    color: #020604;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.35),
+      0 0 24px color-mix(in srgb, var(--link-accent) 45%, transparent);
+  }
+
+  .link-console-card:hover .link-console-icon svg,
+  .link-console-card:focus-visible .link-console-icon svg {
+    transform: scale(1.1);
+  }
+
+  /* Contenido ------------------------------------------------------------ */
+
+  .link-console-body {
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    min-width: 0;
+    padding: 0.95rem 1.1rem 0.85rem;
+  }
+
+  .link-console-topline,
   .link-console-card-footer {
     display: flex;
     align-items: center;
@@ -271,224 +332,59 @@
     gap: 0.75rem;
   }
 
+  .link-console-route {
+    flex: none;
+    border: 1px solid color-mix(in srgb, var(--link-accent) 30%, transparent);
+    background: color-mix(in srgb, var(--link-accent) 9%, transparent);
+    padding: 0.1rem 0.36rem;
+    color: var(--link-accent);
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
   .link-console-verified {
     display: inline-flex;
     align-items: center;
     gap: 0.3rem;
     color: var(--color-phosphor);
-    font-size: 0.61rem;
+    font-size: 0.56rem;
     font-weight: 900;
     text-transform: uppercase;
-    opacity: 0.72;
+    opacity: 0.78;
   }
 
-  .link-console-identity {
-    position: relative;
-    display: grid;
-    grid-template-columns: 3.6rem minmax(0, 1fr);
-    align-items: center;
-    gap: 1rem;
-  }
-
-  /* Cable de parcheo del borde de la tarjeta al puerto. */
-  .link-console-identity::before {
-    position: absolute;
-    left: -1rem;
-    top: 50%;
-    width: 1rem;
-    height: 1px;
-    content: "";
-    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--link-accent) 62%, transparent));
-    transition: background 220ms ease, box-shadow 220ms ease;
-  }
-
-  .link-console-icon {
-    position: relative;
-    display: grid;
-    width: 3.55rem;
-    aspect-ratio: 1;
-    place-items: center;
-    border: 1px solid color-mix(in srgb, var(--link-accent) 42%, transparent);
-    background:
-      linear-gradient(rgba(255, 255, 255, 0.035) 50%, transparent 50%),
-      color-mix(in srgb, var(--link-accent) 10%, transparent);
-    background-size: 100% 4px, auto;
-    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
-    color: var(--link-accent);
-    box-shadow:
-      inset 0 0 18px rgba(0, 0, 0, 0.22),
-      0 0 22px color-mix(in srgb, var(--link-accent) 8%, transparent);
-    transition: border-color 220ms ease, background 220ms ease, box-shadow 220ms ease;
-  }
-
-  .link-console-icon::before {
-    position: absolute;
-    inset: 5px;
-    content: "";
-    border: 1px solid color-mix(in srgb, var(--link-accent) 20%, transparent);
-    pointer-events: none;
-  }
-
-  /* Pines del conector: lo que separa un puerto de un cuadrado con un icono. */
-  .link-console-icon::after {
-    position: absolute;
-    left: 50%;
-    bottom: 0;
-    width: 1.45rem;
-    height: 2px;
-    content: "";
-    background: repeating-linear-gradient(90deg, var(--link-accent) 0 3px, transparent 3px 6px);
-    opacity: 0.75;
-    pointer-events: none;
-    transform: translateX(-50%);
-  }
-
-  .link-console-card:hover .link-console-identity::before,
-  .link-console-card:focus-visible .link-console-identity::before {
-    background: linear-gradient(90deg, color-mix(in srgb, var(--link-accent) 22%, transparent), var(--link-accent));
-    box-shadow: 0 0 10px color-mix(in srgb, var(--link-accent) 44%, transparent);
-  }
-
-  .link-console-card:hover .link-console-icon,
-  .link-console-card:focus-visible .link-console-icon {
-    border-color: color-mix(in srgb, var(--link-accent) 74%, transparent);
-    background:
-      linear-gradient(rgba(255, 255, 255, 0.05) 50%, transparent 50%),
-      color-mix(in srgb, var(--link-accent) 17%, transparent);
-    background-size: 100% 4px, auto;
-    box-shadow:
-      inset 0 0 18px rgba(0, 0, 0, 0.22),
-      0 0 30px color-mix(in srgb, var(--link-accent) 20%, transparent);
-  }
-
-  .link-console-copy {
-    display: grid;
-    min-width: 0;
-    gap: 0.22rem;
-  }
-
-  .link-console-copy strong {
+  .link-console-name {
+    margin-block: 0.6rem 0.4rem;
     overflow: hidden;
     color: #fff;
     font-family: var(--font-display);
-    font-size: clamp(1.25rem, 2.1vw, 1.7rem);
+    font-size: clamp(1.2rem, 2vw, 1.55rem);
     font-weight: 900;
+    line-height: 1.15;
     text-overflow: ellipsis;
     white-space: nowrap;
+    text-shadow: 0 0 18px color-mix(in srgb, var(--link-accent) 18%, transparent);
   }
 
-  .link-console-copy small {
-    overflow: hidden;
-    color: var(--link-accent);
-    font-size: 0.63rem;
-    font-weight: 900;
-    text-overflow: ellipsis;
-    text-transform: uppercase;
-    white-space: nowrap;
-    opacity: 0.72;
-  }
-
-  .link-console-copy > span {
-    margin-top: 0.3rem;
-    color: var(--color-phosphor-soft);
-    font-size: 0.8rem;
-    font-weight: 700;
+  .link-console-summary {
+    max-width: 52ch;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 74%, #aeb9b3);
+    font-size: 0.82rem;
+    font-weight: 650;
     line-height: 1.6;
-    opacity: 0.86;
   }
 
   .link-console-card-footer {
-    border-top: 1px solid color-mix(in srgb, var(--link-accent) 16%, transparent);
-    padding-top: 0.72rem;
+    position: relative;
+    margin-top: 0.85rem;
+    border-top: 1px solid color-mix(in srgb, var(--link-accent) 14%, transparent);
+    padding-top: 0.6rem;
   }
 
-  .link-console-route {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.38rem;
-    color: var(--color-phosphor-soft);
-    font-family: var(--font-mono);
-    font-size: 0.56rem;
-    font-weight: 900;
-    letter-spacing: 0.05em;
-    opacity: 0.62;
-  }
-
-  .link-console-route i {
-    width: 0.3rem;
-    aspect-ratio: 1;
-    background: var(--link-accent);
-    box-shadow: 0 0 8px var(--link-accent);
-  }
-
-  .link-console-action {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.38rem;
-    border: 1px solid color-mix(in srgb, var(--link-accent) 24%, transparent);
-    background: color-mix(in srgb, var(--link-accent) 7%, transparent);
-    min-height: 2.35rem;
-    padding: 0.4rem 0.7rem;
-    color: var(--link-accent);
-    font-size: 0.65rem;
-    font-weight: 900;
-    text-transform: uppercase;
-    transition: border-color 220ms ease, background 220ms ease;
-  }
-
-  .link-console-action svg {
-    transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .link-console-card:hover .link-console-action,
-  .link-console-card:focus-visible .link-console-action {
-    border-color: color-mix(in srgb, var(--link-accent) 62%, transparent);
-    background: color-mix(in srgb, var(--link-accent) 14%, transparent);
-  }
-
-  .link-console-card:hover .link-console-action svg,
-  .link-console-card:focus-visible .link-console-action svg {
-    transform: translate(3px, -3px);
-  }
-
-  @media (max-width: 760px) {
-    .link-console-grid { grid-template-columns: 1fr; }
-
-    .link-console-lights {
-      display: flex;
-    }
-
-    .link-console-status {
-      min-width: 8.5rem;
-    }
-
-    .link-console-card {
-      min-height: 10.75rem;
-    }
-  }
-}
-
-@layer components {
-  .link-console-watermark {
-    position: absolute;
-    right: 1.25rem;
-    bottom: 3.5rem;
-    color: var(--link-accent);
-    font-family: var(--font-display);
-    font-size: 5.5rem;
-    font-weight: 900;
-    line-height: 1;
-    opacity: 0.035;
-    pointer-events: none;
-    transition: opacity 220ms ease, transform 220ms ease;
-  }
-
-  .link-console-card:hover .link-console-watermark,
-  .link-console-card:focus-visible .link-console-watermark {
-    opacity: 0.075;
-    transform: translateY(-4px);
-  }
-
+  /* Un paquete corre por la ruta mientras la tarjeta esta seleccionada. */
   .link-console-card-footer::before {
     position: absolute;
     top: -1px;
@@ -507,38 +403,90 @@
     animation: link-route-packet 1.8s ease-in-out infinite;
   }
 
-  .link-console-card:focus-visible {
-    outline: none;
-    border-color: var(--link-accent);
-    box-shadow: inset 0 0 0 2px var(--link-accent), inset 0 0 35px color-mix(in srgb, var(--link-accent) 18%, transparent);
+  /* La direccion de verdad del perfil, en una linea (mobile.css lo repite
+     porque su `.app-shell code` va fuera de capa y la partiria en dos). */
+  .link-console-address {
+    min-width: 0;
+    overflow: hidden;
+    color: color-mix(in srgb, var(--link-accent) 62%, var(--color-phosphor-soft));
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 700;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    opacity: 0.88;
   }
 
-  .link-console-icon svg { transition: transform 250ms cubic-bezier(0.2, 0.8, 0.2, 1); }
-  .link-console-card:hover .link-console-icon svg,
-  .link-console-card:focus-visible .link-console-icon svg { transform: translateY(-2px) scale(1.12); }
+  .link-console-action {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 0.38rem;
+    min-height: 2.1rem;
+    border: 1px solid color-mix(in srgb, var(--link-accent) 32%, transparent);
+    background: color-mix(in srgb, var(--link-accent) 8%, transparent);
+    padding: 0.35rem 0.7rem;
+    color: var(--link-accent);
+    font-size: 0.62rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    transition: background 200ms ease, color 200ms ease, box-shadow 200ms ease;
+  }
+
+  .link-console-action svg {
+    transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
 
   .link-console-card:hover .link-console-action,
   .link-console-card:focus-visible .link-console-action {
     background: var(--link-accent);
     color: #020604;
-    box-shadow: 0 0 20px color-mix(in srgb, var(--link-accent) 25%, transparent);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--link-accent) 30%, transparent);
   }
 
+  .link-console-card:hover .link-console-action svg,
+  .link-console-card:focus-visible .link-console-action svg {
+    transform: translate(2px, -2px);
+  }
+
+  .link-console-corner {
+    position: absolute;
+    right: -1px;
+    bottom: -1px;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-right: 1px solid color-mix(in srgb, var(--link-accent) 46%, transparent);
+    border-bottom: 1px solid color-mix(in srgb, var(--link-accent) 46%, transparent);
+    opacity: 0.72;
+    pointer-events: none;
+  }
+
+  /* Prompt ---------------------------------------------------------------- */
+
   .link-console-prompt {
-    position: relative;
-    z-index: 1;
     display: flex;
     align-items: center;
     gap: 0.7rem;
     min-height: 2.9rem;
     border: 1px solid color-mix(in srgb, var(--color-phosphor) 18%, transparent);
-    background: linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 7%, transparent), rgba(2, 6, 4, 0.7));
-    padding: 0.75rem 0.9rem;
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 7%, transparent), transparent 60%),
+      rgba(2, 6, 4, 0.78);
+    padding: 0.7rem 0.9rem;
     color: var(--color-phosphor-soft);
   }
+
   .link-console-prompt > svg,
-  .link-console-prompt code > span { color: var(--color-phosphor); }
-  .link-console-prompt code { font-size: 0.7rem; overflow-wrap: anywhere; }
+  .link-console-prompt code > span {
+    color: var(--color-phosphor);
+  }
+
+  .link-console-prompt code {
+    min-width: 0;
+    font-size: 0.7rem;
+    overflow-wrap: anywhere;
+  }
+
   .link-console-prompt code i {
     display: inline-block;
     width: 6px;
@@ -547,11 +495,15 @@
     background: var(--color-phosphor);
     animation: console-caret-blink 1.15s steps(2, jump-none) infinite;
   }
-  .link-console-prompt.is-selected code { color: var(--color-cyan-arcade); }
+
+  .link-console-prompt.is-selected code {
+    color: var(--color-cyan-arcade);
+  }
+
   .link-console-prompt-hint {
     display: flex;
-    align-items: center;
     flex-shrink: 0;
+    align-items: center;
     gap: 0.5rem;
     margin-left: auto;
     color: var(--color-phosphor-soft);
@@ -559,12 +511,54 @@
     text-transform: uppercase;
     opacity: 0.7;
   }
-}
 
-@keyframes link-route-packet {
-  0% { transform: translateX(0); opacity: 0; }
-  20%, 75% { opacity: 1; }
-  100% { transform: translateX(450%); opacity: 0; }
+  @media (max-width: 760px) {
+    .link-console-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .link-console-card {
+      grid-template-columns: 3.55rem minmax(0, 1fr);
+      min-height: 0;
+    }
+
+    .link-console-rail {
+      padding-inline: 0.45rem;
+    }
+
+    .link-console-icon {
+      width: 34px;
+      height: 34px;
+    }
+
+    .link-console-body {
+      padding: 0.8rem 0.8rem 0.75rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .link-console-card,
+    .link-console-icon,
+    .link-console-icon svg,
+    .link-console-action,
+    .link-console-action svg {
+      transition: none;
+    }
+
+    .link-console-card:hover,
+    .link-console-card:focus-visible {
+      transform: none;
+    }
+
+    .link-console-spine::after,
+    .link-console-card:hover::after,
+    .link-console-card:focus-visible::after,
+    .link-console-card:hover .link-console-card-footer::before,
+    .link-console-card:focus-visible .link-console-card-footer::before,
+    .link-console-prompt code i {
+      animation: none;
+    }
+  }
 }
 
 @container link-console (max-width: 650px) {
@@ -573,60 +567,19 @@
   .link-console-prompt-hint { width: 100%; margin-left: 1.6rem; }
 }
 
-@layer components {
-  /* Powder-coated enclosure and removable route plates. */
-  .link-console {
-    --link-grain: url('/textures/arcade-grain.svg');
-    --link-brush: repeating-linear-gradient(0deg, #e9f0ec07 0 1px, transparent 1px 3px, #0002 3px 4px);
-    background: var(--link-grain), var(--link-brush), linear-gradient(125deg, color-mix(in srgb, var(--color-phosphor) 9%, #29332f), #0d1511 48%, #1d2721);
-    box-shadow: inset 0 2px #deefe02b, inset 0 0 0 5px #0005, inset 0 0 0 6px #cadccd15, 0 20px 55px #0007;
-  }
-  .link-console-titlebar {
-    background: var(--link-grain), var(--link-brush), linear-gradient(115deg, #3c494066, #0b140e);
-    box-shadow: inset 0 1px #ffffff24, inset 0 -3px #0008, 0 4px 8px #0004;
-  }
-  .link-console-status {
-    background: linear-gradient(120deg, #ffffff05, transparent), #030a06;
-    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 24%, #15271c);
-    padding: 0.6rem 0.8rem;
-    box-shadow: inset 0 2px 7px #000, 0 1px #d5ebdc20;
-  }
-  .link-console .link-console-card {
-    background: var(--link-grain), repeating-linear-gradient(120deg, #ffffff03 0 1px, transparent 1px 5px), linear-gradient(130deg, color-mix(in srgb, var(--link-accent) 12%, #25302a), #101912 48%, #0b120e);
-    box-shadow: inset 3px 0 color-mix(in srgb, var(--link-accent) 65%, #152019), inset 0 1px #eef9ef33, inset -1px 0 #e4f5e51a, inset 0 -4px #000a;
-  }
-  .link-console .link-console-card:hover,
-  .link-console .link-console-card:focus-visible {
-    border-color: var(--link-accent);
-    box-shadow: inset 3px 0 var(--link-accent), inset 0 1px #fff6, inset 0 -4px #000a, inset 0 0 30px color-mix(in srgb, var(--link-accent) 9%, transparent);
-  }
-  .link-console .link-console-card:focus-visible { outline: 2px solid var(--link-accent); outline-offset: -5px; }
-  .link-console-index {
-    background: var(--link-grain), linear-gradient(150deg, #ffffff0f, #0005), #142019;
-    box-shadow: inset 0 1px #ffffff22, 0 2px 3px #0007;
-  }
-  .link-console-icon {
-    background: var(--link-grain), linear-gradient(135deg, #e4f5ef15, transparent 50%), color-mix(in srgb, var(--link-accent) 9%, #060e09);
-    box-shadow: inset 0 2px 8px #000c, inset 0 -1px #d7efdf40, inset 0 0 0 4px #0005;
-  }
-  .link-console-icon::before { box-shadow: inset 0 1px 4px #0007, 0 1px #ffffff15; }
-  .link-console-action {
-    background: var(--link-grain), linear-gradient(160deg, color-mix(in srgb, var(--link-accent) 14%, #2b352f), #121a15);
-    box-shadow: inset 0 1px #ecffef33, inset 0 -3px #0009;
-  }
-  .link-console-card-footer { box-shadow: 0 -1px #0006; }
-  .link-console-watermark { opacity: 0.055; text-shadow: 0 1px #ffffff15, 0 -1px #000; }
-  .link-console-prompt {
-    background: repeating-linear-gradient(0deg, #c9f9da05 0 1px, transparent 1px 3px), linear-gradient(110deg, #d9ffeb07, transparent 60%), #040d08;
-    box-shadow: inset 0 2px 8px #000c, 0 1px #d2edda26;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .link-console-card,
-    .link-console-icon svg,
-    .link-console-action svg { transition: none; }
-    .link-console-card:hover::after,
-    .link-console-card:focus-visible::after,
-    .link-console-card:hover .link-console-card-footer::before,
-    .link-console-card:focus-visible .link-console-card-footer::before { animation: none; }
-  }
+@keyframes link-card-sweep {
+  from { opacity: 1; transform: translateX(-60%); }
+  to { opacity: 0; transform: translateX(60%); }
+}
+
+@keyframes link-rail-packet {
+  0%, 15% { transform: translateY(-100%); opacity: 0; }
+  25% { opacity: 1; }
+  80%, 100% { transform: translateY(100%); opacity: 0; }
+}
+
+@keyframes link-route-packet {
+  0% { transform: translateX(0); opacity: 0; }
+  20%, 75% { opacity: 1; }
+  100% { transform: translateX(450%); opacity: 0; }
 }

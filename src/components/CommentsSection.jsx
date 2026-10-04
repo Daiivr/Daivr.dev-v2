@@ -685,6 +685,17 @@ export function CommentsSection() {
       }
     }
 
+    // Otro jugador saludo a este buddy desde su footer (BuddyVisitors y
+    // ScreenBuddy reaccionan).
+    function handleVisitsWave(event) {
+      try {
+        const payload = JSON.parse(event.data);
+        if (payload?.from) window.dispatchEvent(new CustomEvent("daivr-visits-wave", { detail: { from: payload.from, name: payload.name || null, look: payload.look || null } }));
+      } catch {
+        // Saludo invalido: se ignora.
+      }
+    }
+
     // Presencia en vivo: se re-emite como evento global (la barra superior la
     // muestra como "N in the arcade").
     function handlePresence(event) {
@@ -712,6 +723,7 @@ export function CommentsSection() {
     stream.addEventListener("presence:update", handlePresence);
     stream.addEventListener("visits:hello", handleVisitsHello);
     stream.addEventListener("visits:update", handleVisitsUpdate);
+    stream.addEventListener("visits:wave", handleVisitsWave);
     stream.addEventListener("typing:update", handleRemoteTyping);
     stream.addEventListener("comments:init", handleStreamMessage);
     stream.addEventListener("comments:update", handleStreamMessage);

@@ -1,3 +1,5 @@
+import { CakeSlice, Disc3, Ghost, Snowflake, TriangleAlert } from "lucide-react";
+
 const EVENT_COPY = {
   halloween: ["CORRUPTED CABINET", "Spectral process detected in memory sector 0x31."],
   winter: ["WINTER SIGNAL", "Aurora online // snow packets accumulating."],
@@ -7,11 +9,11 @@ const EVENT_COPY = {
 };
 
 const EVENT_ICONS = {
-  halloween: "☠",
-  winter: "❄",
-  birthday: "★",
-  anniversary: "02",
-  "april-fools": "!"
+  halloween: Ghost,
+  winter: Snowflake,
+  birthday: CakeSlice,
+  anniversary: Disc3,
+  "april-fools": TriangleAlert
 };
 
 /* Aviso del evento activo, mostrado en el splash de entrada: el visitante se
@@ -19,9 +21,10 @@ const EVENT_ICONS = {
 export function SeasonalSplashNotice({ event }) {
   const copy = EVENT_COPY[event];
   if (!copy) return null;
+  const Icon = EVENT_ICONS[event];
   return (
     <aside className={`splash-season-notice is-${event}`}>
-      <span className="splash-season-notice-icon" aria-hidden="true">{EVENT_ICONS[event]}</span>
+      <span className="splash-season-notice-icon" aria-hidden="true"><Icon /></span>
       <div>
         <span className="splash-season-notice-kicker"><i aria-hidden="true" />event active</span>
         <strong>{copy[0]}</strong>

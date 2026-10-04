@@ -1,8 +1,9 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { ArrowRight, Bot, Check, Code2, Copy, Cpu, Download, ExternalLink, Gamepad2, Github, Globe2, Lock, ShieldCheck, Terminal, Twitch, X } from "lucide-react";
+import { ArrowRight, Bot, Check, Code2, Copy, Cpu, Download, ExternalLink, Gamepad2, Github, Globe2, Lock, Moon, ShieldCheck, Sun, Sunrise, Sunset, Terminal, Twitch, X } from "lucide-react";
 import { FaDiscord, FaSteam } from "react-icons/fa6";
-import { lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { now, projects, roomStats, socialLinks, stack } from "../data/site";
+import { lazy, startTransition, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { now, profile, projects, roomStats, socialLinks, stack } from "../data/site";
+import { dayPart, hoursApart, offsetLabel, zonedClock } from "../lib/daiTime";
 import { DecodeText } from "./DecodeText";
 import { DiscordPresencePanel } from "./DiscordPresencePanel";
 import { GameShelf } from "./GameShelf";
@@ -12,9 +13,13 @@ import { projectStories } from "../data/projectStories";
 import { ChunkBoundary, lazyChunk } from "../lib/chunkRecovery";
 
 const ProjectLanyard = lazy(() => import("./ProjectLanyard"));
-// El escritorio de Patch.log y sus 135 KB de notas solo se descargan cuando el
-// visitante se acerca a la seccion (o llega con un enlace a una version).
-const PatchNotes = lazyChunk(() => import("./PatchNotes"), (module) => module.PatchNotes);
+// El escritorio de Patch.log y sus 135 KB de notas no viajan con el arranque:
+// se descargan y montan en un rato libre con la puerta ya abierta, o antes si
+// el visitante se acerca a la seccion (o llega con un enlace a una version).
+const loadPatchNotes = () => import("./PatchNotes");
+const PatchNotes = lazyChunk(loadPatchNotes, (module) => module.PatchNotes);
+const PATCH_LOG_IDLE_MS = 2500;
+const PATCH_LOG_LOOKAHEAD = "1600px 0px";
 
 function wantsPatchLogNow() {
   return new URLSearchParams(window.location.search).has("release") || window.location.hash === "#patchlog";
@@ -31,15 +36,43 @@ function LazyPatchLog({ theme, interactive }) {
       setNear(true);
       return undefined;
     }
+    // La pagina se desplaza dentro de .app-shell, no en la ventana: con la
+    // raiz por defecto el margen no cuenta (el scroll de .app-shell recorta
+    // antes) y la carga empezaba con el hueco ya a la vista.
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting) setNear(true);
-    }, { rootMargin: "900px 0px" });
+    }, { root: holder.closest(".app-shell"), rootMargin: PATCH_LOG_LOOKAHEAD });
     observer.observe(holder);
     const onHash = () => { if (wantsPatchLogNow()) setNear(true); };
     window.addEventListener("hashchange", onHash);
+
+    // Rato libre con la puerta ya abierta: descarga el chunk y monta el
+    // escritorio en una transicion (sin bloquear si justo se esta haciendo
+    // scroll), para que al llegar ya este ahi.
+    let timer = 0;
+    let idle = 0;
+    let cancelled = false;
+    function whenIdle() {
+      if (document.documentElement.classList.contains("entry-splash-lock")) {
+        timer = window.setTimeout(whenIdle, PATCH_LOG_IDLE_MS);
+        return;
+      }
+      const mount = () => {
+        loadPatchNotes().then(() => {
+          if (!cancelled) startTransition(() => setNear(true));
+        }, () => {});
+      };
+      idle = window.requestIdleCallback ? window.requestIdleCallback(mount, { timeout: 4000 }) : window.setTimeout(mount, 0);
+    }
+    timer = window.setTimeout(whenIdle, PATCH_LOG_IDLE_MS);
+
     return () => {
+      cancelled = true;
       observer.disconnect();
       window.removeEventListener("hashchange", onHash);
+      window.clearTimeout(timer);
+      if (window.cancelIdleCallback) window.cancelIdleCallback(idle);
+      else window.clearTimeout(idle);
     };
   }, [near]);
 
@@ -74,6 +107,79 @@ const nowModules = [
   { code: "PLAY.STATE", icon: Gamepad2 },
   { code: "LEARN.LOG", icon: Cpu }
 ];
+
+const DAY_PART_ICONS = { night: Moon, morning: Sunrise, day: Sun, evening: Sunset };
+const DAI_PLACE = profile.location.split("//")[0].trim();
+
+function useMinuteClock() {
+  const [date, setDate] = useState(() => new Date());
+  useEffect(() => {
+    const timer = window.setInterval(() => setDate(new Date()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  return date;
+}
+
+/*
+  status.ini de Now.log: la hora de verdad de Dai (profile.timezone), cuanto le
+  saca al visitante, el perfil de la habitacion (el runtime sale de la hora) y
+  su dia en 24 horas con la hora actual encendida. Antes habia una grafica de
+  barras al azar.
+*/
+function RoomStatus() {
+  const date = useMinuteClock();
+  const clock = zonedClock(date, profile.timezone);
+  const part = dayPart(clock.hour);
+  const PartIcon = DAY_PART_ICONS[part.id] || Moon;
+  const offset = offsetLabel(hoursApart(date, profile.timezone));
+
+  return (
+    <div className={`interactive-card status-sidecar overflow-hidden is-${part.id}`}>
+      <div className="status-sidecar-header">
+        <div>
+          <p className="pixel-label">status.ini</p>
+          <strong>room profile</strong>
+        </div>
+        <span className="status-sidecar-signal" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+        </span>
+      </div>
+
+      <div className="status-clock">
+        <span className="status-clock-label"><PartIcon size={13} aria-hidden="true" /> dai's local time</span>
+        <strong>
+          <time dateTime={`${clock.label}`}>{clock.label}</time>
+          <small>{clock.zone}</small>
+        </strong>
+        <span className="status-clock-offset">{DAI_PLACE} · {offset}</span>
+        <div className="status-day" role="img" aria-label={`Dai's day: it is ${clock.label} there, ${part.label}`}>
+          <span className="status-day-strip">
+            {Array.from({ length: 24 }, (_, hour) => (
+              <i className={`is-${dayPart(hour).id}${hour === clock.hour ? " is-now" : ""}`} key={hour} />
+            ))}
+          </span>
+          <span className="status-day-scale" aria-hidden="true"><b>00</b><b>06</b><b>12</b><b>18</b><b>24</b></span>
+        </div>
+      </div>
+
+      <dl className="status-sidecar-list">
+        {roomStats.map(([label, value]) => (
+          <div className="status-sidecar-row" key={label}>
+            <dt>{label}</dt>
+            <dd className="font-black text-white">{label === "runtime" ? part.label : value}</dd>
+          </div>
+        ))}
+      </dl>
+
+      <div className="status-sidecar-footer" aria-hidden="true">
+        <span>live clock</span>
+        <i />
+      </div>
+    </div>
+  );
+}
 
 const TRADEDEX_INFO_ENDPOINT = "/api/tradedex/info";
 const TRADEDEX_SCAN_ENDPOINT = "/api/tradedex/scan";
@@ -229,16 +335,13 @@ export function ProgramSections({ theme, interactive }) {
                           titulo de su encabezado. */}
                       <div className="now-card-topline">
                         <p>{item.label}<b>{module.code}</b></p>
-                        <span><i /> synced</span>
+                        <span><i /> {item.state}</span>
                       </div>
                       <h3>{item.title}</h3>
                       <p>{item.body}</p>
-                      <div className="now-card-footer" aria-hidden="true">
-                        <span>slot integrity</span>
-                        <span className="now-card-meter">
-                          {Array.from({ length: 8 }, (_, cell) => <i key={cell} style={{ "--cell": cell }} />)}
-                        </span>
-                      </div>
+                      <ul className="now-card-footer now-card-tags" aria-label="Tags">
+                        {item.tags.map((tag) => <li key={tag}>{tag}</li>)}
+                      </ul>
                     </div>
                     <span className="now-card-corner" aria-hidden="true" />
                   </article>
@@ -246,36 +349,7 @@ export function ProgramSections({ theme, interactive }) {
               })}
             </div>
 
-            <div className="interactive-card status-sidecar overflow-hidden">
-              <div className="status-sidecar-header">
-                <div>
-                  <p className="pixel-label">status.ini</p>
-                  <strong>room profile</strong>
-                </div>
-                <span className="status-sidecar-signal" aria-hidden="true">
-                  <i />
-                  <i />
-                  <i />
-                </span>
-              </div>
-              <dl className="status-sidecar-list">
-                {roomStats.map(([label, value]) => (
-                  <div className="status-sidecar-row" key={label}>
-                    <dt>{label}</dt>
-                    <dd className="font-black text-white">{value}</dd>
-                  </div>
-                ))}
-              </dl>
-              <div className="status-sidecar-graph" aria-hidden="true">
-                {Array.from({ length: 18 }).map((_, index) => (
-                  <span key={index} />
-                ))}
-              </div>
-              <div className="status-sidecar-footer" aria-hidden="true">
-                <span>runtime stable</span>
-                <i />
-              </div>
-            </div>
+            <RoomStatus />
           </div>
         </div>
 
@@ -372,6 +446,15 @@ function SectionHeading({ eyebrow, title }) {
   );
 }
 
+// Direccion real del perfil (sin protocolo): es lo que se abre.
+const routeAddress = (href) => href.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
+
+/*
+  links.sh: las redes de Dai como un selector de rutas, con el mismo lenguaje
+  que las tarjetas de Now.log (riel con numero, traza e icono; etiqueta de
+  modulo; titulo; pie). Cada ruta lleva el color de su marca y la direccion de
+  verdad del perfil; al pasar por encima el puerto se enciende con ese color.
+*/
 function LinkConsole() {
   const [hoveredRoute, setHoveredRoute] = useState(null);
   const [focusedRoute, setFocusedRoute] = useState(null);
@@ -392,7 +475,7 @@ function LinkConsole() {
         <div className="link-console-status" aria-label={`${socialLinks.length} verified external routes`}>
           <span className="link-console-status-label">route table</span>
           <strong>{String(socialLinks.length).padStart(2, "0")}</strong>
-          <span className="link-console-status-live"><i /> online</span>
+          <span className="link-console-status-live"><i /> {socialLinks.length}/{socialLinks.length} verified</span>
         </div>
       </div>
 
@@ -412,32 +495,31 @@ function LinkConsole() {
               onFocus={() => setFocusedRoute(link)}
               onBlur={() => setFocusedRoute(null)}
             >
-              <span className="link-console-watermark" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
-              <span className="link-console-card-topline">
-                <span className="link-console-index">route_{String(index + 1).padStart(2, "0")}</span>
-                <span className="link-console-verified"><Check size={11} aria-hidden="true" /> verified</span>
+              <span className="link-console-rail" aria-hidden="true">
+                <span className="link-console-index">{String(index + 1).padStart(2, "0")}</span>
+                <i className="link-console-spine" />
+                <span className="link-console-icon"><Icon size={22} /></span>
               </span>
-              <span className="link-console-identity">
-                <span className="link-console-icon">
-                  <Icon size={27} aria-hidden="true" />
+              <span className="link-console-body">
+                <span className="link-console-topline">
+                  <span className="link-console-route">{link.route}</span>
+                  <span className="link-console-verified"><Check size={11} aria-hidden="true" /> verified</span>
                 </span>
-                <span className="link-console-copy">
-                  <small>{link.host}</small>
-                  <strong>{link.label}</strong>
-                  <span>{link.summary}</span>
+                <strong className="link-console-name">{link.label}</strong>
+                <span className="link-console-summary">{link.summary}</span>
+                <span className="link-console-card-footer">
+                  <code className="link-console-address">{routeAddress(link.href)}</code>
+                  <span className="link-console-action">launch <ExternalLink size={13} aria-hidden="true" /></span>
                 </span>
               </span>
-              <span className="link-console-card-footer">
-                <span className="link-console-route"><i /> {link.route}</span>
-                <span className="link-console-action">launch <ExternalLink size={13} aria-hidden="true" /></span>
-              </span>
+              <span className="link-console-corner" aria-hidden="true" />
             </a>
           );
         })}
       </div>
       <div className={`link-console-prompt${selectedRoute ? " is-selected" : ""}`}>
         <Terminal size={15} aria-hidden="true" />
-        <code><span>$ </span>{selectedRoute ? `open ${selectedRoute.host}` : "select a route"}<i aria-hidden="true" /></code>
+        <code><span>$ </span>{selectedRoute ? `open ${routeAddress(selectedRoute.href)}` : "select a route"}<i aria-hidden="true" /></code>
         <span className="link-console-prompt-hint">{selectedRoute ? "launch in new tab" : "hover / focus to connect"}<ArrowRight size={13} aria-hidden="true" /></span>
       </div>
     </div>

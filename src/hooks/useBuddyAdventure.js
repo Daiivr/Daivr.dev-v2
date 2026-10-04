@@ -1,4 +1,4 @@
-import { normalizeMarket, mergeMarket, marketWallet, openMarketChest, purchaseMarketItem, MARKET_GEAR } from "../../shared/buddy-market.mjs";
+import { bonusCoins, normalizeMarket, mergeMarket, marketWallet, openMarketChest, purchaseMarketItem, MARKET_GEAR } from "../../shared/buddy-market.mjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FIELD_FINDS, FISH_CATALOG, KRAKEN, LEVIATHAN } from "../data/buddyWorld";
 
@@ -76,6 +76,8 @@ function createInitialState() {
     krakenSightings: 0,
     daiBooted: false,
     bugsDefeated: 0,
+    campfireMeals: 0,
+    starWishes: 0,
     completed: [],
     market: { opened: 0, rewards: [], purchases: {} },
     inventory: []
@@ -113,8 +115,14 @@ function normalizeState(value) {
     krakenSightings: Math.max(0, Math.floor(Number(source.krakenSightings) || 0)),
     daiBooted: source.daiBooted === true,
     bugsDefeated: Math.max(0, Math.floor(Number(source.bugsDefeated) || 0)),
+    campfireMeals: Math.max(0, Math.floor(Number(source.campfireMeals) || 0)),
+    starWishes: Math.max(0, Math.floor(Number(source.starWishes) || 0)),
     completed: normalizeList(source.completed),
-    market: normalizeMarket(source.market, source.fishCollection),
+    market: normalizeMarket(source.market, source.fishCollection, bonusCoins({
+      campfireMeals: source.campfireMeals,
+      starWishes: source.starWishes,
+      totalCatches: Math.max(Number(source.totalCatches) || 0, Number(source.voidCatches) || 0)
+    })),
     inventory: normalizeList(source.inventory)
   };
   normalized.totalCatches = Math.max(normalized.totalCatches, normalized.voidCatches);
@@ -141,12 +149,18 @@ function mergeStates(leftValue, rightValue) {
     voidCatches: Math.max(left.voidCatches, right.voidCatches),
     totalCatches: Math.max(left.totalCatches, right.totalCatches),
     fishCollection: mergeCounterMaps(left.fishCollection, right.fishCollection),
-    market: mergeMarket(left.market, right.market, mergeCounterMaps(left.fishCollection, right.fishCollection)),
+    market: mergeMarket(left.market, right.market, mergeCounterMaps(left.fishCollection, right.fishCollection), bonusCoins({
+      campfireMeals: Math.max(left.campfireMeals, right.campfireMeals),
+      starWishes: Math.max(left.starWishes, right.starWishes),
+      totalCatches: Math.max(left.totalCatches, right.totalCatches)
+    })),
     foundObjects: mergeCounterMaps(left.foundObjects, right.foundObjects),
     leviathanSightings: Math.max(left.leviathanSightings, right.leviathanSightings),
     krakenSightings: Math.max(left.krakenSightings, right.krakenSightings),
     daiBooted: left.daiBooted || right.daiBooted,
     bugsDefeated: Math.max(left.bugsDefeated, right.bugsDefeated),
+    campfireMeals: Math.max(left.campfireMeals, right.campfireMeals),
+    starWishes: Math.max(left.starWishes, right.starWishes),
     completed: normalizeList([...left.completed, ...right.completed]),
     inventory: normalizeList([...left.inventory, ...right.inventory])
   };
@@ -377,6 +391,14 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
           };
         }
 
+        // Un pez asado en la hoguera y un deseo a una estrella fugaz: monedas.
+        if (detail.type === "campfire-meal") {
+          return { ...current, campfireMeals: Math.min(9999, current.campfireMeals + 1) };
+        }
+        if (detail.type === "star-wish") {
+          return { ...current, starWishes: Math.min(9999, current.starWishes + 1) };
+        }
+
         if (detail.type === "bug-defeated") {
           return { ...current, bugsDefeated: Math.min(9999, current.bugsDefeated + 1) };
         }
@@ -438,6 +460,8 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
     discoveredFindCount: finds.filter((item) => item.discovered).length,
     leviathanSightings: state.leviathanSightings,
     krakenSightings: state.krakenSightings,
-    bugsDefeated: state.bugsDefeated
+    bugsDefeated: state.bugsDefeated,
+    campfireMeals: state.campfireMeals,
+    starWishes: state.starWishes
   };
 }

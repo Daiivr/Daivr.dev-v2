@@ -1,242 +1,35 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { fishingSpot, FISHING_WATER_OFFSET } from "../../shared/buddy-fishing-spot.mjs";
-import { BuddyFishingPortal, PORTAL_OPEN_MS } from "./BuddyFishingPortal";
-import { runAdminBuddyDiagnostic } from "../../shared/buddy-diagnostics.mjs";
-import { AMBIENT_CREATURES, ENEMY_BUGS, FIELD_FINDS, KRAKEN, LEVIATHAN, fishById, weightedCatch } from "../data/buddyWorld";
-import { rareFishingEncounter } from "../../shared/buddy-encounters.mjs";
+import { useEffect } from "react";
+import { BuddyFishingPortal } from "./BuddyFishingPortal";
 import { LURE_IDS, ROD_IDS } from "../hooks/useBuddyLoadout";
-import { BuddyChuteCanopy, BuddyFishingRodArt, BuddySprite } from "./BuddySprite";
+import { BuddyChuteCanopy, BuddySprite } from "./BuddySprite";
 import { BuddyBugWeapon } from "./BuddyBugWeapon";
 import { BuddyOutageKit } from "./BuddyOutageKit";
 import { BuddyUmbrella } from "./BuddyUmbrella";
 import { PixelPhosphorMoth } from "./PixelPhosphorMoth";
 import { BuddyEnemyBug } from "./BuddyEnemyBug";
 import { PixelBird } from "./PixelBird";
-import { BuddyWornGear } from "./BuddyGearIcon";
 import { BuddyCollectibleIcon } from "./BuddyCollectibleIcon";
 import { LeviathanEncounter } from "./LeviathanEncounter";
-import { ACTION_LINES, actionComment, actionTopic, HOST_REPLY_LINES, hostAnswerTo, hostQuestion, pickVisitLine, replyTopic } from "../../shared/buddy-visits.mjs";
-import { contextLines, EVENT_LINES, isRainingOutside, returnLines, sessionMilestone, updateLines } from "../lib/buddyContext";
-import { getCabinetSignal } from "../lib/cabinetSignals";
+import { LINES } from "./screen-buddy/buddyLines";
+import { BuddyFishingRig, BuddyMikuRodOverlay } from "./screen-buddy/BuddyFishingRig";
+import { clamp, desktopQuery, reduceMotionQuery, SPRITE_WIDTH, useBuddyCore, WALK_MARGIN, FALL_SPEED_PX_S } from "./screen-buddy/useBuddyCore";
+import { useBuddyCampfire } from "./screen-buddy/useBuddyCampfire";
+import { BuddyCampfireStick } from "./screen-buddy/BuddyCampfireStick";
+import { useBuddyChat } from "./screen-buddy/useBuddyChat";
+import { useBuddySky } from "./screen-buddy/useBuddySky";
+import { useBuddyDrag } from "./screen-buddy/useBuddyDrag";
+import { BIRD_ARRIVAL_MS, BIRD_DEPARTURE_MS, BIRD_LANDING_MS, useBuddyEncounters } from "./screen-buddy/useBuddyEncounters";
+import { useBuddyFishing } from "./screen-buddy/useBuddyFishing";
+import { useBuddyOutage } from "./screen-buddy/useBuddyOutage";
+import { RAIN_DURATION_MS, useBuddyWeather } from "./screen-buddy/useBuddyWeather";
 
 const SLEEP_AFTER_MS = 5 * 60 * 1000;
 const ATTRACT_WAKE_DELAY_MS = 1000;
-const WALK_SPEED_PX_S = 44;
 const SLEEPY_SPEED_PX_S = 30;
-const FALL_SPEED_PX_S = 58;
 const BRAIN_TICK_MS = 1100;
-const SPRITE_WIDTH = 64;
-const WALK_MARGIN = 72;
 const CORNER_MARGIN = 12;
 const PET_SPAM_WINDOW_MS = 2600;
 const EYE_TRACK_RADIUS = 340;
-const DRAG_THRESHOLD_PX = 7;
-const FISHING_COOLDOWN_MS = 100000;
-const FISHING_SWIFT_COOLDOWN_MS = 55000;
-const FISHING_CAST_MS = 560;
-const RAIN_COOLDOWN_MS = 85000;
-const RAIN_DURATION_MS = 9000;
-const FIND_COOLDOWN_MS = 70000;
-const ENEMY_COOLDOWN_MS = 95000;
-const CREATURE_COOLDOWN_MS = 45000;
-const BIRD_ARRIVAL_MS = 1600;
-const BIRD_LANDING_MS = 420;
-const BIRD_PERCH_MS = 4300;
-const BIRD_DEPARTURE_MS = 1500;
-const OUTAGE_COOLDOWN_MS = 8 * 60 * 1000;
-const DIALOGUE_GAP_MS = 420;
-const MIN_DIALOGUE_MS = 1800;
-
-const CONFETTI_COLORS = ["#3fff97", "#45d8ff", "#ff3d9d", "#ffd166", "#f4fff8"];
-const SPLASH_COLORS = ["#45d8ff", "#b8f7ff", "#f4fff8"];
-
-const LINES = {
-  boot: ["hello, player.", "buddy.exe delivered.", "touchdown. footer secured.", "special delivery."],
-  idle: [
-    "beep.",
-    "...",
-    "coffee?",
-    "insert coin.",
-    "nice cabinet, right?",
-    "01101000 01101001",
-    "the rainbow line is warm.",
-    "i live here now.",
-    "guarding the footer.",
-    "step count: many.",
-    "no bugs down here. checked.",
-    "dai said i could stay."
-  ],
-  walkStop: [
-    "wait. i heard something.",
-    "this spot is nice.",
-    "checking the pixels... clean.",
-    "all systems green.",
-    "patrol complete-ish.",
-    "hm. footer secure."
-  ],
-  night: ["late shift again?", "the glow hits different at night.", "hydrate, player.", "night mode: cozy."],
-  morning: ["good morning, player.", "fresh phosphor smell.", "early. impressive."],
-  pet: ["beep!", "+1 friendship", "hehe.", "again!", "purr.exe", "<3", "acceptable."],
-  petSpam: ["ok ok!", "dizzy...", "affection overload!", "cooldown needed."],
-  wake: ["!?", "i'm up. i'm up.", "rebooting...", "was not sleeping."],
-  sleepy: ["low battery...", "bedtime protocol.", "corner. now."],
-  party: ["gg!", "achievement get!", "new record?", "confetti protocol!"],
-  dance: ["dance protocol engaged.", "do not perceive me.", "grooving."],
-  flip: ["wheee!", "gymnastics.exe", "10/10 landing."],
-  held: ["hey!", "unauthorized lift!", "flying???", "put me down?", "no seatbelt!"],
-  chute: ["deploying chute.", "wheee.", "this is fine.", "mayday? no. style points."],
-  landed: ["soft landing.", "10/10 landing.", "again.", "chute packed. ready."],
-  rocketFall: ["rocket boots online.", "boosters firing.", "thrusters engaged.", "no chute. just vibes."],
-  rocketLanded: ["boosters cooled.", "rocket landing logged.", "soft-ish landing.", "boots survived. probably."],
-  glitchTheme: ["reality.exe corrupted?", "pink? bold choice.", "i feel... glitchy.", "who turned the colors?"],
-  crtTheme: ["ah. classic green.", "home sweet green.", "calibration restored."],
-  music: ["this track slaps.", "vibing in binary.", "volume up. trust me."],
-  fishCast: ["casting into the void.", "fishing protocol engaged.", "the void is stocked. trust me.", "line out. patience on."],
-  fishWait: ["...", "any second now.", "shhh. fish are compiling.", "the void nibbles.", "patience level: max."],
-  fishJunk: ["caught: old pixel. releasing.", "caught: kelp.txt", "caught: soggy cable.", "the void sent null."],
-  fishCommon: ["caught: bottle cap!", "caught: arcade token!", "caught: tiny star!", "caught: spare semicolon!"],
-  fishRare: ["RARE CATCH: void pearl!", "RARE CATCH: golden chip!", "RARE CATCH: ancient pixel!"],
-  fishFight: ["it's fighting!", "big one. HUGE.", "reeling! REELING!", "the void pulls back!", "hold. HOLD."],
-  fishEscape: ["it got away...", "line snapped. the void wins.", "so close. SO close.", "next time, fish."],
-  fishInterrupt: ["hey! you scared the fish.", "line lost. rude.", "the big one got away..."],
-  fishSight: ["did you see that fish?", "okay. i need my fishing rod.", "that one looked catchable.", "fish jump detected!", "the void is showing off.", "note to self: cast over there."],
-  fishBump: ["OW! flying fish!", "ouch. fish collision.", "hey! watch the fins!", "bonked by a bytefish...", "fish: 1. buddy: 0."],
-  leviathan: ["TOO BIG. TOO BIG!", "the footer has a boss fight?!", "I NEED A BIGGER ROD."],
-  find: ["wait... loot detected.", "something shiny!", "patrol discovery!"],
-  bugHunt: ["unauthorized bug!", "debugging. literally.", "hold still, tiny error."],
-  bugWin: ["bug deleted.", "footer secure again.", "zero bugs remaining. probably."],
-  birdHello: ["oh. hello, tiny bird.", "a passenger? on my antenna?", "bird.exe has landed."],
-  birdShoo: ["shoo! feathers in my vents!", "okay, flight time. shoo!", "no nesting on the hardware!"],
-  outage: ["uh... who turned off the pixels?", "flashlight protocol.", "checking the cabinet breaker..."],
-  outageFix: ["technical tap incoming.", "stand back. certified repair.", "have you tried hitting it?"],
-  rain: ["rain? umbrella protocol!", "nice try, weather.exe.", "dry buddy. wet world.", "cozy weather.", "plink plink plink."],
-  cartSwap: ["fresh cartridge loaded.", "blew on it for you.", "cart seated. no dust.", "new level, same footer."],
-  commentTyping: [
-    "psst... someone is composing a transmission. any minute now.",
-    "typing detected... incoming comment ETA: when it is perfect.",
-    "comment buffer filling up. i will pretend not to peek.",
-    "new signal being written... stand by for transmission."
-  ],
-  // Pistas de verdad sobre el armario: ayudan a descubrir cosas.
-  tips: [
-    "tip: press / to open the terminal.",
-    "tip: double-click me for a flip.",
-    "tip: you can drag me around. gently.",
-    "psst... ever tried the konami code?",
-    "the market stand trades gear for coins.",
-    "pet me a lot. good things happen.",
-    "the guestbook up there is live. say hi!",
-    "type weather in the terminal. i'll check outside.",
-    "type visits in the terminal to see who's around.",
-    "patch.log has the whole history of this place."
-  ],
-  // Un poco de historia de Buddy, para que se note que vive aqui.
-  lore: [
-    "i was compiled on a tuesday. it was raining.",
-    "my first word was 'beep'. my second was also 'beep'.",
-    "i used to live on a floppy disk. tight fit.",
-    "dai built me out of leftover pixels.",
-    "i've counted every pixel down here. twice.",
-    "one day i'll visit the header. one day.",
-    "the rainbow line hums at night. i checked."
-  ]
-};
-
-// Extra dialogue enters the pools only while the full costume is equipped.
-// These are original nods to Miku's virtual-singer identity, teal palette,
-// "39" wordplay and famous leek motif rather than quoted song lyrics.
-const MIKU_LINES = {
-  boot: ["Miku signal online!", "virtual singer reporting in!", "39! stage link ready."],
-  idle: [
-    "39 signal: crystal clear!",
-    "teal twin-tails at full power.",
-    "virtual singer, real footer.",
-    "leek supply: secured.",
-    "ready for the next song, producer!"
-  ],
-  walkStop: ["stage mark reached!", "twin-tails calibrated.", "tour stop: footer rail."],
-  pet: ["miku miku!", "thank you, producer!", "39!", "encore pets?"],
-  party: ["stage lights—on!", "encore mode!", "39 celebration!"],
-  dance: ["one, two—spotlight!", "digital diva dance break!", "follow my rhythm!"],
-  music: ["shall we sing together?", "this beat needs a teal harmony.", "adding one virtual vocal!"],
-  fishCast: ["leek bait deployed!", "digital diva fishing arc!", "casting on beat—one, two!"],
-  fishWait: ["shh... the fish is listening.", "holding this note... and the line.", "39 seconds. probably."],
-  fishFight: ["high note, high tension!", "producer, this fish has rhythm!", "reel on the beat!"],
-  fishEscape: ["the fish skipped the encore...", "next verse, next catch!"],
-  fishSight: ["a backup dancer with fins?", "teal fish duet detected!"],
-  fishBump: ["fish choreography failed!", "that was not in rehearsal!"],
-  fishRare: ["rare catch—spotlight!", "a legendary duet partner!"],
-  leviathan: ["that is NOT a stage prop!", "producer, the audience is enormous!"]
-};
-
-// Tema de cada frase, para que los buddies de visita sepan de que se esta
-// hablando y contesten a juego (BuddyVisitors escucha `daivr-buddy-said`).
-const LINE_TOPICS = new Map(
-  [...Object.entries(LINES), ...Object.entries(MIKU_LINES)].flatMap(([topic, lines]) => lines.map((line) => [line, topic]))
-);
-const EVENT_TOPICS = { fishing: "fishWait", rain: "rain", find: "find", hunt: "bugHunt", outage: "outage", "flying-fish": "fishSight" };
-// Frases generadas (tiempo, hora, arcade...) con el tema que traian.
-const DYNAMIC_TOPICS = new Map();
-const LAST_SEEN_KEY = "daivr.buddyLastSeen.v1";
-const WEATHER_REFRESH_MS = 30 * 60_000;
-const TAB_AWAY_MS = 60_000;
-const FOOTER_AWAY_MS = 90_000;
-// Charla con las visitas: como mucho una respuesta o comentario cada tanto,
-// y a veces se va detras de una que sale a pasear.
-const VISITOR_CHAT_COOLDOWN_MS = 7000;
-const VISITOR_QUESTION_CHANCE = 0.35;
-const TAG_ALONG_CHANCE = 0.2;
-const TAG_ALONG_GAP = 92;
-
-// Saludo segun la visita anterior. Se calcula una vez por carga de pagina (y
-// deja apuntada esta): el doble render de StrictMode no debe pisarlo.
-let pageReturnLines = null;
-function visitReturnLines() {
-  if (pageReturnLines) return pageReturnLines;
-  try {
-    const lastSeen = Number(window.localStorage.getItem(LAST_SEEN_KEY)) || 0;
-    window.localStorage.setItem(LAST_SEEN_KEY, String(Date.now()));
-    pageReturnLines = returnLines(lastSeen || null);
-  } catch {
-    // Sin almacenamiento no se sabe si es la primera vez: mejor no decir nada.
-    pageReturnLines = [];
-  }
-  return pageReturnLines;
-}
-
-function rememberTopic(line, topic) {
-  if (DYNAMIC_TOPICS.size > 400) DYNAMIC_TOPICS.clear();
-  DYNAMIC_TOPICS.set(line, topic);
-  return line;
-}
-
-function lineTopic(line, eventName = "") {
-  if (DYNAMIC_TOPICS.has(line)) return DYNAMIC_TOPICS.get(line);
-  if (LINE_TOPICS.has(line)) return LINE_TOPICS.get(line);
-  if (/^(RARE|LEGENDARY|MYTHIC|TREASURE):/.test(line)) return "fishRare";
-  if (/^caught:/.test(line)) return "fishCommon";
-  if (line.startsWith("♪")) return "music";
-  if (eventName.startsWith("creature:")) return "birdHello";
-  return EVENT_TOPICS[eventName] || "idle";
-}
-
-const reduceMotionQuery =
-  typeof window !== "undefined" && typeof window.matchMedia === "function"
-    ? window.matchMedia("(prefers-reduced-motion: reduce)")
-    : null;
-
-const desktopQuery =
-  typeof window !== "undefined" && typeof window.matchMedia === "function"
-    ? window.matchMedia("(min-width: 760px)")
-    : null;
-
-function randomBetween(min, max) {
-  return min + Math.random() * (max - min);
-}
-
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
-}
 
 /*
   buddy.exe v3 — mascota del cabinet anclada al footer:
@@ -248,411 +41,76 @@ function clamp(value, min, max) {
   - comenta la cancion de Spotify si hay una sonando.
   Cada humor lleva un contador de generacion para que timers viejos no pisen
   estados nuevos.
+
+  Las piezas viven en screen-buddy/: el nucleo compartido (useBuddyCore), la
+  pesca, el tiempo, los encuentros, el apagon, la charla y el arrastre. Aqui
+  quedan el cerebro (que hacer en cada momento), las caricias y el dibujo.
 */
-export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [], nowPlaying = null }) {
-  const [mood, setMood] = useState("off");
-  const [fx, setFx] = useState("");
-  const [bubble, setBubble] = useState("");
-  const [x, setX] = useState(WALK_MARGIN);
-  const [y, setY] = useState(0);
-  const [facing, setFacing] = useState(1);
-  const [travelDirection, setTravelDirection] = useState(1);
-  const [walkMs, setWalkMs] = useState(0);
-  const [particles, setParticles] = useState([]);
-  const [fishingPhase, setFishingPhase] = useState("");
-  const leviathanInteractionRef = useRef(null);
-  const [leviathanResponse, setLeviathanResponse] = useState("");
-  const [seaCreature, setSeaCreature] = useState("leviathan");
-  const [fishingPortal, setFishingPortal] = useState(null);
-  const closeFishingPortal = useCallback((id) => {
-    setFishingPortal((current) => current?.id === id ? null : current);
-  }, []);
-  const [fishingCatch, setFishingCatch] = useState("");
-  const [fishingCatchId, setFishingCatchId] = useState("");
-  const [weather, setWeather] = useState("");
-  const [fieldFind, setFieldFind] = useState(null);
-  const [creature, setCreature] = useState(null);
-  const [enemy, setEnemy] = useState(null);
-  const [outagePhase, setOutagePhase] = useState("");
-
-  const moodRef = useRef("off");
-  const moodGenRef = useRef(0);
-  const xRef = useRef(WALK_MARGIN);
-  const yRef = useRef(0);
-  const facingRef = useRef(1);
-  const travelDirectionRef = useRef(1);
-  const rootRef = useRef(null);
-  const visibleRef = useRef(false);
-  const bootedRef = useRef(false);
-  const dropInFlightRef = useRef(false);
-  const lastActivityRef = useRef(Date.now());
-  const lastLineRef = useRef("");
-  const timersRef = useRef(new Set());
-  const bubbleTimerRef = useRef(0);
-  const bubbleGapTimerRef = useRef(0);
-  const bubbleQueueRef = useRef([]);
-  const activeBubbleRef = useRef(null);
-  const activeEventRef = useRef("");
-  const fxTimerRef = useRef(0);
-  const petTimesRef = useRef([]);
-  const particleIdRef = useRef(0);
-  const visitCountRef = useRef(null);
-  const nowPlayingRef = useRef(null);
-  const lastSongRef = useRef("");
-  const equippedGearRef = useRef({ lure: "", rod: "" });
-  const mikuCostumeRef = useRef(false);
-  const inventoryRef = useRef(inventory);
-  const fishingCooldownRef = useRef(0);
-  const fishSightCommentRef = useRef(0);
-  const rainCooldownRef = useRef(0);
-  const findCooldownRef = useRef(0);
-  const enemyCooldownRef = useRef(0);
-  const enemyEncounterRef = useRef(0);
-  const creatureCooldownRef = useRef(0);
-  const outageCooldownRef = useRef(0);
-  const attractModeRef = useRef(false);
-  const dragRef = useRef(null);
-  const draggedRef = useRef(false);
-  const dragFrameRef = useRef(0);
-  const pendingDragRef = useRef(null);
-  const onPowerOutageRef = useRef(onPowerOutage);
-  const userRef = useRef({ name: "guest", discord: false });
-  // Mientras habla un buddy de visita, la charla de relleno de este espera.
-  const visitorFloorRef = useRef(0);
-  const lastVisitorReplyRef = useRef("");
-  // Visitas presentes ({id, name, look, x}) y cuando puede volver a darles charla.
-  const visitorsRef = useRef(new Map());
-  const visitorChatAtRef = useRef(0);
-  // Version nueva publicada: se dice en el siguiente momento tranquilo.
-  const pendingUpdateRef = useRef(null);
-  // Contexto de la visita: el tiempo de fuera, cuando empezo la sesion, que
-  // hitos de tiempo ya comento y como saludar segun la ultima visita.
-  const weatherRef = useRef(null);
-  const sessionStartRef = useRef(Date.now());
-  const milestoneRef = useRef(0);
-
-  useEffect(() => {
-    onPowerOutageRef.current = onPowerOutage;
-  }, [onPowerOutage]);
-
-  useEffect(() => {
-    const name = String(user?.username || "guest").trim().slice(0, 24) || "guest";
-    userRef.current = { name, discord: Boolean(user?.username) };
-  }, [user]);
-
-  useEffect(() => {
-    visitCountRef.current = typeof visitCount === "number" ? visitCount : null;
-  }, [visitCount]);
-
-  useEffect(() => {
-    nowPlayingRef.current = nowPlaying?.song ? nowPlaying : null;
-  }, [nowPlaying]);
+export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [], nowPlaying = null, skyPhase = "day", caughtFish = [], fullMoon = false, meteorShower = "" }) {
+  const { core, view } = useBuddyCore();
+  const fishing = useBuddyFishing(core);
+  const weather = useBuddyWeather(core);
+  const encounters = useBuddyEncounters(core, { startRain: weather.api.startRain });
+  const outage = useBuddyOutage(core);
+  const campfire = useBuddyCampfire(core);
+  const chat = useBuddyChat(core);
+  const sky = useBuddySky(core);
+  const drag = useBuddyDrag(core);
+  const { mood, fx, bubble, x, y, facing, travelDirection, walkMs, particles } = view;
+  const { fieldFind, creature, enemy } = encounters.view;
+  const { outagePhase } = outage.view;
+  const fishingView = fishing.view;
+  const {
+    rootRef, moodRef, xRef, activeEventRef, lastActivityRef, visibleRef, bootedRef, dropInFlightRef, attractModeRef, moodGenRef, petTimesRef
+  } = core;
 
   // Aparejo puesto (hiddenGear ya trae la exclusividad de slot resuelta):
   // el señuelo define las reglas de pesca, la caña solo el color.
   const equippedLure = LURE_IDS.find((id) => unlockedGear.includes(id) && !hiddenGear.includes(id)) || "";
   const equippedRod = ROD_IDS.find((id) => unlockedGear.includes(id) && !hiddenGear.includes(id)) || "";
   const hasMikuCostume = unlockedGear.includes("miku-costume") && !hiddenGear.includes("miku-costume");
+  const hasRocketBoots = unlockedGear.includes("rocket-boots") && !hiddenGear.includes("rocket-boots");
+
+  // Lo que llega por props, a los refs que leen timers y listeners.
+  useEffect(() => {
+    core.onPowerOutageRef.current = onPowerOutage;
+  }, [core, onPowerOutage]);
 
   useEffect(() => {
-    equippedGearRef.current = { lure: equippedLure, rod: equippedRod };
-  }, [equippedLure, equippedRod]);
+    const name = String(user?.username || "guest").trim().slice(0, 24) || "guest";
+    core.userRef.current = { name, discord: Boolean(user?.username) };
+  }, [core, user]);
 
   useEffect(() => {
-    mikuCostumeRef.current = hasMikuCostume;
-  }, [hasMikuCostume]);
+    core.visitCountRef.current = typeof visitCount === "number" ? visitCount : null;
+  }, [core, visitCount]);
 
   useEffect(() => {
-    inventoryRef.current = inventory;
-  }, [inventory]);
+    core.nowPlayingRef.current = nowPlaying?.song ? nowPlaying : null;
+  }, [core, nowPlaying]);
 
-  function updateMood(next) {
-    const previous = moodRef.current;
-    moodGenRef.current += 1;
-    moodRef.current = next;
-    setMood(next);
-    // Las visitas se enteran de cuando se duerme y se despierta.
-    if (next === "sleep" && previous !== "sleep") announceAction("sleep");
-    else if (previous === "sleep" && next !== "sleep") announceAction("wake");
-  }
+  useEffect(() => {
+    core.equippedGearRef.current = { lure: equippedLure, rod: equippedRod };
+  }, [core, equippedLure, equippedRod]);
 
-  // Lo que hace Buddy, para que sus visitas lo comenten (BuddyVisitors).
-  function announceAction(action, extra = {}) {
-    if (!visitorsRef.current.size) return;
-    window.dispatchEvent(new CustomEvent("daivr-buddy-action", { detail: { actor: "host", action, x: xRef.current, ...extra } }));
-  }
+  useEffect(() => {
+    core.mikuCostumeRef.current = hasMikuCostume;
+    core.rocketBootsRef.current = hasRocketBoots;
+  }, [core, hasMikuCostume, hasRocketBoots]);
 
-  function beginBuddyEvent(name) {
-    if (activeEventRef.current) return false;
-    activeEventRef.current = name;
-    document.documentElement.dataset.buddyEvent = name;
-    window.dispatchEvent(new CustomEvent("daivr-buddy-event-state", {
-      detail: { active: true, name }
-    }));
-    return true;
-  }
+  useEffect(() => {
+    core.inventoryRef.current = inventory;
+  }, [core, inventory]);
 
-  function endBuddyEvent(name) {
-    if (activeEventRef.current !== name) return;
-    activeEventRef.current = "";
-    if (name === "fishing") {
-      setFishingPhase("");
-      setFishingPortal((current) => current ? { ...current, phase: "closing" } : null);
-    }
-    delete document.documentElement.dataset.buddyEvent;
-    window.dispatchEvent(new CustomEvent("daivr-buddy-event-state", {
-      detail: { active: false, name }
-    }));
-  }
-
-  function updateFacing(next) {
-    if (facingRef.current === next) return;
-    facingRef.current = next;
-    setFacing(next);
-  }
-
-  function facingForDirection(direction) {
-    return direction >= 0 ? -1 : 1;
-  }
-
-  function updateTravelDirection(next) {
-    if (travelDirectionRef.current === next) return;
-    travelDirectionRef.current = next;
-    setTravelDirection(next);
-  }
-
-  function faceTravelDirection(direction) {
-    updateTravelDirection(direction);
-    updateFacing(facingForDirection(direction));
-  }
-
-  function moveTo(target) {
-    xRef.current = target;
-    setX(target);
-  }
-
-  function liftTo(target) {
-    yRef.current = target;
-    setY(target);
-  }
-
-  function schedule(fn, ms) {
-    const timer = window.setTimeout(() => {
-      timersRef.current.delete(timer);
-      fn();
-    }, ms);
-    timersRef.current.add(timer);
-    return timer;
-  }
-
-  function stageWidth() {
-    return rootRef.current?.parentElement?.clientWidth || 640;
-  }
-
-  function inwardEventDirection(preferredDirection = 1, position = xRef.current, clearance = 132) {
-    const width = stageWidth();
-    const preferred = preferredDirection < 0 ? -1 : 1;
-    if (position < clearance) return 1;
-    if (position + SPRITE_WIDTH > width - clearance) return -1;
-    return preferred;
-  }
-
-  function pickLine(pool) {
-    const options = pool.filter((line) => line !== lastLineRef.current);
-    const line = options[Math.floor(Math.random() * options.length)] || pool[0];
-    lastLineRef.current = line;
-    return line;
-  }
-
-  function showNextBubble() {
-    const next = bubbleQueueRef.current.shift();
-    if (!next) return;
-
-    activeBubbleRef.current = next;
-    setBubble(next.line);
-    window.dispatchEvent(new CustomEvent("daivr-buddy-said", { detail: { line: next.line, topic: next.topic, ms: next.ms, to: next.to } }));
-    bubbleTimerRef.current = window.setTimeout(() => {
-      bubbleTimerRef.current = 0;
-      activeBubbleRef.current = null;
-      setBubble("");
-      bubbleGapTimerRef.current = window.setTimeout(() => {
-        bubbleGapTimerRef.current = 0;
-        showNextBubble();
-      }, DIALOGUE_GAP_MS);
-    }, next.ms);
-  }
-
-  function say(line, ms = 2400, options = {}) {
-    if (!line) return;
-    const priority = options.priority === "ambient" ? "ambient" : "event";
-    const topic = options.topic || lineTopic(line, activeEventRef.current);
-    // `to`: id de la visita a la que se lo dice (una pregunta, una respuesta).
-    const item = { line, ms: Math.max(MIN_DIALOGUE_MS, ms), priority, key: options.key || "", topic, to: options.to || "" };
-    const active = activeBubbleRef.current;
-
-    if (active?.line === line || bubbleQueueRef.current.some((entry) => entry.line === line)) return;
-    if (item.key) bubbleQueueRef.current = bubbleQueueRef.current.filter((entry) => entry.key !== item.key);
-
-    if (priority === "ambient") {
-      if (activeEventRef.current) return;
-      if (Date.now() < visitorFloorRef.current) return;
-      if (active || bubbleGapTimerRef.current || bubbleQueueRef.current.length) return;
-    } else {
-      // Events are never discarded, but stale ambient chatter should not make
-      // a catch, collision, weather change, or user interaction wait in line.
-      bubbleQueueRef.current = bubbleQueueRef.current.filter((entry) => entry.priority !== "ambient");
-      if (active?.priority === "ambient") {
-        window.clearTimeout(bubbleTimerRef.current);
-        window.clearTimeout(bubbleGapTimerRef.current);
-        bubbleTimerRef.current = 0;
-        bubbleGapTimerRef.current = 0;
-        activeBubbleRef.current = null;
-        setBubble("");
-      }
-    }
-
-    bubbleQueueRef.current.push(item);
-    if (!active && !bubbleGapTimerRef.current && !bubbleTimerRef.current) showNextBubble();
-  }
-
-  function clearDialogue(render = true) {
-    window.clearTimeout(bubbleTimerRef.current);
-    window.clearTimeout(bubbleGapTimerRef.current);
-    bubbleTimerRef.current = 0;
-    bubbleGapTimerRef.current = 0;
-    activeBubbleRef.current = null;
-    bubbleQueueRef.current = [];
-    if (render) setBubble("");
-  }
-
-  function playFx(name, ms) {
-    window.clearTimeout(fxTimerRef.current);
-    setFx(name);
-    fxTimerRef.current = window.setTimeout(() => setFx(""), ms);
-  }
-
-  function spawnParticles(kind, count) {
-    // El splash brota en la punta de la linea (afuera, a la altura del riel),
-    // no sobre la cabeza del buddy como corazones y confeti.
-    const splash = kind === "splash";
-    const palette = splash ? SPLASH_COLORS : CONFETTI_COLORS;
-    const items = Array.from({ length: count }, () => ({
-      id: (particleIdRef.current += 1),
-      kind,
-      dx: kind === "heart" ? randomBetween(-18, 18) : splash ? randomBetween(-13, 13) : randomBetween(-46, 46),
-      dy: kind === "heart" ? randomBetween(-46, -30) : splash ? randomBetween(-32, -14) : randomBetween(-78, -34),
-      ox: splash ? facingRef.current * -30 : 0,
-      oy: splash ? -30 : 0,
-      rot: randomBetween(-280, 280),
-      delay: randomBetween(0, splash ? 140 : 240),
-      color: palette[Math.floor(Math.random() * palette.length)]
-    }));
-    const ids = new Set(items.map((item) => item.id));
-    setParticles((current) => [...current, ...items]);
-    schedule(() => setParticles((current) => current.filter((item) => !ids.has(item.id))), 1500);
-  }
-
-  // Posicion actual real (puede estar a mitad de un paseo o caida).
-  function currentDomPosition() {
-    const node = rootRef.current;
-    const parent = node?.parentElement;
-    if (!node || !parent) return { x: xRef.current, y: yRef.current };
-    const nodeRect = node.getBoundingClientRect();
-    const parentRect = parent.getBoundingClientRect();
-    return {
-      x: nodeRect.left - parentRect.left,
-      y: nodeRect.bottom - (parentRect.top + 2)
-    };
-  }
-
-  function freezeAtCurrentPosition() {
-    const position = currentDomPosition();
-    setWalkMs(0);
-    moveTo(position.x);
-    liftTo(Math.min(0, position.y));
-  }
-
-  function settleDown(delayMs) {
-    // Solo el humor que programo este timer puede cerrarse a si mismo: si un
-    // humor mas nuevo tomo el control, el timer viejo no debe pisarlo.
-    const generation = moodGenRef.current;
-    schedule(() => {
-      if (moodGenRef.current !== generation) return;
-      if (["pet", "party", "dance", "talk"].includes(moodRef.current)) {
-        updateMood("idle");
-      }
-    }, delayMs);
-  }
-
-  function buddyLine(key) {
-    const regular = LINES[key] || [];
-    const miku = mikuCostumeRef.current ? MIKU_LINES[key] || [] : [];
-    return pickLine(miku.length ? [...miku, ...miku, ...regular] : regular);
-  }
-
-  function contextIdlePool() {
-    const hour = new Date().getHours();
-    const pool = [...LINES.idle, ...LINES.walkStop];
-    if (mikuCostumeRef.current) pool.push(...MIKU_LINES.idle, ...MIKU_LINES.idle, ...MIKU_LINES.walkStop);
-    if (hour >= 22 || hour < 5) pool.push(...LINES.night, ...LINES.night);
-    else if (hour < 11) pool.push(...LINES.morning);
-    if (visitCountRef.current) pool.push(`visitor #${visitCountRef.current.toLocaleString("en-US")} logged.`);
-
-    const playing = nowPlayingRef.current;
-    if (playing?.song) {
-      const song = playing.song.length > 26 ? `${playing.song.slice(0, 24)}...` : playing.song;
-      pool.push(`♪ ${song}? good taste.`, ...LINES.music);
-    }
-
-    const identity = userRef.current;
-    if (identity.discord) {
-      pool.push(
-        `hey ${identity.name}. footer patrol is online.`,
-        `${identity.name}, your Discord signal is crystal clear.`,
-        `still exploring, ${identity.name}?`,
-        `${identity.name}! i kept the footer warm.`,
-        `status report for ${identity.name}: all cozy.`,
-        `i recognize that signal, ${identity.name}.`
-      );
-    } else {
-      pool.push(
-        "hey guest. enjoying the cabinet?",
-        "guest signal detected. welcome in.",
-        "you can call me Buddy, guest.",
-        "still there, guest? beep twice for yes.",
-        "guest patrol companion reporting in.",
-        "pick a cartridge, guest. i will guard the footer."
-      );
-    }
-
-    // Lo de fuera y lo de ahora: el tiempo, el dia, el arcade.
-    const context = contextLines({
-      date: new Date(),
-      weather: weatherRef.current,
-      locale: typeof navigator === "undefined" ? "" : navigator.language,
-      online: getCabinetSignal("online"),
-      level: getCabinetSignal("player")?.level ?? null
-    });
-    context.forEach(({ line, topic }) => pool.push(rememberTopic(line, topic)));
-    pool.push(...LINES.tips, ...LINES.lore);
-
-    return pool;
-  }
-
-  function greetingPool() {
-    const identity = userRef.current;
-    const pool = identity.discord
-      ? [...LINES.boot, `hello, ${identity.name}!`, `${identity.name} signal linked.`, `welcome back, ${identity.name}.`]
-      : [...LINES.boot, "hello, guest!", "guest session linked. stay awhile."];
-    if (mikuCostumeRef.current) pool.push(...MIKU_LINES.boot, ...MIKU_LINES.boot);
-    // Primera visita o vuelta tras unos dias: casi siempre gana el saludo personal.
-    const returning = visitReturnLines().map((line) => rememberTopic(line, "returning"));
-    if (returning.length && Math.random() < 0.75) return returning;
-    return pool;
-  }
+  useEffect(() => {
+    core.skyPhaseRef.current = skyPhase;
+    core.caughtFishRef.current = caughtFish;
+    core.fullMoonRef.current = fullMoon;
+    core.showerRef.current = meteorShower;
+  }, [core, skyPhase, caughtFish, fullMoon, meteorShower]);
 
   function handlePet() {
-    if (draggedRef.current) return;
+    if (drag.draggedRef.current) return;
     if (activeEventRef.current) return;
     if (["held", "chute", "outage", "hunt"].includes(moodRef.current)) return;
 
@@ -660,10 +118,16 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     const wasFishing = moodRef.current === "fishing";
     lastActivityRef.current = Date.now();
 
-    if (wasFishing) {
-      setFishingPhase("");
-      setFishingCatch("");
-      setFishingCatchId("");
+    if (wasFishing) fishing.api.clearCatch();
+
+    // Le acaban de saludar desde otro footer: el clic devuelve el saludo.
+    if (!wasAsleep && !wasFishing && chat.api.waveBack()) {
+      core.freezeAtCurrentPosition();
+      core.updateMood("pet");
+      core.spawnParticles("heart", 3);
+      onPet?.();
+      core.settleDown(1700);
+      return;
     }
 
     if (wasAsleep) {
@@ -678,162 +142,49 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     const now = Date.now();
     petTimesRef.current = [...petTimesRef.current.filter((t) => now - t < PET_SPAM_WINDOW_MS), now];
 
-    freezeAtCurrentPosition();
+    core.freezeAtCurrentPosition();
 
     if (petTimesRef.current.length >= 4) {
       petTimesRef.current = [];
-      updateMood("pet");
-      playFx("dizzy", 1500);
-      say(pickLine(LINES.petSpam), 2000, { key: "pet" });
-      settleDown(1700);
+      core.updateMood("pet");
+      core.playFx("dizzy", 1500);
+      core.say(core.pickLine(LINES.petSpam), 2000, { key: "pet" });
+      core.settleDown(1700);
       onPet?.();
       return;
     }
 
-    updateMood("pet");
-    spawnParticles("heart", 3);
-    const identity = userRef.current;
+    core.updateMood("pet");
+    core.spawnParticles("heart", 3);
+    const identity = core.userRef.current;
     const petLine = !wasAsleep && !wasFishing && identity.discord && Math.random() < 0.35
-      ? `${identity.name}! ${buddyLine("pet")}`
-      : wasAsleep ? pickLine(LINES.wake) : wasFishing ? buddyLine("fishInterrupt") : buddyLine("pet");
-    say(petLine, 1900, { key: "pet", topic: wasAsleep ? "wake" : wasFishing ? "fishInterrupt" : "pet" });
+      ? `${identity.name}! ${core.buddyLine("pet")}`
+      : wasAsleep ? core.pickLine(LINES.wake) : wasFishing ? core.buddyLine("fishInterrupt") : core.buddyLine("pet");
+    core.say(petLine, 1900, { key: "pet", topic: wasAsleep ? "wake" : wasFishing ? "fishInterrupt" : "pet" });
     onPet?.();
-    settleDown(1700);
-  }
-
-  function collectFieldFind() {
-    if (moodRef.current === "hunt") return;
-    if (!fieldFind) return;
-    window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
-      detail: { type: "field-find", id: fieldFind.id }
-    }));
-    setFieldFind(null);
-    updateMood("party");
-    spawnParticles("confetti", 10);
-    say(`${fieldFind.name} added to collection!`, 2600);
-    settleDown(2800);
-    schedule(() => endBuddyEvent("find"), 2900);
+    core.settleDown(1700);
   }
 
   function handleFlip() {
     if (reduceMotionQuery?.matches) return;
     if (activeEventRef.current) return;
     if (["held", "chute", "hunt"].includes(moodRef.current)) return;
-    playFx("flip", 800);
-    say(pickLine(LINES.flip), 1800);
-  }
-
-  // --- Agarrar y soltar -----------------------------------------------------
-
-  function applyDragFrame() {
-    dragFrameRef.current = 0;
-    const drag = dragRef.current;
-    const point = pendingDragRef.current;
-    if (!drag?.dragging || !point) return;
-    moveTo(clamp(drag.originX + (point.clientX - drag.startClientX), 4, drag.maxX));
-    liftTo(clamp(drag.originY + (point.clientY - drag.startClientY), drag.minY, 0));
-  }
-
-  function handlePointerDown(event) {
-    if (reduceMotionQuery?.matches) return;
-    if (activeEventRef.current) return;
-    if (["outage", "hunt"].includes(moodRef.current)) return;
-    if (event.button != null && event.button !== 0) return;
-    const node = rootRef.current;
-    const parent = node?.parentElement;
-    if (!node || !parent) return;
-
-    const parentRect = parent.getBoundingClientRect();
-    const position = currentDomPosition();
-
-    dragRef.current = {
-      pointerId: event.pointerId,
-      startClientX: event.clientX,
-      startClientY: event.clientY,
-      originX: position.x,
-      originY: Math.min(0, position.y),
-      // Altura maxima: que el sprite no salga del viewport por arriba.
-      minY: Math.min(-40, -(parentRect.top - 26)),
-      maxX: Math.max(4, parent.clientWidth - SPRITE_WIDTH - 4),
-      dragging: false
-    };
-    try {
-      event.currentTarget.setPointerCapture?.(event.pointerId);
-    } catch {
-      // Punteros sinteticos o ya liberados: el arrastre funciona igual.
-    }
-  }
-
-  function handlePointerMove(event) {
-    const drag = dragRef.current;
-    if (!drag || event.pointerId !== drag.pointerId) return;
-
-    pendingDragRef.current = { clientX: event.clientX, clientY: event.clientY };
-
-    if (!drag.dragging) {
-      const moved = Math.hypot(event.clientX - drag.startClientX, event.clientY - drag.startClientY);
-      if (moved < DRAG_THRESHOLD_PX) return;
-      drag.dragging = true;
-      draggedRef.current = true;
-      // Congela la posicion real antes de matar la transicion para no saltar.
-      moveTo(drag.originX);
-      liftTo(drag.originY);
-      setWalkMs(0);
-      updateMood("held");
-      say(pickLine(LINES.held), 1800);
-    }
-
-    if (!dragFrameRef.current) {
-      dragFrameRef.current = window.requestAnimationFrame(applyDragFrame);
-    }
-  }
-
-  function handlePointerRelease(event) {
-    const drag = dragRef.current;
-    if (!drag || event.pointerId !== drag.pointerId) return;
-    dragRef.current = null;
-    pendingDragRef.current = null;
-    window.cancelAnimationFrame(dragFrameRef.current);
-    dragFrameRef.current = 0;
-    try {
-      event.currentTarget.releasePointerCapture?.(event.pointerId);
-    } catch {
-      // Sin captura activa no hay nada que liberar.
-    }
-
-    if (!drag.dragging) return;
-    schedule(() => {
-      draggedRef.current = false;
-    }, 220);
-
-    if (yRef.current < -30) {
-      updateMood("chute");
-      say(pickLine(hasRocketBoots ? LINES.rocketFall : LINES.chute), 2200);
-      const fallMs = clamp((Math.abs(yRef.current) / FALL_SPEED_PX_S) * 1000, 650, 6500);
-      const generation = moodGenRef.current;
-      setWalkMs(fallMs);
-      liftTo(0);
-      schedule(() => {
-        if (moodGenRef.current !== generation || moodRef.current !== "chute") return;
-        setWalkMs(0);
-        updateMood("idle");
-        say(pickLine(hasRocketBoots ? LINES.rocketLanded : LINES.landed), 2200);
-      }, fallMs + 60);
-    } else {
-      setWalkMs(0);
-      liftTo(0);
-      updateMood("idle");
-    }
+    core.playFx("flip", 800);
+    core.say(core.pickLine(LINES.flip), 1800);
   }
 
   // --- Cerebro ---------------------------------------------------------------
 
   useEffect(() => {
-    const timers = timersRef.current;
-    const reduceMotion = Boolean(reduceMotionQuery?.matches);
+    const timers = core.timersRef.current;
+    const { reduceMotion } = core;
+    const {
+      updateMood, say, pickLine, buddyLine, schedule, settleDown, playFx, moveTo, liftTo, setWalkMs, stageWidth,
+      freezeAtCurrentPosition, faceTravelDirection, updateFacing, facingForDirection, clearDialogue, endBuddyEvent,
+      greetingPool, startWalk, announceAction
+    } = core;
     const stage = rootRef.current?.parentElement;
-
-    let disposed = false;
+    core.disposed = false;
 
     function bootUp() {
       bootedRef.current = true;
@@ -867,41 +218,6 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         updateMood("idle");
         say(pickLine(greetingPool()), 2600);
       }, fallMs + 200);
-    }
-
-    // Paseo a un punto al azar, o a `destination` (junto a una visita, cuyo id
-    // va en `towardId` para que esa le espere).
-    function startWalk(destination = null, towardId = "") {
-      const maxX = Math.max(WALK_MARGIN, stageWidth() - SPRITE_WIDTH - WALK_MARGIN);
-      // Al azar, pero sin plantarse encima de una visita.
-      const guests = [...visitorsRef.current.values()].map((guest) => guest.x).filter(Number.isFinite);
-      let target = destination == null ? null : clamp(destination, WALK_MARGIN, maxX);
-      for (let tries = 0; target == null && tries < 6; tries += 1) {
-        const spot = WALK_MARGIN + Math.random() * (maxX - WALK_MARGIN);
-        if (tries === 5 || guests.every((x) => Math.abs(x - spot) >= 72)) target = spot;
-      }
-      const distance = Math.abs(target - xRef.current);
-      if (distance < 56) return false;
-
-      const ms = Math.min(8000, (distance / WALK_SPEED_PX_S) * 1000);
-      faceTravelDirection(target > xRef.current ? 1 : -1);
-      updateMood("walk");
-      const generation = moodGenRef.current;
-      setWalkMs(ms);
-      moveTo(target);
-      announceAction("walk", { targetX: target, ms, toward: towardId });
-
-      schedule(() => {
-        if (moodGenRef.current !== generation || moodRef.current !== "walk") return;
-        if (Math.random() < 0.4) {
-          updateMood("talk");
-          say(pickLine([...LINES.walkStop, ...contextIdlePool()]), 2600, { priority: "ambient", key: "ambient" });
-          settleDown(2700);
-        } else {
-          updateMood("idle");
-        }
-      }, ms + 80);
-      return true;
     }
 
     // En desktop camina hasta la esquina mas cercana del footer y duerme ahi;
@@ -945,421 +261,13 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       }, ms + 80);
     }
 
-    // The opening belongs to the footer. Buddy notices it, approaches, then casts.
-    function startFishing({ forceCreature = "" } = {}) {
-      const spot = fishingSpot(stageWidth(), { miku: mikuCostumeRef.current });
-      if (!spot) return;
-      if (!beginBuddyEvent("fishing")) return;
-      fishingCooldownRef.current = Date.now();
-      leviathanInteractionRef.current = null;
-      setLeviathanResponse("");
-      freezeAtCurrentPosition();
-      const { target, castLeft, portalX } = spot;
-      const distance = Math.abs(target - xRef.current);
-      const portalId = fishingCooldownRef.current;
-      setFishingPortal({ id: portalId, x: portalX, phase: "opening" });
-      setFishingPhase("approach");
-      updateMood("talk");
-      const noticeGeneration = moodGenRef.current;
-      clearDialogue();
-      say("the floor cracked... there's water underneath!", 2600, { topic: "fishCast" });
-
-      function beginSession() {
-        // En el sprite base facing 1 apunta a la izquierda. Cerca de un borde
-        // lanza hacia dentro; en el centro puede elegir cualquiera de los lados.
-        updateTravelDirection(castLeft ? -1 : 1);
-        updateFacing(castLeft ? 1 : -1);
-        updateMood("fishing");
-        const generation = moodGenRef.current;
-        const stillFishing = () => moodGenRef.current === generation && moodRef.current === "fishing";
-
-        setFishingPhase("cast");
-        setFishingCatch("");
-        setFishingCatchId("");
-        setWeather("");
-        say(buddyLine("fishCast"), 2000);
-
-        schedule(() => {
-          if (stillFishing()) setFishingPhase("wait");
-        }, FISHING_CAST_MS);
-
-        // El señuelo puesto define las reglas de la sesion.
-        const lure = equippedGearRef.current.lure;
-        const waitMs = forceCreature ? 0 : lure === "lure-swift" ? 3200 + Math.random() * 2800 : 7000 + Math.random() * 6000;
-
-        schedule(() => {
-          if (stillFishing() && !forceCreature) say(buddyLine("fishWait"), 2200);
-        }, 2600 + Math.random() * 2400);
-
-        if (waitMs > 9500) {
-          schedule(() => {
-            if (stillFishing()) say(buddyLine("fishWait"), 2200);
-          }, 7800);
-        }
-
-        schedule(() => {
-          if (!stillFishing()) return;
-          setFishingPhase("bite");
-          say("!", 900, { topic: "fishFight" });
-        }, FISHING_CAST_MS + waitMs);
-
-        function landCatch(catchItem) {
-          const tier = catchItem.rarity;
-          setFishingPhase("catch");
-          setFishingCatch(tier);
-          setFishingCatchId(catchItem.id);
-          spawnParticles("splash", 7);
-          const prefix = catchItem.kind === "treasure" ? "TREASURE" : tier === "mythic" ? "MYTHIC" : tier === "legendary" ? "LEGENDARY" : tier === "rare" ? "RARE" : "caught";
-          const rareEncore = mikuCostumeRef.current && ["rare", "legendary", "mythic"].includes(tier)
-            ? ` ${buddyLine("fishRare")}`
-            : "";
-          say(`${prefix}: ${catchItem.name}!${rareEncore}`, 3300);
-
-          // Toda captura suma al total (desbloquea aparejos); las raras
-          // ademas avanzan la quest Void angler.
-          window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
-            detail: { type: "fishing-haul", tier, catchId: catchItem.id }
-          }));
-        }
-
-        function endSessionAfter(ms) {
-          schedule(() => {
-            if (!stillFishing()) return;
-            setFishingPhase("");
-            setFishingCatch("");
-            setFishingCatchId("");
-            setWeather("");
-            updateMood("idle");
-            endBuddyEvent("fishing");
-          }, ms);
-        }
-
-        schedule(() => {
-          if (!stillFishing()) return;
-
-          // Muy rara vez la sombra no es una captura: es algo que puede tirar
-          // del propio Buddy al agua antes de soltar la linea.
-          const encounter = forceCreature || rareFishingEncounter();
-          if (encounter) {
-            const monster = encounter === "kraken" ? KRAKEN : LEVIATHAN;
-            setSeaCreature(encounter);
-            setFishingPhase("omen");
-            setFishingCatch("mythic");
-            setFishingCatchId(monster.id);
-            clearDialogue();
-            say("the water went quiet. something is coming.", 5000, { topic: "leviathan" });
-            schedule(() => {
-              if (!stillFishing()) return;
-              setFishingPhase("monster");
-              const interactions = new Set();
-              leviathanInteractionRef.current = (action) => {
-                if (!stillFishing() || interactions.has(action) || !["steady", "signal"].includes(action)) return;
-                interactions.add(action);
-                setLeviathanResponse(action);
-                liftTo(action === "steady" ? 0 : 5);
-                clearDialogue();
-                say(action === "steady" ? "feet on the ground. we've got this, together." : encounter === "kraken" ? "eight arms... and one is waving at me!" : "hey, big friend... it blinked back!", 3600);
-                spawnParticles(action === "steady" ? "splash" : "heart", 6);
-              };
-              clearDialogue();
-              say(encounter === "kraken" ? "that's a lot of arms. please don't take my rod!" : buddyLine("leviathan"), 5000);
-              spawnParticles("splash", 14);
-              liftTo(12);
-              window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
-                detail: { type: "fishing-sighting", id: monster.id }
-              }));
-            }, 5500);
-
-            schedule(() => {
-              if (!stillFishing()) return;
-              liftTo(0);
-              leviathanInteractionRef.current = null;
-              setFishingPhase("retreat");
-              clearDialogue();
-              say("until next time, big friend.", 2600, { topic: "fishEscape" });
-              endSessionAfter(3500);
-            }, 19000);
-            return;
-          }
-
-          const catchItem = weightedCatch(lure);
-          const fightsBack = ["rare", "legendary", "mythic"].includes(catchItem.rarity);
-
-          if (!fightsBack) {
-            landCatch(catchItem);
-            endSessionAfter(2400);
-            return;
-          }
-
-          // Los raros pelean: tira de la linea un rato y puede escaparse
-          // (el lucky lure tambien ayuda a no perderlos).
-          setFishingPhase("fight");
-          say(buddyLine("fishFight"), 2000);
-          const fightMs = 2600 + Math.random() * 1400;
-
-          schedule(() => {
-            if (stillFishing()) say(buddyLine("fishFight"), 1700);
-          }, fightMs * 0.55);
-
-          schedule(() => {
-            if (!stillFishing()) return;
-            const escaped = Math.random() < (lure === "lure" ? 0.15 : lure === "lure-anchor" ? 0.05 : 0.35);
-
-            if (escaped) {
-              setFishingPhase("escape");
-              spawnParticles("splash", 9);
-              playFx("dizzy", 900);
-              say(buddyLine("fishEscape"), 2400);
-              endSessionAfter(2000);
-              return;
-            }
-
-            landCatch(catchItem);
-            endSessionAfter(2400);
-          }, fightMs);
-        }, FISHING_CAST_MS + waitMs + 880);
-      }
-
-      schedule(() => {
-        if (moodGenRef.current !== noticeGeneration || activeEventRef.current !== "fishing") return;
-        setFishingPortal((current) => current?.id === portalId ? { ...current, phase: "open" } : current);
-        faceTravelDirection(target > xRef.current ? 1 : -1);
-        updateMood("walk");
-        const generation = moodGenRef.current;
-        const ms = Math.max(120, distance / WALK_SPEED_PX_S * 1000);
-        setWalkMs(ms);
-        moveTo(target);
-        schedule(() => {
-          if (moodGenRef.current !== generation || activeEventRef.current !== "fishing") return;
-          setWalkMs(0);
-          beginSession();
-        }, ms + 80);
-      }, PORTAL_OPEN_MS + 200);
-    }
-
-    function startRain() {
-      if (!beginBuddyEvent("rain")) return;
-      rainCooldownRef.current = Date.now();
-      freezeAtCurrentPosition();
-      setWeather("rain");
-      updateMood("rain");
-      const generation = moodGenRef.current;
-      // Si tambien llueve de verdad donde esta el jugador, Buddy lo nota.
-      say(isRainingOutside(weatherRef.current) ? pickLine(EVENT_LINES.rainBoth) : pickLine(LINES.rain), 2600, { topic: "rain" });
-      // El cielo (FooterSky) forma la nube justo encima de Buddy.
-      window.dispatchEvent(new CustomEvent("daivr-footer-rain", { detail: { active: true, x: xRef.current + SPRITE_WIDTH / 2, duration: RAIN_DURATION_MS } }));
-
-      schedule(() => {
-        setWeather("");
-        window.dispatchEvent(new CustomEvent("daivr-footer-rain", { detail: { active: false } }));
-        if (moodGenRef.current === generation && moodRef.current === "rain") {
-          updateMood("idle");
-          say("rain stopped. patrol resumed.", 2000, { topic: "rainEnd" });
-        }
-        endBuddyEvent("rain");
-      }, RAIN_DURATION_MS);
-    }
-
-    function startFind() {
-      if (!beginBuddyEvent("find")) return;
-      findCooldownRef.current = Date.now();
-      const item = FIELD_FINDS[Math.floor(Math.random() * FIELD_FINDS.length)];
-      const direction = inwardEventDirection(Math.random() < 0.5 ? -1 : 1);
-      const maxX = Math.max(WALK_MARGIN, stageWidth() - SPRITE_WIDTH - WALK_MARGIN);
-      const target = clamp(xRef.current + direction * randomBetween(70, 140), WALK_MARGIN, maxX);
-      const distance = Math.abs(target - xRef.current);
-      const ms = Math.min(3600, (distance / WALK_SPEED_PX_S) * 1000);
-      faceTravelDirection(target > xRef.current ? 1 : -1);
-      updateMood("walk");
-      const generation = moodGenRef.current;
-      setWalkMs(ms);
-      moveTo(target);
-
-      schedule(() => {
-        if (moodGenRef.current !== generation || moodRef.current !== "walk") return;
-        setWalkMs(0);
-        updateMood("find");
-        const findSide = inwardEventDirection(direction, target, 104);
-        updateTravelDirection(findSide);
-        updateFacing(facingForDirection(findSide));
-        setFieldFind({ ...item, side: findSide });
-        say(pickLine(LINES.find), 2400);
-        const findGeneration = moodGenRef.current;
-        schedule(() => {
-          setFieldFind(null);
-          if (moodGenRef.current === findGeneration && moodRef.current === "find") {
-            updateMood("idle");
-            say("loot signal expired...", 1600, { topic: "findMiss" });
-          }
-          endBuddyEvent("find");
-        }, 11000);
-      }, ms + 80);
-    }
-
-    function showCreature(forcedId = "", options = {}) {
-      creatureCooldownRef.current = Date.now();
-      const pool = AMBIENT_CREATURES.filter((item) => item.id !== "frog");
-      const item = forcedId
-        ? AMBIENT_CREATURES.find((entry) => entry.id === forcedId)
-        : pool[Math.floor(Math.random() * pool.length)];
-      if (!item) return;
-      if (item.id === "frog") {
-        startRain();
-        return;
-      }
-      if (item.id === "leap-fish") {
-        window.dispatchEvent(new CustomEvent("daivr-footer-fish", {
-          detail: { forceCollision: Boolean(options.forceCollision) }
-        }));
-        return;
-      }
-      if (!beginBuddyEvent(`creature:${item.id}`)) return;
-      if (item.id !== "bird") {
-        setCreature({ ...item, side: inwardEventDirection(Math.random() < 0.5 ? -1 : 1), phase: "active" });
-        schedule(() => {
-          setCreature((current) => current?.id === item.id ? null : current);
-          endBuddyEvent(`creature:${item.id}`);
-        }, 6200);
-        return;
-      }
-
-      freezeAtCurrentPosition();
-      updateMood("idle");
-      setCreature({ ...item, side: inwardEventDirection(Math.random() < 0.5 ? -1 : 1), phase: "fly-in" });
-      schedule(() => {
-        setCreature((current) => current?.id === "bird" ? { ...current, phase: "landing" } : current);
-      }, BIRD_ARRIVAL_MS);
-      schedule(() => {
-        setCreature((current) => current?.id === "bird" ? { ...current, phase: "perched" } : current);
-        if (["idle", "talk"].includes(moodRef.current)) say(pickLine(LINES.birdHello), 2400);
-      }, BIRD_ARRIVAL_MS + BIRD_LANDING_MS);
-
-      schedule(() => {
-        setCreature((current) => current?.id === "bird" ? { ...current, phase: "fly-out" } : current);
-        if (["idle", "talk"].includes(moodRef.current)) {
-          updateMood("shoo");
-          say(pickLine(LINES.birdShoo), 2400);
-        }
-      }, BIRD_ARRIVAL_MS + BIRD_LANDING_MS + BIRD_PERCH_MS);
-
-      schedule(() => {
-        setCreature((current) => current?.id === "bird" ? null : current);
-        if (moodRef.current === "shoo") updateMood("idle");
-        endBuddyEvent("creature:bird");
-      }, BIRD_ARRIVAL_MS + BIRD_LANDING_MS + BIRD_PERCH_MS + BIRD_DEPARTURE_MS);
-    }
-
-    function startBugHunt(forcedWeapon = "") {
-      if (!beginBuddyEvent("hunt")) return;
-      enemyCooldownRef.current = Date.now();
-      const encounterId = enemyEncounterRef.current + 1;
-      enemyEncounterRef.current = encounterId;
-      const bug = ENEMY_BUGS[Math.floor(Math.random() * ENEMY_BUGS.length)];
-      const tools = inventoryRef.current.includes("wrench") ? ["wrench"] : ["net", "laser", "flyswatter"];
-      const weapon = ["wrench", "net", "laser", "flyswatter"].includes(forcedWeapon)
-        ? forcedWeapon
-        : tools[Math.floor(Math.random() * tools.length)];
-      const side = inwardEventDirection(Math.random() < 0.5 ? -1 : 1);
-      setEnemy({ ...bug, weapon, side, phase: "stalk" });
-      updateFacing(side > 0 ? -1 : 1);
-      updateMood("hunt");
-      say(pickLine(LINES.bugHunt), 2200);
-
-      const encounterIsActive = () => enemyEncounterRef.current === encounterId;
-
-      schedule(() => {
-        if (!encounterIsActive()) return;
-        setEnemy((current) => current ? { ...current, phase: "ready" } : current);
-      }, 900);
-
-      schedule(() => {
-        if (!encounterIsActive()) return;
-        setEnemy((current) => current ? { ...current, phase: "attack" } : current);
-      }, 1800);
-
-      schedule(() => {
-        if (!encounterIsActive()) return;
-        setEnemy((current) => current ? { ...current, phase: "hit" } : current);
-      }, 3300);
-
-      schedule(() => {
-        if (!encounterIsActive()) return;
-        enemyEncounterRef.current = encounterId + 1;
-        setEnemy(null);
-        spawnParticles("confetti", 8);
-        window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", { detail: { type: "bug-defeated" } }));
-        updateMood("party");
-        say(`${bug.name}: ${pickLine(LINES.bugWin)}`, 2400);
-        settleDown(2600);
-        schedule(() => endBuddyEvent("hunt"), 2700);
-      }, 4700);
-
-      // Last-resort cleanup: even an exceptional interruption can never leave
-      // a live bug parked beside Buddy after the encounter window has ended.
-      schedule(() => {
-        if (!encounterIsActive()) return;
-        enemyEncounterRef.current = encounterId + 1;
-        setEnemy(null);
-        if (moodRef.current === "hunt") updateMood("idle");
-        endBuddyEvent("hunt");
-      }, 6500);
-    }
-
-    function startPowerOutage() {
-      if (!beginBuddyEvent("outage")) return;
-      outageCooldownRef.current = Date.now();
-      freezeAtCurrentPosition();
-      updateFacing(facingForDirection(inwardEventDirection(facingRef.current > 0 ? -1 : 1)));
-      updateMood("outage");
-      const generation = moodGenRef.current;
-      setOutagePhase("flicker");
-      onPowerOutageRef.current?.("flicker");
-      say("power fluctuation detected...", 1500);
-
-      schedule(() => {
-        if (moodGenRef.current !== generation || moodRef.current !== "outage") return;
-        setOutagePhase("search");
-        onPowerOutageRef.current?.("blackout");
-        say(pickLine(LINES.outage), 2600);
-      }, 1200);
-
-      schedule(() => {
-        if (moodGenRef.current !== generation || moodRef.current !== "outage") return;
-        setOutagePhase("fix");
-        say(pickLine(LINES.outageFix), 2300);
-      }, 5100);
-
-      schedule(() => {
-        if (moodGenRef.current !== generation || moodRef.current !== "outage") return;
-        setOutagePhase("restore");
-        onPowerOutageRef.current?.("restore");
-        playFx("static", 900);
-        say("POWER RESTORED. totally intentional.", 2800, { topic: "outageFix" });
-      }, 7600);
-
-      // La pagina vuelve a la normalidad y la caja se despide con un
-      // apagado CRT (colapsa a linea y a punto) antes de desmontarse.
-      schedule(() => {
-        if (moodGenRef.current !== generation || moodRef.current !== "outage") return;
-        setOutagePhase("stow");
-        onPowerOutageRef.current?.("");
-      }, 10400);
-
-      schedule(() => {
-        if (moodGenRef.current !== generation || moodRef.current !== "outage") return;
-        setOutagePhase("");
-        updateMood("idle");
-        endBuddyEvent("outage");
-      }, 11200);
-    }
-
     function brainTick() {
       if (!visibleRef.current) return;
       if (attractModeRef.current) return;
       if (activeEventRef.current) return;
 
       const currentMood = moodRef.current;
-      if (["off", "walk", "pet", "party", "dance", "held", "chute", "fishing", "rain", "find", "hunt", "outage", "shoo"].includes(currentMood)) return;
+      if (["off", "walk", "pet", "party", "dance", "held", "chute", "fishing", "rain", "find", "hunt", "outage", "shoo", "campfire"].includes(currentMood)) return;
 
       const idleFor = Date.now() - lastActivityRef.current;
 
@@ -1386,66 +294,31 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
 
       if (currentMood === "talk") return;
 
-      // Hay version nueva: lo cuenta ahora que no esta pescando ni durmiendo.
-      if (pendingUpdateRef.current) {
-        const update = pendingUpdateRef.current;
-        pendingUpdateRef.current = null;
-        updateMood("talk");
-        say(rememberTopic(pickLine(updateLines(update)), "update"), 3400, { key: "update", topic: "update" });
-        settleDown(3500);
-        return;
-      }
+      // Hay version nueva, o lleva un buen rato aqui: lo cuenta ahora.
+      if (chat.api.announceUpdate()) return;
+      if (chat.api.announceMilestone()) return;
+      if (sky.api.announceNight()) return;
 
-      // Cuanto llevas aqui: 5, 15, 30 y 60 minutos, una vez cada uno.
-      const milestone = sessionMilestone(Date.now() - sessionStartRef.current, milestoneRef.current);
-      if (milestone) {
-        milestoneRef.current = milestone.minutes;
-        updateMood("talk");
-        say(milestone.line, 3000, { priority: "ambient", key: "ambient", topic: "session" });
-        settleDown(3100);
-        return;
-      }
-
+      const now = Date.now();
       const roll = Math.random();
-      // El swift lure acorta tambien la espera entre sesiones.
-      const cooldownMs = equippedGearRef.current.lure === "lure-swift" ? FISHING_SWIFT_COOLDOWN_MS : FISHING_COOLDOWN_MS;
-      const canFish = !reduceMotion && Date.now() - fishingCooldownRef.current > cooldownMs;
-      // Sin motion la lluvia quedaria congelada en el aire: mejor ni llueve.
-      const canRain = !reduceMotion && Date.now() - rainCooldownRef.current > RAIN_COOLDOWN_MS;
-      const canFind = Date.now() - findCooldownRef.current > FIND_COOLDOWN_MS;
-      const canHunt = !reduceMotion && Date.now() - enemyCooldownRef.current > ENEMY_COOLDOWN_MS;
-      const canCreature = !reduceMotion && !creature && Date.now() - creatureCooldownRef.current > CREATURE_COOLDOWN_MS;
-      const canOutage = !reduceMotion && Date.now() - outageCooldownRef.current > OUTAGE_COOLDOWN_MS;
-
-      if (canOutage && roll < 0.0007) {
-        startPowerOutage();
-      } else if (canHunt && roll < 0.025) {
-        startBugHunt();
-      } else if (canFind && roll < 0.06) {
-        startFind();
-      } else if (canRain && roll < 0.09) {
-        startRain();
-      } else if (canFish && roll < 0.14) {
-        startFishing();
-      } else if (canCreature && roll < 0.2) {
-        showCreature();
+      if (outage.api.canStart(now) && roll < 0.0007) {
+        outage.api.start();
+      } else if (encounters.api.canHunt(now) && roll < 0.025) {
+        encounters.api.startBugHunt();
+      } else if (encounters.api.canFind(now) && roll < 0.06) {
+        encounters.api.startFind();
+      } else if (weather.api.canRain(now) && roll < 0.09) {
+        weather.api.startRain();
+      } else if (fishing.api.canStart(now) && roll < 0.14) {
+        fishing.api.start();
+      } else if (campfire.api.canStart(now) && roll < 0.17) {
+        campfire.api.start();
+      } else if (encounters.api.canCreature(now) && roll < 0.2) {
+        encounters.api.showCreature();
       } else if (roll < 0.3 && !reduceMotion) {
         startWalk();
       } else if (roll < 0.46) {
-        updateMood("talk");
-        // Con visitas, a veces les saca tema a ellas.
-        const question = visitorsRef.current.size && Math.random() < VISITOR_QUESTION_CHANCE
-          ? hostQuestion([...visitorsRef.current.values()], Math.random, lastVisitorReplyRef.current)
-          : null;
-        if (question) {
-          const guest = visitorsRef.current.get(question.to);
-          if (Number.isFinite(guest?.x)) updateFacing(facingForDirection(guest.x > xRef.current ? 1 : -1));
-          lastVisitorReplyRef.current = question.line;
-          say(question.line, 2600, { priority: "ambient", key: "ambient", topic: question.topic, to: question.to });
-        } else {
-          say(pickLine(contextIdlePool()), 2600, { priority: "ambient", key: "ambient" });
-        }
-        settleDown(2700);
+        chat.api.idleTalk();
       } else if (roll < 0.51 && !reduceMotion) {
         updateMood("dance");
         if (Math.random() < 0.5) say(buddyLine("dance"), 2200, { priority: "ambient", key: "ambient" });
@@ -1473,14 +346,10 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
 
       if (active) {
         if (activeEventRef.current) endBuddyEvent(activeEventRef.current);
-        if (moodRef.current === "outage") {
-          setOutagePhase("");
-          onPowerOutageRef.current?.("");
-        }
+        outage.api.abort();
         freezeAtCurrentPosition();
         clearDialogue();
-        enemyEncounterRef.current += 1;
-        setEnemy(null);
+        encounters.api.abortHunt();
         if (moodRef.current !== "sleep") updateMood("sleep");
         return;
       }
@@ -1491,183 +360,6 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         updateMood("idle");
         say(pickLine(LINES.wake), 1800);
       }, ATTRACT_WAKE_DELAY_MS);
-    }
-
-    function celebrate() {
-      if (!visibleRef.current) return;
-      if (activeEventRef.current) return;
-      if (["pet", "off", "held", "chute", "outage", "hunt"].includes(moodRef.current)) return;
-      freezeAtCurrentPosition();
-      updateMood("party");
-      spawnParticles("confetti", 16);
-      say(buddyLine("party"), 2600);
-      settleDown(3000);
-    }
-
-    function reactToTheme(event) {
-      if (!visibleRef.current) return;
-      if (activeEventRef.current) return;
-      if (["off", "sleep", "sleepy", "held", "chute", "hunt"].includes(moodRef.current)) return;
-      playFx("glitchy", 900);
-      say(pickLine(event.detail?.theme === "glitch" ? LINES.glitchTheme : LINES.crtTheme), 2400);
-    }
-
-    // Cambio de cartucho (navegacion entre secciones): comentario ocasional.
-    function reactToCartSwap() {
-      if (!visibleRef.current) return;
-      if (!["idle", "talk", "walk"].includes(moodRef.current)) return;
-      if (Math.random() > 0.35) return;
-      say(pickLine(LINES.cartSwap), 2200, { priority: "ambient", key: "navigation" });
-    }
-
-    // Gatillo manual de pesca (consola/tests): respeta humor y motion.
-    function onFishSignal() {
-      if (!visibleRef.current || reduceMotion) return;
-      if (!["idle", "talk"].includes(moodRef.current)) return;
-      startFishing();
-    }
-
-    function reactToFishJump(event) {
-      if (!visibleRef.current) return;
-      if (activeEventRef.current !== "flying-fish") return;
-      if (!["idle", "talk", "walk", "rain"].includes(moodRef.current)) return;
-      if (Date.now() - fishSightCommentRef.current < 38000 || Math.random() > 0.34) return;
-      const fishX = clamp(Number(event.detail?.x || 50), 0, 100) / 100 * stageWidth();
-      fishSightCommentRef.current = Date.now();
-      updateFacing(facingForDirection(fishX >= xRef.current ? 1 : -1));
-      say(buddyLine("fishSight"), 2300);
-    }
-
-    function reactToFishBump(event) {
-      if (!visibleRef.current) return;
-      if (activeEventRef.current !== "flying-fish") return;
-      if (["off", "sleep", "sleepy", "held", "chute", "outage", "hunt"].includes(moodRef.current)) return;
-      const direction = Number(event.detail?.direction) < 0 ? -1 : 1;
-      freezeAtCurrentPosition();
-      updateMood("talk");
-      const maxX = Math.max(4, stageWidth() - SPRITE_WIDTH - 4);
-      const nudge = clamp((Number(event.detail?.speed) || 120) * .065, 5, 12);
-      setWalkMs(160);
-      moveTo(clamp(xRef.current + direction * nudge, 4, maxX));
-      rootRef.current?.style.setProperty("--buddy-bump-lean", `${direction * 9}deg`);
-      updateFacing(facingForDirection(-direction));
-      playFx("bump", 620);
-      spawnParticles("splash", 5);
-      say(buddyLine("fishBump"), 2200);
-      const generation = moodGenRef.current;
-      schedule(() => { if (moodGenRef.current === generation) setWalkMs(0); }, 200);
-      settleDown(2300);
-    }
-
-    function onWildlifeEvent(event) {
-      const detail = event.detail || {};
-      if (detail.active) beginBuddyEvent("flying-fish");
-      else endBuddyEvent("flying-fish");
-    }
-
-    // Gatillo manual de lluvia (consola/tests), mismas reglas.
-    function onRainSignal() {
-      if (activeEventRef.current) return;
-      if (reduceMotion || moodRef.current === "outage") return;
-      if (moodRef.current === "hunt") return;
-      if (!["idle", "talk"].includes(moodRef.current)) {
-        freezeAtCurrentPosition();
-        updateMood("idle");
-      }
-      startRain();
-    }
-
-    function onFindSignal() {
-      if (activeEventRef.current) return;
-      if (moodRef.current === "outage") return;
-      if (moodRef.current === "hunt") return;
-      if (!["idle", "talk"].includes(moodRef.current)) {
-        freezeAtCurrentPosition();
-        updateMood("idle");
-      }
-      startFind();
-    }
-
-    function onCreatureSignal(event) {
-      if (activeEventRef.current) return;
-      if (reduceMotion || moodRef.current === "outage") return;
-      if (moodRef.current === "hunt") return;
-      if (["off", "chute", "held", "sleep", "sleepy"].includes(moodRef.current)) {
-        freezeAtCurrentPosition();
-        updateMood("idle");
-      }
-      showCreature(event.detail?.id || "", event.detail || {});
-    }
-
-    function onEnemySignal(event) {
-      if (activeEventRef.current) return;
-      if (reduceMotion) return;
-      if (moodRef.current === "outage") return;
-      if (moodRef.current === "hunt") return;
-      if (!["idle", "talk"].includes(moodRef.current)) {
-        freezeAtCurrentPosition();
-        updateMood("idle");
-      }
-      startBugHunt(event.detail?.weapon || "");
-    }
-
-    async function onAdminDiagnostic(event, start) {
-      const status = await runAdminBuddyDiagnostic(() => {
-        if (disposed) return "unavailable";
-        if (reduceMotionQuery?.matches) return "reduced-motion";
-        if (activeEventRef.current || dropInFlightRef.current || attractModeRef.current
-          || ["held", "chute", "hunt"].includes(moodRef.current)) return "busy";
-        bootedRef.current = true;
-        freezeAtCurrentPosition();
-        liftTo(0);
-        updateMood("idle");
-        start();
-        return "started";
-      });
-      if (typeof event.detail?.reply === "function") event.detail.reply(status);
-    }
-
-    function onOutageSignal(event) {
-      void onAdminDiagnostic(event, startPowerOutage);
-    }
-
-    function onLeviathanSignal(event) {
-      void onAdminDiagnostic(event, () => startFishing({ forceCreature: "leviathan" }));
-    }
-    function onKrakenSignal(event) {
-      void onAdminDiagnostic(event, () => startFishing({ forceCreature: "kraken" }));
-    }
-
-    function reactToNowPlaying(event) {
-      if (!visibleRef.current) return;
-      if (activeEventRef.current) return;
-      // La pesca no se interrumpe por musica: puede vibrar sentado.
-      if (["off", "held", "chute", "sleepy", "fishing", "outage", "hunt"].includes(moodRef.current)) return;
-      const detail = event.detail || {};
-      if (!detail.active || !detail.song || detail.song === lastSongRef.current) return;
-      lastSongRef.current = detail.song;
-      freezeAtCurrentPosition();
-      updateMood("dance");
-      say(buddyLine("music"), 2600);
-      settleDown(3200);
-    }
-
-    function reactToCommentTyping(event) {
-      const buddyRect = rootRef.current?.getBoundingClientRect();
-      const buddyIsVisible = buddyRect && buddyRect.bottom > 0 && buddyRect.top < window.innerHeight && buddyRect.right > 0 && buddyRect.left < window.innerWidth;
-      if (!buddyIsVisible || moodRef.current === "off") return;
-
-      const canPause = !activeEventRef.current && !["held", "chute", "fishing", "outage", "hunt"].includes(moodRef.current);
-      if (canPause) {
-        freezeAtCurrentPosition();
-        updateMood("talk");
-      }
-      const username = String(event.detail?.username || "").trim();
-      const line = username && username.toLowerCase() !== "someone" && Math.random() < 0.45
-        ? `${username} is composing a transmission... stand by.`
-        : pickLine(LINES.commentTyping);
-      say(line, 3600, { key: "comment-typing", topic: "commentTyping" });
-      if (canPause) settleDown(3700);
     }
 
     // Relevo con la caida de bienvenida (BuddyDrop): mientras el clon del
@@ -1695,102 +387,8 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       }
     }
 
-    // Buddies de visita (BuddyVisitors): saludar cuando entran, despedirse
-    // cuando se van, y callar la charla de relleno mientras ellos hablan.
-    function onVisitorSignal(event) {
-      const detail = event.detail || {};
-      const known = visitorsRef.current.get(detail.id);
-      if (known && Number.isFinite(detail.x)) known.x = detail.x;
-      if (detail.phase === "talking") {
-        visitorFloorRef.current = Math.max(visitorFloorRef.current, Number(detail.until) || 0);
-        answerVisitor(detail);
-        return;
-      }
-      if (detail.phase === "arrive" && detail.id) {
-        visitorsRef.current.set(detail.id, { id: detail.id, name: detail.name || "", look: detail.look || null, x: detail.x });
-      } else if (["leave", "gone"].includes(detail.phase)) {
-        visitorsRef.current.delete(detail.id);
-      }
-      if (detail.phase === "gone") return;
-      if (!bootedRef.current || moodRef.current === "off") return;
-      const pool = HOST_REPLY_LINES[detail.name ? detail.phase : `${detail.phase}Guest`] || HOST_REPLY_LINES[detail.phase];
-      if (!pool) return;
-      const line = pickVisitLine(pool, { name: detail.name }, Math.random, lastVisitorReplyRef.current);
-      if (!line) return;
-      lastVisitorReplyRef.current = line;
-      const asleep = moodRef.current === "sleep";
-      if (!asleep && !activeEventRef.current && ["idle", "talk"].includes(moodRef.current) && Number.isFinite(detail.x)) {
-        updateFacing(facingForDirection(detail.x > xRef.current ? 1 : -1));
-        updateMood("talk");
-        settleDown(2600);
-      }
-      say(asleep ? `zz... ${line}` : line, 2400, { key: "visitor", topic: "visitor" });
-    }
-
-    // Una visita le dijo algo (o le contesto): a veces responde, cuando ella
-    // termina y si para entonces no habla nadie mas.
-    function answerVisitor(detail) {
-      const { topic, to, id, name, until } = detail;
-      if (!topic || (to && to !== "host")) return;
-      const now = Date.now();
-      if (now < visitorChatAtRef.current) return;
-      const line = hostAnswerTo(topic, { name }, Math.random, lastVisitorReplyRef.current);
-      if (!line) return;
-      visitorChatAtRef.current = now + VISITOR_CHAT_COOLDOWN_MS;
-      schedule(() => talkToVisitor(line, { topic: replyTopic(topic), to: id }), Math.max(0, (Number(until) || now) - now) + 250);
-    }
-
-    function talkToVisitor(line, { topic, to }) {
-      if (!canChat()) return;
-      lastVisitorReplyRef.current = line;
-      // Parado, se gira hacia quien le habla; andando, contesta sin pararse.
-      if (["idle", "talk"].includes(moodRef.current)) {
-        const x = visitorsRef.current.get(to)?.x;
-        if (Number.isFinite(x)) updateFacing(facingForDirection(x > xRef.current ? 1 : -1));
-        updateMood("talk");
-        settleDown(2600);
-      }
-      say(line, 2400, { priority: "ambient", key: "visitor-chat", topic, to });
-    }
-
-    // Una visita hizo algo: lo comenta, o se va con ella si sale a pasear.
-    function onBuddyAction(event) {
-      const detail = event.detail || {};
-      if (detail.actor !== "visitor") return;
-      const known = visitorsRef.current.get(detail.id);
-      if (!known) return;
-      known.x = Number.isFinite(detail.targetX) ? detail.targetX : detail.x;
-      if (!canChat()) return;
-      const now = Date.now();
-      if (now < visitorChatAtRef.current) return;
-
-      if (detail.action === "roam" && moodRef.current === "idle" && !reduceMotion && Math.random() < TAG_ALONG_CHANCE) {
-        visitorChatAtRef.current = now + VISITOR_CHAT_COOLDOWN_MS;
-        const side = xRef.current < detail.targetX ? -1 : 1;
-        schedule(() => {
-          if (moodRef.current !== "idle" || activeEventRef.current) return;
-          if (startWalk(detail.targetX + side * TAG_ALONG_GAP, detail.id)) {
-            say(pickVisitLine(ACTION_LINES.byHost.tagAlong, {}, Math.random, lastVisitorReplyRef.current), 2200, { priority: "ambient", key: "visitor-chat", topic: "end", to: detail.id });
-          }
-        }, 900);
-        return;
-      }
-
-      const line = actionComment("byHost", detail.action, { name: detail.name }, Math.random, lastVisitorReplyRef.current);
-      if (!line) return;
-      visitorChatAtRef.current = now + VISITOR_CHAT_COOLDOWN_MS;
-      schedule(() => talkToVisitor(line, { topic: actionTopic(detail.action), to: detail.id }), Math.max(700, visitorFloorRef.current - now + 250));
-    }
-
     function clampToStage() {
-      if (activeEventRef.current === "fishing") {
-        freezeAtCurrentPosition();
-        endBuddyEvent("fishing");
-        setFishingCatch("");
-        setFishingCatchId("");
-        liftTo(0);
-        updateMood("idle");
-      }
+      fishing.api.abort();
       const maxX = Math.max(WALK_MARGIN, stageWidth() - SPRITE_WIDTH - WALK_MARGIN);
       if (xRef.current > maxX) {
         setWalkMs(0);
@@ -1822,198 +420,71 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       });
     }
 
-    // Primera pesca posible ~45s despues de montar; luego manda el cooldown.
-    fishingCooldownRef.current = Date.now() - FISHING_COOLDOWN_MS + 45000;
-    rainCooldownRef.current = Date.now() - RAIN_COOLDOWN_MS + 20000;
-    findCooldownRef.current = Date.now() - FIND_COOLDOWN_MS + 35000;
-    enemyCooldownRef.current = Date.now() - ENEMY_COOLDOWN_MS + 50000;
-    creatureCooldownRef.current = Date.now() - CREATURE_COOLDOWN_MS + 18000;
-    outageCooldownRef.current = Date.now();
-
-    // --- Lo que pasa alrededor: volver al footer o a la pestaña, perder la
-    // conexion, y el tiempo de verdad donde esta el jugador.
-    let footerHiddenAt = 0;
-    let tabHiddenAt = 0;
-
-    function canChat() {
-      return bootedRef.current
-        && !activeEventRef.current
-        && !attractModeRef.current
-        && !["off", "held", "chute", "outage", "hunt", "fishing", "sleep", "sleepy"].includes(moodRef.current);
-    }
-
-    function chat(lines, topic, ms = 2600, priority = "event") {
-      if (!canChat()) return;
-      updateMood("talk");
-      say(rememberTopic(pickLine(lines), topic), ms, { priority, key: priority === "ambient" ? "ambient" : topic, topic });
-      settleDown(ms + 100);
-    }
-
-    function onTabVisibility() {
-      if (document.visibilityState === "hidden") {
-        tabHiddenAt = Date.now();
-        return;
-      }
-      const away = tabHiddenAt ? Date.now() - tabHiddenAt : 0;
-      tabHiddenAt = 0;
-      if (away >= TAB_AWAY_MS && visibleRef.current) chat(EVENT_LINES.tabReturn, "tabReturn");
-    }
-
-    function onOffline() {
-      chat(EVENT_LINES.offline, "offline", 3000);
-    }
-
-    function onOnline() {
-      chat(EVENT_LINES.online, "online");
-    }
-
-    let weatherTimer = 0;
-    async function loadWeather() {
-      try {
-        const response = await fetch("/api/weather", { cache: "no-store", headers: { Accept: "application/json" } });
-        if (response.ok) {
-          const weather = await response.json();
-          if (!disposed && weather?.available) {
-            weatherRef.current = weather;
-            // El cielo del footer pinta este mismo tiempo.
-            window.dispatchEvent(new CustomEvent("daivr-outside-weather", { detail: weather }));
-          }
-        }
-      } catch {
-        // Sin el tiempo de fuera, Buddy usa el parte del armario.
-      }
-      if (!disposed) weatherTimer = window.setTimeout(loadWeather, WEATHER_REFRESH_MS);
-    }
-
-    // UpdateNotice encontro una version nueva: Buddy la anuncia cuando pueda.
-    function onUpdateAvailable(event) {
-      if (event.detail?.build) pendingUpdateRef.current = event.detail;
-    }
-
-    // `weather` en la consola (o pruebas): pone el tiempo y Buddy lo comenta.
-    function onWeatherSignal(event) {
-      const detail = event.detail || {};
-      if (detail.weather?.available) {
-        weatherRef.current = detail.weather;
-        window.dispatchEvent(new CustomEvent("daivr-outside-weather", { detail: detail.weather }));
-      }
-      if (!detail.announce) return;
-      const lines = contextLines({ weather: weatherRef.current, locale: navigator.language }).filter((entry) => entry.topic === "weather").map((entry) => entry.line);
-      chat(lines, "weather", 3200);
-    }
-
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = entries.some((entry) => entry.isIntersecting);
         visibleRef.current = visible;
         if (visible && !bootedRef.current && !dropInFlightRef.current) bootUp();
-        // Vuelve a bajar al footer despues de un rato: Buddy se da por enterado.
-        if (!visible) footerHiddenAt = Date.now();
-        else if (footerHiddenAt && Date.now() - footerHiddenAt >= FOOTER_AWAY_MS && Math.random() < 0.6) chat(EVENT_LINES.footer, "footer", 2600, "ambient");
-        if (visible) footerHiddenAt = 0;
+        chat.api.onFooterVisibility(visible);
       },
       { threshold: 0.15 }
     );
     if (stage) observer.observe(stage);
-    loadWeather();
 
     const brainTimer = window.setInterval(brainTick, BRAIN_TICK_MS);
     const activityEvents = ["pointerdown", "keydown", "wheel", "touchstart"];
     activityEvents.forEach((name) => window.addEventListener(name, markActivity, { passive: true }));
     window.addEventListener("pointermove", markActivity, { passive: true });
     window.addEventListener("pointermove", trackPointer, { passive: true });
-    window.addEventListener("daivr-achievement", celebrate);
-    window.addEventListener("daivr-theme", reactToTheme);
-    window.addEventListener("daivr-now-playing", reactToNowPlaying);
-    window.addEventListener("daivr-comment-typing", reactToCommentTyping);
     window.addEventListener("daivr-buddy-drop", onDropSignal);
-    window.addEventListener("daivr-cart-swap", reactToCartSwap);
-    window.addEventListener("daivr-buddy-fish", onFishSignal);
-    window.addEventListener("daivr-footer-fish-seen", reactToFishJump);
-    window.addEventListener("daivr-footer-fish-bump", reactToFishBump);
-    window.addEventListener("daivr-footer-wildlife-event", onWildlifeEvent);
-    window.addEventListener("daivr-buddy-rain", onRainSignal);
-    window.addEventListener("daivr-buddy-find", onFindSignal);
-    window.addEventListener("daivr-buddy-creature", onCreatureSignal);
-    window.addEventListener("daivr-buddy-enemy", onEnemySignal);
-    window.addEventListener("daivr-buddy-outage", onOutageSignal);
-    window.addEventListener("daivr-buddy-leviathan", onLeviathanSignal);
-    window.addEventListener("daivr-buddy-kraken", onKrakenSignal);
     window.addEventListener("daivr-attract-mode", reactToAttractMode);
-    window.addEventListener("daivr-buddy-visitor", onVisitorSignal);
-    window.addEventListener("daivr-buddy-action", onBuddyAction);
-    window.addEventListener("daivr-update-available", onUpdateAvailable);
-    window.addEventListener("daivr-buddy-weather", onWeatherSignal);
-    window.addEventListener("offline", onOffline);
-    window.addEventListener("online", onOnline);
-    document.addEventListener("visibilitychange", onTabVisibility);
     window.addEventListener("resize", clampToStage);
 
     return () => {
       observer.disconnect();
-      disposed = true;
+      core.disposed = true;
       window.clearInterval(brainTimer);
       window.cancelAnimationFrame(eyeRaf);
-      window.cancelAnimationFrame(dragFrameRef.current);
       activityEvents.forEach((name) => window.removeEventListener(name, markActivity));
       window.removeEventListener("pointermove", markActivity);
       window.removeEventListener("pointermove", trackPointer);
-      window.removeEventListener("daivr-achievement", celebrate);
-      window.removeEventListener("daivr-theme", reactToTheme);
-      window.removeEventListener("daivr-now-playing", reactToNowPlaying);
-      window.removeEventListener("daivr-comment-typing", reactToCommentTyping);
       window.removeEventListener("daivr-buddy-drop", onDropSignal);
-      window.removeEventListener("daivr-cart-swap", reactToCartSwap);
-      window.removeEventListener("daivr-buddy-fish", onFishSignal);
-      window.removeEventListener("daivr-footer-fish-seen", reactToFishJump);
-      window.removeEventListener("daivr-footer-fish-bump", reactToFishBump);
-      window.removeEventListener("daivr-footer-wildlife-event", onWildlifeEvent);
-      window.removeEventListener("daivr-buddy-rain", onRainSignal);
-      window.removeEventListener("daivr-buddy-find", onFindSignal);
-      window.removeEventListener("daivr-buddy-creature", onCreatureSignal);
-      window.removeEventListener("daivr-buddy-enemy", onEnemySignal);
-      window.removeEventListener("daivr-buddy-outage", onOutageSignal);
-      window.removeEventListener("daivr-buddy-leviathan", onLeviathanSignal);
-      window.removeEventListener("daivr-buddy-kraken", onKrakenSignal);
       window.removeEventListener("daivr-attract-mode", reactToAttractMode);
-      window.removeEventListener("daivr-buddy-visitor", onVisitorSignal);
-      window.removeEventListener("daivr-buddy-action", onBuddyAction);
-      window.removeEventListener("daivr-update-available", onUpdateAvailable);
-      window.removeEventListener("daivr-buddy-weather", onWeatherSignal);
-      window.removeEventListener("offline", onOffline);
-      window.removeEventListener("online", onOnline);
-      document.removeEventListener("visibilitychange", onTabVisibility);
-      window.clearTimeout(weatherTimer);
       window.removeEventListener("resize", clampToStage);
       clearDialogue(false);
-      window.clearTimeout(fxTimerRef.current);
+      window.clearTimeout(core.fxTimerRef.current);
       timers.forEach((timer) => window.clearTimeout(timer));
       timers.clear();
       if (activeEventRef.current) endBuddyEvent(activeEventRef.current);
-      onPowerOutageRef.current?.("");
     };
+    // Las piezas (core y las api) no cambian en toda la vida del componente.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const isHappy = ["pet", "party", "dance"].includes(mood)
-    || (mood === "fishing" && fishingPhase === "catch")
+    || (mood === "fishing" && fishingView.phase === "catch")
     || (mood === "hunt" && enemy?.phase === "hit")
     || (mood === "outage" && outagePhase === "restore");
   const isAsleep = mood === "sleep";
   const isAirborne = y < -4;
-  const hasRocketBoots = unlockedGear.includes("rocket-boots") && !hiddenGear.includes("rocket-boots");
-  const currentStageWidth = stageWidth();
+  const fishingPhase = fishingView.phase;
+  const leviathanResponse = fishingView.leviathanResponse;
+  const currentStageWidth = core.stageWidth();
   const bubbleAnchor = x > currentStageWidth - 180 ? "anchor-right" : x < 116 ? "anchor-left" : "anchor-center";
   const eventSide = x < 132 ? 1 : x + SPRITE_WIDTH > currentStageWidth - 132 ? -1 : (facing > 0 ? -1 : 1);
   const creatureSide = creature?.side || eventSide;
-  const fishingCatchItem = fishById(fishingCatchId);
+  const expression = isHappy || (mood === "fishing" && leviathanResponse === "signal") ? "happy"
+    : isAsleep ? "sleep"
+      : ["bite", "omen", "monster"].includes(fishingPhase) && !leviathanResponse ? "surprised"
+        : mood === "hunt" || outagePhase === "fix" || fishingPhase === "fight" || (fishingPhase === "monster" && leviathanResponse === "steady") ? "focus"
+          : "idle";
 
   return (
     <>
-    <BuddyFishingPortal portal={fishingPortal} onClosed={closeFishingPortal} />
-    <LeviathanEncounter phase={mood === "fishing" && ["omen", "monster", "retreat"].includes(fishingPhase) ? fishingPhase : ""} container={rootRef.current?.parentElement} creature={seaCreature} buddyX={x} response={leviathanResponse} onInteract={(action) => leviathanInteractionRef.current?.(action)} />
+    <BuddyFishingPortal portal={fishingView.portal} onClosed={fishingView.closePortal} />
+    <LeviathanEncounter phase={mood === "fishing" && ["omen", "monster", "retreat"].includes(fishingPhase) ? fishingPhase : ""} container={rootRef.current?.parentElement} creature={fishingView.seaCreature} buddyX={x} response={leviathanResponse} onInteract={fishing.api.interact} />
     <div
-      className={`screen-buddy-root is-${mood} ${fishingPhase === "approach" ? "is-fishing-approach" : ""} ${fx ? `fx-${fx}` : ""} ${mood === "fishing" && fishingPhase === "fight" ? "is-fish-fight" : ""} ${weather ? `weather-${weather}` : ""} ${outagePhase ? `outage-${outagePhase}` : ""} ${isAirborne ? "is-airborne" : ""} ${hasRocketBoots ? "has-rocket-boots" : ""} ${hasMikuCostume ? "has-miku-costume" : ""}`}
+      className={`screen-buddy-root is-${mood} ${fishingPhase === "approach" ? "is-fishing-approach" : ""} ${fx ? `fx-${fx}` : ""} ${mood === "fishing" && fishingPhase === "fight" ? "is-fish-fight" : ""} ${weather.view.weather ? `weather-${weather.view.weather}` : ""} ${outagePhase ? `outage-${outagePhase}` : ""} ${isAirborne ? "is-airborne" : ""} ${hasRocketBoots ? "has-rocket-boots" : ""} ${hasMikuCostume ? "has-miku-costume" : ""}`}
       ref={rootRef}
       data-leviathan-response={mood === "fishing" ? leviathanResponse : ""}
       style={{
@@ -2081,7 +552,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
           className={`buddy-field-find is-${fieldFind.id}`}
           type="button"
           style={{ "--find-x": `${fieldFind.side * 76}px` }}
-          onClick={collectFieldFind}
+          onClick={encounters.api.collectFieldFind}
           aria-label={`Collect ${fieldFind.name}`}
         >
           <BuddyCollectibleIcon id={fieldFind.id} color={fieldFind.color} className="buddy-find-art" />
@@ -2123,10 +594,10 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         aria-label="Pet Dai's screen buddy (drag to carry it)"
         onClick={handlePet}
         onDoubleClick={handleFlip}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerRelease}
-        onPointerCancel={handlePointerRelease}
+        onPointerDown={drag.handlePointerDown}
+        onPointerMove={drag.handlePointerMove}
+        onPointerUp={drag.handlePointerRelease}
+        onPointerCancel={drag.handlePointerRelease}
       >
         {creature?.id === "bird" ? (
           <span
@@ -2156,51 +627,10 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
           )}
 
           {mood === "fishing" ? (
-            <span
-              className={`buddy-fishing-rig is-${fishingPhase || "cast"} ${fishingCatch ? `tier-${fishingCatch}` : ""} ${fishingCatchId ? `catch-${fishingCatchId}` : ""} ${equippedRod} ${equippedLure}`}
-              style={{ "--buddy-water-offset": FISHING_WATER_OFFSET }}
-              aria-hidden="true"
-            >
-              {/* Caña + linea dibujadas mirando a la izquierda (facing 1);
-                  el contenedor se espeja con --buddy-facing igual que el sprite.
-                  Los colores de caña/boya los pisa el aparejo puesto via CSS. */}
-              <svg className="buddy-fishing-svg" viewBox="0 0 44 78" width="44" height="78">
-                <BuddyFishingRodArt />
-                <path className="buddy-cast-trace" d={`M32 36Q-17-8 5 ${70 + FISHING_WATER_OFFSET}`} fill="none" stroke="#97c9c4" strokeWidth="1" />
-
-                <g className="buddy-fishing-line-group">
-                  <g shapeRendering="crispEdges">
-                    <path className="buddy-fishing-line" d="M6 15v12H5v16H4v13h1v9" fill="none" stroke="#b8e5db" strokeWidth="1" />
-                    <g transform={`translate(0 ${FISHING_WATER_OFFSET})`}><g className="buddy-fishing-bobber">
-                      <BuddyWornGear id={equippedLure || "lure"} x={0} y={62} width={11} height={12} />
-                    </g></g>
-                  </g>
-                </g>
-
-                {/* Superficie del vacio: ondas concentricas alrededor del anzuelo */}
-                <g transform={`translate(0 ${FISHING_WATER_OFFSET})`}><g className="buddy-fishing-ripples" shapeRendering="crispEdges">
-                  <path className="buddy-water-surface" d="M-13 70h13v-1h11v1h17v2H12v1H-2v-1h-11z" fill="#164d68" />
-                  <path className="buddy-ripple buddy-ripple-a" d="M1 70h3v-1h4v1h3v1H8v1H4v-1H1z" fill="#b8f7ff" />
-                  <path className="buddy-ripple buddy-ripple-b" d="M-4 71h5v-1h11v1h5v1h-5v1H1v-1h-5z" fill="#45d8ff" />
-                  <path className="buddy-ripple buddy-ripple-c" d="M-10 72h7v-1h19v1h8v1h-8v1H-3v-1h-7z" fill="#b8f7ff" />
-                </g></g>
-
-                {!["catch", "escape", "retreat"].includes(fishingPhase) ? <path className="buddy-hook-line" transform={`translate(0 ${FISHING_WATER_OFFSET})`} d="M5 70v3h2v2H4" fill="none" stroke="#b8f7ff" strokeWidth="1" /> : null}
-
-                <g transform={`translate(0 ${FISHING_WATER_OFFSET})`}><g className="buddy-cast-splash" shapeRendering="crispEdges">
-                  <path d="M-6 68h3v-3h2v3h3v2h-8m14-2h3v-4h2v4h4v2H8" fill="#8ae8e5" />
-                  <rect x="3" y="62" width="2" height="3" fill="#f4fff8" />
-                </g></g>
-                <g className="buddy-fishing-loot" shapeRendering="crispEdges">
-                  <BuddyCollectibleIcon id={fishingCatchId || "byte-minnow"} color={fishingCatchItem?.color} className="buddy-caught-specimen" x={-10} y={20} width={30} height={23} />
-                  <g className="buddy-catch-drips" fill="#8cd8d6"><path d="M-4 41h2v3h-2z" /><path d="M8 43h1v3H8z" /><path d="M16 39h2v3h-2z" /></g>
-                  <path className="buddy-catch-glint" d="M-14 22v8m-4-4h8m35-10v6m-3-3h6" stroke="#ffe29c" strokeWidth="1" fill="none" />
-                </g>
-              </svg>
-            </span>
+            <BuddyFishingRig phase={fishingPhase} catchTier={fishingView.catchTier} catchId={fishingView.catchId} rod={equippedRod} lure={equippedLure} />
           ) : null}
 
-          {weather === "rain" ? (
+          {weather.view.weather === "rain" ? (
             <span className="buddy-weather" style={{ "--rain-duration": `${RAIN_DURATION_MS}ms` }} aria-hidden="true">
               <span className="buddy-rain-field">
                 {Array.from({ length: 18 }, (_, index) => <i key={index} style={{ "--rain-i": index }} />)}
@@ -2215,9 +645,11 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
 
           {mood === "outage" ? <BuddyOutageKit phase={outagePhase} /> : null}
 
+          {mood === "campfire" && campfire.view.campfire ? <BuddyCampfireStick {...campfire.view.campfire} /> : null}
+
           <BuddySprite
             className="screen-buddy-sprite"
-            expression={isHappy || (mood === "fishing" && leviathanResponse === "signal") ? "happy" : isAsleep ? "sleep" : ["bite", "omen", "monster"].includes(fishingPhase) && !leviathanResponse ? "surprised" : mood === "hunt" || outagePhase === "fix" || fishingPhase === "fight" || (fishingPhase === "monster" && leviathanResponse === "steady") ? "focus" : "idle"}
+            expression={expression}
             facing={facing}
             friendshipLevel={friendshipLevel}
             inventory={inventory}
@@ -2225,27 +657,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
             unlockedGear={unlockedGear}
           />
 
-          {mood === "fishing" && hasMikuCostume ? (
-            <span
-              className={`buddy-fishing-rod-overlay is-${fishingPhase || "cast"} ${equippedRod}`}
-              aria-hidden="true"
-            >
-              <svg className="buddy-fishing-rod-overlay-svg" viewBox="0 0 44 78" width="44" height="78">
-                <g shapeRendering="crispEdges">
-                  <BuddyFishingRodArt />
-
-                  {/* Two small foreground grips visually lock her posed hands
-                      around the handle instead of letting it cross her body. */}
-                  <g className="buddy-miku-rod-grip">
-                    <rect x="28" y="38" width="5" height="4" fill="#202633" />
-                    <rect x="29" y="39" width="3" height="2" fill="#ffd8c8" />
-                    <rect x="31" y="42" width="5" height="4" fill="#202633" />
-                    <rect x="32" y="43" width="3" height="2" fill="#ffd8c8" />
-                  </g>
-                </g>
-              </svg>
-            </span>
-          ) : null}
+          {mood === "fishing" && hasMikuCostume ? <BuddyMikuRodOverlay phase={fishingPhase} rod={equippedRod} /> : null}
         </span>
         <span className="screen-buddy-shadow" aria-hidden="true" />
       </button>

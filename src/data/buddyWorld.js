@@ -36,16 +36,18 @@ export function fishById(id) {
   return FISH_CATALOG.find((item) => item.id === id);
 }
 
-export function weightedCatch(lure = "") {
+// Con luna llena hay menos chatarra y mas raros (y algun mitico mas).
+export function weightedCatch(lure = "", { fullMoon = false } = {}) {
   const roll = Math.random();
+  const moon = fullMoon ? 0.06 : 0;
   let rarity;
 
   if (roll < 0.3) rarity = "common";
   else if (roll < 0.52) rarity = "uncommon";
-  else if (roll < 0.68) rarity = "junk";
+  else if (roll < 0.68 - moon) rarity = "junk";
   else if (roll < (lure === "lure" ? 0.9 : 0.87)) rarity = "rare";
   else if (roll < 0.95) rarity = "treasure";
-  else if (roll < 0.992) rarity = "legendary";
+  else if (roll < 0.992 - moon / 6) rarity = "legendary";
   else rarity = "mythic";
 
   if (rarity === "junk" && lure === "lure-magnet") rarity = "uncommon";

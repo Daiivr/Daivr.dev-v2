@@ -10,7 +10,7 @@ import { buildInbox, markInboxRead } from "./community-inbox.mjs";
 import { canProxyGif, normalizeGifUrl, updateGifFavorites } from "../shared/comment-gifs.mjs";
 import { downloadCommentGif } from "./comment-gif-download.mjs";
 import { commentGifPreview } from "./comment-gif-preview.mjs";
-import { applyVisitLook, attachVisitor, visitRosterFor } from "./buddy-visits.mjs";
+import { applyVisitLook, applyVisitWave, attachVisitor, visitRosterFor } from "./buddy-visits.mjs";
 
 const COMMENTS_FILENAME = "comments.json";
 const PREFERENCES_FILENAME = "preferences.json";
@@ -1115,6 +1115,18 @@ async function routeCommentsRequest(request, response) {
   if (request.method === "GET" && parts[0] === "me") {
     sendJson(response, 200, getAuthStatus(request));
     return;
+  }
+
+  if (request.method === "POST" && parts.length === 2 && parts[0] === "stream" && parts[1] === "wave") {
+    const result = applyVisitWave(streamClients, await readBody(request), getUser);
+    if (result.target) {
+      try {
+        sendEvent(result.target.response, "visits:wave", result.payload);
+      } catch {
+        streamClients.delete(result.target);
+      }
+    }
+    return sendJson(response, result.status, result.error ? { error: result.error } : { ok: true });
   }
 
   if (request.method === "POST" && parts.length === 2 && parts[0] === "stream" && parts[1] === "look") {

@@ -8,6 +8,7 @@ import { BuddySprite } from "./BuddySprite";
 import { GatePatina } from "./GatePatina";
 import { GateLamp } from "./GateLamp";
 import { SeasonalSplashNotice } from "./SeasonalSplashNotice";
+import { SeasonalScenery } from "./SeasonalScenery";
 
 // El anfitrion VRM arrastra three.js + @pixiv/three-vrm. Cargarlo aparte deja
 // que la puerta pinte sin esperar a ese chunk, y el splash movil (que nunca
@@ -375,9 +376,10 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
       <div className="entry-gate-room-light" aria-hidden="true" />
       <GateLamp on={lampOn} onToggle={() => setLampOn((value) => !value)} disabled={opening} reducedMotion={reducedMotion} />
 
-      {seasonalEvent === "winter" || seasonalEvent === "halloween" ? (
+      {seasonalEvent ? (
         // Decorado estacional del splash: el evento se ve desde la puerta.
         <div className={`entry-splash-season is-${seasonalEvent}`} aria-hidden="true">
+          <SeasonalScenery event={seasonalEvent} />
           {seasonalEvent === "winter"
             ? Array.from({ length: 16 }, (_, index) => (
               <i
@@ -546,14 +548,24 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
 
         <span className="entry-gate-footer-note">A little code. A little chaos.</span>
         <div className={`splash-buddy ${opening ? "is-launched" : ""}`} aria-hidden="true" ref={perchRef}>
-          {cabinetReady ? <BuddySprite
-            className="splash-buddy-sprite"
-            expression={hostPresent ? "happy" : "idle"}
-            friendshipLevel={Math.max(friendshipLevel, buddyLevel)}
-            inventory={inventory}
-            hiddenGear={hiddenGear}
-            unlockedGear={unlockedGear}
-          /> : null}
+          {/* Sale en cuanto tiene su equipo, y no de golpe: asoma por detras
+              del borde, mira, sube de un salto y aterriza levantando polvo
+              (entry-gate.css). */}
+          {cabinetReady ? (
+            <>
+              <span className="splash-buddy-arrive">
+                <BuddySprite
+                  className="splash-buddy-sprite"
+                  expression={hostPresent ? "happy" : "idle"}
+                  friendshipLevel={Math.max(friendshipLevel, buddyLevel)}
+                  inventory={inventory}
+                  hiddenGear={hiddenGear}
+                  unlockedGear={unlockedGear}
+                />
+              </span>
+              <i className="splash-buddy-dust" />
+            </>
+          ) : null}
         </div>
       </footer>
     </div>

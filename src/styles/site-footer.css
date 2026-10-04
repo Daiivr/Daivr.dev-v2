@@ -557,6 +557,51 @@
     background: color-mix(in srgb, var(--color-phosphor) 46%, transparent);
   }
 
+  /* Interruptor del sonido ambiente (FooterSoundscape): la misma pastilla,
+     con un LED ambar encendido o apagado. */
+  .footer-pill-sound {
+    cursor: var(--cursor-pointer, pointer);
+    font-family: inherit;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
+  }
+
+  .footer-pill-sound:hover,
+  .footer-pill-sound:focus-visible {
+    border-color: color-mix(in srgb, #ffd166 46%, transparent);
+  }
+
+  .footer-pill-sound:focus-visible {
+    outline: 1px dashed #ffd166;
+    outline-offset: 2px;
+  }
+
+  .footer-pill-led-amber .footer-pill-led-core {
+    background: #5d5440;
+  }
+
+  .footer-pill-led-amber .footer-pill-led-ping {
+    display: none;
+    background: color-mix(in srgb, #ffd166 46%, transparent);
+  }
+
+  .footer-pill-sound .footer-pill-value {
+    color: color-mix(in srgb, var(--color-phosphor-soft) 50%, transparent);
+  }
+
+  .footer-pill-sound.is-on .footer-pill-led-core {
+    background: #ffd166;
+    box-shadow: 0 0 10px color-mix(in srgb, #ffd166 55%, transparent);
+  }
+
+  .footer-pill-sound.is-on .footer-pill-led-ping {
+    display: block;
+  }
+
+  .footer-pill-sound.is-on .footer-pill-value {
+    color: #ffd166;
+    text-shadow: 0 0 8px color-mix(in srgb, #ffd166 36%, transparent);
+  }
+
   .footer-prompt-band {
     position: relative;
     z-index: 1;

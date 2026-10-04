@@ -7,10 +7,8 @@
   --gate-panel-inset: clamp(24px, 6vh, 64px) clamp(20px, 3vw, 58px) clamp(100px, 18vh, 180px);
   --gate-lamp-x: calc(50% + clamp(100px, 12vw, 180px));
   --gate-lamp-drop: clamp(14px, 3vh, 30px);
-  /* The host is the whole composition, so it takes every pixel between the top
-     of the stage and the HUD rail. The box stays narrow relative to that height
-     because the VRM camera frames vertically: extra width is only ever empty
-     canvas either side of the avatar. */
+  /* This narrow box anchors the host and speech. The immersive canvas gets
+     extra horizontal room below so outstretched gestures remain visible. */
   --host-h: min(52rem, calc(100dvh - 7.5rem));
   --host-w: calc(var(--host-h) * 0.68);
   position: fixed;
@@ -1090,6 +1088,127 @@
   visibility: hidden;
 }
 
+/* Llegada del perchado (se monta cuando App ya tiene su equipo): asoma la
+   cabeza por detras del borde, se queda mirando, sube de un salto y aterriza
+   aplastandose un poco. El clip-path corta todo lo que queda por debajo del
+   borde: va en coordenadas del propio elemento, asi que su recorte inferior
+   sigue al translateY con el mismo valor (y los gorros y la antena, que se
+   salen del svg, empiezan 36px mas abajo para no asomar antes de tiempo). */
+.entry-gate .splash-buddy-arrive {
+  display: block;
+  transform-origin: 50% 100%;
+  animation: splash-buddy-arrive 1250ms linear backwards;
+}
+
+.entry-gate .splash-buddy-dust {
+  position: absolute;
+  left: 50%;
+  bottom: 2px;
+  pointer-events: none;
+}
+
+/* Dos nubecillas de pixeles, una a cada lado de los pies, al aterrizar. */
+.entry-gate .splash-buddy-dust::before,
+.entry-gate .splash-buddy-dust::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  width: 3px;
+  height: 3px;
+  background: color-mix(in srgb, var(--color-phosphor) 62%, white);
+  opacity: 0;
+  animation: splash-buddy-dust 560ms ease-out 950ms both;
+}
+
+.entry-gate .splash-buddy-dust::before {
+  --dust-x: -12px;
+  left: -24px;
+  box-shadow:
+    -4px -3px 0 0 color-mix(in srgb, var(--color-phosphor) 45%, transparent),
+    -1px -6px 0 -1px color-mix(in srgb, var(--color-phosphor) 35%, transparent),
+    -8px 0 0 -1px color-mix(in srgb, var(--color-phosphor) 40%, transparent);
+}
+
+.entry-gate .splash-buddy-dust::after {
+  --dust-x: 12px;
+  left: 21px;
+  box-shadow:
+    4px -3px 0 0 color-mix(in srgb, var(--color-phosphor) 45%, transparent),
+    1px -6px 0 -1px color-mix(in srgb, var(--color-phosphor) 35%, transparent),
+    8px 0 0 -1px color-mix(in srgb, var(--color-phosphor) 40%, transparent);
+}
+
+@keyframes splash-buddy-arrive {
+  0% {
+    transform: translateY(calc(100% + 36px));
+    clip-path: inset(-80px -60px calc(100% + 36px) -60px);
+    animation-timing-function: cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
+  /* Asoma hasta los ojos y se queda mirando un momento. */
+  24%, 44% {
+    transform: translateY(44%);
+    clip-path: inset(-80px -60px 44% -60px);
+    animation-timing-function: cubic-bezier(0.5, 0, 0.9, 0.6);
+  }
+  /* Impulso: sale del borde estirandose... */
+  54% {
+    transform: translateY(0) scale(0.95, 1.06);
+    clip-path: inset(-80px -60px 0 -60px);
+    animation-timing-function: cubic-bezier(0.1, 0.5, 0.4, 1);
+  }
+  64% {
+    transform: translateY(-20%) scale(0.96, 1.05);
+    clip-path: inset(-80px -60px -20px -60px);
+    animation-timing-function: cubic-bezier(0.6, 0, 0.9, 0.5);
+  }
+  /* ...y aterriza aplastandose. */
+  76% {
+    transform: translateY(0) scale(1.12, 0.86);
+    clip-path: inset(-80px -60px -20px -60px);
+    animation-timing-function: ease-out;
+  }
+  87% {
+    transform: scale(0.96, 1.05);
+    clip-path: inset(-80px -60px -20px -60px);
+    animation-timing-function: ease-in-out;
+  }
+  94% {
+    transform: scale(1.02, 0.98);
+    clip-path: inset(-80px -60px -20px -60px);
+    animation-timing-function: ease-in-out;
+  }
+  100% {
+    transform: none;
+    clip-path: inset(-80px -60px -20px -60px);
+  }
+}
+
+@keyframes splash-buddy-dust {
+  0% {
+    opacity: 0.95;
+    transform: translate(0, 0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--dust-x), -7px) scale(0.5);
+  }
+}
+
+/* Sin movimiento: aparece con un fundido, sin salto ni polvo. */
+@keyframes splash-buddy-fade {
+  from { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .entry-gate .splash-buddy-arrive {
+    animation: splash-buddy-fade 360ms ease-out backwards;
+  }
+
+  .entry-gate .splash-buddy-dust {
+    display: none;
+  }
+}
+
 /* Opening: the host clears the opening, then both panels slide apart together
    and ease into their stops. Keep the frame until both are clear.
    Every beat derives from the same duration as the React unmount timer. */
@@ -1573,6 +1692,16 @@
 .entry-gate { --gate-host-x: calc(19.5vw - max(0px, (100vw - 1680px) / 2)); }
 .entry-gate-host { position: absolute; left: var(--gate-host-x); bottom: 0; max-width: 100%; height: min(100%, var(--host-h)); max-height: var(--host-h); translate: -50% 0; }
 .entry-gate.is-immersive .entry-gate-host { scale: 1.06; transform-origin: center bottom; }
+.entry-gate.is-immersive .entry-avatar-scene {
+  /* The camera has a fixed vertical FOV: widening its real drawing surface
+     reveals the hands without zooming out or moving the host. Use the actual
+     stage height so short windows do not allocate an unnecessarily wide canvas. */
+  left: 50%;
+  right: auto;
+  width: max(100%, calc(min(100cqh, var(--host-h)) * 1.12));
+  translate: -50% 0;
+  pointer-events: none;
+}
 .entry-gate-speech {
   --gate-host-box: min(100cqh, var(--host-h));
   left: calc(var(--gate-host-x) + var(--gate-host-box) * 0.14);

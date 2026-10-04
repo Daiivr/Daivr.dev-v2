@@ -346,6 +346,114 @@
     }
   }
 
+  /* Luna llena: mas brillante y con un halo mas grande. */
+  .footer-sky-moon.is-full .footer-sky-halo {
+    width: 124px;
+    height: 124px;
+    opacity: 1;
+    background: radial-gradient(circle, #e4f0ff55 0%, #c6dcff1f 36%, transparent 68%);
+  }
+
+  .footer-sky-moon.is-full svg {
+    filter: drop-shadow(0 0 7px #e8f4ff80);
+  }
+
+  /* Arcoiris al escampar el chubasco de Buddy: se abre desde el centro, se
+     queda un rato y se apaga. Las patas quedan detras del bosque. */
+  .footer-sky-rainbow {
+    bottom: 0;
+    z-index: 1;
+    opacity: 0;
+    animation: sky-rainbow var(--rainbow-ms, 7000ms) ease-in-out forwards;
+  }
+
+  .footer-sky-rainbow svg {
+    display: block;
+  }
+
+  /* Estrellas fugaces: una capa encima del cielo (que es decorativo y no
+     se pulsa) con botones grandes y lentos, para poder acertar el clic.
+     Cruzan por encima de los arboles. */
+  .footer-sky-wishes {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% - 2px);
+    left: 0;
+    z-index: 2;
+    height: 156px;
+    overflow: hidden;
+    pointer-events: none;
+  }
+
+  .footer-shooting-star {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    margin: -20px 0 0 -20px;
+    border: 0;
+    padding: 0;
+    background: transparent;
+    pointer-events: auto;
+    cursor: var(--cursor-pointer, pointer);
+    animation: sky-shooting-star var(--ms, 2000ms) linear forwards;
+  }
+
+  /* Cola: una estela que apunta por donde vino. */
+  .footer-shooting-star::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 54px;
+    height: 2px;
+    margin-top: -1px;
+    background: linear-gradient(90deg, #fffbe8, rgba(255, 244, 200, 0.5) 30%, transparent);
+    transform-origin: 0 50%;
+    rotate: var(--tail-angle, -10deg);
+  }
+
+  .footer-shooting-star::after {
+    content: "";
+    position: absolute;
+    left: calc(50% - 2px);
+    top: calc(50% - 2px);
+    width: 4px;
+    height: 4px;
+    background: #fffef4;
+    box-shadow: 0 0 6px 2px rgba(255, 246, 210, 0.75);
+  }
+
+  .footer-shooting-star:focus-visible {
+    outline: 1px dashed var(--color-phosphor);
+    outline-offset: 2px;
+  }
+
+  /* Deseo pedido: chispas doradas donde estaba la estrella. */
+  .footer-wish-burst {
+    position: absolute;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .footer-wish-burst i {
+    position: absolute;
+    left: -2px;
+    top: -2px;
+    width: 4px;
+    height: 4px;
+    background: #ffe9a8;
+    box-shadow: 0 0 6px #ffd166;
+    animation: sky-wish-burst 900ms ease-out forwards;
+  }
+
+  .footer-wish-burst i:nth-child(1) { --bx: 0px; --by: -20px; }
+  .footer-wish-burst i:nth-child(2) { --bx: 17px; --by: -10px; }
+  .footer-wish-burst i:nth-child(3) { --bx: 17px; --by: 10px; }
+  .footer-wish-burst i:nth-child(4) { --bx: 0px; --by: 20px; }
+  .footer-wish-burst i:nth-child(5) { --bx: -17px; --by: 10px; }
+  .footer-wish-burst i:nth-child(6) { --bx: -17px; --by: -10px; }
+
   /* Sin movimiento: las nubes se quedan quietas repartidas por el cielo. */
   @media (prefers-reduced-motion: reduce) {
     .footer-sky * {
@@ -359,6 +467,15 @@
 
     .footer-sky-storm-shaft {
       opacity: 0.6;
+    }
+
+    .footer-sky-rainbow {
+      opacity: 0.5;
+    }
+
+    .footer-wish-burst i {
+      animation: none;
+      opacity: 0;
     }
   }
 }
@@ -424,4 +541,22 @@
   0%, 9% { opacity: 0; }
   18%, 78% { opacity: 1; }
   86%, 100% { opacity: 0; }
+}
+
+@keyframes sky-rainbow {
+  0% { opacity: 0; clip-path: inset(0 50% 0 50%); }
+  22% { opacity: 0.62; clip-path: inset(0 0 0 0); }
+  75% { opacity: 0.55; clip-path: inset(0 0 0 0); }
+  100% { opacity: 0; clip-path: inset(0 0 0 0); }
+}
+
+@keyframes sky-shooting-star {
+  0% { transform: translate(0, 0); opacity: 0; }
+  8%, 80% { opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)); opacity: 0; }
+}
+
+@keyframes sky-wish-burst {
+  from { transform: translate(0, 0) scale(1); opacity: 1; }
+  to { transform: translate(var(--bx), var(--by)) scale(0.4); opacity: 0; }
 }

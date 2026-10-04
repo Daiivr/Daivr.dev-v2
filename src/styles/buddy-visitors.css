@@ -66,6 +66,25 @@
     transition: opacity 160ms ease;
   }
 
+  /* Notita al saludar a un visitante: el saludo llego (o ya le habias saludado). */
+  .buddy-visitor-wave-note {
+    position: absolute;
+    bottom: calc(100% + 22px);
+    left: 50%;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 45%, transparent);
+    background: rgba(2, 9, 6, 0.9);
+    padding: 1px 6px;
+    color: var(--color-phosphor);
+    font-size: 0.5rem;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    pointer-events: none;
+    transform: translateX(-50%);
+    animation: buddy-visitor-wave-note 2400ms ease-out both;
+  }
+
   .screen-buddy-root.is-visitor.is-speaking .buddy-visitor-tag,
   .screen-buddy-root.is-visitor.is-fade-in .buddy-visitor-tag,
   .screen-buddy-root.is-visitor.is-fade-out .buddy-visitor-tag {
@@ -113,6 +132,12 @@
   48% { opacity: 0.8; }
   82% { opacity: 0.62; transform: translateX(1px); }
   83% { opacity: 0.86; transform: translateX(-1px); }
+}
+
+@keyframes buddy-visitor-wave-note {
+  0% { opacity: 0; transform: translate(-50%, 6px); }
+  12%, 78% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 0; transform: translate(-50%, -6px); }
 }
 
 @keyframes buddy-visitor-materialize {

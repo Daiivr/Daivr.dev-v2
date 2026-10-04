@@ -1,11 +1,12 @@
 import { BuddyMarketStand } from "./BuddyMarket";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { discord, profile } from "../data/site";
 import { useLanyardPresence } from "../hooks/useLanyardPresence";
 import { ScreenBuddy } from "./ScreenBuddy";
 import { BuddyVisitors } from "./BuddyVisitors";
 import { FooterScenery } from "./FooterScenery";
 import { FooterSky } from "./FooterSky";
+import { FooterSoundscape } from "./FooterSoundscape";
 import { FooterWildlife } from "./FooterWildlife";
 
 const VISIT_COUNTED_KEY = "daivr.visitCounted.v1";
@@ -15,10 +16,17 @@ export function SiteFooter({ buddy, onBuddyPet, onPowerOutage, onOpenMarket }) {
   const [visitError, setVisitError] = useState(false);
   const [discordUser, setDiscordUser] = useState(null);
   // Fase del dia, cielo y viento (FooterSky), para que el bosque se ponga a juego.
-  const [sky, setSky] = useState({ phase: "night", cover: "fair", wind: 1 });
+  // Tambien la luna llena y la lluvia de estrellas de esta noche (para Buddy).
+  const [sky, setSky] = useState({ phase: "night", cover: "fair", wind: 1, fullMoon: false, shower: "" });
   const onSkyPhase = useCallback((next) => {
-    setSky((current) => (current.phase === next.phase && current.cover === next.cover && current.wind === next.wind ? current : next));
+    setSky((current) => (["phase", "cover", "wind", "fullMoon", "shower"].every((key) => current[key] === next[key]) ? current : next));
   }, []);
+  // Peces ya pescados: los que Buddy puede asar en la hoguera.
+  const fishJournal = buddy.adventure.fishJournal;
+  const caughtFish = useMemo(
+    () => fishJournal.filter((item) => item.discovered && item.kind === "fish").map(({ id, name }) => ({ id, name })),
+    [fishJournal]
+  );
   const windClass = sky.wind < 0.8 ? "wind-calm" : sky.wind >= 1.4 ? "wind-gusty" : "wind-breeze";
   const year = new Date().getFullYear();
   const promptHost = discordUser?.username || profile.handle;
@@ -103,6 +111,10 @@ export function SiteFooter({ buddy, onBuddyPet, onPowerOutage, onOpenMarket }) {
         hiddenGear={buddy.effectiveHiddenGear}
         unlockedGear={buddy.unlockedGearIds}
         nowPlaying={spotify ? { song: spotify.song, artist: spotify.artist } : null}
+        skyPhase={sky.phase}
+        fullMoon={sky.fullMoon}
+        meteorShower={sky.shower}
+        caughtFish={caughtFish}
       />
       {/* Despues de ScreenBuddy: FooterScenery/FooterWildlife buscan al buddy
           de casa con el primer .screen-buddy-root del footer. */}
@@ -174,6 +186,7 @@ export function SiteFooter({ buddy, onBuddyPet, onPowerOutage, onOpenMarket }) {
                   {visitError ? "—" : visitCount === null ? "..." : visitCount.toLocaleString("en-US")}
                 </span>
               </div>
+              <FooterSoundscape phase={sky.phase} cover={sky.cover} wind={sky.wind} />
             </div>
           </div>
         </div>

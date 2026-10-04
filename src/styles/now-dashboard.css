@@ -304,29 +304,6 @@
     text-transform: uppercase;
   }
 
-  /* Cuatro guiones sueltos no decian nada. Ocho segmentos con seis encendidos
-     se leen como un medidor, que es lo que la etiqueta promete. */
-  .now-card-meter {
-    display: flex;
-    flex: none;
-    gap: 3px;
-    border: 1px solid color-mix(in srgb, var(--now-accent) 20%, transparent);
-    background: rgba(2, 6, 4, 0.6);
-    padding: 2px;
-  }
-
-  .now-card-meter i {
-    width: 9px;
-    height: 5px;
-    background: var(--now-accent);
-    opacity: 0.18;
-  }
-
-  .now-card-meter i:nth-child(-n + 6) {
-    box-shadow: 0 0 7px color-mix(in srgb, var(--now-accent) 42%, transparent);
-    opacity: 0.92;
-  }
-
   .now-card-corner {
     border-color: color-mix(in srgb, var(--now-accent) 46%, transparent);
   }
@@ -362,48 +339,6 @@
     overflow-wrap: anywhere;
   }
 
-  /* La grafica estiraba con la tarjeta pero las barras seguian midiendo en rem,
-     asi que el hueco sobre ellas crecia solo. Ahora escalan con la caja y el
-     panel deja de tener un vacio en medio. */
-  .now-console .status-sidecar-graph {
-    position: relative;
-    min-height: 8.5rem;
-    margin: 0.25rem 0.85rem 0.75rem;
-    padding: 1.55rem 0.72rem 0.85rem;
-  }
-
-  .now-console .status-sidecar-graph span {
-    height: calc(14% + (var(--bar, 4) * 9%));
-    min-height: 0.4rem;
-  }
-
-  .now-console .status-sidecar-graph::before {
-    position: absolute;
-    left: 0.72rem;
-    top: 0.5rem;
-    color: color-mix(in srgb, var(--color-phosphor-soft) 75%, transparent);
-    content: "room signal // ambient";
-    font-family: var(--font-mono);
-    font-size: 0.55rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-  }
-
-  /* Linea de base: sin ella las barras flotan sobre el fondo. */
-  .now-console .status-sidecar-graph::after {
-    position: absolute;
-    left: 0.72rem;
-    right: 0.72rem;
-    bottom: 0.68rem;
-    height: 1px;
-    content: "";
-    background: linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--color-phosphor) 34%, transparent),
-      color-mix(in srgb, var(--color-cyan-arcade) 16%, transparent)
-    );
-  }
-
   .now-console .status-sidecar-footer {
     margin: 0 0.85rem 0.85rem;
   }
@@ -412,10 +347,6 @@
 @container now-console (max-width: 780px) {
   .now-dashboard {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .now-console .status-sidecar {
-    min-height: 28rem;
   }
 }
 
@@ -509,29 +440,7 @@
   .now-card-topline > p { flex-wrap: wrap; row-gap: 0.4rem; }
   .now-card-topline > span { flex-shrink: 0; }
   .now-card-topline > span i { animation: now-status-breathe 3s ease-in-out infinite; }
-  .now-card-meter i:nth-child(-n + 6) {
-    animation: now-meter-charge 3.2s ease-in-out infinite;
-    animation-delay: calc(var(--cell, 0) * 120ms);
-  }
-  .now-card:hover .now-card-meter i:nth-child(n + 7) {
-    background: var(--now-accent);
-    box-shadow: 0 0 9px var(--now-accent);
-    opacity: 0.85;
-  }
-
   .now-console .status-sidecar-header strong { font-size: 0.7rem; opacity: 0.8; }
-  .now-console .status-sidecar-graph {
-    overflow: hidden;
-    background:
-      linear-gradient(rgba(63, 255, 151, 0.06) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(69, 216, 255, 0.055) 1px, transparent 1px),
-      radial-gradient(ellipse at bottom, color-mix(in srgb, var(--color-cyan-arcade) 10%, transparent), transparent 75%),
-      rgba(2, 6, 4, 0.45);
-    background-size: 18px 18px, 18px 18px, auto, auto;
-  }
-  .now-console .status-sidecar-graph span {
-    box-shadow: inset 0 2px 0 color-mix(in srgb, var(--color-phosphor) 70%, transparent), 0 0 14px color-mix(in srgb, var(--color-cyan-arcade) 12%, transparent);
-  }
   .now-console .status-sidecar-signal i {
     animation: now-status-breathe 2.8s ease-in-out infinite;
   }
@@ -549,14 +458,205 @@
   0%, 100% { opacity: 0.45; }
   50% { opacity: 1; }
 }
-@keyframes now-meter-charge {
-  0%, 65%, 100% { opacity: 0.6; }
-  30% { opacity: 1; filter: brightness(1.5); }
-}
 
 @media (max-width: 760px) {
   .now-console .now-card-topline { flex-direction: row; flex-wrap: wrap; gap: 0.5rem; }
   .now-console .now-card-topline > p { flex: 1 1 9rem; }
   .now-console .now-card-copy h3 { font-size: clamp(1.1rem, 4.5vw, 1.4rem); line-height: 1.25; }
-  .now-console .status-sidecar { min-height: 23rem; }
+}
+
+@layer components {
+  /* Pie de cada tarjeta: etiquetas sacadas de su propio texto (antes, un
+     medidor "slot integrity" igual en las tres). */
+  .now-card-tags {
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 0.35rem;
+    margin-bottom: 0;
+    padding-left: 0;
+    padding-top: 0.6rem;
+    list-style: none;
+  }
+
+  .now-card-tags li {
+    border: 1px solid color-mix(in srgb, var(--now-accent) 26%, transparent);
+    background: color-mix(in srgb, var(--now-accent) 7%, transparent);
+    padding: 0.14rem 0.42rem;
+    color: color-mix(in srgb, var(--now-accent) 72%, var(--color-phosphor-soft));
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    transition: border-color 200ms ease, background 200ms ease;
+  }
+
+  .now-card:hover .now-card-tags li {
+    border-color: color-mix(in srgb, var(--now-accent) 46%, transparent);
+    background: color-mix(in srgb, var(--now-accent) 12%, transparent);
+  }
+
+  /* status.ini (RoomStatus): el color sigue la hora de Dai. */
+  .now-console .status-sidecar { --part-accent: var(--color-cyan-arcade); }
+  .now-console .status-sidecar.is-morning { --part-accent: var(--color-cabinet); }
+  .now-console .status-sidecar.is-day { --part-accent: var(--color-phosphor); }
+  .now-console .status-sidecar.is-evening { --part-accent: var(--color-glitch); }
+
+  /* El reloj se queda con el alto que le sobra al panel (se estira con las
+     tres tarjetas) y centra lo suyo, en vez de dejar un hueco. */
+  .status-clock {
+    position: relative;
+    display: grid;
+    flex: 1;
+    align-content: center;
+    gap: 0.3rem;
+    margin: 0.85rem 0.85rem 0;
+    border: 1px solid color-mix(in srgb, var(--part-accent) 28%, transparent);
+    background:
+      radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--part-accent) 14%, transparent), transparent 62%),
+      linear-gradient(90deg, color-mix(in srgb, var(--part-accent) 8%, transparent), transparent 60%),
+      rgba(2, 6, 4, 0.6);
+    padding: 0.75rem 0.85rem 0.7rem;
+  }
+
+  .status-clock-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--part-accent);
+    font-size: 0.58rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .status-clock strong {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: clamp(2.1rem, 3.4vw, 2.8rem);
+    font-weight: 900;
+    line-height: 1;
+    text-shadow: 0 0 22px color-mix(in srgb, var(--part-accent) 34%, transparent);
+  }
+
+  .status-clock small {
+    color: var(--part-accent);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 900;
+    text-shadow: none;
+  }
+
+  .status-clock-offset {
+    color: var(--color-phosphor-soft);
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    opacity: 0.72;
+  }
+
+  /* Listado tipo .ini: clave, puntos guia y valor, sin cajas sueltas. */
+  .now-console .status-sidecar-list {
+    padding: 0.55rem 0.85rem 0.6rem;
+  }
+
+  .now-console .status-sidecar-row {
+    display: flex;
+    min-height: 2.35rem;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--color-phosphor) 9%, transparent);
+    background: none;
+    padding: 0.55rem 0.15rem 0.5rem 0.75rem;
+  }
+
+  .now-console .status-sidecar-row::after {
+    flex: 1 1 1rem;
+    order: 1;
+    min-width: 1rem;
+    content: "";
+    border-bottom: 1px dotted color-mix(in srgb, var(--color-phosphor-soft) 32%, transparent);
+    transform: translateY(0.3em);
+  }
+
+  .now-console .status-sidecar-row dt {
+    flex: none;
+  }
+
+  .now-console .status-sidecar-row dd {
+    flex: 0 1 auto;
+    order: 2;
+    border: 0;
+    padding: 0;
+    font-size: 0.78rem;
+    text-align: right;
+    white-space: nowrap;
+  }
+
+  /* El dia de Dai en 24 casillas, con la hora de ahora encendida, bajo el reloj. */
+  .status-day {
+    display: grid;
+    gap: 0.3rem;
+    margin-top: 0.55rem;
+    padding-top: 0.75rem;
+  }
+
+  .status-day-strip {
+    display: grid;
+    grid-template-columns: repeat(24, minmax(0, 1fr));
+    gap: 2px;
+    height: 1.4rem;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 18%, transparent);
+    background: rgba(2, 6, 4, 0.6);
+    padding: 2px;
+  }
+
+  .status-day-strip i {
+    position: relative;
+    background: color-mix(in srgb, var(--color-cyan-arcade) 22%, transparent);
+  }
+
+  .status-day-strip i.is-morning { background: color-mix(in srgb, var(--color-cabinet) 42%, transparent); }
+  .status-day-strip i.is-day { background: color-mix(in srgb, var(--color-phosphor) 38%, transparent); }
+  .status-day-strip i.is-evening { background: color-mix(in srgb, var(--color-glitch) 38%, transparent); }
+
+  .status-day-strip i.is-now {
+    background: #fff;
+    box-shadow: 0 0 10px var(--part-accent), 0 0 3px #fff;
+    animation: now-status-breathe 2.4s ease-in-out infinite;
+  }
+
+  .status-day-strip i.is-now::after {
+    position: absolute;
+    left: 50%;
+    top: -9px;
+    content: "";
+    border: 4px solid transparent;
+    border-top-color: var(--part-accent);
+    translate: -50% 0;
+  }
+
+  .status-day-scale {
+    display: flex;
+    justify-content: space-between;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 55%, transparent);
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+  }
+
+  .status-day-scale b {
+    font-weight: 700;
+  }
+
+  .now-console .status-sidecar-footer {
+    margin: 0 0.85rem 0.85rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .status-day-strip i.is-now {
+      animation: none;
+    }
+  }
 }
