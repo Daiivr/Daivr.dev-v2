@@ -33,6 +33,7 @@ import { useCommentGifFavorites } from "../hooks/useCommentGifFavorites";
 import { isGifLink, normalizeGifUrl } from "../../shared/comment-gifs.mjs";
 import { commentHash } from "../lib/commentLinks";
 import { loadCommentDraft, saveCommentDraft } from "../lib/commentDrafts";
+import { replyParents, replySnippet } from "../lib/commentThreads";
 
 const COMMENTS_ENDPOINT = "/api/comments";
 const COMMENTS_STREAM_ENDPOINT = "/api/comments/stream";
@@ -194,6 +195,33 @@ function renderMentionText(text, mentions, userId) {
   return nodes;
 }
 
+// ||spoiler||: tapado y con su etiqueta (antes era una barra vacia que no
+// decia que escondia nada). Se destapa al pasar por encima o con el foco
+// (CSS); un toque, Enter o espacio lo deja destapado.
+function MarkdownSpoiler({ children }) {
+  const [revealed, setRevealed] = useState(false);
+  if (revealed) return <span className="comment-md-spoiler is-revealed">{children}</span>;
+  return (
+    <span
+      className="comment-md-spoiler"
+      role="button"
+      tabIndex="0"
+      aria-label="Spoiler. Hover or select to reveal"
+      onClick={(event) => {
+        event.stopPropagation();
+        setRevealed(true);
+      }}
+      onKeyDown={(event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        setRevealed(true);
+      }}
+    >
+      <span className="comment-md-spoiler-text" aria-hidden="true">{children}</span>
+    </span>
+  );
+}
+
 function parseMarkdownInline(text, keyPrefix = "md", mentions = [], userId) {
   const source = String(text || "");
   const tokenPattern = /(\[([^\]]{1,90})\]\(([^)\s]+)\)|`([^`]+)`|\*\*([^*]+)\*\*|__([^_]+)__|\*([^*]+)\*|_([^_]+)_|~~([^~]+)~~|==([^=]+)==|\^\^([^^]+)\^\^|\|\|([^|]+)\|\||https?:\/\/[^\s<]+)/g;
@@ -227,7 +255,7 @@ function parseMarkdownInline(text, keyPrefix = "md", mentions = [], userId) {
     } else if (glow) {
       nodes.push(<span className="comment-md-glow" key={key}>{renderMentionText(glow, mentions, userId)}</span>);
     } else if (spoiler) {
-      nodes.push(<span className="comment-md-spoiler" key={key} tabIndex="0">{renderMentionText(spoiler, mentions, userId)}</span>);
+      nodes.push(<MarkdownSpoiler key={key}>{renderMentionText(spoiler, mentions, userId)}</MarkdownSpoiler>);
     } else {
       const href = safeMarkdownUrl(raw);
       nodes.push(href ? <a href={href} key={key} rel="nofollow noreferrer noopener" target="_blank">{raw}</a> : raw);
@@ -457,6 +485,8 @@ export function CommentsSection() {
   const [replyMentions, setReplyMentions] = useState([]);
   const [mentionsOnly, setMentionsOnly] = useState(false);
   const [replyingTo, setReplyingTo] = useState("");
+  // Respuesta concreta a la que se contesta dentro del hilo ("" = al comentario).
+  const [replyTargetId, setReplyTargetId] = useState("");
   const [replyDraft, setReplyDraft] = useState("");
   const [replyGif, setReplyGif] = useState("");
   const [gifPicker, setGifPicker] = useState(null);
@@ -822,12 +852,13 @@ export function CommentsSection() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text: replyDraft, gifUrl: replyGif, mentionIds: mentionsInText(replyDraft, replyMentions).map((user) => user.id) })
+        body: JSON.stringify({ text: replyDraft, gifUrl: replyGif, mentionIds: mentionsInText(replyDraft, replyMentions).map((user) => user.id), ...(replyTargetId ? { replyTo: replyTargetId } : {}) })
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "Reply failed");
       applyPayload(payload);
       setReplyingTo("");
+      setReplyTargetId("");
       setReplyDraft("");
       setReplyGif("");
       setReplyMentions([]);
@@ -938,7 +969,7 @@ export function CommentsSection() {
     });
   }
 
-  function startReply(comment) {
+  function startReply(comment, reply = null) {
     if (!auth.user) {
       setStatus(auth.configured ? "connect Discord to reply" : "Discord sign-in is currently unavailable");
       return;
@@ -947,7 +978,10 @@ export function CommentsSection() {
       setStatus("you can reply to your own threads or threads where you have been mentioned");
       return;
     }
-    setReplyingTo((current) => (current === comment.id ? "" : comment.id));
+    const targetId = reply?.id ? String(reply.id) : "";
+    const closing = replyingTo === comment.id && replyTargetId === targetId;
+    setReplyingTo(closing ? "" : comment.id);
+    setReplyTargetId(closing ? "" : targetId);
     setReplyDraft("");
     setReplyGif("");
     setReplyMentions([]);
@@ -1237,26 +1271,19 @@ export function CommentsSection() {
             </div>
           </div>
 
-          <div className="comments-auth-panel">
-            {auth.user ? (
-              <>
-                <div className="comments-account-row"><div className="comments-user-chip">
-                  <UserAvatar user={auth.user} />
-                  <strong>{auth.user.username}</strong>
-                  {auth.user.isAdmin ? <CommentAdminBadge /> : null}
-                </div><NotificationsBell inbox={inbox} /></div>
-                <a className="comments-auth-btn is-secondary has-tooltip" data-tooltip="End the Discord guestbook session." href={auth.logoutUrl || "/api/comments/auth/logout"}>
-                  <LogOut size={15} aria-hidden="true" />
-                  log out
-                </a>
-              </>
-            ) : (
-              <>
-                <DiscordEyeAuthLink configured={auth.configured} loginUrl={auth.loginUrl} />
-                <small>{auth.configured ? "Your Discord name. Your signal." : "Sign-in temporarily unavailable"}</small>
-              </>
-            )}
-          </div>
+          {auth.user ? (
+            <div className="comments-auth-panel">
+              <div className="comments-account-row"><div className="comments-user-chip">
+                <UserAvatar user={auth.user} />
+                <strong>{auth.user.username}</strong>
+                {auth.user.isAdmin ? <CommentAdminBadge /> : null}
+              </div><NotificationsBell inbox={inbox} /></div>
+              <a className="comments-auth-btn is-secondary has-tooltip" data-tooltip="End the Discord guestbook session." href={auth.logoutUrl || "/api/comments/auth/logout"}>
+                <LogOut size={15} aria-hidden="true" />
+                log out
+              </a>
+            </div>
+          ) : null}
         </div>
 
         {auth.user && auth.configured ? <form className="comments-composer" onSubmit={submitComment}>
@@ -1326,7 +1353,10 @@ export function CommentsSection() {
               <strong>{auth.configured ? "Connect Discord to leave your mark." : "The guestbook is open for reading."}</strong>
               <p>{auth.configured ? "Post a message, drop a GIF, and react with your Discord profile." : "Sign-in is currently unavailable. You can still explore the messages below."}</p>
             </div>
-            <div className="comments-guest-wave" aria-hidden="true">{Array.from({ length: 13 }, (_, i) => <i key={i} style={{ "--wave-step": i }} />)}</div>
+            <div className="comments-guest-action">
+              <DiscordEyeAuthLink configured={auth.configured} loginUrl={auth.loginUrl} />
+              <small>{auth.configured ? "Your Discord name. Your signal." : "Sign-in temporarily unavailable"}</small>
+            </div>
           </div>
         )}
 
@@ -1355,6 +1385,14 @@ export function CommentsSection() {
             const collapsibleReplies = replies.length > 1;
             const visibleReplies = collapsibleReplies && !threadExpanded ? replies.slice(0, 1) : replies;
             const hiddenReplyCount = replies.length - visibleReplies.length;
+            // A quien contesta cada respuesta, y cuales van anidadas: las que
+            // contestan a la de justo encima (un solo nivel).
+            const parents = replyParents(comment, replies);
+            const nested = [];
+            parents.forEach((parent, index) => {
+              nested[index] = !!parent && index > 0 && parent === replies[index - 1] && !nested[index - 1];
+            });
+            const replyTarget = isReplying && replyTargetId ? replies.find((reply) => String(reply.id) === replyTargetId) : null;
 
             return (
               <article id={`comment-${encodeURIComponent(comment.id)}`} tabIndex={-1} className={`comment-card is-terminal-transmission ${comment.pinned ? "is-pinned" : ""}`} key={comment.id}>
@@ -1362,7 +1400,6 @@ export function CommentsSection() {
                 {/* Era la misma frase, "incoming transmission", clavada en el
                     borde de cada tarjeta del hilo. La pestana se queda, pero
                     numerada: asi identifica su mensaje en vez de repetirse. */}
-                <span className="comment-transmission-badge" aria-hidden="true">sig_{String(signalIndex + 1).padStart(2, "0")}</span>
                 <div className="comment-avatar">
                   <UserAvatar user={comment.author} />
                 </div>
@@ -1371,6 +1408,7 @@ export function CommentsSection() {
                     <strong>{comment.author?.username || "Unknown signal"}</strong>
                     {comment.author?.isAdmin ? <CommentAdminBadge /> : null}
                     <span className="comment-time has-tooltip" data-tooltip={formatFullTimestamp(comment.createdAt)} tabIndex="0">{formatTimestamp(comment.createdAt)}</span>
+                    <span className="comment-signal-id" aria-hidden="true">#{String(signalIndex + 1).padStart(2, "0")}</span>
                     <div className="comment-actions">
                       <button type="button" onClick={() => copyCommentLink(comment.id)} aria-label="Copy comment link"><LinkIcon size={13} aria-hidden="true" /></button>
                       {canReplyComment ? (
@@ -1408,13 +1446,14 @@ export function CommentsSection() {
                       </div>
                       {visibleReplies.map((reply, replyIndex) => {
                         const canDeleteReply = !!auth.user && (auth.user.isAdmin || reply.mine);
-                        const isFollowUp = replyIndex > 0;
-                        const replyTargetName = comment.author?.username || "original post";
+                        const parent = parents[replyIndex];
+                        const isNested = nested[replyIndex];
+                        const replyTargetName = parent ? parent.author?.username || "a reply" : comment.author?.username || "original post";
                         const replyFromThreadAuthor = !!reply.author?.id && reply.author.id === comment.author?.id;
                         return (
                           <article
                             id={`reply-${encodeURIComponent(reply.id)}`} tabIndex={-1}
-                            className={`comment-reply ${isFollowUp ? "is-follow-up" : "is-direct-reply"}`}
+                            className={`comment-reply ${replyFromThreadAuthor ? "is-from-op" : ""} ${isNested ? "is-nested" : ""}`}
                             key={reply.id}
                             aria-label={`Reply from ${reply.author?.username || "Unknown signal"} to ${replyTargetName}`}
                           >
@@ -1433,15 +1472,22 @@ export function CommentsSection() {
                                     sea que leias el destino antes de saber quien hablaba. Ahora es
                                     una miga inline detras del autor: "Dai -> @Nena". El aria-label
                                     del article ya dice lo mismo en largo, asi que aqui sobra. */}
-                                <span className="comment-reply-context" aria-hidden="true">
+                                <span className="comment-reply-context" aria-hidden="true" title={parent ? replySnippet(parent) : undefined}>
                                   <CornerDownRight size={10} />
                                   <b>@{replyTargetName}</b>
+                                  {/* Si contesta a una respuesta que no esta justo encima, un trocito de ella. */}
+                                  {parent && !isNested && replySnippet(parent) ? <q>{replySnippet(parent)}</q> : null}
                                 </span>
                                 <span className="comment-time has-tooltip" data-tooltip={formatFullTimestamp(reply.createdAt)} tabIndex="0">{formatTimestamp(reply.createdAt)}</span>
                                 <div className="comment-reply-header-actions">
+                                {canReplyComment ? (
+                                  <button className="has-tooltip" data-tooltip={isReplying && replyTargetId === String(reply.id) ? "Close reply composer." : "Reply to this message."} type="button" onClick={() => startReply(comment, reply)} aria-label={`Reply to ${reply.author?.username || "this reply"}`}>
+                                    <Reply size={12} aria-hidden="true" />
+                                  </button>
+                                ) : null}
                                 <button type="button" onClick={() => copyCommentLink(comment.id, reply.id)} aria-label="Copy reply link"><LinkIcon size={12} aria-hidden="true" /></button>
                                 {canDeleteReply ? (
-                                  <button className="has-tooltip" data-tooltip={reply.mine ? "Delete your reply." : "Admin delete reply."} type="button" onClick={() => openDeleteReply(comment, reply)} aria-label="Delete reply">
+                                  <button className="is-danger has-tooltip" data-tooltip={reply.mine ? "Delete your reply." : "Admin delete reply."} type="button" onClick={() => openDeleteReply(comment, reply)} aria-label="Delete reply">
                                     <Trash2 size={12} aria-hidden="true" />
                                   </button>
                                 ) : null}
@@ -1484,9 +1530,19 @@ export function CommentsSection() {
 
                   {isReplying ? (
                     <form className="comment-reply-form" onSubmit={(event) => { event.preventDefault(); submitReply(comment.id); }}>
-                      <CommentMentionInput label={`Reply to ${comment.author?.username || "this comment"}`} value={replyDraft} onChange={setReplyDraft}
+                      {replyTarget ? (
+                        <p className="comment-reply-target">
+                          <CornerDownRight size={11} aria-hidden="true" />
+                          replying to <b>@{replyTarget.author?.username || "a reply"}</b>
+                          {replySnippet(replyTarget) ? <q>{replySnippet(replyTarget)}</q> : null}
+                          <button type="button" onClick={() => setReplyTargetId("")} aria-label="Reply to the thread instead">
+                            <X size={11} aria-hidden="true" />
+                          </button>
+                        </p>
+                      ) : null}
+                      <CommentMentionInput label={`Reply to ${replyTarget?.author?.username || comment.author?.username || "this comment"}`} value={replyDraft} onChange={setReplyDraft}
                         mentions={replyMentions} onMentionsChange={setReplyMentions} users={mentionUsers}
-                        maxLength={MAX_COMMENT_LENGTH} placeholder={`Reply to ${comment.author?.username || "this comment"}...`} disabled={busy} />
+                        maxLength={MAX_COMMENT_LENGTH} placeholder={`Reply to ${replyTarget?.author?.username || comment.author?.username || "this comment"}...`} disabled={busy} />
                       {replyGif ? (
                         <div className="comments-gif-preview is-reply-preview">
                           <button className="has-tooltip" data-tooltip="Remove reply GIF" type="button" onClick={() => clearGif("reply")} aria-label="Remove reply GIF"><X size={14} aria-hidden="true" /></button>

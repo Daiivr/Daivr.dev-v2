@@ -4,6 +4,7 @@ import { FaDiscord, FaSteam } from "react-icons/fa6";
 import { lazy, startTransition, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { now, profile, projects, roomStats, socialLinks, stack } from "../data/site";
 import { dayPart, hoursApart, offsetLabel, zonedClock } from "../lib/daiTime";
+import { useMinuteClock } from "../hooks/useMinuteClock";
 import { DecodeText } from "./DecodeText";
 import { DiscordPresencePanel } from "./DiscordPresencePanel";
 import { GameShelf } from "./GameShelf";
@@ -110,15 +111,6 @@ const nowModules = [
 
 const DAY_PART_ICONS = { night: Moon, morning: Sunrise, day: Sun, evening: Sunset };
 const DAI_PLACE = profile.location.split("//")[0].trim();
-
-function useMinuteClock() {
-  const [date, setDate] = useState(() => new Date());
-  useEffect(() => {
-    const timer = window.setInterval(() => setDate(new Date()), 30_000);
-    return () => window.clearInterval(timer);
-  }, []);
-  return date;
-}
 
 /*
   status.ini de Now.log: la hora de verdad de Dai (profile.timezone), cuanto le

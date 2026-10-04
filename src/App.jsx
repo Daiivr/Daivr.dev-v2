@@ -6,6 +6,7 @@ import "./styles/cart-swap.css";
 import "./styles/discord-presence.css";
 import "./styles/game-shelf.css";
 import "./styles/hero-entry.css";
+import "./styles/launch-overlay.css";
 import "./styles/workstation-materials.css";
 import "./styles/link-console.css";
 import "./styles/now-dashboard.css";
@@ -44,7 +45,7 @@ import "./styles/buddy-visitors.css";
 import "./styles/buddy-campfire.css";
 import "./styles/footer-sky.css";
 import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { discord, games, navItems, profile, projects } from "./data/site";
+import { bootNodes, discord, games, navItems, profile, projects } from "./data/site";
 import { KONAMI_GAMES } from "./data/konamiGames";
 import { preloadImages } from "./lib/preloadImages";
 import { ChunkBoundary, lazyChunk } from "./lib/chunkRecovery";
@@ -125,7 +126,7 @@ export default function App(props) {
 function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass, onGateBridge }) {
   const [theme, setTheme] = useState("crt");
   const [terminalOpen, setTerminalOpen] = useState(false);
-  const [buildLog, setBuildLog] = useState("$ idle\nDai.exe offline\nnodes waiting for RUN command...");
+  const [buildLog, setBuildLog] = useState("$ dai.exe --status\nDai.exe offline // 0/6 up\nwaiting for RUN...");
   const [terminalLog, setTerminalLog] = useState("┌─ DAI.EXE COMMAND CONSOLE // v2.6\n│ cabinet shell mounted at ~/daivr\n│ history + completion modules online\n└─ Tip: type help, use Tab completion, or press ↑ for history.\n\n$ status\nshell ready // awaiting operator input");
   const [activeSection, setActiveSection] = useState("home");
   const [isLaunching, setIsLaunching] = useState(false);
@@ -421,7 +422,7 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
     }
 
     if (hasRun) {
-      const onlineMessage = "Dai.exe already online // stable";
+      const onlineMessage = "already online // stable";
 
       showAchievement("Dai.exe is already online. No reboot needed.", 2800);
       setBuildLog((value) => (value.includes(onlineMessage) ? value : `${value}\n${onlineMessage}`));
@@ -429,14 +430,9 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
       return "Dai.exe is already online.\nNo reboot needed.";
     }
 
-    const nodeLines = [
-      "node 01 online // homebase",
-      "node 02 online // CRT glow",
-      "node 03 online // Discord sync",
-      "node 04 online // console",
-      "node 05 online // utility",
-      "node 06 online // rewards"
-    ];
+    // Cada nodo entra en el log cuando termina, no cuando empieza: antes el
+    // panel decia "node 01 online" mientras el arranque lo tenia en RUN.
+    const nodeLines = bootNodes.map((node, index) => `node ${String(index + 1).padStart(2, "0")} online // ${node.name}`);
     const phaseMs = 1180;
     const bootStartDelay = 300;
     const finishDelay = bootStartDelay + nodeLines.length * phaseMs + 620;
@@ -444,7 +440,7 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
     const lines = [
       "$ run Dai.exe",
       ...nodeLines,
-      "Dai.exe online // all nodes green"
+      "Dai.exe online // all green"
     ];
 
     setIsLaunching(true);
@@ -455,15 +451,15 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
     setAchievement("");
     setBuildLog(lines[0]);
 
-    const timers = nodeLines.map((line, index) =>
+    const timers = nodeLines.map((_, index) =>
       window.setTimeout(() => {
         setLaunchPhase(Math.min(index, 5));
-        setBuildLog((value) => `${value}\n${line}`);
+        if (index > 0) setBuildLog((value) => `${value}\n${nodeLines[index - 1]}`);
       }, bootStartDelay + index * phaseMs)
     );
 
     timers.push(window.setTimeout(() => {
-      setBuildLog((value) => `${value}\nDai.exe online // all nodes green`);
+      setBuildLog((value) => `${value}\n${nodeLines.at(-1)}\n${lines.at(-1)}`);
       setLaunchComplete(true);
     }, finishDelay - 360));
 

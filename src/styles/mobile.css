@@ -174,7 +174,7 @@
     min-height: 300px !important;
   }
 
-  .canvas-node-badge {
+  .canvas-controls {
     right: 0.75rem;
     bottom: 0.75rem;
     max-width: calc(100% - 1.5rem);

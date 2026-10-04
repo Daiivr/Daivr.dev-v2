@@ -17,6 +17,7 @@ import { navItems, profile } from "../data/site";
 import { friendshipProgress } from "../hooks/useBuddyFriendship";
 import { cn } from "../lib/cn";
 import { DiscordPlayerCard } from "./DiscordPlayerCard";
+import { BuddySprite } from "./BuddySprite";
 import { useRef, useState } from "react";
 
 // Un icono por destino, indexado por ancla: ocho filas de solo texto se leian
@@ -96,44 +97,62 @@ export function Sidebar({ activeSection, buddy, onOpenBuddyModal, theme, onTheme
         })}
       </nav>
 
+      {/* El dock de Buddy le muestra a el: un retrato con lo que lleva puesto
+          (el mismo sprite del footer), y al lado su progreso. Las cuatro
+          acciones van en una fila de iconos. */}
       <div className="panel buddy-nav-card mt-3 p-3">
         <div className="buddy-nav-head">
           <p className="pixel-label buddy-nav-title">BUDDY</p>
           <span className="buddy-nav-level">lv {String(buddy.friendship.level).padStart(2, "0")}</span>
         </div>
 
-        {/* Las caricias ya se contaban; la barra solo les da un sitio donde
-            verse en vez de repetir el nivel dos veces. */}
-        <div className="buddy-nav-xp">
-          <span style={{ width: `${Math.round(progress.ratio * 100)}%` }} />
-        </div>
-        <p className="buddy-nav-xp-note">
-          {progress.next === null
-            ? "max friendship // fully bonded"
-            : `${progress.pets}/${progress.next} pets to lv ${String(progress.level + 1).padStart(2, "0")}`}
-        </p>
+        <div className="buddy-nav-profile">
+          <button className="buddy-nav-portrait arcade-focus" type="button" onClick={() => onOpenBuddyModal("inventory")} aria-label="Open Buddy inventory">
+            <BuddySprite
+              className="buddy-nav-sprite"
+              friendshipLevel={buddy.friendship.level}
+              inventory={buddy.adventure.inventoryIds}
+              hiddenGear={buddy.effectiveHiddenGear}
+              unlockedGear={buddy.unlockedGearIds}
+              width={52}
+              height={50}
+            />
+          </button>
 
-        <div className="buddy-nav-card-stats">
-          <span><b>{buddy.activeGearCount}/{gearTotal}</b>gear</span>
-          <span><b>{String(buddy.adventure.completedCount).padStart(2, "0")}</b>quests</span>
-          <span><b>{progress.pets}</b>pets</span>
+          <div className="buddy-nav-progress">
+            {/* Las caricias ya se contaban; la barra solo les da un sitio donde
+                verse en vez de repetir el nivel dos veces. */}
+            <p className="buddy-nav-xp-note">
+              {progress.next === null
+                ? "max friendship"
+                : `${progress.pets}/${progress.next} pets to lv ${String(progress.level + 1).padStart(2, "0")}`}
+            </p>
+            <div className="buddy-nav-xp">
+              <span style={{ width: `${Math.round(progress.ratio * 100)}%` }} />
+            </div>
+            <div className="buddy-nav-card-stats">
+              <span><b>{buddy.activeGearCount}/{gearTotal}</b>gear</span>
+              <span><b>{String(buddy.adventure.completedCount).padStart(2, "0")}</b>quests</span>
+              <span><b>{progress.pets}</b>pets</span>
+            </div>
+          </div>
         </div>
 
         <div className="buddy-nav-actions">
           <button className="arcade-focus" type="button" onClick={() => onOpenBuddyModal("room")} aria-label="Open Buddy room">
-            <Home size={14} aria-hidden="true" />
+            <Home size={15} aria-hidden="true" />
             room
           </button>
           <button className="arcade-focus" type="button" onClick={() => onOpenBuddyModal("inventory")} aria-label="Open Buddy inventory">
-            <Backpack size={14} aria-hidden="true" />
+            <Backpack size={15} aria-hidden="true" />
             inv
           </button>
-          <button className="arcade-focus" type="button" onClick={() => onOpenBuddyModal("quests")}>
-            <ScrollText size={14} aria-hidden="true" />
+          <button className="arcade-focus" type="button" onClick={() => onOpenBuddyModal("quests")} aria-label="Open Buddy quests">
+            <ScrollText size={15} aria-hidden="true" />
             quests
           </button>
-          <button className="arcade-focus" type="button" onClick={() => onOpenBuddyModal("journal")}>
-            <BookOpen size={14} aria-hidden="true" />
+          <button className="arcade-focus" type="button" onClick={() => onOpenBuddyModal("journal")} aria-label="Open Buddy journal">
+            <BookOpen size={15} aria-hidden="true" />
             journal
           </button>
         </div>

@@ -655,6 +655,9 @@ async function handleReply(request, response, id) {
     return;
   }
   if (rejectFastPost(response, comments, user, text, gifUrl)) return;
+  // A que respuesta del hilo contesta (si no, al comentario). Solo ids que
+  // existan en este mismo hilo.
+  const replyTo = typeof body.replyTo === "string" && (comment.replies || []).some((entry) => String(entry.id) === body.replyTo) ? body.replyTo : "";
   const reply = {
     id: `${Date.now()}-${randomBytes(3).toString("hex")}`,
     text,
@@ -662,7 +665,8 @@ async function handleReply(request, response, id) {
     gifUrl,
     createdAt: new Date().toISOString(),
     author: user,
-    reactions: {}
+    reactions: {},
+    ...(replyTo ? { replyTo } : {})
   };
 
   comment.replies = Array.isArray(comment.replies) ? [...comment.replies, reply] : [reply];

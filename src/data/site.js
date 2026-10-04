@@ -17,6 +17,62 @@ export const profile = {
   ]
 };
 
+// Los seis nodos de Dai.exe, en el orden en que arrancan y en el que los
+// dibuja el lienzo del panel (desde las 12, en sentido horario). Lienzo,
+// panel de build, log y secuencia de arranque leen de aqui: antes cada uno
+// tenia su lista y el nodo 03 era "agents" en el lienzo, "Discord sync" en
+// el log y "syncing Discord queue" en el arranque.
+export const bootNodes = [
+  {
+    glyph: "{}",
+    name: "syntax",
+    color: "#3fff97",
+    task: "parsing the boot script",
+    route: "/homebase.jsx",
+    detail: "Reading the profile, routes and XP counter out of homebase.jsx."
+  },
+  {
+    glyph: "++",
+    name: "build",
+    color: "#45d8ff",
+    task: "warming CRT phosphors",
+    route: "/crt-layer.css",
+    detail: "Compiling scanlines, glow states and the visual telemetry layer."
+  },
+  {
+    glyph: "AI",
+    name: "agents",
+    color: "#ff3d9d",
+    task: "waking the Discord bots",
+    route: "/discord.sync",
+    detail: "Checking the presence panel, bot status and community hooks."
+  },
+  {
+    glyph: "$",
+    name: "shell",
+    color: "#3fff97",
+    task: "opening the terminal",
+    route: "/terminal.sh",
+    detail: "Wiring commands, shortcuts and the project console."
+  },
+  {
+    glyph: "dx",
+    name: "tooling",
+    color: "#ffd166",
+    task: "loading SysBot tools",
+    route: "/sysbot-tools",
+    detail: "Mounting the utility belt: SysBot tools, game shelf and links."
+  },
+  {
+    glyph: "fn",
+    name: "runtime",
+    color: "#45d8ff",
+    task: "unlocking cabinet mode",
+    route: "/cabinet.online",
+    detail: "Finalizing the online state, bonus XP and the arcade canvas."
+  }
+];
+
 export const discord = {
   userId: "271701484922601472",
   profileUrl: "https://discordapp.com/users/271701484922601472",

@@ -1,21 +1,31 @@
-import { Activity, ArrowDownRight, ArrowUpRight, Cpu, Grip, Play, RadioTower, Terminal } from "lucide-react";
+import { ArrowDownRight, Cpu, Grip, Play, Terminal } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { profile } from "../data/site";
+import { bootNodes, profile, projects } from "../data/site";
+import { projectStories } from "../data/projectStories";
 import { useElasticDrag } from "../hooks/useElasticDrag";
 import { ArcadeButton } from "./ui/ArcadeButton";
 import { ArcadeCanvas } from "./ArcadeCanvas";
 import { DevRoomVault } from "./DevRoomVault";
 
-// Mismos seis nodos (y mismo orden) que dibuja el lienzo vectorial, para que
-// el checklist de arranque y la escena no cuenten cosas distintas.
-const BOOT_NODES = [
-  { glyph: "{}", label: "syntax" },
-  { glyph: "++", label: "build" },
-  { glyph: "AI", label: "agents" },
-  { glyph: "$", label: "shell" },
-  { glyph: "dx", label: "tooling" },
-  { glyph: "fn", label: "runtime" }
-];
+// Los cartuchos de Carts, en corto: numero, nombre, que son y su version.
+// El enlace usa el mismo #project-<slug> que abre la ficha en Carts.
+const HERO_CARTS = projects
+  .map((project) => ({
+    title: project.title,
+    number: project.kicker,
+    badge: project.badge,
+    slug: projectStories[project.title]?.slug,
+    kind: (projectStories[project.title]?.eyebrow ?? project.meta).toLowerCase()
+  }))
+  .filter((cart) => cart.slug);
+
+// Un enlace a la ficha que ya esta en la URL no dispara hashchange, asi que el
+// segundo clic no hacia nada; se avisa a mano, igual que el comando open.
+function reopenSameHash(event) {
+  if (window.location.hash !== event.currentTarget.hash) return;
+  event.preventDefault();
+  window.dispatchEvent(new HashChangeEvent("hashchange"));
+}
 
 const BOOT_SCRIPT = [
   { arg: "Dai", name: "player", type: "assign" },
@@ -50,6 +60,38 @@ function readBuildLine(line) {
   return { tone: "run", glyph: ">", body, note };
 }
 
+function formatUptime(seconds) {
+  return [seconds / 3600, (seconds % 3600) / 60, seconds % 60]
+    .map((value) => String(Math.floor(value)).padStart(2, "0"))
+    .join(":");
+}
+
+// Reloj de sesion: cuenta desde que Dai.exe entra en linea. Sustituye al
+// "signal cold/hot" del pie, que repetia el estado de la barra de titulo.
+// Va en su propio componente para que el tic de cada segundo no repinte el
+// panel entero (con el lienzo y la boveda dentro).
+function SessionUptime({ online }) {
+  const [elapsed, setElapsed] = useState(-1);
+
+  useEffect(() => {
+    if (!online) {
+      setElapsed(-1);
+      return undefined;
+    }
+
+    const startedAt = Date.now();
+    setElapsed(0);
+    const timer = window.setInterval(() => setElapsed(Math.floor((Date.now() - startedAt) / 1000)), 1000);
+    return () => window.clearInterval(timer);
+  }, [online]);
+
+  return (
+    <strong className={online ? "is-live" : ""}>
+      <b>UPTIME</b> <i>{elapsed < 0 ? "--:--:--" : formatUptime(elapsed)}</i>
+    </strong>
+  );
+}
+
 export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun, onOpenTerminal }) {
   const stationRef = useRef(null);
   const nailRef = useRef(null);
@@ -62,19 +104,15 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
   // El panel crecia y encogia con cada linea del arranque. La ventana es ahora
   // fija de cuatro filas, ancladas abajo: lo viejo se sale por el borde
   // superior y la caja no se mueve nunca.
-  const visibleBuildLog = buildLog.split("\n").slice(-BUILD_LOG_ROWS);
+  const buildLines = buildLog.split("\n");
+  const visibleBuildLog = buildLines.slice(-BUILD_LOG_ROWS);
   const progress = isLaunching ? Math.min(100, ((launchPhase + 1) / 6) * 100) : 0;
   const progressWidth = isLaunching ? progress : hasRun ? 100 : 0;
   const activeCodeLine = hasRun ? 4 : isLaunching ? Math.min(4, launchPhase) : 0;
   const onlineNodes = hasRun ? 6 : isLaunching ? Math.min(6, launchPhase + 1) : 0;
   const systemState = isLaunching ? "booting" : hasRun ? "online" : "offline";
-  const signalState = hasRun || isLaunching ? "signal hot" : "signal cold";
-  const heroChips = hasRun
-    ? ["queue online", "bot signal hot", "canvas live"]
-    : isLaunching
-      ? ["nodes waking", "boot signal", "sync pending"]
-      : ["queue offline", "nodes asleep", "canvas idle"];
-
+  const linkingNode = bootNodes[Math.min(bootNodes.length - 1, Math.max(0, onlineNodes - 1))];
+  const nodeCount = `${String(onlineNodes).padStart(2, "0")}/${String(bootNodes.length).padStart(2, "0")}`;
   useEffect(() => {
     if (isDragging || isHung) {
       setHasSecretArmed(true);
@@ -114,12 +152,9 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
             <span className={`hero-headline-line is-line-${index + 1}`} key={line}>{line}</span>
           ))}
         </h1>
-        <p className="hero-introduction">I build Discord bots, SysBot tools, and playful web interfaces. Welcome to my personal cabinet: part terminal, part arcade, part late-night dev room.</p>
-        <div className="hero-signals grid gap-2 sm:grid-cols-3" aria-label="Cabinet status">
-          {heroChips.map((item) => (
-            <span className="status-chip" key={item}><i aria-hidden="true" />{item}</span>
-          ))}
-        </div>
+        <p className="hero-introduction">
+          I build <b className="is-bots">Discord bots</b>, <b className="is-tools">SysBot tools</b>, and <b className="is-web">playful web interfaces</b>. Welcome to my personal cabinet: part terminal, part arcade, part late-night dev room.
+        </p>
         <div className="hero-actions flex flex-wrap gap-3">
           <ArcadeButton
             aria-label={hasRun ? "Dai.exe is already online" : isLaunching ? "Dai.exe is starting" : "Run Dai.exe"}
@@ -131,14 +166,40 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
             <Play size={18} aria-hidden="true" />
             {isLaunching ? "Running..." : hasRun ? "Dai.exe Online" : "Run Dai.exe"}
           </ArcadeButton>
-          <ArcadeButton onClick={onOpenTerminal} data-open-dock>
+          {/* El atajo existia (la tecla /) pero nada lo decia. */}
+          <ArcadeButton onClick={onOpenTerminal} aria-keyshortcuts="/" data-open-dock>
             <Terminal size={18} aria-hidden="true" />
             Terminal
+            <kbd className="hero-key" aria-hidden="true">/</kbd>
           </ArcadeButton>
         </div>
-        <div className="hero-explore">
-          <a className="hero-builds-link arcade-focus" href="#builds"><ArrowDownRight size={18} aria-hidden="true" /><span>Explore my builds<small>bots, tools & experiments</small></span><ArrowUpRight size={17} aria-hidden="true" /></a>
-        </div>
+
+        {/* Tres fichas con "queue offline / nodes asleep / canvas idle"
+            repetian el estado del panel de al lado. En su sitio, lo que de
+            verdad hay en el banco: cada cartucho abre su ficha en Carts. */}
+        <nav className="hero-carts" aria-label="Builds on the bench">
+          <div className="hero-carts-head">
+            <span>on the bench</span>
+            <a className="arcade-focus" href="#builds">
+              all carts <ArrowDownRight size={13} aria-hidden="true" />
+            </a>
+          </div>
+          <ul>
+            {HERO_CARTS.map((cart) => (
+              <li key={cart.slug}>
+                <a className="hero-cart arcade-focus" href={`#project-${cart.slug}`} onClick={reopenSameHash}>
+                  <b className="hero-cart-number">{cart.number}</b>
+                  <span className="hero-cart-body">
+                    <strong>{cart.title}</strong>
+                    <small>{cart.kind}</small>
+                  </span>
+                  <em className="hero-cart-badge">{cart.badge}</em>
+                  <ArrowDownRight className="hero-cart-arrow" size={16} aria-hidden="true" />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
 
       <div className="hero-console-dock">
@@ -209,14 +270,13 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
               drag panel
             </span>
 
+            {/* Un solo piloto de estado. Habia dos ("signal cold" + "offline")
+                que decian lo mismo, y el estado se repetia otras cinco veces
+                por el panel. */}
             <div className="hero-console-state">
-              <span className="is-signal">
-                <RadioTower size={12} aria-hidden="true" />
-                {signalState}
-              </span>
               <span className={`is-system is-${systemState}`} data-system-state>
                 <i aria-hidden="true" />
-                {systemState}
+                {isLaunching ? `booting ${Math.round(progressWidth)}%` : systemState}
               </span>
             </div>
           </div>
@@ -234,10 +294,15 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
                     ln {activeCodeLine + 1}:05
                   </span>
                 </div>
-                <ol className="code-lines">
+                {/* Las lineas ya ejecutadas quedan marcadas en el margen y las
+                    que faltan, apagadas: el guion se ve correr con el arranque. */}
+                <ol className={`code-lines is-${systemState}`}>
                   {BOOT_SCRIPT.map((line, index) => (
-                    <li className={index === activeCodeLine ? "is-active" : ""} key={line.name}>
-                      <span className="select-none text-right text-phosphor-soft/30">{index + 1}</span>
+                    <li
+                      className={index === activeCodeLine ? "is-active" : index < activeCodeLine || hasRun ? "is-done" : isLaunching ? "is-pending" : ""}
+                      key={line.name}
+                    >
+                      <span className="code-gutter select-none">{index + 1}</span>
                       <code className="min-w-0 break-words">
                         {line.type === "assign" ? (
                           <>
@@ -270,7 +335,11 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
                     <p className="pixel-label">RUNTIME // BUILD OUTPUT</p>
                     <small className="hero-panel-file">dai.boot.log</small>
                   </div>
-                  <span className={`hero-build-state is-${systemState}`}>{isLaunching ? `${Math.round(progressWidth)}%` : systemState}</span>
+                  {/* Aqui iba otra vez el estado (offline / 42%); ya lo dicen el
+                      piloto de arriba y la barra de abajo. */}
+                  <span className="hero-build-count">
+                    <b>{String(buildLines.length).padStart(2, "0")}</b> lines
+                  </span>
                 </div>
                 <pre className="terminal-screen build-output-screen overflow-hidden p-3 text-[0.74rem] leading-6 text-phosphor" data-build-output>
                   {visibleBuildLog.map((line, index) => {
@@ -288,19 +357,27 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
                   })}
                 </pre>
 
-                <div className="build-node-rail" aria-label={`Nodos en linea: ${onlineNodes} de ${BOOT_NODES.length}`}>
-                  {BOOT_NODES.map((node, index) => (
-                    <span className={`build-node ${index < onlineNodes ? "is-online" : ""}`} key={node.glyph}>
-                      <b>{node.glyph}</b>
-                      <i>{node.label}</i>
-                      <em>{index < onlineNodes ? "on" : "off"}</em>
-                    </span>
-                  ))}
-                </div>
-                {/* La barra era un degradado liso de 12px; en una cabina la carga
-                    se cuenta por bloques encendidos, y el numero al lado ahorra
-                    tener que medirla a ojo. */}
-                <div className="build-progress-row">
+                {/* Seis modulos legibles en vez de seis fichas con letra de 5px
+                    y un "on/off" al final: el nombre se lee y el LED (con el
+                    color de su nodo en el lienzo) dice si esta arriba. */}
+                <ul className="build-node-rail" aria-label={`Nodes online: ${onlineNodes} of ${bootNodes.length}`}>
+                  {bootNodes.map((node, index) => {
+                    const online = index < onlineNodes;
+                    const linking = isLaunching && index === onlineNodes - 1;
+                    return (
+                      <li
+                        className={`build-node ${online ? "is-online" : ""} ${linking ? "is-linking" : ""}`}
+                        key={node.glyph}
+                        style={{ "--node-color": node.color }}
+                      >
+                        <b aria-hidden="true">{node.glyph}</b>
+                        <span>{node.name}</span>
+                        <em aria-label={online ? "online" : "offline"} />
+                      </li>
+                    );
+                  })}
+                </ul>
+                <div className={`build-progress-row is-${systemState}`}>
                   <div
                     className="build-progress"
                     role="progressbar"
@@ -311,33 +388,45 @@ export function HeroStation({ buildLog, hasRun, isLaunching, launchPhase, onRun,
                   >
                     <span style={{ width: `${progressWidth}%` }} />
                   </div>
-                  <b>{Math.round(progressWidth)}%</b>
+                  <b>{isLaunching ? `${Math.round(progressWidth)}%` : hasRun ? "ready" : "idle"}</b>
                 </div>
               </div>
             </div>
 
             <div className="hero-canvas-stage relative min-h-[360px] overflow-hidden bg-ink-950/85">
               <ArcadeCanvas hasRun={hasRun} isLaunching={isLaunching} launchPhase={launchPhase} onRun={onRun} />
-              <div className="hero-canvas-hud pointer-events-none absolute">
-                <span>VECTOR CANVAS // 01</span>
+              <div className={`hero-canvas-hud is-${systemState} pointer-events-none absolute`}>
+                <span>NODE MAP // XP FEED</span>
                 <strong>{hasRun ? "LIVE FEED" : isLaunching ? "LINKING" : "STANDBY"}</strong>
-                <small>{hasRun ? "room.render stable" : isLaunching ? `mounting node ${String(onlineNodes).padStart(2, "0")}` : "waiting for boot signal"}</small>
+                <small>{hasRun ? "packets flowing to core" : isLaunching ? `${linkingNode.glyph} ${linkingNode.name} coming up` : "6 nodes asleep"}</small>
               </div>
-              <div className="canvas-node-badge pointer-events-none absolute border border-phosphor/25 bg-ink-950/75 px-3 py-2 text-right">
-                <p className="pixel-label text-[0.64rem]">PRIMARY NODE</p>
-                <strong className="font-display text-lg leading-none text-white">DAI.EXE</strong>
-                <small>{systemState} // {String(onlineNodes).padStart(2, "0")}/06</small>
-              </div>
+              {/* Antes aqui iba una ficha "PRIMARY NODE // DAI.EXE // offline"
+                  que repetia el nucleo del lienzo palabra por palabra. Lo que
+                  no contaba nadie es que el lienzo se juega: ahora la esquina
+                  dice que hace cada clic. */}
+              <dl className={`canvas-controls is-${systemState} pointer-events-none absolute`} aria-label="Canvas controls">
+                {hasRun ? (
+                  <>
+                    <div><dt>click node</dt><dd>burst</dd></div>
+                    <div><dt>click core</dt><dd>overclock</dd></div>
+                  </>
+                ) : isLaunching ? (
+                  <div><dt>linking</dt><dd>{nodeCount}</dd></div>
+                ) : (
+                  <div><dt>click core</dt><dd>boot</dd></div>
+                )}
+              </dl>
             </div>
           </div>
 
-          {/* Etiqueta y valor iban del mismo gris apagado, asi que la barra se
-              leia como una sola tira de texto. El valor ahora es el que brilla. */}
+          {/* Etiqueta apagada, valor encendido. El "signal cold" de la derecha
+              repetia el piloto de la barra de titulo; ahora es el reloj de la
+              sesion, lo unico del pie que cambia solo. */}
           <div className={`hero-console-telemetry relative z-10 is-${systemState}`} aria-label="Workstation telemetry">
             <span><b>SESSION</b> <i>{hasRun ? "STABLE" : isLaunching ? "BOOTING" : "STANDBY"}</i></span>
-            <span><b>NODES</b> <i>{String(onlineNodes).padStart(2, "0")}/06</i></span>
+            <span><b>NODES</b> <i>{nodeCount}</i></span>
             <span><b>ROUTE</b> <i>/HOME</i></span>
-            <strong><Activity size={12} aria-hidden="true" /> {signalState}</strong>
+            <SessionUptime online={hasRun} />
           </div>
         </div>
       </div>

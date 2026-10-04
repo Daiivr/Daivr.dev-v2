@@ -169,10 +169,10 @@ export function DevRoomVault({ active }) {
       ? "code rejected"
       : filled > 0
         ? `${filled} / ${CODE_LENGTH} entered`
-        : "sealed";
+        : "awaiting code";
 
   return (
-    <div className={`vault is-${status}`} ref={rootRef}>
+    <div className={`vault is-${status}`} ref={rootRef} style={{ "--vault-fill": filled / CODE_LENGTH }}>
       <span className="vault-corner is-tl" aria-hidden="true" />
       <span className="vault-corner is-tr" aria-hidden="true" />
       <span className="vault-corner is-bl" aria-hidden="true" />
@@ -209,6 +209,9 @@ export function DevRoomVault({ active }) {
           <span className="vault-ring is-mid" />
           <span className="vault-ring is-inner" />
           <span className="vault-ticks" />
+          {/* Arco de carga: se cierra un sexto por digito, alrededor del
+              anillo, para que el dial cuente lo mismo que el marcador. */}
+          <span className="vault-progress" />
         </div>
 
         <div className="vault-bolts" aria-hidden="true">
@@ -227,10 +230,15 @@ export function DevRoomVault({ active }) {
       </div>
 
       <div className="vault-readout">
+        {/* Celdas de LCD: vacias muestran un guion apagado (antes eran seis
+            huecos negros que parecian rotos) y la siguiente lleva el cursor. */}
         <p className="vault-code" aria-hidden="true">
           {Array.from({ length: CODE_LENGTH }, (_, index) => (
-            <b className={index < filled ? "is-set" : ""} key={index}>
-              {status === "open" ? VAULT_CODE[index] : index < entry.length ? "*" : ""}
+            <b
+              className={`${index < filled ? "is-set" : ""} ${status === "locked" && index === entry.length ? "is-next" : ""}`}
+              key={index}
+            >
+              {status === "open" ? VAULT_CODE[index] : index < entry.length ? "•" : ""}
             </b>
           ))}
         </p>

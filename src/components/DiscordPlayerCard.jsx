@@ -9,6 +9,10 @@ import {
   useLanyardPresence
 } from "../hooks/useLanyardPresence";
 import { cn } from "../lib/cn";
+import { useMinuteClock } from "../hooks/useMinuteClock";
+import { dayPart, zonedClock } from "../lib/daiTime";
+
+const DAI_PLACE = profile.location.split("//")[0].trim();
 
 function getCustomStatus(activities = []) {
   const activity = activities.find((item) => item.type === 4);
@@ -48,8 +52,16 @@ function getPlatformTags(presence) {
   ].filter(Boolean);
 }
 
+/*
+  Tarjeta de jugador de la barra lateral (presencia de Discord via Lanyard).
+  Las cajas de estado y de actividad solo salen cuando tienen algo que contar:
+  desconectado y sin nada sonando, la tarjeta se queda en el nombre, el estado,
+  la hora que es para Dai y una linea corta. El pie con las plataformas, solo
+  si esta conectado desde alguna.
+*/
 export function DiscordPlayerCard() {
   const { data: presence, error, loading } = useLanyardPresence(discord.userId);
+  const daiClock = zonedClock(useMinuteClock(), profile.timezone);
   const user = presence?.discord_user;
   const displayName = getDiscordDisplayName(user);
   const statusKey = loading && !presence ? "syncing" : presence?.discord_status || "offline";
@@ -61,9 +73,9 @@ export function DiscordPlayerCard() {
   const activity = getActivityLine(presence);
   const platformTags = getPlatformTags(presence);
   const isSyncing = loading && !presence;
-  const statusText = customStatus?.text || (isSyncing ? "Connecting to Discord…" : error ? "Presence is temporarily unavailable." : "No status message set.");
-  const activityLabel = activity?.label || (isSyncing ? "Checking activity" : error ? "Signal interrupted" : "Between sessions");
-  const activityText = activity?.text || (isSyncing ? "Waiting for the first update." : error ? (presence ? "Showing the last known presence." : "Check back in a little while.") : "No game or music playing right now.");
+  const statusText = customStatus?.text || "";
+  // Sin actividad: una linea corta en vez de una caja que dice que no hay nada.
+  const idleLine = isSyncing ? "connecting to discord…" : error ? (presence ? "signal lost // last known presence" : "presence unavailable right now") : "between sessions // nothing playing";
   const ActivityIcon = activity?.icon === "spotify" ? Headphones : Gamepad2;
   const signalLabel = isSyncing ? "Syncing" : error ? "Reconnecting" : "Live";
   const platforms = { desktop: Monitor, mobile: Smartphone, web: Globe, embedded: Gamepad2 };
@@ -104,25 +116,34 @@ export function DiscordPlayerCard() {
         <div className="discord-player-nameplate">
           <strong>{displayName}</strong>
           <span className={cn("discord-player-status", status.textClass)}><i className={status.colorClass} aria-hidden="true" />{status.label}</span>
+          <span className="discord-player-localtime" title={`Local time in ${DAI_PLACE}`}>{daiClock.label} {daiClock.zone} · {dayPart(daiClock.hour).label}</span>
           <a className="discord-player-profile-link arcade-focus" href={discord.profileUrl} target="_blank" rel="noreferrer" aria-label={`View ${displayName}'s Discord profile (opens in a new tab)`}>Discord profile<ArrowUpRight size={11} aria-hidden="true" /></a>
         </div>
       </div>
 
-      <div className="discord-player-message">
-        <span className="discord-player-caption">STATUS MESSAGE</span>
-        <div>
-          {customEmojiUrl ? (
-            <img src={customEmojiUrl} alt={customStatus?.emoji?.name || ""} />
-          ) : customStatus?.emoji?.name ? (
-            <span aria-hidden="true">{customStatus.emoji.name}</span>
-          ) : (
-            <MessageSquare size={13} aria-hidden="true" />
-          )}
-          <p title={statusText}>{statusText}</p>
+      {statusText ? (
+        <div className="discord-player-message">
+          <span className="discord-player-caption">STATUS MESSAGE</span>
+          <div>
+            {customEmojiUrl ? (
+              <img src={customEmojiUrl} alt={customStatus?.emoji?.name || ""} />
+            ) : customStatus?.emoji?.name ? (
+              <span aria-hidden="true">{customStatus.emoji.name}</span>
+            ) : (
+              <MessageSquare size={13} aria-hidden="true" />
+            )}
+            <p title={statusText}>{statusText}</p>
+          </div>
         </div>
-      </div>
-      <div className="discord-player-activity"><span className="discord-player-activity-icon"><ActivityIcon size={17} aria-hidden="true" /></span><div><strong>{activityLabel}</strong><p title={activityText}>{activityText}</p></div></div>
-      <footer className="discord-player-footer"><span>{error ? "SIGNAL LOST" : isSyncing ? "CONNECTING" : "DISCORD PRESENCE"}</span><span className="discord-player-platforms">{platformTags.map((platform) => { const Icon = platforms[platform]; return <span key={platform}><Icon size={11} aria-hidden="true" />{platform}</span>; })}</span></footer>
+      ) : null}
+      {activity ? (
+        <div className="discord-player-activity"><span className="discord-player-activity-icon"><ActivityIcon size={17} aria-hidden="true" /></span><div><strong>{activity.label}</strong><p title={activity.text}>{activity.text}</p></div></div>
+      ) : (
+        <p className={cn("discord-player-idle", error && "is-error")}>{idleLine}</p>
+      )}
+      {platformTags.length ? (
+        <footer className="discord-player-footer"><span>ONLINE FROM</span><span className="discord-player-platforms">{platformTags.map((platform) => { const Icon = platforms[platform]; return <span key={platform}><Icon size={11} aria-hidden="true" />{platform}</span>; })}</span></footer>
+      ) : null}
     </section>
   );
 }

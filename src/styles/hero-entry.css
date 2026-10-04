@@ -52,46 +52,143 @@
     font-weight: 500;
     line-height: 1.8;
   }
-  .hero-signals { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem; }
-  .hero-signals .status-chip {
-    display: flex;
-    align-items: center;
-    gap: 0.45rem;
-    min-height: 2.25rem;
-    padding: 0.55rem 0.6rem;
-    font-size: 0.59rem;
-    line-height: 1.4;
-    background: linear-gradient(110deg, color-mix(in srgb, var(--color-phosphor) 7%, transparent), rgba(2, 6, 4, 0.8));
+  /* Lo que hago, resaltado: el parrafo era un bloque gris y las tres cosas se
+     perdian a mitad de frase. Cada una lleva el color que tenia su ficha. */
+  .hero-introduction b {
+    color: #f4fff9;
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--hero-mark, var(--color-phosphor)) 62%, transparent);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.3em;
   }
-  .hero-signals .status-chip i { flex-shrink: 0; width: 4px; height: 4px; background: currentColor; opacity: 0.45; }
-  .hero-copy.is-online .hero-signals i,
-  .hero-copy.is-booting .hero-signals i { box-shadow: 0 0 8px currentColor; animation: hero-entry-signal 2.5s ease-in-out infinite; }
-  .hero-signals .status-chip:nth-child(2) { border-color: color-mix(in srgb, var(--color-cyan-arcade) 30%, transparent); color: var(--color-cyan-arcade); }
-  .hero-signals .status-chip:nth-child(3) { border-color: color-mix(in srgb, var(--color-glitch) 30%, transparent); color: color-mix(in srgb, var(--color-glitch) 70%, white); }
-  .hero-signals .status-chip:nth-child(2) i { animation-delay: -0.8s; }
-  .hero-signals .status-chip:nth-child(3) i { animation-delay: -1.6s; }
+  .hero-introduction b.is-bots { --hero-mark: var(--color-cyan-arcade); }
+  .hero-introduction b.is-tools { --hero-mark: var(--color-phosphor); }
+  .hero-introduction b.is-web { --hero-mark: var(--color-glitch); }
+
   .hero-actions { gap: 0.75rem; }
   .hero-actions .crt-button { min-height: 48px; font-size: 0.79rem; }
-  .hero-explore {
+  .hero-key {
+    display: inline-grid;
+    min-width: 1.4rem;
+    height: 1.4rem;
+    place-items: center;
+    margin-left: 0.2rem;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 34%, transparent);
+    border-bottom-width: 2px;
+    background: rgba(2, 6, 4, 0.6);
+    color: var(--color-phosphor);
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  /* En el banco: los cartuchos reales, cada uno abre su ficha en Carts. */
+  .hero-carts {
+    display: grid;
+    gap: 0.6rem;
     border-top: 1px solid color-mix(in srgb, var(--color-phosphor) 22%, transparent);
     padding-top: 1.1rem;
   }
-  .hero-builds-link {
+  .hero-carts-head {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: 0.75rem;
-    min-height: 44px;
-    color: var(--color-phosphor-soft);
-    font-size: 0.79rem;
+    font-size: 0.6rem;
     font-weight: 800;
-    transition: color 200ms ease;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
-  .hero-builds-link > svg:first-child { color: var(--color-cyan-arcade); }
-  .hero-builds-link > svg:last-child { margin-left: auto; transition: transform 200ms ease; }
-  .hero-builds-link small { display: block; margin-top: 0.25rem; font-size: 0.63rem; font-weight: 500; opacity: 0.7; }
-  .hero-builds-link:hover,
-  .hero-builds-link:focus-visible { color: var(--color-phosphor); }
-  .hero-builds-link:hover > svg:last-child { transform: translate(3px, -3px); }
+  .hero-carts-head > span { color: var(--color-cyan-arcade); }
+  .hero-carts-head a {
+    display: inline-flex;
+    min-height: 28px;
+    align-items: center;
+    gap: 0.3rem;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 72%, transparent);
+    transition: color 180ms ease;
+  }
+  .hero-carts-head a:hover,
+  .hero-carts-head a:focus-visible { color: var(--color-phosphor); }
+  .hero-carts ul {
+    display: grid;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .hero-cart {
+    display: grid;
+    min-height: 3.2rem;
+    grid-template-columns: 2.1rem minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 0.8rem;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 16%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 6%, transparent), transparent 70%),
+      rgba(2, 6, 4, 0.72);
+    clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+    padding: 0.5rem 0.85rem 0.5rem 0.55rem;
+    color: var(--color-phosphor-soft);
+    transition: border-color 180ms ease, background 180ms ease;
+  }
+  .hero-cart-number {
+    display: grid;
+    height: 2.1rem;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 34%, transparent);
+    background: color-mix(in srgb, var(--color-cyan-arcade) 7%, transparent);
+    color: var(--color-cyan-arcade);
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    font-weight: 900;
+  }
+  .hero-cart-body {
+    display: grid;
+    min-width: 0;
+    gap: 0.22rem;
+  }
+  .hero-cart-body strong {
+    color: #f4fff9;
+    font-size: 0.88rem;
+    font-weight: 800;
+    line-height: 1.1;
+  }
+  .hero-cart-body small {
+    overflow: hidden;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 62%, transparent);
+    font-size: 0.63rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .hero-cart-badge {
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 28%, transparent);
+    padding: 0.2rem 0.42rem;
+    color: var(--color-phosphor);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-style: normal;
+    font-weight: 900;
+  }
+  .hero-cart-arrow {
+    color: color-mix(in srgb, var(--color-phosphor-soft) 50%, transparent);
+    transition: color 180ms ease, transform 180ms ease;
+  }
+  .hero-cart:hover,
+  .hero-cart:focus-visible {
+    border-color: color-mix(in srgb, var(--color-phosphor) 55%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 13%, transparent), transparent 75%),
+      rgba(2, 6, 4, 0.8);
+  }
+  .hero-cart:hover .hero-cart-arrow,
+  .hero-cart:focus-visible .hero-cart-arrow {
+    color: var(--color-phosphor);
+    transform: translate(2px, 2px);
+  }
   .hero-workstation-caption {
     position: absolute;
     inset: -1.65rem 0 auto;
@@ -125,13 +222,18 @@
   .hero-station .hero-introduction { font-size: 0.88rem; line-height: 1.8; }
   .hero-station .hero-actions { display: flex; }
   .hero-station .hero-actions .crt-button { flex: 1 1 auto; justify-content: center; padding-inline: 0.8rem; font-size: 0.73rem; }
-  .hero-station .hero-signals { gap: 0.35rem; }
-  .hero-station .hero-signals .status-chip { padding: 0.45rem; font-size: 0.55rem; }
+  .hero-station .hero-cart { gap: 0.6rem; padding-right: 0.65rem; }
   .hero-identity > .pixel-label { font-size: 0.57rem; }
+}
+
+/* Sin teclado fisico el atajo / no significa nada. */
+@media (hover: none) {
+  .hero-key { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .hero-greeting > span,
-  .hero-headline::after,
-  .hero-signals .status-chip i { animation: none !important; }
+  .hero-headline::after { animation: none !important; }
+  .hero-cart,
+  .hero-cart-arrow { transition: none; }
 }

@@ -20,6 +20,8 @@ data/player-passports.json
 data/*.bak
 data/*.tmp
 data/arcade-xp.json
+# Cache de vistas previas de GIF del libro de visitas (lo regenera el servidor).
+data/gif-previews/
 
 # Tests locales (corepack pnpm test): no hacen falta para la web.
 scripts/test-*.mjs

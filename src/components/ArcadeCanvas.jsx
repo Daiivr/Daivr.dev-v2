@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { addXpToState, normalizeXpState, xpForLevel } from "../../shared/arcade-xp.mjs";
+import { bootNodes } from "../data/site";
 
 const glyphs = ["01", "{}", "fn", "=>", "dx", "AI", "VR", "++", "$", "</>"];
 const colors = ["#3fff97", "#45d8ff", "#ff3d9d", "#ffd166"];
@@ -292,15 +293,16 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
       };
     }
 
+    // Los nodos salen de bootNodes (los mismos del panel y del arranque),
+    // repartidos cada 60 grados desde las 12.
     function makeSources() {
-      return [
-        { angle: -Math.PI / 2, glyph: "{}", color: "#3fff97", lane: 0 },
-        { angle: -Math.PI / 6, glyph: "++", color: "#45d8ff", lane: 1 },
-        { angle: Math.PI / 6, glyph: "AI", color: "#ff3d9d", lane: 2 },
-        { angle: Math.PI / 2, glyph: "$", color: "#3fff97", lane: 0 },
-        { angle: (Math.PI * 5) / 6, glyph: "dx", color: "#ffd166", lane: 1 },
-        { angle: (-Math.PI * 5) / 6, glyph: "fn", color: "#45d8ff", lane: 2 }
-      ].map((source, index) => {
+      return bootNodes.map((node, index) => ({
+        angle: -Math.PI / 2 + (Math.PI / 3) * index,
+        glyph: node.glyph,
+        name: node.name,
+        color: node.color,
+        lane: index % 3
+      })).map((source, index) => {
         const xpValue = Math.round(randomBetween(7, 17) + source.lane * 4 + xpState.level * 0.8);
         return {
           ...source,
@@ -555,14 +557,16 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
         const wake = dozing ? Math.sin(Math.min(1, (doze.until - frame) / 80) * Math.PI) : 0;
         const alpha = active ? hot ? 0.82 : 0.36 : 0.08;
 
-        if (active) {
-          ctx.strokeStyle = rgba(source.color, alpha);
-          ctx.lineWidth = hot ? 2 : 1;
-          ctx.beginPath();
-          ctx.moveTo(source.x, source.y);
-          ctx.quadraticCurveTo(source.control.x, source.control.y, source.target.x, source.target.y);
-          ctx.stroke();
-        }
+        // Apagado, el enlace queda punteado y tenue: el mapa se lee como una
+        // red esperando corriente y no como seis cajas sueltas en la nada.
+        ctx.strokeStyle = active ? rgba(source.color, alpha) : rgba(source.color, dozing ? 0.22 + wake * 0.3 : 0.22);
+        ctx.lineWidth = active && hot ? 2 : 1;
+        if (!active) ctx.setLineDash([2, 5]);
+        ctx.beginPath();
+        ctx.moveTo(source.x, source.y);
+        ctx.quadraticCurveTo(source.control.x, source.control.y, source.target.x, source.target.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
 
         ctx.fillStyle = active ? hot ? source.color : rgba(source.color, 0.82) : "rgba(180, 255, 207, 0.22)";
         ctx.shadowColor = source.color;
@@ -577,9 +581,15 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
         ctx.font = "900 13px JetBrains Mono, monospace";
         ctx.fillStyle = active ? source.color : dozing ? rgba(source.color, 0.32 + wake * 0.45) : "rgba(180, 255, 207, 0.28)";
         ctx.fillText(source.glyph, source.x, source.y);
-        ctx.font = "900 9px JetBrains Mono, monospace";
-        ctx.fillStyle = active ? rgba(source.color, 0.95) : "rgba(180, 255, 207, 0.2)";
-        ctx.fillText(active ? `+${source.xpValue}` : dozing && wake > 0.45 ? "zzz" : "off", source.x, source.y + 20);
+        // Debajo, el nombre del nodo (antes ponia "off" en los seis) y, en
+        // marcha, la XP que suelta cada paquete.
+        ctx.font = "800 9px JetBrains Mono, monospace";
+        ctx.fillStyle = active ? rgba(source.color, 0.95) : dozing && wake > 0.45 ? rgba(source.color, 0.6) : "rgba(180, 255, 207, 0.42)";
+        const label = active ? `${source.name} +${source.xpValue}` : dozing && wake > 0.45 ? "zzz" : source.name;
+        // Los nodos de los lados quedan cerca del borde en lienzos estrechos:
+        // la etiqueta se corre hacia dentro antes que cortarse.
+        const half = ctx.measureText(label).width / 2 + 4;
+        ctx.fillText(label, Math.min(width - half, Math.max(half, source.x)), source.y + 21);
         ctx.shadowBlur = 0;
         if (!reduced && source.captured > 0) source.captured -= 1;
       });
@@ -756,7 +766,7 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
       ctx.fillText(overclockActive ? "OVERCLOCKED" : getStatusLabel(), cx, cy + 6);
 
       drawFittedText(`LV ${formatCoreNumber(xpState.level)}`, cx - 56, cy + 23, 42, "left", "#ffd166");
-      drawFittedText(`${formatCoreNumber(xpState.xp)}/${formatCoreNumber(xpNeeded)}`, cx + 56, cy + 23, 66, "right", "rgba(180, 255, 207, 0.78)");
+      drawFittedText(`XP ${formatCoreNumber(xpState.xp)}/${formatCoreNumber(xpNeeded)}`, cx + 56, cy + 23, 66, "right", "rgba(180, 255, 207, 0.78)");
 
       ctx.strokeStyle = "rgba(63, 255, 151, 0.24)";
       ctx.strokeRect(cx - 56, cy + 28, 112, 8);
@@ -775,17 +785,28 @@ export function ArcadeCanvas({ hasRun = false, isLaunching = false, launchPhase 
           : isPowered ? "rgba(69, 216, 255, 0.72)" : "rgba(69, 216, 255, 0.16)";
       ctx.fillRect(cx - 54, cy + 34, 108 * Math.max(0, Math.min(1, stripFraction)), overclockActive ? 2 : 1);
 
+      // Apagado, el aviso es un boton dibujado pegado al nucleo, que respira en
+      // vez de parpadear: antes era texto suelto que desaparecia la mitad del
+      // tiempo y alternaba con "INSERT COIN".
       if (!isPowered) {
-        const promptVisible = reduced || frame % 110 < 64;
-        if (promptVisible) {
-          ctx.textAlign = "center";
-          ctx.font = "900 10px JetBrains Mono, monospace";
-          ctx.fillStyle = "#ffd166";
-          ctx.shadowColor = "#ffd166";
-          ctx.shadowBlur = isScrolling ? 0 : 10;
-          ctx.fillText(frame % 440 < 220 ? "INSERT COIN" : "CLICK TO BOOT", cx, top + panelHeight + 20);
-          ctx.shadowBlur = 0;
-        }
+        const breath = reduced ? 1 : 0.62 + Math.sin(frame * 0.07) * 0.38;
+        const label = "▶ CLICK TO BOOT";
+        ctx.font = "900 10px JetBrains Mono, monospace";
+        const pillWidth = Math.ceil(ctx.measureText(label).width) + 22;
+        const pillTop = top + panelHeight + 9;
+        ctx.fillStyle = "rgba(2, 6, 4, 0.92)";
+        ctx.fillRect(cx - pillWidth / 2, pillTop, pillWidth, 20);
+        ctx.fillStyle = `rgba(255, 209, 102, ${0.06 + breath * 0.08})`;
+        ctx.fillRect(cx - pillWidth / 2, pillTop, pillWidth, 20);
+        ctx.strokeStyle = `rgba(255, 209, 102, ${0.32 + breath * 0.5})`;
+        ctx.lineWidth = 1;
+        ctx.strokeRect(cx - pillWidth / 2 + 0.5, pillTop + 0.5, pillWidth - 1, 19);
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#ffd166";
+        ctx.shadowColor = "#ffd166";
+        ctx.shadowBlur = isScrolling ? 0 : 6 + breath * 8;
+        ctx.fillText(label, cx, pillTop + 14);
+        ctx.shadowBlur = 0;
       }
     }
 

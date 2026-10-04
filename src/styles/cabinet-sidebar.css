@@ -281,7 +281,164 @@
       transition: none;
     }
   }
+  /* Tarjeta de jugador -----------------------------------------------------
+     La hora de Dai bajo el estado, y sin actividad una linea corta en vez de
+     una caja que dice que no hay nada. */
+  .discord-player-localtime {
+    display: block;
+    margin-top: 2px;
+    color: var(--player-card-muted);
+    font-size: 9px;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+  }
+
+  .discord-player-idle {
+    margin: 0 10px 9px;
+    border-top: 1px solid var(--player-card-border);
+    padding-top: 7px;
+    overflow: hidden;
+    color: var(--player-card-muted);
+    font-size: 9px;
+    letter-spacing: 0.04em;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .discord-player-idle::before {
+    content: "> ";
+    color: var(--card-edge-hot);
+  }
+
+  .discord-player-idle.is-error {
+    color: var(--color-cabinet);
+  }
+
+  /* Directorio -------------------------------------------------------------
+     En escritorio las filas sin seleccionar van sin caja: ocho cajas iguales
+     se leian como un muro. La caja queda para la activa y el puntero. */
+  @media (min-width: 1024px) {
+    .cabinet-nav-link:not(.is-active) {
+      border-color: transparent;
+      background: transparent;
+    }
+
+    .cabinet-nav-link:not(.is-active):hover,
+    .cabinet-nav-link:not(.is-active):focus-visible {
+      border-color: color-mix(in srgb, var(--color-phosphor) 30%, transparent);
+      background:
+        linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 10%, transparent), transparent 60%),
+        rgba(2, 8, 6, 0.6);
+    }
+  }
+
+  /* Dock de Buddy ------------------------------------------------------------
+     Retrato con el equipo puesto, el progreso al lado y las acciones en fila. */
+  .buddy-nav-profile {
+    display: grid;
+    grid-template-columns: 4.1rem minmax(0, 1fr);
+    align-items: center;
+    gap: 0.65rem;
+  }
+
+  .buddy-nav-portrait {
+    position: relative;
+    display: grid;
+    width: 4.1rem;
+    height: 4.1rem;
+    place-items: end center;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 30%, transparent);
+    clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+    background:
+      radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--color-phosphor) 15%, transparent), transparent 68%),
+      linear-gradient(rgba(255, 255, 255, 0.03) 50%, transparent 50%),
+      rgba(2, 6, 4, 0.86);
+    background-size: auto, 100% 4px, auto;
+    padding: 0 0 0.3rem;
+    cursor: var(--cursor-pointer, pointer);
+    transition: border-color 180ms ease, box-shadow 180ms ease;
+  }
+
+  /* Suelo bajo los pies. */
+  .buddy-nav-portrait::after {
+    position: absolute;
+    left: 0.4rem;
+    right: 0.4rem;
+    bottom: 0.3rem;
+    height: 1px;
+    content: "";
+    background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--color-phosphor) 45%, transparent), transparent);
+  }
+
+  .buddy-nav-sprite {
+    position: relative;
+    z-index: 1;
+    display: block;
+    overflow: visible;
+    filter: drop-shadow(0 0 6px color-mix(in srgb, var(--color-phosphor) 28%, transparent));
+    animation: buddy-breathe 3.4s ease-in-out infinite;
+  }
+
+  .buddy-nav-portrait:hover,
+  .buddy-nav-portrait:focus-visible {
+    border-color: var(--color-phosphor);
+    box-shadow: inset 0 0 18px color-mix(in srgb, var(--color-phosphor) 14%, transparent);
+  }
+
+  .buddy-nav-portrait:hover .buddy-nav-sprite,
+  .buddy-nav-portrait:focus-visible .buddy-nav-sprite {
+    animation: buddy-nav-hop 520ms cubic-bezier(0.3, 1.4, 0.4, 1);
+  }
+
+  .buddy-nav-progress {
+    display: grid;
+    min-width: 0;
+    gap: 0.35rem;
+  }
+
+  .buddy-nav-progress .buddy-nav-xp-note {
+    margin-top: 0;
+  }
+
+  .buddy-nav-progress .buddy-nav-card-stats {
+    gap: 0.25rem;
+  }
+
+  .buddy-nav-progress .buddy-nav-card-stats span {
+    padding: 0.3rem 0.1rem;
+    font-size: 0.5rem;
+  }
+
+  .buddy-nav-actions {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.3rem;
+  }
+
+  .buddy-nav-actions button {
+    flex-direction: column;
+    gap: 0.22rem;
+    min-height: 2.6rem;
+    padding: 0.4rem 0.15rem;
+    font-size: 0.5rem;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .buddy-nav-sprite,
+    .buddy-nav-portrait:hover .buddy-nav-sprite,
+    .buddy-nav-portrait:focus-visible .buddy-nav-sprite {
+      animation: none;
+    }
+  }
 }
+
+@keyframes buddy-nav-hop {
+  0%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-5px) scale(0.97, 1.04); }
+  70% { transform: translateY(0) scale(1.05, 0.95); }
+}
+
 
 /* Keep every desktop destination and the theme switch within a laptop rail. */
 
@@ -317,7 +474,6 @@
     .cabinet-sidebar .brand-lockup { margin-bottom: 6px; }
     .cabinet-sidebar .discord-player-topline, .cabinet-sidebar .discord-player-footer { display: none; }
     .cabinet-sidebar .discord-player-identity { padding-block: 7px; }
-    .cabinet-sidebar .buddy-nav-card-stats span { display: flex; justify-content: center; gap: 5px; align-items: center; }
     .cabinet-sidebar .buddy-nav-xp-note { display: none; }
     .cabinet-sidebar .cabinet-rail-label { padding-bottom: 4px; }
   }
