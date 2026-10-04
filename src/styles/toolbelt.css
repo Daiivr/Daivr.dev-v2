@@ -1,4 +1,8 @@
 @layer components {
+  /* Toolbelt (v2.62.0). Cada modulo dice en que se fija, con que se hace y
+     donde verlo funcionando; antes llevaba un "READY" identico en las cuatro,
+     un medidor de capacidad decorativo (seis de ocho en todas) y un numero
+     gigante de fondo que se metia debajo de las etiquetas. */
   .toolbelt-console {
     position: relative;
     container-name: toolbelt;
@@ -39,7 +43,7 @@
 
   .toolbelt-console-header {
     display: flex;
-    min-height: 3.7rem;
+    min-height: 3.4rem;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
@@ -48,17 +52,13 @@
     background:
       linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 8%, transparent), transparent 52%),
       rgba(2, 6, 4, 0.76);
-    padding: 0.72rem 0.85rem;
-  }
-
-  .toolbelt-console-header > div,
-  .toolbelt-console-state {
-    display: flex;
-    align-items: center;
+    padding: 0.62rem 0.85rem;
   }
 
   .toolbelt-console-header > div {
+    display: flex;
     min-width: 0;
+    align-items: center;
     gap: 0.75rem;
   }
 
@@ -92,24 +92,25 @@
     white-space: nowrap;
   }
 
-  .toolbelt-console-state {
-    flex: 0 0 auto;
-    gap: 0.45rem;
-    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 32%, transparent);
-    background: color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent);
-    padding: 0.45rem 0.6rem;
-    color: var(--color-cyan-arcade);
-    font-size: 0.58rem;
-    font-weight: 900;
-    text-transform: uppercase;
+  /* Con que esta hecho este armario, separado por puntos. */
+  .toolbelt-console-stack {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 0.25rem 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    color: color-mix(in srgb, var(--color-cyan-arcade) 86%, white);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    font-weight: 800;
   }
 
-  .toolbelt-console-state i,
-  .toolbelt-card-header span:last-child i {
-    width: 6px;
-    height: 6px;
-    background: currentColor;
-    box-shadow: 0 0 10px currentColor;
+  .toolbelt-console-stack li + li::before {
+    margin: 0 0.5rem;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 32%, transparent);
+    content: "\00B7";
   }
 
   .toolbelt-grid {
@@ -118,27 +119,43 @@
     gap: clamp(0.65rem, 1.3vw, 0.9rem);
   }
 
+  /* Cabecera, texto (estira), foco y ficha tecnica: las dos ultimas filas
+     quedan a la misma altura en las cuatro tarjetas. */
   .toolbelt-card {
     --tool-accent: var(--color-phosphor);
     position: relative;
     display: grid;
     min-width: 0;
-    min-height: 306px;
-    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
     overflow: hidden;
     border: 1px solid color-mix(in srgb, var(--tool-accent) 25%, transparent);
     clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
     background:
-      linear-gradient(145deg, color-mix(in srgb, var(--tool-accent) 7%, transparent), transparent 42%),
+      linear-gradient(160deg, color-mix(in srgb, var(--tool-accent) 8%, transparent), transparent 46%),
       linear-gradient(rgba(255, 255, 255, 0.025) 50%, transparent 50%),
       rgba(2, 6, 4, 0.82);
     background-size: auto, 100% 4px, auto;
-    padding: 0.9rem;
+    padding: 0 0.95rem 0.9rem;
     box-shadow:
       inset 3px 0 0 color-mix(in srgb, var(--tool-accent) 68%, transparent),
       inset 0 1px 0 color-mix(in srgb, var(--tool-accent) 20%, transparent),
       inset 0 0 28px rgba(0, 0, 0, 0.28);
     isolation: isolate;
+  }
+
+  /* Con subgrid las cuatro filas se comparten entre las tarjetas de una
+     misma fila: el foco y la linea de la ficha tecnica caen a la misma
+     altura aunque un texto o una lista de herramientas sea mas larga. */
+  @supports (grid-template-rows: subgrid) {
+    .toolbelt-card {
+      grid-row: span 4;
+      grid-template-rows: subgrid;
+      row-gap: 0;
+    }
+
+    .toolbelt-card-specs {
+      align-self: start;
+    }
   }
 
   .toolbelt-card.is-module-2 {
@@ -151,17 +168,6 @@
 
   .toolbelt-card.is-module-4 {
     --tool-accent: var(--color-cabinet);
-  }
-
-  .toolbelt-card::before {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    content: "";
-    pointer-events: none;
-    background:
-      radial-gradient(circle at 16% 22%, color-mix(in srgb, var(--tool-accent) 12%, transparent), transparent 24%),
-      linear-gradient(135deg, transparent 0 72%, color-mix(in srgb, var(--tool-accent) 6%, transparent));
   }
 
   .toolbelt-card::after {
@@ -180,180 +186,179 @@
   .toolbelt-card-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    margin: -0.9rem -0.9rem 0;
+    gap: 0.5rem;
+    margin: 0 -0.95rem;
     border-bottom: 1px solid color-mix(in srgb, var(--tool-accent) 24%, transparent);
     background:
       linear-gradient(90deg, color-mix(in srgb, var(--tool-accent) 15%, transparent), transparent 72%),
       rgba(2, 6, 4, 0.5);
-    padding: 0.62rem 0.9rem;
+    padding: 0.5rem 0.95rem;
     color: color-mix(in srgb, var(--tool-accent) 74%, white);
-    font-size: 0.54rem;
+    font-size: 0.56rem;
     font-weight: 900;
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
 
-  .toolbelt-card-header span:last-child {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.36rem;
+  .toolbelt-card-icon {
+    display: grid;
+    width: 1.75rem;
+    height: 1.75rem;
+    flex: none;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--tool-accent) 46%, transparent);
+    clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+    background: radial-gradient(circle, color-mix(in srgb, var(--tool-accent) 26%, transparent), transparent 72%), rgba(2, 6, 4, 0.7);
     color: var(--tool-accent);
-  }
-
-  .toolbelt-card-header span:first-child {
-    display: inline-flex;
-    min-width: 0;
-    align-items: center;
-    gap: 0.45rem;
+    box-shadow: inset 0 0 12px color-mix(in srgb, var(--tool-accent) 16%, transparent);
   }
 
   .toolbelt-card-header b {
-    flex: none;
+    margin-left: auto;
     border: 1px solid color-mix(in srgb, var(--tool-accent) 30%, transparent);
     background: color-mix(in srgb, var(--tool-accent) 9%, transparent);
-    padding: 0.1rem 0.34rem;
+    padding: 0.12rem 0.36rem;
     color: var(--tool-accent);
     font-family: var(--font-mono);
-    font-size: 0.5rem;
+    font-size: 0.52rem;
     letter-spacing: 0.06em;
   }
 
-  .toolbelt-card-icon {
-    position: relative;
-    display: grid;
-    width: 44px;
-    height: 44px;
-    place-items: center;
-    margin-top: 0.85rem;
-    border: 1px solid color-mix(in srgb, var(--tool-accent) 42%, transparent);
-    clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
-    background:
-      linear-gradient(rgba(255, 255, 255, 0.05) 50%, transparent 50%) 0 0 / 100% 4px,
-      radial-gradient(circle, color-mix(in srgb, var(--tool-accent) 30%, transparent), transparent 70%),
-      rgba(2, 6, 4, 0.72);
-    color: var(--tool-accent);
-    box-shadow:
-      inset 0 0 18px color-mix(in srgb, var(--tool-accent) 18%, transparent),
-      0 0 26px color-mix(in srgb, var(--tool-accent) 18%, transparent);
-  }
-
-  .toolbelt-card-icon::after {
-    position: absolute;
-    right: -5px;
-    bottom: -5px;
-    width: 11px;
-    height: 11px;
-    content: "";
-    border: 2px solid #020604;
-    background: var(--tool-accent);
-    box-shadow: 0 0 10px var(--tool-accent);
-  }
-
   .toolbelt-card-copy {
-    position: relative;
-    align-self: start;
-    margin-top: 0.75rem;
+    padding-top: 0.95rem;
   }
-
-  .toolbelt-card-copy::before {
-    position: absolute;
-    right: -0.15rem;
-    bottom: -3.1rem;
-    z-index: -1;
-    color: color-mix(in srgb, var(--tool-accent) 9%, transparent);
-    content: "01";
-    font-family: var(--font-display);
-    font-size: 5.4rem;
-    font-weight: 900;
-    line-height: 0.7;
-    pointer-events: none;
-  }
-
-  .toolbelt-card.is-module-2 .toolbelt-card-copy::before { content: "02"; }
-  .toolbelt-card.is-module-3 .toolbelt-card-copy::before { content: "03"; }
-  .toolbelt-card.is-module-4 .toolbelt-card-copy::before { content: "04"; }
 
   .toolbelt-card-copy h3 {
     color: #fff;
     font-family: var(--font-display);
-    font-size: clamp(1.05rem, 1.6vw, 1.3rem);
+    font-size: clamp(1.05rem, 1.6vw, 1.28rem);
     font-weight: 900;
-    line-height: 1.05;
+    line-height: 1.08;
     text-shadow: 0 0 18px color-mix(in srgb, var(--tool-accent) 12%, transparent);
   }
 
   .toolbelt-card-copy > p {
-    margin-top: 0.6rem;
+    margin-top: 0.55rem;
     color: color-mix(in srgb, var(--color-phosphor-soft) 72%, #aab7b0);
     font-size: 0.8rem;
     font-weight: 650;
     line-height: 1.55;
   }
 
-  .toolbelt-card-tags {
+  /* En que se fija: una linea con puntos, sin cajas, que es texto y no
+     botones. */
+  .toolbelt-card-focus {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.3rem;
-    margin: 0.75rem 0 0;
+    gap: 0.2rem 0;
+    margin: 0.85rem 0 0;
+    padding: 0;
+    list-style: none;
+    color: color-mix(in srgb, var(--tool-accent) 62%, white);
+    font-size: 0.62rem;
+    font-weight: 800;
+  }
+
+  .toolbelt-card-focus li + li::before {
+    margin: 0 0.4rem;
+    color: color-mix(in srgb, var(--tool-accent) 45%, transparent);
+    content: "\00B7";
+  }
+
+  .toolbelt-card-specs {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0.8rem 0 0;
+    border-top: 1px solid color-mix(in srgb, var(--tool-accent) 18%, transparent);
+    padding-top: 0.75rem;
+  }
+
+  .toolbelt-card-specs > div {
+    display: grid;
+    grid-template-columns: 3.6rem minmax(0, 1fr);
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .toolbelt-card-specs dt {
+    color: color-mix(in srgb, var(--color-phosphor-soft) 50%, transparent);
+    font-size: 0.5rem;
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .toolbelt-card-specs dd {
+    min-width: 0;
+    margin: 0;
+  }
+
+  .toolbelt-card-tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.28rem;
+    margin: 0;
     padding: 0;
     list-style: none;
   }
 
-  .toolbelt-card-tags li {
-    border: 1px solid color-mix(in srgb, var(--tool-accent) 23%, transparent);
-    background: color-mix(in srgb, var(--tool-accent) 5%, transparent);
-    padding: 0.2rem 0.35rem;
-    color: color-mix(in srgb, var(--tool-accent) 55%, white);
-    font-size: 0.56rem;
+  .toolbelt-card-tools li {
+    border: 1px solid color-mix(in srgb, var(--tool-accent) 24%, transparent);
+    background: color-mix(in srgb, var(--tool-accent) 6%, transparent);
+    padding: 0.16rem 0.36rem;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 88%, white);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
     font-weight: 800;
     line-height: 1.4;
   }
 
-  .toolbelt-card-footer {
+  .toolbelt-card-proof {
     display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.75rem;
+  }
+
+  .toolbelt-card-proof a {
+    display: inline-flex;
+    min-height: 24px;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.65rem;
-    margin-top: 1rem;
-    border-top: 1px solid color-mix(in srgb, var(--tool-accent) 18%, transparent);
-    padding-top: 0.7rem;
-    color: color-mix(in srgb, var(--tool-accent) 58%, var(--color-phosphor-soft));
-    font-size: 0.52rem;
-    font-weight: 900;
-    text-transform: uppercase;
+    gap: 0.2rem;
+    color: var(--tool-accent);
+    font-size: 0.66rem;
+    font-weight: 800;
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--tool-accent) 34%, transparent);
+    text-underline-offset: 0.22em;
+    transition: color 160ms ease, text-decoration-color 160ms ease;
   }
 
-  .toolbelt-card-meter {
-    display: flex;
-    flex: 0 0 auto;
-    gap: 3px;
-    border: 1px solid color-mix(in srgb, var(--tool-accent) 20%, transparent);
-    background: rgba(2, 6, 4, 0.6);
-    padding: 2px;
+  .toolbelt-card-proof a:hover,
+  .toolbelt-card-proof a:focus-visible {
+    color: #fff;
+    text-decoration-color: var(--tool-accent);
   }
 
-  .toolbelt-card-meter i {
-    width: 9px;
-    height: 5px;
-    background: var(--tool-accent);
-    opacity: 0.18;
+  .toolbelt-card-proof svg {
+    transition: transform 160ms ease;
   }
 
-  .toolbelt-card-meter i:nth-child(-n + 6) {
-    box-shadow: 0 0 7px color-mix(in srgb, var(--tool-accent) 42%, transparent);
-    opacity: 0.92;
+  .toolbelt-card-proof a:hover svg,
+  .toolbelt-card-proof a:focus-visible svg {
+    transform: translate(1px, 1px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .toolbelt-card-proof a,
+    .toolbelt-card-proof svg {
+      transition: none;
+    }
   }
 }
 
 @container toolbelt (max-width: 1050px) {
   .toolbelt-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .toolbelt-card {
-    min-height: 285px;
   }
 }
 
@@ -367,18 +372,14 @@
   .toolbelt-console-header {
     align-items: flex-start;
     flex-direction: column;
+    gap: 0.5rem;
   }
 
-  .toolbelt-console-state {
-    width: 100%;
-    justify-content: center;
+  .toolbelt-console-stack {
+    justify-content: flex-start;
   }
 
   .toolbelt-grid {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  .toolbelt-card {
-    min-height: 290px;
   }
 }

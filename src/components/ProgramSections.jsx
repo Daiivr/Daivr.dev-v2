@@ -1,9 +1,10 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { ArrowRight, Bot, Check, Code2, Copy, Cpu, Download, ExternalLink, Gamepad2, Github, Globe2, Lock, Moon, ShieldCheck, Sun, Sunrise, Sunset, Terminal, Twitch, X } from "lucide-react";
+import { ArrowDownRight, ArrowRight, Bot, Check, Code2, Copy, Cpu, Download, ExternalLink, Gamepad2, Github, Globe2, Lock, Moon, ShieldCheck, Sun, Sunrise, Sunset, Terminal, Twitch, X } from "lucide-react";
 import { FaDiscord, FaSteam } from "react-icons/fa6";
 import { lazy, startTransition, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { now, profile, projects, roomStats, socialLinks, stack } from "../data/site";
+import { cabinetStack, now, profile, projects, roomStats, socialLinks, stack } from "../data/site";
 import { dayPart, hoursApart, offsetLabel, zonedClock } from "../lib/daiTime";
+import { reopenSameHash } from "../lib/hashLinks";
 import { useMinuteClock } from "../hooks/useMinuteClock";
 import { DecodeText } from "./DecodeText";
 import { DiscordPresencePanel } from "./DiscordPresencePanel";
@@ -368,7 +369,11 @@ export function ProgramSections({ theme, interactive }) {
               <span className="toolbelt-console-lights" aria-hidden="true"><i /><i /><i /></span>
               <code>~/daivr/toolbelt.scan</code>
             </div>
-            <span className="toolbelt-console-state"><i /> {String(stack.length).padStart(2, "0")} modules online</span>
+            {/* "04 modules online" no decia nada que no se viera ya; ahora la
+                cabecera cuenta con que esta hecho este armario. */}
+            <ul className="toolbelt-console-stack" aria-label="This cabinet runs on">
+              {cabinetStack.map((tool) => <li key={tool}>{tool}</li>)}
+            </ul>
           </div>
 
           <div className="toolbelt-grid">
@@ -378,36 +383,48 @@ export function ProgramSections({ theme, interactive }) {
 
               return (
                 <article className={`interactive-card toolbelt-card is-module-${index + 1}`} key={item.title}>
-                  {/* El codigo de modulo sube a la cabecera: era una linea
-                      propia que solo separaba el titulo de su encabezado, igual
-                      que pasaba en las tarjetas de NOW. */}
+                  {/* Icono y codigo en la cabecera. Fuera el "READY" (salia en
+                      las cuatro) y el numero gigante de fondo, que se metia
+                      por debajo de las etiquetas. */}
                   <div className="toolbelt-card-header">
-                    <span>MOD.{String(index + 1).padStart(2, "0")}<b>{module.code}</b></span>
-                    <span><i /> ready</span>
-                  </div>
-
-                  <div className="toolbelt-card-icon" aria-hidden="true">
-                    <Icon size={25} />
+                    <span className="toolbelt-card-icon" aria-hidden="true"><Icon size={15} /></span>
+                    <span>MOD.{String(index + 1).padStart(2, "0")}</span>
+                    <b>{module.code}</b>
                   </div>
 
                   <div className="toolbelt-card-copy">
                     <h3>{item.title}</h3>
                     <p>{item.body}</p>
-                    <ul className="toolbelt-card-tags" aria-label={`${item.title} capabilities`}>
-                      {item.tags?.map((tag) => <li key={tag}>{tag}</li>)}
-                    </ul>
                   </div>
 
-                  {/* "capability online" repetia lo que ya dice el chip READY
-                      de la cabecera en las cuatro tarjetas. Queda la lectura de
-                      carga, con el mismo medidor de ocho segmentos que usan las
-                      tarjetas de NOW. */}
-                  <div className="toolbelt-card-footer">
-                    <span>capability</span>
-                    <span className="toolbelt-card-meter" aria-hidden="true">
-                      {Array.from({ length: 8 }, (_, cell) => <i key={cell} />)}
-                    </span>
-                  </div>
+                  <ul className="toolbelt-card-focus" aria-label={`${item.title} focus`}>
+                    {item.tags?.map((tag) => <li key={tag}>{tag}</li>)}
+                  </ul>
+
+                  {/* El medidor de "capability" marcaba seis de ocho en las
+                      cuatro tarjetas: era decorado. En su sitio, con que se
+                      hace y donde se puede ver funcionando. */}
+                  <dl className="toolbelt-card-specs">
+                    <div>
+                      <dt>stack</dt>
+                      <dd>
+                        <ul className="toolbelt-card-tools">
+                          {item.tools?.map((tool) => <li key={tool}>{tool}</li>)}
+                        </ul>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>seen in</dt>
+                      <dd className="toolbelt-card-proof">
+                        {item.seenIn?.map(([label, href]) => (
+                          <a className="arcade-focus" href={href} key={label} onClick={reopenSameHash}>
+                            {label}
+                            <ArrowDownRight size={12} aria-hidden="true" />
+                          </a>
+                        ))}
+                      </dd>
+                    </div>
+                  </dl>
                 </article>
               );
             })}

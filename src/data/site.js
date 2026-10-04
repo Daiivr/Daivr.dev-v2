@@ -374,26 +374,41 @@ export const systems = [
   }
 ];
 
+// Toolbelt. tags: en que se fija cada modulo; tools: con que se hace de
+// verdad; seenIn: donde se puede ver funcionando dentro del armario (sustituye
+// al medidor de "capability", que marcaba seis de ocho en las cuatro).
 export const stack = [
   {
     title: "Front-end craft",
     body: "Custom interfaces that feel good to use, from the first click to the smallest animation.",
-    tags: ["Responsive UI", "Accessibility", "Motion"]
+    tags: ["Responsive UI", "Accessibility", "Motion"],
+    tools: ["React", "TypeScript", "Tailwind", "Motion"],
+    seenIn: [["Palwatch", "#project-palwatch"], ["This cabinet", "#home"]]
   },
   {
     title: "Bots + tooling",
     body: "Discord bots and control panels that keep queues moving and communities running.",
-    tags: ["Discord", "Queue flows", "Automation"]
+    tags: ["Discord", "Queue flows", "Automation"],
+    tools: ["C# / .NET", "Discord.NET", "SysBot.NET", "PKHeX"],
+    seenIn: [["TradeDex", "#project-tradedex"]]
   },
   {
     title: "Game-adjacent UX",
     body: "The personality of a game menu, built into practical tools for the web.",
-    tags: ["Inventories", "Launchers", "Terminals"]
+    tags: ["Inventories", "Launchers", "Terminals"],
+    tools: ["Three.js", "Canvas 2D", "Web Audio"],
+    seenIn: [["Game shelf", "#games"], ["This cabinet", "#home"]]
   },
   {
     title: "Shipping hygiene",
     body: "Small, maintainable builds with clear structure and a final check in the browser.",
-    tags: ["Semantic HTML", "Modular JS", "Browser QA"]
+    tags: ["Semantic HTML", "Modular JS", "Browser QA"],
+    tools: ["Vite", "Node", "Render", "Cloudflare"],
+    seenIn: [["Patch.log", "#patchlog"], ["TradeDex releases", "#project-tradedex"]]
   }
 ];
+
+// Lo que mueve este armario en concreto: va en la cabecera del Toolbelt, en
+// lugar de "04 modules online".
+export const cabinetStack = ["React 19", "Vite 7", "Tailwind 4", "Three.js", "Node"];
 

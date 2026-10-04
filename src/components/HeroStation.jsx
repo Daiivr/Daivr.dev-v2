@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { bootNodes, profile, projects } from "../data/site";
 import { projectStories } from "../data/projectStories";
 import { useElasticDrag } from "../hooks/useElasticDrag";
+import { reopenSameHash } from "../lib/hashLinks";
 import { ArcadeButton } from "./ui/ArcadeButton";
 import { ArcadeCanvas } from "./ArcadeCanvas";
 import { DevRoomVault } from "./DevRoomVault";
@@ -18,14 +19,6 @@ const HERO_CARTS = projects
     kind: (projectStories[project.title]?.eyebrow ?? project.meta).toLowerCase()
   }))
   .filter((cart) => cart.slug);
-
-// Un enlace a la ficha que ya esta en la URL no dispara hashchange, asi que el
-// segundo clic no hacia nada; se avisa a mano, igual que el comando open.
-function reopenSameHash(event) {
-  if (window.location.hash !== event.currentTarget.hash) return;
-  event.preventDefault();
-  window.dispatchEvent(new HashChangeEvent("hashchange"));
-}
 
 const BOOT_SCRIPT = [
   { arg: "Dai", name: "player", type: "assign" },
