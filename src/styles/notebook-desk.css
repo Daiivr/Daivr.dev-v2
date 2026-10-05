@@ -14,12 +14,14 @@
 .notebook-socials-tab:active { box-shadow: 1px 1px 0 #46593f33, 2px 4px 8px #1d302424; transition-duration: 90ms; }
 .notebook-socials-tab:focus-visible { outline: 2px solid var(--nb-ink); outline-offset: 4px; }
 .notebook-socials-tab-stack { display: flex; padding-left: 7px; }
-.notebook-socials-tab-stack i { display: grid; place-items: center; width: 25px; height: 25px; margin-left: -7px; border: 1.5px solid var(--nb-ink); border-radius: 5px; background: #ece7cf; color: var(--nb-ink); box-shadow: 1px 1px 0 color-mix(in srgb, var(--nb-ink) 20%, transparent); transition: margin 280ms cubic-bezier(.2,.8,.25,1), transform 280ms cubic-bezier(.2,.8,.25,1); }
-.notebook-socials-tab-stack i:nth-child(1) { transform: rotate(-9deg); }
-.notebook-socials-tab-stack i:nth-child(2) { transform: rotate(4deg) translateY(-2px); }
-.notebook-socials-tab-stack i:nth-child(3) { transform: rotate(-3deg) translateY(1px); }
-.notebook-socials-tab-stack i:nth-child(4) { transform: rotate(8deg); }
-.notebook-socials-tab:is(:hover, :focus-visible) .notebook-socials-tab-stack i { margin-left: -3px; }
+.notebook-socials-tab-stack i { display: grid; place-items: center; width: 25px; height: 25px; margin-left: -7px; border: 1.5px solid var(--nb-ink); border-radius: 5px; background: #ece7cf; color: var(--nb-ink); box-shadow: 1px 1px 0 color-mix(in srgb, var(--nb-ink) 20%, transparent); transition: transform 280ms cubic-bezier(.2,.8,.25,1); }
+/* On hover the logos fan out by --fan, with transforms only: changing their
+   spacing widened the stack, wrapped the title and made the card taller. */
+.notebook-socials-tab-stack i:nth-child(1) { transform: translateX(calc(var(--fan, 0px) * -1.5)) rotate(-9deg); }
+.notebook-socials-tab-stack i:nth-child(2) { transform: translateX(calc(var(--fan, 0px) * -.5)) rotate(4deg) translateY(-2px); }
+.notebook-socials-tab-stack i:nth-child(3) { transform: translateX(calc(var(--fan, 0px) * .5)) rotate(-3deg) translateY(1px); }
+.notebook-socials-tab-stack i:nth-child(4) { transform: translateX(calc(var(--fan, 0px) * 1.5)) rotate(8deg); }
+.notebook-socials-tab:is(:hover, :focus-visible) .notebook-socials-tab-stack { --fan: 2px; }
 .notebook-socials-tab-copy { display: grid; gap: 3px; min-width: 0; }
 .notebook-socials-tab-copy small { color: var(--nb-mid); font: 800 8px/1.2 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; }
 .notebook-socials-tab-copy b { color: var(--nb-ink-strong); font: italic 700 14px/1.2 var(--font-mono); }
