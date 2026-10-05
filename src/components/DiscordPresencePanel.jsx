@@ -15,6 +15,7 @@ import { cn } from "../lib/cn";
 import { DiscordDeskControls } from "./DiscordDeskControls";
 import { DiscordTabletop } from "./DiscordTabletop";
 import { DiscordPresenceMobile } from "./DiscordPresenceMobile";
+import { NotebookSocialsTab } from "./NotebookSocials";
 
 // Un Set vacio y estable: sirve de estado inicial a los dos marcos que se
 // pintan, sin crear uno nuevo en cada render.
@@ -701,6 +702,7 @@ export function DiscordPresencePanel() {
               ))}
             </div>
           ) : null}
+          <NotebookSocialsTab />
           <a className="discord-profile-link arcade-focus" href={discord.profileUrl} target="_blank" rel="noreferrer">
             <Radio size={14} aria-hidden="true" />
             Open Discord profile

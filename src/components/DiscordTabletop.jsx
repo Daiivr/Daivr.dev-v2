@@ -3,6 +3,10 @@ import { ArrowUpRight, BookOpen, Gamepad2, Headphones, Moon, Radio, X } from "lu
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { DiscordDeskControls } from "./DiscordDeskControls";
 import { DeskCoffee, DiscordDeskKeepsakes } from "./DiscordDeskKeepsakes";
+import { NotebookSocialsSpread, NotebookTurnContext } from "./NotebookSocials";
+
+// Matches the page turn in discord-tabletop.css.
+const TURN_MS = 900;
 
 const objects = {
   notebook: { title: "Dai’s notebook", description: "A little about the person behind the screen.", label: "Open Dai’s notebook" },
@@ -40,9 +44,10 @@ function DeskEarphones() {
   </div>;
 }
 
-function NotebookInspection({ children, phase }) {
-  return <div className={`tabletop-open-book is-${phase}`}>
+function NotebookInspection({ children, phase, notes, spread }) {
+  return <div className={`tabletop-open-book is-${phase}`} data-notes={notes.view} data-turn={notes.turn || undefined}>
     {children}
+    {phase === "reading" && (notes.view === "socials" || notes.turn) ? spread : null}
     {phase !== "reading" && <>
       <span className="tabletop-book-shade" aria-hidden="true" />
       <NotebookCover opening />
@@ -99,6 +104,12 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
   const trigger = useRef(null);
   const pickupSource = useRef(null);
   const closeQueued = useRef(false);
+  // The notebook's right page can be turned to the player cards and back.
+  const [notes, setNotes] = useState({ view: "person", turn: null });
+  const closeAfterTurn = useRef(false);
+  const lastTurn = useRef(null);
+  const socialsTab = useRef(null);
+  const lobbyHeading = useRef(null);
   const [returned, setReturned] = useState(null);
   const signal = error ? "SIGNAL LOST" : loading ? "SYNCING" : null;
   const liveActivities = error || loading || statusKey === "offline" ? [] : activities;
@@ -118,14 +129,18 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
     dialog.style.removeProperty("animation");
     const source = pickupSource.current;
     pickupSource.current = null;
+    // The dialog rests centred below the top bar, not on the viewport centre.
+    const rest = dialog.getBoundingClientRect();
+    const centerX = rest.left + rest.width / 2;
+    const centerY = rest.top + rest.height / 2;
     const scale = source.width / destination.width;
     const angle = source.rotation * Math.PI / 180;
-    const dx = (destination.left + destination.width / 2 - window.innerWidth / 2) * scale;
-    const dy = (destination.top + destination.height / 2 - window.innerHeight / 2) * scale;
+    const dx = (destination.left + destination.width / 2 - centerX) * scale;
+    const dy = (destination.top + destination.height / 2 - centerY) * scale;
     setOrigin((current) => ({
       ...current,
-      "--pickup-x": `${source.x - window.innerWidth / 2 - dx * Math.cos(angle) + dy * Math.sin(angle)}px`,
-      "--pickup-y": `${source.y - window.innerHeight / 2 - dx * Math.sin(angle) - dy * Math.cos(angle)}px`,
+      "--pickup-x": `${source.x - centerX - dx * Math.cos(angle) + dy * Math.sin(angle)}px`,
+      "--pickup-y": `${source.y - centerY - dx * Math.sin(angle) - dy * Math.cos(angle)}px`,
       "--pickup-scale": scale,
       "--pickup-rotation": `${source.rotation}deg`
     }));
@@ -145,8 +160,53 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
     return () => window.clearTimeout(timer);
   }, [open, phase, selected]);
 
+  function openSocials() {
+    if (phase !== "reading" || notes.turn || notes.view === "socials") return;
+    setNotes({ view: "socials", turn: "forward" });
+  }
+
+  function closeSocials() {
+    if (notes.turn || notes.view !== "socials") return;
+    setNotes({ view: "person", turn: "back" });
+  }
+
+  // A put-down asked for while on the player cards turns the page back first,
+  // so the book closes on the same spread it opened on.
+  function finishTurn(view) {
+    if (closeAfterTurn.current) {
+      if (view === "socials") { setNotes({ view: "person", turn: "back" }); return; }
+      closeAfterTurn.current = false;
+      setNotes({ view: "person", turn: null });
+      onInspect();
+      setPhase("closing");
+      return;
+    }
+    setNotes({ view, turn: null });
+  }
+
+  useEffect(() => {
+    if (!notes.turn) return undefined;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const timer = window.setTimeout(() => finishTurn(notes.view), reduced ? 0 : TURN_MS + 300);
+    return () => window.clearTimeout(timer);
+  }, [notes]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Keyboard and screen reader users land on the page they turned to.
+  useEffect(() => {
+    const finished = lastTurn.current;
+    lastTurn.current = notes.turn;
+    if (!finished || notes.turn) return;
+    if (notes.view === "socials") lobbyHeading.current?.focus({ preventScroll: true });
+    else socialsTab.current?.focus({ preventScroll: true });
+  }, [notes]);
+
   function putBack() {
     if (phase === "closing" || phase === "returning") return;
+    if (notes.turn || notes.view === "socials") {
+      closeAfterTurn.current = true;
+      if (!notes.turn) setNotes({ view: "person", turn: "back" });
+      return;
+    }
     // Leaving "lifting" mid-flight drops the pickup transform, so the object
     // jumped to the middle of the screen before going back. Let it arrive
     // first, then put it down.
@@ -174,6 +234,8 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
     if (selected === "notebook" && name === "tabletop-book-center" && phase === "opening") setPhase("reading");
     if (selected === "notebook" && name === "tabletop-book-uncenter" && phase === "closing") setPhase("returning");
     if (name === "tabletop-put-back" && phase === "returning") settle();
+    if (name === "tabletop-leaf-land" && notes.turn === "forward") finishTurn("socials");
+    if (name === "tabletop-leaf-return" && notes.turn === "back") finishTurn("person");
   }
 
   // The object lands where the cursor (or keyboard focus) often still is.
@@ -217,6 +279,7 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
     // With nothing playing the dialog shows the desk preview itself: laid out at
     // its desk width and scaled, so it keeps exactly the shape it had on the desk.
     const idleZoom = Math.min(228 / width, 360 / height);
+    const topbar = target.closest(".app-shell")?.querySelector(".cabinet-topbar")?.getBoundingClientRect();
     setOrigin({
       "--preview-width": `${width}px`,
       "--preview-zoom": zoom,
@@ -225,12 +288,15 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
       "--idle-zoom": idleZoom,
       "--idle-width": `${width * idleZoom}px`,
       "--idle-height": `${height * idleZoom}px`,
+      "--topbar-bottom": `${Math.max(0, topbar?.bottom || 0)}px`,
       "--wheel-size": `${(target.querySelector(".discord-player-wheel")?.offsetWidth || 110) * zoom}px`
     });
     trigger.current = target;
     setPortalContainer(target.closest(".app-shell"));
     setSelected(kind);
     setReturned(null);
+    setNotes({ view: "person", turn: null });
+    closeAfterTurn.current = false;
     closeQueued.current = false;
     setPhase("lifting");
     setOpen(true);
@@ -278,7 +344,9 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
           </header>
           <div className="tabletop-dialog-scroll">
             {selected === "notebook" ? <>
-              <NotebookInspection phase={phase}>{notebook}</NotebookInspection>
+              <NotebookTurnContext.Provider value={{ open: openSocials, tabRef: socialsTab }}>
+                <NotebookInspection phase={phase} notes={notes} spread={<NotebookSocialsSpread onBack={closeSocials} headingRef={lobbyHeading} />}>{notebook}</NotebookInspection>
+              </NotebookTurnContext.Provider>
               {otherActivities.length > 0 ? <div className="tabletop-extra-activities"><span>ALSO IN THE ROOM</span>{otherActivities.map((activity) => <p key={activity.activityKey}>{activity.typeLabel}: <strong>{activity.name}</strong>{activity.detail ? ` · ${activity.detail}` : ""}</p>)}</div> : null}
             </> : selectedActivities.length ? <div className="tabletop-inspected-devices">
               {renderActivities(selectedActivities)}

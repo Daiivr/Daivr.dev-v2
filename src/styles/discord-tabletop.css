@@ -130,7 +130,11 @@
 .tabletop-overlay { position: fixed; inset: 0; z-index: 1200; background: #07100cdc; backdrop-filter: blur(9px); transition: background 420ms cubic-bezier(.22,.61,.36,1), backdrop-filter 420ms cubic-bezier(.22,.61,.36,1); }
 .tabletop-overlay[data-phase="lifting"] { animation: tabletop-focus-desk 800ms ease both; }
 .tabletop-overlay:is([data-phase="closing"],[data-phase="returning"]) { background: transparent; backdrop-filter: blur(0); }
-.app-shell .discord-desk.tabletop-dialog { position: fixed; z-index: 1201; top: 50%; left: 50%; width: min(740px, calc(100vw - 40px)); max-height: calc(100dvh - 40px); display: flex; flex-direction: column; container-type: normal; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; transform: translate(-50%, -50%); animation: none; outline: none; color: #e2e8d5; }
+/* The top bar stays above the dialog layer while it is open, so an object
+   flying to or from a desk spot under the bar passes beneath it. The dialog
+   rests centred in the space below the bar. */
+.app-shell:has(.tabletop-dialog) .cabinet-topbar { z-index: 1210; }
+.app-shell .discord-desk.tabletop-dialog { position: fixed; z-index: 1201; top: calc(50% + var(--topbar-bottom, 0px) / 2); left: 50%; width: min(740px, calc(100vw - 40px)); max-height: calc(100dvh - var(--topbar-bottom, 0px) - 32px); display: flex; flex-direction: column; container-type: normal; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; transform: translate(-50%, -50%); animation: none; outline: none; color: #e2e8d5; }
 .app-shell .discord-desk.tabletop-dialog:not(.is-notebook) { width: min(410px, calc(100vw - 40px)); }
 .tabletop-dialog-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; padding-inline: 8px; }
 .tabletop-dialog-heading h2 { color: #eee8d1; font: 700 23px/1.3 var(--font-display); }

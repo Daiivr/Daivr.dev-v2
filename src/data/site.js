@@ -164,6 +164,20 @@ export const socialLinks = [
   }
 ];
 
+// Tarjetas de jugador del cuaderno (Room.sys, pagina 03/04): IDs y codigos
+// para agregar a Dai en cada plataforma. Discord, GitHub y Twitch ya estan en
+// los enlaces. "code" es lo que copia el boton (si falta, copia el handle) y
+// "href" anade el enlace al perfil. Una tarjeta sin handle no se pinta.
+export const playerCards = [
+  { id: "steam", label: "Steam", note: "profile", handle: "Daivr", href: "https://steamcommunity.com/id/Daivr" },
+  { id: "league", label: "League of Legends", note: "Riot ID", handle: "Dai#Egirl" },
+  { id: "roblox", label: "Roblox", note: "username", handle: "Daiivr" },
+  { id: "playstation", label: "PlayStation", note: "PSN ID", handle: "ItsDaiVr" },
+  { id: "xbox", label: "Xbox", note: "gamertag", handle: "Daiivr" },
+  { id: "epic", label: "Epic Games", note: "display name", handle: "Dāi ツ" },
+  { id: "switch", label: "Nintendo Switch", note: "friend code", handle: "SW-4134-4243-0346" }
+];
+
 export const favorites = [
   {
     title: "Game worlds",
