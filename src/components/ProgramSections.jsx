@@ -1,5 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
-import { ArrowDownRight, ArrowRight, Bot, Check, Code2, Copy, Cpu, Download, ExternalLink, Gamepad2, Github, Globe2, Lock, Moon, ShieldCheck, Sun, Sunrise, Sunset, Terminal, Twitch, X } from "lucide-react";
+import { ArrowDownRight, ArrowRight, BookOpen, Bot, Check, Code2, Copy, Cpu, Download, ExternalLink, Gamepad2, Github, Globe2, Hand, Lock, Moon, ShieldCheck, Sun, Sunrise, Sunset, Terminal, Twitch, X } from "lucide-react";
 import { FaDiscord, FaSteam } from "react-icons/fa6";
 import { lazy, startTransition, Suspense, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { cabinetStack, now, profile, projects, roomStats, socialLinks, stack } from "../data/site";
@@ -710,7 +710,7 @@ function ProjectConsole() {
     <div className="project-console panel-strong">
       <div className="project-console-header">
         <div className="project-console-header-copy">
-          <h3>&gt; current-projects.sh</h3>
+          <h3><span aria-hidden="true">&gt;</span> current-projects.sh</h3>
           <p><span /> workspace feed · realtime build</p>
         </div>
         <div className="project-console-telemetry">
@@ -821,10 +821,16 @@ function ProjectLanyardDock({ project, scanData, scanError, onClose, onLearnMore
 
       <div className="project-lanyard-layout">
         <div className="project-lanyard-stage" aria-label="Draggable physics lanyard preview">
+          {/* Escaparate detras del badge (el canvas es transparente): foco
+              desde el enganche, suelo en perspectiva y el nombre en grande. */}
+          <span className="project-lanyard-backdrop" aria-hidden="true">
+            <b>{project.title}</b>
+            <i />
+          </span>
           <Suspense fallback={<div className="project-lanyard-loading">loading physics rig...</div>}>
             <ProjectLanyard project={project} />
           </Suspense>
-          <span className="project-lanyard-drag-hint">drag badge // release to swing</span>
+          <span className="project-lanyard-drag-hint"><Hand size={13} aria-hidden="true" /> drag badge // release to swing</span>
         </div>
 
         <article className="project-lanyard-info">
@@ -855,17 +861,26 @@ function ProjectLanyardDock({ project, scanData, scanError, onClose, onLearnMore
           </dl>
 
           {scan ? (
-            <div className={`project-lanyard-scan is-${scan.state || "scanning"}`} role="status" aria-live="polite">
+            <div className={`project-lanyard-scan is-${scan.state || "scanning"}`}>
               <ShieldCheck size={20} aria-hidden="true" />
-              <div>
+              <div role="status" aria-live="polite">
                 <span>{virusTotalBadge?.label || "VT checking"}</span>
                 <strong>{scan.status}</strong>
                 {scan.engines ? <small>{scan.detections || 0}/{scan.engines} engine detections</small> : null}
               </div>
+              {/* El informe va con su veredicto: como tercer boton se quedaba
+                  huerfano a media fila debajo de los otros dos. */}
+              {scan.virusTotalUrl ? (
+                <a className="project-lanyard-scan-link arcade-focus" href={scan.virusTotalUrl} target="_blank" rel="noreferrer">
+                  <span>VT report</span>
+                  <ExternalLink size={13} aria-hidden="true" />
+                </a>
+              ) : null}
             </div>
           ) : null}
 
           <button className="project-learn-more arcade-focus" type="button" onClick={onLearnMore}>
+            <span className="project-learn-more-icon" aria-hidden="true"><BookOpen size={20} /></span>
             <span><strong>Learn more</strong><small>The idea, the build, and how it works</small></span>
             <ArrowRight size={20} aria-hidden="true" />
           </button>
@@ -901,14 +916,6 @@ function ProjectLanyardDock({ project, scanData, scanError, onClose, onLearnMore
                 <span>Release locked</span>
               </span>
             )}
-
-            {scan?.virusTotalUrl ? (
-              <a className="arcade-focus" href={scan.virusTotalUrl} target="_blank" rel="noreferrer">
-                <ShieldCheck size={17} aria-hidden="true" />
-                <span>VT report</span>
-                <ExternalLink size={14} aria-hidden="true" />
-              </a>
-            ) : null}
           </div>
 
           {showWarning ? (

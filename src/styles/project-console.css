@@ -70,6 +70,12 @@
     font-family: var(--font-display);
     font-size: clamp(1rem, 1.6vw, 1.35rem);
     font-weight: 900;
+    text-shadow: 0 0 18px color-mix(in srgb, var(--color-phosphor) 30%, transparent);
+  }
+
+  .project-console-header h3 > span {
+    color: var(--color-cyan-arcade);
+    text-shadow: 0 0 14px color-mix(in srgb, var(--color-cyan-arcade) 45%, transparent);
   }
 
   .project-console-header p,

@@ -1,0 +1,475 @@
+@layer components {
+  /* Historia de un proyecto ("Learn more"). Vivia en community.css; tiene su
+     propio archivo desde que paso a ser una pagina con cabecera, tarjetas y
+     pasos en vez de dos columnas de texto. Va justo detras de community.css
+     en App.jsx para conservar el mismo puesto en la cascada. */
+  .project-story {
+    --story-accent: var(--color-cyan-arcade);
+    position: relative;
+    z-index: 2;
+    isolation: isolate;
+    overflow: hidden;
+    margin: 8px 0 0;
+    border: 1px solid color-mix(in srgb, var(--story-accent) 48%, transparent);
+    background:
+      radial-gradient(ellipse 60% 42% at 88% 0, color-mix(in srgb, var(--story-accent) 13%, transparent), transparent 72%),
+      radial-gradient(ellipse 40% 30% at 0 100%, color-mix(in srgb, var(--color-cyan-arcade) 6%, transparent), transparent 72%),
+      #030b07;
+    color: #d6e7dd;
+    clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+    box-shadow: inset 0 0 45px #0006;
+  }
+
+  .project-story-palwatch { --story-accent: var(--color-phosphor); }
+  /* Mismo acento que su ficha y su lanyard: al pasar a la historia el panel
+     no cambiaba solo de vista, tambien de color. */
+  .project-story-tradedex { --story-accent: var(--color-glitch); }
+
+  .project-story::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    content: "";
+    pointer-events: none;
+    background:
+      linear-gradient(color-mix(in srgb, var(--color-phosphor) 7%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 6%, transparent) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: linear-gradient(180deg, #000, transparent 60%);
+  }
+
+  .project-story :is(button, a) {
+    min-height: 38px;
+    cursor: pointer;
+    font: inherit;
+    text-decoration: none;
+  }
+
+  .project-story :is(a, button):focus-visible {
+    outline: 2px solid #63ffad;
+    outline-offset: 3px;
+  }
+
+  .project-story-titlebar {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 13px 16px 11px;
+    border-bottom: 1px solid color-mix(in srgb, var(--story-accent) 28%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--story-accent) 13%, transparent), transparent 55%),
+      rgba(2, 6, 4, 0.9);
+    color: var(--story-accent);
+    font-size: 10px;
+    font-weight: 800;
+  }
+
+  .project-story-titlebar::before {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    content: "";
+    background: linear-gradient(90deg, var(--story-accent), var(--color-cyan-arcade) 45%, transparent 85%);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--story-accent) 55%, transparent);
+  }
+
+  .project-story-titlebar .project-story-route {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    margin-left: auto;
+    font-size: 10px;
+    letter-spacing: 0.04em;
+  }
+
+  .project-story-titlebar button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    border: 1px solid color-mix(in srgb, var(--story-accent) 42%, transparent);
+    background: #020b09;
+    padding: 8px 12px;
+    color: var(--story-accent);
+    font-size: 11px;
+    font-weight: 800;
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  }
+
+  .project-story-titlebar button:is(:hover, :focus-visible) {
+    border-color: var(--story-accent);
+    background: color-mix(in srgb, var(--story-accent) 14%, #020604);
+  }
+
+  .project-story-titlebar .project-story-close {
+    flex-shrink: 0;
+    width: 40px;
+    margin-left: auto;
+    padding: 0;
+  }
+
+  .project-story-body {
+    display: grid;
+    gap: clamp(22px, 2.8vw, 32px);
+    padding: clamp(16px, 2.8vw, 34px);
+  }
+
+  .project-story p {
+    margin: 0;
+    font-size: 13.5px;
+    font-weight: 500;
+    line-height: 1.8;
+  }
+
+  /* Cabecera: titulo grande con su cursor y la vista previa al lado. */
+  .project-story-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr);
+    align-items: center;
+    gap: clamp(20px, 3.2vw, 44px);
+  }
+
+  .project-story h3 {
+    margin: 14px 0 16px;
+    color: #f4fff8;
+    font-family: var(--font-display);
+    font-size: clamp(2.3rem, 5vw, 4.1rem);
+    font-weight: 900;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    text-shadow:
+      0 0 30px color-mix(in srgb, var(--story-accent) 42%, transparent),
+      3px 3px 0 color-mix(in srgb, var(--story-accent) 38%, transparent);
+  }
+
+  .project-story h3 > span {
+    color: var(--story-accent);
+    animation: project-story-caret 1.1s steps(1, end) infinite;
+  }
+
+  @keyframes project-story-caret {
+    50% { opacity: 0; }
+  }
+
+  .project-story-heading > p {
+    max-width: 44ch;
+    color: color-mix(in srgb, var(--color-phosphor-soft) 84%, white);
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.6;
+  }
+
+  .project-story-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 20px;
+  }
+
+  .project-story-tags span {
+    border: 1px solid color-mix(in srgb, var(--story-accent) 38%, transparent);
+    background: color-mix(in srgb, var(--story-accent) 9%, transparent);
+    padding: 6px 10px;
+    color: color-mix(in srgb, var(--story-accent) 72%, white);
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .project-story figure {
+    --story-corner: color-mix(in srgb, var(--story-accent) 80%, transparent);
+    position: relative;
+    min-width: 0;
+    margin: 0;
+    padding: 10px;
+    border: 1px solid color-mix(in srgb, var(--story-accent) 26%, transparent);
+    background:
+      radial-gradient(ellipse at 50% 55%, color-mix(in srgb, var(--story-accent) 12%, transparent), transparent 70%),
+      repeating-linear-gradient(0deg, transparent 0 3px, #3fff9705 3px 4px),
+      #020604;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+  }
+
+  /* Esquinas de visor, como el escenario del lanyard. */
+  .project-story figure::before {
+    position: absolute;
+    inset: -1px;
+    content: "";
+    pointer-events: none;
+    background:
+      linear-gradient(var(--story-corner), var(--story-corner)) left top / 18px 2px,
+      linear-gradient(var(--story-corner), var(--story-corner)) left top / 2px 18px,
+      linear-gradient(var(--story-corner), var(--story-corner)) right top / 18px 2px,
+      linear-gradient(var(--story-corner), var(--story-corner)) right top / 2px 18px,
+      linear-gradient(var(--story-corner), var(--story-corner)) left bottom / 18px 2px,
+      linear-gradient(var(--story-corner), var(--story-corner)) left bottom / 2px 18px,
+      linear-gradient(var(--story-corner), var(--story-corner)) right bottom / 18px 2px,
+      linear-gradient(var(--story-corner), var(--story-corner)) right bottom / 2px 18px;
+    background-repeat: no-repeat;
+  }
+
+  .project-story-preview-label {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 2px 2px 10px;
+    color: var(--story-accent);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+
+  .project-story img {
+    display: block;
+    width: 100%;
+    height: clamp(200px, 22vw, 290px);
+    object-fit: contain;
+  }
+
+  .project-story figcaption {
+    border-top: 1px solid color-mix(in srgb, var(--story-accent) 18%, transparent);
+    padding: 9px 2px 1px;
+    color: #9fc4ae;
+    font-size: 9px;
+    line-height: 1.6;
+  }
+
+  .project-story h4 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 12px;
+    color: var(--story-accent);
+    font-family: var(--font-display);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  .project-story h4 > span {
+    border: 1px solid color-mix(in srgb, var(--color-cabinet) 50%, transparent);
+    background: color-mix(in srgb, var(--color-cabinet) 8%, transparent);
+    padding: 2px 6px;
+    color: var(--color-cabinet);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0;
+  }
+
+  /* Problema y solucion lado a lado, con su numero en grande de fondo. */
+  .project-story-cards {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .project-story-cards section {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #1d3a2b;
+    border-top: 2px solid color-mix(in srgb, var(--story-accent) 62%, transparent);
+    background:
+      linear-gradient(160deg, color-mix(in srgb, var(--story-accent) 8%, transparent), transparent 60%),
+      #050f0a;
+    padding: 20px 22px 22px;
+  }
+
+  .project-story-cards section::after {
+    position: absolute;
+    top: 8px;
+    right: 14px;
+    content: attr(data-index) / "";
+    color: transparent;
+    font-family: var(--font-display);
+    font-size: 62px;
+    font-weight: 900;
+    line-height: 1;
+    pointer-events: none;
+    -webkit-text-stroke: 1px color-mix(in srgb, var(--story-accent) 30%, transparent);
+  }
+
+  /* Pasos como una linea de montaje: nodo numerado, raya hasta el siguiente
+     y el texto en su tarjeta debajo. */
+  .project-story-workflow ol {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .project-story-workflow li {
+    position: relative;
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 12px;
+  }
+
+  .project-story-workflow li > span {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border: 2px solid var(--story-accent);
+    background: #020604;
+    color: var(--story-accent);
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 900;
+    box-shadow:
+      0 0 18px color-mix(in srgb, var(--story-accent) 36%, transparent),
+      inset 0 0 10px color-mix(in srgb, var(--story-accent) 22%, transparent);
+  }
+
+  .project-story-workflow li:not(:last-child)::after {
+    position: absolute;
+    top: 18px;
+    left: 46px;
+    right: -6px;
+    height: 2px;
+    content: "";
+    background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--story-accent) 62%, transparent) 0 8px, transparent 8px 13px);
+  }
+
+  .project-story-workflow li > p {
+    border: 1px solid #1d3a2b;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--story-accent) 5%, #06120c), #050e09);
+    padding: 13px 15px;
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  .project-story-outcome {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    align-items: start;
+    gap: 16px;
+    border: 1px solid color-mix(in srgb, var(--story-accent) 30%, transparent);
+    border-left: 3px solid var(--story-accent);
+    background:
+      linear-gradient(100deg, color-mix(in srgb, var(--story-accent) 14%, transparent), transparent 75%),
+      #040d08;
+    padding: 20px 22px;
+  }
+
+  .project-story-outcome-icon {
+    display: grid;
+    width: 48px;
+    height: 48px;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--story-accent) 52%, transparent);
+    background: color-mix(in srgb, var(--story-accent) 14%, #020604);
+    color: var(--story-accent);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--story-accent) 26%, transparent);
+  }
+
+  .project-story-outcome h4 {
+    margin-bottom: 8px;
+  }
+
+  .project-story-outcome p {
+    color: #e9f6ee;
+    font-size: 14px;
+  }
+
+  .project-story footer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    border-top: 1px solid color-mix(in srgb, var(--story-accent) 18%, transparent);
+    padding-top: 22px;
+  }
+
+  .project-story footer :is(a, button) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 46px;
+    border: 1px solid color-mix(in srgb, var(--story-accent) 42%, transparent);
+    background: #071710;
+    padding: 10px 18px;
+    color: var(--story-accent);
+    font-size: 11px;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+  }
+
+  .project-story footer :is(a, button):is(:hover, :focus-visible) {
+    border-color: var(--story-accent);
+    background: color-mix(in srgb, var(--story-accent) 18%, #020604);
+  }
+
+  .project-story footer a:first-child {
+    border-color: var(--story-accent);
+    background: var(--story-accent);
+    color: #04100a;
+  }
+
+  .project-story footer a:first-child:is(:hover, :focus-visible) {
+    background: var(--story-accent);
+    filter: brightness(1.12);
+  }
+
+  .project-story-status {
+    color: var(--color-phosphor);
+  }
+
+  @media (max-width: 900px) {
+    .project-story-hero {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (max-width: 700px) {
+    .project-story-cards {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .project-story-workflow ol {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .project-story-workflow li {
+      grid-template-columns: 38px minmax(0, 1fr);
+      grid-template-rows: none;
+      column-gap: 14px;
+    }
+
+    .project-story-workflow li:not(:last-child)::after {
+      top: 44px;
+      right: auto;
+      bottom: -10px;
+      left: 18px;
+      width: 2px;
+      height: auto;
+      background: repeating-linear-gradient(180deg, color-mix(in srgb, var(--story-accent) 62%, transparent) 0 8px, transparent 8px 13px);
+    }
+  }
+
+  @media (max-width: 640px) {
+    .project-story-titlebar .project-story-route {
+      display: none;
+    }
+
+    .project-story-outcome {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .project-story h3 > span {
+      animation: none;
+    }
+  }
+}

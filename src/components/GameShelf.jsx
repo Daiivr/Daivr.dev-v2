@@ -22,10 +22,6 @@ function parseHoursLabel(value) {
   return match ? Number(match[0].replaceAll(",", "")) || 0 : 0;
 }
 
-function formatHours(value) {
-  return `${Math.round(value).toLocaleString("en-US")}h`;
-}
-
 export function GameShelf() {
   const [flippedCards, setFlippedCards] = useState(() => new Set());
   const [steamPlaytime, setSteamPlaytime] = useState(initialSteamPlaytime);
@@ -184,13 +180,11 @@ export function GameShelf() {
   const topGame = games.reduce((top, game) => (getGameHourValue(game) > getGameHourValue(top) ? game : top), games[0]);
   const badgePool = [...new Set(games.flatMap((game) => game.badges || []))];
   // Antes eran dos fichas separadas ("local hours" y "sync // local") diciendo
-  // la misma mitad de la historia cada una. Una sola lo dice entero.
-  const syncReadout =
-    steamPlaytime.status === "syncing"
-      ? "steam sync..."
-      : hasLiveSteamHours
-        ? `steam live ${syncedCount}/${games.length}`
-        : "local hours";
+  // la misma mitad de la historia cada una. Una sola lo dice entero: el estado
+  // como cifra y el detalle debajo.
+  const syncLabel = steamPlaytime.status === "syncing" ? "sync" : hasLiveSteamHours ? "live" : "local";
+  const syncDetail = steamPlaytime.status === "syncing" ? "contacting steam" : hasLiveSteamHours ? `steam ${syncedCount}/${games.length} synced` : "hours source";
+  const topShare = totalHours > 0 ? Math.round((getGameHourValue(topGame) / totalHours) * 100) : 0;
 
   return (
     <section className="py-16 md:py-24" id="games">
@@ -216,19 +210,23 @@ export function GameShelf() {
             <p>Kept within reach.</p>
             <span>The worlds I keep coming back to. Tap a cover to read my notes.</span>
           </div>
+          {/* Cifras grandes con su rotulo debajo: eran tres frases sueltas del
+              mismo peso y no se sabia cual era el dato. */}
           <div className="game-shelf-stats">
-            <span><Gamepad2 size={13} aria-hidden="true" /> {String(games.length).padStart(2, "0")} cartridges</span>
-            <span><Clock3 size={13} aria-hidden="true" /> {formatHours(totalHours)} logged</span>
-            <span className={hasLiveSteamHours ? "is-live" : ""}><RadioTower size={13} aria-hidden="true" /> {syncReadout}</span>
+            <span><Gamepad2 size={13} aria-hidden="true" /><b>{String(games.length).padStart(2, "0")}</b><small>cartridges</small></span>
+            <span><Clock3 size={13} aria-hidden="true" /><b>{Math.round(totalHours).toLocaleString("en-US")}</b><small>hours logged</small></span>
+            <span className={hasLiveSteamHours ? "is-live" : ""}><RadioTower size={13} aria-hidden="true" /><b>{syncLabel}</b><small>{syncDetail}</small></span>
           </div>
         </header>
 
-        <div className="game-collection-plaque" aria-label="Game shelf summary">
-          <div>
-            <Trophy size={16} aria-hidden="true" />
-            <span>Most played <strong>{topGame.title}</strong></span>
-            <b>{getGameHours(topGame)}</b>
+        <div className={`game-collection-plaque game-card-${topGame.accent}`} aria-label="Game shelf summary">
+          <img className="game-collection-plaque-cover" src={topGame.image} alt="" aria-hidden="true" decoding="async" />
+          <div className="game-collection-plaque-copy">
+            <span><Trophy size={13} aria-hidden="true" /> Most played</span>
+            <strong>{topGame.title}</strong>
+            <i className="game-collection-plaque-bar" style={{ "--share": `${topShare}%` }} aria-hidden="true" />
           </div>
+          <b>{Math.round(getGameHourValue(topGame)).toLocaleString("en-US")}h<small>{topShare}% of all hours</small></b>
           <span className="game-collection-inscription">PERSONAL ARCHIVE <i /> {badgePool.length} traits collected</span>
         </div>
 
@@ -239,7 +237,7 @@ export function GameShelf() {
           <span className="game-shelf-corner game-shelf-corner-br" aria-hidden="true" />
 
           <div className="game-shelf-grid">
-            {games.map((game) => {
+            {games.map((game, gameIndex) => {
               const isFlipped = flippedCards.has(game.title);
               const hours = getGameHourValue(game);
               const hourPercent = totalHours > 0 ? Math.min(100, (hours / totalHours) * 100) : 0;
@@ -258,6 +256,9 @@ export function GameShelf() {
                   onPointerMove={setCardPointer}
                 >
                   <div className="game-card-scene">
+                    {/* La portada desenfocada detras del cartucho: cada juego
+                        tiñe la estanteria con sus propios colores. */}
+                    <img className="game-card-ambient" src={game.image} alt="" aria-hidden="true" decoding="async" />
                     <div className="game-card-cartridge-bar" aria-hidden="true">
                       <i />
                       <i />
@@ -277,7 +278,7 @@ export function GameShelf() {
                             tabIndex={isFlipped ? -1 : 0}
                             onClick={(event) => openReview(event, game.title)}
                           >
-                            <img className="game-card-cover" src={game.image} alt={`Cover art for ${game.title}`} loading="eager" decoding="async" fetchPriority="high" />
+                            <img className="game-card-cover" src={game.image} alt={`Cover art for ${game.title}`} loading="eager" decoding="async" fetchPriority="high" style={game.coverPosition ? { objectPosition: game.coverPosition } : undefined} />
                             <span className="game-card-foil" aria-hidden="true" />
                           </button>
                           <img className="game-card-character" src={game.character} alt="" loading="eager" decoding="async" fetchPriority="high" aria-hidden="true" />
@@ -315,10 +316,10 @@ export function GameShelf() {
 
                   </div>
 
-                  <div className="game-card-meta">
+                  <div className="game-card-meta" data-rank={String(gameIndex + 1).padStart(2, "0")}>
                     <span className="game-card-kicker">{game.kicker}</span>
                     <strong>{game.title}</strong>
-                    <em>{game.meta}</em>
+                    <em>{game.meta} · {game.genre}</em>
                     <div className="game-card-badges" aria-label={`${game.title} badges`}>
                       {(game.badges || []).map((badge) => (
                         <span key={badge}>{badge}</span>
@@ -332,7 +333,6 @@ export function GameShelf() {
                       <b className="game-card-hours-value">{Math.round(hours).toLocaleString("en-US")}<span>HRS</span></b>
                       <i aria-hidden="true" />
                     </div>
-                    <small>{game.genre}</small>
                     {/* steam_app 524220 y SN//0524220 eran el mismo numero dos
                         veces. Queda el serial, y el hueco lo ocupa algo que no
                         se sabia por tarjeta: si esas horas vienen de Steam. */}

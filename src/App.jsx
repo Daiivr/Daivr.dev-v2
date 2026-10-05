@@ -36,6 +36,7 @@ import "./styles/mobile.css";
 import "./styles/cabinet-sidebar.css";
 import "./styles/cabinet-topbar.css";
 import "./styles/community.css";
+import "./styles/project-story.css";
 import "./styles/discord-desk.css";
 import "./styles/game-collection.css";
 import "./styles/arcade-panels.css";

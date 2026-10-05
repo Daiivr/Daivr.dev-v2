@@ -1050,6 +1050,322 @@
     text-transform: uppercase;
   }
 
+  /* Selector y visor de GIF con la misma mano que el resto del cabinet:
+     franja de color arriba, cabecera en banda, pestanas como interruptor,
+     buscador en una sola barra, estado vacio con busquedas de un toque y
+     fichas que reaccionan. El visor es un escaparate con esquinas de visor. */
+  .comments-gif-dialog.is-accessible {
+    /* El dialogo se monta en <body>, fuera de .comments-console, que es donde
+       viven estos dos alias: sin ellos el rosa y el dorado salian invalidos
+       (el aspa de cerrar, por ejemplo, se quedaba blanca). */
+    --color-pink-glitch: var(--color-glitch);
+    --color-gold: var(--color-cabinet);
+    gap: 0.85rem;
+    overflow-x: hidden;
+    border-color: color-mix(in srgb, var(--color-cyan-arcade) 44%, transparent);
+    background:
+      radial-gradient(ellipse 70% 40% at 100% 0, color-mix(in srgb, var(--color-cyan-arcade) 9%, transparent), transparent 70%),
+      linear-gradient(rgba(255, 255, 255, 0.03) 50%, transparent 50%),
+      #020604;
+    background-size: auto, 100% 4px, auto;
+    padding: 0 1rem 1rem;
+  }
+
+  .comments-gif-dialog.is-accessible::before {
+    position: absolute;
+    inset: 0 0 auto;
+    height: 3px;
+    content: "";
+    background: linear-gradient(90deg, var(--color-cyan-arcade), var(--color-pink-glitch) 55%, transparent 90%);
+    box-shadow: 0 0 14px color-mix(in srgb, var(--color-cyan-arcade) 50%, transparent);
+  }
+
+  .comments-gif-dialog.is-accessible .comments-gif-dialog-head {
+    margin: 0 -1rem;
+    padding: 1rem 1rem 0.85rem;
+    border-bottom-color: color-mix(in srgb, var(--color-cyan-arcade) 26%, transparent);
+    background: linear-gradient(90deg, color-mix(in srgb, var(--color-cyan-arcade) 11%, transparent), transparent 62%);
+  }
+
+  .comments-gif-dialog-head > div > span {
+    width: fit-content;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 36%, transparent);
+    background: color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent);
+    padding: 3px 7px;
+    letter-spacing: 0.08em;
+  }
+
+  .comments-gif-dialog-head h3 {
+    margin-top: 0.45rem;
+  }
+
+  .comments-gif-views {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 22%, transparent);
+    background: rgba(2, 10, 8, 0.8);
+    padding: 4px;
+  }
+
+  .comments-gif-views button {
+    min-height: 40px;
+    border-color: transparent;
+    border-radius: 0;
+    background: transparent;
+    color: #9fc4b6;
+  }
+
+  .comments-gif-views button:hover {
+    background: color-mix(in srgb, var(--color-cyan-arcade) 6%, transparent);
+    color: #e6fff6;
+  }
+
+  .comments-gif-views button[aria-pressed="true"] {
+    border-color: color-mix(in srgb, var(--color-cyan-arcade) 55%, transparent);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--color-cyan-arcade) 18%, transparent), color-mix(in srgb, var(--color-cyan-arcade) 6%, transparent));
+    color: #dffbff;
+    box-shadow: inset 0 -2px 0 var(--color-cyan-arcade);
+  }
+
+  .comments-gif-views small {
+    min-width: 20px;
+    border: 1px solid color-mix(in srgb, currentColor 40%, transparent);
+    padding: 0 6px;
+    font-size: 10px;
+    line-height: 1.5;
+  }
+
+  .comments-gif-search {
+    gap: 0;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 30%, transparent);
+    background: rgba(2, 6, 4, 0.86);
+    padding-left: 12px;
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .comments-gif-search:focus-within {
+    border-color: var(--color-cyan-arcade);
+    box-shadow:
+      0 0 0 3px color-mix(in srgb, var(--color-cyan-arcade) 14%, transparent),
+      0 0 18px color-mix(in srgb, var(--color-cyan-arcade) 18%, transparent);
+  }
+
+  .comments-gif-search input {
+    min-height: 44px;
+    border: 0;
+    background: transparent;
+    padding-inline: 10px;
+  }
+
+  .comments-gif-search input::placeholder {
+    color: #6f8f86;
+  }
+
+  .comments-gif-search button {
+    align-self: stretch;
+    min-height: 0;
+    margin: 4px;
+    border-color: color-mix(in srgb, var(--color-cyan-arcade) 55%, transparent);
+    background: color-mix(in srgb, var(--color-cyan-arcade) 16%, transparent);
+    padding-inline: 16px;
+    color: #dffbff;
+  }
+
+  .comments-gif-search button:hover:not(:disabled) {
+    border-color: var(--color-cyan-arcade);
+    background: var(--color-cyan-arcade);
+    color: #021014;
+  }
+
+  .comments-gif-search button:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  .comments-gif-grid {
+    gap: 8px;
+  }
+
+  .comments-gif-grid .comments-gif-attach {
+    position: relative;
+    height: 130px;
+    border-color: color-mix(in srgb, var(--color-cyan-arcade) 20%, transparent);
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease;
+  }
+
+  .comments-gif-grid .comments-gif-attach img {
+    transition: transform 300ms ease;
+  }
+
+  .comments-gif-grid .comments-gif-attach::after {
+    position: absolute;
+    inset: auto 0 0;
+    content: "attach" / "";
+    background: linear-gradient(transparent, rgba(2, 6, 4, 0.92));
+    padding: 14px 8px 6px;
+    color: var(--color-cyan-arcade);
+    font: 800 10px var(--font-mono);
+    letter-spacing: 0.08em;
+    opacity: 0;
+    text-align: left;
+    text-transform: uppercase;
+    transform: translateY(4px);
+    transition:
+      opacity 160ms ease,
+      transform 160ms ease;
+  }
+
+  .comments-gif-grid .comments-gif-attach:is(:hover, :focus-visible) {
+    border-color: var(--color-cyan-arcade);
+    box-shadow:
+      0 8px 22px rgba(0, 0, 0, 0.6),
+      0 0 18px color-mix(in srgb, var(--color-cyan-arcade) 22%, transparent);
+  }
+
+  .comments-gif-grid .comments-gif-attach:is(:hover, :focus-visible) img {
+    transform: scale(1.06);
+  }
+
+  .comments-gif-grid .comments-gif-attach:is(:hover, :focus-visible)::after {
+    opacity: 1;
+    transform: none;
+  }
+
+  .comments-gif-skeleton {
+    height: 130px;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 14%, transparent);
+    background: linear-gradient(100deg, #061210 30%, #0f2622 50%, #061210 70%) 0 0 / 300% 100%;
+    animation: comments-gif-shimmer 1.3s linear infinite;
+  }
+
+  @keyframes comments-gif-shimmer {
+    from { background-position: 100% 0; }
+    to { background-position: 0 0; }
+  }
+
+  .comments-gif-empty {
+    grid-column: 1 / -1;
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+    border: 1px dashed color-mix(in srgb, var(--color-cyan-arcade) 26%, transparent);
+    background: radial-gradient(ellipse at 50% 0, color-mix(in srgb, var(--color-cyan-arcade) 8%, transparent), transparent 70%);
+    padding: 22px 16px;
+    color: var(--color-cyan-arcade);
+    text-align: center;
+  }
+
+  .comments-gif-grid .comments-gif-empty p {
+    color: #cfe9df;
+  }
+
+  .comments-gif-suggestions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .comments-gif-grid .comments-gif-suggestions button {
+    min-height: 32px;
+    border-color: color-mix(in srgb, var(--color-cyan-arcade) 30%, transparent);
+    background: color-mix(in srgb, var(--color-cyan-arcade) 6%, transparent);
+    padding: 4px 12px;
+    color: #bdf6ff;
+    font: 700 11px var(--font-mono);
+  }
+
+  .comments-gif-grid .comments-gif-suggestions button:hover {
+    border-color: var(--color-cyan-arcade);
+    background: var(--color-cyan-arcade);
+    color: #021014;
+  }
+
+  .comments-gif-stage {
+    position: relative;
+    min-height: 220px;
+    border-color: color-mix(in srgb, var(--color-cyan-arcade) 22%, transparent);
+    border-radius: 0;
+    background:
+      radial-gradient(ellipse at 50% 50%, color-mix(in srgb, var(--color-cyan-arcade) 10%, transparent), transparent 65%),
+      repeating-conic-gradient(#0a1513 0% 25%, #0d1b18 0% 50%) 0 0 / 20px 20px;
+    padding: 18px;
+  }
+
+  .comments-gif-stage::before {
+    --gif-corner: color-mix(in srgb, var(--color-cyan-arcade) 75%, transparent);
+    position: absolute;
+    inset: 6px;
+    content: "";
+    pointer-events: none;
+    background:
+      linear-gradient(var(--gif-corner), var(--gif-corner)) left top / 16px 2px,
+      linear-gradient(var(--gif-corner), var(--gif-corner)) left top / 2px 16px,
+      linear-gradient(var(--gif-corner), var(--gif-corner)) right top / 16px 2px,
+      linear-gradient(var(--gif-corner), var(--gif-corner)) right top / 2px 16px,
+      linear-gradient(var(--gif-corner), var(--gif-corner)) left bottom / 16px 2px,
+      linear-gradient(var(--gif-corner), var(--gif-corner)) left bottom / 2px 16px,
+      linear-gradient(var(--gif-corner), var(--gif-corner)) right bottom / 16px 2px,
+      linear-gradient(var(--gif-corner), var(--gif-corner)) right bottom / 2px 16px;
+    background-repeat: no-repeat;
+  }
+
+  .comments-gif-stage img {
+    box-shadow:
+      0 14px 30px rgba(0, 0, 0, 0.75),
+      0 0 0 1px rgba(255, 255, 255, 0.1);
+  }
+
+  .comments-gif-viewer-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .comments-gif-viewer-actions button {
+    min-height: 46px;
+    border-radius: 0;
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+    transition:
+      background-color 160ms ease,
+      color 160ms ease;
+  }
+
+  .comments-gif-viewer-actions button:not(.comments-gif-favorite) {
+    border-color: color-mix(in srgb, var(--color-cyan-arcade) 50%, transparent);
+    background: color-mix(in srgb, var(--color-cyan-arcade) 10%, #020604);
+    color: #ccf8ff;
+  }
+
+  .comments-gif-viewer-actions .comments-gif-favorite {
+    border-color: color-mix(in srgb, var(--color-pink-glitch) 60%, transparent);
+    background: color-mix(in srgb, var(--color-pink-glitch) 12%, #020604);
+    color: #ffd0e8;
+  }
+
+  .comments-gif-viewer-actions button:not(.comments-gif-favorite):is(:hover, :focus-visible):not(:disabled) {
+    background: var(--color-cyan-arcade);
+    color: #021014;
+  }
+
+  .comments-gif-viewer-actions .comments-gif-favorite:is(:hover, :focus-visible):not(:disabled),
+  .comments-gif-viewer-actions .comments-gif-favorite[aria-pressed="true"] {
+    background: var(--color-pink-glitch);
+    color: #1a0510;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .comments-gif-skeleton { animation: none; }
+    .comments-gif-grid .comments-gif-attach img,
+    .comments-gif-grid .comments-gif-attach::after { transition: none; }
+    .comments-gif-grid .comments-gif-attach:is(:hover, :focus-visible) img { transform: none; }
+  }
+
   .comments-delete-modal {
     position: fixed;
     inset: 0;
@@ -2370,15 +2686,6 @@
 
     .comment-reply-context b {
       max-width: 7.5rem;
-    }
-
-    .comments-gif-search {
-      grid-template-columns: auto minmax(0, 1fr);
-    }
-
-    .comments-gif-search button {
-      grid-column: 1 / -1;
-      min-width: 0;
     }
 
     .comments-pagination {

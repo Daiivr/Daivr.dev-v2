@@ -387,6 +387,8 @@ function commentGifPreviewUrl(gifUrl) {
 // Un raton que solo pasa de largo (o la pagina desplazandose bajo el cursor) no
 // llega a pedir el GIF.
 const GIF_HOVER_DELAY_MS = 150;
+// Busquedas de un toque para el selector vacio: antes solo decia "busca algo".
+const GIF_SUGGESTIONS = ["wave", "hype", "gg", "lol", "thank you", "cozy"];
 
 function CommentMedia({ gifUrl, onPreview }) {
   const imageRef = useRef(null);
@@ -1094,7 +1096,7 @@ export function CommentsSection() {
     <CommentGifDialog title="Choose a GIF" description="Search Klipy or reuse a favorite from your collection." onClose={closeGifPicker} returnFocusRef={gifPickerTriggerRef}>
       <div className="comments-gif-views" role="group" aria-label="GIF collection view">
         <button type="button" aria-pressed={gifPickerView === "search"} onClick={() => setGifPickerView("search")}><Search size={14} aria-hidden="true" /> Search</button>
-        <button type="button" aria-pressed={gifPickerView === "favorites"} onClick={() => setGifPickerView("favorites")}><Heart size={14} aria-hidden="true" /> Favorites ({gifFavorites.favorites.length})</button>
+        <button type="button" aria-pressed={gifPickerView === "favorites"} onClick={() => setGifPickerView("favorites")}><Heart size={14} aria-hidden="true" /> Favorites <small>{gifFavorites.favorites.length}</small></button>
       </div>
       {gifPickerView === "search" ? <form className="comments-gif-search" onSubmit={(event) => { event.preventDefault(); searchGifs(); }}>
               <Search size={15} aria-hidden="true" />
@@ -1118,8 +1120,15 @@ export function CommentsSection() {
                   }}><X size={14} aria-hidden="true" /></button> : null}
                 </div>
               ))}
-              {gifPickerView === "search" && !gifBusy && !gifResults.length ? <p>{gifQuery.trim() ? "No GIFs loaded. Try another search." : "Search for a GIF to attach."}</p> : null}
+              {gifPickerView === "search" && !gifBusy && !gifResults.length ? <div className="comments-gif-empty">
+                <ImageIcon size={22} aria-hidden="true" />
+                <p>{gifQuery.trim() ? "No GIFs loaded. Try another search." : "Search for a GIF to attach."}</p>
+                <div className="comments-gif-suggestions" role="group" aria-label="Quick GIF searches">
+                  {GIF_SUGGESTIONS.map((term) => <button key={term} type="button" onClick={() => { setGifQuery(term); searchGifs(term); }}>{term}</button>)}
+                </div>
+              </div> : null}
               {gifPickerView === "search" && gifBusy ? <p role="status">Searching GIF signal...</p> : null}
+              {gifPickerView === "search" && gifBusy && !gifResults.length ? Array.from({ length: 6 }, (_, index) => <span className="comments-gif-skeleton" key={index} aria-hidden="true" />) : null}
               {gifPickerView === "favorites" && gifFavorites.loading ? <p role="status">Loading favorites…</p> : null}
               {gifPickerView === "favorites" && !gifFavorites.loading && !gifFavorites.error && !gifFavorites.favorites.length ? <p>Nothing saved yet. Open a GIF in the comments and tap Favorite to keep it here.</p> : null}
             </div>

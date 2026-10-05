@@ -804,15 +804,8 @@
     overflow-y: auto;
   }
 
-  .comments-gif-search {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
-
-  .comments-gif-search button {
-    grid-column: 1 / -1;
-    width: 100%;
-  }
-
+  /* El buscador de GIF es una sola barra (icono, campo, boton) tambien aqui:
+     cabe en 320px y partirlo en dos filas lo hacia parecer dos controles. */
   .comments-gif-search input {
     font-size: 16px !important;
   }

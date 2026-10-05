@@ -1,4 +1,11 @@
 import { useEffect, useState } from "react";
+import { ArrowRight } from "lucide-react";
+
+// Una linea que dice que es cada proyecto. La comparten el indice, las hojas
+// que asoman y las fichas del abanico.
+function projectRole(project) {
+  return project.visual === "tradedex" ? "Discord automation" : "Live server map";
+}
 
 export function ProjectFolder({ items, selectedProjectTitle, onSelect }) {
   const [open, setOpen] = useState(false);
@@ -13,14 +20,26 @@ export function ProjectFolder({ items, selectedProjectTitle, onSelect }) {
 
       <div className="project-folder-intro">
         <span>FROM THE WORKBENCH</span>
-        <h3>Small builds. Real use.</h3>
+        <h3>Small builds. <em>Real use.</em></h3>
         <p>Community bots and tools for the worlds I spend time in. Open a file to take a closer look.</p>
+        {/* Indice de lo que hay dentro, no botones: si estas filas abrian los
+            proyectos, la carpeta sobraba. Se abre desde la carpeta; pasar por
+            encima de una fila la entreabre para senalarla. */}
+        <h4 className="project-folder-intro-index">In this folder</h4>
         <ul aria-label="Projects in this directory">
           {items.map((project) => (
-            <li key={project.title}>
-              <img src={project.image} alt="" decoding="async" />
-              <span>{project.title}</span>
-              <small>{project.visual === "tradedex" ? "Discord automation" : "Live server map"}</small>
+            <li className={`project-folder-intro-item is-${project.visual}`} key={project.title}>
+              <span className="project-folder-intro-logo">
+                <img src={project.image} alt="" decoding="async" />
+              </span>
+              <span className="project-folder-intro-copy">
+                <strong>{project.title}</strong>
+                <small>{projectRole(project)}</small>
+                <span className="project-folder-intro-stack">
+                  {project.tags.slice(0, 3).map((tag) => <i key={tag}>{tag}</i>)}
+                </span>
+              </span>
+              <span className="project-folder-intro-file" aria-hidden="true">FILE_{project.kicker}</span>
             </li>
           ))}
         </ul>
@@ -31,10 +50,22 @@ export function ProjectFolder({ items, selectedProjectTitle, onSelect }) {
           <span className="project-folder-tab" aria-hidden="true">PRJ</span>
           <span className="project-folder-back" aria-hidden="true" />
 
+          {/* Las hojas que asoman son las fichas de verdad, en el mismo orden
+              que el abanico: el primer proyecto a la izquierda, el hueco
+              reservado en medio y el segundo a la derecha. */}
           <div className="project-folder-papers" aria-hidden="true">
-            <span className="project-folder-paper is-paper-one" />
-            <span className="project-folder-paper is-paper-two" />
-            <span className="project-folder-paper is-paper-three" />
+            {[items[0], null, items[1]].map((project, index) => (
+              <span
+                className={`project-folder-paper is-paper-${["one", "two", "three"][index]} ${project ? `is-${project.visual}` : "is-soon"}`}
+                key={project?.title || "soon"}
+              >
+                <span className="project-folder-paper-label">
+                  <b>{project ? project.title : "Soon"}</b>
+                  <small>{project ? projectRole(project) : "Slot reserved"}</small>
+                </span>
+                {project ? <img src={project.image} alt="" decoding="async" /> : null}
+              </span>
+            ))}
           </div>
 
           <div className="project-folder-files" id="project-folder-files" role="group" aria-label="Available projects">
@@ -52,12 +83,16 @@ export function ProjectFolder({ items, selectedProjectTitle, onSelect }) {
                   onClick={() => onSelect(project)}
                   type="button"
                 >
-                  <span className="project-folder-file-slot">FILE_{project.kicker}</span>
+                  <span className="project-folder-file-head">
+                    <span className="project-folder-file-slot">FILE_{project.kicker}</span>
+                    <i aria-hidden="true" />
+                  </span>
                   <span className="project-folder-file-logo">
                     <img src={project.image} alt="" aria-hidden="true" decoding="async" />
                   </span>
                   <strong>{project.title}</strong>
-                  <small>{selected ? "project open" : "open project"}</small>
+                  <em>{projectRole(project)}</em>
+                  <small>{selected ? "project open" : "open project"}<ArrowRight size={11} aria-hidden="true" /></small>
                 </button>
               );
             })}
@@ -67,14 +102,18 @@ export function ProjectFolder({ items, selectedProjectTitle, onSelect }) {
               aria-label="More projects coming soon"
               className="project-folder-file is-soon"
             >
-              <span className="project-folder-file-slot">FILE_03</span>
+              <span className="project-folder-file-head">
+                <span className="project-folder-file-slot">FILE_03</span>
+                <i aria-hidden="true" />
+              </span>
               <span className="project-folder-soon-mark" aria-hidden="true">
                 <i />
                 <i />
                 <i />
               </span>
               <strong>SOON...</strong>
-              <small>slot reserved</small>
+              <em>slot reserved</em>
+              <small>in the works</small>
             </article>
           </div>
 
@@ -89,7 +128,12 @@ export function ProjectFolder({ items, selectedProjectTitle, onSelect }) {
             <span className="project-folder-front-piece is-left" aria-hidden="true" />
             <span className="project-folder-front-piece is-right" aria-hidden="true" />
             <span className="project-folder-front-copy">
-              <strong>PROJECTS.DIR</strong>
+              <span className="project-folder-stamp" aria-hidden="true">open source</span>
+              <span className="project-folder-label">
+                <i aria-hidden="true">archive // {String(items.length).padStart(2, "0")} files</i>
+                <strong>PROJECTS.DIR</strong>
+                <b aria-hidden="true" />
+              </span>
               <small>{open ? "close directory" : "open directory ↗"}</small>
             </span>
           </button>

@@ -240,6 +240,9 @@ Overall, if you are a fan of open-world games and post-apocalyptic settings, I w
     badges: ["open-world", "cinematic", "comfort replay"],
     serial: "SN//1174180",
     image: "/games/rdr2-cover-card.webp",
+    // La portada es vertical y la caja casi cuadrada: centrada, el sombrero de
+    // Arthur se salia por arriba.
+    coverPosition: "50% 4%",
     logo: "/games/rdr2-logo.png",
     character: "/games/rdr2-arthur-card.webp",
     review: `The best game in the history of the sector regardless of the genre we are talking about, it is a masterpiece from beginning to end.

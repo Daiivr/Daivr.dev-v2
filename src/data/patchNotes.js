@@ -5,6 +5,27 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.62.1",
+    codename: "FRESH COAT",
+    date: "2026-10-05",
+    summary: "A full repaint of the Carts section and of this desk. The projects folder sits on a holo-pad, every lanyard hangs in its own showcase, the project stories read like proper pages, and the Patch.log desk finally feels lived in.",
+    entries: [
+      ["new", "The Patch.log desk has a night-shift atmosphere: string lights, a window with the aurora moving outside, a neon sign, a desk lamp lighting the first save, and a mug that is still steaming."],
+      ["buff", "Pointing at something on the desk dims everything else and shows its hint right next to it. The labels carry each object's colour and number, numbered in the order the desk reads, and get a check once discovered."],
+      ["buff", "Desk discoveries open with the object you picked up, in its own colour, and a strip of its related builds you can jump between."],
+      ["buff", "The guestbook's GIF picker and GIF preview got the same treatment: Search and Favorites as one switch, a single search bar, quick searches to start from, a shimmer while results load, and a preview framed like a display case."],
+      ["fix", "The close button and the pink and gold accents inside the GIF windows had lost their colour, because those windows open outside the guestbook panel where the colours are set."],
+      ["new", "Each game on the favourites shelf glows in the colours of its own cover, and its label carries its number, its colour and its genre."],
+      ["buff", "The shelf's header reads at a glance: cartridges, hours and where the hours come from as proper counters, and the most played game with its cover and its share of all the hours."],
+      ["new", "The projects folder floats over a glowing holo-pad, with a filing label, a barcode and an OPEN SOURCE stamp on the front. The papers sticking out of it are the real files, each in its project's colour with its name, what it is and its logo, and opened they keep that look, with an open strip that stays lit while the project is open."],
+      ["buff", "Next to the folder, an index lists what is inside. Pointing at a project lifts its file out of the folder; opening it is still the folder's job."],
+      ["fix", "The PRJ label on the folder tab no longer hides behind the papers sticking out of it."],
+      ["new", "Lanyards hang in a showcase: a spotlight from the clip, a perspective floor, viewfinder corners and the project's name in giant outline behind the badge."],
+      ["buff", "The lanyard's details are spec tiles, the main button is filled in the project's colour, and the VirusTotal report link sits inside the scan verdict it belongs to."],
+      ["buff", "Project stories open with a big title next to the preview, then the problem and the build side by side, a connected 1-2-3 for how it works, and a result banner. Each one uses its project's colour: pink for TradeDex, green for Palwatch."]
+    ]
+  },
+  {
     version: "v2.62.0",
     codename: "NIGHT SHIFT",
     date: "2026-10-04",

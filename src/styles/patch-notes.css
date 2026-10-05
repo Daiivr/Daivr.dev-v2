@@ -329,6 +329,192 @@
   .patch-desk-footer button:is(:hover,:focus-visible) { color: #b9fff0; background: #174630; box-shadow: inset 0 -3px #0008,0 0 12px #20ff991c; }
 }
 
+@layer components {
+  /* Escritorio con ambiente: guirnalda, ventana con aurora, neon, flexo y taza
+     (PatchDeskDecor) para que los seis objetos no floten en una pared vacia,
+     placas con el color de cada objeto, la pista en un bocadillo junto a la
+     pieza y, al apuntar a una, las demas se apagan para que destaque. */
+  .patch-desk-object { --desk-tone: var(--patch-accent); color: var(--desk-tone); }
+  .desk-notebook, .desk-disk { --desk-tone: var(--color-cabinet); }
+  .desk-cartridges, .desk-radio { --desk-tone: var(--patch-secondary); }
+
+  .patch-desk-scene {
+    background:
+      radial-gradient(ellipse 70% 55% at 50% 100%, #0000, #0006),
+      radial-gradient(ellipse at 50% 30%, #28ff9315, transparent 60%),
+      radial-gradient(circle, #769f8526 .65px, transparent .9px) 0 0 / 5px 5px,
+      repeating-linear-gradient(90deg, transparent 0 159px, #0005 160px 162px, #86d7b011 163px 164px),
+      linear-gradient(180deg, #030d09, #0b2018 46%, #071810);
+  }
+  .patch-desk-wall { top: 16px; font-size: 9px; letter-spacing: .16em; }
+
+  .patch-desk-decor, .patch-desk-lighting { position: absolute; inset: 0; pointer-events: none; transition: opacity .25s ease; }
+  .patch-desk-lighting { z-index: 2; }
+  .patch-desk-scene.has-focus :is(.patch-desk-decor, .patch-desk-lighting) { opacity: .6; }
+
+  .patch-decor-glow { position: absolute; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--patch-accent) 20%, transparent), transparent); }
+  .patch-decor-glow.is-monitor { left: 33%; top: 0; width: 34%; height: 52%; }
+  .patch-decor-glow.is-buddy { left: 73%; top: 8%; width: 21%; height: 38%; opacity: .7; }
+
+  .patch-decor-lights { position: absolute; left: 0; top: 0; width: 100%; height: auto; overflow: visible; }
+  .patch-decor-bulb { --bulb: var(--patch-accent); animation: patch-bulb 2.6s ease-in-out infinite; }
+  .patch-decor-bulb.is-c1 { --bulb: var(--patch-secondary); }
+  .patch-decor-bulb.is-c2 { --bulb: var(--color-glitch); }
+  .patch-decor-bulb.is-c3 { --bulb: var(--color-cabinet); }
+  .patch-decor-bulb-glass { fill: var(--bulb); }
+  .patch-decor-bulb-halo { fill: var(--bulb); opacity: .2; }
+
+  .patch-decor-window { position: absolute; left: 65.4%; top: 7%; width: 8.4%; height: auto; filter: drop-shadow(0 8px 10px #0009); }
+  .patch-decor-aurora { transform-box: fill-box; transform-origin: 50% 100%; animation: patch-aurora 9s ease-in-out infinite alternate; }
+  .patch-decor-star { animation: patch-star 3.4s ease-in-out infinite; }
+
+  .patch-decor-neon { position: absolute; left: 29.5%; top: 15%; width: 5.8%; height: auto; color: var(--color-glitch); filter: drop-shadow(0 0 10px color-mix(in srgb, var(--color-glitch) 40%, transparent)); }
+  .patch-decor-neon-tube { animation: patch-neon 8s steps(1, end) infinite; }
+
+  .patch-decor-mug { position: absolute; left: 32.4%; bottom: 8%; width: 6.4%; height: auto; color: var(--patch-accent); }
+  .patch-decor-steam path { opacity: 0; transform-box: fill-box; animation: patch-steam 3.6s ease-out infinite; }
+  .patch-decor-steam path:nth-child(2) { animation-delay: 1.2s; }
+  .patch-decor-steam path:nth-child(3) { animation-delay: 2.4s; }
+
+  .patch-decor-lamp { position: absolute; left: 40%; top: 44%; width: 32%; height: 50%; overflow: visible; }
+  .patch-decor-beam { animation: patch-lamp 6s ease-in-out infinite; }
+  .patch-decor-bulb-glow { filter: drop-shadow(0 0 6px #ffd98c); }
+
+  /* Foco: la pieza señalada sube su halo y las demas se apagan. */
+  .patch-desk-object::before { content: ""; position: absolute; left: 6%; right: 6%; top: 4%; bottom: 18%; z-index: -1; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--desk-tone) 24%, transparent), transparent); opacity: 0; transition: opacity .25s ease; pointer-events: none; }
+  .patch-desk-object:is(:hover, :focus-visible)::before { opacity: 1; }
+  .patch-desk-scene.has-focus .patch-desk-object:not(:hover, :focus-visible) > svg { filter: brightness(.48) saturate(.55); }
+  .patch-desk-scene.has-focus .patch-desk-object:not(:hover, :focus-visible) .patch-object-label { opacity: .5; }
+  .patch-desk-object .patch-object-label { transition: opacity .2s ease, border-color .18s, background .18s, color .18s; }
+
+  .patch-desk-object .patch-object-label {
+    gap: 9px; min-height: 34px; padding: 5px 11px 5px 5px;
+    border-color: color-mix(in srgb, var(--desk-tone) 48%, #122c20);
+    color: var(--patch-text); font: 700 11px var(--font-mono); letter-spacing: .01em;
+    clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
+  }
+  .patch-desk-object .patch-object-label small { display: grid; place-items: center; min-width: 24px; height: 22px; padding: 0 4px; background: var(--desk-tone); color: #04110b; font: 900 10px var(--font-display); }
+  .patch-desk-object .patch-object-label > svg { box-sizing: content-box; padding: 3px; border: 1px solid color-mix(in srgb, var(--desk-tone) 55%, transparent); border-radius: 50%; color: var(--desk-tone); }
+  .patch-desk-object.is-discovered .patch-object-label > svg { border-color: var(--desk-tone); background: var(--desk-tone); color: #04110b; }
+  .patch-desk-object:is(:hover, :focus-visible) .patch-object-label { color: #fff; border-color: var(--desk-tone); background: linear-gradient(90deg, color-mix(in srgb, var(--desk-tone) 26%, #061a10), #061a10); box-shadow: inset 0 -2px #0008, 0 0 14px color-mix(in srgb, var(--desk-tone) 30%, transparent); }
+
+  .patch-object-hint {
+    position: absolute; left: 50%; bottom: 46px; z-index: 2;
+    width: max-content; max-width: 230px; padding: 7px 11px;
+    border: 1px solid color-mix(in srgb, var(--desk-tone) 62%, transparent);
+    background: #030d09f2; color: #e8fff2;
+    font: 600 10px/1.5 var(--font-mono); text-align: center;
+    box-shadow: 0 8px 18px #0009, 0 0 16px color-mix(in srgb, var(--desk-tone) 18%, transparent);
+    opacity: 0; transform: translate(-50%, 6px); transition: opacity .18s ease, transform .18s ease; pointer-events: none;
+  }
+  .patch-object-hint::after { content: ""; position: absolute; left: 50%; top: 100%; width: 8px; height: 8px; border: solid color-mix(in srgb, var(--desk-tone) 62%, transparent); border-width: 0 1px 1px 0; background: #030d09; transform: translate(-50%, -50%) rotate(45deg); }
+  .patch-desk-object:is(:hover, :focus-visible) .patch-object-hint { opacity: 1; transform: translate(-50%, 0); }
+
+    .patch-desk-intro p { font-size: 14px; }
+  .patch-discoveries { gap: 8px; padding: 10px 14px 12px; border: 1px solid var(--patch-line); background: linear-gradient(120deg, color-mix(in srgb, var(--patch-accent) 8%, #020a07), #020a07); clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); }
+  .patch-discoveries > span { display: flex; align-items: baseline; gap: 4px; color: var(--patch-muted); font: 700 10px var(--font-mono); letter-spacing: .1em; text-transform: uppercase; }
+  .patch-discoveries b { margin-right: 2px; color: var(--patch-accent); font: 900 26px/1 var(--font-display); text-shadow: 0 0 14px color-mix(in srgb, var(--patch-accent) 45%, transparent); }
+  .patch-discoveries i { width: 22px; height: 6px; transform: skewX(-20deg); }
+  .patch-discoveries.is-complete { border-color: var(--patch-accent); }
+
+  @keyframes patch-bulb { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+  @keyframes patch-aurora { from { transform: translateX(-5px) skewX(-5deg); opacity: .75; } to { transform: translateX(5px) skewX(5deg); opacity: 1; } }
+  @keyframes patch-star { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
+  @keyframes patch-neon { 0%, 90%, 92%, 95%, 100% { opacity: 1; } 91% { opacity: .3; } 94% { opacity: .55; } }
+  @keyframes patch-steam { 0% { opacity: 0; transform: translateY(8px); } 30% { opacity: .38; } 100% { opacity: 0; transform: translateY(-12px); } }
+  @keyframes patch-lamp { 0%, 100% { opacity: 1; } 50% { opacity: .86; } }
+
+  @media (max-width: 900px) {
+    .patch-object-hint { display: none; }
+  }
+  @media (max-width: 640px) {
+    .patch-desk-decor, .patch-desk-lighting { display: none; }
+    .patch-desk-object .patch-object-label { gap: 5px; padding: 4px 6px 4px 4px; font-size: 9px; }
+    .patch-desk-object .patch-object-label small { min-width: 20px; height: 18px; font-size: 8px; }
+    .patch-discoveries { padding: 8px 10px; }
+    .patch-discoveries b { font-size: 20px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .patch-decor-bulb, .patch-decor-aurora, .patch-decor-star, .patch-decor-neon-tube, .patch-decor-beam { animation: none; }
+    .patch-decor-steam path { animation: none; opacity: .2; }
+    .patch-object-hint, .patch-desk-object::before, .patch-desk-decor, .patch-desk-lighting { transition: none; }
+  }
+}
+
+@layer components {
+  /* Ficha de descubrimiento: lleva el color y el dibujo del objeto que se ha
+     cogido, una tira con sus builds relacionadas y una sola tarjeta limpia en
+     vez de cajas dentro de cajas. */
+  .patch-discovery { --desk-tone: var(--patch-accent); border-color: color-mix(in srgb, var(--desk-tone) 70%, transparent); }
+  .patch-discovery:is(.tone-notebook, .tone-disk) { --desk-tone: var(--color-cabinet); }
+  .patch-discovery:is(.tone-cartridges, .tone-radio, .is-archive) { --desk-tone: var(--patch-secondary); }
+
+  .patch-discovery .patch-discovery-header {
+    position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto auto; align-items: center; gap: 22px;
+    overflow: hidden; padding: 26px 24px 24px; border-bottom: 1px solid color-mix(in srgb, var(--desk-tone) 30%, transparent);
+    background: radial-gradient(ellipse 34% 100% at 82% 55%, color-mix(in srgb, var(--desk-tone) 20%, transparent), transparent 72%), var(--patch-grain), var(--patch-brush), linear-gradient(110deg, color-mix(in srgb, var(--desk-tone) 10%, var(--color-ink-950)), var(--color-ink-950));
+  }
+  .patch-discovery .patch-discovery-header::before { content: ""; position: absolute; inset: 0 0 auto; height: 3px; background: linear-gradient(90deg, var(--desk-tone), var(--patch-secondary) 45%, transparent 85%); box-shadow: 0 0 14px color-mix(in srgb, var(--desk-tone) 55%, transparent); }
+  .patch-discovery-heading { min-width: 0; }
+  .patch-discovery .patch-discovery-header > div > span { color: var(--desk-tone); font-weight: 700; }
+  .patch-discovery .patch-discovery-header h2 { margin-top: 10px; font-size: clamp(26px, 3vw, 36px); line-height: 1.1; text-wrap: balance; text-shadow: 0 2px 0 #000, 0 0 26px color-mix(in srgb, var(--desk-tone) 35%, transparent); }
+  .patch-discovery .patch-discovery-header .patch-discovery-context { max-width: 62ch; margin-top: 12px; padding: 0; border: 0; background: none; box-shadow: none; color: color-mix(in srgb, var(--patch-muted) 80%, white); }
+  .patch-discovery .patch-discovery-header > button { align-self: start; }
+  .patch-discovery-art { display: grid; width: 168px; height: 126px; place-items: center; color: var(--desk-tone); filter: drop-shadow(0 12px 16px #000b) drop-shadow(0 0 20px color-mix(in srgb, var(--desk-tone) 26%, transparent)); animation: patch-art-float 5s ease-in-out infinite; }
+  .patch-discovery-art svg { width: 100%; height: 100%; }
+
+  .patch-build-strip { display: flex; flex-shrink: 0; gap: 8px; overflow-x: auto; padding: 12px 24px; border-bottom: 1px solid var(--patch-line); background: var(--patch-brush), #0006; scrollbar-width: none; }
+  .patch-build-strip button { display: grid; flex: 1 1 0; gap: 4px; min-width: 150px; min-height: 54px; padding: 8px 12px; border: 1px solid var(--patch-line); background: #020a07; color: var(--patch-muted); text-align: left; clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px); }
+  .patch-build-strip small { color: var(--patch-secondary); font: 700 9px var(--font-mono); letter-spacing: .06em; }
+  .patch-build-strip span { overflow: hidden; color: var(--patch-text); font: 800 12px var(--font-display); text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+  .patch-build-strip button:hover { border-color: color-mix(in srgb, var(--desk-tone) 55%, transparent); }
+  .patch-build-strip button[aria-current="true"] { border-color: var(--desk-tone); background: linear-gradient(180deg, color-mix(in srgb, var(--desk-tone) 20%, #020a07), #020a07); box-shadow: inset 0 -3px var(--desk-tone); }
+  .patch-build-strip button[aria-current="true"] small { color: var(--desk-tone); }
+
+  .patch-discovery .patch-discovery-reader { padding: 20px 24px 24px; }
+  .patch-discovery .patch-discovery-reader .patch-entry {
+    border: 1px solid color-mix(in srgb, var(--desk-tone) 26%, transparent); border-top: 2px solid var(--desk-tone);
+    background: radial-gradient(ellipse at 100% 0, color-mix(in srgb, var(--desk-tone) 8%, transparent), transparent 60%), linear-gradient(160deg, color-mix(in srgb, var(--desk-tone) 5%, #03100b), #020906 65%);
+    box-shadow: 0 12px 30px #0007;
+  }
+  .patch-discovery .patch-entry-meta { margin: 0 24px 14px; padding-top: 14px; padding-bottom: 12px; }
+  .patch-discovery .patch-version { border-color: var(--desk-tone); background: var(--desk-tone); box-shadow: none; color: #04110b; font-weight: 800; }
+  .patch-discovery .patch-discovery-reader .patch-entry h3 { font-size: clamp(26px, 2.8vw, 34px); text-shadow: 0 0 22px color-mix(in srgb, var(--desk-tone) 30%, transparent); }
+  .patch-discovery .patch-discovery-reader .patch-entry-summary { max-width: 70ch; color: color-mix(in srgb, var(--patch-muted) 82%, white); font-size: 13px; }
+
+  .patch-discovery .patch-entry-actions { gap: 6px; padding: 10px 14px; border-top-color: color-mix(in srgb, var(--desk-tone) 22%, transparent); }
+  .patch-discovery .patch-entry-actions button { min-height: 42px; padding: 8px 14px; border: 1px solid var(--patch-line); background: #020a07; }
+  .patch-discovery .patch-entry-actions button[aria-expanded="true"] { border-color: var(--desk-tone); background: linear-gradient(0deg, color-mix(in srgb, var(--desk-tone) 20%, #020a07), #020a07); color: #fff; box-shadow: inset 0 -2px var(--desk-tone); }
+  .patch-discovery .patch-entry-actions button[aria-expanded="true"] small { color: var(--desk-tone); }
+
+  .patch-discovery .patch-dev-note { position: relative; overflow: hidden; border-left: 3px solid var(--desk-tone); }
+  .patch-discovery .patch-dev-note::after { content: "\201C"; position: absolute; top: -18px; right: 18px; color: color-mix(in srgb, var(--desk-tone) 22%, transparent); font: 900 120px/1 var(--font-display); pointer-events: none; }
+  .patch-discovery .patch-dev-avatar { border-color: color-mix(in srgb, var(--desk-tone) 50%, transparent); color: var(--desk-tone); }
+  .patch-discovery .patch-content-kicker { color: var(--desk-tone); }
+  .patch-discovery .patch-dev-note p { color: color-mix(in srgb, var(--patch-muted) 78%, white); }
+
+  .patch-discovery .patch-discovery-nav { padding: 12px 24px; }
+  .patch-discovery .patch-discovery-nav button { min-width: 116px; justify-content: center; color: var(--desk-tone); }
+  .patch-discovery .patch-discovery-nav button:last-child:not(:disabled) { border-color: var(--desk-tone); color: var(--desk-tone); }
+
+  @keyframes patch-art-float { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-6px) rotate(-1.5deg); } }
+
+  @media (max-width: 640px) {
+    .patch-discovery .patch-discovery-header { grid-template-columns: minmax(0, 1fr) auto; gap: 12px; padding: 18px 14px 16px; }
+    .patch-discovery-art { display: none; }
+    .patch-build-strip { padding: 10px 12px; }
+    .patch-build-strip button { min-width: 136px; }
+    .patch-discovery .patch-discovery-reader { padding: 12px 10px; }
+    .patch-discovery .patch-entry-meta { margin-inline: 14px; }
+    .patch-discovery .patch-entry-actions { padding: 8px; gap: 4px; }
+    .patch-discovery .patch-entry-actions button { padding: 8px 6px; }
+    .patch-discovery .patch-discovery-nav button { min-width: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .patch-discovery-art { animation: none; }
+  }
+}
+
 /* Antes en seasonal-events.css: solo tocan elementos de este chunk. */
 .season-april-fools .patch-console{rotate:-.8deg}
 /* Antes en panel-glitch.css: solo tocan elementos de este chunk. */
@@ -348,4 +534,6 @@
   --patch-blue-1: #a394c4; --patch-blue-2: #6e5989; --patch-blue-3: #47355f; --patch-blue-4: #2b203d;
   --patch-metal-1: #8b7c96; --patch-metal-2: #e1cde5; --patch-metal-3: #b8a0c0; --patch-metal-4: #e6d4ef; --patch-metal-5: #7d638c;
   --patch-glass-1: #4b2147; --patch-glass-2: #250f28; --patch-glass-3: #110818;
+  --patch-mug-1: #6a3f72; --patch-mug-2: #452750; --patch-mug-3: #21122a; --patch-sky-3: #240d2c;
 }
+.app-shell.theme-glitch .patch-desk-scene { background: radial-gradient(ellipse 70% 55% at 50% 100%,#0000,#0006),radial-gradient(ellipse at 50% 30%,#ff3d9d1c,transparent 60%),radial-gradient(circle,#b799ce26 .65px,transparent .9px) 0 0 / 5px 5px,repeating-linear-gradient(90deg,transparent 0 159px,#0005 160px 162px,#d8a6e311 163px 164px),linear-gradient(180deg,#0c0612,#24132a 46%,#1c1029); }
