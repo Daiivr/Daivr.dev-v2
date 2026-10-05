@@ -47,6 +47,7 @@ import "./styles/notebook-desk.css";
 import "./styles/buddy-visitors.css";
 import "./styles/buddy-campfire.css";
 import "./styles/footer-sky.css";
+import "./styles/modal-motion.css";
 import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { bootNodes, discord, games, navItems, profile, projects } from "./data/site";
 import { KONAMI_GAMES } from "./data/konamiGames";

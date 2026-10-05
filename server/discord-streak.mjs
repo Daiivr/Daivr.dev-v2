@@ -74,9 +74,31 @@ function normalizeSession(session) {
   };
 }
 
+// La caratula que Discord manda con la actividad (la misma que pinta la Game
+// Boy del escritorio). Se guarda por juego para que los cartuchos de los mas
+// jugados la tengan aunque el juego no este abierto, y para los que
+// SteamGridDB no encuentra. Mismas reglas que getActivityAssetUrl en
+// DiscordPresencePanel.jsx.
+const MAX_IMAGE_URL_LENGTH = 500;
+
+function activityImageUrl(activity) {
+  const image = activity?.assets?.large_image || activity?.assets?.small_image;
+  if (typeof image !== "string" || !image || /\s/.test(image)) return null;
+  let url = null;
+  if (image.startsWith("mp:")) url = `https://media.discordapp.net/${image.slice(3)}`;
+  else if (image.startsWith("external/")) url = `https://media.discordapp.net/${image}`;
+  else if (image.startsWith("https://")) url = image;
+  else if (/^\d+$/.test(String(activity?.application_id || "")) && /^[\w-]+$/.test(image)) url = `https://cdn.discordapp.com/app-assets/${activity.application_id}/${image}.png?size=256`;
+  return url && url.length <= MAX_IMAGE_URL_LENGTH ? url : null;
+}
+
+function normalizeImage(value) {
+  return typeof value === "string" && value.startsWith("https://") && value.length <= MAX_IMAGE_URL_LENGTH ? value : null;
+}
+
 function normalizeGameRecord(record) {
   if (!record || typeof record !== "object") {
-    return { bestStreak: 0, days: 0, firstDay: null, lastDay: null, session: null, streak: 0, totalMs: 0 };
+    return { bestStreak: 0, days: 0, firstDay: null, image: null, lastDay: null, session: null, streak: 0, totalMs: 0 };
   }
 
   const streak = Number.isFinite(record.streak) ? record.streak : 0;
@@ -85,6 +107,7 @@ function normalizeGameRecord(record) {
     bestStreak: Number.isFinite(record.bestStreak) ? Math.max(record.bestStreak, streak) : streak,
     days: Number.isFinite(record.days) ? record.days : (record.lastDay ? 1 : 0),
     firstDay: typeof record.firstDay === "string" ? record.firstDay : (typeof record.lastDay === "string" ? record.lastDay : null),
+    image: normalizeImage(record.image),
     lastDay: typeof record.lastDay === "string" ? record.lastDay : null,
     session: normalizeSession(record.session),
     streak,
@@ -220,7 +243,9 @@ async function pollLanyardOnce(force = false) {
 
     const previous = getGameRecord(state, mainGame.name);
     const withDay = applyGameDay(previous, todayKey());
-    const nextRecord = applySessionTime(withDay, mainGame, now);
+    const timed = applySessionTime(withDay, mainGame, now);
+    const image = activityImageUrl(mainGame);
+    const nextRecord = image && image !== timed.image ? { ...timed, image } : timed;
     const next = {
       ...state,
       currentGame: mainGame.name,
@@ -231,7 +256,8 @@ async function pollLanyardOnce(force = false) {
       state.currentGame !== next.currentGame ||
       previous.lastDay !== nextRecord.lastDay ||
       previous.streak !== nextRecord.streak ||
-      previous.totalMs !== nextRecord.totalMs
+      previous.totalMs !== nextRecord.totalMs ||
+      previous.image !== nextRecord.image
     ) {
       writeState(next);
     }
@@ -263,6 +289,7 @@ function buildLibrary(state) {
         bestStreak: normalized.bestStreak,
         days: normalized.days,
         firstDay: normalized.firstDay,
+        image: normalized.image,
         lastDay: normalized.lastDay,
         name,
         streak: normalized.streak,

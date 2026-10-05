@@ -3,6 +3,8 @@ import { ArrowUpRight, BookOpen, Gamepad2, Headphones, Moon, Radio, X } from "lu
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { DiscordDeskControls } from "./DiscordDeskControls";
 import { DeskCoffee, DiscordDeskKeepsakes } from "./DiscordDeskKeepsakes";
+import { BuddyCoinIcon } from "./BuddyCoinIcon";
+import { DeskCartridges } from "./DeskCartridges";
 import { NotebookSocialsSpread, NotebookDeskContext } from "./NotebookDesk";
 
 // Matches the page turn in notebook-desk.css.
@@ -162,7 +164,7 @@ function DevicePreview({ kind, activity, image, signal }) {
   </span>;
 }
 
-export function DiscordTabletop({ notebook, activities, renderActivities, status, statusKey, error, loading, updatedAt, activityImages, onInspect }) {
+export function DiscordTabletop({ notebook, activities, renderActivities, status, statusKey, error, loading, updatedAt, activityImages, library, onInspect }) {
   const [selected, setSelected] = useState(null);
   const [open, setOpen] = useState(false);
   const [phase, setPhase] = useState("reading");
@@ -419,9 +421,12 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
         <DevicePreview kind="game" activity={games[0]} image={games[0]?.image || activityImages[games[0]?.name]} signal={signal} />
         <span className="tabletop-object-caption"><span>03 / THE NEXT LEVEL</span><Gamepad2 size={13} /> {games.length ? "In a game" : "Rest mode"}</span>
       </button>
+      <DeskCartridges library={library} images={activityImages} />
 
       <div className="tabletop-keepsakes"><DiscordDeskKeepsakes cup={false} /></div>
       <DeskCoffee />
+      <div className="tabletop-neon" aria-hidden="true"><span>GAME</span><span>ON</span><small>DAI.EXE</small></div>
+      <div className="tabletop-tokens" aria-hidden="true"><BuddyCoinIcon /><BuddyCoinIcon /><BuddyCoinIcon /></div>
       <div className="tabletop-note" aria-hidden="true"><span>note to self:</span><p>make cool things.<br />take little breaks.<br /><s>go to bed early.</s></p><span className="tabletop-note-star">✳</span></div>
       <div className="tabletop-pencils" aria-hidden="true"><span className="discord-desk-pencil"><i /><span>ONE MORE IDEA</span></span><span className="discord-desk-pencil tabletop-pencil-two"><i /></span></div>
       <footer className="tabletop-footer"><span>DAI’S DESK · EST. ONLINE</span><span>{error ? "Connection interrupted · reconnecting" : loading ? "Connecting to Discord…" : `Last synced ${updatedAt}`}</span></footer>

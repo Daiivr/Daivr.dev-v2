@@ -1,0 +1,25 @@
+/* One open/close motion for every modal: the backdrop fades, the panel rises
+   into place and sinks a little as it leaves. Radix dialogs set data-state on
+   their overlay and content and wait for the closing animation before they
+   unmount; the others mirror that with useModalPresence. The keyframes move
+   the standalone translate and scale properties, so they never fight a
+   panel's own transform (centring, or the terminal's dragged position). */
+@layer components {
+  .motion-backdrop[data-state="open"] { animation: modal-backdrop-in 200ms ease-out both; }
+  .motion-backdrop[data-state="closed"] { animation: modal-backdrop-out 150ms ease-in both; pointer-events: none; }
+  .motion-panel[data-state="open"] { animation: modal-panel-in 260ms cubic-bezier(.2, .8, .25, 1) both; }
+  .motion-panel[data-state="closed"] { animation: modal-panel-out 150ms cubic-bezier(.4, 0, 1, 1) both; pointer-events: none; }
+  /* A panel centred with translate(-50%, -50%) is drawn with its middle on the
+     top-left corner of its layout box, so that corner is where it scales from. */
+  .motion-from-center { transform-origin: 0 0; }
+
+  @keyframes modal-backdrop-in { from { opacity: 0; } }
+  @keyframes modal-backdrop-out { to { opacity: 0; } }
+  @keyframes modal-panel-in { from { opacity: 0; translate: 0 14px; scale: .975; } }
+  @keyframes modal-panel-out { to { opacity: 0; translate: 0 8px; scale: .985; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .motion-panel[data-state="open"] { animation-name: modal-backdrop-in; }
+    .motion-panel[data-state="closed"] { animation-name: modal-backdrop-out; }
+  }
+}

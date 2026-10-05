@@ -2,8 +2,10 @@ import "../styles/konami-games.css";
 import { ArrowLeft, Gamepad2, LogIn, Play, RotateCcw, Trophy, Volume2, VolumeX, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RankingAvatar } from "./RankingAvatar";
-import { ArcadeTvDetails } from "./ArcadeTvDetails";
+import { ArcadeTvDetails, ArcadeTvPower } from "./ArcadeTvDetails";
 import { useDailyChallengeNotice } from "../hooks/useDailyChallengeNotice";
+import { useModalPresence } from "../hooks/useModalPresence";
+import { TV_CLOSE_MS, useTvPowerOn } from "../hooks/useTvPowerOn";
 import { DailyChallengeNotice } from "./DailyChallengeNotice";
 import { armRunToken, runTokenFor } from "../lib/runTokens";
 
@@ -62,7 +64,15 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
   const [gameOver, setGameOver] = useState(null);
   const frameRef = useRef(null);
   const daily = useDailyChallengeNotice({ game, open, frameRef });
-  const config = GAME_CONFIG[game];
+  // While it fades out, `game` has already moved on (to the library, say): keep
+  // showing the cartridge that was in.
+  const presence = useModalPresence(open ? game : null, TV_CLOSE_MS);
+  const shownGame = presence.item;
+  const switchingOff = presence.state === "closed";
+  const gameOverPresence = useModalPresence(gameOver);
+  const shownGameOver = gameOverPresence.item;
+  const powered = useTvPowerOn(open, game);
+  const config = GAME_CONFIG[shownGame];
   const ranking = config?.ranking;
   const hasRanking = Boolean(ranking);
 
@@ -161,28 +171,29 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, rankingOpen]);
 
-  if (!open || !config) return null;
+  if (!config) return null;
 
   return (
-    <div className="arcade-embed-backdrop">
-      <section className="arcade-embed-modal arcade-tv" role="dialog" aria-modal="true" aria-label={config.title}>
+    <div className="arcade-embed-backdrop motion-backdrop" data-state={presence.state}>
+      <section className="arcade-embed-modal arcade-tv motion-panel" data-state={presence.state} role="dialog" aria-modal="true" aria-label={config.title}>
         <header>
           <div className="arcade-embed-title"><button type="button" onClick={onBack} aria-label="Back to game library"><ArrowLeft size={17} /></button><span><small>{config.subtitle}</small><strong><Gamepad2 size={19} /> {config.title}</strong></span></div>
           <div>{hasRanking ? <button className={rankingOpen ? "is-active" : ""} type="button" onClick={() => setRankingOpen((value) => !value)} aria-label={`Toggle ${config.title} leaderboard`}><Trophy size={16} /></button> : null}<button type="button" onClick={() => { setGameOver(null); setInstance((value) => value + 1); }} aria-label={`Restart ${config.title}`}><RotateCcw size={16} /></button><button type="button" onClick={onClose} aria-label={`Close ${config.title}`}><X size={18} /></button></div>
         </header>
-        <div className="arcade-embed-screen"><iframe key={instance} ref={frameRef} src={config.src} title={config.title} allow="autoplay; fullscreen" onLoad={(event) => { if (game === "cross-road" && !rankingOpen) event.currentTarget.contentWindow?.focus(); }} />
+        <div className="arcade-embed-screen">{powered ? <iframe key={instance} ref={frameRef} src={config.src} title={config.title} allow="autoplay; fullscreen" onLoad={(event) => { if (game === "cross-road" && !rankingOpen) event.currentTarget.contentWindow?.focus(); }} /> : null}
+          <ArcadeTvPower powered={powered} off={switchingOff} />
           <DailyChallengeNotice notice={daily.notice} onDismiss={daily.dismiss} onRetry={daily.retry} onClose={onClose} />
-          {gameOver ? (
-            <div className="pinball-gameover" role="dialog" aria-modal="true" aria-label="Game over">
-              <div>
+          {shownGameOver ? (
+            <div className="pinball-gameover motion-backdrop" data-state={gameOverPresence.state} role="dialog" aria-modal="true" aria-label="Game over">
+              <div className="motion-panel" data-state={gameOverPresence.state}>
                 <small>TABLE CLOSED // DISK 05</small>
                 <h3>GAME OVER</h3>
-                <b>{Number(gameOver.score).toLocaleString("en-US")}</b>
-                <p>FINAL SCORE <i>•</i> {formatDuration(gameOver.durationMs)} ON THE TABLE</p>
+                <b>{Number(shownGameOver.score).toLocaleString("en-US")}</b>
+                <p>FINAL SCORE <i>•</i> {formatDuration(shownGameOver.durationMs)} ON THE TABLE</p>
                 {me ? (
-                  <span className={gameOver.score > gameOver.previousBest ? "pinball-gameover-rank is-best" : "pinball-gameover-rank"}>
+                  <span className={shownGameOver.score > shownGameOver.previousBest ? "pinball-gameover-rank is-best" : "pinball-gameover-rank"}>
                     <RankingAvatar src={me.avatarUrl} name={me.username} loading="eager" />
-                    <em>{gameOver.score > gameOver.previousBest ? "NEW PERSONAL BEST" : `BEST ${ranking.format(gameOver.previousBest)}`}</em>
+                    <em>{shownGameOver.score > shownGameOver.previousBest ? "NEW PERSONAL BEST" : `BEST ${ranking.format(shownGameOver.previousBest)}`}</em>
                     <strong>{myScore ? `${me.username} // RANK #${myScore.rank}` : me.username}</strong>
                   </span>
                 ) : (
@@ -202,7 +213,7 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
             {rankingLoading ? <p>{ranking.scanning}</p> : <ol>{leaderboard.map((entry) => <li className={entry.discordId === me?.id ? "is-player" : ""} key={entry.discordId}><b>{String(entry.rank).padStart(2,"0")}</b><RankingAvatar src={entry.avatarUrl} name={entry.username} /><span>{entry.username}</span><em>{ranking.format(entry.bestScore)}</em><small>{formatDuration(entry.bestDurationMs)}</small></li>)}</ol>}
           </aside> : null}
         </div>
-        <ArcadeTvDetails channel={{ "cross-road": "03", "rubiks-cube": "04", "space-cadet-pinball": "05" }[game]} />
+        <ArcadeTvDetails channel={{ "cross-road": "03", "rubiks-cube": "04", "space-cadet-pinball": "05" }[shownGame]} powered={powered} off={switchingOff} />
         <footer>
           <span>{config.controls}</span>
           {config.volume ? (

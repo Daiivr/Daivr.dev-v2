@@ -9,7 +9,6 @@
     padding: clamp(8px, 2vw, 24px);
     background: rgba(1, 5, 3, .88);
     backdrop-filter: blur(9px);
-    animation: madrace-backdrop-in .28s ease both;
   }
 
   .madrace-modal {
@@ -23,7 +22,6 @@
     background: #020806;
     box-shadow: 0 0 0 1px #071b12, 0 0 70px rgba(63,255,151,.18), inset 0 0 60px rgba(0,0,0,.7);
     clip-path: polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);
-    animation: madrace-window-in .34s cubic-bezier(.2,.8,.25,1) both;
   }
 
   .madrace-modal::after {
@@ -125,7 +123,6 @@
     padding: 18px;
     background: rgba(0,4,3,.82);
     backdrop-filter: blur(7px);
-    animation: madrace-backdrop-in .2s ease both;
   }
   .madrace-reset-modal {
     width: min(520px,100%);
@@ -134,7 +131,6 @@
     background: #030b08;
     box-shadow: 0 0 0 1px rgba(255,61,157,.1),0 0 45px rgba(255,61,157,.16),inset 0 0 32px rgba(0,0,0,.75);
     clip-path: polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px);
-    animation: madrace-window-in .24s cubic-bezier(.2,.8,.25,1) both;
   }
   .madrace-reset-modal > header {
     display: flex;
@@ -162,8 +158,6 @@
   .madrace-reset-modal footer button:hover:not(:disabled) { border-color: #fff; color: #fff; }
   .madrace-reset-modal button:disabled { cursor: not-allowed; opacity: .5; }
 
-  @keyframes madrace-backdrop-in { from { opacity: 0; } }
-  @keyframes madrace-window-in { from { opacity: 0; transform: translateY(18px) scale(.975); } }
   @keyframes madrace-ranking-in { from { opacity: 0; transform: translateX(32px); } }
   @keyframes madrace-blink { 50% { opacity: .35; } }
 

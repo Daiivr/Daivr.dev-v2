@@ -362,8 +362,8 @@ function VaultHint({ open, onOpenChange }) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="archive-overlay" />
-        <Dialog.Content className="archive-panel is-hint" aria-describedby="hint-note">
+        <Dialog.Overlay className="archive-overlay motion-backdrop" />
+        <Dialog.Content className="archive-panel motion-panel motion-from-center is-hint" aria-describedby="hint-note">
           <div className="archive-scan" aria-hidden="true" />
 
           <header className="archive-head">
@@ -450,8 +450,8 @@ function VaultArchive({ open, onOpenChange }) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="archive-overlay" />
-        <Dialog.Content className="archive-panel" aria-describedby="archive-note">
+        <Dialog.Overlay className="archive-overlay motion-backdrop" />
+        <Dialog.Content className="archive-panel motion-panel motion-from-center" aria-describedby="archive-note">
           <div className="archive-scan" aria-hidden="true" />
 
           <header className="archive-head">

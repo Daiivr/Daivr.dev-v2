@@ -383,7 +383,12 @@ const MARKET_VIEW = { id: "market", label: "Market", title: "The Woodland Stand"
 
 export function BuddyModal({ buddy, mode, onClose, onModeChange, theme, seasonalEvent }) {
   const opener = useRef(null);
-  const view = mode === "market" ? MARKET_VIEW : BUDDY_VIEWS.find((item) => item.id === mode) || BUDDY_VIEWS[0];
+  // Al cerrar, `mode` pasa a null mientras el modal aun se desvanece: se sigue
+  // pintando la ultima vista en vez de saltar a la habitacion.
+  const [lastMode, setLastMode] = useState(mode);
+  if (mode && mode !== lastMode) setLastMode(mode);
+  const shownMode = mode || lastMode;
+  const view = shownMode === "market" ? MARKET_VIEW : BUDDY_VIEWS.find((item) => item.id === shownMode) || BUDDY_VIEWS[0];
 
   // El portal cuelga del body, fuera de `.app-shell`, que es donde vive la
   // clase del tema: sin repetirla aqui el modal se queda verde mientras el
@@ -391,8 +396,8 @@ export function BuddyModal({ buddy, mode, onClose, onModeChange, theme, seasonal
   return (
     <Dialog.Root open={Boolean(mode)} onOpenChange={(open) => { if (!open) onClose(); }}>
       <Dialog.Portal>
-        <Dialog.Overlay className={`buddy-modal-backdrop ${theme === "glitch" ? "theme-glitch" : ""}`}>
-          <Dialog.Content className={`buddy-modal is-${view.id}`}
+        <Dialog.Overlay className={`buddy-modal-backdrop motion-backdrop ${theme === "glitch" ? "theme-glitch" : ""}`}>
+          <Dialog.Content className={`buddy-modal motion-panel is-${view.id}`}
             onOpenAutoFocus={() => { opener.current = document.activeElement; }}
             onCloseAutoFocus={(event) => { event.preventDefault(); opener.current?.focus(); }}>
             <header className="buddy-modal-header">

@@ -40,8 +40,8 @@ function ReleaseGallery({ patch, theme }) {
       {images.length > 1 ? <div className="patch-gallery-choices" role="group" aria-label="Release images">{images.map((item, itemIndex) => <button key={item.src} type="button" aria-pressed={index === itemIndex} onClick={() => setIndex(itemIndex)}><ImageIcon size={14} aria-hidden="true" />{item.label}</button>)}</div> : null}
     </figure>
     <Dialog.Portal>
-      <Dialog.Overlay className={`patch-lightbox-overlay ${theme === "glitch" ? "theme-glitch" : ""}`} />
-      <Dialog.Content className={`patch-lightbox ${theme === "glitch" ? "theme-glitch" : ""}`} onKeyDown={(event) => { if (images.length > 1 && ["ArrowLeft", "ArrowRight"].includes(event.key)) { event.preventDefault(); step(event.key === "ArrowLeft" ? -1 : 1); } }}>
+      <Dialog.Overlay className={`patch-lightbox-overlay motion-backdrop ${theme === "glitch" ? "theme-glitch" : ""}`} />
+      <Dialog.Content className={`patch-lightbox motion-panel motion-from-center ${theme === "glitch" ? "theme-glitch" : ""}`} onKeyDown={(event) => { if (images.length > 1 && ["ArrowLeft", "ArrowRight"].includes(event.key)) { event.preventDefault(); step(event.key === "ArrowLeft" ? -1 : 1); } }}>
         <header><div><span>{patch.version} / GALLERY</span><Dialog.Title>{image.label}</Dialog.Title></div><Dialog.Close asChild><button type="button" aria-label="Close release image"><X size={22} aria-hidden="true" /></button></Dialog.Close></header>
         <div className="patch-lightbox-image"><ReleaseImage key={image.src} image={image} eager /></div>
         <Dialog.Description>{image.kind}. {image.caption}</Dialog.Description>
@@ -184,8 +184,8 @@ export function PatchNotes({ theme, interactive = true }) {
     <footer className="patch-desk-footer"><p>{hint ? hint.hint : visited.length === 6 ? "Every corner explored. Thanks for stopping by Dai’s desk." : "Six objects. A few stories. Follow your curiosity."}</p><div><button type="button" onClick={surprise}><Shuffle size={15} aria-hidden="true" />Surprise me</button><button type="button" onClick={(event) => explore("archive", event.currentTarget)}><Search size={15} aria-hidden="true" />Find a release</button></div></footer>
     <Dialog.Root open={open && interactive} onOpenChange={close}>
       <Dialog.Portal>
-        <Dialog.Overlay className="patch-discovery-overlay" />
-        <Dialog.Content className={`patch-console patch-discovery ${object ? `tone-${object.id}` : "is-archive"} ${theme === "glitch" ? "theme-glitch" : ""}`} onCloseAutoFocus={(event) => { event.preventDefault(); (openerRef.current || deskRef.current)?.focus({ preventScroll: true }); }}>
+        <Dialog.Overlay className="patch-discovery-overlay motion-backdrop" />
+        <Dialog.Content className={`patch-console patch-discovery motion-panel motion-from-center ${object ? `tone-${object.id}` : "is-archive"} ${theme === "glitch" ? "theme-glitch" : ""}`} onCloseAutoFocus={(event) => { event.preventDefault(); (openerRef.current || deskRef.current)?.focus({ preventScroll: true }); }}>
           {/* La pieza que se ha cogido del escritorio preside la ficha: antes el
               dialogo no tenia nada que lo uniera al objeto pulsado. */}
           <header className="patch-discovery-header"><div className="patch-discovery-heading"><span>{object ? `DESK DISCOVERY / ${String(patchDeskObjects.indexOf(object) + 1).padStart(2, "0")} · ${object.label}` : "PATCH.LOG / RELEASE ARCHIVE"}</span><Dialog.Title>{object ? object.title : "Looking for a particular build?"}</Dialog.Title><Dialog.Description className="patch-discovery-context">{object ? object.context : "Search a feature, a fix, or a version. The whole archive is here, one release at a time."}</Dialog.Description></div><span className="patch-discovery-art" aria-hidden="true"><PatchDeskObject kind={object ? object.id : "monitor"} /></span><Dialog.Close asChild><button type="button" aria-label="Back to the developer desk"><X size={22} aria-hidden="true" /></button></Dialog.Close></header>

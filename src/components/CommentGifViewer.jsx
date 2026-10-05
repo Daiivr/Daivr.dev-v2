@@ -3,11 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import { Download, Heart, Image as ImageIcon, X } from "lucide-react";
 import { canProxyGif } from "../../shared/comment-gifs.mjs";
 
-export function CommentGifDialog({ title, description, onClose, returnFocusRef, variant = "", children }) {
-  return <Dialog.Root open onOpenChange={(open) => { if (!open) onClose(); }}>
+export function CommentGifDialog({ title, description, open = true, onClose, returnFocusRef, variant = "", children }) {
+  return <Dialog.Root open={open} onOpenChange={(open) => { if (!open) onClose(); }}>
     <Dialog.Portal>
-      <Dialog.Overlay className="comments-gif-modal" />
-      <Dialog.Content className={`comments-gif-dialog is-accessible ${variant}`} onCloseAutoFocus={(event) => { event.preventDefault(); returnFocusRef?.current?.focus({ preventScroll: true }); }}>
+      <Dialog.Overlay className="comments-gif-modal motion-backdrop" />
+      <Dialog.Content className={`comments-gif-dialog motion-panel is-accessible ${variant}`} onCloseAutoFocus={(event) => { event.preventDefault(); returnFocusRef?.current?.focus({ preventScroll: true }); }}>
         <header className="comments-gif-dialog-head">
           <div><span><ImageIcon size={12} aria-hidden="true" /> GIF collection</span><Dialog.Title asChild><h3>{title}</h3></Dialog.Title></div>
           <Dialog.Close asChild><button type="button" aria-label={`Close ${title.toLowerCase()}`}><X size={18} aria-hidden="true" /></button></Dialog.Close>
@@ -19,7 +19,7 @@ export function CommentGifDialog({ title, description, onClose, returnFocusRef, 
   </Dialog.Root>;
 }
 
-export function CommentGifViewer({ url, onClose, returnFocusRef, favorites, signedIn, loginUrl, canSignIn }) {
+export function CommentGifViewer({ url, open, onClose, returnFocusRef, favorites, signedIn, loginUrl, canSignIn }) {
   const [imageState, setImageState] = useState("loading");
   const [downloading, setDownloading] = useState(false);
   const [message, setMessage] = useState("");
@@ -55,7 +55,7 @@ export function CommentGifViewer({ url, onClose, returnFocusRef, favorites, sign
     } finally { window.clearTimeout(timer); downloadRef.current = null; setDownloading(false); }
   }
 
-  return <CommentGifDialog title="GIF preview" description="Keep a favorite for your next reply, or download a copy." onClose={onClose} returnFocusRef={returnFocusRef} variant="is-viewer">
+  return <CommentGifDialog title="GIF preview" description="Keep a favorite for your next reply, or download a copy." open={open} onClose={onClose} returnFocusRef={returnFocusRef} variant="is-viewer">
     <div className={`comments-gif-stage is-${imageState}`} aria-busy={imageState === "loading"}>
       {imageState !== "loaded" ? <p role="status">{imageState === "error" ? "This GIF is unavailable. You can still save its link as a favorite." : "Loading GIF…"}</p> : null}
       <img ref={imageRef} src={url} alt="GIF shared in the guestbook" onLoad={() => setImageState("loaded")} onError={() => setImageState("error")} />

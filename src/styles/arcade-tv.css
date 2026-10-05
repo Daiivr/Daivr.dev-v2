@@ -91,6 +91,68 @@
 .arcade-tv-power i { width: 5px; height: 5px; border-radius: 50%; background: #c0ef8e; box-shadow: 0 0 8px #a4ed8280; }
 .arcade-tv > footer { grid-column: 1 / -1; display: flex; align-items: center; flex-wrap: wrap; min-height: 42px; gap: 8px 14px; padding: 14px 4px 3px; border: 0; background: transparent; color: #bfcbb0; letter-spacing: .055em; }
 .arcade-tv > footer b { color: #c6deb0; }.arcade-tv > footer em { color: #b6c9b2; }
+/* The set switching on and off (ArcadeTvPower), under the glass sheen.
+   On: the beam is a full-screen glow held down to a dot, stretched into a
+   line, then opened up a little past the glass so its soft edges leave none of
+   it dark. It has filled the screen when the game mounts (useTvPowerOn,
+   880ms), and the whole layer then fades out over the game. */
+.arcade-tv-crt { position: absolute; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; }
+.arcade-tv-crt.is-on { background: radial-gradient(ellipse at center, #08140e, #010302 72%); }
+/* The glow the beam throws on the glass around it. */
+.arcade-tv-crt::before { content: ""; position: absolute; inset: 0; opacity: 0; background: radial-gradient(ellipse 55% 9% at 50% 50%, #9dffc666, transparent 70%); transform: scaleX(.05); animation: arcade-tv-halo 880ms both; }
+.arcade-tv-crt > i {
+  position: absolute; inset: 0; opacity: 0;
+  background: repeating-linear-gradient(0deg, #0c2a1a2e 0 1px, transparent 1px 3px), radial-gradient(ellipse at center, #fbfff9, #dbffe9 30%, #8affc0 68%, #3fdd8a);
+  mask-image: linear-gradient(transparent, #000 12%, #000 88%, transparent);
+  transform: scale(.004, .005);
+  animation: arcade-tv-beam 880ms both;
+}
+.arcade-tv-crt[data-powered] { animation: arcade-tv-glow-out 520ms cubic-bezier(.3, 0, .2, 1) both; }
+.arcade-tv-hardware.is-warming .arcade-tv-power i { animation: arcade-tv-led-on 880ms both; }
+.arcade-tv-hardware.is-warming .arcade-tv-channel > strong { animation: arcade-tv-channel-on 880ms both; }
+/* Off (520ms): whatever is on the screen squashes into a bright line, the
+   beam takes the line over and shrinks it to a dot, and the dot fades. The
+   cabinet's own closing fade waits for it (TV_CLOSE_MS in useTvPowerOn). */
+.arcade-tv[data-state="closed"] > :is(.tower-modal-screen, .arcade-embed-screen, .madrace-screen) > :not(.arcade-tv-crt) { animation: arcade-tv-collapse 230ms cubic-bezier(.55, 0, .85, .4) both; }
+.arcade-tv-crt.is-off::before { animation: arcade-tv-halo-off 520ms both; }
+.arcade-tv-crt.is-off > i { animation: arcade-tv-beam-off 520ms both; }
+.arcade-tv[data-state="closed"],
+:is(.madrace-backdrop, .tower-modal-backdrop, .arcade-embed-backdrop)[data-state="closed"] { animation-delay: 520ms; }
+.arcade-tv-hardware.is-off .arcade-tv-power i { animation: arcade-tv-led-off 520ms both; }
+.arcade-tv-hardware.is-off .arcade-tv-channel > strong { animation: arcade-tv-channel-off 520ms both; }
+@keyframes arcade-tv-beam {
+  0%, 32% { opacity: 0; transform: scale(.004, .005); }
+  35% { opacity: 1; transform: scale(.004, .005); animation-timing-function: cubic-bezier(.2, .7, .3, 1); }
+  62% { opacity: 1; transform: scale(1, .005); animation-timing-function: cubic-bezier(.75, 0, .9, .35); }
+  100% { opacity: 1; transform: scale(1, 1.35); }
+}
+@keyframes arcade-tv-halo {
+  0%, 32% { opacity: 0; transform: scaleX(.05); }
+  36% { opacity: 1; transform: scaleX(.05); animation-timing-function: cubic-bezier(.2, .7, .3, 1); }
+  62% { opacity: 1; transform: scaleX(1); }
+  100% { opacity: 0; transform: scale(1, 7); }
+}
+@keyframes arcade-tv-glow-out { to { opacity: 0; } }
+@keyframes arcade-tv-led-on { 0%, 33% { background: #2c3f2f; box-shadow: none; } }
+@keyframes arcade-tv-channel-on { 0%, 33% { opacity: .12; text-shadow: none; } 42% { opacity: .85; } 48% { opacity: .35; } 56% { opacity: 1; } }
+@keyframes arcade-tv-collapse {
+  80% { opacity: 1; transform: scale(1, .006); filter: brightness(2.4) saturate(.6); }
+  100% { opacity: 0; transform: scale(1, .006); filter: brightness(2.4) saturate(.6); }
+}
+@keyframes arcade-tv-beam-off {
+  0%, 36% { opacity: 0; transform: scale(1, .005); }
+  40% { opacity: 1; transform: scale(1, .005); animation-timing-function: cubic-bezier(.6, 0, .85, .35); }
+  74% { opacity: 1; transform: scale(.004, .005); }
+  100% { opacity: 0; transform: scale(.004, .005); }
+}
+@keyframes arcade-tv-halo-off {
+  0%, 36% { opacity: 0; transform: scaleX(1); }
+  40% { opacity: 1; transform: scaleX(1); animation-timing-function: cubic-bezier(.6, 0, .85, .35); }
+  74% { opacity: 1; transform: scaleX(.05); }
+  100% { opacity: 0; transform: scaleX(.05); }
+}
+@keyframes arcade-tv-led-off { 70%, 100% { background: #2c3f2f; box-shadow: none; } }
+@keyframes arcade-tv-channel-off { 40% { opacity: .5; } 46% { opacity: 1; } 70%, 100% { opacity: .12; text-shadow: none; } }
 @media (max-width: 720px) {
   .arcade-tv { grid-template-columns: minmax(0, 1fr); height: calc(100dvh - 32px); padding: 8px 12px 10px; border-radius: 20px; gap: 0; }
   .arcade-tv > header { flex-wrap: wrap; gap: 12px; min-height: 65px; padding: 8px 3px 14px; }
@@ -106,4 +168,10 @@
   .arcade-tv-hardware { gap: 12px; padding-inline: 6px; }.arcade-tv-tuner { display: none; }
   .arcade-tv > header { min-height: 56px; padding-bottom: 10px; }
 }
-@media (prefers-reduced-motion: reduce) { .arcade-tv, .arcade-tv > header button { animation: none; transition: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .arcade-tv, .arcade-tv > header button { animation: none; transition: none; }
+  .arcade-tv-crt { display: none; }
+  .arcade-tv-hardware:is(.is-warming, .is-off) :is(.arcade-tv-power i, .arcade-tv-channel > strong) { animation: none; }
+  .arcade-tv[data-state="closed"] > :is(.tower-modal-screen, .arcade-embed-screen, .madrace-screen) > * { animation: none; }
+  :is(.madrace-backdrop, .tower-modal-backdrop, .arcade-embed-backdrop)[data-state="closed"] { animation-delay: 0s; }
+}

@@ -2,7 +2,9 @@ import "../styles/konami-games.css";
 import { ArrowLeft, LogIn, RotateCcw, Trophy, Volume2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RankingAvatar } from "./RankingAvatar";
-import { ArcadeTvDetails } from "./ArcadeTvDetails";
+import { ArcadeTvDetails, ArcadeTvPower } from "./ArcadeTvDetails";
+import { useModalPresence } from "../hooks/useModalPresence";
+import { TV_CLOSE_MS, useTvPowerOn } from "../hooks/useTvPowerOn";
 
 const VOLUME_KEY = "daivr.madrace.volume.v1";
 const SAVE_SLOT_PREFIX = "daivr.madrace.save-slot.v1";
@@ -36,6 +38,10 @@ export function MadraceModal({ open, onBack, onClose }) {
   const frameRef = useRef(null);
   const launchConfiguredRef = useRef(false);
   const resetConfirmRef = useRef(false);
+  const presence = useModalPresence(open, TV_CLOSE_MS);
+  const switchingOff = presence.state === "closed";
+  const resetPresence = useModalPresence(resetConfirmOpen);
+  const powered = useTvPowerOn(open, "madrace");
 
   useEffect(() => {
     resetConfirmRef.current = resetConfirmOpen;
@@ -190,11 +196,11 @@ export function MadraceModal({ open, onBack, onClose }) {
     return `/madrace/index.html${params.size ? `?${params}` : ""}`;
   }, [launchRestore, loading, me?.id, saveSlot]);
 
-  if (!open) return null;
+  if (!presence.item) return null;
 
   return (
-    <div className="madrace-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
-      <section className="madrace-modal arcade-tv" role="dialog" aria-modal="true" aria-labelledby="madrace-title">
+    <div className="madrace-backdrop motion-backdrop" data-state={presence.state} role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+      <section className="madrace-modal arcade-tv motion-panel" data-state={presence.state} role="dialog" aria-modal="true" aria-labelledby="madrace-title">
         <header className="madrace-header">
           <div className="madrace-title-with-back">
             <button type="button" onClick={onBack} aria-label="Back to game library"><ArrowLeft size={17} /></button>
@@ -214,7 +220,7 @@ export function MadraceModal({ open, onBack, onClose }) {
         </header>
 
         <div className="madrace-screen">
-          {gameSrc ? (
+          {powered && gameSrc ? (
             <iframe
               key={gameInstance}
               ref={frameRef}
@@ -227,6 +233,7 @@ export function MadraceModal({ open, onBack, onClose }) {
               }}
             />
           ) : <div className="madrace-boot">LOADING SECRET CARTRIDGE...</div>}
+          <ArcadeTvPower powered={powered} off={switchingOff} />
 
           {leaderboardOpen ? (
             <aside className="madrace-leaderboard" aria-label="Madrace leaderboard">
@@ -262,16 +269,16 @@ export function MadraceModal({ open, onBack, onClose }) {
           ) : null}
         </div>
 
-        <ArcadeTvDetails channel="01" />
+        <ArcadeTvDetails channel="01" powered={powered} off={switchingOff} />
         <footer className="madrace-footer">
           <span className={status.includes("FAILED") || status.includes("REQUIRED") ? "is-error" : ""}>{status || (me ? "DISCORD SAVE LINK ONLINE" : "GUEST RUN // SCORES LOCAL ONLY")}</span>
           <label><Volume2 size={14} /><input type="range" min="0" max="100" value={volume} onChange={updateVolume} /><b>{volume}%</b></label>
           <p>ARROWS / WASD TO DRIVE <i>•</i> ESC TO CLOSE</p>
         </footer>
 
-        {resetConfirmOpen ? (
-          <div className="madrace-reset-backdrop" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && !resetting && setResetConfirmOpen(false)}>
-            <section className="madrace-reset-modal" role="alertdialog" aria-modal="true" aria-labelledby="madrace-reset-title" aria-describedby="madrace-reset-description">
+        {resetPresence.item ? (
+          <div className="madrace-reset-backdrop motion-backdrop" data-state={resetPresence.state} role="presentation" onMouseDown={(event) => event.target === event.currentTarget && !resetting && setResetConfirmOpen(false)}>
+            <section className="madrace-reset-modal motion-panel" data-state={resetPresence.state} role="alertdialog" aria-modal="true" aria-labelledby="madrace-reset-title" aria-describedby="madrace-reset-description">
               <header>
                 <div>
                   <span>RANKING.SYS // DESTRUCTIVE COMMAND</span>

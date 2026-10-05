@@ -5,6 +5,25 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.63.0",
+    codename: "WARM UP",
+    date: "2026-10-05",
+    summary: "Nothing pops in anymore. Every window eases open and settles back out, the arcade TVs switch on and off like real sets, and the terminal and Dai's desk were rebuilt to belong to the cabinet.",
+    entries: [
+      ["new", "The terminal is a proper cabinet console now. Each command and its reply read as one shell entry in that command's colour, the log sits in a curved CRT screen with a slow refresh line, the header has marquee lights and live uptime and command counters, and a powerline status bar runs along the bottom."],
+      ["new", "The terminal writes the best completion in grey after what you type, and Tab accepts it."],
+      ["buff", "The terminal's quick commands are colour-keyed buttons with their own icons, and all six fit without scrolling."],
+      ["buff", "Dai's desk belongs to the cabinet: the green frame, a dark desk lit by neon, a gaming mat with a grid and an LED edge, and the room's labels in phosphor. A GAME ON sign glows on the desk, with a few arcade tokens by the coffee."],
+      ["new", "Dai's three most played games, from the Discord stats, lie next to the Game Boy as cartridges with their art and hours. When a new game climbs into the top three, its cartridge drops onto the desk by itself."],
+      ["fix", "The edge of the notebook's cover no longer drifts off the side of the book while it opens or closes."],
+      ["new", "The game TVs start switched off. A dot of light stretches into a line, the line opens into a flash that fills the glass, and the game fades in under it. The power light and the channel display come on with it."],
+      ["new", "Closing a game switches the TV off first: the picture squashes into a bright line, the line shrinks to a dot, the dot fades and the power light goes out, and only then does the cabinet go away."],
+      ["buff", "Every window eases in and out instead of appearing and vanishing: the terminal, the player passport, Buddy's windows, the game library, the games, Patch.log, the vault, the GIF windows, the delete prompt and the chest reveal."],
+      ["fix", "The game cabinets had an opening animation that never played unless Madrace had been opened first in the same visit."],
+      ["buff", "The notebook on the desk catches the same light as the one you pick up."]
+    ]
+  },
+  {
     version: "v2.62.1",
     codename: "FRESH COAT",
     date: "2026-10-05",

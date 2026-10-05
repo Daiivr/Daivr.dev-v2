@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { CHEST_MIN_COINS, CHEST_MAX_COINS } from "../../shared/buddy-market.mjs";
 import "../styles/buddy-chest-opening.css";
 import { useHangingSign } from "../hooks/useHangingSign";
+import { useModalPresence } from "../hooks/useModalPresence";
 
 function TreasureChest() {
   return <svg viewBox="0 0 96 80" className="chest-reveal-chest" aria-hidden="true" shapeRendering="crispEdges">
@@ -38,7 +39,7 @@ const SPARKS = Array.from({ length: 14 }, (_, i) => ({
   "--spark-delay": `${1000 + i % 4 * 65}ms`
 }));
 
-function ChestReveal({ receipt, wallet, onClose, onAnother, opener, walletRef }) {
+function ChestReveal({ receipt, open, wallet, onClose, onAnother, opener, walletRef }) {
   const [revealed, setRevealed] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   useEffect(() => {
     if (revealed) return;
@@ -49,10 +50,10 @@ function ChestReveal({ receipt, wallet, onClose, onAnother, opener, walletRef })
     return () => { clearTimeout(timer); preference.removeEventListener("change", reduce); };
   }, [revealed]);
 
-  return <Dialog.Root open onOpenChange={(open) => { if (!open) onClose(); }}>
+  return <Dialog.Root open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
     <Dialog.Portal>
-      <Dialog.Overlay className="chest-reveal-backdrop" />
-      <Dialog.Content className={`chest-reveal ${revealed ? "is-revealed" : "is-opening"}`}
+      <Dialog.Overlay className="chest-reveal-backdrop motion-backdrop" />
+      <Dialog.Content className={`chest-reveal motion-panel motion-from-center ${revealed ? "is-revealed" : "is-opening"}`}
         onCloseAutoFocus={(event) => { event.preventDefault(); (opener.current?.disabled ? walletRef.current : opener.current)?.focus(); }}>
         <Dialog.Close className="chest-reveal-close" aria-label="Close chest reward"><X size={18} /></Dialog.Close>
         <span className="chest-reveal-kicker">SALVAGED FROM THE VOID</span>
@@ -97,6 +98,8 @@ export function BuddyMarketWallet({ adventure }) {
     else busy.current = false;
   }
   const close = () => { setReceipt(null); busy.current = false; };
+  // Keeps the reveal up while it fades out after closing.
+  const reveal = useModalPresence(receipt);
   return <>
     <section ref={walletRef} {...signEvents} tabIndex={0} className="market-wallet market-hanging-sign" aria-label="Gold and treasure chests" aria-description="Drag up or down, tap, or press Enter to swing the sign back and forth.">
       <div className="market-wallet-total"><PixelCoin /><strong>{adventure.market.coins}<small>GOLD</small></strong></div>
@@ -104,6 +107,6 @@ export function BuddyMarketWallet({ adventure }) {
       <small>{adventure.market.unopened} unopened {adventure.market.unopened === 1 ? "chest" : "chests"} · {CHEST_MIN_COINS}–{CHEST_MAX_COINS} gold each</small>
       <small role="status">{receipt ? "Your chest is opening…" : message || (!adventure.market.unopened ? "Fish up a Token Chest to find more gold." : "Open them here, even when the shop is closed.")}</small>
     </section>
-    {receipt ? <ChestReveal key={receipt.id} receipt={receipt} wallet={adventure.market} opener={opener} walletRef={walletRef} onClose={close} onAnother={() => { if (sequence.current !== receipt.id) return; busy.current = false; openChest(); }} /> : null}
+    {reveal.item ? <ChestReveal key={reveal.item.id} receipt={reveal.item} open={reveal.state === "open"} wallet={adventure.market} opener={opener} walletRef={walletRef} onClose={close} onAnother={() => { if (sequence.current !== reveal.item.id) return; busy.current = false; openChest(); }} /> : null}
   </>;
 }

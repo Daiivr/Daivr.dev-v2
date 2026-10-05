@@ -30,6 +30,7 @@ import { NotificationsBell } from "./NotificationsBell";
 import { CommentAdminBadge } from "./CommentAdminBadge";
 import { CommentGifDialog, CommentGifViewer } from "./CommentGifViewer";
 import { useCommentGifFavorites } from "../hooks/useCommentGifFavorites";
+import { useModalPresence } from "../hooks/useModalPresence";
 import { isGifLink, normalizeGifUrl } from "../../shared/comment-gifs.mjs";
 import { commentHash } from "../lib/commentLinks";
 import { loadCommentDraft, saveCommentDraft } from "../lib/commentDrafts";
@@ -511,6 +512,10 @@ export function CommentsSection() {
   const [page, setPage] = useState(1);
   const [expandedThreads, setExpandedThreads] = useState(() => new Set());
   const [deleteDialog, setDeleteDialog] = useState(null);
+  // The three dialogs stay up a moment after closing, to fade out.
+  const gifPickerPresence = useModalPresence(gifPicker);
+  const gifPreviewPresence = useModalPresence(gifPreview);
+  const deletePresence = useModalPresence(deleteDialog);
   const [markdownHelpOpen, setMarkdownHelpOpen] = useState(false);
   const [inbox, setInbox] = useState({ items: [], unread: 0 });
   const [draftOwner, setDraftOwner] = useState(null);
@@ -1092,8 +1097,8 @@ export function CommentsSection() {
     deleteComment(deleteDialog.commentId);
   }
 
-  const gifModal = gifPicker ? (
-    <CommentGifDialog title="Choose a GIF" description="Search Klipy or reuse a favorite from your collection." onClose={closeGifPicker} returnFocusRef={gifPickerTriggerRef}>
+  const gifModal = gifPickerPresence.item ? (
+    <CommentGifDialog title="Choose a GIF" description="Search Klipy or reuse a favorite from your collection." open={Boolean(gifPicker)} onClose={closeGifPicker} returnFocusRef={gifPickerTriggerRef}>
       <div className="comments-gif-views" role="group" aria-label="GIF collection view">
         <button type="button" aria-pressed={gifPickerView === "search"} onClick={() => setGifPickerView("search")}><Search size={14} aria-hidden="true" /> Search</button>
         <button type="button" aria-pressed={gifPickerView === "favorites"} onClick={() => setGifPickerView("favorites")}><Heart size={14} aria-hidden="true" /> Favorites <small>{gifFavorites.favorites.length}</small></button>
@@ -1136,17 +1141,18 @@ export function CommentsSection() {
     </CommentGifDialog>
   ) : null;
 
-  const deleteModal = deleteDialog && typeof document !== "undefined"
+  const shownDelete = deletePresence.item;
+  const deleteModal = shownDelete && typeof document !== "undefined"
     ? createPortal(
-        <div className="comments-delete-modal" role="presentation" onMouseDown={(event) => {
+        <div className="comments-delete-modal motion-backdrop" data-state={deletePresence.state} role="presentation" onMouseDown={(event) => {
           if (event.target === event.currentTarget && !busy) setDeleteDialog(null);
         }}>
-          <div className="comments-delete-dialog" role="dialog" aria-modal="true" aria-labelledby="comments-delete-title">
+          <div className="comments-delete-dialog motion-panel" data-state={deletePresence.state} role="dialog" aria-modal="true" aria-labelledby="comments-delete-title">
             <header>
               <span>destructive command</span>
-              <h3 id="comments-delete-title">{deleteDialog.title}</h3>
+              <h3 id="comments-delete-title">{shownDelete.title}</h3>
             </header>
-            <p>{deleteDialog.body}</p>
+            <p>{shownDelete.body}</p>
             <div className="comments-delete-actions">
               <button type="button" onClick={() => setDeleteDialog(null)} disabled={busy}>cancel</button>
               <button className="is-danger" type="button" onClick={confirmDelete} disabled={busy}>
@@ -1370,7 +1376,7 @@ export function CommentsSection() {
         )}
 
         {gifModal}
-        {gifPreview ? <CommentGifViewer key={gifPreview} url={gifPreview} onClose={() => setGifPreview("")} returnFocusRef={gifPreviewTriggerRef} favorites={gifFavorites} signedIn={!!auth.user} loginUrl={auth.loginUrl} canSignIn={auth.configured} /> : null}
+        {gifPreviewPresence.item ? <CommentGifViewer key={gifPreviewPresence.item} url={gifPreviewPresence.item} open={Boolean(gifPreview)} onClose={() => setGifPreview("")} returnFocusRef={gifPreviewTriggerRef} favorites={gifFavorites} signedIn={!!auth.user} loginUrl={auth.loginUrl} canSignIn={auth.configured} /> : null}
 
         {deleteModal}
 

@@ -387,10 +387,15 @@ export function DiscordPresencePanel() {
           (activity.timestamps?.start || activity.createdAt || presence?.kv?.session_duration_ms)
       )
   );
-  const steamGridLookupNames = activities
-    .filter((activity) => !activity.isSpotify && !activity.image && activity.name)
-    .map((activity) => activity.name)
-    .join("|");
+  // Tambien la portada de los tres juegos con mas horas que aun no tengan la
+  // caratula de Discord guardada: son los cartuchos del escritorio
+  // (DeskCartridges).
+  const steamGridLookupNames = [...new Set([
+    ...activities
+      .filter((activity) => !activity.isSpotify && !activity.image && activity.name)
+      .map((activity) => activity.name),
+    ...(streak?.library || []).slice(0, 3).filter((game) => game?.name && !game.image).map((game) => game.name)
+  ])].join("|");
 
   useEffect(() => {
     // `now` solo lo consumen el progreso de Spotify y el cronometro de sesion.
@@ -937,6 +942,7 @@ export function DiscordPresencePanel() {
         loading={loading && !presence}
         updatedAt={formatUpdatedAt(updatedAt)}
         activityImages={activityImages}
+        library={streak?.library}
         onInspect={() => { setOpenStatsKey(null); setBadgeTooltip(null); }}
       /> : <DiscordPresenceMobile
         notebook={notebook}

@@ -125,8 +125,8 @@ export function KonamiGameLibrary({ open, onClose, onSelect }) {
 
   return (
     <Dialog.Root open={open} onOpenChange={(value) => { if (!value) onClose(); }}>
-    <Dialog.Overlay className="konami-library-backdrop">
-      <Dialog.Content className={`konami-library konami-shelf-library ${mountingGame ? "is-mounting" : ""}`} onOpenAutoFocus={(event) => { event.preventDefault(); closeRef.current?.focus(); }}>
+    <Dialog.Overlay className="konami-library-backdrop motion-backdrop">
+      <Dialog.Content className={`konami-library konami-shelf-library motion-panel ${mountingGame ? "is-mounting" : ""}`} onOpenAutoFocus={(event) => { event.preventDefault(); closeRef.current?.focus(); }}>
         <header>
           <div>
             <span><LockKeyhole size={12} /> KONAMI CLEARANCE ACCEPTED</span>
