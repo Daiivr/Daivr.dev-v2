@@ -5,8 +5,54 @@ import { DiscordDeskControls } from "./DiscordDeskControls";
 import { DeskCoffee, DiscordDeskKeepsakes } from "./DiscordDeskKeepsakes";
 import { NotebookSocialsSpread, NotebookDeskContext } from "./NotebookDesk";
 
-// Matches the page turn in discord-tabletop.css.
+// Matches the page turn in notebook-desk.css.
 const TURN_MS = 900;
+// Strips the turning sheet is drawn with, so it can bend (see PageCurl).
+const CURL_STRIPS = 8;
+
+// A real page doesn't turn as a flat board: it bends, outer edge first. CSS
+// can't bend an element, so while it turns the sheet is drawn as a chain of
+// narrow strips, each turned a little more than the one before it, holding a
+// copy of the matching slice of the page's front and back. The real sheet
+// still turns underneath (hidden) and still ends the turn.
+function PageCurl({ book, turn }) {
+  const root = useRef(null);
+  useLayoutEffect(() => {
+    const curl = root.current;
+    const front = book.current?.querySelector(":scope > .discord-presence-profile > .is-notes");
+    const back = book.current?.querySelector(":scope > .tabletop-socials-back");
+    if (!curl || !front || !back) return undefined;
+    const width = front.offsetWidth;
+    const height = front.offsetHeight;
+    const strip = width / CURL_STRIPS;
+    const copy = (page, offset) => {
+      const clone = page.cloneNode(true);
+      for (const node of [clone, ...clone.querySelectorAll("[id]")]) node.removeAttribute("id");
+      clone.removeAttribute("tabindex");
+      Object.assign(clone.style, { width: `${width}px`, height: `${height}px`, left: `${-offset}px` });
+      return clone;
+    };
+    const face = (side, page, offset) => {
+      const element = document.createElement("div");
+      element.className = `tabletop-curl-face tabletop-curl-${side}`;
+      element.append(copy(page, offset));
+      return element;
+    };
+    let parent = curl;
+    for (let index = 0; index < CURL_STRIPS; index += 1) {
+      const segment = document.createElement("div");
+      segment.className = "tabletop-curl-strip";
+      segment.style.setProperty("--strip", index);
+      // The back reads mirrored: the strip nearest the spine holds the slice of
+      // the back page that ends up nearest the spine.
+      segment.append(face("front", front, index * strip), face("back", back, (CURL_STRIPS - 1 - index) * strip));
+      parent.append(segment);
+      parent = segment;
+    }
+    return () => curl.replaceChildren();
+  }, [book, turn]);
+  return <div ref={root} className="tabletop-curl" data-turn={turn} aria-hidden="true" inert />;
+}
 
 const objects = {
   notebook: { title: "Dai’s notebook", description: "A little about the person behind the screen.", label: "Open Dai’s notebook" },
@@ -45,9 +91,12 @@ function DeskEarphones() {
 }
 
 function NotebookInspection({ children, phase, notes, spread }) {
-  return <div className={`tabletop-open-book is-${phase}`} data-notes={notes.view} data-turn={notes.turn || undefined}>
+  const book = useRef(null);
+  const curling = phase === "reading" && notes.turn && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return <div ref={book} className={`tabletop-open-book is-${phase}`} data-notes={notes.view} data-turn={notes.turn || undefined} data-curl={curling ? "" : undefined}>
     {children}
     {phase === "reading" && (notes.view === "socials" || notes.turn) ? spread : null}
+    {curling ? <PageCurl book={book} turn={notes.turn} /> : null}
     {phase !== "reading" && <>
       <span className="tabletop-book-shade" aria-hidden="true" />
       <NotebookCover opening />

@@ -159,7 +159,14 @@
 .app-shell .tabletop-dialog .tabletop-open-book .discord-presence-profile { z-index: 2; isolation: auto; height: calc((50cqw + 6px) * 25 / 18 - 15px); grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr); align-content: stretch; border: 0; background: transparent; box-shadow: none; transform-style: preserve-3d; }
 /* The pages have the cover's fixed proportions. Long profiles can still scroll
    with the wheel or touch, but no scrollbar is drawn on the paper. */
-.app-shell .tabletop-dialog .tabletop-open-book .discord-notebook-page { min-height: 0; gap: 11px; padding-block: 20px 16px; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; outline: 6px solid #233f34; box-shadow: 0 3px #a8b297, 0 6px #63765c, 0 9px #162e22; }
+.app-shell .tabletop-dialog .tabletop-open-book .discord-notebook-page { min-height: 0; gap: 11px; padding-block: 20px 16px; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
+/* The hard cover's rim and the edges of the page block belong to the covers,
+   not to the paper. The left page is glued inside the front cover, so it
+   carries that rim (and turns with the cover when the book opens or closes);
+   the back cover is a static rim behind the right half. A page that turns
+   is just a sheet. */
+.app-shell .tabletop-dialog .tabletop-open-book .discord-notebook-page.is-portrait { outline: 6px solid #233f34; box-shadow: 0 3px #a8b297, 0 6px #63765c, 0 9px #162e22; }
+.tabletop-open-book::before { content: ""; position: absolute; z-index: 0; inset: 0 0 0 50%; border-radius: 0 5px 5px 0; outline: 6px solid #233f34; box-shadow: 0 3px #a8b297, 0 6px #63765c, 0 9px #162e22; pointer-events: none; }
 .app-shell .tabletop-dialog .tabletop-open-book .discord-notebook-page::-webkit-scrollbar { display: none; }
 /* The bookmark stays under the closed cover, which reaches 6px above the pages. */
 .app-shell .tabletop-dialog .tabletop-open-book .discord-presence-profile::after { top: -6px; }

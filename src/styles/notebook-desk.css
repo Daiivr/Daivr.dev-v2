@@ -28,12 +28,14 @@
 
 /* The spread. The new pages sit exactly over the notebook's two halves. */
 .app-shell .tabletop-dialog .tabletop-open-book > :is(.tabletop-socials-back, .tabletop-socials-page) { position: absolute; top: 0; bottom: 0; width: 50%; }
-.app-shell .tabletop-dialog .tabletop-open-book > .tabletop-socials-back { z-index: 4; left: 0; padding-inline: 20px; transform-origin: right center; backface-visibility: hidden; border-radius: 5px 0 0 5px; background-color: #a1b39c; box-shadow: inset -10px 0 15px #80755726, 0 3px #a8b297, 0 6px #63765c, 0 9px #162e22; }
-.app-shell .tabletop-dialog .tabletop-open-book > .tabletop-socials-page { z-index: 1; left: 50%; padding-inline: 17px 14px; border-radius: 0 5px 5px 0; box-shadow: inset 8px 0 12px #91846630, 0 3px #a8b297, 0 6px #63765c, 0 9px #162e22; }
+.app-shell .tabletop-dialog .tabletop-open-book > .tabletop-socials-back { z-index: 4; left: 0; transform-origin: right center; backface-visibility: hidden; }
+/* How the page looks, apart from where it sits: the curling copy uses it too. */
+.app-shell .tabletop-dialog .tabletop-open-book .tabletop-socials-back { padding-inline: 20px; border-radius: 5px 0 0 5px; background-color: #a1b39c; box-shadow: inset -10px 0 15px #80755726; }
+.app-shell .tabletop-dialog .tabletop-open-book > .tabletop-socials-page { z-index: 1; left: 50%; padding-inline: 17px 14px; border-radius: 0 5px 5px 0; box-shadow: inset 8px 0 12px #91846630; }
 .app-shell .tabletop-dialog .tabletop-open-book .is-notes { transform-origin: left center; backface-visibility: hidden; }
 /* Turned: the front of the sheet lies face down on the left, under its back. */
 .app-shell .tabletop-dialog .tabletop-open-book[data-notes="socials"]:not([data-turn]) .is-notes { transform: rotateY(-180deg); visibility: hidden; }
-.app-shell .tabletop-dialog .tabletop-open-book[data-notes="socials"]:not([data-turn]) .is-portrait { visibility: hidden; }
+.app-shell .tabletop-dialog .tabletop-open-book[data-notes="socials"]:not([data-turn]) .is-portrait > * { visibility: hidden; }
 /* The notebook's own (now empty) spread still lies over the list: let clicks through. */
 .app-shell .tabletop-dialog .tabletop-open-book[data-notes="socials"] .discord-presence-profile { pointer-events: none; }
 .app-shell .tabletop-dialog .tabletop-open-book[data-turn] { pointer-events: none; }
@@ -124,8 +126,8 @@
    phone layout keeps its own styles. */
 .app-shell .tabletop-dialog .tabletop-open-book { --nb-ink: #263e2b; --nb-ink-strong: #1a3123; --nb-mid: #4d6448; --nb-rule: #4d644866; --nb-highlight: #e3d27a8c; --nb-chip-text: #e3ead2; --nb-stamp: #bccab2; --nb-paper: #a8b8a2; --nb-dog-ear: #c6c9a8; }
 .app-shell.theme-glitch .tabletop-dialog .tabletop-open-book { --nb-ink: #4a2d57; --nb-ink-strong: #38263f; --nb-mid: #6d5279; --nb-rule: #6d527966; --nb-highlight: #f2a6d28c; --nb-chip-text: #f6e8fb; --nb-stamp: #d2c2dc; --nb-paper: #c6b8cf; --nb-dog-ear: #dccfe2; }
-.app-shell.theme-glitch .tabletop-dialog .tabletop-open-book > .tabletop-socials-back { background-color: #bdafc6; box-shadow: inset -10px 0 15px #63417626, 0 3px #c4b3cf, 0 6px #76627d, 0 9px #1a0c23; }
-.app-shell.theme-glitch .tabletop-dialog .tabletop-open-book > .tabletop-socials-page { box-shadow: inset 8px 0 12px #644e7330, 0 3px #c4b3cf, 0 6px #76627d, 0 9px #1a0c23; }
+.app-shell.theme-glitch .tabletop-dialog .tabletop-open-book .tabletop-socials-back { background-color: #bdafc6; box-shadow: inset -10px 0 15px #63417626; }
+.app-shell.theme-glitch .tabletop-dialog .tabletop-open-book > .tabletop-socials-page { box-shadow: inset 8px 0 12px #644e7330; }
 .app-shell .tabletop-dialog .tabletop-open-book .is-notes { gap: 0; }
 .app-shell .tabletop-dialog .tabletop-open-book .is-notes > .discord-notebook-heading { margin-bottom: 14px; }
 .app-shell .tabletop-dialog .tabletop-open-book .is-notes :is(.discord-presence-custom-label, .discord-device-bay-head code, .notebook-local-time small) { color: var(--nb-mid); font: 800 8px/1.2 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; }
@@ -184,3 +186,34 @@
 .app-shell .tabletop-dialog .tabletop-open-book .is-portrait .discord-notebook-scribble > span { font-size: 12px; }
 .app-shell .tabletop-dialog .tabletop-open-book .is-portrait .discord-notebook-scribble .discord-controller-sticker { margin: 0 4px 0 0; }
 .app-shell .tabletop-dialog .tabletop-open-book .is-portrait .discord-notebook-scribble > small { grid-column: 1 / -1; margin-top: 6px; padding-top: 7px; border-top: 1px dashed var(--nb-rule); color: var(--nb-mid); font-size: 8px; letter-spacing: .14em; text-align: center; }
+
+/* The bending sheet (PageCurl in DiscordTabletop). Each strip hangs off the
+   previous one's edge: the first turns by the page's angle, the rest add a
+   share of the bend, so the angles add up into a curve that leads with the
+   outer edge and flattens out again before the page lands. */
+@property --curl-turn { syntax: "<angle>"; inherits: true; initial-value: 0deg; }
+@property --curl-bend { syntax: "<angle>"; inherits: true; initial-value: 0deg; }
+.app-shell .tabletop-dialog .tabletop-open-book > .tabletop-curl { --curl-step: calc(var(--curl-bend) / 7); position: absolute; z-index: 6; top: 0; bottom: 0; left: 50%; width: 50%; pointer-events: none; transform-style: preserve-3d; }
+.app-shell .tabletop-dialog .tabletop-open-book > .tabletop-curl[data-turn="forward"] { animation: tabletop-curl-turn-forward 900ms cubic-bezier(.45,.05,.2,1) both, tabletop-curl-bend-forward 900ms linear both; }
+.app-shell .tabletop-dialog .tabletop-open-book > .tabletop-curl[data-turn="back"] { animation: tabletop-curl-turn-back 900ms cubic-bezier(.45,.05,.2,1) both, tabletop-curl-bend-back 900ms linear both; }
+/* The real sheet keeps turning (it ends the turn) but the strips are what shows. */
+.app-shell .tabletop-dialog .tabletop-open-book[data-curl] > .discord-presence-profile > .is-notes,
+.app-shell .tabletop-dialog .tabletop-open-book[data-curl] > .tabletop-socials-back { visibility: hidden; }
+.tabletop-curl-strip { position: absolute; top: 0; left: 100%; width: 100%; height: 100%; transform-origin: 0 50%; transform: rotateY(var(--curl-step)); transform-style: preserve-3d; }
+.tabletop-curl > .tabletop-curl-strip { left: 0; width: calc(100% / 8); transform: rotateY(var(--curl-turn)); }
+/* Reaches a little under the next strip, so no gap opens at the joins. */
+.tabletop-curl-face { position: absolute; top: 0; bottom: 0; left: 0; width: calc(100% + 2px); overflow: hidden; backface-visibility: hidden; }
+.tabletop-curl-back { transform: rotateY(180deg); }
+.app-shell .tabletop-dialog .tabletop-open-book .tabletop-curl-face > .discord-notebook-page { position: absolute; top: 0; visibility: visible; transform: none; animation: none; }
+.app-shell .tabletop-dialog .tabletop-open-book .tabletop-curl-face > .discord-notebook-page::after { content: none; }
+/* Light: the sheet darkens by how far it faces away from the lamp. Each strip
+   blends from the angle it shares with one neighbour to the one it shares with
+   the other, so the curve reads as a smooth gradient, not stripes. */
+.tabletop-curl-face { --edge-in: calc(-.5 * sin(var(--curl-turn) + (var(--strip) - .5) * var(--curl-step))); --edge-out: calc(-.5 * sin(var(--curl-turn) + (var(--strip) + .5) * var(--curl-step))); }
+.tabletop-curl-face::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgb(15 29 21 / var(--edge-in)), rgb(15 29 21 / var(--edge-out))); }
+/* Turned over, a strip's outer edge is on its left. */
+.tabletop-curl-back::after { background: linear-gradient(90deg, rgb(15 29 21 / var(--edge-out)), rgb(15 29 21 / var(--edge-in))); }
+@keyframes tabletop-curl-turn-forward { from { --curl-turn: 0deg; } to { --curl-turn: -180deg; } }
+@keyframes tabletop-curl-turn-back { from { --curl-turn: -180deg; } to { --curl-turn: 0deg; } }
+@keyframes tabletop-curl-bend-forward { 0% { --curl-bend: 0deg; animation-timing-function: cubic-bezier(.3,0,.4,1); } 40% { --curl-bend: -42deg; animation-timing-function: cubic-bezier(.45,0,.55,1); } 82%, 100% { --curl-bend: 0deg; } }
+@keyframes tabletop-curl-bend-back { 0% { --curl-bend: 0deg; animation-timing-function: cubic-bezier(.3,0,.4,1); } 40% { --curl-bend: 42deg; animation-timing-function: cubic-bezier(.45,0,.55,1); } 82%, 100% { --curl-bend: 0deg; } }
