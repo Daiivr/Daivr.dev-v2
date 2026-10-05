@@ -1,8 +1,8 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowUpRight, BookOpen, Gamepad2, Headphones, Moon, Radio, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { DiscordDeskControls } from "./DiscordDeskControls";
-import { DiscordDeskKeepsakes } from "./DiscordDeskKeepsakes";
+import { DeskCoffee, DiscordDeskKeepsakes } from "./DiscordDeskKeepsakes";
 
 const objects = {
   notebook: { title: "Dai’s notebook", description: "A little about the person behind the screen.", label: "Open Dai’s notebook" },
@@ -47,6 +47,27 @@ function NotebookInspection({ children, phase }) {
   </div>;
 }
 
+// A line too long for the little screen scrolls across it, like an iPod
+// title does, instead of being cut off with an ellipsis.
+function LcdLine({ as: Tag, children }) {
+  const line = useRef(null);
+  const [overflow, setOverflow] = useState(0);
+
+  useLayoutEffect(() => {
+    const node = line.current;
+    if (!node) return undefined;
+    const measure = () => setOverflow(Math.max(0, node.scrollWidth - node.clientWidth));
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    document.fonts?.ready.then(measure);
+    return () => observer.disconnect();
+  }, [children]);
+
+  const style = overflow ? { "--lcd-shift": `${-overflow}px`, "--lcd-duration": `${Math.max(6, overflow / 22 + 4).toFixed(1)}s` } : undefined;
+  return <Tag ref={line} className={overflow ? "is-scrolling" : undefined} style={style}><span>{children}</span></Tag>;
+}
+
 function DevicePreview({ kind, activity, image, signal }) {
   const music = kind === "music";
   return <span className={`tabletop-device tabletop-${kind} ${activity ? "is-on" : "is-off"}`} aria-hidden="true">
@@ -55,8 +76,8 @@ function DevicePreview({ kind, activity, image, signal }) {
       {activity ? <>
         <span className="tabletop-lcd-bar">{music ? "Now playing" : "Currently playing"}<span>▰</span></span>
         {image ? <img src={image} alt="" /> : music ? <Headphones size={36} /> : <Gamepad2 size={40} />}
-        <strong>{activity.name}</strong>
-        <small>{activity.detail || activity.state || "Live from Discord"}</small>
+        <LcdLine as="strong">{activity.name}</LcdLine>
+        <LcdLine as="small">{activity.detail || activity.state || "Live from Discord"}</LcdLine>
         {music ? <span className="tabletop-equalizer"><i /><i /><i /><i /><i /><i /><i /></span> : <span className="tabletop-playing">● IN GAME</span>}
       </> : <span className="tabletop-screen-sleep"><Moon size={22} /><span>{signal || "POWER OFF"}</span></span>}
     </span>
@@ -73,6 +94,7 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
   const [portalContainer, setPortalContainer] = useState(null);
   const trigger = useRef(null);
   const pickupSource = useRef(null);
+  const closeQueued = useRef(false);
   const signal = error ? "SIGNAL LOST" : loading ? "SYNCING" : null;
   const liveActivities = error || loading || statusKey === "offline" ? [] : activities;
   const music = liveActivities.filter((activity) => activity.type === 2);
@@ -120,30 +142,50 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
 
   function putBack() {
     if (phase === "closing" || phase === "returning") return;
+    // Leaving "lifting" mid-flight drops the pickup transform, so the object
+    // jumped to the middle of the screen before going back. Let it arrive
+    // first, then put it down.
+    if (phase === "lifting" || phase === "opening") {
+      closeQueued.current = true;
+      return;
+    }
     onInspect();
     setPhase("closing");
   }
+
+  // Before paint, so the arrived object never shows a reading frame.
+  useLayoutEffect(() => {
+    if (phase !== "reading" || !closeQueued.current) return;
+    closeQueued.current = false;
+    onInspect();
+    setPhase("closing");
+  }, [phase, onInspect]);
 
   function finishMotion(event) {
     const name = event.animationName;
     if (name === "tabletop-pickup" && phase === "lifting") setPhase("reading");
     if (name === "tabletop-device-reveal" && phase === "opening") setPhase("reading");
     if (name === "tabletop-device-stow" && phase === "closing") setPhase("returning");
-    if (selected === "notebook" && name === "tabletop-book-center") {
-      if (phase === "opening") setPhase("reading");
-      if (phase === "closing") setPhase("returning");
-    }
+    if (selected === "notebook" && name === "tabletop-book-center" && phase === "opening") setPhase("reading");
+    if (selected === "notebook" && name === "tabletop-book-uncenter" && phase === "closing") setPhase("returning");
     if (name === "tabletop-put-back" && phase === "returning") setOpen(false);
   }
 
   function inspect(kind, event) {
     const target = event.currentTarget;
-    const rect = target.firstElementChild.getBoundingClientRect();
+    // Measure where the object rests, not where the hover lift holds it, so it
+    // lands back in its spot when it is put down.
+    const item = target.firstElementChild;
+    item.style.transition = "none";
+    item.style.transform = "none";
+    const rect = item.getBoundingClientRect();
+    item.style.removeProperty("transform");
+    item.style.removeProperty("transition");
     const matrix = new DOMMatrixReadOnly(getComputedStyle(target).transform);
     const rotation = Math.atan2(matrix.b, matrix.a) * 180 / Math.PI;
-    pickupSource.current = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, width: target.firstElementChild.offsetWidth, rotation };
-    const width = target.firstElementChild.offsetWidth;
-    const height = target.firstElementChild.offsetHeight;
+    pickupSource.current = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2, width: item.offsetWidth, rotation };
+    const width = item.offsetWidth;
+    const height = item.offsetHeight;
     const deviceWidth = Math.min(310, Math.max(280, window.innerHeight - 230) * width / height);
     const zoom = deviceWidth / width;
     setOrigin({
@@ -156,6 +198,7 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
     trigger.current = target;
     setPortalContainer(target.closest(".app-shell"));
     setSelected(kind);
+    closeQueued.current = false;
     setPhase("lifting");
     setOpen(true);
     onInspect();
@@ -169,7 +212,7 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
         <h3>A little downtime.</h3>
         <p>A few things from my side of the screen.<br />Pick something up. Take a look around.</p>
       </header>
-      <div className={`tabletop-live ${error ? "is-disconnected" : ""}`} role="status"><Radio size={13} /><span>{signal || `DAI · ${status.toUpperCase()}`}</span></div>
+      <div className={`tabletop-live is-${error ? "disconnected" : statusKey}`} role="status"><i className="tabletop-live-led" aria-hidden="true" /><Radio size={13} aria-hidden="true" /><span>{signal || `DAI · ${status.toUpperCase()}`}</span></div>
 
       <button type="button" className="tabletop-object tabletop-notebook" onClick={(event) => inspect("notebook", event)} aria-label={objects.notebook.label} aria-haspopup="dialog">
         <NotebookCover />
@@ -185,7 +228,8 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
         <span className="tabletop-object-caption"><span>03 / THE NEXT LEVEL</span><Gamepad2 size={13} /> {games.length ? "In a game" : "Rest mode"}</span>
       </button>
 
-      <div className="tabletop-keepsakes"><DiscordDeskKeepsakes /></div>
+      <div className="tabletop-keepsakes"><DiscordDeskKeepsakes cup={false} /></div>
+      <DeskCoffee />
       <div className="tabletop-note" aria-hidden="true"><span>note to self:</span><p>make cool things.<br />take little breaks.<br /><s>go to bed early.</s></p><span className="tabletop-note-star">✳</span></div>
       <div className="tabletop-pencils" aria-hidden="true"><span className="discord-desk-pencil"><i /><span>ONE MORE IDEA</span></span><span className="discord-desk-pencil tabletop-pencil-two"><i /></span></div>
       <footer className="tabletop-footer"><span>DAI’S DESK · EST. ONLINE</span><span>{error ? "Connection interrupted · reconnecting" : loading ? "Connecting to Discord…" : `Last synced ${updatedAt}`}</span></footer>
