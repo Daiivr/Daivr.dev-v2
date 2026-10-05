@@ -164,6 +164,15 @@ export const socialLinks = [
   }
 ];
 
+// Ficha de la pagina 01 del cuaderno de Room.sys (solo escritorio), debajo
+// del nombre: etiqueta y valor, como un carnet.
+export const notebookFacts = [
+  ["based in", "Alaska"],
+  ["speaks", "EN / ES"],
+  ["builds", "bots, tools & panels"],
+  ["mood", "aurora arcade"]
+];
+
 // Tarjetas de jugador del cuaderno (Room.sys, pagina 03/04): IDs y codigos
 // para agregar a Dai en cada plataforma. Discord, GitHub y Twitch ya estan en
 // los enlaces. "code" es lo que copia el boton (si falta, copia el handle) y

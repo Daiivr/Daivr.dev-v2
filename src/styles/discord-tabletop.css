@@ -202,6 +202,10 @@
 .tabletop-dialog[data-phase="opening"] :is(.tabletop-dialog-heading,.tabletop-return) { animation: tabletop-fade 250ms both; }
 .tabletop-dialog:not([data-phase="reading"]) .tabletop-dialog-scroll { overflow: visible; }
 .tabletop-dialog[data-phase="reading"] .tabletop-dialog-scroll { overflow-x: hidden; overflow-y: auto; }
+/* Nothing to scroll: don't clip either (see the fits check in DiscordTabletop).
+   When it does scroll, the book gets room for a page lifting off it. */
+.tabletop-dialog[data-phase="reading"] .tabletop-dialog-scroll[data-fits] { overflow: visible; }
+.tabletop-dialog-scroll:not([data-fits]) > .tabletop-open-book { margin-block: 44px; }
 .tabletop-inspected-devices { position: relative; }
 .tabletop-travel-preview { display: none; position: absolute; top: 0; left: 50%; width: var(--preview-width, 310px); transform: translateX(-50%) scale(var(--preview-zoom, 1)); transform-origin: top center; }
 .tabletop-dialog:not([data-phase="reading"]) .tabletop-travel-preview { display: block; pointer-events: none; z-index: 3; }

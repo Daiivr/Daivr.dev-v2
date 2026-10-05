@@ -3,10 +3,12 @@ import { createContext, useContext, useEffect, useRef, useState } from "react";
 import { BsNintendoSwitch } from "react-icons/bs";
 import { FaPlaystation, FaSteam, FaXbox } from "react-icons/fa6";
 import { SiEpicgames, SiLeagueoflegends, SiRoblox } from "react-icons/si";
-import { now, playerCards } from "../data/site";
+import { notebookFacts, now, playerCards, profile } from "../data/site";
+import { dayPart, hoursApart, offsetLabel, zonedClock } from "../lib/daiTime";
 
-// The tabletop provides this; without it (the phone layout) the tab hides.
-export const NotebookTurnContext = createContext(null);
+// The tabletop provides this; without it (the phone layout) the desk-only
+// pieces of the notebook (the clock line and the player cards tab) hide.
+export const NotebookDeskContext = createContext(null);
 
 const icons = {
   steam: FaSteam,
@@ -26,10 +28,39 @@ function PlatformIcon({ id, size }) {
   return Icon ? <Icon size={size} aria-hidden="true" focusable="false" /> : null;
 }
 
+// Page 01: a few lines about Dai, filled in like an ID card.
+export function NotebookFacts() {
+  const desk = useContext(NotebookDeskContext);
+  if (!desk || !notebookFacts.length) return null;
+  return <dl className="notebook-facts">
+    {notebookFacts.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+  </dl>;
+}
+
+// "Currently" also means "what time is it for Dai": handy before sending a
+// friend request at 4am.
+export function NotebookLocalTime() {
+  const desk = useContext(NotebookDeskContext);
+  const [date, setDate] = useState(() => new Date());
+  useEffect(() => {
+    if (!desk) return undefined;
+    const timer = window.setInterval(() => setDate(new Date()), 30000);
+    return () => window.clearInterval(timer);
+  }, [desk]);
+  if (!desk || !profile.timezone) return null;
+  const clock = zonedClock(date, profile.timezone);
+  return <p className="notebook-local-time">
+    <small>my time</small>
+    <b>{clock.label}</b>
+    <span>{clock.zone}</span>
+    <em>{dayPart(clock.hour).label} · {offsetLabel(hoursApart(date, profile.timezone))}</em>
+  </p>;
+}
+
 // An index card taped to the "currently" page. It turns the page rather than
 // leaving the site, so it looks like paper, not like the Discord button.
 export function NotebookSocialsTab() {
-  const turn = useContext(NotebookTurnContext);
+  const turn = useContext(NotebookDeskContext);
   if (!turn || !cards.length) return null;
   return <button type="button" ref={turn.tabRef} className="notebook-socials-tab" onClick={turn.open} aria-label={`Turn the page: gamer tags and friend codes for ${cards.length} platforms`}>
     <span className="notebook-socials-tab-stack" aria-hidden="true">

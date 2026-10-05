@@ -3,7 +3,7 @@ import { ArrowUpRight, BookOpen, Gamepad2, Headphones, Moon, Radio, X } from "lu
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { DiscordDeskControls } from "./DiscordDeskControls";
 import { DeskCoffee, DiscordDeskKeepsakes } from "./DiscordDeskKeepsakes";
-import { NotebookSocialsSpread, NotebookTurnContext } from "./NotebookSocials";
+import { NotebookSocialsSpread, NotebookDeskContext } from "./NotebookDesk";
 
 // Matches the page turn in discord-tabletop.css.
 const TURN_MS = 900;
@@ -110,6 +110,10 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
   const lastTurn = useRef(null);
   const socialsTab = useRef(null);
   const lobbyHeading = useRef(null);
+  // When the notebook fits, the scroll area stops clipping, so a page lifting
+  // towards the viewer in perspective is never cut off at its edges.
+  const scrollArea = useRef(null);
+  const [fits, setFits] = useState(true);
   const [returned, setReturned] = useState(null);
   const signal = error ? "SIGNAL LOST" : loading ? "SYNCING" : null;
   const liveActivities = error || loading || statusKey === "offline" ? [] : activities;
@@ -190,6 +194,26 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
     const timer = window.setTimeout(() => finishTurn(notes.view), reduced ? 0 : TURN_MS + 300);
     return () => window.clearTimeout(timer);
   }, [notes]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const area = scrollArea.current;
+    if (!open || !area) return undefined;
+    // Layout sizes, not scrollHeight: transforms (the lifted page) don't count.
+    const measure = () => {
+      const style = getComputedStyle(area);
+      let content = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+      for (const child of area.children) {
+        const box = getComputedStyle(child);
+        content += child.offsetHeight + parseFloat(box.marginTop) + parseFloat(box.marginBottom);
+      }
+      setFits(content <= area.clientHeight + 1);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(area);
+    for (const child of area.children) observer.observe(child);
+    return () => observer.disconnect();
+  }, [open, selected]);
 
   // Keyboard and screen reader users land on the page they turned to.
   useEffect(() => {
@@ -342,11 +366,11 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
             <div><Dialog.Title>{objects[selected]?.title}</Dialog.Title><Dialog.Description>{objects[selected]?.description}</Dialog.Description></div>
             <Dialog.Close className="tabletop-close" aria-label="Put back on the desk"><X size={20} /></Dialog.Close>
           </header>
-          <div className="tabletop-dialog-scroll">
+          <div className="tabletop-dialog-scroll" ref={scrollArea} data-fits={fits || undefined}>
             {selected === "notebook" ? <>
-              <NotebookTurnContext.Provider value={{ open: openSocials, tabRef: socialsTab }}>
+              <NotebookDeskContext.Provider value={{ open: openSocials, tabRef: socialsTab }}>
                 <NotebookInspection phase={phase} notes={notes} spread={<NotebookSocialsSpread onBack={closeSocials} headingRef={lobbyHeading} />}>{notebook}</NotebookInspection>
-              </NotebookTurnContext.Provider>
+              </NotebookDeskContext.Provider>
               {otherActivities.length > 0 ? <div className="tabletop-extra-activities"><span>ALSO IN THE ROOM</span>{otherActivities.map((activity) => <p key={activity.activityKey}>{activity.typeLabel}: <strong>{activity.name}</strong>{activity.detail ? ` · ${activity.detail}` : ""}</p>)}</div> : null}
             </> : selectedActivities.length ? <div className="tabletop-inspected-devices">
               {renderActivities(selectedActivities)}
