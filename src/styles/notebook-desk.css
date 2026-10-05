@@ -1,0 +1,230 @@
+/* The desk notebook (Room.sys, desktop only): the extra touches on pages 01
+   and 02, and the player cards. For those, the right page turns like a real
+   sheet: its front lifts off around the spine, its back (the "add me" page)
+   lands over the left page, and the page underneath is the list. */
+
+/* The tab on the "currently" page: an index card taped down, not a button bar. */
+.notebook-socials-tab { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; width: calc(100% - 6px); margin: auto 3px 0; padding: 13px 14px 12px 15px; border: 1px solid #6c7e5f80; border-radius: 3px; background: repeating-linear-gradient(0deg, transparent 0 15px, #6a847124 15px 16px), linear-gradient(135deg, #ece7cf, #dddcbf); color: var(--nb-ink); text-align: left; cursor: pointer; transform: rotate(-1.4deg); box-shadow: 1px 2px 0 #46593f33, 3px 7px 12px #1d302424; transition: transform 280ms cubic-bezier(.2,.8,.25,1), box-shadow 280ms ease; }
+.notebook-socials-tab::before { content: ""; position: absolute; top: -8px; left: 26px; width: 56px; height: 16px; background: repeating-linear-gradient(90deg, #f6e8c04d 0 2px, transparent 2px 6px), #c9b77fb8; transform: rotate(-4deg); box-shadow: 0 1px 2px #4a3d2133; pointer-events: none; }
+/* Dog-ear: the corner that says "this turns a page". */
+.notebook-socials-tab::after { content: ""; position: absolute; right: -1px; bottom: -1px; width: 15px; height: 15px; background: linear-gradient(315deg, var(--nb-paper) 0 50%, var(--nb-dog-ear) 50%); box-shadow: -2px -2px 3px #2b3d2a26; transition: width 280ms cubic-bezier(.2,.8,.25,1), height 280ms cubic-bezier(.2,.8,.25,1); pointer-events: none; }
+.notebook-socials-tab:hover, .notebook-socials-tab:focus-visible { transform: rotate(0) translateY(-2px); box-shadow: 1px 3px 0 #46593f33, 4px 12px 16px #1d302430; }
+.notebook-socials-tab:hover::after, .notebook-socials-tab:focus-visible::after { width: 24px; height: 24px; }
+.notebook-socials-tab:active { transform: translateY(0); transition-duration: 90ms; }
+.notebook-socials-tab:focus-visible { outline: 2px solid var(--nb-ink); outline-offset: 4px; }
+.notebook-socials-tab-stack { display: flex; padding-left: 7px; }
+.notebook-socials-tab-stack i { display: grid; place-items: center; width: 25px; height: 25px; margin-left: -7px; border: 1.5px solid var(--nb-ink); border-radius: 5px; background: #ece7cf; color: var(--nb-ink); box-shadow: 1px 1px 0 color-mix(in srgb, var(--nb-ink) 20%, transparent); transition: margin 280ms cubic-bezier(.2,.8,.25,1), transform 280ms cubic-bezier(.2,.8,.25,1); }
+.notebook-socials-tab-stack i:nth-child(1) { transform: rotate(-9deg); }
+.notebook-socials-tab-stack i:nth-child(2) { transform: rotate(4deg) translateY(-2px); }
+.notebook-socials-tab-stack i:nth-child(3) { transform: rotate(-3deg) translateY(1px); }
+.notebook-socials-tab-stack i:nth-child(4) { transform: rotate(8deg); }
+.notebook-socials-tab:is(:hover, :focus-visible) .notebook-socials-tab-stack i { margin-left: -3px; }
+.notebook-socials-tab-copy { display: grid; gap: 3px; min-width: 0; }
+.notebook-socials-tab-copy small { color: var(--nb-mid); font: 800 8px/1.2 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; }
+.notebook-socials-tab-copy b { color: var(--nb-ink-strong); font: italic 700 14px/1.2 var(--font-mono); }
+.notebook-socials-tab-turn { display: inline-flex; align-items: center; gap: 3px; padding-right: 8px; color: var(--nb-mid); font: 800 8px/1 var(--font-mono); letter-spacing: .1em; transition: transform 280ms cubic-bezier(.2,.8,.25,1); }
+.notebook-socials-tab:is(:hover, :focus-visible) .notebook-socials-tab-turn { transform: translateX(2px); }
+.app-shell .discord-desk .notebook-socials-tab + .discord-profile-link { margin-top: 14px; }
+
+/* The spread. The new pages sit exactly over the notebook's two halves. */
+.app-shell .tabletop-dialog .tabletop-open-book > :is(.tabletop-socials-back, .tabletop-socials-page) { position: absolute; top: 0; bottom: 0; width: 50%; }
+.app-shell .tabletop-dialog .tabletop-open-book > .tabletop-socials-back { z-index: 4; left: 0; transform-origin: right center; backface-visibility: hidden; }
+/* How the page looks, apart from where it sits: the curling copy uses it too. */
+.app-shell .tabletop-dialog .tabletop-open-book .tabletop-socials-back { padding-inline: 20px; border-radius: 5px 0 0 5px; background-color: #a1b39c; box-shadow: inset -10px 0 15px #80755726; }
+.app-shell .tabletop-dialog .tabletop-open-book > .tabletop-socials-page { z-index: 1; left: 50%; padding-inline: 17px 14px; border-radius: 0 5px 5px 0; box-shadow: inset 8px 0 12px #91846630; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes { transform-origin: left center; backface-visibility: hidden; }
+/* Turned: the front of the sheet lies face down on the left, under its back. */
+.app-shell .tabletop-dialog .tabletop-open-book[data-notes="socials"]:not([data-turn]) .is-notes { transform: rotateY(-180deg); visibility: hidden; }
+.app-shell .tabletop-dialog .tabletop-open-book[data-notes="socials"]:not([data-turn]) .is-portrait > * { visibility: hidden; }
+/* The notebook's own (now empty) spread still lies over the list: let clicks through. */
+.app-shell .tabletop-dialog .tabletop-open-book[data-notes="socials"] .discord-presence-profile { pointer-events: none; }
+.app-shell .tabletop-dialog .tabletop-open-book[data-turn] { pointer-events: none; }
+/* The turned sheet's back covers the left half of the stitched spine; a copy
+   of the binding sits on top once the page has landed. */
+.app-shell .tabletop-dialog .tabletop-open-book > .tabletop-socials-spine { z-index: 5; opacity: 0; transition: opacity 160ms ease; }
+.app-shell .tabletop-dialog .tabletop-open-book[data-notes="socials"]:not([data-turn]) > .tabletop-socials-spine { opacity: 1; }
+
+/* The turn: both faces of the sheet share one timing, so they meet at 90deg. */
+.app-shell .tabletop-dialog .tabletop-open-book[data-turn="forward"] .is-notes { animation: tabletop-leaf-turn 900ms cubic-bezier(.45,.05,.2,1) both; }
+.app-shell .tabletop-dialog .tabletop-open-book[data-turn="forward"] > .tabletop-socials-back { animation: tabletop-leaf-land 900ms cubic-bezier(.45,.05,.2,1) both; }
+.app-shell .tabletop-dialog .tabletop-open-book[data-turn="back"] > .tabletop-socials-back { animation: tabletop-leaf-lift 900ms cubic-bezier(.45,.05,.2,1) both; }
+.app-shell .tabletop-dialog .tabletop-open-book[data-turn="back"] .is-notes { animation: tabletop-leaf-return 900ms cubic-bezier(.45,.05,.2,1) both; }
+@keyframes tabletop-leaf-turn { from { transform: rotateY(0); } to { transform: rotateY(-180deg); } }
+@keyframes tabletop-leaf-land { from { transform: rotateY(180deg); } to { transform: rotateY(0); } }
+@keyframes tabletop-leaf-lift { from { transform: rotateY(0); } to { transform: rotateY(180deg); } }
+@keyframes tabletop-leaf-return { from { transform: rotateY(-180deg); } to { transform: rotateY(0); } }
+
+/* Light: the sheet darkens as it turns away from the lamp and brightens as it
+   lands; the page it uncovers comes out of its shadow, the page it covers goes in. */
+.app-shell .tabletop-dialog .tabletop-open-book[data-turn] :is(.is-notes, .tabletop-socials-back, .tabletop-socials-page)::after { content: ""; position: absolute; inset: 0; z-index: 5; pointer-events: none; border-radius: inherit; background: linear-gradient(90deg, #102017, #10201799); opacity: 0; }
+.app-shell .tabletop-dialog .tabletop-open-book[data-turn="forward"] .is-notes::after { animation: tabletop-leaf-dim 900ms cubic-bezier(.45,.05,.2,1) both; }
+.app-shell .tabletop-dialog .tabletop-open-book[data-turn="forward"] > .tabletop-socials-back::after { animation: tabletop-leaf-brighten 900ms cubic-bezier(.45,.05,.2,1) both; }
+.app-shell .tabletop-dialog .tabletop-open-book[data-turn="forward"] > .tabletop-socials-page::after { animation: tabletop-page-uncover 900ms cubic-bezier(.45,.05,.2,1) both; }
+.app-shell .tabletop-dialog .tabletop-open-book[data-turn="back"] > .tabletop-socials-back::after { animation: tabletop-leaf-dim 900ms cubic-bezier(.45,.05,.2,1) both; }
+.app-shell .tabletop-dialog .tabletop-open-book[data-turn="back"] .is-notes::after { animation: tabletop-leaf-brighten 900ms cubic-bezier(.45,.05,.2,1) both; }
+.app-shell .tabletop-dialog .tabletop-open-book[data-turn="back"] > .tabletop-socials-page::after { animation: tabletop-page-cover 900ms cubic-bezier(.45,.05,.2,1) both; }
+.app-shell .tabletop-dialog .tabletop-open-book > .tabletop-turn-shade { position: absolute; z-index: 3; top: 0; bottom: 0; left: 0; width: 50%; pointer-events: none; opacity: 0; border-radius: 5px 0 0 5px; background: linear-gradient(270deg, #0c1a12c4, #0c1a1240 70%, #0c1a1214); }
+.app-shell .tabletop-dialog .tabletop-open-book[data-turn="forward"] > .tabletop-turn-shade { animation: tabletop-page-cover 900ms cubic-bezier(.45,.05,.2,1) both; }
+.app-shell .tabletop-dialog .tabletop-open-book[data-turn="back"] > .tabletop-turn-shade { animation: tabletop-page-uncover 900ms cubic-bezier(.45,.05,.2,1) both; }
+@keyframes tabletop-leaf-dim { 0% { opacity: 0; } 50%, 100% { opacity: .5; } }
+@keyframes tabletop-leaf-brighten { 0%, 50% { opacity: .5; } 100% { opacity: 0; } }
+@keyframes tabletop-page-uncover { 0% { opacity: .55; } 55%, 100% { opacity: 0; } }
+@keyframes tabletop-page-cover { 0%, 45% { opacity: 0; } 97% { opacity: .55; } 100% { opacity: 0; } }
+
+/* Left page: the back of the turned sheet. */
+.notebook-lobby-hello { margin: 2px 0 0 4px; color: var(--nb-ink-strong); font: italic 700 22px/1.3 var(--font-mono); transform: rotate(-3deg); transform-origin: left center; }
+.notebook-lobby-rotation { display: grid; gap: 7px; margin-top: 4px; }
+.notebook-lobby-rotation small { color: var(--nb-mid); font: 800 8px/1.2 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; }
+.notebook-lobby-rotation ul { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.notebook-lobby-rotation li { padding: 4px 7px; border: 1px solid color-mix(in srgb, var(--nb-mid) 44%, transparent); border-radius: 2px; background: var(--nb-stamp); color: var(--nb-ink); font: 700 9px/1.2 var(--font-mono); box-shadow: 1px 1px 0 color-mix(in srgb, var(--nb-ink) 12%, transparent); }
+.notebook-lobby-rotation li:nth-child(odd) { transform: rotate(-2deg); }
+.notebook-lobby-rotation li:nth-child(even) { transform: rotate(2deg); }
+.notebook-lobby-steps { display: grid; gap: 6px; margin-top: 6px; }
+.notebook-lobby-steps small { color: var(--nb-mid); font: 800 8px/1.2 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; }
+.notebook-lobby-steps ol { display: grid; gap: 5px; margin: 0; padding: 0; list-style: none; counter-reset: lobby-step; }
+.notebook-lobby-steps li { display: flex; align-items: center; gap: 8px; color: var(--nb-ink); font: italic 700 11px/1.4 var(--font-mono); counter-increment: lobby-step; }
+.notebook-lobby-steps li::before { content: counter(lobby-step); display: grid; place-items: center; flex: none; width: 17px; height: 17px; border: 1.5px solid var(--nb-ink); border-radius: 50%; color: var(--nb-ink); font: 800 8px/1 var(--font-mono); font-style: normal; transform: rotate(-6deg); }
+.notebook-turn-back { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; margin-top: auto; padding: 8px 4px 6px; border: 0; border-bottom: 1.5px solid var(--nb-ink); background: none; color: var(--nb-ink); font: 800 9px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; cursor: pointer; transition: gap 200ms ease, color 200ms ease; }
+.notebook-turn-back:hover { gap: 9px; color: var(--nb-ink-strong); }
+.notebook-turn-back:focus-visible { outline: 2px solid var(--nb-ink); outline-offset: 3px; }
+.tabletop-socials-back .discord-notebook-heading:focus { outline: none; }
+
+/* Right page: the list. */
+.notebook-cards-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding-right: 34px; }
+.notebook-cards-head > span { color: var(--nb-mid); font: 800 8px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+.notebook-cards { display: grid; margin: 0; padding: 0; list-style: none; }
+.notebook-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 11px; padding: 9px 0; border-bottom: 1px dashed var(--nb-rule); }
+.notebook-card:first-child { border-top: 1px dashed var(--nb-rule); }
+/* Brand logos are filled shapes: the site-wide svg { stroke-width: 2 } (meant
+   for the line icons) traced their outline and swelled them into blobs. */
+:is(.notebook-card-stamp, .notebook-socials-tab-stack) svg { stroke-width: 0; }
+.notebook-card-stamp { display: grid; place-items: center; width: 31px; height: 31px; border: 1.5px solid var(--nb-ink); border-radius: 6px; background: var(--nb-stamp); color: var(--nb-ink-strong); box-shadow: 2px 2px 0 color-mix(in srgb, var(--nb-ink) 15%, transparent); transform: rotate(-3deg); }
+.notebook-card:nth-child(even) .notebook-card-stamp { transform: rotate(3deg); }
+.notebook-card-copy { display: grid; gap: 3px; min-width: 0; }
+.notebook-card-copy small { color: var(--nb-mid); font: 800 7.5px/1.2 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; }
+.notebook-card-copy b { color: var(--nb-ink-strong); font: 800 13px/1.25 var(--font-mono); overflow-wrap: anywhere; }
+/* Copy buttons line up whether or not a row also has a profile link. */
+.notebook-card-actions { display: grid; grid-template-columns: auto 28px; align-items: center; gap: 4px; }
+.notebook-copy { display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 8px; border: 1.5px solid var(--nb-ink); border-radius: 3px; background: transparent; color: var(--nb-ink); font: 800 8px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; cursor: pointer; transition: background 140ms ease, color 140ms ease; }
+.notebook-copy:hover { background: var(--nb-ink); color: var(--nb-chip-text); }
+.notebook-copy.is-copied { background: var(--nb-ink); color: #aef0a8; }
+.notebook-card-link { display: grid; place-items: center; width: 28px; height: 28px; border: 1.5px solid transparent; border-radius: 3px; color: var(--nb-ink); transition: border-color 140ms ease, background 140ms ease; }
+.notebook-card-link:hover { border-color: var(--nb-ink); background: color-mix(in srgb, var(--nb-ink) 8%, transparent); }
+:is(.notebook-copy, .notebook-card-link):focus-visible { outline: 2px solid var(--nb-ink); outline-offset: 2px; }
+.notebook-cards-note { margin-top: auto; padding-top: 6px; color: var(--nb-mid); font: italic 700 11px/1.6 var(--font-mono); text-align: center; transform: rotate(-2deg); }
+
+@media (prefers-reduced-motion: reduce) {
+  .notebook-socials-tab, .notebook-socials-tab::after, .notebook-socials-tab-stack i, .notebook-socials-tab-turn { transition: none; }
+  .notebook-socials-tab:is(:hover, :focus-visible) { transform: rotate(-1.4deg); }
+  .app-shell .tabletop-dialog .tabletop-open-book[data-turn] :is(.is-notes, .tabletop-socials-back, .tabletop-socials-page, .tabletop-turn-shade),
+  .app-shell .tabletop-dialog .tabletop-open-book[data-turn] :is(.is-notes, .tabletop-socials-back, .tabletop-socials-page)::after { animation: none; }
+}
+
+/* The "currently" page, as a journal page rather than a form: a status stamp,
+   the local time, the custom status as a highlighted quote, devices as small
+   inked tags and the badges on one labelled line. Desk notebook only; the
+   phone layout keeps its own styles. */
+.app-shell .tabletop-dialog .tabletop-open-book { --nb-ink: #263e2b; --nb-ink-strong: #1a3123; --nb-mid: #4d6448; --nb-rule: #4d644866; --nb-highlight: #e3d27a8c; --nb-chip-text: #e3ead2; --nb-stamp: #bccab2; --nb-paper: #a8b8a2; --nb-dog-ear: #c6c9a8; }
+.app-shell.theme-glitch .tabletop-dialog .tabletop-open-book { --nb-ink: #4a2d57; --nb-ink-strong: #38263f; --nb-mid: #6d5279; --nb-rule: #6d527966; --nb-highlight: #f2a6d28c; --nb-chip-text: #f6e8fb; --nb-stamp: #d2c2dc; --nb-paper: #c6b8cf; --nb-dog-ear: #dccfe2; }
+.app-shell.theme-glitch .tabletop-dialog .tabletop-open-book .tabletop-socials-back { background-color: #bdafc6; box-shadow: inset -10px 0 15px #63417626; }
+.app-shell.theme-glitch .tabletop-dialog .tabletop-open-book > .tabletop-socials-page { box-shadow: inset 8px 0 12px #644e7330; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes { gap: 0; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes > .discord-notebook-heading { margin-bottom: 14px; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes :is(.discord-presence-custom-label, .discord-device-bay-head code, .notebook-local-time small) { color: var(--nb-mid); font: 800 8px/1.2 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; }
+
+/* Status: a rubber stamp in the status colour, and where it came from. */
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-presence-status { align-items: center; justify-content: space-between; gap: 10px; padding: 2px 0 0; border: 0; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-presence-status > span:first-child { display: inline-flex; align-items: center; gap: 7px; padding: 6px 10px 5px 9px; border: 1.5px solid currentColor; border-radius: 3px; outline: 1px solid currentColor; outline-offset: 2px; font: 800 11px/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; transform: rotate(-2.5deg); opacity: .9; text-shadow: 0 0 .6px currentColor; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-presence-status > span:first-child .discord-status-dot { width: 7px; height: 7px; box-shadow: none; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-presence-status > span:last-child { color: var(--nb-mid); font: 700 8px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+
+/* Local time. */
+.notebook-local-time { display: flex; flex-wrap: wrap; align-items: baseline; gap: 3px 7px; margin: 14px 0 0; padding-bottom: 14px; border-bottom: 1px dashed var(--nb-rule); }
+.notebook-local-time small { flex-basis: 100%; margin-bottom: 4px; }
+.notebook-local-time b { color: var(--nb-ink-strong); font: 800 22px/1 var(--font-mono); letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.notebook-local-time span { color: var(--nb-mid); font: 800 8px/1 var(--font-mono); letter-spacing: .12em; }
+.notebook-local-time em { margin-left: auto; color: var(--nb-ink); font: italic 700 11px/1.3 var(--font-mono); }
+
+/* Custom status: a quote, gone over with a highlighter. */
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-presence-custom-block { padding: 13px 0 14px; border-bottom: 1px dashed var(--nb-rule); }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-presence-custom { align-items: center; gap: 9px; margin-top: 8px; color: var(--nb-ink-strong); }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-presence-custom > img, .app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-presence-custom > svg { flex: none; width: 17px; height: 17px; margin: 0; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-presence-custom > span:not(.discord-loading-label) { padding: 0 2px; font: italic 700 15px/1.45 var(--font-mono); background: linear-gradient(transparent 55%, var(--nb-highlight) 55% 92%, transparent 92%); box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-presence-custom > span:not(.discord-loading-label)::before { content: "\201C"; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-presence-custom > span:not(.discord-loading-label)::after { content: "\201D"; }
+
+/* Devices: small tags, inked in when connected. */
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-device-bay { padding: 13px 0 14px; border-bottom: 1px dashed var(--nb-rule); }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-device-bay-head { align-items: center; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-device-tally { color: var(--nb-mid); font: 800 8px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-device-tally.is-live { color: var(--nb-ink); }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-device-grid { gap: 6px; margin-top: 9px; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-device-tile { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 0; height: 32px; padding: 0 6px; border: 1.5px dashed color-mix(in srgb, var(--nb-mid) 60%, transparent); border-radius: 3px; background: transparent; color: color-mix(in srgb, var(--nb-mid) 70%, transparent); box-shadow: none; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-device-tile svg { width: 13px; height: 13px; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-device-tile b { font: 800 9px/1 var(--font-mono); letter-spacing: .1em; }
+/* Connected: inked outline and a highlighter fill, not a solid dark block. The
+   page bends as strips while it turns, and a solid dark fill shows where they meet. */
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-device-tile.is-active { border-style: solid; border-color: var(--nb-ink); background: var(--nb-highlight); color: var(--nb-ink-strong); box-shadow: 2px 2px 0 color-mix(in srgb, var(--nb-ink) 20%, transparent); }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-device-tile:is(:hover, :focus-visible):not(.is-active) { border-color: var(--nb-ink); color: var(--nb-ink); }
+
+/* Badges: one labelled line. */
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-presence-badges { align-items: center; justify-content: flex-end; gap: 8px; min-height: 0; padding: 11px 0 12px; border: 0; border-bottom: 1px dashed var(--nb-rule); }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-presence-badges::before { content: "badges"; margin-right: auto; color: var(--nb-mid); font: 800 8px/1.2 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-presence-badge { width: 24px; height: 25px; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .notebook-socials-tab { margin-top: auto; }
+/* The Discord link, in the same ink as the page and on bare paper (for the same
+   reason as the device tags): an outlined label, filled in only under the
+   pointer. */
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-profile-link { display: flex; align-items: center; justify-content: center; gap: 9px; min-height: 42px; padding: 0 14px; border: 1.5px solid var(--nb-ink); border-radius: 3px; background: transparent; color: var(--nb-ink-strong); font: 800 10px/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; box-shadow: 2px 2px 0 color-mix(in srgb, var(--nb-ink) 22%, transparent); clip-path: none; outline-offset: 3px; transition: background 160ms ease, color 160ms ease, transform 160ms ease; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-profile-link > svg { flex: none; margin: 0; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-profile-link > svg:last-of-type { margin-left: auto; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-profile-link > svg:first-child { margin-left: 0; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-profile-link:is(:hover, :focus-visible) { background: var(--nb-ink); border-color: var(--nb-ink); color: var(--nb-chip-text); outline: 2px solid var(--nb-ink); transform: translateY(-1px); }
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-profile-link:active { transform: translateY(0); }
+
+/* Page 01, "the person": the polaroid, the name, a few ID-card lines and the
+   scribble beside its sticker, instead of a gap in the middle of the page. */
+.app-shell .tabletop-dialog .tabletop-open-book .is-portrait { gap: 0; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-portrait .discord-presence-led { display: none; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-portrait .discord-notebook-photo { width: min(150px, 86%); margin: 8px auto 2px; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-portrait .discord-presence-identity { margin-top: 8px; }
+.notebook-facts { display: grid; gap: 6px; margin: 11px 0 0; padding-top: 10px; border-top: 1px dashed var(--nb-rule); }
+.notebook-facts > div { display: flex; align-items: baseline; gap: 6px; }
+.notebook-facts dt { color: var(--nb-mid); font: 800 8px/1.2 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; }
+.notebook-facts > div::after { content: ""; order: 1; flex: 1; min-width: 12px; border-bottom: 1.5px dotted color-mix(in srgb, var(--nb-mid) 50%, transparent); transform: translateY(-2px); }
+.notebook-facts dd { order: 2; margin: 0; color: var(--nb-ink-strong); font: italic 700 12px/1.2 var(--font-mono); text-align: right; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-portrait .discord-notebook-scribble { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 8px; margin-top: auto; padding-top: 8px; text-align: left; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-portrait .discord-notebook-scribble > span { font-size: 12px; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-portrait .discord-notebook-scribble .discord-controller-sticker { margin: 0 4px 0 0; }
+.app-shell .tabletop-dialog .tabletop-open-book .is-portrait .discord-notebook-scribble > small { grid-column: 1 / -1; margin-top: 6px; padding-top: 7px; border-top: 1px dashed var(--nb-rule); color: var(--nb-mid); font-size: 8px; letter-spacing: .14em; text-align: center; }
+
+/* The bending sheet (PageCurl in DiscordTabletop). Each strip hangs off the
+   previous one's edge: the first turns by the page's angle, the rest add a
+   share of the bend, so the angles add up into a curve that leads with the
+   outer edge and flattens out again before the page lands. */
+@property --curl-turn { syntax: "<angle>"; inherits: true; initial-value: 0deg; }
+@property --curl-bend { syntax: "<angle>"; inherits: true; initial-value: 0deg; }
+.app-shell .tabletop-dialog .tabletop-open-book > .tabletop-curl { --curl-step: calc(var(--curl-bend) / 7); position: absolute; z-index: 6; top: 0; bottom: 0; left: 50%; width: 50%; pointer-events: none; transform-style: preserve-3d; }
+.app-shell .tabletop-dialog .tabletop-open-book > .tabletop-curl[data-turn="forward"] { animation: tabletop-curl-turn-forward 900ms cubic-bezier(.45,.05,.2,1) both, tabletop-curl-bend-forward 900ms linear both; }
+.app-shell .tabletop-dialog .tabletop-open-book > .tabletop-curl[data-turn="back"] { animation: tabletop-curl-turn-back 900ms cubic-bezier(.45,.05,.2,1) both, tabletop-curl-bend-back 900ms linear both; }
+/* The real sheet keeps turning (it ends the turn) but the strips are what shows. */
+.app-shell .tabletop-dialog .tabletop-open-book[data-curl] > .discord-presence-profile > .is-notes,
+.app-shell .tabletop-dialog .tabletop-open-book[data-curl] > .tabletop-socials-back { visibility: hidden; }
+.tabletop-curl-strip { position: absolute; top: 0; left: 100%; width: 100%; height: 100%; transform-origin: 0 50%; transform: rotateY(var(--curl-step)); transform-style: preserve-3d; }
+.tabletop-curl > .tabletop-curl-strip { left: 0; width: calc(100% / 8); transform: rotateY(var(--curl-turn)); }
+/* Reaches a little under the next strip, so no gap opens at the joins. */
+.tabletop-curl-face { position: absolute; top: 0; bottom: 0; left: 0; width: calc(100% + 2px); overflow: hidden; backface-visibility: hidden; }
+.tabletop-curl-back { transform: rotateY(180deg); }
+.app-shell .tabletop-dialog .tabletop-open-book .tabletop-curl-face > .discord-notebook-page { position: absolute; top: 0; visibility: visible; transform: none; animation: none; }
+.app-shell .tabletop-dialog .tabletop-open-book .tabletop-curl-face > .discord-notebook-page::after { content: none; }
+/* Light: the sheet darkens by how far it faces away from the lamp. Each strip
+   blends from the angle it shares with one neighbour to the one it shares with
+   the other, so the curve reads as a smooth gradient, not stripes. */
+.tabletop-curl-face { --edge-in: calc(-.5 * sin(var(--curl-turn) + (var(--strip) - .5) * var(--curl-step))); --edge-out: calc(-.5 * sin(var(--curl-turn) + (var(--strip) + .5) * var(--curl-step))); }
+.tabletop-curl-face::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgb(15 29 21 / var(--edge-in)), rgb(15 29 21 / var(--edge-out))); }
+/* Turned over, a strip's outer edge is on its left. */
+.tabletop-curl-back::after { background: linear-gradient(90deg, rgb(15 29 21 / var(--edge-out)), rgb(15 29 21 / var(--edge-in))); }
+@keyframes tabletop-curl-turn-forward { from { --curl-turn: 0deg; } to { --curl-turn: -180deg; } }
+@keyframes tabletop-curl-turn-back { from { --curl-turn: -180deg; } to { --curl-turn: 0deg; } }
+@keyframes tabletop-curl-bend-forward { 0% { --curl-bend: 0deg; animation-timing-function: cubic-bezier(.3,0,.4,1); } 40% { --curl-bend: -42deg; animation-timing-function: cubic-bezier(.45,0,.55,1); } 82%, 100% { --curl-bend: 0deg; } }
+@keyframes tabletop-curl-bend-back { 0% { --curl-bend: 0deg; animation-timing-function: cubic-bezier(.3,0,.4,1); } 40% { --curl-bend: 42deg; animation-timing-function: cubic-bezier(.45,0,.55,1); } 82%, 100% { --curl-bend: 0deg; } }

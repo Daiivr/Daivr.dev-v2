@@ -3,6 +3,56 @@ import { ArrowUpRight, BookOpen, Gamepad2, Headphones, Moon, Radio, X } from "lu
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { DiscordDeskControls } from "./DiscordDeskControls";
 import { DeskCoffee, DiscordDeskKeepsakes } from "./DiscordDeskKeepsakes";
+import { NotebookSocialsSpread, NotebookDeskContext } from "./NotebookDesk";
+
+// Matches the page turn in notebook-desk.css.
+const TURN_MS = 900;
+// Strips the turning sheet is drawn with, so it can bend (see PageCurl).
+const CURL_STRIPS = 8;
+
+// A real page doesn't turn as a flat board: it bends, outer edge first. CSS
+// can't bend an element, so while it turns the sheet is drawn as a chain of
+// narrow strips, each turned a little more than the one before it, holding a
+// copy of the matching slice of the page's front and back. The real sheet
+// still turns underneath (hidden) and still ends the turn.
+function PageCurl({ book, turn }) {
+  const root = useRef(null);
+  useLayoutEffect(() => {
+    const curl = root.current;
+    const front = book.current?.querySelector(":scope > .discord-presence-profile > .is-notes");
+    const back = book.current?.querySelector(":scope > .tabletop-socials-back");
+    if (!curl || !front || !back) return undefined;
+    const width = front.offsetWidth;
+    const height = front.offsetHeight;
+    const strip = width / CURL_STRIPS;
+    const copy = (page, offset) => {
+      const clone = page.cloneNode(true);
+      for (const node of [clone, ...clone.querySelectorAll("[id]")]) node.removeAttribute("id");
+      clone.removeAttribute("tabindex");
+      Object.assign(clone.style, { width: `${width}px`, height: `${height}px`, left: `${-offset}px` });
+      return clone;
+    };
+    const face = (side, page, offset) => {
+      const element = document.createElement("div");
+      element.className = `tabletop-curl-face tabletop-curl-${side}`;
+      element.append(copy(page, offset));
+      return element;
+    };
+    let parent = curl;
+    for (let index = 0; index < CURL_STRIPS; index += 1) {
+      const segment = document.createElement("div");
+      segment.className = "tabletop-curl-strip";
+      segment.style.setProperty("--strip", index);
+      // The back reads mirrored: the strip nearest the spine holds the slice of
+      // the back page that ends up nearest the spine.
+      segment.append(face("front", front, index * strip), face("back", back, (CURL_STRIPS - 1 - index) * strip));
+      parent.append(segment);
+      parent = segment;
+    }
+    return () => curl.replaceChildren();
+  }, [book, turn]);
+  return <div ref={root} className="tabletop-curl" data-turn={turn} aria-hidden="true" inert />;
+}
 
 const objects = {
   notebook: { title: "Dai’s notebook", description: "A little about the person behind the screen.", label: "Open Dai’s notebook" },
@@ -40,9 +90,13 @@ function DeskEarphones() {
   </div>;
 }
 
-function NotebookInspection({ children, phase }) {
-  return <div className={`tabletop-open-book is-${phase}`}>
+function NotebookInspection({ children, phase, notes, spread }) {
+  const book = useRef(null);
+  const curling = phase === "reading" && notes.turn && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return <div ref={book} className={`tabletop-open-book is-${phase}`} data-notes={notes.view} data-turn={notes.turn || undefined} data-curl={curling ? "" : undefined}>
     {children}
+    {phase === "reading" && (notes.view === "socials" || notes.turn) ? spread : null}
+    {curling ? <PageCurl book={book} turn={notes.turn} /> : null}
     {phase !== "reading" && <>
       <span className="tabletop-book-shade" aria-hidden="true" />
       <NotebookCover opening />
@@ -99,6 +153,17 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
   const trigger = useRef(null);
   const pickupSource = useRef(null);
   const closeQueued = useRef(false);
+  // The notebook's right page can be turned to the player cards and back.
+  const [notes, setNotes] = useState({ view: "person", turn: null });
+  const closeAfterTurn = useRef(false);
+  const lastTurn = useRef(null);
+  const socialsTab = useRef(null);
+  const lobbyHeading = useRef(null);
+  // When the notebook fits, the scroll area stops clipping, so a page lifting
+  // towards the viewer in perspective is never cut off at its edges.
+  const scrollArea = useRef(null);
+  const [fits, setFits] = useState(true);
+  const [returned, setReturned] = useState(null);
   const signal = error ? "SIGNAL LOST" : loading ? "SYNCING" : null;
   const liveActivities = error || loading || statusKey === "offline" ? [] : activities;
   const music = liveActivities.filter((activity) => activity.type === 2);
@@ -117,14 +182,18 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
     dialog.style.removeProperty("animation");
     const source = pickupSource.current;
     pickupSource.current = null;
+    // The dialog rests centred below the top bar, not on the viewport centre.
+    const rest = dialog.getBoundingClientRect();
+    const centerX = rest.left + rest.width / 2;
+    const centerY = rest.top + rest.height / 2;
     const scale = source.width / destination.width;
     const angle = source.rotation * Math.PI / 180;
-    const dx = (destination.left + destination.width / 2 - window.innerWidth / 2) * scale;
-    const dy = (destination.top + destination.height / 2 - window.innerHeight / 2) * scale;
+    const dx = (destination.left + destination.width / 2 - centerX) * scale;
+    const dy = (destination.top + destination.height / 2 - centerY) * scale;
     setOrigin((current) => ({
       ...current,
-      "--pickup-x": `${source.x - window.innerWidth / 2 - dx * Math.cos(angle) + dy * Math.sin(angle)}px`,
-      "--pickup-y": `${source.y - window.innerHeight / 2 - dx * Math.sin(angle) - dy * Math.cos(angle)}px`,
+      "--pickup-x": `${source.x - centerX - dx * Math.cos(angle) + dy * Math.sin(angle)}px`,
+      "--pickup-y": `${source.y - centerY - dx * Math.sin(angle) - dy * Math.cos(angle)}px`,
       "--pickup-scale": scale,
       "--pickup-rotation": `${source.rotation}deg`
     }));
@@ -138,14 +207,79 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
     const durations = { lifting: 800, opening: selected === "notebook" ? 700 : 320, closing: selected === "notebook" ? 650 : 280, returning: 850 };
     const next = { lifting: "reading", opening: "reading", closing: "returning" };
     const timer = window.setTimeout(() => {
-      if (phase === "returning") setOpen(false);
+      if (phase === "returning") settle();
       else setPhase(next[phase]);
     }, reduced ? 0 : durations[phase] + 300);
     return () => window.clearTimeout(timer);
   }, [open, phase, selected]);
 
+  function openSocials() {
+    if (phase !== "reading" || notes.turn || notes.view === "socials") return;
+    setNotes({ view: "socials", turn: "forward" });
+  }
+
+  function closeSocials() {
+    if (notes.turn || notes.view !== "socials") return;
+    setNotes({ view: "person", turn: "back" });
+  }
+
+  // A put-down asked for while on the player cards turns the page back first,
+  // so the book closes on the same spread it opened on.
+  function finishTurn(view) {
+    if (closeAfterTurn.current) {
+      if (view === "socials") { setNotes({ view: "person", turn: "back" }); return; }
+      closeAfterTurn.current = false;
+      setNotes({ view: "person", turn: null });
+      onInspect();
+      setPhase("closing");
+      return;
+    }
+    setNotes({ view, turn: null });
+  }
+
+  useEffect(() => {
+    if (!notes.turn) return undefined;
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const timer = window.setTimeout(() => finishTurn(notes.view), reduced ? 0 : TURN_MS + 300);
+    return () => window.clearTimeout(timer);
+  }, [notes]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const area = scrollArea.current;
+    if (!open || !area) return undefined;
+    // Layout sizes, not scrollHeight: transforms (the lifted page) don't count.
+    const measure = () => {
+      const style = getComputedStyle(area);
+      let content = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+      for (const child of area.children) {
+        const box = getComputedStyle(child);
+        content += child.offsetHeight + parseFloat(box.marginTop) + parseFloat(box.marginBottom);
+      }
+      setFits(content <= area.clientHeight + 1);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(area);
+    for (const child of area.children) observer.observe(child);
+    return () => observer.disconnect();
+  }, [open, selected]);
+
+  // Keyboard and screen reader users land on the page they turned to.
+  useEffect(() => {
+    const finished = lastTurn.current;
+    lastTurn.current = notes.turn;
+    if (!finished || notes.turn) return;
+    if (notes.view === "socials") lobbyHeading.current?.focus({ preventScroll: true });
+    else socialsTab.current?.focus({ preventScroll: true });
+  }, [notes]);
+
   function putBack() {
     if (phase === "closing" || phase === "returning") return;
+    if (notes.turn || notes.view === "socials") {
+      closeAfterTurn.current = true;
+      if (!notes.turn) setNotes({ view: "person", turn: "back" });
+      return;
+    }
     // Leaving "lifting" mid-flight drops the pickup transform, so the object
     // jumped to the middle of the screen before going back. Let it arrive
     // first, then put it down.
@@ -172,8 +306,31 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
     if (name === "tabletop-device-stow" && phase === "closing") setPhase("returning");
     if (selected === "notebook" && name === "tabletop-book-center" && phase === "opening") setPhase("reading");
     if (selected === "notebook" && name === "tabletop-book-uncenter" && phase === "closing") setPhase("returning");
-    if (name === "tabletop-put-back" && phase === "returning") setOpen(false);
+    if (name === "tabletop-put-back" && phase === "returning") settle();
+    if (name === "tabletop-leaf-land" && notes.turn === "forward") finishTurn("socials");
+    if (name === "tabletop-leaf-return" && notes.turn === "back") finishTurn("person");
   }
+
+  // The object lands where the cursor (or keyboard focus) often still is.
+  // Hold back the hover lift until the pointer moves off it or focus leaves,
+  // so it does not pop up again the moment it touches the desk.
+  function settle() {
+    setReturned(selected);
+    setOpen(false);
+  }
+
+  useEffect(() => {
+    if (!returned) return undefined;
+    const object = trigger.current;
+    const release = () => setReturned(null);
+    const away = (event) => { if (!object?.contains(event.target)) release(); };
+    document.addEventListener("pointermove", away);
+    object?.addEventListener("blur", release);
+    return () => {
+      document.removeEventListener("pointermove", away);
+      object?.removeEventListener("blur", release);
+    };
+  }, [returned]);
 
   function inspect(kind, event) {
     const target = event.currentTarget;
@@ -192,16 +349,27 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
     const height = item.offsetHeight;
     const deviceWidth = Math.min(310, Math.max(280, window.innerHeight - 230) * width / height);
     const zoom = deviceWidth / width;
+    // With nothing playing the dialog shows the desk preview itself: laid out at
+    // its desk width and scaled, so it keeps exactly the shape it had on the desk.
+    const idleZoom = Math.min(228 / width, 360 / height);
+    const topbar = target.closest(".app-shell")?.querySelector(".cabinet-topbar")?.getBoundingClientRect();
     setOrigin({
       "--preview-width": `${width}px`,
       "--preview-zoom": zoom,
       "--device-width": `${deviceWidth}px`,
       "--device-height": `${height * zoom}px`,
+      "--idle-zoom": idleZoom,
+      "--idle-width": `${width * idleZoom}px`,
+      "--idle-height": `${height * idleZoom}px`,
+      "--topbar-bottom": `${Math.max(0, topbar?.bottom || 0)}px`,
       "--wheel-size": `${(target.querySelector(".discord-player-wheel")?.offsetWidth || 110) * zoom}px`
     });
     trigger.current = target;
     setPortalContainer(target.closest(".app-shell"));
     setSelected(kind);
+    setReturned(null);
+    setNotes({ view: "person", turn: null });
+    closeAfterTurn.current = false;
     closeQueued.current = false;
     setPhase("lifting");
     setOpen(true);
@@ -209,7 +377,7 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
   }
 
   return <>
-    <div className="tabletop-scene" data-picked={open ? selected : undefined}>
+    <div className="tabletop-scene" data-picked={open ? selected : undefined} data-returned={returned || undefined}>
       <div className="tabletop-mat" aria-hidden="true" />
       <header className="tabletop-intro">
         <span className="tabletop-eyebrow">MAKE YOURSELF AT HOME</span>
@@ -247,9 +415,11 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
             <div><Dialog.Title>{objects[selected]?.title}</Dialog.Title><Dialog.Description>{objects[selected]?.description}</Dialog.Description></div>
             <Dialog.Close className="tabletop-close" aria-label="Put back on the desk"><X size={20} /></Dialog.Close>
           </header>
-          <div className="tabletop-dialog-scroll">
+          <div className="tabletop-dialog-scroll" ref={scrollArea} data-fits={fits || undefined}>
             {selected === "notebook" ? <>
-              <NotebookInspection phase={phase}>{notebook}</NotebookInspection>
+              <NotebookDeskContext.Provider value={{ open: openSocials, tabRef: socialsTab }}>
+                <NotebookInspection phase={phase} notes={notes} spread={<NotebookSocialsSpread onBack={closeSocials} headingRef={lobbyHeading} />}>{notebook}</NotebookInspection>
+              </NotebookDeskContext.Provider>
               {otherActivities.length > 0 ? <div className="tabletop-extra-activities"><span>ALSO IN THE ROOM</span>{otherActivities.map((activity) => <p key={activity.activityKey}>{activity.typeLabel}: <strong>{activity.name}</strong>{activity.detail ? ` · ${activity.detail}` : ""}</p>)}</div> : null}
             </> : selectedActivities.length ? <div className="tabletop-inspected-devices">
               {renderActivities(selectedActivities)}

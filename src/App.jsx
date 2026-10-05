@@ -43,6 +43,7 @@ import "./styles/arcade-panels.css";
 import "./styles/player-passport.css";
 import "./styles/panel-glitch.css";
 import "./styles/discord-tabletop.css";
+import "./styles/notebook-desk.css";
 import "./styles/buddy-visitors.css";
 import "./styles/buddy-campfire.css";
 import "./styles/footer-sky.css";

@@ -51,19 +51,32 @@
 .tabletop-scene[data-picked="music"] .tabletop-ipod > :first-child,
 .tabletop-scene[data-picked="game"] .tabletop-gameboy > :first-child { opacity: 0; transition: none; }
 .tabletop-object:active > :first-child { transform: translateY(-3px); filter: brightness(1.12) drop-shadow(2px 7px 6px #0006); transition-duration: 120ms; }
+/* Just put back: it rests flat until the pointer moves off it (see settle()). */
+.tabletop-scene[data-returned="notebook"] .tabletop-notebook > :first-child,
+.tabletop-scene[data-returned="music"] .tabletop-ipod > :first-child,
+.tabletop-scene[data-returned="game"] .tabletop-gameboy > :first-child { transform: none; filter: none; }
+.tabletop-scene[data-returned="notebook"] .tabletop-notebook .tabletop-object-caption,
+.tabletop-scene[data-returned="music"] .tabletop-ipod .tabletop-object-caption,
+.tabletop-scene[data-returned="game"] .tabletop-gameboy .tabletop-object-caption { color: #e2e9d5; }
 .tabletop-notebook { width: 24%; max-width: 280px; height: auto; aspect-ratio: 18 / 25; left: 9%; top: calc(27% - 32px); transform: rotate(-9deg); }
-.tabletop-book-cover { position: relative; display: block; width: 100%; height: 100%; min-height: 0; container-type: inline-size; border: 1px solid #768d7377; border-radius: 4px 12px 12px 4px; color: #dacdaf; background: repeating-linear-gradient(90deg, #ffffff05 0 1px, transparent 1px 3px), repeating-linear-gradient(0deg, #ffffff04 0 1px, transparent 1px 3px), linear-gradient(110deg, #243d33, #3b5543 48%, #263d31); box-shadow: inset 5px 0 5px #0004, inset 0 0 0 6px #ffffff03, 2px 3px #bbb69b, 3px 5px #616b56, 4px 7px #b5b99b, 5px 10px #13271c, 13px 23px 23px #0007; }
+.tabletop-book-cover { position: relative; display: block; width: 100%; height: 100%; min-height: 0; container-type: inline-size; border: 1px solid #768d7377; border-radius: 1.43% 4.29% 4.29% 1.43% / 1.03% 3.09% 3.09% 1.03%; color: #dacdaf; background: repeating-linear-gradient(90deg, #ffffff05 0 1px, transparent 1px 3px), repeating-linear-gradient(0deg, #ffffff04 0 1px, transparent 1px 3px), linear-gradient(110deg, #243d33, #3b5543 48%, #263d31); box-shadow: inset 5px 0 5px #0004, inset 0 0 0 6px #ffffff03; }
 .tabletop-book-cover::before { content: ""; position: absolute; inset: 4.7% 5% 4.7% 6.7%; border: 1px solid #cabc823b; border-radius: 2px; }
-.tabletop-book-spine { position: absolute; inset: 0 auto 0 9px; width: 5px; border-left: 1px solid #afc6a026; border-right: 1px solid #0004; }
+/* The cover is drawn twice: on the desk, and larger inside the dialog, which
+   shrinks it back onto the desk when it is put down. Everything on it is sized
+   in cqw (its own width), so the two are exact scaled copies and nothing
+   thickens or jumps when one replaces the other. */
+.tabletop-book-cover::after { content: ""; position: absolute; z-index: -1; inset: 0; border-radius: inherit; pointer-events: none; box-shadow: .71cqw 1.07cqw #bbb69b, 1.07cqw 1.79cqw #616b56, 1.43cqw 2.5cqw #b5b99b, 1.79cqw 3.57cqw #13271c, 4.64cqw 8.21cqw 8.21cqw #0007; }
+.tabletop-book-spine { position: absolute; inset: 0 auto 0 3.2cqw; width: 1.8cqw; border-left: 1px solid #afc6a026; border-right: 1px solid #0004; }
 .tabletop-book-edition { position: absolute; top: 11%; left: 14%; right: 13%; font: 700 2.3cqw/1.6 var(--font-mono); letter-spacing: .12em; }
 .tabletop-book-title { position: absolute; top: 23%; left: 14%; font: 500 8.2cqw/1.2 Georgia, serif; letter-spacing: -.03em; }
 .tabletop-book-title em { color: #bfca9f; }
 .tabletop-book-signature { position: absolute; bottom: 11%; left: 14%; right: 14%; display: flex; align-items: center; justify-content: space-between; font: italic 3.4cqw/1.5 Georgia, serif; }
-.tabletop-book-sticker { position: absolute; bottom: 23%; right: 16%; display: flex; align-items: center; gap: 1.7cqw; padding: 2.5cqw 2.8cqw; background: #d9ca9e; color: #405341; border: 3px solid #f1e3c4; border-radius: 10px; transform: rotate(12deg); box-shadow: 2px 3px 3px #0003; }
+.tabletop-book-signature svg { width: 5.36cqw; height: 5.36cqw; }
+.tabletop-book-sticker { position: absolute; bottom: 23%; right: 16%; display: flex; align-items: center; gap: 1.7cqw; padding: 2.5cqw 2.8cqw; background: #d9ca9e; color: #405341; border: 1.07cqw solid #f1e3c4; border-radius: 3.6cqw; transform: rotate(12deg); box-shadow: .71cqw 1.07cqw 1.07cqw #0003; }
 .tabletop-book-sticker span { font: 700 2.25cqw/1.5 var(--font-mono); }
 .tabletop-book-sticker svg { width: 10cqw; height: 10cqw; }
-.tabletop-book-elastic { position: absolute; right: 9%; inset-block: -2px; width: 8px; background: repeating-linear-gradient(0deg, #fff1 0 1px, transparent 1px 3px), #192b24; border-inline: 1px solid #607052; box-shadow: 2px 1px 3px #0006; }
-.tabletop-book-ribbon { position: absolute; bottom: -26px; left: 18%; width: 15px; height: 28px; background: #c89568; clip-path: polygon(0 0,100% 0,100% 100%,50% 80%,0 100%); }
+.tabletop-book-elastic { position: absolute; right: 9%; inset-block: -.71cqw; width: 2.86cqw; background: repeating-linear-gradient(0deg, #fff1 0 1px, transparent 1px 3px), #192b24; border-inline: 1px solid #607052; box-shadow: .71cqw .36cqw 1.07cqw #0006; }
+.tabletop-book-ribbon { position: absolute; bottom: -9.3cqw; left: 18%; width: 5.36cqw; height: 10cqw; background: #c89568; clip-path: polygon(0 0,100% 0,100% 100%,50% 80%,0 100%); }
 /* Labels stay on the mat when the object is lifted. */
 .tabletop-object-caption { position: absolute; top: calc(100% + 18px); left: 50%; width: max-content; max-width: 100%; min-width: 140px; padding: 5px 10px; transform: translateX(-50%); display: flex; flex-wrap: wrap; align-items: center; justify-content: center; column-gap: 6px; color: #e2e9d5; font: 600 11px/1.6 var(--font-mono); text-align: center; transition: color 240ms ease; }
 .tabletop-object-caption > span { flex-basis: 100%; color: #b4c5a9; font-size: 9px; font-weight: 500; letter-spacing: .12em; }
@@ -117,7 +130,11 @@
 .tabletop-overlay { position: fixed; inset: 0; z-index: 1200; background: #07100cdc; backdrop-filter: blur(9px); transition: background 420ms cubic-bezier(.22,.61,.36,1), backdrop-filter 420ms cubic-bezier(.22,.61,.36,1); }
 .tabletop-overlay[data-phase="lifting"] { animation: tabletop-focus-desk 800ms ease both; }
 .tabletop-overlay:is([data-phase="closing"],[data-phase="returning"]) { background: transparent; backdrop-filter: blur(0); }
-.app-shell .discord-desk.tabletop-dialog { position: fixed; z-index: 1201; top: 50%; left: 50%; width: min(740px, calc(100vw - 40px)); max-height: calc(100dvh - 40px); display: flex; flex-direction: column; container-type: normal; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; transform: translate(-50%, -50%); animation: none; outline: none; color: #e2e8d5; }
+/* The top bar stays above the dialog layer while it is open, so an object
+   flying to or from a desk spot under the bar passes beneath it. The dialog
+   rests centred in the space below the bar. */
+.app-shell:has(.tabletop-dialog) .cabinet-topbar { z-index: 1210; }
+.app-shell .discord-desk.tabletop-dialog { position: fixed; z-index: 1201; top: calc(50% + var(--topbar-bottom, 0px) / 2); left: 50%; width: min(740px, calc(100vw - 40px)); max-height: calc(100dvh - var(--topbar-bottom, 0px) - 32px); display: flex; flex-direction: column; container-type: normal; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; transform: translate(-50%, -50%); animation: none; outline: none; color: #e2e8d5; }
 .app-shell .discord-desk.tabletop-dialog:not(.is-notebook) { width: min(410px, calc(100vw - 40px)); }
 .tabletop-dialog-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 22px; padding-inline: 8px; }
 .tabletop-dialog-heading h2 { color: #eee8d1; font: 700 23px/1.3 var(--font-display); }
@@ -139,8 +156,22 @@
 .app-shell .tabletop-dialog .discord-presence-profile { width: 100%; transform: none; }
 /* isolation: isolate (from the shared card styles) would flatten preserve-3d;
    z-index already gives the notebook its own stacking context here. */
-.app-shell .tabletop-dialog .tabletop-open-book .discord-presence-profile { z-index: 2; isolation: auto; height: calc((50cqw + 6px) * 25 / 18 - 15px); grid-template-columns: 1fr 1fr; border: 0; background: transparent; box-shadow: none; transform-style: preserve-3d; }
-.app-shell .tabletop-dialog .tabletop-open-book .discord-notebook-page { min-height: 0; overflow-y: auto; scrollbar-width: thin; outline: 6px solid #233f34; box-shadow: 0 3px #a8b297, 0 6px #63765c, 0 9px #162e22; }
+.app-shell .tabletop-dialog .tabletop-open-book .discord-presence-profile { z-index: 2; isolation: auto; height: calc((50cqw + 6px) * 25 / 18 - 15px); grid-template-columns: 1fr 1fr; grid-template-rows: minmax(0, 1fr); align-content: stretch; border: 0; background: transparent; box-shadow: none; transform-style: preserve-3d; }
+/* The pages have the cover's fixed proportions. Long profiles can still scroll
+   with the wheel or touch, but no scrollbar is drawn on the paper. */
+.app-shell .tabletop-dialog .tabletop-open-book .discord-notebook-page { min-height: 0; gap: 11px; padding-block: 20px 16px; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; }
+/* The hard cover's rim and the edges of the page block belong to the covers,
+   not to the paper. The left page is glued inside the front cover, so it
+   carries that rim (and turns with the cover when the book opens or closes);
+   the back cover is a static rim behind the right half. A page that turns
+   is just a sheet. */
+.app-shell .tabletop-dialog .tabletop-open-book .discord-notebook-page.is-portrait { outline: 6px solid #233f34; box-shadow: 0 3px #a8b297, 0 6px #63765c, 0 9px #162e22; }
+.tabletop-open-book::before { content: ""; position: absolute; z-index: 0; inset: 0 0 0 50%; border-radius: 0 5px 5px 0; outline: 6px solid #233f34; box-shadow: 0 3px #a8b297, 0 6px #63765c, 0 9px #162e22; pointer-events: none; }
+.app-shell .tabletop-dialog .tabletop-open-book .discord-notebook-page::-webkit-scrollbar { display: none; }
+/* The bookmark stays under the closed cover, which reaches 6px above the pages. */
+.app-shell .tabletop-dialog .tabletop-open-book .discord-presence-profile::after { top: -6px; }
+.app-shell .tabletop-dialog .tabletop-open-book .discord-notebook-photo { margin-top: 9px; }
+.app-shell .tabletop-dialog .tabletop-open-book .discord-notebook-scribble { padding-top: 4px; }
 .app-shell .tabletop-dialog .tabletop-open-book .is-portrait { z-index: 3; transform-origin: right center; backface-visibility: hidden; border-radius: 5px 0 0 5px; }
 .app-shell .tabletop-dialog .tabletop-open-book.is-opening .is-portrait { animation: tabletop-open-page 700ms cubic-bezier(.25,.65,.25,1) both; }
 .app-shell .tabletop-dialog .tabletop-open-book.is-lifting .is-portrait { animation: tabletop-open-page 560ms 40ms cubic-bezier(.25,.65,.25,1) both; }
@@ -178,6 +209,10 @@
 .tabletop-dialog[data-phase="opening"] :is(.tabletop-dialog-heading,.tabletop-return) { animation: tabletop-fade 250ms both; }
 .tabletop-dialog:not([data-phase="reading"]) .tabletop-dialog-scroll { overflow: visible; }
 .tabletop-dialog[data-phase="reading"] .tabletop-dialog-scroll { overflow-x: hidden; overflow-y: auto; }
+/* Nothing to scroll: don't clip either (see the fits check in DiscordTabletop).
+   When it does scroll, the book gets room for a page lifting off it. */
+.tabletop-dialog[data-phase="reading"] .tabletop-dialog-scroll[data-fits] { overflow: visible; }
+.tabletop-dialog-scroll:not([data-fits]) > .tabletop-open-book { margin-block: 44px; }
 .tabletop-inspected-devices { position: relative; }
 .tabletop-travel-preview { display: none; position: absolute; top: 0; left: 50%; width: var(--preview-width, 310px); transform: translateX(-50%) scale(var(--preview-zoom, 1)); transform-origin: top center; }
 .tabletop-dialog:not([data-phase="reading"]) .tabletop-travel-preview { display: block; pointer-events: none; z-index: 3; }
@@ -188,7 +223,8 @@
 .tabletop-dialog[data-phase="opening"] .tabletop-inspected-devices > .discord-desk-device { animation: tabletop-device-stow 320ms ease both; }
 .tabletop-dialog[data-phase="closing"] .tabletop-inspected-devices > .discord-desk-device { animation: tabletop-device-reveal 280ms ease both; }
 .tabletop-dialog[data-phase="returning"] .tabletop-inspected-devices > .discord-desk-device { visibility: hidden; }
-.tabletop-idle-hardware { position: relative; width: 228px; margin: 2px auto 30px; }
+.tabletop-idle-hardware { position: relative; width: var(--idle-width, 228px); height: var(--idle-height, auto); margin: 2px auto 30px; }
+.tabletop-idle-hardware > .tabletop-device { width: var(--preview-width, 228px); transform: scale(var(--idle-zoom, 1)); transform-origin: 0 0; }
 .tabletop-idle-hardware > .tabletop-device, .app-shell .tabletop-dialog .tabletop-inspected-devices > .discord-desk-device { position: relative; z-index: 2; }
 .tabletop-dialog:not([data-phase="reading"]) .tabletop-idle-device > :is(h4,p) { opacity: 0; }
 .tabletop-dialog .tabletop-inspected-devices .discord-desk-device { animation: none; }
@@ -306,3 +342,83 @@
 .tabletop-earphones { position: absolute; z-index: 1; left: 38%; top: 24%; width: 30%; height: 54%; pointer-events: none; transform: rotate(5deg); filter: drop-shadow(2px 4px 3px #0005); }
 .tabletop-earphones svg { display: block; width: 100%; height: 100%; overflow: visible; }
 @container (max-width: 850px) { .tabletop-earphones { left: 37%; top: 28%; width: 33%; height: 56%; } }
+
+/* Live devices: the same LCD as their desk previews, laid out like the real
+   thing. Main and rail dissolve into the screen grid so each live piece sits
+   where the device would put it: a status line on top, art, titles, then the
+   Game Boy's chips and stats menu or the iPod's progress bar. */
+.app-shell .tabletop-dialog .tabletop-inspected-devices > :is(.is-handheld, .is-music-player) { --lcd: #c5d4a8; --lcd-ink: #1f3a26; --lcd-mid: #49663f; --lcd-line: #2b47304d; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > :is(.is-handheld, .is-music-player) .discord-device-screen {
+  position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center; padding: 9px 11px 10px; color: var(--lcd-ink);
+  background: radial-gradient(ellipse at 50% 30%, #d2dfb5, #c4d3a3 55%, #b3c592);
+  box-shadow: inset 0 0 14px #4f6f3d55, inset 0 2px 4px #1f3a2633, 0 0 13px #c5e9951a;
+}
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-handheld .discord-device-screen {
+  grid-template-rows: auto minmax(40px, 1fr) auto auto auto auto;
+  grid-template-areas: "label clock" "art art" "name name" "detail detail" "state state" "session menu";
+  background: linear-gradient(var(--lcd-line), var(--lcd-line)) 11px calc(100% - 44px) / calc(100% - 22px) 1px no-repeat, radial-gradient(ellipse at 50% 30%, #d2dfb5, #c4d3a3 55%, #b3c592);
+}
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-music-player .discord-device-screen {
+  grid-template-rows: auto minmax(40px, 1fr) auto auto auto auto auto;
+  grid-template-areas: "label clock" "art art" "name name" "detail detail" "state state" "progress progress" "meta meta";
+  border-radius: 7px;
+}
+/* Pixels (dot matrix on the Game Boy, scan lines on the iPod), then glass glare. */
+.app-shell .tabletop-dialog .tabletop-inspected-devices > :is(.is-handheld, .is-music-player) .discord-device-screen::before,
+.app-shell .tabletop-dialog .tabletop-inspected-devices > :is(.is-handheld, .is-music-player) .discord-device-screen::after { content: ""; position: absolute; inset: 0; z-index: 3; pointer-events: none; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-handheld .discord-device-screen::before { background: repeating-linear-gradient(0deg, #2440240f 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, #2440240b 0 1px, transparent 1px 3px); }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-music-player .discord-device-screen::before { background: repeating-linear-gradient(0deg, #2440240d 0 1px, transparent 1px 3px); }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > :is(.is-handheld, .is-music-player) .discord-device-screen::after { z-index: 4; background: linear-gradient(125deg, #ffffff1c, transparent 40%, #ffffff0b 41%, transparent 60%); }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > :is(.is-handheld, .is-music-player) :is(.discord-activity-main, .discord-activity-rail) { display: contents; }
+
+.app-shell .tabletop-dialog .tabletop-inspected-devices > :is(.is-handheld, .is-music-player) .discord-activity-main > span { grid-area: label; align-self: stretch; display: flex; align-items: center; gap: 6px; margin: 0; padding: 1px 8px 7px 0; border-bottom: 1px dashed var(--lcd-line); color: var(--lcd-mid); font: 800 8px/1 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > :is(.is-handheld, .is-music-player) .discord-activity-main > span::before { content: ""; border-block: 4px solid transparent; border-left: 6px solid var(--lcd-ink); animation: tabletop-lcd-blink 1.1s steps(1) infinite; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > :is(.is-handheld, .is-music-player) .discord-activity-clock { grid-area: clock; align-self: stretch; display: flex; align-items: center; gap: 4px; margin: 0; padding: 1px 0 7px; border-bottom: 1px dashed var(--lcd-line); }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > :is(.is-handheld, .is-music-player) .discord-activity-clock b { color: var(--lcd-ink); font: 800 11px/1 var(--font-mono); letter-spacing: .04em; font-variant-numeric: tabular-nums; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > :is(.is-handheld, .is-music-player) .discord-activity-clock i { color: var(--lcd-mid); font: 800 6px/1 var(--font-mono); font-style: normal; letter-spacing: .12em; text-transform: uppercase; }
+/* Without a clock the label's rule runs across the whole status line. */
+.app-shell .tabletop-dialog .tabletop-inspected-devices > :is(.is-handheld, .is-music-player) .discord-device-screen:not(:has(.discord-activity-clock)) .discord-activity-main > span { grid-column: 1 / -1; }
+
+/* The art box is as wide as it is tall, so the app badge sits on its corner
+   instead of hanging off the edge of the screen. */
+.app-shell .tabletop-dialog .tabletop-inspected-devices > :is(.is-handheld, .is-music-player) .discord-activity-art { grid-area: art; justify-self: center; align-self: stretch; width: auto !important; height: auto; min-height: 0; max-height: 104px; aspect-ratio: 1; margin: 9px 0 7px; border: 0; background: none; box-shadow: none; clip-path: none; color: var(--lcd-ink); }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-handheld .discord-activity-main-art { filter: drop-shadow(2px 2px 0 #1f3a2633); }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-music-player .discord-activity-main-art { object-fit: cover; border-radius: 2px; box-shadow: 0 0 0 2px var(--lcd-ink), 3px 3px 0 #1f3a2633; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > :is(.is-handheld, .is-music-player) .discord-activity-art > svg { width: 42%; height: 42%; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > :is(.is-handheld, .is-music-player) .discord-activity-app-icon { right: -8px; bottom: -5px; width: 26px; border: 2px solid var(--lcd); background: var(--lcd-ink); box-shadow: 0 0 0 1px var(--lcd-ink), 2px 2px 0 #1f3a2633; }
+
+.app-shell .tabletop-dialog .tabletop-inspected-devices > :is(.is-handheld, .is-music-player) .discord-activity-main > strong { grid-area: name; margin: 0; color: var(--lcd-ink); font: 800 15px/1.25 var(--font-mono); letter-spacing: -.01em; text-align: center; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > :is(.is-handheld, .is-music-player) .discord-activity-main > p { grid-area: detail; margin: 3px 0 0; color: #2f4c33; font: 700 10px/1.45 var(--font-mono); text-align: center; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > :is(.is-handheld, .is-music-player) .discord-activity-main > small { grid-area: state; margin: 1px 0 0; color: var(--lcd-mid); font: 600 9px/1.45 var(--font-mono); text-align: center; }
+
+/* Game Boy: chips and a stats menu item along the bottom. */
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-handheld .discord-activity-session { grid-area: session; display: flex; flex-wrap: wrap; gap: 4px; min-width: 0; margin: 17px 0 0; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-handheld :is(.discord-party-chip, .discord-streak-chip) { gap: 4px; padding: 4px 6px 4px 5px; border: 0; border-radius: 2px; background: var(--lcd-ink); color: var(--lcd); font: 800 8px/1 var(--font-mono); letter-spacing: .08em; text-shadow: none; box-shadow: 2px 2px 0 #1f3a2633; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-handheld .discord-streak-row { display: contents; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-handheld .discord-activity-rail em { grid-area: menu; justify-self: end; margin: 17px 0 0; color: var(--lcd-mid); font: 800 7px/1.3 var(--font-mono); letter-spacing: .1em; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-handheld .discord-activity-stats-toggle { grid-area: menu; justify-self: end; display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex: none; width: auto; height: 28px; min-width: 70px; margin: 17px 0 0; padding: 0 9px; border: 2px solid var(--lcd-ink); border-radius: 3px; background: transparent; color: var(--lcd-ink); font: 800 8px/1 var(--font-mono); letter-spacing: .14em; box-shadow: 2px 2px 0 #1f3a2633; cursor: pointer; transition: background 140ms ease, color 140ms ease; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-handheld .discord-activity-stats-toggle::after { content: "STATS"; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-handheld .discord-activity-stats-toggle.is-open::after { content: "BACK"; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-handheld .discord-activity-stats-toggle:is(:hover, .is-open) { background: var(--lcd-ink); color: var(--lcd); }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-handheld .discord-activity-stats-toggle:focus-visible { outline: 2px solid var(--lcd-ink); outline-offset: 2px; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-handheld .discord-activity-stats { z-index: 2; grid-area: auto; inset: 9px 11px 46px; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-handheld .is-showing-stats .discord-activity-clock { visibility: hidden; }
+
+/* iPod: a classic now-playing progress bar with its diamond scrubber. */
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-music-player .discord-spotify-progress { grid-area: progress; margin: 11px 0 0; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-music-player .discord-spotify-progress-track { position: relative; height: 7px; overflow: visible; border: 1px solid var(--lcd-ink); border-radius: 1px; background: #dfe8c9; box-shadow: inset 0 1px #1f3a261a; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-music-player .discord-spotify-progress-track i { position: relative; display: block; height: 100%; background: repeating-linear-gradient(90deg, var(--lcd-ink) 0 3px, #2f4c33 3px 4px); box-shadow: none; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-music-player .discord-spotify-progress-track i::after { content: ""; position: absolute; top: 50%; right: -5px; width: 8px; height: 8px; border: 1px solid #dfe8c9; background: var(--lcd-ink); transform: translateY(-50%) rotate(45deg); }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-music-player .discord-spotify-progress-time { display: flex; justify-content: space-between; margin-top: 5px; color: var(--lcd-mid); font: 800 8px/1 var(--font-mono); font-variant-numeric: tabular-nums; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-music-player .discord-activity-rail em { grid-area: meta; justify-self: center; margin: 7px 0 0; color: var(--lcd-mid); font: 800 7px/1 var(--font-mono); font-style: normal; letter-spacing: .16em; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-music-player .discord-device-open-link { min-height: 36px; margin-top: 2px; }
+
+/* Printed on the case, as on the desk previews. */
+.app-shell .tabletop-dialog .tabletop-inspected-devices > :is(.is-handheld, .is-music-player)::after { display: block; position: static; inset: auto; width: auto; height: auto; border: 0; background: none; box-shadow: none; font: 700 6px/1.5 var(--font-mono); letter-spacing: .07em; text-align: center; opacity: 1; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-handheld::after { content: "DOT MATRIX WITH SOUL"; margin: 0 0 3px; color: #9bb9b0; }
+.app-shell .tabletop-dialog .tabletop-inspected-devices > .is-music-player::after { content: "a soundtrack for the everyday"; margin: 0 0 2px; color: #5e7365; }
+@keyframes tabletop-lcd-blink { 50% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) {
+  .app-shell .tabletop-dialog .tabletop-inspected-devices > :is(.is-handheld, .is-music-player) .discord-activity-main > span::before { animation: none; }
+}
