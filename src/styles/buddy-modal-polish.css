@@ -1,0 +1,70 @@
+/* Buddy modal polish, loaded after buddy-modal.css, buddy-workshop.css and
+   buddy-room.css: a tighter header so every tab has more room, and the
+   per-tab pieces added with it (room displays, friendship meter, quest
+   reward tiles). Layout changes stay above the 700px phone breakpoint. */
+@layer components {
+  /* ---- Header: the same information in less height ---- */
+  @media (min-width: 701px) {
+    .buddy-modal-header { padding: 16px 22px 0; }
+    .buddy-modal-header h2 { margin: 4px 0 2px; font-size: 26px; }
+    .buddy-modal-actions { gap: 4px; margin-top: 10px; }
+    .buddy-modal-actions button { min-height: 42px; padding: 8px 16px; }
+  }
+  .buddy-modal-actions button span { font-variant-numeric: tabular-nums; }
+
+  /* ---- Room: what is on display, under the scene ---- */
+  .room-displays { display: grid; gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px solid #76978b30; }
+  .room-displays-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 12px; }
+  .room-displays-head > span { color: #9ac7b2; font: 800 10px/1.2 var(--font-mono); letter-spacing: .16em; text-transform: uppercase; }
+  .room-displays-head small { color: #8fa79c; font-size: 10px; }
+  .room-displays-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+  .room-display-card { display: flex; align-items: center; gap: 10px; min-width: 0; min-height: 58px; padding: 8px 10px; border: 1px solid #76978b40; background: linear-gradient(#ffffff06, transparent), #08141299; color: #d7eee2; text-align: left; cursor: pointer; transition: border-color 160ms ease, background 160ms ease; }
+  .room-display-card:hover:not(:disabled), .room-display-card.is-selected { border-color: var(--color-phosphor); background: color-mix(in srgb, var(--color-phosphor) 8%, #08141299); }
+  .room-display-card:focus-visible { outline: 2px solid var(--color-cyan-arcade); outline-offset: 2px; }
+  .room-display-card:disabled { opacity: .55; cursor: default; }
+  .room-display-card-art { display: flex; flex: none; align-items: center; justify-content: center; min-width: 40px; height: 40px; padding: 0 4px; border: 1px solid #76978b33; background: #050d0c; }
+  .room-display-card-art > * { width: 26px; height: 26px; }
+  .room-display-card-art > * + * { margin-left: -8px; }
+  .room-display-card.is-empty .room-display-card-art { border-style: dashed; color: #8fa79c; font: 700 18px/1 var(--font-mono); }
+  .room-display-card-copy { display: grid; gap: 3px; min-width: 0; }
+  .room-display-card-copy small { color: #8fa79c; font: 700 9px/1.2 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+  .room-display-card-copy strong { overflow: hidden; color: #e3f4ea; font-size: 11px; line-height: 1.35; text-overflow: ellipsis; white-space: nowrap; }
+  .room-display-card.is-empty .room-display-card-copy strong { color: #8fa79c; font-style: italic; font-weight: 400; }
+
+  /* ---- Inventory: friendship meter under the preview ---- */
+  .buddy-preview-stats { display: grid; justify-content: stretch; gap: 6px; }
+  .buddy-friendship-row { display: flex; justify-content: space-between; gap: 8px; }
+  .buddy-friendship-bar { display: block; height: 6px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--color-cabinet) 35%, transparent); background: #020604; }
+  .buddy-friendship-bar b { display: block; height: 100%; background: repeating-linear-gradient(90deg, var(--color-cabinet) 0 6px, color-mix(in srgb, var(--color-cabinet) 55%, #000) 6px 7px); }
+  .buddy-preview-stats small { color: var(--buddy-muted); font-size: 10px; }
+  @media (min-width: 701px) {
+    /* All nine slots fit beside the preview at common heights. */
+    .buddy-inventory-stage { padding: 16px 18px; }
+    .buddy-preview-card { gap: 10px; }
+    .buddy-preview-screen { min-height: 132px; }
+    .buddy-equip-slot { min-height: 34px; padding-block: 3px; }
+    .buddy-slot-scroll { margin-top: 8px; }
+  }
+
+  /* ---- Quests: what you'll get, next to the quest still to do ---- */
+  .buddy-modal-quest.is-open { grid-template-columns: minmax(0, 1fr) 150px 170px; border-left: 3px solid var(--color-cyan-arcade); }
+  .buddy-quest-reward-tile { display: grid; justify-items: center; gap: 6px; padding: 10px 8px; border: 1px dashed color-mix(in srgb, var(--color-cabinet) 45%, transparent); background: color-mix(in srgb, var(--color-cabinet) 6%, transparent); text-align: center; }
+  .buddy-quest-reward-tile > span { color: var(--buddy-muted); font: 800 9px/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; }
+  .buddy-quest-reward-tile > svg, .buddy-quest-reward-tile > img, .buddy-quest-reward-tile > :nth-child(2) { width: 30px; height: 30px; }
+  .buddy-quest-reward-tile strong { color: var(--color-cabinet); font-size: 12px; }
+  @media (min-width: 701px) {
+    .buddy-modal-quests { padding: 20px 26px; }
+    .buddy-quest-summary { padding: 18px 22px; }
+    .buddy-quest-group.is-completed .buddy-modal-quest { padding: 14px 16px; }
+  }
+  @media (max-width: 700px) {
+    .room-displays-list { grid-template-columns: 1fr; }
+    .buddy-modal-quest.is-open { grid-template-columns: 1fr; }
+    .buddy-quest-reward-tile { grid-template-columns: auto auto 1fr; justify-items: start; align-items: center; text-align: left; }
+  }
+
+  /* ---- Journal: the side column fits with the shorter header ---- */
+  @media (min-width: 701px) {
+    .buddy-journal-stage { gap: 14px; padding: 16px 18px; }
+  }
+}

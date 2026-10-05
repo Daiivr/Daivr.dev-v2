@@ -14,6 +14,9 @@ import { BuddyJournal } from "./BuddyJournal";
 // request a deleted, hash-named room chunk after a new build is published.
 import BuddyRoom from "./BuddyRoom";
 import { BuddyRoomBoundary } from "./BuddyRoomBoundary";
+import { friendshipProgress } from "../hooks/useBuddyFriendship";
+// Last, after buddy-room.css (imported by BuddyRoom): the shared polish layer.
+import "../styles/buddy-modal-polish.css";
 
 const BUDDY_SLOTS = [
   { id: "costume", label: "costume", accepts: COSTUME_IDS },
@@ -147,13 +150,20 @@ const BuddyPreviewCard = memo(function BuddyPreviewCard({ buddy }) {
         </div>
       </div>
       <div className="buddy-pose-controls" role="group" aria-label="Preview Buddy pose">{[["idle", "Idle"], ["happy", "Happy"], ["sleep", "Nap"]].map(([id, label]) => <button type="button" key={id} aria-pressed={pose === id} onClick={() => setPose(id)}>{label}</button>)}</div>
-      <div className="buddy-preview-stats">
-        <span>Level <b>{String(buddy.friendship.level).padStart(2, "0")}</b></span>
-        <span><b>{buddy.activeGearCount}</b> equipped</span>
-      </div>
+      <BuddyFriendshipMeter pets={buddy.friendship.pets} equipped={buddy.activeGearCount} />
     </div>
   );
 });
+
+// Level, how far to the next one, and how much Buddy is wearing.
+function BuddyFriendshipMeter({ pets, equipped }) {
+  const progress = friendshipProgress(pets || 0);
+  return <div className="buddy-preview-stats">
+    <div className="buddy-friendship-row"><span>Friendship <b>LV {String(progress.level).padStart(2, "0")}</b></span><span><b>{equipped}</b> equipped</span></div>
+    <i className="buddy-friendship-bar" role="progressbar" aria-label="Friendship to next level" aria-valuenow={Math.round(progress.ratio * 100)} aria-valuemin={0} aria-valuemax={100}><b style={{ width: `${Math.round(progress.ratio * 100)}%` }} /></i>
+    <small>{progress.next === null ? "Best friends. Max level reached." : `${progress.next - progress.pets} pets to level ${progress.level + 1}`}</small>
+  </div>;
+}
 
 function BuddyInventoryView({ buddy }) {
   const [filter, setFilter] = useState("all");
@@ -340,12 +350,14 @@ function BuddyQuestView({ buddy }) {
           <div className="buddy-quest-list">
             {group.items.map((quest) => {
               const ratio = quest.goal ? Math.min(1, quest.progress / quest.goal) : 0;
+              const rewardName = buddy.catalogItems?.find((item) => item.id === quest.reward)?.label || quest.reward;
               return (
-                <article className={`buddy-modal-quest ${quest.complete ? "is-complete" : ""}`} key={quest.id}>
+                <article className={`buddy-modal-quest ${quest.complete ? "is-complete" : "is-open"}`} key={quest.id}>
                   <div className="buddy-quest-info">
                     <span className="buddy-quest-icon">{quest.complete ? <Check size={18} aria-hidden="true" /> : <ScrollText size={18} aria-hidden="true" />}</span>
-                    <div><strong>{quest.title}</strong><p>{quest.detail}</p><span className="buddy-quest-reward"><BuddyGearIcon id={quest.reward} />{quest.complete ? "Unlocked" : "Reward"}: {buddy.catalogItems?.find((item) => item.id === quest.reward)?.label || quest.reward}</span></div>
+                    <div><strong>{quest.title}</strong><p>{quest.detail}</p>{quest.complete ? <span className="buddy-quest-reward"><BuddyGearIcon id={quest.reward} />Unlocked: {rewardName}</span> : null}</div>
                   </div>
+                  {!quest.complete ? <div className="buddy-quest-reward-tile"><span>Reward</span><BuddyGearIcon id={quest.reward} /><strong>{rewardName}</strong></div> : null}
                   <div className="buddy-quest-track">
                     <div><span>{quest.complete ? "Complete" : "In progress"}</span><b>{quest.progress} / {quest.goal}</b></div>
                     <i className="buddy-quest-bar" role="progressbar" aria-label={quest.title} aria-valuenow={Math.min(quest.progress, quest.goal)} aria-valuemin={0} aria-valuemax={quest.goal || 1}><b style={{ width: `${Math.round(ratio * 100)}%` }} /></i>
@@ -399,7 +411,7 @@ export function BuddyModal({ buddy, mode, onClose, onModeChange, theme, seasonal
                 {BUDDY_VIEWS.map(({ id, label, icon: Icon }) => (
                   <button className={view.id === id ? "is-active" : ""} type="button" key={id} onClick={() => onModeChange(id)} aria-current={view.id === id ? "page" : undefined}>
                     <Icon size={16} aria-hidden="true" />{label}
-                    {id !== "room" ? <span>{id === "inventory" ? buddy.gearItems.length : id === "quests" ? buddy.adventure.quests.filter((quest) => !quest.complete).length : buddy.adventure.discoveredFishCount}</span> : null}
+                    {id !== "room" ? <span>{id === "inventory" ? buddy.gearItems.length : id === "quests" ? `${buddy.adventure.quests.filter((quest) => quest.complete).length}/${buddy.adventure.quests.length}` : buddy.adventure.discoveredFishCount}</span> : null}
                   </button>
                 ))}
               </nav> : null}
