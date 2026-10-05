@@ -430,6 +430,10 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
     <Dialog.Root open={open} onOpenChange={(value) => { if (!value) putBack(); }}>
       <Dialog.Portal container={portalContainer}>
         <Dialog.Overlay className="tabletop-overlay" data-phase={phase} />
+        {/* Everything below the top bar. The bar stays under the blur like the rest
+            of the page, and an object flying to or from a spot under it is
+            clipped here, so it passes beneath the bar instead of over it. */}
+        <div className="tabletop-dialog-frame" style={{ "--topbar-bottom": origin["--topbar-bottom"] }}>
         <Dialog.Content ref={measurePickup} className={`discord-desk tabletop-dialog is-${selected}`} data-phase={phase} style={origin} onAnimationEnd={finishMotion} onCloseAutoFocus={(event) => { event.preventDefault(); trigger.current?.focus({ preventScroll: true }); }}>
           <header className="tabletop-dialog-heading">
             <div><Dialog.Title>{objects[selected]?.title}</Dialog.Title><Dialog.Description>{objects[selected]?.description}</Dialog.Description></div>
@@ -452,6 +456,7 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
           </div>
           <Dialog.Close className="tabletop-return">↙ Put back on the desk <kbd>ESC</kbd></Dialog.Close>
         </Dialog.Content>
+        </div>
       </Dialog.Portal>
     </Dialog.Root>
   </>;
