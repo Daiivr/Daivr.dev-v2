@@ -24,27 +24,33 @@
     linear-gradient(105deg, #594330, #3a2f25 48%, #4b3829);
   box-shadow: inset 0 8px 16px #0005, inset 0 -7px #1e1813, inset 0 -9px #bc8a403d;
 }
-.tabletop-scene::after { content: ""; position: absolute; inset: 0; z-index: 5; pointer-events: none; background: radial-gradient(ellipse at 40% 35%, transparent 40%, #080f0b4a); }
+.tabletop-scene::after { content: ""; position: absolute; inset: 0; z-index: 5; pointer-events: none; background: radial-gradient(ellipse 60% 55% at 18% 12%, #ffd59a12, transparent 70%), radial-gradient(ellipse at 40% 35%, transparent 40%, #080f0b4a); }
 .tabletop-mat { position: absolute; inset: 35px 30px 68px; border: 2px solid #182b25; border-radius: 22px; transform: rotate(-.6deg); background: radial-gradient(ellipse at 25% 10%, #6d8f6629, transparent 65%), repeating-linear-gradient(45deg, #ffffff02 0 1px, transparent 1px 3px), #233c31; box-shadow: 0 4px 3px #0006, 0 18px 28px #0004, inset 0 0 0 5px #ffffff04; }
 .tabletop-mat::after { content: ""; position: absolute; inset: 9px; border: 1px dashed #b3c8a329; border-radius: 14px; }
 .tabletop-intro { position: absolute; top: 60px; left: 7%; transform: rotate(-3deg); transform-origin: left center; }
-.tabletop-eyebrow { color: #b6c6a8; font: 700 9px/1.5 var(--font-mono); letter-spacing: .18em; }
+.tabletop-eyebrow { color: #b6c6a8; font: 700 10px/1.5 var(--font-mono); letter-spacing: .18em; }
 .tabletop-intro h3 { margin: 9px 0 10px; color: #f0e7cd; font: 700 clamp(24px, 2.8cqw, 38px)/1.1 var(--font-display); letter-spacing: -.04em; }
-.tabletop-intro p { color: #b9c7b4; font: 400 11px/1.8 var(--font-mono); }
-.tabletop-live { position: absolute; right: 7%; top: 69px; display: flex; gap: 8px; align-items: center; font: 700 9px/1.5 var(--font-mono); letter-spacing: .06em; color: #c3e5b8; }
-.tabletop-live svg { color: #98d99e; }
-.tabletop-live.is-disconnected { color: #e3bc91; }
+.tabletop-intro p { color: #c0cdb9; font: 400 12px/1.8 var(--font-mono); }
+.tabletop-live { --live-color: #8d9a8a; position: absolute; right: 7%; top: 66px; display: flex; gap: 8px; align-items: center; padding: 6px 11px 6px 9px; border: 1px solid #c9dcb51f; border-radius: 999px; background: #0b17123d; box-shadow: inset 0 1px #ffffff08; font: 700 10px/1.5 var(--font-mono); letter-spacing: .06em; color: #d3e2c8; }
+.tabletop-live svg { color: #b9c9ae; }
+.tabletop-live-led { width: 7px; height: 7px; border-radius: 50%; background: var(--live-color); box-shadow: 0 0 0 2px #0a14104d, 0 0 9px var(--live-color); }
+.tabletop-live.is-online { --live-color: #7fe08c; }
+.tabletop-live.is-idle { --live-color: #efbd5c; }
+.tabletop-live.is-dnd { --live-color: #f0716b; }
+.tabletop-live.is-syncing { --live-color: #82d4e2; }
+.tabletop-live.is-disconnected { --live-color: #e3a56b; color: #e9c9a3; }
+.tabletop-live:is(.is-online,.is-syncing) .tabletop-live-led { animation: tabletop-led-breathe 2.6s ease-in-out infinite; }
 .tabletop-object { position: absolute; z-index: 2; display: block; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; text-align: left; outline-offset: 12px; transition: filter 240ms ease, opacity 180ms ease; -webkit-tap-highlight-color: transparent; }
 .tabletop-object:focus-visible { outline: 2px dashed #f0e1ac; border-radius: 8px; }
-.tabletop-object > :first-child { transition: filter 240ms ease; }
-.tabletop-object:is(:hover,:focus-visible) > :first-child { filter: brightness(1.07) drop-shadow(0 0 8px #b6f8b743) drop-shadow(0 0 22px #90dbae25); }
+.tabletop-object > :first-child { transition: filter 240ms ease, transform 360ms cubic-bezier(.2,.8,.25,1); }
+.tabletop-object:is(:hover,:focus-visible) > :first-child { transform: translateY(-7px); filter: brightness(1.06) drop-shadow(3px 15px 12px #0006) drop-shadow(0 0 18px #b6f8b71f); }
 .tabletop-scene[data-picked="notebook"] .tabletop-notebook,
 .tabletop-scene[data-picked="music"] .tabletop-ipod,
 .tabletop-scene[data-picked="game"] .tabletop-gameboy { pointer-events: none; }
 .tabletop-scene[data-picked="notebook"] .tabletop-notebook > :first-child,
 .tabletop-scene[data-picked="music"] .tabletop-ipod > :first-child,
 .tabletop-scene[data-picked="game"] .tabletop-gameboy > :first-child { opacity: 0; transition: none; }
-.tabletop-object:active > :first-child { filter: brightness(1.15); }
+.tabletop-object:active > :first-child { transform: translateY(-3px); filter: brightness(1.12) drop-shadow(2px 7px 6px #0006); transition-duration: 120ms; }
 .tabletop-notebook { width: 24%; max-width: 280px; height: auto; aspect-ratio: 18 / 25; left: 9%; top: calc(27% - 32px); transform: rotate(-9deg); }
 .tabletop-book-cover { position: relative; display: block; width: 100%; height: 100%; min-height: 0; container-type: inline-size; border: 1px solid #768d7377; border-radius: 4px 12px 12px 4px; color: #dacdaf; background: repeating-linear-gradient(90deg, #ffffff05 0 1px, transparent 1px 3px), repeating-linear-gradient(0deg, #ffffff04 0 1px, transparent 1px 3px), linear-gradient(110deg, #243d33, #3b5543 48%, #263d31); box-shadow: inset 5px 0 5px #0004, inset 0 0 0 6px #ffffff03, 2px 3px #bbb69b, 3px 5px #616b56, 4px 7px #b5b99b, 5px 10px #13271c, 13px 23px 23px #0007; }
 .tabletop-book-cover::before { content: ""; position: absolute; inset: 4.7% 5% 4.7% 6.7%; border: 1px solid #cabc823b; border-radius: 2px; }
@@ -59,8 +65,9 @@
 .tabletop-book-elastic { position: absolute; right: 9%; inset-block: -2px; width: 8px; background: repeating-linear-gradient(0deg, #fff1 0 1px, transparent 1px 3px), #192b24; border-inline: 1px solid #607052; box-shadow: 2px 1px 3px #0006; }
 .tabletop-book-ribbon { position: absolute; bottom: -26px; left: 18%; width: 15px; height: 28px; background: #c89568; clip-path: polygon(0 0,100% 0,100% 100%,50% 80%,0 100%); }
 /* Labels stay on the mat when the object is lifted. */
-.tabletop-object-caption { position: absolute; top: calc(100% + 18px); left: 50%; width: max-content; max-width: 100%; min-width: 140px; padding: 5px 10px; transform: translateX(-50%); display: flex; flex-wrap: wrap; align-items: center; justify-content: center; column-gap: 6px; color: #d7dfc9; font: 500 10px/1.6 var(--font-mono); text-align: center; }
-.tabletop-object-caption > span { flex-basis: 100%; color: #aabc9f; font-size: 8px; letter-spacing: .12em; }
+.tabletop-object-caption { position: absolute; top: calc(100% + 18px); left: 50%; width: max-content; max-width: 100%; min-width: 140px; padding: 5px 10px; transform: translateX(-50%); display: flex; flex-wrap: wrap; align-items: center; justify-content: center; column-gap: 6px; color: #e2e9d5; font: 600 11px/1.6 var(--font-mono); text-align: center; transition: color 240ms ease; }
+.tabletop-object-caption > span { flex-basis: 100%; color: #b4c5a9; font-size: 9px; font-weight: 500; letter-spacing: .12em; }
+.tabletop-object:is(:hover,:focus-visible) .tabletop-object-caption { color: #f4ecd0; }
 .tabletop-ipod { width: 17%; max-width: 200px; left: 44%; top: 29%; transform: rotate(7deg); }
 .tabletop-gameboy { width: 22%; max-width: 258px; right: 9%; top: 25%; transform: rotate(-5deg); }
 .tabletop-device { position: relative; display: block; padding: 14px 12px 12px; border: 1px solid #bcbfae; border-radius: 22px; background: linear-gradient(115deg, #f0edda, #d4d9c8 40%, #c2c9b9); box-shadow: inset 2px 2px 2px #ffffffe0, inset -3px -2px 3px #829586, 2px 5px #687d70, 4px 7px #c0c5b5, 12px 20px 20px #0007; }
@@ -76,6 +83,8 @@
 .tabletop-lcd img { width: 60px; height: 60px; margin: 2px 0 7px; object-fit: cover; border-radius: 2px; }
 .tabletop-lcd strong { width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; font: 800 10px/1.7 var(--font-mono); }
 .tabletop-lcd > small { width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; font: 500 8px/1.5 var(--font-mono); }
+.tabletop-lcd > .is-scrolling { text-overflow: clip; mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); }
+.tabletop-lcd > .is-scrolling > span { display: inline-block; padding-inline: 4px; animation: tabletop-lcd-scroll var(--lcd-duration, 8s) linear infinite; }
 .tabletop-equalizer { display: flex; align-items: end; gap: 3px; height: 16px; margin-top: 4px; }
 .tabletop-equalizer i { width: 3px; height: 12px; background: #476343; transform-origin: bottom; animation: tabletop-eq 950ms ease-in-out infinite alternate; }
 .tabletop-equalizer i:nth-child(2n) { animation-delay: -450ms; height: 8px; }.tabletop-equalizer i:nth-child(3n) { animation-delay: -700ms; height: 15px; }
@@ -92,13 +101,17 @@
 .tabletop-game .tabletop-device-engraving { color: #9bb9b0; margin: 0 0 3px; }
 .tabletop-game .discord-handheld-controls { height: 111px; }
 .app-shell .discord-desk .tabletop-game .discord-handheld-buttons > span, .app-shell .discord-desk .tabletop-game .discord-handheld-system span { color: #c7d6c7; }
-.tabletop-keepsakes { position: absolute; bottom: 8%; left: 8%; width: 35%; transform: rotate(-3deg); }
+.tabletop-keepsakes { position: absolute; bottom: 8.5%; left: 7%; width: 30%; transform: rotate(-3deg); }
+.tabletop-coffee { position: absolute; z-index: 1; right: 8%; bottom: 9.5%; width: 9.5%; max-width: 116px; pointer-events: none; transform: rotate(-14deg); }
+.tabletop-coffee svg { display: block; width: 100%; height: auto; overflow: visible; }
+.tabletop-coffee-steam path { stroke-width: 2.4; opacity: 0; filter: blur(1.4px); animation: tabletop-steam 5.4s ease-in-out infinite; }
+.tabletop-coffee-steam path:nth-child(2) { animation-delay: -1.8s; }.tabletop-coffee-steam path:nth-child(3) { animation-delay: -3.6s; }
 .tabletop-keepsakes .discord-desk-keepsakes { display: block; width: 100%; }
 .tabletop-note { position: absolute; right: 31%; top: 55px; width: 136px; padding: 16px 13px 14px; color: #4f5236; background: linear-gradient(130deg, #e3d4a1, #b9b681); box-shadow: 2px 5px 5px #0004, 6px 12px 20px #0003; transform: rotate(7deg); font: italic 12px/1.9 Georgia, serif; }
 .tabletop-note::before { content: ""; position: absolute; top: -9px; left: 33%; width: 48px; height: 21px; background: #b7c9a35c; border-inline: 1px dashed #e0e7bb80; transform: rotate(-9deg); }
 .tabletop-note > span:first-child { font: 700 8px/1.5 var(--font-mono); text-transform: uppercase; letter-spacing: .06em; }.tabletop-note p { margin-top: 5px; }.tabletop-note-star { position: absolute; right: 12px; bottom: 5px; font-size: 22px; color: #71845a; }
-.tabletop-pencils { position: absolute; left: 45%; bottom: 14%; width: 150px; height: 30px; transform: rotate(-24deg); }.tabletop-pencils .discord-desk-pencil { width: 150px; left: 0; bottom: 0; }.tabletop-pencils .tabletop-pencil-two { bottom: 20px; left: 10px; transform: rotate(9deg); background: linear-gradient(#89b3a2 0 30%, #3c6a5d 31% 55%, #609783 56% 85%, #294d43 86%); }
-.tabletop-footer { position: absolute; bottom: 24px; left: 5%; right: 5%; display: flex; justify-content: space-between; gap: 12px; color: #d5c6a9; font: 500 8px/1.6 var(--font-mono); letter-spacing: .07em; }
+.tabletop-pencils { position: absolute; left: 47%; bottom: 12%; width: 150px; height: 30px; transform: rotate(-17deg); }.tabletop-pencils .discord-desk-pencil { width: 150px; left: 0; bottom: 0; }.tabletop-pencils .tabletop-pencil-two { bottom: 20px; left: 10px; transform: rotate(9deg); background: linear-gradient(#89b3a2 0 30%, #3c6a5d 31% 55%, #609783 56% 85%, #294d43 86%); }
+.tabletop-footer { position: absolute; bottom: 23px; left: 5%; right: 5%; display: flex; justify-content: space-between; gap: 12px; color: #dccdb0; font: 500 9px/1.6 var(--font-mono); letter-spacing: .07em; }
 
 /* Radix handles focus trapping, Escape, background inertness and scroll lock. */
 .tabletop-overlay { position: fixed; inset: 0; z-index: 1200; background: #07100cdc; backdrop-filter: blur(9px); transition: background 420ms cubic-bezier(.22,.61,.36,1), backdrop-filter 420ms cubic-bezier(.22,.61,.36,1); }
@@ -112,13 +125,21 @@
 .tabletop-close { flex-shrink: 0; display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid #b7cfaa44; border-radius: 50%; background: #c1d9bc0b; color: #dee8d3; cursor: pointer; }
 .tabletop-close:hover { background: #c1d9bc25; }.tabletop-close:focus-visible, .tabletop-return:focus-visible { outline: 2px solid #d9e9b3; outline-offset: 3px; }
 .tabletop-dialog-scroll { overflow-y: auto; overflow-x: hidden; min-height: 0; padding: 10px 16px 22px; scrollbar-width: thin; scrollbar-color: #7f987d transparent; overscroll-behavior: contain; }
-.tabletop-open-book { position: relative; perspective: 1800px; container-type: inline-size; }
+/* The left page and the cover are the two faces of one leaf, so both must turn
+   under the same perspective. A page that folds flat next to a cover that is
+   projected in depth makes the cover balloon towards the viewer past 90deg. */
+.tabletop-open-book { position: relative; perspective: 2800px; container-type: inline-size; }
 .tabletop-open-book.is-opening { animation: tabletop-book-center 700ms cubic-bezier(.25,.65,.25,1) both; }
 .tabletop-open-book.is-lifting { animation: tabletop-book-center 560ms 40ms cubic-bezier(.25,.65,.25,1) both; }
 .tabletop-open-book:is(.is-lifting,.is-returning) { transform: translateX(-25%); }
-.tabletop-open-book.is-closing { animation: tabletop-book-center 650ms cubic-bezier(.25,.65,.25,1) reverse both; }
+/* Closing has keyframes of its own (with the mirrored easing) rather than
+   replaying the opening ones in reverse: a running animation whose name stays
+   the same is updated in place, not restarted, and froze or snapped the book. */
+.tabletop-open-book.is-closing { animation: tabletop-book-uncenter 650ms cubic-bezier(.75,0,.75,.35) both; }
 .app-shell .tabletop-dialog .discord-presence-profile { width: 100%; transform: none; }
-.app-shell .tabletop-dialog .tabletop-open-book .discord-presence-profile { z-index: 2; height: calc((50cqw + 6px) * 25 / 18 - 15px); grid-template-columns: 1fr 1fr; border: 0; background: transparent; box-shadow: none; transform-style: preserve-3d; }
+/* isolation: isolate (from the shared card styles) would flatten preserve-3d;
+   z-index already gives the notebook its own stacking context here. */
+.app-shell .tabletop-dialog .tabletop-open-book .discord-presence-profile { z-index: 2; isolation: auto; height: calc((50cqw + 6px) * 25 / 18 - 15px); grid-template-columns: 1fr 1fr; border: 0; background: transparent; box-shadow: none; transform-style: preserve-3d; }
 .app-shell .tabletop-dialog .tabletop-open-book .discord-notebook-page { min-height: 0; overflow-y: auto; scrollbar-width: thin; outline: 6px solid #233f34; box-shadow: 0 3px #a8b297, 0 6px #63765c, 0 9px #162e22; }
 .app-shell .tabletop-dialog .tabletop-open-book .is-portrait { z-index: 3; transform-origin: right center; backface-visibility: hidden; border-radius: 5px 0 0 5px; }
 .app-shell .tabletop-dialog .tabletop-open-book.is-opening .is-portrait { animation: tabletop-open-page 700ms cubic-bezier(.25,.65,.25,1) both; }
@@ -129,7 +150,7 @@
 .tabletop-open-book.is-lifting .discord-notebook-binding { animation: tabletop-binding-reveal 560ms 40ms both; }
 .tabletop-open-book:is(.is-lifting,.is-returning,.is-closing) .discord-notebook-binding { opacity: 0; }
 .app-shell .tabletop-dialog .tabletop-open-book:is(.is-lifting,.is-returning) .is-portrait { transform: rotateY(180deg); }
-.app-shell .tabletop-dialog .tabletop-open-book.is-closing .is-portrait { animation: tabletop-open-page 650ms cubic-bezier(.25,.65,.25,1) reverse both; }
+.app-shell .tabletop-dialog .tabletop-open-book.is-closing .is-portrait { animation: tabletop-close-page 650ms cubic-bezier(.75,0,.75,.35) both; }
 .app-shell .tabletop-dialog .discord-notebook-page { min-height: 420px; padding: 23px 20px; }
 .app-shell .tabletop-dialog .discord-presence-custom > span { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
 .tabletop-open-book > .tabletop-book-cover { position: absolute; z-index: 10; left: 50%; top: -6px; bottom: -9px; width: calc(50% + 6px); height: auto; min-height: 0; pointer-events: none; transform-origin: left center; backface-visibility: hidden; transform: rotateY(0); }
@@ -137,7 +158,19 @@
 .tabletop-open-book.is-opening > .tabletop-book-cover { animation: tabletop-open-cover 700ms cubic-bezier(.25,.65,.25,1) both; }
 .tabletop-open-book.is-lifting > .tabletop-book-cover { animation: tabletop-open-cover 560ms 40ms cubic-bezier(.25,.65,.25,1) both; }
 .tabletop-open-book.is-lifting > .tabletop-book-cover .tabletop-book-elastic { animation: tabletop-device-reveal 120ms 120ms both; }
-.tabletop-open-book.is-closing > .tabletop-book-cover { animation: tabletop-open-cover 650ms cubic-bezier(.25,.65,.25,1) reverse both; }
+.tabletop-open-book.is-closing > .tabletop-book-cover { animation: tabletop-close-cover 650ms cubic-bezier(.75,0,.75,.35) both; }
+/* The turning leaf is a hardcover board, not a sheet of paper: this strip is its
+   fore-edge. It turns with the cover, sits at the cover's outer edge and faces
+   outwards, so it is edge-on (invisible) while the book lies flat and shows the
+   board's full thickness when the cover stands up. */
+.tabletop-book-edge { --leaf: calc(50cqw + 6px); --board: 16px; position: absolute; z-index: 11; left: 50%; top: -6px; bottom: -9px; width: var(--board); pointer-events: none; transform-origin: 0 50%; transform: rotateY(0deg) translateX(var(--leaf)) translateZ(calc(var(--board) / 2)) rotateY(90deg); border-radius: 2px; background: repeating-linear-gradient(0deg, #ffffff07 0 1px, transparent 1px 3px), linear-gradient(90deg, #4c6c59, #2b4739 18%, #203a2e 48%, #152a21 64%, #0d1c15 68%, #d6cfac 72%, #b4bea6 86%, #98a88f); box-shadow: inset 0 1px #ffffff24, inset 0 -1px #0006; }
+.tabletop-open-book.is-lifting > .tabletop-book-edge { animation: tabletop-edge-open 560ms 40ms cubic-bezier(.25,.65,.25,1) both; }
+.tabletop-open-book.is-closing > .tabletop-book-edge { animation: tabletop-edge-close 650ms cubic-bezier(.75,0,.75,.35) both; }
+.tabletop-open-book.is-returning > .tabletop-book-edge { display: none; }
+/* The cover darkens the page it is about to land on. */
+.tabletop-book-shade { position: absolute; z-index: 5; inset: 0 0 0 50%; pointer-events: none; opacity: 0; background: linear-gradient(90deg, #08120dcc, #08120d66 45%, #08120d14); }
+.tabletop-open-book.is-lifting > .tabletop-book-shade { animation: tabletop-shade-lift 560ms 40ms cubic-bezier(.25,.65,.25,1) both; }
+.tabletop-open-book.is-closing > .tabletop-book-shade { animation: tabletop-shade-land 650ms cubic-bezier(.75,0,.75,.35) both; }
 .app-shell .discord-desk.tabletop-dialog[data-phase="lifting"] { animation: tabletop-pickup 800ms cubic-bezier(.2,.75,.2,1) both; }
 .app-shell .discord-desk.tabletop-dialog[data-phase="returning"] { animation: tabletop-put-back 850ms cubic-bezier(.4,0,.6,1) both; }
 .tabletop-dialog :is(.tabletop-dialog-heading,.tabletop-return,.tabletop-extra-activities) { transition: opacity 420ms cubic-bezier(.22,.61,.36,1); }
@@ -206,18 +239,29 @@
 @keyframes tabletop-book-center { from { transform: translateX(-25%); } to { transform: translateX(0); } }
 @keyframes tabletop-open-cover { from { transform: rotateY(0); } to { transform: rotateY(-180deg); } }
 @keyframes tabletop-open-page { from { transform: rotateY(180deg); } to { transform: rotateY(0); } }
+@keyframes tabletop-book-uncenter { from { transform: translateX(0); } to { transform: translateX(-25%); } }
+@keyframes tabletop-close-cover { from { transform: rotateY(-180deg); } to { transform: rotateY(0); } }
+@keyframes tabletop-close-page { from { transform: rotateY(0); } to { transform: rotateY(180deg); } }
+@keyframes tabletop-edge-open { from { transform: rotateY(0deg) translateX(var(--leaf)) translateZ(calc(var(--board) / 2)) rotateY(90deg); } to { transform: rotateY(-180deg) translateX(var(--leaf)) translateZ(calc(var(--board) / 2)) rotateY(90deg); } }
+@keyframes tabletop-edge-close { from { transform: rotateY(-180deg) translateX(var(--leaf)) translateZ(calc(var(--board) / 2)) rotateY(90deg); } to { transform: rotateY(0deg) translateX(var(--leaf)) translateZ(calc(var(--board) / 2)) rotateY(90deg); } }
+@keyframes tabletop-shade-land { 0%, 45% { opacity: 0; } 97% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes tabletop-shade-lift { 0% { opacity: 0; } 3% { opacity: 1; } 55%, 100% { opacity: 0; } }
 @keyframes tabletop-binding-reveal { 0%, 75% { opacity: 0; } 100% { opacity: 1; } }
 @keyframes tabletop-eq { from { transform: scaleY(.3); } to { transform: scaleY(1); } }
+@keyframes tabletop-lcd-scroll { 0%, 22% { transform: translateX(0); } 72%, 92% { transform: translateX(calc(var(--lcd-shift, 0px) - 8px)); } 100% { transform: translateX(0); } }
+@keyframes tabletop-led-breathe { 50% { box-shadow: 0 0 0 2px #0a14104d, 0 0 3px var(--live-color); } }
+@keyframes tabletop-steam { 0% { opacity: 0; transform: translateY(6px) scaleY(.8); } 35% { opacity: .2; } 100% { opacity: 0; transform: translateY(-10px) scaleY(1.1); } }
 
 @container (max-width: 850px) {
   .tabletop-scene { min-height: 750px; }
   .tabletop-notebook { top: calc(30% - 18px); left: 8%; width: 29%; height: auto; }
   .tabletop-ipod { top: 35%; left: 43%; width: 21%; }
   .tabletop-gameboy { top: 29%; right: 5%; width: 26%; }
-  .tabletop-intro { left: 7%; }.tabletop-live { top: 185px; left: 7%; right: auto; }
+  .tabletop-intro { left: 7%; }.tabletop-live { top: 185px; left: 7%; right: auto; padding: 0; border: 0; background: none; box-shadow: none; }
 
   .tabletop-device { padding-inline: 9px; }.tabletop-lcd { min-height: 132px; }.tabletop-game .tabletop-lcd { min-height: 153px; border-width: 7px; }
-  .tabletop-note { top: 64px; right: 10%; }.tabletop-keepsakes { width: 40%; bottom: 9%; }.tabletop-pencils { left: 55%; bottom: 13%; transform: rotate(-28deg); }
+  .tabletop-note { top: 64px; right: 10%; }.tabletop-keepsakes { width: 36%; bottom: 8%; }.tabletop-pencils { left: 47%; top: 26%; bottom: auto; transform: rotate(-14deg); }
+  .tabletop-coffee { right: 6%; bottom: 7%; width: 12%; }
 }
 @container (max-width: 580px) {
   .tabletop-scene { min-height: 1030px; height: auto; max-height: none; }
@@ -229,12 +273,13 @@
   .tabletop-ipod { top: 253px; left: auto; right: 7%; width: 30%; max-width: 150px; }
   .tabletop-device-brand { font-size: 10px; }.tabletop-lcd { min-height: 126px; border-width: 4px; padding: 5px; }.tabletop-lcd strong { font-size: 8px; }.tabletop-lcd img { width: 43px; height: 43px; }.tabletop-lcd-bar { font-size: 5px; }.tabletop-device-engraving { font-size: 4px; }
   .app-shell .discord-desk .tabletop-ipod .discord-player-wheel { width: 76px; height: 76px; margin-block: 13px 7px; }.tabletop-ipod .wheel-menu { top: 9px; }.app-shell .discord-desk .tabletop-ipod .wheel-menu { font-size: 6px; }.tabletop-ipod .wheel-back, .tabletop-ipod .wheel-next { top: 32px; width: 12px; }.tabletop-ipod .wheel-back { left: 6px; }.tabletop-ipod .wheel-next { right: 6px; }.tabletop-ipod .wheel-play { bottom: 7px; }.tabletop-ipod .wheel-play svg { width: 8px; }.app-shell .discord-desk .tabletop-ipod .wheel-center { inset: 23px; }
-  .tabletop-object-caption { font-size: 8px; top: calc(100% + 22px); column-gap: 3px; }.tabletop-object-caption > span { font-size: 6px; letter-spacing: .02em; }
+  .tabletop-object-caption { font-size: 9px; top: calc(100% + 22px); column-gap: 3px; }.tabletop-object-caption > span { font-size: 7px; letter-spacing: .02em; }
   .tabletop-gameboy { top: 608px; right: 11%; width: 43%; max-width: 210px; }.tabletop-game .tabletop-lcd { min-height: 139px; }.tabletop-game .tabletop-lcd img { width: 62px; height: 62px; }.tabletop-game .discord-handheld-controls { height: 101px; }.tabletop-game .discord-handheld-dpad { transform: scale(.8); transform-origin: top left; }.tabletop-game .discord-handheld-buttons { gap: 5px; }.tabletop-game .discord-handheld-buttons i { width: 23px; height: 23px; }.tabletop-game .discord-handheld-system { left: 13px; }
   .tabletop-note { top: 639px; bottom: auto; left: 10%; right: auto; width: 120px; font-size: 11px; padding: 15px 12px; transform: rotate(-6deg); }.tabletop-note-star { display: none; }
-  .tabletop-keepsakes { bottom: 96px; left: -5%; width: 54%; transform: rotate(-12deg); }.tabletop-keepsakes svg > g:first-of-type { opacity: 0; }
+  .tabletop-keepsakes { bottom: 96px; left: -5%; width: 39%; transform: rotate(-12deg); }.tabletop-keepsakes svg > g:first-of-type { opacity: 0; }
+  .tabletop-coffee { right: auto; left: 37%; bottom: 92px; width: 19%; }
   .tabletop-pencils { bottom: 166px; left: 9%; width: 100px; transform: rotate(-64deg); }.tabletop-pencils .discord-desk-pencil { width: 105px; }.tabletop-pencils .discord-desk-pencil span { font-size: 4px; }
-  .tabletop-footer { bottom: 22px; font-size: 6px; flex-wrap: wrap; justify-content: center; column-gap: 20px; }
+  .tabletop-footer { bottom: 22px; font-size: 7px; flex-wrap: wrap; justify-content: center; column-gap: 20px; }
 }
 @media (max-width: 600px) {
   .app-shell .discord-desk.tabletop-dialog { width: calc(100vw - 20px); max-height: calc(100dvh - 24px); }
@@ -244,9 +289,13 @@
   .tabletop-return { margin-top: 5px; }.tabletop-return kbd { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .tabletop-object { transition: none; }
+  .tabletop-object, .tabletop-object > :first-child { transition: none; }
+  .tabletop-object:is(:hover,:focus-visible,:active) > :first-child { transform: none; }
+  .tabletop-live:is(.is-online,.is-syncing) .tabletop-live-led, .tabletop-coffee-steam path { animation: none; }
+  .tabletop-lcd > .is-scrolling { text-overflow: ellipsis; mask-image: none; }
+  .tabletop-lcd > .is-scrolling > span { display: inline; padding: 0; animation: none; }
   .app-shell .discord-desk.tabletop-dialog, .app-shell .discord-desk.tabletop-dialog[data-state="closed"], .tabletop-overlay, .tabletop-overlay[data-state="closed"], .tabletop-equalizer i, .app-shell .tabletop-dialog .discord-desk-device { animation: none; }
-  .tabletop-open-book > .tabletop-book-cover { display: none; animation: none; }
+  .tabletop-open-book > :is(.tabletop-book-cover,.tabletop-book-edge,.tabletop-book-shade) { display: none; animation: none; }
   .tabletop-open-book.is-opening, .app-shell .tabletop-dialog .tabletop-open-book.is-opening .is-portrait, .tabletop-open-book.is-opening .discord-notebook-binding, .tabletop-dialog[data-state="open"] .tabletop-dialog-heading, .tabletop-dialog[data-state="open"] .tabletop-return, .tabletop-dialog.is-notebook[data-state="open"] .tabletop-dialog-scroll { animation: none; }
 }
 
