@@ -162,9 +162,10 @@
 .app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-device-tile { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 0; height: 32px; padding: 0 6px; border: 1.5px dashed color-mix(in srgb, var(--nb-mid) 60%, transparent); border-radius: 3px; background: transparent; color: color-mix(in srgb, var(--nb-mid) 70%, transparent); box-shadow: none; }
 .app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-device-tile svg { width: 13px; height: 13px; }
 .app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-device-tile b { font: 800 9px/1 var(--font-mono); letter-spacing: .1em; }
-/* Connected: inked outline and a highlighter fill, not a solid dark block. The
-   page bends as strips while it turns, and a solid dark fill shows where they meet. */
-.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-device-tile.is-active { border-style: solid; border-color: var(--nb-ink); background: var(--nb-highlight); color: var(--nb-ink-strong); box-shadow: 2px 2px 0 color-mix(in srgb, var(--nb-ink) 20%, transparent); }
+/* Connected: a solid inked outline on bare paper; not connected: dashed and
+   faded. No fill: the page bends as strips while it turns, and a fill that
+   differs from the paper shows a faint line where two strips meet. */
+.app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-device-tile.is-active { border-style: solid; border-color: var(--nb-ink); background: transparent; color: var(--nb-ink-strong); box-shadow: 2px 2px 0 color-mix(in srgb, var(--nb-ink) 22%, transparent); }
 .app-shell .tabletop-dialog .tabletop-open-book .is-notes .discord-device-tile:is(:hover, :focus-visible):not(.is-active) { border-color: var(--nb-ink); color: var(--nb-ink); }
 
 /* Badges: one labelled line. */
