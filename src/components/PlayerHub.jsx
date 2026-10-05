@@ -1,6 +1,6 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Award, Flame, Inbox, LockKeyhole, SlidersHorizontal, Trophy, X } from "lucide-react";
+import { ArrowLeft, ArrowUpRight, Award, Clock3, Flame, Gamepad2, HeartHandshake, Inbox, LockKeyhole, Pencil, ScrollText, SlidersHorizontal, Trophy, X, Zap } from "lucide-react";
 import { PLAYER_GAMES } from "../../shared/player-catalog.mjs";
 import { CommunityInbox } from "./CommunityInbox";
 import { PlayerBadge } from "./PlayerBadge";
@@ -8,6 +8,24 @@ import { PlayerRankings } from "./PlayerRankings";
 
 // La barra superior, el modo attract y la consola leen el nivel real desde aqui
 // (src/lib/cabinetSignals.js) en vez de pedir /api/player otra vez.
+// Cartridge art from the game library, shared by the challenge and the records.
+const coverFor = (game) => `/arcade-library/${game}-cover.webp`;
+const gameName = (game) => PLAYER_GAMES.find((entry) => entry.id === game)?.name || "";
+const SUBTITLES = {
+  passport: "Your player ID and today's challenge.",
+  records: "Your best run in every cabinet game.",
+  customize: "Pick a title, a favorite game, an accent and three badges to show off.",
+  inbox: "Replies and mentions from the message board.",
+  rankings: "Three leaderboards. Five spots. Make your mark."
+};
+
+// "13h 08m" until the challenge rolls over.
+function timeLeft(until, now) {
+  const minutes = Math.max(0, Math.ceil((Date.parse(until) - now) / 60000));
+  const hours = Math.floor(minutes / 60);
+  return hours ? `${hours}h ${String(minutes % 60).padStart(2, "0")}m` : `${minutes}m`;
+}
+
 function announcePlayer(value) {
   const detail = value?.user ? { user: value.user, progression: value.passport?.progression || null } : null;
   window.dispatchEvent(new CustomEvent("daivr-player-card", { detail }));
@@ -22,6 +40,7 @@ export function PlayerHub({ onPlay, theme = "crt" }) {
   const [saveMessage, setSaveMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
+  const [now, setNow] = useState(() => Date.now());
   const previousCard = useRef(null);
   const requestId = useRef(0);
   async function load(signal, preserveEdit = false) {
@@ -58,6 +77,13 @@ export function PlayerHub({ onPlay, theme = "crt" }) {
     window.addEventListener("daivr-open-passport", openPassport);
     return () => { controller.abort(); window.removeEventListener("daivr-inbox", inbox); window.removeEventListener("daivr-player-progress", refresh); window.removeEventListener("daivr-open-passport", openPassport); };
   }, []);
+  // The challenge countdown only needs to move while the panel is open.
+  useEffect(() => {
+    if (!open) return undefined;
+    setNow(Date.now());
+    const timer = window.setInterval(() => setNow(Date.now()), 30000);
+    return () => window.clearInterval(timer);
+  }, [open]);
   useEffect(() => {
     if (!notice) return;
     const timer = window.setTimeout(() => setNotice(""), 8000);
@@ -92,9 +118,9 @@ export function PlayerHub({ onPlay, theme = "crt" }) {
     {notice ? <div className="player-xp-toast" role="status"><Award size={20} aria-hidden="true" /><span>{notice}</span><button type="button" aria-label="Dismiss player reward" onClick={() => setNotice("")}><X size={16} /></button></div> : null}
     <Dialog.Trigger asChild><button className="player-hub-trigger arcade-focus" type="button"><Award size={16} aria-hidden="true" /><span>Player</span>{data?.inbox?.unread ? <b aria-label={`${data.inbox.unread} unread notifications`}>{data.inbox.unread}</b> : null}</button></Dialog.Trigger>
     <Dialog.Portal><Dialog.Overlay className={`player-hub-overlay ${theme === "glitch" ? "theme-glitch" : ""}`} /><Dialog.Content className={`player-hub-dialog ${theme === "glitch" ? "theme-glitch" : ""}`}>
-      <header className="player-hub-heading"><div><div className="player-hub-kicker"><span className="player-hub-window-dots" aria-hidden="true"><i /><i /><i /></span><span>~/cabinet/player.save</span></div><Dialog.Title>{titles[view]}<span aria-hidden="true">_</span></Dialog.Title><Dialog.Description>{view === "rankings" ? "Three leaderboards. Five spots. Make your mark." : "Your identity, records, and next challenge."}</Dialog.Description></div><div className="player-hub-heading-actions">
+      <header className="player-hub-heading"><div><div className="player-hub-kicker"><span className="player-hub-window-dots" aria-hidden="true"><i /><i /><i /></span><span>~/cabinet/player.save</span></div><Dialog.Title>{titles[view]}<span aria-hidden="true">_</span></Dialog.Title><Dialog.Description>{SUBTITLES[view]}</Dialog.Description></div><div className="player-hub-heading-actions">
         {view !== "passport" ? <button type="button" aria-label="Back to passport" onClick={() => setView("passport")}><ArrowLeft size={18} /><span>Back</span></button> : null}
-        {view !== "rankings" ? <button type="button" aria-label="Open player rankings" onClick={() => setView("rankings")}><Trophy size={18} /></button> : null}
+        {view !== "rankings" ? <button type="button" aria-label="Open player rankings" onClick={() => setView("rankings")}><Trophy size={18} /><span>Rankings</span></button> : null}
         <Dialog.Close asChild><button type="button" aria-label="Close player panel"><X size={20} /></button></Dialog.Close>
       </div></header>
       <div className={`player-hub-body view-${view}`}>
@@ -106,28 +132,50 @@ export function PlayerHub({ onPlay, theme = "crt" }) {
       {view === "passport" && card && edit ? <div className="player-hub-identity">
         <section className={`player-passport accent-${edit.accent.toLowerCase()}`} aria-label="Your passport preview">
           <div className="passport-card-label"><span>01 / PLAYER ID</span><span className="passport-collection-count"><Award size={14} aria-hidden="true" />{card.badges.length} badges earned</span></div>
-          <img src={card.user.avatarUrl} alt="" /><div><small>{edit.title}</small><h3>{card.user.username}</h3><p>Favorite: {PLAYER_GAMES.find((game) => game.id === edit.favoriteGame)?.name || "Not chosen yet"}</p></div>
+          <div className="passport-identity">
+            <span className="passport-avatar"><img src={card.user.avatarUrl} alt="" /></span>
+            <div className="passport-name">
+              <span className="passport-title">{edit.title}</span>
+              <h3>{card.user.username}</h3>
+              <p><Gamepad2 size={13} aria-hidden="true" />{edit.favoriteGame ? <>Favorite <b>{gameName(edit.favoriteGame)}</b></> : "No favorite game yet"}</p>
+            </div>
+          </div>
           {card.progression ? <section className="passport-level" aria-label="Player level and experience">
             <div className="passport-level-heading"><strong><span>LVL</span> {card.progression.level}</strong><span>{card.progression.totalXp.toLocaleString()} lifetime XP</span></div>
             <progress value={card.progression.levelXp} max={card.progression.levelGoal} aria-label={`Player level ${card.progression.level} progress`} />
-            <div className="passport-level-meta"><span>{card.progression.levelXp.toLocaleString()} / {card.progression.levelGoal.toLocaleString()} XP</span><span>{card.progression.remainingXp.toLocaleString()} to level {card.progression.level + 1}</span></div>
+            <div className="passport-level-meta"><span><b>{card.progression.levelXp.toLocaleString()}</b> / {card.progression.levelGoal.toLocaleString()} XP</span><span>{card.progression.remainingXp.toLocaleString()} XP to level {card.progression.level + 1}</span></div>
           </section> : null}
-          <dl className="passport-stats"><div><dt>Buddy level</dt><dd>{card.level}</dd></div><div><dt>Quests</dt><dd>{card.quests}</dd></div><div><dt>Daily wins</dt><dd>{card.challengeCount}</dd></div></dl>
-          {edit.featuredBadges.length ? <div className="passport-badges" aria-label="Featured badges">{card.badges.filter((badge) => edit.featuredBadges.includes(badge.id)).map((badge) => <PlayerBadge key={badge.id} badge={badge} tooltip />)}</div> : null}
+          <dl className="passport-stats"><div><dt><HeartHandshake size={13} aria-hidden="true" />Buddy level</dt><dd>{card.level}</dd></div><div><dt><ScrollText size={13} aria-hidden="true" />Quests</dt><dd>{card.quests}</dd></div><div><dt><Trophy size={13} aria-hidden="true" />Daily wins</dt><dd>{card.challengeCount}</dd></div></dl>
+          {edit.featuredBadges.length ? <div className="passport-featured">
+            <div className="passport-featured-head"><span>Featured badges</span><button type="button" onClick={() => setView("customize")}><Pencil size={12} aria-hidden="true" />Edit</button></div>
+            <div className="passport-badges" aria-label="Featured badges">{card.badges.filter((badge) => edit.featuredBadges.includes(badge.id)).map((badge) => <PlayerBadge key={badge.id} badge={badge} tooltip />)}</div>
+          </div> : null}
         </section>
       </div> : null}
-      {challenge ? <section className="daily-challenge" aria-label="Daily challenge">
-        <div className="daily-challenge-heading"><span className="pixel-label">DAILY CHALLENGE</span><span>{challenge.complete ? "Completed" : "One run"}</span></div>
-        <h3>{challenge.name}</h3><p>Score <strong>{challenge.goal.toLocaleString()} {challenge.unit}</strong> in {PLAYER_GAMES.find((game) => game.id === challenge.game)?.name} in one run.</p>
-        <div className="daily-challenge-progress"><progress max={challenge.goal} value={challenge.complete ? challenge.goal : Math.min(challenge.goal, challenge.best || 0)} aria-label="Daily challenge progress" /><p>{challenge.complete ? "Complete — reward unlocked!" : `${(challenge.best || 0).toLocaleString()} / ${challenge.goal.toLocaleString()} ${challenge.unit}`}</p></div>
-        <div className="daily-challenge-reward"><Award size={18} aria-hidden="true" /><div><strong>{challenge.reward}</strong><span>Passport title + card accent</span></div></div>
-        {challenge.xp ? <div className="daily-xp-reward"><strong>+{challenge.xp.total.toLocaleString()} XP <small>{challenge.complete ? "earned" : "on completion"}</small></strong><span>{challenge.xp.base} base + {challenge.xp.bonus.toLocaleString()} streak bonus</span><small>Each consecutive day adds 10 bonus XP. A missed day resets the bonus.</small></div> : null}
-        {card ? <div className="daily-streak-panel"><Flame size={22} aria-hidden="true" /><div><strong>{card.currentStreak || 0}<span> day streak</span></strong><small>Personal best: {card.bestStreak || 0} days</small></div><span className="daily-streak-status">{challenge.complete ? "Today secured" : card.currentStreak ? "Keep it going" : "Start your streak"}</span></div> : null}
-        <button type="button" onClick={() => { setOpen(false); onPlay(challenge.game); }}>Play challenge <span aria-hidden="true">↗</span></button>
-        <small>{challenge.date} · Resets at 00:00 UTC.<br />{data?.user ? "Progress saves after an accepted run." : "Sign in before playing to save progress."}</small>
+      {challenge ? <section className={`daily-challenge${challenge.complete ? " is-complete" : ""}`} aria-label="Daily challenge">
+        <div className="daily-challenge-heading"><span className="pixel-label">DAILY CHALLENGE</span><span className="daily-challenge-reset" title="A new challenge every day at 00:00 UTC"><Clock3 size={12} aria-hidden="true" />{challenge.complete ? "Done for today" : `New in ${timeLeft(challenge.resetsAt, now)}`}</span></div>
+        <div className="daily-challenge-main">
+          <img className="daily-challenge-cover" src={coverFor(challenge.game)} alt="" />
+          <div>
+            <h3>{challenge.name}</h3>
+            <p>Score <strong>{challenge.goal.toLocaleString()} {challenge.unit}</strong> in {gameName(challenge.game)}.</p>
+            <span className="daily-challenge-rule">One run</span>
+          </div>
+        </div>
+        <div className="daily-challenge-progress">
+          <div className="daily-challenge-score"><strong>{(challenge.complete ? challenge.goal : challenge.best || 0).toLocaleString()}</strong><span>/ {challenge.goal.toLocaleString()} {challenge.unit}</span><em>{challenge.complete ? "Complete · reward unlocked" : "best run today"}</em></div>
+          <progress max={challenge.goal} value={challenge.complete ? challenge.goal : Math.min(challenge.goal, challenge.best || 0)} aria-label="Daily challenge progress" />
+        </div>
+        <div className="daily-challenge-rewards">
+          <div className="daily-challenge-reward"><Award size={18} aria-hidden="true" /><div><strong>{challenge.reward}</strong><span>Title + card accent</span></div></div>
+          {challenge.xp ? <div className="daily-xp-reward"><Zap size={18} aria-hidden="true" /><div><strong>+{challenge.xp.total.toLocaleString()} XP</strong><span>{challenge.complete ? "Earned today" : `${challenge.xp.base} base + ${challenge.xp.bonus.toLocaleString()} streak`}</span></div></div> : null}
+        </div>
+        {card ? <div className="daily-streak-panel"><Flame size={20} aria-hidden="true" /><div><strong>{card.currentStreak || 0}<span> day streak</span></strong><small>Best {card.bestStreak || 0} days · each day in a row adds 10 bonus XP, a missed day resets it</small></div><span className="daily-streak-status">{challenge.complete ? "Today secured" : card.currentStreak ? "Keep it going" : "Start one today"}</span></div> : null}
+        <button type="button" className="daily-challenge-play" onClick={() => { setOpen(false); onPlay(challenge.game); }}>{challenge.complete ? "Play again" : "Play challenge"} <ArrowUpRight size={16} aria-hidden="true" /></button>
+        <small className="daily-challenge-note">{data?.user ? "Progress saves after an accepted run." : "Sign in before playing to save progress."}</small>
       </section> : null}
       </div> : null}
-      {view === "records" && card ? <section className="passport-records-panel" aria-label="Personal bests"><h3><Trophy size={14} aria-hidden="true" />Your high scores</h3><div className="passport-records">{card.records.map((record) => <div key={record.game}><span>{PLAYER_GAMES.find((game) => game.id === record.game)?.name}</span><strong>{record.best === null ? "No run yet" : record.best.toLocaleString()}</strong></div>)}</div></section> : null}
+      {view === "records" && card ? <section className="passport-records-panel" aria-label="Personal bests"><h3><Trophy size={14} aria-hidden="true" />Your high scores</h3><div className="passport-records">{card.records.map((record) => <div key={record.game} className={record.best === null ? "is-empty" : undefined}><img src={coverFor(record.game)} alt="" /><span>{gameName(record.game)}</span><strong>{record.best === null ? "No run yet" : record.best.toLocaleString()}</strong><small>{record.best === null ? "Play to set a record" : record.game === "madrace" ? "highest level" : "best score"}</small></div>)}</div></section> : null}
       {view === "customize" && card && edit ? <section className="passport-customize">
         <form className="passport-form" onSubmit={save} onChange={() => setSaveMessage("")}>
           <div className="passport-fields">
