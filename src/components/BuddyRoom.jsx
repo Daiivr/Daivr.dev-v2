@@ -50,7 +50,9 @@ export default function BuddyRoom({ buddy, seasonalEvent }) {
   return <div className="buddy-room">
     <div className="room-main">
       <div className="room-scene-heading"><span><Home size={14} aria-hidden="true" /> A place of your own</span><span>ROOM / 01</span></div>
-      <div className={`room-scene palette-${room.palette} season-${season}`}>
+      {/* Nothing known about this visitor's room yet: an opening state, never
+          the default room that would then swap for theirs. */}
+      {!state.ready ? <div className="room-scene room-scene-opening" role="status"><span><i aria-hidden="true" />Opening your room…</span></div> : <div className={`room-scene palette-${room.palette} season-${season}`}>
         <BuddyRoomScenery room={room} season={season} />
         <div className="room-window-hotspot" tabIndex={0} role="img" aria-label={`${SEASONS[season]}. Trees sway beneath a starry mountain sky.`} onPointerDown={(event) => event.currentTarget.focus()}>
           <span className="room-window-caption" aria-hidden="true">{SEASONS[season]}</span>
@@ -67,9 +69,16 @@ export default function BuddyRoom({ buddy, seasonalEvent }) {
           {speech ? <span key={speech} className="room-buddy-speech" aria-hidden="true">{speech}</span> : null}
         </button>
         <span className="sr-only" role="status">{speech}</span>
-      </div>
+      </div>}
       <div className="room-caption"><span><Moon size={14} aria-hidden="true" />{napping ? "Recharging for the next adventure." : "Tap Buddy for a well-earned nap."}</span><span>LV {String(buddy.friendship.level).padStart(2, "0")}</span></div>
-      <p className="room-note">Your catches, finds, and market decorations have a home here. Tap a display to choose what goes in it. Displaying an item keeps it in your collection.</p>
+      {/* What is on show, one tap from changing it. Displaying keeps the item in your collection. */}
+      <div className="room-displays" role="group" aria-label="On display">
+        <div className="room-displays-head"><span>On display</span><small>Tap one to change it · items stay in your collection</small></div>
+        <div className="room-displays-list">{[["aquarium", "Aquarium", [displayFor("aquarium"), displayFor("aquariumBackLeft"), displayFor("aquariumBackRight")].filter(Boolean)], ["shelfLeft", "Left shelf", [displayFor("shelfLeft")].filter(Boolean)], ["shelfRight", "Right shelf", [displayFor("shelfRight")].filter(Boolean)]].map(([id, label, items]) => <button type="button" key={id} className={`room-display-card ${items.length ? "" : "is-empty"} ${slot === id && tab === "collection" ? "is-selected" : ""}`} disabled={!state.ready || state.saving} onClick={() => { setSlot(id); setTab("collection"); }}>
+          <span className="room-display-card-art" aria-hidden="true">{items.length ? items.slice(0, 3).map((item) => <BuddyCollectibleIcon key={item.key} id={item.id} color={item.color} />) : "+"}</span>
+          <span className="room-display-card-copy"><small>{label}</small><strong>{items.length ? items.map((item) => item.name).join(", ") : "Empty"}</strong></span>
+        </button>)}</div>
+      </div>
     </div>
     <section className="room-editor" aria-label="Room customization">
       <div className="room-editor-heading"><span><i aria-hidden="true" />ROOM STUDIO</span><span>MAKE IT YOURS</span></div>

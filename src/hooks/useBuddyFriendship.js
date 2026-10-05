@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { primeBuddyRoom } from "./useBuddyRoom";
 
 const LOCAL_KEY = "daivr.buddyPets.v1";
 const BUDDY_ENDPOINT = "/api/buddy";
@@ -91,6 +92,8 @@ export function useBuddyFriendship({ onMilestone } = {}) {
         const response = await fetch(BUDDY_ENDPOINT, { credentials: "include" });
         if (!response.ok || cancelled) return;
         const payload = await response.json();
+        // The same answer carries the saved room: keep it for the Room tab.
+        if (!cancelled) primeBuddyRoom(payload);
         if (cancelled || !payload?.user) return;
 
         syncedRef.current = true;
