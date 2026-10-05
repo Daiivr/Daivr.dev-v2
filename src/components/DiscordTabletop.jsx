@@ -9,13 +9,17 @@ import { NotebookSocialsSpread, NotebookDeskContext } from "./NotebookDesk";
 const TURN_MS = 900;
 // Strips the turning sheet is drawn with, so it can bend (see PageCurl).
 const CURL_STRIPS = 8;
+// How far each strip's face reaches under the next (.tabletop-curl-face width).
+const CURL_OVERLAP = 2;
+// How long the strips take to fade into the real page when the turn ends.
+const CURL_FADE_MS = 200;
 
 // A real page doesn't turn as a flat board: it bends, outer edge first. CSS
 // can't bend an element, so while it turns the sheet is drawn as a chain of
 // narrow strips, each turned a little more than the one before it, holding a
 // copy of the matching slice of the page's front and back. The real sheet
 // still turns underneath (hidden) and still ends the turn.
-function PageCurl({ book, turn }) {
+function PageCurl({ book, turn, fading }) {
   const root = useRef(null);
   useLayoutEffect(() => {
     const curl = root.current;
@@ -45,13 +49,15 @@ function PageCurl({ book, turn }) {
       segment.style.setProperty("--strip", index);
       // The back reads mirrored: the strip nearest the spine holds the slice of
       // the back page that ends up nearest the spine.
-      segment.append(face("front", front, index * strip), face("back", back, (CURL_STRIPS - 1 - index) * strip));
+      // The back face is the front one mirrored, so its overlap ends up on the
+      // other side; shifting its slice by the overlap keeps it on the real page.
+      segment.append(face("front", front, index * strip), face("back", back, (CURL_STRIPS - 1 - index) * strip - CURL_OVERLAP));
       parent.append(segment);
       parent = segment;
     }
     return () => curl.replaceChildren();
   }, [book, turn]);
-  return <div ref={root} className="tabletop-curl" data-turn={turn} aria-hidden="true" inert />;
+  return <div ref={root} className="tabletop-curl" data-turn={turn} data-fading={fading || undefined} aria-hidden="true" inert />;
 }
 
 const objects = {
@@ -92,11 +98,23 @@ function DeskEarphones() {
 
 function NotebookInspection({ children, phase, notes, spread }) {
   const book = useRef(null);
-  const curling = phase === "reading" && notes.turn && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const curling = phase === "reading" && notes.turn && !window.matchMedia("(prefers-reduced-motion: reduce)").matches ? notes.turn : null;
+  // When the turn ends, the real page appears under the strips, which hold
+  // their last frame and fade out. Their copies are a touch softer than the
+  // page itself, and swapping straight from one to the other read as the page
+  // loading in.
+  const [held, setHeld] = useState(null);
+  if (curling && curling !== held) setHeld(curling);
+  const fading = !curling && held;
+  useEffect(() => {
+    if (!fading) return undefined;
+    const timer = window.setTimeout(() => setHeld(null), CURL_FADE_MS);
+    return () => window.clearTimeout(timer);
+  }, [fading]);
   return <div ref={book} className={`tabletop-open-book is-${phase}`} data-notes={notes.view} data-turn={notes.turn || undefined} data-curl={curling ? "" : undefined}>
     {children}
     {phase === "reading" && (notes.view === "socials" || notes.turn) ? spread : null}
-    {curling ? <PageCurl book={book} turn={notes.turn} /> : null}
+    {curling || held ? <PageCurl book={book} turn={curling || held} fading={Boolean(fading)} /> : null}
     {phase !== "reading" && <>
       <span className="tabletop-book-shade" aria-hidden="true" />
       <NotebookCover opening />
@@ -177,13 +195,15 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
     if (!dialog || !pickupSource.current) return;
     const item = dialog.querySelector(selected === "notebook" ? ".tabletop-book-cover" : ".tabletop-travel-preview > .tabletop-device, .tabletop-idle-hardware > .tabletop-device");
     if (!item) return;
+    // Both measured at rest, before the pickup animation applies: its first
+    // frame moves and scales the dialog, which threw the landing spot off.
     dialog.style.animation = "none";
     const destination = item.getBoundingClientRect();
+    // The dialog rests centred below the top bar, not on the viewport centre.
+    const rest = dialog.getBoundingClientRect();
     dialog.style.removeProperty("animation");
     const source = pickupSource.current;
     pickupSource.current = null;
-    // The dialog rests centred below the top bar, not on the viewport centre.
-    const rest = dialog.getBoundingClientRect();
     const centerX = rest.left + rest.width / 2;
     const centerY = rest.top + rest.height / 2;
     const scale = source.width / destination.width;
