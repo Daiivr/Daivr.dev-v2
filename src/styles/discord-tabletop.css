@@ -159,6 +159,18 @@
 .tabletop-open-book.is-lifting > .tabletop-book-cover { animation: tabletop-open-cover 560ms 40ms cubic-bezier(.25,.65,.25,1) both; }
 .tabletop-open-book.is-lifting > .tabletop-book-cover .tabletop-book-elastic { animation: tabletop-device-reveal 120ms 120ms both; }
 .tabletop-open-book.is-closing > .tabletop-book-cover { animation: tabletop-close-cover 650ms cubic-bezier(.75,0,.75,.35) both; }
+/* The turning leaf is a hardcover board, not a sheet of paper: this strip is its
+   fore-edge. It turns with the cover, sits at the cover's outer edge and faces
+   outwards, so it is edge-on (invisible) while the book lies flat and shows the
+   board's full thickness when the cover stands up. */
+.tabletop-book-edge { --leaf: calc(50cqw + 6px); --board: 16px; position: absolute; z-index: 11; left: 50%; top: -6px; bottom: -9px; width: var(--board); pointer-events: none; transform-origin: 0 50%; transform: rotateY(0deg) translateX(var(--leaf)) translateZ(calc(var(--board) / 2)) rotateY(90deg); border-radius: 2px; background: repeating-linear-gradient(0deg, #ffffff07 0 1px, transparent 1px 3px), linear-gradient(90deg, #4c6c59, #2b4739 18%, #203a2e 48%, #152a21 64%, #0d1c15 68%, #d6cfac 72%, #b4bea6 86%, #98a88f); box-shadow: inset 0 1px #ffffff24, inset 0 -1px #0006; }
+.tabletop-open-book.is-lifting > .tabletop-book-edge { animation: tabletop-edge-open 560ms 40ms cubic-bezier(.25,.65,.25,1) both; }
+.tabletop-open-book.is-closing > .tabletop-book-edge { animation: tabletop-edge-close 650ms cubic-bezier(.75,0,.75,.35) both; }
+.tabletop-open-book.is-returning > .tabletop-book-edge { display: none; }
+/* The cover darkens the page it is about to land on. */
+.tabletop-book-shade { position: absolute; z-index: 5; inset: 0 0 0 50%; pointer-events: none; opacity: 0; background: linear-gradient(90deg, #08120dcc, #08120d66 45%, #08120d14); }
+.tabletop-open-book.is-lifting > .tabletop-book-shade { animation: tabletop-shade-lift 560ms 40ms cubic-bezier(.25,.65,.25,1) both; }
+.tabletop-open-book.is-closing > .tabletop-book-shade { animation: tabletop-shade-land 650ms cubic-bezier(.75,0,.75,.35) both; }
 .app-shell .discord-desk.tabletop-dialog[data-phase="lifting"] { animation: tabletop-pickup 800ms cubic-bezier(.2,.75,.2,1) both; }
 .app-shell .discord-desk.tabletop-dialog[data-phase="returning"] { animation: tabletop-put-back 850ms cubic-bezier(.4,0,.6,1) both; }
 .tabletop-dialog :is(.tabletop-dialog-heading,.tabletop-return,.tabletop-extra-activities) { transition: opacity 420ms cubic-bezier(.22,.61,.36,1); }
@@ -230,6 +242,10 @@
 @keyframes tabletop-book-uncenter { from { transform: translateX(0); } to { transform: translateX(-25%); } }
 @keyframes tabletop-close-cover { from { transform: rotateY(-180deg); } to { transform: rotateY(0); } }
 @keyframes tabletop-close-page { from { transform: rotateY(0); } to { transform: rotateY(180deg); } }
+@keyframes tabletop-edge-open { from { transform: rotateY(0deg) translateX(var(--leaf)) translateZ(calc(var(--board) / 2)) rotateY(90deg); } to { transform: rotateY(-180deg) translateX(var(--leaf)) translateZ(calc(var(--board) / 2)) rotateY(90deg); } }
+@keyframes tabletop-edge-close { from { transform: rotateY(-180deg) translateX(var(--leaf)) translateZ(calc(var(--board) / 2)) rotateY(90deg); } to { transform: rotateY(0deg) translateX(var(--leaf)) translateZ(calc(var(--board) / 2)) rotateY(90deg); } }
+@keyframes tabletop-shade-land { 0%, 45% { opacity: 0; } 97% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes tabletop-shade-lift { 0% { opacity: 0; } 3% { opacity: 1; } 55%, 100% { opacity: 0; } }
 @keyframes tabletop-binding-reveal { 0%, 75% { opacity: 0; } 100% { opacity: 1; } }
 @keyframes tabletop-eq { from { transform: scaleY(.3); } to { transform: scaleY(1); } }
 @keyframes tabletop-lcd-scroll { 0%, 22% { transform: translateX(0); } 72%, 92% { transform: translateX(calc(var(--lcd-shift, 0px) - 8px)); } 100% { transform: translateX(0); } }
@@ -279,7 +295,7 @@
   .tabletop-lcd > .is-scrolling { text-overflow: ellipsis; mask-image: none; }
   .tabletop-lcd > .is-scrolling > span { display: inline; padding: 0; animation: none; }
   .app-shell .discord-desk.tabletop-dialog, .app-shell .discord-desk.tabletop-dialog[data-state="closed"], .tabletop-overlay, .tabletop-overlay[data-state="closed"], .tabletop-equalizer i, .app-shell .tabletop-dialog .discord-desk-device { animation: none; }
-  .tabletop-open-book > .tabletop-book-cover { display: none; animation: none; }
+  .tabletop-open-book > :is(.tabletop-book-cover,.tabletop-book-edge,.tabletop-book-shade) { display: none; animation: none; }
   .tabletop-open-book.is-opening, .app-shell .tabletop-dialog .tabletop-open-book.is-opening .is-portrait, .tabletop-open-book.is-opening .discord-notebook-binding, .tabletop-dialog[data-state="open"] .tabletop-dialog-heading, .tabletop-dialog[data-state="open"] .tabletop-return, .tabletop-dialog.is-notebook[data-state="open"] .tabletop-dialog-scroll { animation: none; }
 }
 

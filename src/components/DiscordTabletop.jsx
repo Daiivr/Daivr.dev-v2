@@ -43,7 +43,11 @@ function DeskEarphones() {
 function NotebookInspection({ children, phase }) {
   return <div className={`tabletop-open-book is-${phase}`}>
     {children}
-    {phase !== "reading" && <NotebookCover opening />}
+    {phase !== "reading" && <>
+      <span className="tabletop-book-shade" aria-hidden="true" />
+      <NotebookCover opening />
+      <span className="tabletop-book-edge" aria-hidden="true" />
+    </>}
   </div>;
 }
 
