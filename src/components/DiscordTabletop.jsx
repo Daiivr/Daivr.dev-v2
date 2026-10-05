@@ -99,6 +99,7 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
   const trigger = useRef(null);
   const pickupSource = useRef(null);
   const closeQueued = useRef(false);
+  const [returned, setReturned] = useState(null);
   const signal = error ? "SIGNAL LOST" : loading ? "SYNCING" : null;
   const liveActivities = error || loading || statusKey === "offline" ? [] : activities;
   const music = liveActivities.filter((activity) => activity.type === 2);
@@ -138,7 +139,7 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
     const durations = { lifting: 800, opening: selected === "notebook" ? 700 : 320, closing: selected === "notebook" ? 650 : 280, returning: 850 };
     const next = { lifting: "reading", opening: "reading", closing: "returning" };
     const timer = window.setTimeout(() => {
-      if (phase === "returning") setOpen(false);
+      if (phase === "returning") settle();
       else setPhase(next[phase]);
     }, reduced ? 0 : durations[phase] + 300);
     return () => window.clearTimeout(timer);
@@ -172,8 +173,29 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
     if (name === "tabletop-device-stow" && phase === "closing") setPhase("returning");
     if (selected === "notebook" && name === "tabletop-book-center" && phase === "opening") setPhase("reading");
     if (selected === "notebook" && name === "tabletop-book-uncenter" && phase === "closing") setPhase("returning");
-    if (name === "tabletop-put-back" && phase === "returning") setOpen(false);
+    if (name === "tabletop-put-back" && phase === "returning") settle();
   }
+
+  // The object lands where the cursor (or keyboard focus) often still is.
+  // Hold back the hover lift until the pointer moves off it or focus leaves,
+  // so it does not pop up again the moment it touches the desk.
+  function settle() {
+    setReturned(selected);
+    setOpen(false);
+  }
+
+  useEffect(() => {
+    if (!returned) return undefined;
+    const object = trigger.current;
+    const release = () => setReturned(null);
+    const away = (event) => { if (!object?.contains(event.target)) release(); };
+    document.addEventListener("pointermove", away);
+    object?.addEventListener("blur", release);
+    return () => {
+      document.removeEventListener("pointermove", away);
+      object?.removeEventListener("blur", release);
+    };
+  }, [returned]);
 
   function inspect(kind, event) {
     const target = event.currentTarget;
@@ -192,16 +214,23 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
     const height = item.offsetHeight;
     const deviceWidth = Math.min(310, Math.max(280, window.innerHeight - 230) * width / height);
     const zoom = deviceWidth / width;
+    // With nothing playing the dialog shows the desk preview itself: laid out at
+    // its desk width and scaled, so it keeps exactly the shape it had on the desk.
+    const idleZoom = Math.min(228 / width, 360 / height);
     setOrigin({
       "--preview-width": `${width}px`,
       "--preview-zoom": zoom,
       "--device-width": `${deviceWidth}px`,
       "--device-height": `${height * zoom}px`,
+      "--idle-zoom": idleZoom,
+      "--idle-width": `${width * idleZoom}px`,
+      "--idle-height": `${height * idleZoom}px`,
       "--wheel-size": `${(target.querySelector(".discord-player-wheel")?.offsetWidth || 110) * zoom}px`
     });
     trigger.current = target;
     setPortalContainer(target.closest(".app-shell"));
     setSelected(kind);
+    setReturned(null);
     closeQueued.current = false;
     setPhase("lifting");
     setOpen(true);
@@ -209,7 +238,7 @@ export function DiscordTabletop({ notebook, activities, renderActivities, status
   }
 
   return <>
-    <div className="tabletop-scene" data-picked={open ? selected : undefined}>
+    <div className="tabletop-scene" data-picked={open ? selected : undefined} data-returned={returned || undefined}>
       <div className="tabletop-mat" aria-hidden="true" />
       <header className="tabletop-intro">
         <span className="tabletop-eyebrow">MAKE YOURSELF AT HOME</span>
