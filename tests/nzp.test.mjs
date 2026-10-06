@@ -132,6 +132,18 @@ test("rankings keep each player's best round and their total kills and points ac
   assert.equal(rankings.forUser("nobody"), null);
 });
 
+test("a best round saved on a test map before those were refused drops off the round ranking", () => {
+  let saved = [{ discordId: "aoi", username: "Aoi", bestRound: 2, bestRoundMap: "weapon_test", totalKills: 15, totalScore: 1640, games: 2 }];
+  const rankings = createNzpRankings({ read: () => structuredClone(saved), write: (entries) => { saved = entries; } });
+  assert.deepEqual(rankings.leaderboard("round"), []);
+  assert.deepEqual(rankings.leaderboard("kills").map(({ discordId, value }) => [discordId, value]), [["aoi", 15]], "totals stay");
+  assert.equal(rankings.forUser("aoi").ranks.round, null);
+  // The next real game sets a fresh best, even a lower round.
+  rankings.record({ id: "aoi", username: "Aoi", avatarUrl: "" }, { round: 1, kills: 5, score: 1140, map: "ndu" });
+  assert.deepEqual(rankings.leaderboard("round").map(({ discordId, value, map }) => [discordId, value, map]), [["aoi", 1, "ndu"]]);
+  assert.equal(saved[0].bestRoundMap, "ndu");
+});
+
 test("HTTP rankings need a Discord session, a run token and a plausible game", async (t) => {
   const restore = useTempData(t);
   const server = createServer(handleNzpRequest);

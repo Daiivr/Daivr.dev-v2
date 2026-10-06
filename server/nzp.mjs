@@ -50,6 +50,12 @@ export function validateNzpGame(body) {
 }
 
 export function createNzpRankings(store) {
+  // Una ronda maxima guardada en un mapa de prueba (de antes de que se
+  // rechazaran) no cuenta: sale del ranking de ronda y la siguiente partida
+  // marca una nueva. Los totales de bajas y puntos se quedan como estan.
+  const read = () => store.read().map((entry) => (UNRANKED_MAPS.has(String(entry.bestRoundMap || "").toLowerCase())
+    ? { ...entry, bestRound: 0, bestRoundMap: "", bestRoundAt: undefined }
+    : entry));
   const sorted = (entries, board) => {
     const { field, since } = NZP_BOARDS[board];
     return entries
@@ -67,10 +73,10 @@ export function createNzpRankings(store) {
   return {
     leaderboard(board, limit = 10) {
       const size = Math.min(50, Math.max(1, Number(limit) || 10));
-      return sorted(store.read(), board).slice(0, size).map((entry, index) => toPublic(entry, index + 1, board));
+      return sorted(read(), board).slice(0, size).map((entry, index) => toPublic(entry, index + 1, board));
     },
     forUser(userId) {
-      const entries = store.read();
+      const entries = read();
       const entry = entries.find((item) => String(item.discordId) === String(userId));
       if (!entry) return null;
       const ranks = Object.fromEntries(Object.keys(NZP_BOARDS).map((board) => {
@@ -84,7 +90,7 @@ export function createNzpRankings(store) {
       };
     },
     record(user, game, now = new Date().toISOString()) {
-      const entries = store.read();
+      const entries = read();
       const index = entries.findIndex((entry) => String(entry.discordId) === String(user.id));
       const current = index >= 0 ? entries[index] : { discordId: String(user.id), createdAt: now };
       const best = game.round > (Number(current.bestRound) || 0);
