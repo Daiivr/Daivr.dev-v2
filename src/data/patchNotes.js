@@ -5,6 +5,17 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.64.2",
+    codename: "BACKBLAST",
+    date: "2026-10-06",
+    summary: "The Panzerschreck stops kicking you to the main menu, and only games with the standard settings count toward the NZ:P rankings.",
+    entries: [
+      ["fix", "Going down to your own rocket in a way that ended the game kicked you back to the main menu instead of showing GAME OVER. That was a bug in NZ:P itself, and grenades could hit it too."],
+      ["nerf", "Changing any setting in Game Settings, not just Start Round, keeps that game out of the rankings and the daily challenge. Hovering GAME SETTINGS or any option inside it says so with a glowing note."],
+      ["fix", "An old best round on the developers' weapon test map no longer sits on the Round ranking."]
+    ]
+  },
+  {
     version: "v2.64.1",
     codename: "LAST STAND",
     date: "2026-10-06",

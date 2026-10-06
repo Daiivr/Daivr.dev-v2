@@ -12,7 +12,7 @@ index 86dfcc0..20aa7eb 100644
  		drawfill([g_width/2 - 271, 177], [270 * 2 + 2, 1], [0.2, 0.2, 0.2], 1, 0);
  		drawfill([g_width/2 - 271, 178 + scoreboard_text_size + 4], [270 * 2 + 2, 1], [0.2, 0.2, 0.2], 1, 0);
 diff --git a/source/client/main.qc b/source/client/main.qc
-index aa6f3dc..fc0c3a1 100644
+index aa6f3dc..f60a26a 100644
 --- a/source/client/main.qc
 +++ b/source/client/main.qc
 @@ -28,6 +28,10 @@ float need_vid_reload;
@@ -26,25 +26,26 @@ index aa6f3dc..fc0c3a1 100644
  	if (serverkey("constate") != "disconnected")
  	{
  		if (player_count == 1)
-@@ -136,6 +140,17 @@ float() GenerateAlphaTransparencyQ3Shaders =
+@@ -136,6 +140,18 @@ float() GenerateAlphaTransparencyQ3Shaders =
  	return need_reload;
  };
  
 +// daivr.dev: report this player's game to the page around the game
 +// (public/nzp/shell.js reads it from the engine's console output):
-+// "[daivr] nzp-stats <phase> <round> <kills> <headshots> <total score> <map> <start round>".
++// "[daivr] nzp-stats <phase> <round> <kills> <headshots> <total score> <map> <custom>",
++// where custom is 1 when the host changed any Game Setting.
 +void(string phase) Daivr_ReportStats =
 +{
 +	entity me = findfloat(world, playernum, getplayerkeyfloat(player_localnum, "client_index"));
-+	// The host's START ROUND setting (server/main.qc puts it in the serverinfo).
-+	float start_round = max(1, stof(serverkey("daivr_startround")));
-+	print(sprintf("[daivr] nzp-stats %s %d %d %d %d %s %d\n", phase, rounds, me.kills, me.headshots, getstatf(STAT_TOTALSCORE), mapname, start_round));
++	// Changed Game Settings on the host (server/main.qc puts it in the serverinfo).
++	float custom = stof(serverkey("daivr_custom")) != 0;
++	print(sprintf("[daivr] nzp-stats %s %d %d %d %d %s %d\n", phase, rounds, me.kills, me.headshots, getstatf(STAT_TOTALSCORE), mapname, custom));
 +};
 +
  noref void(float apiver, string enginename, float enginever) CSQC_Init =
  {
  	setwindowcaption("Nazi Zombies: Portable");
-@@ -982,7 +997,22 @@ noref void(float width, float height, float menushown) CSQC_UpdateView =
+@@ -982,7 +998,22 @@ noref void(float width, float height, float menushown) CSQC_UpdateView =
  	//does what you think it does
  	renderscene();
  
@@ -68,7 +69,7 @@ index aa6f3dc..fc0c3a1 100644
  	{
  		// sorta-nasty hack: flashes should still draw if we're
  		// drawing the menu.
-@@ -1230,6 +1260,7 @@ noref void() CSQC_Parse_Event =
+@@ -1230,6 +1261,7 @@ noref void() CSQC_Parse_Event =
  			break;
  		case CSQC_EVENT_ROUNDCHANGE:
  			rounds = readbyte();
@@ -76,7 +77,7 @@ index aa6f3dc..fc0c3a1 100644
  			break;
  		case CSQC_EVENT_BROADCASTMESSAGE:
  			broadcast_type = readbyte();
-@@ -1307,6 +1338,9 @@ noref void() CSQC_Parse_Event =
+@@ -1307,6 +1339,9 @@ noref void() CSQC_Parse_Event =
  			break;
  		case EVENT_ENDGAME:
  			in_endgame_sequence = true;
@@ -118,7 +119,7 @@ index 23c18c9..c2d788e 100644
  #endif // MENU
  
 diff --git a/source/menu/m_menu.qc b/source/menu/m_menu.qc
-index 91dc9fc..5963631 100644
+index 91dc9fc..110fe9b 100644
 --- a/source/menu/m_menu.qc
 +++ b/source/menu/m_menu.qc
 @@ -556,7 +556,7 @@ void(float order, float sub_order, string header) Menu_DrawCreditContributor =
@@ -130,7 +131,46 @@ index 91dc9fc..5963631 100644
  	sui_text([-6, 22], MENU_TEXT_SMALL, sprintf("Welcome, %s", cvar_string("name")), [1, 1, 0], 1, 0);
  };
  
-@@ -794,6 +794,17 @@ string Menu_CleanUpServerAddress(string server_address) =
+@@ -618,6 +618,38 @@ void() Menu_DrawBackground =
+ // Wrapper for drawing the current Menu title
+ // in the desired location + at the desired size.
+ //
++//
++// daivr.dev: Menu_DrawRankNote(note)
++// A pulsing, glowing line under the hovered button's description (which
++// Menu_Button draws 30 units above the bottom of the frame). Used for the
++// Game Settings that keep a game out of the rankings.
++//
++void(string note) Menu_DrawRankNote =
++{
++	float pulse = 0.5 + 0.5 * fabs(sin(time * 3));
++	vector glow = [1, 0.35, 0];
++
++	sui_set_align([SUI_ALIGN_CENTER, SUI_ALIGN_END]);
++
++	// Halo: the text added around itself in orange, in rings that fade out
++	// (drawflag 1 = additive), breathing with the pulse.
++	for (float ring = 1; ring <= 3; ring++) {
++		float ring_alpha = (0.7 / ring) * pulse;
++		sui_text([-ring, -12], MENU_TEXT_SMALL, note, glow, ring_alpha, 1);
++		sui_text([ring, -12], MENU_TEXT_SMALL, note, glow, ring_alpha, 1);
++		sui_text([0, -12 - ring], MENU_TEXT_SMALL, note, glow, ring_alpha, 1);
++		sui_text([0, -12 + ring], MENU_TEXT_SMALL, note, glow, ring_alpha, 1);
++		sui_text([-ring, -12 - ring], MENU_TEXT_SMALL, note, glow, ring_alpha * 0.5, 1);
++		sui_text([ring, -12 + ring], MENU_TEXT_SMALL, note, glow, ring_alpha * 0.5, 1);
++		sui_text([ring, -12 - ring], MENU_TEXT_SMALL, note, glow, ring_alpha * 0.5, 1);
++		sui_text([-ring, -12 + ring], MENU_TEXT_SMALL, note, glow, ring_alpha * 0.5, 1);
++	}
++
++	sui_text([0, -12], MENU_TEXT_SMALL, note, [1, 0.9, 0.45], 1, 0);
++
++	sui_set_align([SUI_ALIGN_START, SUI_ALIGN_START]);
++};
++
+ void(string menu_title) Menu_DrawTitle =
+ {
+ 	sui_set_align([SUI_ALIGN_START, SUI_ALIGN_START]);
+@@ -794,6 +826,17 @@ string Menu_CleanUpServerAddress(string server_address) =
  // Draw the master server list
  //
  void(float type) Menu_PlaySound;
@@ -148,7 +188,7 @@ index 91dc9fc..5963631 100644
  void(string id, vector pos, vector size, __inout vector scrollofs, float num_servers) Menu_ServerList =
  {
  	vector rowsize = [size.x, 16];
-@@ -827,11 +838,18 @@ void(string id, vector pos, vector size, __inout vector scrollofs, float num_ser
+@@ -827,11 +870,18 @@ void(string id, vector pos, vector size, __inout vector scrollofs, float num_ser
  		// do it
  		if (sui_is_clicked(listitem_id)) {
  			Menu_PlaySound(MENU_SND_ENTER);
@@ -171,7 +211,7 @@ index 91dc9fc..5963631 100644
  		}
  #endif // MENU
  
-@@ -840,11 +858,28 @@ void(string id, vector pos, vector size, __inout vector scrollofs, float num_ser
+@@ -840,11 +890,28 @@ void(string id, vector pos, vector size, __inout vector scrollofs, float num_ser
  		sui_fill(bpos, bsize, [0.25, 0.1, 0.1], 0.5, 0);
  		sui_text(bpos + [8, 2], MENU_TEXT_SMALL, str2ascii(gethostcachestring(gethostcacheindexforkey("name"), index)), MENU_TEXT_1, 1, 0);
  
@@ -201,7 +241,7 @@ index 91dc9fc..5963631 100644
  
  		// players
  		bpos.x = bsize.x * 7;
-@@ -876,6 +911,7 @@ void(string id, vector pos, vector size, __inout vector scrollofs, float num_ser
+@@ -876,6 +943,7 @@ void(string id, vector pos, vector size, __inout vector scrollofs, float num_ser
  
  void() Menu_StartCoop =
  {
@@ -209,7 +249,7 @@ index 91dc9fc..5963631 100644
  	localcmd("sv_public 2; sv_listen_qw 1\n");
  	current_menu = MENU_COOPSTOCK;
  };
-@@ -1003,7 +1039,9 @@ float last_menu;
+@@ -1003,7 +1071,9 @@ float last_menu;
  void(vector size) root_menu =
  {
  	sui_set_align([SUI_ALIGN_CENTER, SUI_ALIGN_CENTER]);
@@ -220,7 +260,7 @@ index 91dc9fc..5963631 100644
  	switch (current_menu)
  	{
  
-@@ -1027,6 +1065,7 @@ void(vector size) root_menu =
+@@ -1027,6 +1097,7 @@ void(vector size) root_menu =
  #else
  
  		case MENU_PAUSE: Menu_Pause(); break;
@@ -460,58 +500,37 @@ index def4893..7fe0716 100644
  
  string menu_coop_buttons[] = {
 diff --git a/source/menu/menu_gset.qc b/source/menu/menu_gset.qc
-index 937f7bf..3855702 100644
+index 937f7bf..4250c0d 100644
 --- a/source/menu/menu_gset.qc
 +++ b/source/menu/menu_gset.qc
-@@ -96,6 +96,37 @@ void() Menu_GameSettings_ApplyFastRounds =
-     cvar_set("sv_fastrounds", ftos(current_fastrounds));
- };
+@@ -171,6 +171,12 @@ void() Menu_GameSettings =
+     }
+     Menu_DrawOptionValue(7, fast_string);
  
-+//
-+// daivr.dev: Menu_GameSettings_DrawRankNote(note)
-+// A pulsing, glowing line under the hovered option's description (which
-+// Menu_Button draws 30 units above the bottom of the frame).
-+//
-+void(string note) Menu_GameSettings_DrawRankNote =
-+{
-+    float pulse = 0.5 + 0.5 * fabs(sin(time * 3));
-+    vector glow = [1, 0.35, 0];
++    // daivr.dev: changing any of these keeps the game out of the rankings
++    // (server/main.qc, daivr_custom).
++    if (sui_is_hovered("ge_mode") || sui_is_hovered("ge_diff") || sui_is_hovered("ge_rond") || sui_is_hovered("ge_magc")
++        || sui_is_hovered("ge_head") || sui_is_hovered("ge_hord") || sui_is_hovered("ge_frnd"))
++        Menu_DrawRankNote("Changing this keeps the game out of the rankings and daily goal.");
 +
-+    sui_set_align([SUI_ALIGN_CENTER, SUI_ALIGN_END]);
-+
-+    // Halo: the text added around itself in orange, in rings that fade out
-+    // (drawflag 1 = additive), breathing with the pulse.
-+    for (float ring = 1; ring <= 3; ring++) {
-+        float ring_alpha = (0.7 / ring) * pulse;
-+        sui_text([-ring, -12], MENU_TEXT_SMALL, note, glow, ring_alpha, 1);
-+        sui_text([ring, -12], MENU_TEXT_SMALL, note, glow, ring_alpha, 1);
-+        sui_text([0, -12 - ring], MENU_TEXT_SMALL, note, glow, ring_alpha, 1);
-+        sui_text([0, -12 + ring], MENU_TEXT_SMALL, note, glow, ring_alpha, 1);
-+        sui_text([-ring, -12 - ring], MENU_TEXT_SMALL, note, glow, ring_alpha * 0.5, 1);
-+        sui_text([ring, -12 + ring], MENU_TEXT_SMALL, note, glow, ring_alpha * 0.5, 1);
-+        sui_text([ring, -12 - ring], MENU_TEXT_SMALL, note, glow, ring_alpha * 0.5, 1);
-+        sui_text([-ring, -12 + ring], MENU_TEXT_SMALL, note, glow, ring_alpha * 0.5, 1);
-+    }
-+
-+    sui_text([0, -12], MENU_TEXT_SMALL, note, [1, 0.9, 0.45], 1, 0);
-+
-+    sui_set_align([SUI_ALIGN_START, SUI_ALIGN_START]);
-+};
-+
- void() Menu_GameSettings = 
- {
-     Menu_DrawBackground();
-@@ -137,6 +168,10 @@ void() Menu_GameSettings =
-     Menu_Button(3, "ge_rond", "START ROUND", "Round to begin the Game on.") ? 0 : 0;
-     Menu_CvarSlider(3, "ge_rond", [0, 50, 10], "sv_startround", true, false, true);
+     Menu_Button(-1, "ge_back", "BACK", "Return to Pre-Game Menu.") ? current_menu = MENU_LOBBY : 0;
  
-+    // daivr.dev: games started past round 1 stay out of the rankings.
-+    if (sui_is_hovered("ge_rond"))
-+        Menu_GameSettings_DrawRankNote("Starting past round 1 keeps this game out of the rankings and daily goal.");
+ 	sui_pop_frame();	
+diff --git a/source/menu/menu_loby.qc b/source/menu/menu_loby.qc
+index aeb94be..fbefd2f 100644
+--- a/source/menu/menu_loby.qc
++++ b/source/menu/menu_loby.qc
+@@ -86,6 +86,10 @@ void() Menu_Lobby =
+         else
+             Menu_GreyButton(2, "NOT SUPPORTED BY MAP");
+ 
++        // daivr.dev: changed Game Settings keep the game out of the rankings.
++        if (sui_is_hovered("lo_games"))
++            Menu_DrawRankNote("Changing any game setting keeps this game out of the rankings and daily goal.");
 +
-     // Magic
-     string magic_string = "";
-     Menu_Button(4, "ge_magc", "MAGIC", "Whether to allow Perks, Power-Ups, and the Mystery Box.") ? Menu_GameSettings_ApplyMagic() : 0;
+         Menu_Button(-1, "lo_back", "BACK", "Return to Map Selection.") ? current_menu = last_map_menu : 0;
+     } else {
+         Menu_Button(1, "lo_cancl", "CANCEL", "..Take it back!") ? Menu_Lobby_StopCountdown() : 0;
 diff --git a/source/menu/menu_main.qc b/source/menu/menu_main.qc
 index 0976e80..fc85229 100644
 --- a/source/menu/menu_main.qc
@@ -704,17 +723,44 @@ index 97deafb..4b80018 100644
  
  // when dead and other players exist and are alive, throw user into spectate mode
 diff --git a/source/server/main.qc b/source/server/main.qc
-index c4b4af5..9ae55ac 100644
+index c4b4af5..1d6de62 100644
 --- a/source/server/main.qc
 +++ b/source/server/main.qc
-@@ -493,6 +493,10 @@ void() worldspawn =
+@@ -493,6 +493,14 @@ void() worldspawn =
  	cvar_set("mapname_pretty", mapname_pretty);
  	localcmd(sprintf("serverinfo mapname_pretty %s\n", mapname_pretty));
  
-+	// daivr.dev: clients report the start round with their stats (client/main.qc,
-+	// Daivr_ReportStats), so games started past round 1 stay out of the rankings.
-+	localcmd(sprintf("serverinfo daivr_startround %d\n", max(1, cvar("sv_startround"))));
++	// daivr.dev: a game with any Game Setting changed from the defaults the map
++	// menu resets to (menu/menu_maps.qc, Menu_Maps_LoadMap) stays out of the
++	// rankings. Clients report this flag with their stats (client/main.qc,
++	// Daivr_ReportStats), so co-op guests report the host's settings.
++	float daivr_custom = cvar("sv_gamemode") != 0 || cvar("sv_difficulty") != 0 || cvar("sv_startround") > 1
++		|| cvar("sv_magic") != 1 || cvar("sv_headshotonly") != 0 || cvar("sv_maxai") != 24 || cvar("sv_fastrounds") != 0;
++	localcmd(sprintf("serverinfo daivr_custom %d\n", daivr_custom));
 +
  #endif // FTE
  
  	Gamemode_Init();
+diff --git a/source/server/player/last_stand.qc b/source/server/player/last_stand.qc
+index facdc66..6284c8e 100644
+--- a/source/server/player/last_stand.qc
++++ b/source/server/player/last_stand.qc
+@@ -508,6 +508,10 @@ void(entity client) LastStand_Begin =
+ 	float players_still_alive = PollPlayersAlive();
+ 	if ((player_count > 1&& !players_still_alive) || (player_count == 1 && !(self.perks & P_REVIVE))) {
+ 		EndGameSetup();
++		// daivr.dev: restore self on this early return too. Downed by your own
++		// rocket or grenade, the explosion code still runs as the projectile and
++		// would otherwise SUB_Remove() the player ("cannot free player entities").
++		self = old_self;
+ 		return;
+ 	}
+ 
+@@ -524,6 +528,7 @@ void(entity client) LastStand_Begin =
+ 	if ((self.perks & P_REVIVE) && player_count == 1) {	
+ 		if (cvar("sv_difficulty") == 3) {
+ 			EndGameSetup();
++			self = old_self;
+ 			return;
+ 		}
+         LastStand_InitiateSoloRevive(self);

@@ -75,18 +75,18 @@ export function NzpModal({ onBack, onClose }) {
 
   // One record per game, saved at game over (everyone down). A game left early
   // (quitting to the menu, closing the cartridge) saves nothing, games without
-  // a kill are skipped, and so are games started past round 1 (START ROUND).
+  // a kill are skipped, and so are games with changed Game Settings (custom).
   const submitGame = useCallback((game) => {
     if (!game.kills) return;
-    if (game.startRound > 1) {
-      setNotice(`STARTED AT ROUND ${game.startRound} // NOT RANKED`);
+    if (game.custom) {
+      setNotice("CUSTOM GAME SETTINGS // NOT RANKED");
       return;
     }
     if (!meRef.current) {
       setNotice("CONNECT DISCORD TO RANK YOUR GAMES");
       return;
     }
-    const body = { round: game.round, kills: game.kills, headshots: game.headshots, score: game.score, map: game.map, startRound: game.startRound, durationMs: Date.now() - game.startedAt };
+    const body = { round: game.round, kills: game.kills, headshots: game.headshots, score: game.score, map: game.map, custom: game.custom, durationMs: Date.now() - game.startedAt };
     setNotice(`SAVING ROUND ${game.round}...`);
     runTokenFor("nzp")
       // keepalive: the save still lands if the cartridge closes right after game over.
@@ -105,15 +105,15 @@ export function NzpModal({ onBack, onClose }) {
     function receive(event) {
       const frame = frameRef.current?.contentWindow;
       if (!frame || event.source !== frame || event.origin !== window.location.origin || event.data?.type !== "nzp:stats") return;
-      const { phase, round, kills, headshots, score, map, startRound } = event.data;
+      const { phase, round, kills, headshots, score, map, custom } = event.data;
       let game = gameRef.current;
       // Lower counters or another map mean a new game started; the old one was left early.
       if (game && (map !== game.map || round < game.round || kills < game.kills || headshots < game.headshots || score < game.score)) game = null;
       game ??= { startedAt: Date.now(), map };
-      Object.assign(game, { round, kills, headshots, score, startRound });
+      Object.assign(game, { round, kills, headshots, score, custom });
       // The daily goal can complete mid-game (useDailyChallengeNotice), but not
       // in a game started past round 1.
-      if (round > 0 && startRound <= 1) reportRef.current({ metrics: { round, kills, headshots, score, map, startRound }, durationMs: Date.now() - game.startedAt });
+      if (round > 0 && !custom) reportRef.current({ metrics: { round, kills, headshots, score, map, custom }, durationMs: Date.now() - game.startedAt });
       if (phase === "end") {
         submitGame(game);
         gameRef.current = null;

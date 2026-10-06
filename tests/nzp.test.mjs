@@ -88,9 +88,9 @@ test("Discord names become safe NZ:P player names", () => {
 });
 
 test("the game's stats lines parse, and anything else is ignored", () => {
-  assert.deepEqual(nzpStatsLine("[daivr] nzp-stats round 12 87 31 15340 ndu 1\n"), { phase: "round", round: 12, kills: 87, headshots: 31, score: 15340, map: "ndu", startRound: 1 });
-  assert.deepEqual(nzpStatsLine("[daivr] nzp-stats end 33 9 2 1200 nzp_warehouse2 30"), { phase: "end", round: 33, kills: 9, headshots: 2, score: 1200, map: "nzp_warehouse2", startRound: 30 });
-  for (const text of ["client Dai connected", "[daivr] nzp-stats round 3 9 2 1200 ndu", "[daivr] nzp-stats start 1 0 0 0 ndu 1", "[daivr] nzp-stats end -1 0 0 0 ndu 1", "[daivr] nzp-stats end 1 0 0 0 nd u 1", "[daivr] nzp-stats end 1 0 0 0 ndu 1 extra"]) {
+  assert.deepEqual(nzpStatsLine("[daivr] nzp-stats round 12 87 31 15340 ndu 0\n"), { phase: "round", round: 12, kills: 87, headshots: 31, score: 15340, map: "ndu", custom: false });
+  assert.deepEqual(nzpStatsLine("[daivr] nzp-stats end 33 9 2 1200 nzp_warehouse2 1"), { phase: "end", round: 33, kills: 9, headshots: 2, score: 1200, map: "nzp_warehouse2", custom: true });
+  for (const text of ["client Dai connected", "[daivr] nzp-stats round 3 9 2 1200 ndu", "[daivr] nzp-stats round 3 9 2 1200 ndu 2", "[daivr] nzp-stats start 1 0 0 0 ndu 0", "[daivr] nzp-stats end -1 0 0 0 ndu 0", "[daivr] nzp-stats end 1 0 0 0 nd u 0", "[daivr] nzp-stats end 1 0 0 0 ndu 0 extra"]) {
     assert.equal(nzpStatsLine(text), null, text);
   }
 });
@@ -105,14 +105,14 @@ test("the QuakeC build ports upstream's CRC16 hash table generator", () => {
 });
 
 test("NZ:P games validate against the client's limits and a plausible pace", () => {
-  const game = (fields) => ({ round: 2, kills: 10, headshots: 0, score: 100, map: "ndu", startRound: 1, durationMs: minutes(5), ...fields });
+  const game = (fields) => ({ round: 2, kills: 10, headshots: 0, score: 100, map: "ndu", custom: false, durationMs: minutes(5), ...fields });
   assert.deepEqual(validateNzpGame(game({ round: 12, kills: 180, headshots: 60, score: 21_000, durationMs: minutes(25) })).game, { round: 12, kills: 180, headshots: 60, score: 21_000, map: "ndu", durationMs: minutes(25) });
   for (const body of [{}, game({ round: 0 }), game({ round: 256, durationMs: minutes(60) }), game({ kills: 1.5 }), game({ map: "../evil" }),
-    game({ headshots: 11 }), game({ headshots: undefined }), game({ headshots: -1 }), game({ startRound: undefined }), game({ startRound: 0 })]) {
+    game({ headshots: 11 }), game({ headshots: undefined }), game({ headshots: -1 }), game({ custom: undefined }), game({ custom: 0 })]) {
     assert.equal(validateNzpGame(body).game, undefined, JSON.stringify(body));
   }
   assert.equal(validateNzpGame(game({ map: "weapon_test" })).status, 422, "developer test map");
-  assert.equal(validateNzpGame(game({ round: 31, startRound: 30, durationMs: minutes(30) })).status, 422, "START ROUND past 1");
+  assert.equal(validateNzpGame(game({ custom: true })).status, 422, "changed game settings");
   assert.equal(validateNzpGame(game({ round: 30, durationMs: minutes(1) })).status, 422, "30 rounds in a minute");
   assert.equal(validateNzpGame(game({ kills: 5000, durationMs: minutes(1) })).status, 422, "5000 kills in a minute");
   assert.equal(validateNzpGame(game({ score: 900_000 })).status, 422, "points out of all proportion");
@@ -161,7 +161,7 @@ test("HTTP rankings need a Discord session, a run token and a plausible game", a
     });
     return { status: response.status, data: await response.json() };
   }
-  const game = { round: 9, kills: 120, headshots: 40, score: 11_000, map: "ndu", startRound: 1, durationMs: minutes(15) };
+  const game = { round: 9, kills: 120, headshots: 40, score: 11_000, map: "ndu", custom: false, durationMs: minutes(15) };
   const runToken = issueRunToken("nzp", Date.now() - minutes(20));
   assert.equal((await api("game", { body: { ...game, runToken } })).status, 401);
   assert.equal((await api("game", { id: "alice", body: { ...game, runToken }, headers: { Origin: "https://other.test" } })).status, 403);
