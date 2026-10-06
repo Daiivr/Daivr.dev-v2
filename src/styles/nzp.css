@@ -20,19 +20,46 @@
 .nzp-lobby h4 { margin: 20px 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; }
 .nzp-lobby p { color: #aabbb0; }
 .nzp-modal .nzp-stop { min-height: 28px; padding: 5px 9px; font-size: 9px; }
+.nzp-identity { margin: 0; }
 .nzp-identity strong { color: #e5e7dc; overflow-wrap: anywhere; }
-.nzp-room-heading, .nzp-members li, .nzp-rooms li { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.nzp-members, .nzp-rooms { list-style: none; padding: 0; }
+.nzp-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin: 14px 0 12px; padding: 3px; border: 1px solid #b9a25d55; border-radius: 3px; }
+.nzp-modal .nzp-lobby .nzp-tabs button { min-height: 32px; padding: 6px 8px; border: 0; background: transparent; color: #98aa9e; }
+.nzp-modal .nzp-lobby .nzp-tabs button[aria-pressed="true"] { background: #e4bd6426; color: #f2d391; }
+.nzp-tabs span { padding: 0 6px; border-radius: 99px; background: #e4bd6422; color: #f2d391; font-size: 10px; }
+.nzp-members li, .nzp-rooms form { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.nzp-members, .nzp-rooms { list-style: none; margin: 0; padding: 0; }
 .nzp-members li, .nzp-rooms li { padding: 10px 0; border-bottom: 1px solid #ffffff12; overflow-wrap: anywhere; }
 .nzp-members small { color: #c2a45e; }
-.nzp-rooms span { display: grid; min-width: 0; }
-.nzp-rooms small { color: #98aa9e; }
-.nzp-steps { padding-left: 18px; color: #aabbb0; }
-.nzp-steps li { margin: 9px 0; }
-.nzp-lobby form { display: grid; gap: 8px; margin: 18px 0; }
-.nzp-lobby input { min-width: 0; width: 100%; padding: 10px; background: #030806; color: #e5e7dc; border: 1px solid #b9a25d80; }
+.nzp-rooms form { flex-wrap: wrap; }
+.nzp-rooms span { display: grid; flex: 1 1 150px; min-width: 0; }
+.nzp-rooms strong, .nzp-session-card strong { display: flex; align-items: center; gap: 6px; color: #e5e7dc; overflow-wrap: anywhere; }
+.nzp-rooms strong svg, .nzp-session-card strong svg { flex: none; color: #f2d391; }
+.nzp-rooms small, .nzp-session-card small { color: #98aa9e; }
+.nzp-rooms b { font-weight: 700; }
+.nzp-lobby .nzp-live { color: #8fe0a8; }
+.nzp-lobby .nzp-pending { color: #e5c97e; }
+.nzp-unlock { display: flex; flex: 1 1 100%; gap: 6px; }
+.nzp-lobby .nzp-unlock input { flex: 1; padding: 7px 9px; }
+.nzp-modal .nzp-lobby .nzp-icon { min-height: 32px; padding: 6px 8px; }
+.nzp-host { display: grid; gap: 6px; }
+.nzp-host label { margin-top: 6px; color: #d7dccf; font-size: 11px; }
+.nzp-host label:first-child { margin-top: 0; }
+.nzp-host label span, .nzp-host small, .nzp-lobby > small { color: #7f9286; }
+.nzp-host small, .nzp-lobby > small { font-size: 10px; line-height: 1.5; }
+.nzp-host button[type="submit"] { margin-top: 10px; }
+.nzp-rooms-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.nzp-rooms-heading p { margin: 0; font-size: 11px; line-height: 1.6; }
+.nzp-empty { display: grid; justify-items: start; gap: 10px; margin-top: 12px; }
+.nzp-empty p { margin: 0; }
+.nzp-session h4 { margin-top: 16px; }
+.nzp-session-card { display: grid; gap: 2px; padding: 12px; border: 1px solid #e4bd6440; border-radius: 3px; background: #e4bd640d; }
+.nzp-session-card p { margin: 6px 0 0; }
+.nzp-lobby :is(input, select) { min-width: 0; width: 100%; padding: 10px; background: #030806; color: #e5e7dc; border: 1px solid #b9a25d80; border-radius: 0; font: 12px var(--font-mono); }
+.nzp-lobby input:invalid:not(:placeholder-shown):not(:focus) { border-color: #e0787880; }
 .nzp-lobby .nzp-secondary { margin-top: 16px; border-color: #ffffff30; color: #b7c5bc; background: transparent; }
 .nzp-lobby .nzp-status { color: #f2d391; overflow-wrap: anywhere; }
+.nzp-lobby .nzp-status:empty { display: none; }
+.nzp-note { margin-top: 18px; font-size: 11px; }
 
 @media (max-height: 650px) {
   .nzp-launch { gap: 10px; padding: 16px; }

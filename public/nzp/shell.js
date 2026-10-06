@@ -1,5 +1,6 @@
 import { unpackPrograms } from "./menu-cleanup.mjs";
 import { nzpPlayerName } from "./player-name.mjs";
+import { nzpBrokerFailed, nzpListeningRoom, nzpSessionArgs } from "./session-args.mjs";
 
 const upstream = "https://nzp.gay/";
 const canvas = document.getElementById("canvas");
@@ -19,6 +20,28 @@ for (const type of ["keydown", "keyup", "keypress"]) {
 }
 const setStatus = (text) => { status.textContent = text; loading.hidden = !text; };
 const fail = (text) => { setStatus(text); progress.hidden = true; retry.hidden = false; };
+const session = new URLSearchParams(location.search).get("session");
+const toSite = (message) => { if (window.parent !== window) window.parent.postMessage(message, location.origin); };
+
+// Co-op settings (including any password) come from the NZ:P cartridge by
+// postMessage, never the URL. Retry reloads this page and asks again.
+function requestLaunch() {
+  return new Promise((resolve, reject) => {
+    if (window.parent === window) return reject(new Error("Start co-op sessions from the NZ:P cartridge."));
+    const timer = setTimeout(() => {
+      removeEventListener("message", receive);
+      reject(new Error("Co-op setup timed out. Close the game and try again."));
+    }, 10_000);
+    function receive(event) {
+      if (event.source !== window.parent || event.origin !== location.origin || event.data?.type !== "nzp:launch") return;
+      clearTimeout(timer);
+      removeEventListener("message", receive);
+      resolve(event.data.launch);
+    }
+    addEventListener("message", receive);
+    toSite({ type: "nzp:ready" });
+  });
+}
 
 // Same-origin Discord session (display name only, never tokens). Guests and
 // slow or failed checks keep the name saved in NZ:P's own config.
@@ -40,17 +63,22 @@ async function boot() {
     setStatus("NZ:P is available in the desktop library.");
     return;
   }
-  const [response, name] = await Promise.all([fetch(`${upstream}nzp/progs.pk3`), discordName()]);
+  const [response, name, launch] = await Promise.all([fetch(`${upstream}nzp/progs.pk3`), discordName(), session ? requestLaunch() : null]);
   if (!response.ok) throw new Error("NZ:P's program download is unavailable.");
   const programs = await unpackPrograms(await response.arrayBuffer());
-  const room = new URLSearchParams(location.search).get("room") || "";
-  const args = [...(name ? ["+set", "name", name] : []), ...(/^\/[0-9]{1,12}$/.test(room) ? ["+connect", room] : [])];
+  const args = [...(name ? ["+set", "name", name] : []), ...(launch ? nzpSessionArgs(launch) : [])];
   window.Module = {
     canvas,
     arguments: args,
     files: { "default.fmf": `${upstream}default.fmf`, "nzp/game.pk3": `${upstream}nzp/game.pk3`, ...programs },
     locateFile: (path) => new URL(path, upstream).href,
-    print: (text) => console.log(text),
+    print(text) {
+      console.log(text);
+      if (launch?.mode !== "host") return;
+      const room = nzpListeningRoom(text);
+      if (room) toSite({ type: "nzp:listening", address: room });
+      else if (nzpBrokerFailed(text)) toSite({ type: "nzp:network-error" });
+    },
     printErr: (text) => console.warn(text),
     setStatus,
     monitorRunDependencies(left) { if (left) setStatus("Downloading NZ:P game assets…"); },
