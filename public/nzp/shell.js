@@ -1,7 +1,8 @@
-import { unpackPrograms } from "./menu-cleanup.mjs";
 import { nzpPlayerName } from "./player-name.mjs";
+import { nzpStatsLine } from "./stats-line.mjs";
 
 const upstream = "https://nzp.gay/";
+const PROGS = ["menu.dat", "csprogs.dat", "qwprogs.dat"];
 const $ = (id) => document.getElementById(id);
 const canvas = $("canvas");
 const loading = $("loading");
@@ -185,14 +186,20 @@ async function boot() {
     }
     return buffer;
   });
-  game.catch((error) => fail(error.message || "NZ:P's game files could not download. Retry."));
-  const [programs, name] = await Promise.all([download(`${upstream}nzp/progs.pk3`, track("progs")).then(unpackPrograms), discordName()]);
+  // Menu, client and server programs are daivr.dev's own build (tools/nzp-qc).
+  const programs = Object.fromEntries(PROGS.map((file) => [`nzp/${file}`, download(`./progs/${file}`, track(file))]));
+  for (const file of [game, ...Object.values(programs)]) file.catch((error) => fail(error.message || "NZ:P's game files could not download. Retry."));
+  const name = await discordName();
   window.Module = {
     canvas,
     arguments: name ? ["+set", "name", name] : [],
     files: { "default.fmf": `${upstream}default.fmf`, "nzp/game.pk3": game, ...programs },
     locateFile: (path) => new URL(path, upstream).href,
-    print: (text) => console.log(text),
+    print(text) {
+      console.log(text);
+      const stats = nzpStatsLine(text);
+      if (stats && window.parent !== window) window.parent.postMessage({ type: "nzp:stats", ...stats }, location.origin);
+    },
     printErr: (text) => console.warn(text),
     // Engine status lines ("nzp/game.pk3 (…)", "Running...") stay off screen.
     setStatus: () => {},

@@ -14,6 +14,7 @@ data/cross-road-leaderboard.json
 .codex-*.log
 .codex-*.log
 data/space-cadet-pinball-leaderboard.json
+data/nzp-leaderboard.json
 data/comment-inbox.json
 data/comment-posting.json
 data/player-passports.json

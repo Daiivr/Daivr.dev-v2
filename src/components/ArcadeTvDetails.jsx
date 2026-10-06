@@ -9,8 +9,8 @@ export function ArcadeTvDetails({ channel, powered = true, off = false, onFullsc
       <div className="arcade-tv-maker" aria-hidden="true"><strong>DAI VISION</strong><span>COLOR SYSTEM / 86</span></div>
       <div className="arcade-tv-channel" aria-hidden="true"><small>AV CHANNEL</small><strong>{channel}</strong><span><i /> {powered ? "SIGNAL LOCKED" : "TUNING..."}</span></div>
       <div className="arcade-tv-tuner" aria-hidden="true"><span className="arcade-tv-dial"><i /></span><small>UHF · VHF</small></div>
-      {onFullscreen ? <button type="button" className="arcade-tv-fullscreen" onClick={onFullscreen} disabled={!powered || off} title="Full screen">
-        <span><Maximize size={13} aria-hidden="true" /></span><small>FULL SCREEN</small>
+      {onFullscreen ? <button type="button" className="arcade-tv-fullscreen" onClick={onFullscreen} disabled={!powered || off}>
+        <i aria-hidden="true" /><Maximize size={12} aria-hidden="true" /><span>FULL SCREEN</span>
       </button> : null}
       <div className="arcade-tv-speaker" aria-hidden="true" />
       <div className="arcade-tv-power" aria-hidden="true"><i /><span>STEREO SOUND</span></div>
