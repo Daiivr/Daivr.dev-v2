@@ -1,0 +1,27 @@
+# NZ:P journal reward and Discord co-op
+
+NZ:P appears as cartridge 06 in the desktop Konami library only when every entry in both the catch catalogue and patrol finds is discovered, including fishing junk and treasure. It is hidden in the mobile layout (760px or narrower), matching the site's mobile CSS; touch input alone does not hide the desktop cartridge. Resizing to mobile closes the game and returns to the library. Encounter counters (Leviathan/Kraken sightings) are not collectible journal entries. The shared catalogue checks known IDs rather than totals. The desktop journal shows the requirement and completion reward. Guests can unlock solo play locally; co-op requires Discord sign-in and a complete saved journal for each participant.
+
+## Playing together
+
+1. Complete the journal, sign in through the existing Discord login, and open NZ:P in the secret library.
+2. Host a lobby. Other unlocked players can see and join it on the website (four players maximum).
+3. Launch the host game and use NZ:P's Cooperative menu to create a game. Find the relay number (`/12345`) in the game console or the linked server list, then publish it in the website lobby.
+4. Teammates click Join game. The local canvas wrapper validates the relay number and passes `+connect /12345` to the official browser engine. Keep the host's game open.
+
+The website lobby coordinates authenticated players; NZ:P handles gameplay and networking. Discord credentials/tokens are never forwarded to the game; only the display name is, as the in-game player name. The official game has no website lobby bridge, so publishing the host's relay number is a manual step. Website membership does not make NZ:P's upstream public server private.
+
+## Runtime and limitations
+
+- Uses a local `/nzp/index.html` canvas wrapper, loaded only on Play, with the official engine/assets downloaded from `https://nzp.gay/` (upstream enables CORS). The canvas fills the iframe without scrollbars. The program archive is unpacked in memory and the main menu is cleaned: `Menu_SocialBadge` and `Menu_GetBuildDate` return immediately (no social icons, hit areas or build number), the CREDITS button and its divider are skipped, and `menu_main_buttons` is reordered so arrow keys never land on the removed button. The wrapper fails with a retry message if the upstream menu format changes. No game binary/assets are copied into the repository; `public/nzp/menu-cleanup.mjs` documents the equivalent QuakeC source changes and upstream source. The NZ:P team stays credited through the modal footer's NZ:P TEAM link.
+- Signed-in players get their Discord display name as the in-game name. The wrapper reads the same-origin `/api/comments/me` session (2.5s timeout) and passes `+set name <name>`, which FTE applies after the saved `config.cfg`. `public/nzp/player-name.mjs` folds accents to ASCII and keeps only letters, digits, spaces, `_`, `.` and `-` (never leading), so a name cannot inject console commands. Guests, and names with no usable characters, keep the name saved in NZ:P's own settings ("Unknown Soldier" by default).
+- The wrapper has its own CSP allowing the upstream engine/assets and Frag-Net relay WebSocket, without widening the rest of the site's frame or script policy.
+- Keyboard events are handled once at the document: the wrapper stops propagation to FTE's duplicate canvas listener. It does not cancel defaults or debounce events, so key releases and held-key repeats remain intact.
+- Internet access to the game and its Frag-Net networking is required. Upstream P2P can fail behind restrictive NAT/firewalls. See [NZ:P networking documentation](https://docs.nzp.gay/server/server-setup) and [official engine loader](https://github.com/nzp-team/nzp-team.github.io/blob/master/ftewebgl.js).
+- `GET/POST /api/nzp/lobby` uses the existing signed Discord session and reads server-saved Buddy progress. Same-origin checks, bounded request bodies, host-only room publishing, numeric relay validation, and capacity checks apply. The existing Buddy progress system syncs browser progress; this feature does not add anti-cheat attestation of catches.
+- Lobbies live in one Node process, matching the site's current hosting model. Closing the host lobby ends website membership. Missing heartbeats expire members after three minutes; server restarts clear all lobbies. Multiple replicas would need a shared lobby store before enabling them.
+- Guest solo unlocks follow the existing local Buddy save. Every signed-in co-op participant must have their own completed save.
+
+## Validation
+
+`npm run test:nzp` covers the unlock catalogue, command injection rejection (relay numbers and player names), the menu cleanup patches, room capacity, host authorization, expiry, and authenticated HTTP host/join flow. `npm run build` verifies the lazy-loaded UI. Live gameplay still depends on the upstream engine and network.

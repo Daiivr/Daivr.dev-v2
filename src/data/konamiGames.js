@@ -46,5 +46,20 @@ export const KONAMI_GAMES = [
     meta: "PINBALL // Z + / FLIPPERS",
     color: "violet",
     image: "/arcade-library/space-cadet-pinball-cover.webp"
+  },
+  {
+    id: "nzp",
+    title: "NZ:P",
+    program: "NZP.EXE",
+    description: "Survive the waves in Nazi Zombies: Portable. A reward for completing Buddy's entire journal.",
+    meta: "SURVIVAL // DISCORD CO-OP",
+    color: "amber",
+    image: "/arcade-library/nzp-cover.svg",
+    requiresJournal: true,
+    desktopOnly: true
   }
 ];
+
+export function availableKonamiGames(journalComplete = false, mobileView = false) {
+  return KONAMI_GAMES.filter((game) => (!game.requiresJournal || journalComplete) && (!game.desktopOnly || !mobileView));
+}

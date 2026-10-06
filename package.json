@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node --test scripts/test-*.mjs",
+    "test": "node --test scripts/test-*.mjs tests/*.test.mjs",
+    "test:nzp": "node --test tests/nzp.test.mjs",
     "dev": "vite --host 0.0.0.0 --port 5173",
     "preview": "vite preview --host 0.0.0.0 --port 4173",
     "serve:static": "node server.mjs",

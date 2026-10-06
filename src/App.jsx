@@ -50,13 +50,14 @@ import "./styles/footer-sky.css";
 import "./styles/modal-motion.css";
 import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { bootNodes, discord, games, navItems, profile, projects } from "./data/site";
-import { KONAMI_GAMES } from "./data/konamiGames";
+import { availableKonamiGames } from "./data/konamiGames";
 import { preloadImages } from "./lib/preloadImages";
 import { ChunkBoundary, lazyChunk } from "./lib/chunkRecovery";
 import { getSeasonalEvent } from "./lib/seasons";
 import { getCabinetSignal } from "./lib/cabinetSignals";
 import { runTerminalCommand } from "./lib/terminalCommands";
 import { useBuddyAdventure } from "./hooks/useBuddyAdventure";
+import { useMobileView } from "./hooks/useMobileView";
 import { useBuddyFriendship } from "./hooks/useBuddyFriendship";
 import { useBuddyLoadout } from "./hooks/useBuddyLoadout";
 import { useCartridgeSwap } from "./hooks/useCartridgeSwap";
@@ -83,6 +84,7 @@ import { SystemGatePage } from "./components/SystemGatePage";
 const BuddyModal = lazyChunk(() => import("./components/BuddyModal"), (module) => module.BuddyModal);
 const TerminalDialog = lazyChunk(() => import("./components/TerminalDialog"), (module) => module.TerminalDialog);
 const SeasonalEvent = lazyChunk(() => import("./components/SeasonalEvent"), (module) => module.SeasonalEvent);
+const NzpModal = lazyChunk(() => import("./components/NzpModal"), (module) => module.NzpModal);
 const KonamiGameLibrary = lazyChunk(() => import("./components/KonamiGameLibrary"), (module) => module.KonamiGameLibrary);
 const MadraceModal = lazyChunk(() => import("./components/MadraceModal"), (module) => module.MadraceModal);
 const TowerBlockModal = lazyChunk(() => import("./components/TowerBlockModal"), (module) => module.TowerBlockModal);
@@ -150,12 +152,17 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
   const konamiCoversWarmedRef = useRef(false);
   const friendship = useBuddyFriendship({ onMilestone: handleBuddyMilestone });
   const adventure = useBuddyAdventure({ onQuestComplete: handleBuddyQuestComplete });
+  const mobileView = useMobileView();
   const loadout = useBuddyLoadout({ friendship, adventure });
   const cartPhase = useCartridgeSwap(shellRef);
   const buddy = { friendship, adventure, ...loadout };
   const closeKonami = useCallback(() => setKonamiView(null), []);
   const openKonamiLibrary = useCallback(() => setKonamiView("library"), []);
-  const selectKonamiGame = useCallback((game) => setKonamiView(game), []);
+  const selectKonamiGame = useCallback((game) => {
+    if (availableKonamiGames(adventure.journalComplete, mobileView).some((entry) => entry.id === game)) setKonamiView(game);
+  }, [adventure.journalComplete, mobileView]);
+
+  useEffect(() => { if (mobileView) setKonamiView((view) => view === "nzp" ? "library" : view); }, [mobileView]);
 
   const terminalUsed = useUsedOnce(terminalOpen);
   const buddyModalUsed = useUsedOnce(Boolean(buddyModal));
@@ -318,7 +325,7 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
       const target = event.target;
       const isTyping = target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
       if (isTyping || terminalOpen || entrySplashOpen || buddyModal || isLaunching) return;
-      if (document.querySelector(".attract-mode,.konami-library-backdrop,.madrace-backdrop,.tower-modal-backdrop,.arcade-embed-backdrop,.project-modal,.comments-gif-modal,.comments-delete-modal")) return;
+      if (document.querySelector(".attract-mode,.konami-library-backdrop,.nzp-modal,.madrace-backdrop,.tower-modal-backdrop,.arcade-embed-backdrop,.project-modal,.comments-gif-modal,.comments-delete-modal")) return;
       event.preventDefault();
       window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
         detail: { type: "terminal" }
@@ -356,12 +363,12 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
         // fuera de aqui no se descarga nada, que es un huevo de pascua.
         if (next >= 4 && !konamiCoversWarmedRef.current) {
           konamiCoversWarmedRef.current = true;
-          preloadImages(KONAMI_GAMES.map((game) => game.image));
+          preloadImages(availableKonamiGames(adventure.journalComplete, mobileView).map((game) => game.image));
         }
         if (next === sequence.length) {
           konamiIndexRef.current = 0;
           setKonamiView("library");
-          showAchievement(`SECRET GAME LIBRARY UNLOCKED // ${KONAMI_GAMES.length} DISKS FOUND`, 3000);
+          showAchievement(`SECRET GAME LIBRARY UNLOCKED // ${availableKonamiGames(adventure.journalComplete, mobileView).length} DISKS FOUND`, 3000);
         } else {
           konamiIndexRef.current = next;
         }
@@ -372,7 +379,7 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
 
     window.addEventListener("keydown", detectKonami);
     return () => window.removeEventListener("keydown", detectKonami);
-  }, [buddyModal, entrySplashOpen, isLaunching, konamiView, terminalOpen]);
+  }, [mobileView, adventure.journalComplete, buddyModal, entrySplashOpen, isLaunching, konamiView, terminalOpen]);
 
   useEffect(() => {
     const shell = shellRef.current;
@@ -610,10 +617,13 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
 
       <AttractMode enabled={!entrySplashOpen && !konamiView} />
 
-      <UpdateNotice hidden={entrySplashOpen} shellRef={shellRef} playingGame={konamiView === "madrace" || konamiView === "tower-block" || EMBED_GAMES.includes(konamiView)} />
+      <UpdateNotice hidden={entrySplashOpen} shellRef={shellRef} playingGame={konamiView === "nzp" || konamiView === "madrace" || konamiView === "tower-block" || EMBED_GAMES.includes(konamiView)} />
 
       <LazyPiece show={libraryUsed}>
-        <KonamiGameLibrary open={konamiView === "library"} onClose={closeKonami} onSelect={selectKonamiGame} />
+        <KonamiGameLibrary journalComplete={adventure.journalComplete} open={konamiView === "library"} onClose={closeKonami} onSelect={selectKonamiGame} />
+      </LazyPiece>
+      <LazyPiece show={konamiView === "nzp" && adventure.journalComplete && !mobileView}>
+        <NzpModal onBack={openKonamiLibrary} onClose={closeKonami} />
       </LazyPiece>
       <LazyPiece show={madraceUsed}>
         <MadraceModal open={konamiView === "madrace"} onBack={openKonamiLibrary} onClose={closeKonami} />

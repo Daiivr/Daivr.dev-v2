@@ -46,6 +46,19 @@ const GAME_POLICY = [
   "frame-ancestors 'self'"
 ];
 
+const NZP_POLICY = [
+  "default-src 'self'",
+  "script-src 'self' 'wasm-unsafe-eval' https://nzp.gay",
+  "style-src 'self'",
+  "connect-src 'self' https://nzp.gay wss://master.frag-net.com:27950",
+  "img-src 'self' data: blob:",
+  "media-src 'self' blob:",
+  "worker-src 'self' blob:",
+  "object-src 'none'",
+  "base-uri 'none'",
+  "frame-ancestors 'self'"
+];
+
 function isSecureRequest(request) {
   return String(request.headers?.["x-forwarded-proto"] || "").split(",")[0].trim() === "https"
     || Boolean(request.socket?.encrypted);
@@ -53,7 +66,7 @@ function isSecureRequest(request) {
 
 export function securityHeaders(request, pathname) {
   const secure = isSecureRequest(request);
-  const policy = GAME_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix)) ? GAME_POLICY : SITE_POLICY;
+  const policy = pathname.startsWith("/nzp/") ? NZP_POLICY : GAME_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix)) ? GAME_POLICY : SITE_POLICY;
   // Solo bajo HTTPS: en http://localhost subiria a https las peticiones del
   // propio servidor local y lo romperia.
   const directives = secure ? [...policy, "upgrade-insecure-requests"] : policy;

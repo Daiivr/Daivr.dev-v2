@@ -2,7 +2,8 @@ import "../styles/konami-games.css";
 import { ChevronLeft, ChevronRight, Gamepad2, LockKeyhole, Play, X } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useRef, useState } from "react";
-import { KONAMI_GAMES } from "../data/konamiGames";
+import { availableKonamiGames } from "../data/konamiGames";
+import { useMobileView } from "../hooks/useMobileView";
 
 const MOUNT_STATUS = {
   aligning: "BUS DOOR OPEN // ALIGNING PIN GUIDE",
@@ -26,7 +27,9 @@ function GameCartridge({ game, className = "" }) {
   );
 }
 
-export function KonamiGameLibrary({ open, onClose, onSelect }) {
+export function KonamiGameLibrary({ open, onClose, onSelect, journalComplete = false }) {
+  const mobileView = useMobileView();
+  const games = availableKonamiGames(journalComplete, mobileView);
   const closeRef = useRef(null);
   const timersRef = useRef([]);
   const [mountingGame, setMountingGame] = useState("");
@@ -34,6 +37,8 @@ export function KonamiGameLibrary({ open, onClose, onSelect }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const mountingRef = useRef(false);
   const audioRef = useRef(null);
+
+  useEffect(() => { setSelectedIndex((index) => Math.min(index, games.length - 1)); }, [games.length]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -50,7 +55,7 @@ export function KonamiGameLibrary({ open, onClose, onSelect }) {
 
   useEffect(() => {
     if (!open) return;
-    const cartridge = document.getElementById(`library-cart-${KONAMI_GAMES[selectedIndex].id}`);
+    const cartridge = document.getElementById(`library-cart-${games[Math.min(selectedIndex, games.length - 1)].id}`);
     const shelf = cartridge?.parentElement;
     if (!shelf) return;
     const centerCartridge = () => {
@@ -61,10 +66,10 @@ export function KonamiGameLibrary({ open, onClose, onSelect }) {
     const observer = new ResizeObserver(centerCartridge);
     observer.observe(shelf);
     return () => observer.disconnect();
-  }, [open, selectedIndex]);
+  }, [open, selectedIndex, journalComplete, mobileView]);
 
   function mountGame(gameId) {
-    if (mountingRef.current) return;
+    if (mountingRef.current || !games.some((game) => game.id === gameId)) return;
     mountingRef.current = true;
     setMountingGame(gameId);
     setMountPhase("aligning");
@@ -110,17 +115,17 @@ export function KonamiGameLibrary({ open, onClose, onSelect }) {
   }
 
   if (!open) return null;
-  const mountedGame = KONAMI_GAMES.find((game) => game.id === mountingGame);
-  const selectedGame = KONAMI_GAMES[selectedIndex];
-  const selectRelative = (step) => setSelectedIndex((index) => (index + step + KONAMI_GAMES.length) % KONAMI_GAMES.length);
+  const mountedGame = games.find((game) => game.id === mountingGame);
+  const selectedGame = games[Math.min(selectedIndex, games.length - 1)];
+  const selectRelative = (step) => setSelectedIndex((index) => (index + step + games.length) % games.length);
 
   function onShelfKeyDown(event, index) {
     const direction = { ArrowLeft: -1, ArrowRight: 1 }[event.key];
     if (!direction && !["Home", "End"].includes(event.key)) return;
     event.preventDefault();
-    const next = event.key === "Home" ? 0 : event.key === "End" ? KONAMI_GAMES.length - 1 : (index + direction + KONAMI_GAMES.length) % KONAMI_GAMES.length;
+    const next = event.key === "Home" ? 0 : event.key === "End" ? games.length - 1 : (index + direction + games.length) % games.length;
     setSelectedIndex(next);
-    document.getElementById(`library-cart-${KONAMI_GAMES[next].id}`)?.focus();
+    document.getElementById(`library-cart-${games[next].id}`)?.focus();
   }
 
   return (
@@ -138,15 +143,15 @@ export function KonamiGameLibrary({ open, onClose, onSelect }) {
 
         <div className="konami-library-room">
           <div className="konami-shelf-cabinet">
-            <div className="konami-shelf-heading"><span><Gamepad2 size={14} /> THE COLLECTION</span><b>VOL. 01 — 05</b></div>
+            <div className="konami-shelf-heading"><span><Gamepad2 size={14} /> THE COLLECTION</span><b>VOL. 01 — {String(games.length).padStart(2, "0")}</b></div>
             <div className="konami-cartridge-shelves" role="tablist" aria-label="Game cartridges">
-              {KONAMI_GAMES.map((game, index) => (
+              {games.map((game, index) => (
                 <button className={`konami-shelf-cart is-${game.color} ${selectedIndex === index ? "is-current" : ""}`} type="button" role="tab" id={`library-cart-${game.id}`} aria-selected={selectedIndex === index} aria-controls="library-game-preview" tabIndex={selectedIndex === index ? 0 : -1} aria-label={game.title} onClick={() => setSelectedIndex(index)} onFocus={() => setSelectedIndex(index)} onKeyDown={(event) => onShelfKeyDown(event, index)} disabled={Boolean(mountingGame)} key={game.id}>
                   <GameCartridge game={game} />
                   <span className="konami-shelf-plaque"><i>{String(index + 1).padStart(2, "0")}</i>{game.title}<b aria-hidden="true" /></span>
                 </button>
               ))}
-              <div className="konami-shelf-keepsake" aria-hidden="true"><Gamepad2 size={40} /><span>ONE MORE<br />ROUND.</span><small>DAI’S PRIVATE COLLECTION</small></div>
+              {games.length < 6 && <div className="konami-shelf-keepsake" aria-hidden="true"><Gamepad2 size={40} /><span>ONE MORE<br />ROUND.</span><small>DAI’S PRIVATE COLLECTION</small></div>}
             </div>
             <p className="konami-shelf-hint">Pick a cartridge to take a closer look.</p>
           </div>
@@ -156,7 +161,7 @@ export function KonamiGameLibrary({ open, onClose, onSelect }) {
               <div className="konami-monitor-chin"><span>DAIVR / COLOR SYSTEM</span><i /><b /></div>
             </div>
             <div className="konami-preview-copy">
-              <div className="konami-preview-counter"><small>CARTRIDGE {String(selectedIndex + 1).padStart(2, "0")} / 05</small><div><button type="button" aria-label="Previous cartridge" disabled={Boolean(mountingGame)} onClick={() => selectRelative(-1)}><ChevronLeft size={16} /></button><button type="button" aria-label="Next cartridge" disabled={Boolean(mountingGame)} onClick={() => selectRelative(1)}><ChevronRight size={16} /></button></div></div>
+              <div className="konami-preview-counter"><small>CARTRIDGE {String(selectedIndex + 1).padStart(2, "0")} / {String(games.length).padStart(2, "0")}</small><div><button type="button" aria-label="Previous cartridge" disabled={Boolean(mountingGame)} onClick={() => selectRelative(-1)}><ChevronLeft size={16} /></button><button type="button" aria-label="Next cartridge" disabled={Boolean(mountingGame)} onClick={() => selectRelative(1)}><ChevronRight size={16} /></button></div></div>
               <h3>{selectedGame.title}</h3>
               <p>{selectedGame.description}</p>
               <span className="konami-preview-meta">{selectedGame.meta}</span>
@@ -192,7 +197,7 @@ export function KonamiGameLibrary({ open, onClose, onSelect }) {
           </div>
         ) : null}
 
-        <footer><span /> {KONAMI_GAMES.length} CARTRIDGES ON THE SHELF <i>•</i> TAKE YOUR TIME <b>KONAMI.SYS</b></footer>
+        <footer><span /> {games.length} CARTRIDGES ON THE SHELF <i>•</i> TAKE YOUR TIME <b>KONAMI.SYS</b></footer>
       </Dialog.Content>
     </Dialog.Overlay>
     </Dialog.Root>

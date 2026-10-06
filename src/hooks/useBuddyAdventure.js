@@ -1,6 +1,7 @@
 import { bonusCoins, normalizeMarket, mergeMarket, marketWallet, openMarketChest, purchaseMarketItem, MARKET_GEAR } from "../../shared/buddy-market.mjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FIELD_FINDS, FISH_CATALOG, KRAKEN, LEVIATHAN } from "../data/buddyWorld";
+import { isBuddyJournalComplete } from "../../shared/buddy-journal.mjs";
 
 const STORAGE_KEY = "daivr.buddyAdventure.v1";
 const GUEST_STORAGE_KEY = "daivr.buddyAdventure.guest.v1";
@@ -446,6 +447,23 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
 
   return {
     quests,
+    journalComplete: isBuddyJournalComplete(state),
+    completeJournalForTesting: import.meta.env.DEV && ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname) ? () => {
+      apply((current) => {
+        const fishCollection = { ...current.fishCollection };
+        const foundObjects = { ...current.foundObjects };
+        let added = 0;
+        let rareAdded = 0;
+        for (const item of FISH_CATALOG) {
+          if (fishCollection[item.id] > 0) continue;
+          fishCollection[item.id] = 1;
+          added += 1;
+          if (["rare", "legendary", "mythic", "treasure"].includes(item.rarity)) rareAdded += 1;
+        }
+        for (const item of FIELD_FINDS) foundObjects[item.id] = Math.max(1, foundObjects[item.id] || 0);
+        return { ...current, fishCollection, foundObjects, totalCatches: current.totalCatches + added, voidCatches: current.voidCatches + rareAdded };
+      });
+    } : undefined,
     inventory,
     inventoryIds: inventory.map((item) => item.id),
     market: marketWallet(state),

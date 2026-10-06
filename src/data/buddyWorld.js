@@ -2,13 +2,7 @@ import { FISH_CATALOG } from "../../shared/buddy-catches.mjs";
 export { FISH_CATALOG };
 export { KRAKEN } from "../../shared/buddy-encounters.mjs";
 
-export const FIELD_FINDS = [
-  { id: "arcade-coin", name: "Arcade Coin", color: "#ffd166", line: "a credit! shiny." },
-  { id: "floppy-disk", name: "Floppy Disk", color: "#45d8ff", line: "ancient save technology." },
-  { id: "battery", name: "Tiny Battery", color: "#3fff97", line: "portable zap acquired." },
-  { id: "lost-bug", name: "Friendly Bug", color: "#ff3d9d", line: "this bug has a permit." },
-  { id: "mini-cartridge", name: "Mini Cartridge", color: "#a78bfa", line: "bonus level located!" }
-];
+export { FIELD_FINDS } from "../../shared/buddy-journal.mjs";
 
 export const AMBIENT_CREATURES = [
   { id: "moth", name: "Phosphor Moth" },

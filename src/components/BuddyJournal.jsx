@@ -109,6 +109,8 @@ export function BuddyJournal({ buddy }) {
 
         <div className="buddy-journal-progress">
           <div className="buddy-section-heading"><h3>Archive progress</h3></div>
+          {buddy.adventure.completeJournalForTesting ? <button type="button" className="buddy-journal-test" disabled={buddy.adventure.journalComplete} onClick={buddy.adventure.completeJournalForTesting}>{buddy.adventure.journalComplete ? "Test journal complete" : "Complete journal for testing"}</button> : null}
+          <p className="buddy-journal-reward" role="status">{buddy.adventure.journalComplete ? "NZ:P unlocked — find your new cartridge in the secret game library." : "Complete every catch and patrol find to unlock NZ:P in the secret game library."}</p>
           <div className="buddy-journal-meters">
             <div>
               <Fish size={15} aria-hidden="true" />
