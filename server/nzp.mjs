@@ -21,6 +21,9 @@ const MAX_DURATION_MS = 12 * 60 * 60 * 1000;
 // puntos) mas los extras de ronda y potenciadores.
 const MIN_MS_PER_ROUND = 8_000;
 const MAX_KILLS_PER_SECOND = 10;
+// Mapas de prueba de los desarrolladores que vienen en game.pk3. El menu ya no
+// los ofrece (daivr.patch), pero una partida en ellos no cuenta.
+const UNRANKED_MAPS = new Set(["weapon_test"]);
 
 export const NZP_BOARDS = {
   round: { field: "bestRound", since: "bestRoundAt" },
@@ -30,11 +33,16 @@ export const NZP_BOARDS = {
 
 export function validateNzpGame(body) {
   const round = Number(body?.round), kills = Number(body?.kills), headshots = Number(body?.headshots), score = Number(body?.score), durationMs = Math.round(Number(body?.durationMs));
+  const startRound = Number(body?.startRound);
   const map = typeof body?.map === "string" && /^[A-Za-z0-9_-]{1,32}$/.test(body.map) ? body.map : "";
-  if (![round, kills, headshots, score].every(Number.isInteger) || round < 1 || round > MAX_ROUND || kills < 0 || kills > MAX_KILLS || headshots < 0 || headshots > kills || score < 0 || score > MAX_SCORE
-    || !Number.isFinite(durationMs) || durationMs < 0 || durationMs > MAX_DURATION_MS || !map) {
+  if (![round, kills, headshots, score, startRound].every(Number.isInteger) || round < 1 || round > MAX_ROUND || kills < 0 || kills > MAX_KILLS || headshots < 0 || headshots > kills || score < 0 || score > MAX_SCORE
+    || startRound < 1 || startRound > MAX_ROUND || !Number.isFinite(durationMs) || durationMs < 0 || durationMs > MAX_DURATION_MS || !map) {
     return { error: "NZ:P game failed validation." };
   }
+  if (UNRANKED_MAPS.has(map.toLowerCase())) return { error: "Test maps aren't ranked.", status: 422 };
+  // START ROUND en el menu de la partida: empezar en la ronda 30 inflaria la
+  // ronda mas alta (y el reto de sobrevivir), asi que esas partidas no cuentan.
+  if (startRound > 1) return { error: "Games that start past round 1 aren't ranked.", status: 422 };
   if (round > 1 + durationMs / MIN_MS_PER_ROUND || kills > 10 + (durationMs / 1000) * MAX_KILLS_PER_SECOND || score > kills * 300 + round * 5000 + 5000) {
     return { error: "NZ:P game was faster than the validation floor.", status: 422 };
   }

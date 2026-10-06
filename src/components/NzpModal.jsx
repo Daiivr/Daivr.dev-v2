@@ -73,55 +73,54 @@ export function NzpModal({ onBack, onClose }) {
   useEffect(() => { loadMe(); }, [loadMe]);
   useEffect(() => { if (rankingOpen) loadBoard(board); }, [board, loadBoard, rankingOpen]);
 
-  // One record per game: sent at game over, or when a new game (or closing the
-  // cartridge) shows the previous one was left early. Games without a kill are skipped.
-  const submitGame = useCallback((game, closing = false) => {
-    if (!game || game.sent || !game.kills) return;
-    game.sent = true;
-    if (!meRef.current) {
-      if (!closing) setNotice("CONNECT DISCORD TO RANK YOUR GAMES");
+  // One record per game, saved at game over (everyone down). A game left early
+  // (quitting to the menu, closing the cartridge) saves nothing, games without
+  // a kill are skipped, and so are games started past round 1 (START ROUND).
+  const submitGame = useCallback((game) => {
+    if (!game.kills) return;
+    if (game.startRound > 1) {
+      setNotice(`STARTED AT ROUND ${game.startRound} // NOT RANKED`);
       return;
     }
-    const body = { round: game.round, kills: game.kills, headshots: game.headshots, score: game.score, map: game.map, durationMs: Date.now() - game.startedAt };
-    if (!closing) setNotice(`SAVING ROUND ${game.round}...`);
+    if (!meRef.current) {
+      setNotice("CONNECT DISCORD TO RANK YOUR GAMES");
+      return;
+    }
+    const body = { round: game.round, kills: game.kills, headshots: game.headshots, score: game.score, map: game.map, startRound: game.startRound, durationMs: Date.now() - game.startedAt };
+    setNotice(`SAVING ROUND ${game.round}...`);
     runTokenFor("nzp")
+      // keepalive: the save still lands if the cartridge closes right after game over.
       .then((runToken) => fetch("/api/nzp/game", { method: "POST", credentials: "include", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, runToken }) }))
       .then(async (response) => {
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || "save-failed");
-        if (closing) return;
         setMyStats(data.stats || null);
         setNotice(`ROUND ${game.round} // ${number(game.kills)} KILLS LOGGED${data.stats?.ranks?.round ? ` // RANK #${data.stats.ranks.round}` : ""}`);
         window.dispatchEvent(new Event("daivr-player-progress"));
       })
-      .catch((error) => { if (!closing) setNotice(String(error.message || "SAVE FAILED").toUpperCase()); });
+      .catch((error) => setNotice(String(error.message || "SAVE FAILED").toUpperCase()));
   }, []);
 
   useEffect(() => {
     function receive(event) {
       const frame = frameRef.current?.contentWindow;
       if (!frame || event.source !== frame || event.origin !== window.location.origin || event.data?.type !== "nzp:stats") return;
-      const { phase, round, kills, headshots, score, map } = event.data;
+      const { phase, round, kills, headshots, score, map, startRound } = event.data;
       let game = gameRef.current;
-      // Lower counters or another map mean the last game ended without a game over.
-      if (game && (map !== game.map || round < game.round || kills < game.kills || headshots < game.headshots || score < game.score)) {
-        submitGame(game);
-        game = null;
-      }
+      // Lower counters or another map mean a new game started; the old one was left early.
+      if (game && (map !== game.map || round < game.round || kills < game.kills || headshots < game.headshots || score < game.score)) game = null;
       game ??= { startedAt: Date.now(), map };
-      Object.assign(game, { round, kills, headshots, score });
-      // The daily goal can complete mid-game (useDailyChallengeNotice).
-      if (round > 0) reportRef.current({ metrics: { round, kills, headshots, score, map }, durationMs: Date.now() - game.startedAt });
+      Object.assign(game, { round, kills, headshots, score, startRound });
+      // The daily goal can complete mid-game (useDailyChallengeNotice), but not
+      // in a game started past round 1.
+      if (round > 0 && startRound <= 1) reportRef.current({ metrics: { round, kills, headshots, score, map, startRound }, durationMs: Date.now() - game.startedAt });
       if (phase === "end") {
         submitGame(game);
         gameRef.current = null;
       } else gameRef.current = game;
     }
     window.addEventListener("message", receive);
-    return () => {
-      window.removeEventListener("message", receive);
-      submitGame(gameRef.current, true);
-    };
+    return () => window.removeEventListener("message", receive);
   }, [submitGame]);
 
   function exit(callback) {

@@ -5,6 +5,19 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.64.1",
+    codename: "LAST STAND",
+    date: "2026-10-06",
+    summary: "NZ:P's game over waits for you now, and the rankings finally count your games.",
+    entries: [
+      ["new", "When everyone is down, GAME OVER and the scoreboard stay up with two choices under them: Try again starts the same map over, and Return to menu goes back to the main menu. The game no longer restarts by itself. In co-op, the host decides whether to try again."],
+      ["fix", "NZ:P games never reached the rankings. They now save when the game ends, and quitting or closing mid-game saves nothing."],
+      ["fix", "The developers' weapon test map no longer shows up in User Maps or Random, and doesn't count toward the rankings."],
+      ["nerf", "Games started past round 1 with the Start Round setting no longer count toward the rankings or the daily challenge. Hovering Start Round says so with a glowing note."],
+      ["fix", "The scoreboard no longer shows the game's build number in the corner."]
+    ]
+  },
+  {
     version: "v2.64.0",
     codename: "ONE MORE WAVE",
     date: "2026-10-06",

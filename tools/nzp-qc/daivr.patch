@@ -1,24 +1,74 @@
+diff --git a/source/client/hud.qc b/source/client/hud.qc
+index 86dfcc0..20aa7eb 100644
+--- a/source/client/hud.qc
++++ b/source/client/hud.qc
+@@ -1735,8 +1735,6 @@ void() HUD_Scores =
+ 	
+ 	if(serverkey("constate") != "disconnected")
+ 	{
+-		Draw_String([5, g_height - scoreboard_text_size - 5], sprintf("Nazi Zombies: Portable %s", build_datetime), [scoreboard_text_size, scoreboard_text_size], TEXTCOLOR, 1, 0);
+-
+ 		// Scoreboard header
+ 		drawfill([g_width/2 - 271, 177], [270 * 2 + 2, 1], [0.2, 0.2, 0.2], 1, 0);
+ 		drawfill([g_width/2 - 271, 178 + scoreboard_text_size + 4], [270 * 2 + 2, 1], [0.2, 0.2, 0.2], 1, 0);
 diff --git a/source/client/main.qc b/source/client/main.qc
-index aa6f3dc..22a0f36 100644
+index aa6f3dc..fc0c3a1 100644
 --- a/source/client/main.qc
 +++ b/source/client/main.qc
-@@ -136,6 +136,15 @@ float() GenerateAlphaTransparencyQ3Shaders =
+@@ -28,6 +28,10 @@ float need_vid_reload;
+ 
+ void() ToggleMenu =
+ {
++	// daivr.dev: at game over the Try again / Return to menu choices replace the pause menu.
++	if (in_endgame_sequence)
++		return;
++
+ 	if (serverkey("constate") != "disconnected")
+ 	{
+ 		if (player_count == 1)
+@@ -136,6 +140,17 @@ float() GenerateAlphaTransparencyQ3Shaders =
  	return need_reload;
  };
  
 +// daivr.dev: report this player's game to the page around the game
 +// (public/nzp/shell.js reads it from the engine's console output):
-+// "[daivr] nzp-stats <phase> <round> <kills> <headshots> <total score> <map>".
++// "[daivr] nzp-stats <phase> <round> <kills> <headshots> <total score> <map> <start round>".
 +void(string phase) Daivr_ReportStats =
 +{
 +	entity me = findfloat(world, playernum, getplayerkeyfloat(player_localnum, "client_index"));
-+	print(sprintf("[daivr] nzp-stats %s %d %d %d %d %s\n", phase, rounds, me.kills, me.headshots, getstatf(STAT_TOTALSCORE), mapname));
++	// The host's START ROUND setting (server/main.qc puts it in the serverinfo).
++	float start_round = max(1, stof(serverkey("daivr_startround")));
++	print(sprintf("[daivr] nzp-stats %s %d %d %d %d %s %d\n", phase, rounds, me.kills, me.headshots, getstatf(STAT_TOTALSCORE), mapname, start_round));
 +};
 +
  noref void(float apiver, string enginename, float enginever) CSQC_Init =
  {
  	setwindowcaption("Nazi Zombies: Portable");
-@@ -1230,6 +1239,7 @@ noref void() CSQC_Parse_Event =
+@@ -982,7 +997,22 @@ noref void(float width, float height, float menushown) CSQC_UpdateView =
+ 	//does what you think it does
+ 	renderscene();
+ 
+-	if (current_menu != MENU_NONE)
++	// daivr.dev: a moment after GAME OVER, offer Try again / Return to menu.
++	if (in_endgame_sequence && current_menu == MENU_NONE && cltime >= menu_gameover_at)
++		Menu_GameOver_Open();
++
++	if (current_menu == MENU_GAMEOVER)
++	{
++		// The GAME OVER text and scoreboard stay, with the choices under them.
++		HUD_DrawElements();
++		Chat_Draw();
++		setlocaluserinfo(0, "in_menu", "0");
++
++		sui_begin(g_width, g_height);
++		root_menu([g_width, g_height]);
++		sui_end();
++	}
++	else if (current_menu != MENU_NONE)
+ 	{
+ 		// sorta-nasty hack: flashes should still draw if we're
+ 		// drawing the menu.
+@@ -1230,6 +1260,7 @@ noref void() CSQC_Parse_Event =
  			break;
  		case CSQC_EVENT_ROUNDCHANGE:
  			rounds = readbyte();
@@ -26,16 +76,49 @@ index aa6f3dc..22a0f36 100644
  			break;
  		case CSQC_EVENT_BROADCASTMESSAGE:
  			broadcast_type = readbyte();
-@@ -1307,6 +1317,7 @@ noref void() CSQC_Parse_Event =
+@@ -1307,6 +1338,9 @@ noref void() CSQC_Parse_Event =
  			break;
  		case EVENT_ENDGAME:
  			in_endgame_sequence = true;
++			// daivr.dev: the game over choices fade in under the scoreboard a moment later.
++			menu_gameover_at = cltime + 2.5;
 +			Daivr_ReportStats("end");
  			break;
  		case EVENT_DOUBLETAPUPDATE:
  			double_tap_version = readbyte();
+diff --git a/source/menu/defs/menu_defs.qc b/source/menu/defs/menu_defs.qc
+index 23c18c9..c2d788e 100644
+--- a/source/menu/defs/menu_defs.qc
++++ b/source/menu/defs/menu_defs.qc
+@@ -61,7 +61,8 @@ enum {
+     MENU_CREDITS,
+     MENU_PAUSE,
+     MENU_LOBBY,
+-    MENU_GAMESETTINGS
++    MENU_GAMESETTINGS,
++    MENU_GAMEOVER       // daivr.dev: CSQC game over choices
+ };
+ 
+ #define MENU_SND_NAVIGATE 	0
+@@ -89,6 +90,7 @@ void() Menu_GameSettings;
+ #else
+ 
+ void() Menu_Pause;
++void() Menu_GameOver;
+ 
+ #endif // MENU
+ 
+@@ -133,6 +135,8 @@ string(string next_id) Menu_Bios_GetPreviousButton;
+ 
+ string(string prev_id) Menu_Pause_GetNextButton;
+ string(string next_id) Menu_Pause_GetPreviousButton;
++string(string prev_id) Menu_GameOver_GetNextButton;
++string(string next_id) Menu_GameOver_GetPreviousButton;
+ 
+ #endif // MENU
+ 
 diff --git a/source/menu/m_menu.qc b/source/menu/m_menu.qc
-index 91dc9fc..268cae6 100644
+index 91dc9fc..5963631 100644
 --- a/source/menu/m_menu.qc
 +++ b/source/menu/m_menu.qc
 @@ -556,7 +556,7 @@ void(float order, float sub_order, string header) Menu_DrawCreditContributor =
@@ -126,6 +209,56 @@ index 91dc9fc..268cae6 100644
  	localcmd("sv_public 2; sv_listen_qw 1\n");
  	current_menu = MENU_COOPSTOCK;
  };
+@@ -1003,7 +1039,9 @@ float last_menu;
+ void(vector size) root_menu =
+ {
+ 	sui_set_align([SUI_ALIGN_CENTER, SUI_ALIGN_CENTER]);
+-	sui_fill([0, 0], size, '0 0 0', 0.5, 0);
++	// daivr.dev: the game over choices sit on the live scoreboard, undimmed.
++	if (current_menu != MENU_GAMEOVER)
++		sui_fill([0, 0], size, '0 0 0', 0.5, 0);
+ 	switch (current_menu)
+ 	{
+ 
+@@ -1027,6 +1065,7 @@ void(vector size) root_menu =
+ #else
+ 
+ 		case MENU_PAUSE: Menu_Pause(); break;
++		case MENU_GAMEOVER: Menu_GameOver(); break;
+ 
+ #endif // MENU
+ 
+diff --git a/source/menu/main.qc b/source/menu/main.qc
+index cc41929..22d477a 100644
+--- a/source/menu/main.qc
++++ b/source/menu/main.qc
+@@ -112,13 +112,22 @@ void() Menu_MapFinder =
+ 	searchhandle maps;
+ 
+ 	maps = search_begin("maps/*.bsp", 0, 0);
+-	user_maps_count = search_getsize(maps);
++	float maps_found = search_getsize(maps);
++	user_maps_count = 0;
+ 
+-	for (float i = 0; i < user_maps_count; i++) {
+-		float index = i;
++	for (float i = 0; i < maps_found; i++) {
++		string map_name = strip_custominfo(search_getfilename(maps, i));
++
++		// daivr.dev: weapon_test ships in game.pk3 as a developer test map,
++		// so it stays out of User Maps and Random.
++		if (map_name == "weapon_test")
++			continue;
++
++		float index = user_maps_count;
++		user_maps_count += 1;
+ 
+ 		user_maps[index].occupied = TRUE;
+-		user_maps[index].map_name = strip_custominfo(search_getfilename(maps, i));
++		user_maps[index].map_name = map_name;
+ 
+ 		float settings = fopen(strcat("maps/", user_maps[index].map_name, ".txt"), FILE_READ);
+ 		if (settings != -1) {
 diff --git a/source/menu/menu_coop.qc b/source/menu/menu_coop.qc
 index def4893..7fe0716 100644
 --- a/source/menu/menu_coop.qc
@@ -326,6 +459,59 @@ index def4893..7fe0716 100644
  };
  
  string menu_coop_buttons[] = {
+diff --git a/source/menu/menu_gset.qc b/source/menu/menu_gset.qc
+index 937f7bf..3855702 100644
+--- a/source/menu/menu_gset.qc
++++ b/source/menu/menu_gset.qc
+@@ -96,6 +96,37 @@ void() Menu_GameSettings_ApplyFastRounds =
+     cvar_set("sv_fastrounds", ftos(current_fastrounds));
+ };
+ 
++//
++// daivr.dev: Menu_GameSettings_DrawRankNote(note)
++// A pulsing, glowing line under the hovered option's description (which
++// Menu_Button draws 30 units above the bottom of the frame).
++//
++void(string note) Menu_GameSettings_DrawRankNote =
++{
++    float pulse = 0.5 + 0.5 * fabs(sin(time * 3));
++    vector glow = [1, 0.35, 0];
++
++    sui_set_align([SUI_ALIGN_CENTER, SUI_ALIGN_END]);
++
++    // Halo: the text added around itself in orange, in rings that fade out
++    // (drawflag 1 = additive), breathing with the pulse.
++    for (float ring = 1; ring <= 3; ring++) {
++        float ring_alpha = (0.7 / ring) * pulse;
++        sui_text([-ring, -12], MENU_TEXT_SMALL, note, glow, ring_alpha, 1);
++        sui_text([ring, -12], MENU_TEXT_SMALL, note, glow, ring_alpha, 1);
++        sui_text([0, -12 - ring], MENU_TEXT_SMALL, note, glow, ring_alpha, 1);
++        sui_text([0, -12 + ring], MENU_TEXT_SMALL, note, glow, ring_alpha, 1);
++        sui_text([-ring, -12 - ring], MENU_TEXT_SMALL, note, glow, ring_alpha * 0.5, 1);
++        sui_text([ring, -12 + ring], MENU_TEXT_SMALL, note, glow, ring_alpha * 0.5, 1);
++        sui_text([ring, -12 - ring], MENU_TEXT_SMALL, note, glow, ring_alpha * 0.5, 1);
++        sui_text([-ring, -12 + ring], MENU_TEXT_SMALL, note, glow, ring_alpha * 0.5, 1);
++    }
++
++    sui_text([0, -12], MENU_TEXT_SMALL, note, [1, 0.9, 0.45], 1, 0);
++
++    sui_set_align([SUI_ALIGN_START, SUI_ALIGN_START]);
++};
++
+ void() Menu_GameSettings = 
+ {
+     Menu_DrawBackground();
+@@ -137,6 +168,10 @@ void() Menu_GameSettings =
+     Menu_Button(3, "ge_rond", "START ROUND", "Round to begin the Game on.") ? 0 : 0;
+     Menu_CvarSlider(3, "ge_rond", [0, 50, 10], "sv_startround", true, false, true);
+ 
++    // daivr.dev: games started past round 1 stay out of the rankings.
++    if (sui_is_hovered("ge_rond"))
++        Menu_GameSettings_DrawRankNote("Starting past round 1 keeps this game out of the rankings and daily goal.");
++
+     // Magic
+     string magic_string = "";
+     Menu_Button(4, "ge_magc", "MAGIC", "Whether to allow Perks, Power-Ups, and the Mystery Box.") ? Menu_GameSettings_ApplyMagic() : 0;
 diff --git a/source/menu/menu_main.qc b/source/menu/menu_main.qc
 index 0976e80..fc85229 100644
 --- a/source/menu/menu_main.qc
@@ -382,3 +568,153 @@ index 0976e80..fc85229 100644
 -
  	sui_pop_frame();	
  };
+diff --git a/source/menu/menu_paus.qc b/source/menu/menu_paus.qc
+index dbf8008..907b2a9 100644
+--- a/source/menu/menu_paus.qc
++++ b/source/menu/menu_paus.qc
+@@ -123,3 +123,90 @@ void() Menu_Pause =
+ 
+ 	sui_pop_frame();	
+ };
++
++//
++// daivr.dev: game over choices
++// Everyone is down: GAME OVER and the scoreboard stay up (the server no
++// longer restarts on its own) and the choices fade in under the scoreboard.
++// TRY AGAIN restarts the map for everyone, so only the host gets it; guests
++// see who decides. RETURN TO MENU leaves the game.
++//
++float menu_gameover_at;
++float menu_gameover_chosen;
++
++void() Menu_GameOver_Open =
++{
++	current_menu = MENU_GAMEOVER;
++	setcursormode(TRUE, cvar_string("cl_cursor"), __NULL__, cvar("cl_cursor_scale"));
++};
++
++string(string prev_id) Menu_GameOver_GetNextButton =
++{
++	if (isserver() && prev_id != "go_retry")
++		return "go_retry";
++
++	return "go_menu";
++};
++
++string(string next_id) Menu_GameOver_GetPreviousButton =
++{
++	if (isserver() && next_id == "go_menu")
++		return "go_retry";
++
++	return "go_menu";
++};
++
++// Plain text like the menu's buttons, red when hovered. The whole row is
++// clickable. An empty id draws the text greyed out, without an action.
++float(string id, vector pos, vector size, string title, float alpha) Menu_GameOver_Button =
++{
++	float is_hovered = id != "" && !menu_gameover_chosen && sui_is_hovered(id);
++	vector text_color = [1, 1, 1];
++
++	if (id == "")
++		text_color = [0.5, 0.3, 0.3];
++	else if (is_hovered)
++		text_color = [1, 0, 0];
++
++	sui_text(pos + [(size_x - getTextWidth(title, MENU_TEXT_MEDIUM_x)) / 2, (size_y - MENU_TEXT_MEDIUM_y) / 2], MENU_TEXT_MEDIUM, title, text_color, alpha, 0);
++
++	// Only clickable once fully shown, so a click meant for the game can't land here.
++	if (id == "" || alpha < 1 || menu_gameover_chosen)
++		return FALSE;
++
++	sui_action_element(pos, size, id, sui_noop);
++	return sui_is_clicked(id);
++};
++
++void() Menu_GameOver_Retry =
++{
++	menu_gameover_chosen = TRUE;
++	Menu_PlaySound(MENU_SND_ENTER);
++	localcmd("restart\n");
++};
++
++void() Menu_GameOver_Leave =
++{
++	menu_gameover_chosen = TRUE;
++	Menu_PlaySound(MENU_SND_ENTER);
++	localcmd("disconnect\n");
++};
++
++void() Menu_GameOver =
++{
++	vector screen = sui_current_frame_size();
++	vector size = [240, 20];
++	// Just under the scoreboard (client/hud.qc HUD_Scores: rows from y 195, 15 apart, 4 at most).
++	vector pos = [screen_x / 2 - size_x / 2, 195 + bound(1, player_count, 4) * 15 + 16];
++	float alpha = bound(0, (cltime - menu_gameover_at) * 2, 1);
++
++	sui_set_align([SUI_ALIGN_START, SUI_ALIGN_START]);
++
++	if (isserver())
++		Menu_GameOver_Button("go_retry", pos, size, "TRY AGAIN", alpha) ? Menu_GameOver_Retry() : 0;
++	else
++		Menu_GameOver_Button("", pos, size, "WAITING FOR HOST", alpha);
++
++	// 25 apart, like the menu's rows.
++	Menu_GameOver_Button("go_menu", pos + [0, 25], size, "RETURN TO MENU", alpha) ? Menu_GameOver_Leave() : 0;
++};
+diff --git a/source/menu/sui_sys.qc b/source/menu/sui_sys.qc
+index 6be6baf..d33e006 100644
+--- a/source/menu/sui_sys.qc
++++ b/source/menu/sui_sys.qc
+@@ -460,6 +460,9 @@ void() _sui_menukey_downarrow =
+ 		case MENU_PAUSE:
+ 			_hover_actions[0] = Menu_Pause_GetNextButton(current_hovered_option);
+ 			break;
++		case MENU_GAMEOVER:
++			_hover_actions[0] = Menu_GameOver_GetNextButton(current_hovered_option);
++			break;
+ 
+ #endif // MENU
+ 
+@@ -538,6 +541,9 @@ void() _sui_menukey_uparrow =
+ 		case MENU_PAUSE:
+ 			_hover_actions[0] = Menu_Pause_GetPreviousButton(current_hovered_option);
+ 			break;
++		case MENU_GAMEOVER:
++			_hover_actions[0] = Menu_GameOver_GetPreviousButton(current_hovered_option);
++			break;
+ 
+ #endif // MENU
+ 
+diff --git a/source/server/damage.qc b/source/server/damage.qc
+index 97deafb..4b80018 100644
+--- a/source/server/damage.qc
++++ b/source/server/damage.qc
+@@ -90,8 +90,9 @@ void() EndGame =
+ 		who = find(who,classname,"ai_zombie");
+ 	}
+ 	
+-	self.think = EndGame_FadePrompt;
+-	self.nextthink = time + 28;
++	// daivr.dev: no fade to black and automatic restart. GAME OVER stays up
++	// until the host picks Try again (a map restart) or players return to
++	// the menu (client: menu_paus.qc, Menu_GameOver).
+ }
+ 
+ // when dead and other players exist and are alive, throw user into spectate mode
+diff --git a/source/server/main.qc b/source/server/main.qc
+index c4b4af5..9ae55ac 100644
+--- a/source/server/main.qc
++++ b/source/server/main.qc
+@@ -493,6 +493,10 @@ void() worldspawn =
+ 	cvar_set("mapname_pretty", mapname_pretty);
+ 	localcmd(sprintf("serverinfo mapname_pretty %s\n", mapname_pretty));
+ 
++	// daivr.dev: clients report the start round with their stats (client/main.qc,
++	// Daivr_ReportStats), so games started past round 1 stay out of the rankings.
++	localcmd(sprintf("serverinfo daivr_startround %d\n", max(1, cvar("sv_startround"))));
++
+ #endif // FTE
+ 
+ 	Gamemode_Init();
