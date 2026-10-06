@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { getSessionUser, readComments } from "./comments.mjs";
 import { getDataFile } from "./storage.mjs";
-import { readPlayers, writePlayers } from "./player-store.mjs";
+import { dailyChallengeFor, dailyProgress, readPlayers, writePlayers } from "./player-store.mjs";
 import { buildInbox } from "./community-inbox.mjs";
 import { readJsonBody, sameOrigin } from "./http-guards.mjs";
 import { dailyChallenge, PLAYER_GAMES } from "../shared/player-catalog.mjs";
@@ -79,7 +79,7 @@ export async function handlePlayerRequest(request, response) {
       });
       return send(200, { rankings: buildPlayerRankings(cards) });
     }
-    const challenge = { ...dailyChallenge(), xp: dailyXp() };
+    const challenge = { ...(user ? dailyChallengeFor(user.id) : dailyChallenge()), xp: dailyXp() };
     if (!user) return send(request.method === "GET" ? 200 : 401, { user: null, challenge, error: request.method === "GET" ? undefined : "Connect Discord to save your passport." });
     if (!["GET", "POST"].includes(request.method)) return send(405, { error: "Method not allowed." });
     let body;
@@ -102,7 +102,7 @@ export async function handlePlayerRequest(request, response) {
       result = passport(user, saved, comments); saved = result.saved; card = result.card;
     }
     if (JSON.stringify(saved) !== original) { players[user.id] = saved; writePlayers(players); }
-    const progress = saved.daily?.date === challenge.date ? saved.daily : { best: 0, complete: false };
+    const progress = dailyProgress(saved, challenge) || { best: 0, complete: false };
     const complete = progress.complete || (saved.completedDates || []).includes(challenge.date);
     const xp = dailyXp(complete ? card.currentStreak : card.currentStreak + 1);
     if (complete) { xp.total = saved.xpAwards[`daily:${challenge.date}`] ?? xp.total; xp.bonus = xp.total - xp.base; }

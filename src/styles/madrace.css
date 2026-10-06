@@ -109,9 +109,6 @@
   .madrace-footer { min-height: 52px; padding: 9px 16px; border-top-width: 1px; color: var(--color-phosphor-soft); font-size: .58rem; font-weight: 900; letter-spacing: .1em; }
   .madrace-footer > span { color: var(--color-phosphor); }
   .madrace-footer > span.is-error { color: var(--color-danger-arcade); }
-  .madrace-footer label { display: flex; align-items: center; gap: 8px; }
-  .madrace-footer input { width: 110px; accent-color: var(--color-phosphor); }
-  .madrace-footer b { width: 34px; color: #fff; }
   .madrace-footer p i { padding: 0 5px; color: var(--color-cabinet); font-style: normal; }
 
   .madrace-reset-backdrop {
@@ -168,7 +165,6 @@
     .madrace-actions button { padding: 0 8px; }
     .madrace-screen { margin: 7px; }
     .madrace-footer { flex-wrap: wrap; }
-    .madrace-footer input { width: 82px; }
     .madrace-leaderboard li { grid-template-columns: 24px 30px minmax(0,1fr) auto; }
     .madrace-leaderboard li .ranking-avatar { width: 30px; height: 30px; }
     .madrace-leaderboard li small { display: none; }

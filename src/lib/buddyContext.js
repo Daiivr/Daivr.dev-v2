@@ -4,7 +4,7 @@
 // lleva un tema para que los buddies de visita sepan de que se habla.
 // Sin React ni DOM: los tests de Node lo importan tal cual.
 
-import { dailyChallenge, PLAYER_GAMES } from "../../shared/player-catalog.mjs";
+import { dailyChallenge, gameTitle } from "../../shared/player-catalog.mjs";
 
 // --- Tiempo de fuera ------------------------------------------------------------
 
@@ -124,25 +124,25 @@ export function returnLines(lastSeenAt, now = Date.now()) {
 
 // --- El arcade ahora mismo -------------------------------------------------------
 
-export function arcadeLines({ online = null, level = null, now = Date.now() } = {}) {
+export function arcadeLines({ online = null, level = null, now = Date.now(), nzp = false } = {}) {
   const lines = [];
   if (online >= 3) lines.push({ topic: "arcade", line: `${online} players in the arcade right now.` }, { topic: "arcade", line: "busy arcade today. lots of footsteps." });
   else if (online === 2) lines.push({ topic: "arcade", line: "one other player is here right now. say hi?" });
-  const daily = dailyChallenge(now);
-  const game = PLAYER_GAMES.find((entry) => entry.id === daily.game)?.name;
+  const daily = dailyChallenge(now, { nzp });
+  const game = gameTitle(daily.game);
   if (game) lines.push({ topic: "daily", line: `today's daily is ${game}. you in?` }, { topic: "daily", line: `daily challenge: ${game}. i believe in you.` });
   if (level >= 2) lines.push({ topic: "level", line: `level ${level}! look at you go.` });
   return lines;
 }
 
 // Todo lo de contexto que puede entrar en la charla de relleno, con su tema.
-export function contextLines({ date = new Date(), weather = null, locale = "", online = null, level = null } = {}) {
+export function contextLines({ date = new Date(), weather = null, locale = "", online = null, level = null, nzp = false } = {}) {
   const real = Boolean(weather?.available);
   return [
     // El tiempo de verdad pesa doble: es lo mas "de fuera" que puede decir.
     ...weatherLines(weather, locale).flatMap((line) => (real ? [line, line] : [line])).map((line) => ({ topic: "weather", line })),
     ...timeLines(date).map((line) => ({ topic: "time", line })),
-    ...arcadeLines({ online, level, now: date.getTime() })
+    ...arcadeLines({ online, level, now: date.getTime(), nzp })
   ];
 }
 

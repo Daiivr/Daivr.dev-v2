@@ -1,8 +1,8 @@
 import "../styles/konami-games.css";
-import { ArrowLeft, Gamepad2, LogIn, Play, RotateCcw, Trophy, Volume2, VolumeX, X } from "lucide-react";
+import { ArrowLeft, Gamepad2, LogIn, Play, RotateCcw, Trophy, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RankingAvatar } from "./RankingAvatar";
-import { ArcadeTvDetails, ArcadeTvPower } from "./ArcadeTvDetails";
+import { ArcadeTvDetails, ArcadeTvPower, ArcadeTvVolume } from "./ArcadeTvDetails";
 import { useDailyChallengeNotice } from "../hooks/useDailyChallengeNotice";
 import { useModalPresence } from "../hooks/useModalPresence";
 import { TV_CLOSE_MS, useTvPowerOn } from "../hooks/useTvPowerOn";
@@ -173,6 +173,9 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
 
   if (!config) return null;
 
+  // The set's volume fader (ArcadeTvVolume) works in 0-100; the table in 0-1.
+  const volumeControl = config?.volume ? { value: volume * 100, onChange: (next) => changeVolume(next / 100), label: `${config.title} volume` } : null;
+
   return (
     <div className="arcade-embed-backdrop motion-backdrop" data-state={presence.state}>
       <section className="arcade-embed-modal arcade-tv motion-panel" data-state={presence.state} role="dialog" aria-modal="true" aria-label={config.title}>
@@ -213,16 +216,10 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
             {rankingLoading ? <p>{ranking.scanning}</p> : <ol>{leaderboard.map((entry) => <li className={entry.discordId === me?.id ? "is-player" : ""} key={entry.discordId}><b>{String(entry.rank).padStart(2,"0")}</b><RankingAvatar src={entry.avatarUrl} name={entry.username} /><span>{entry.username}</span><em>{ranking.format(entry.bestScore)}</em><small>{formatDuration(entry.bestDurationMs)}</small></li>)}</ol>}
           </aside> : null}
         </div>
-        <ArcadeTvDetails channel={{ "cross-road": "03", "rubiks-cube": "04", "space-cadet-pinball": "05" }[shownGame]} powered={powered} off={switchingOff} />
+        <ArcadeTvDetails channel={{ "cross-road": "03", "rubiks-cube": "04", "space-cadet-pinball": "05" }[shownGame]} powered={powered} off={switchingOff} volume={volumeControl} />
         <footer>
           <span>{config.controls}</span>
-          {config.volume ? (
-            <label className="arcade-embed-volume">
-              {volume > 0 ? <Volume2 size={14} /> : <VolumeX size={14} />}
-              <input type="range" min="0" max="1" step="0.05" value={volume} onChange={(event) => changeVolume(event.target.value)} aria-label={`${config.title} volume`} />
-              <i>{Math.round(volume * 100)}</i>
-            </label>
-          ) : null}
+          {volumeControl ? <ArcadeTvVolume compact {...volumeControl} /> : null}
           <b>{status || "PROGRAM ONLINE"}</b><em>ESC TO CLOSE</em>
         </footer>
       </section>

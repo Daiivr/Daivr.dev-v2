@@ -7,7 +7,7 @@ NZ:P appears as cartridge 06 in the desktop Konami library only when every entry
 Opening the cartridge powers on the TV and boots NZ:P straight into its own main menu; there is no website launcher or overlay.
 
 - **Solo** starts a single-player game. It doesn't register with Frag-Net.
-- **Cooperative → Create Game** hosts a session: name (defaults to "<player name> co-op"), optional password, then a map. Sessions are always four players.
+- **Cooperative → Create Game** hosts a session: name (defaults to "<player name> co-op"), optional password, max players (1–8, starts at 4), then a map.
 - **Cooperative → Join Game** opens the session list directly. It shows only sessions hosted from daivr.dev, with a padlock on password ones. Picking a locked session asks for its password; open ones join straight away.
 - Signed-in Discord players get their display name as the in-game name.
 - The trophy button opens three rankings: **Round** (highest round in one game), **Kills** (total zombies killed) and **Money** (total points earned).
@@ -24,9 +24,15 @@ Opening the cartridge powers on the TV and boots NZ:P straight into its own main
   - Content-Length is the compressed size while bytes arrive decompressed, so each file is capped at its total. The bar holds at 92% until the archive finishes and 96% while the engine starts, then fades out. Without Content-Length it switches to an indeterminate sweep.
   - Buffers are trimmed with `ArrayBuffer.prototype.transfer` where available, to avoid a second 90 MB copy.
 - **Player name:** the wrapper reads the same-origin `/api/comments/me` session (2.5s timeout) and passes `+set name <name>`, which FTE applies after the saved config. `public/nzp/player-name.mjs` folds accents to ASCII and keeps only letters, digits, spaces, `_`, `.` and `-` (never leading), so a name cannot inject console commands. Guests keep the name saved in NZ:P's own settings ("Unknown Soldier" by default).
-- **Stats:** on every round change and at game over, the client program prints `[daivr] nzp-stats <round|end> <round> <kills> <total score> <map>`. The wrapper parses it (`public/nzp/stats-line.mjs`) and posts `nzp:stats` to the cartridge; origin and source are checked.
+- **Stats:** on every round change and at game over, the client program prints `[daivr] nzp-stats <round|end> <round> <kills> <headshots> <total score> <map>`. The wrapper parses it (`public/nzp/stats-line.mjs`) and posts `nzp:stats` to the cartridge; origin and source are checked.
+  - FTE writes its console straight to `console.log` (`_emscriptenfte_print` in `ftewebgl.js`) and never calls `Module.print`, so the wrapper reads the lines by wrapping the game frame's `console.log`.
   - The cartridge saves one record per game: at game over, or when lower counters or another map show that the previous game was left. Closing the cartridge saves the current game with a keepalive request. Games without a kill are skipped.
   - The total score is NZ:P's scoreboard score, including the 500 starting points.
+- **Daily challenge:** NZ:P takes one day in four of the shared rotation (`shared/player-catalog.mjs`), with a goal that changes each time it comes round: survive to round 10, 40 headshots, 150 kills or 15,000 points in one game. Its rewards are the Survivor, Marksman, Exterminator and Tycoon accents.
+  - **Fallback:** a player who hasn't unlocked NZ:P gets one of the regular challenges that day, so streaks never break over a locked game. On the server, unlocked means the server-saved Buddy journal is complete or the player has saved an NZ:P game (`server/nzp-unlock.mjs`). On the client, App announces the local journal state (`daivr-nzp-unlocked`) for Buddy's chatter and the terminal's `play daily`.
+  - **Mobile:** NZ:P is desktop-only, so a player who unlocked it but is on a phone still gets the NZ:P goal.
+  - **Progress:** it is keyed by `game:metric`, so unlocking NZ:P mid-day starts the NZ:P goal fresh instead of comparing kills against a Tower Block goal.
+  - **Saving:** saved games count toward it, and `POST /api/nzp/challenge` checks it mid-game so the "challenge complete" notice appears while you play.
 - **Rankings API:** `GET /api/nzp/leaderboard?board=round|kills|score`, `GET /api/nzp/me`, `POST /api/nzp/run` (run token) and `POST /api/nzp/game`.
   - Saving needs the Discord session and a run token armed when the cartridge opens. The game can't have lasted longer than the token has existed.
   - Validation limits: round 1–255 (a byte in the client), kills up to 65,535, at least 8 s per round, at most 10 kills per second, and points in proportion to kills and rounds.

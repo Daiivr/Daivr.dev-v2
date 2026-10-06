@@ -1,12 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { runTokenFor } from "../lib/runTokens";
 
+// Samples come from the game frame (daivr:daily-progress) or, for NZ:P, from
+// report(): { metrics: { round, kills, headshots, score, map }, durationMs },
+// where the day's goal names the stat that counts (challenge.metric).
+const sampleValue = (sample, challenge) => sample.metrics ? Number(sample.metrics[challenge.metric || "score"]) || 0 : sample.score;
+
 export function useDailyChallengeNotice({ game, open, frameRef }) {
   const [notice, setNotice] = useState(null);
   const retryRef = useRef(() => {});
+  const reportRef = useRef(() => {});
   useEffect(() => {
     setNotice(null);
-    if (!open || !["tower-block", "cross-road", "space-cadet-pinball"].includes(game)) return;
+    if (!open || !["tower-block", "cross-road", "space-cadet-pinball", "nzp"].includes(game)) return;
     const controller = new AbortController();
     let challenge;
     let sample;
@@ -21,7 +27,7 @@ export function useDailyChallengeNotice({ game, open, frameRef }) {
         if (controller.signal.aborted) return;
         const wasIncomplete = challenge && !challenge.complete;
         challenge = value.user && value.challenge.game === game ? value.challenge : null;
-        if (wasIncomplete && challenge?.complete && sample?.score >= challenge.goal) setNotice({ state: "complete", name: challenge.name, xp: challenge.xp.total });
+        if (wasIncomplete && challenge?.complete && sample && sampleValue(sample, challenge) >= challenge.goal) setNotice({ state: "complete", name: challenge.name, xp: challenge.xp.total });
         window.clearTimeout(rollover);
         rollover = window.setTimeout(() => { setNotice(null); load(); }, Math.max(1000, Date.parse(value.challenge.resetsAt) - Date.now() + 100));
         check();
@@ -30,12 +36,12 @@ export function useDailyChallengeNotice({ game, open, frameRef }) {
       }
     }
     async function check() {
-      if (pending || !challenge || challenge.complete || !sample || sample.score < challenge.goal || Date.now() < retryAfter) return;
+      if (pending || !challenge || challenge.complete || !sample || sampleValue(sample, challenge) < challenge.goal || Date.now() < retryAfter) return;
       pending = true;
       setNotice({ state: "saving", name: challenge.name });
       try {
         const runToken = await runTokenFor(game);
-        const response = await fetch(`/api/${game}/challenge`, { method: "POST", credentials: "include", signal: controller.signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ score: sample.score, durationMs: sample.durationMs, runToken }) });
+        const response = await fetch(`/api/${game}/challenge`, { method: "POST", credentials: "include", signal: controller.signal, headers: { "Content-Type": "application/json" }, body: JSON.stringify(sample.metrics ? { ...sample.metrics, durationMs: sample.durationMs, runToken } : { score: sample.score, durationMs: sample.durationMs, runToken }) });
         if (!response.ok) throw new Error("Reward save failed");
         const value = await response.json();
         if (controller.signal.aborted) return;
@@ -56,12 +62,13 @@ export function useDailyChallengeNotice({ game, open, frameRef }) {
       sample = event.data;
       check();
     }
+    reportRef.current = (next) => { sample = next; check(); };
     retryRef.current = () => { retryAfter = 0; if (challenge) check(); else load(); };
     const refresh = () => { if (challenge && !challenge.complete && !pending) load(); };
     window.addEventListener("message", onProgress);
     window.addEventListener("daivr-player-progress", refresh);
     load();
-    return () => { controller.abort(); window.clearTimeout(rollover); window.removeEventListener("message", onProgress); window.removeEventListener("daivr-player-progress", refresh); retryRef.current = () => {}; };
+    return () => { controller.abort(); window.clearTimeout(rollover); window.removeEventListener("message", onProgress); window.removeEventListener("daivr-player-progress", refresh); retryRef.current = () => {}; reportRef.current = () => {}; };
   }, [game, open, frameRef]);
-  return { notice, dismiss: () => { setNotice(null); frameRef.current?.contentWindow?.focus(); }, retry: () => retryRef.current() };
+  return { notice, dismiss: () => { setNotice(null); frameRef.current?.contentWindow?.focus(); }, retry: () => retryRef.current(), report: (sample) => reportRef.current(sample) };
 }

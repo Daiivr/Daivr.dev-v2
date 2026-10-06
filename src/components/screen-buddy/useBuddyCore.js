@@ -387,7 +387,8 @@ function createBuddyCore({ setMood, setFx, setBubble, setX, setY, setFacing, set
       weather: weatherRef.current,
       locale: typeof navigator === "undefined" ? "" : navigator.language,
       online: getCabinetSignal("online"),
-      level: getCabinetSignal("player")?.level ?? null
+      level: getCabinetSignal("player")?.level ?? null,
+      nzp: getCabinetSignal("nzpUnlocked")
     });
     context.forEach(({ line, topic }) => pool.push(rememberTopic(line, topic)));
     pool.push(...LINES.tips, ...LINES.lore);

@@ -5,6 +5,20 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.64.0",
+    codename: "ONE MORE WAVE",
+    date: "2026-10-06",
+    summary: "Completing Buddy's whole journal unlocks a sixth cartridge: Nazi Zombies: Portable, in its own TV with online co-op, three rankings and a turn in the daily challenge. The game TVs also gain a real volume fader.",
+    entries: [
+      ["new", "NZ:P joins the secret library as cartridge 06 once every catch and patrol find in Buddy's journal is discovered. It boots straight into the game, and the loading screen chalks in round tally marks while the zombies download."],
+      ["new", "Co-op lives in the game's own menu. Create Game takes a session name, an optional password, the player count and a map. Join Game lists the sessions hosted from this site, with a padlock on the private ones."],
+      ["new", "Signed-in players play under their Discord name, and every game counts toward three NZ:P rankings: highest round, zombies killed and money earned."],
+      ["new", "NZ:P takes one day in the daily challenge rotation, with a different goal each time: survive to round 10, land 40 headshots, kill 150 zombies or earn 15,000 points. Players who haven't unlocked it get a regular challenge that day, so no streak breaks over it. Four new rewards come with it: Survivor, Marksman, Exterminator and Tycoon."],
+      ["buff", "The NZ:P TV has a full-screen key on its panel."],
+      ["buff", "Space Cadet and Drive Mad set their volume with a fader on the TV itself, with an LCD readout like the channel display. On phones it sits in the TV's footer."]
+    ]
+  },
+  {
     version: "v2.63.0",
     codename: "WARM UP",
     date: "2026-10-05",

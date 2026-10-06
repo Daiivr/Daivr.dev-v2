@@ -2,12 +2,14 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { createHmac } from "node:crypto";
 import { createServer } from "node:http";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { FISH_CATALOG } from "../shared/buddy-catches.mjs";
 import { FIELD_FINDS, isBuddyJournalComplete } from "../shared/buddy-journal.mjs";
 import { availableKonamiGames } from "../src/data/konamiGames.js";
+import { DAILY_CHALLENGES, dailyChallenge, dailyChallengeKey, dailyChallengeValue } from "../shared/player-catalog.mjs";
+import { readPlayers, recordDailyRun } from "../server/player-store.mjs";
 import { securityHeaders } from "../server/security-headers.mjs";
 import { createNzpRankings, handleNzpRequest, validateNzpGame } from "../server/nzp.mjs";
 import { issueRunToken } from "../server/run-tokens.mjs";
@@ -20,6 +22,29 @@ const complete = () => ({
   foundObjects: Object.fromEntries(FIELD_FINDS.map(({ id }) => [id, 1]))
 });
 const minutes = (count) => count * 60_000;
+const DAY = 86_400_000;
+
+// Every store these tests touch (NZ:P rankings, passports, Buddy saves) goes to
+// a temporary folder, never the repo's data/.
+function useTempData() {
+  const directory = mkdtempSync(join(tmpdir(), "daivr-nzp-test-"));
+  const keys = ["NZP_DATA_DIR", "COMMENTS_DATA_DIR", "GAME_DATA_DIR", "COMMENTS_SESSION_SECRET"];
+  const previous = Object.fromEntries(keys.map((key) => [key, process.env[key]]));
+  Object.assign(process.env, { NZP_DATA_DIR: directory, COMMENTS_DATA_DIR: directory, GAME_DATA_DIR: directory, COMMENTS_SESSION_SECRET: "nzp-test-only-secret" });
+  // A missing store file is copied in from the repo's data/ (legacy migration in
+  // server/storage.mjs), so local games would leak in. Start every store empty.
+  for (const [file, empty] of [["nzp-leaderboard.json", { scores: [] }], ["player-passports.json", {}], ["buddy-friendship.json", {}]]) writeFileSync(join(directory, file), JSON.stringify(empty));
+  return () => {
+    for (const key of keys) if (previous[key] === undefined) delete process.env[key]; else process.env[key] = previous[key];
+    rmSync(directory, { recursive: true, force: true });
+  };
+}
+
+// The first day from `start` whose shared slot is NZ:P's.
+function nzpDay(start = Date.UTC(2026, 9, 1)) {
+  for (let day = 0; day < 8; day++) if (dailyChallenge(start + day * DAY, { nzp: true }).game === "nzp") return start + day * DAY + 3_600_000;
+  throw new Error("NZ:P never takes a daily slot");
+}
 
 test("NZ:P needs every catch and patrol find; duplicates, junk IDs, and totals cannot unlock it", () => {
   assert.equal(isBuddyJournalComplete(), false);
@@ -63,9 +88,9 @@ test("Discord names become safe NZ:P player names", () => {
 });
 
 test("the game's stats lines parse, and anything else is ignored", () => {
-  assert.deepEqual(nzpStatsLine("[daivr] nzp-stats round 12 87 15340 ndu\n"), { phase: "round", round: 12, kills: 87, score: 15340, map: "ndu" });
-  assert.deepEqual(nzpStatsLine("[daivr] nzp-stats end 3 9 1200 nzp_warehouse2"), { phase: "end", round: 3, kills: 9, score: 1200, map: "nzp_warehouse2" });
-  for (const text of ["client Dai connected", "[daivr] nzp-stats start 1 0 0 ndu", "[daivr] nzp-stats end -1 0 0 ndu", "[daivr] nzp-stats end 1 0 0 nd u", "[daivr] nzp-stats end 1 0 0 ndu extra"]) {
+  assert.deepEqual(nzpStatsLine("[daivr] nzp-stats round 12 87 31 15340 ndu\n"), { phase: "round", round: 12, kills: 87, headshots: 31, score: 15340, map: "ndu" });
+  assert.deepEqual(nzpStatsLine("[daivr] nzp-stats end 3 9 2 1200 nzp_warehouse2"), { phase: "end", round: 3, kills: 9, headshots: 2, score: 1200, map: "nzp_warehouse2" });
+  for (const text of ["client Dai connected", "[daivr] nzp-stats round 3 9 1200 ndu", "[daivr] nzp-stats start 1 0 0 0 ndu", "[daivr] nzp-stats end -1 0 0 0 ndu", "[daivr] nzp-stats end 1 0 0 0 nd u", "[daivr] nzp-stats end 1 0 0 0 ndu extra"]) {
     assert.equal(nzpStatsLine(text), null, text);
   }
 });
@@ -80,14 +105,15 @@ test("the QuakeC build ports upstream's CRC16 hash table generator", () => {
 });
 
 test("NZ:P games validate against the client's limits and a plausible pace", () => {
-  assert.deepEqual(validateNzpGame({ round: 12, kills: 180, score: 21_000, map: "ndu", durationMs: minutes(25) }).game, { round: 12, kills: 180, score: 21_000, map: "ndu", durationMs: minutes(25) });
-  for (const body of [{}, { round: 0, kills: 1, score: 1, map: "ndu", durationMs: 1000 }, { round: 256, kills: 1, score: 1, map: "ndu", durationMs: minutes(60) },
-    { round: 2, kills: 1.5, score: 1, map: "ndu", durationMs: minutes(5) }, { round: 2, kills: 1, score: 1, map: "../evil", durationMs: minutes(5) }]) {
+  const game = (fields) => ({ round: 2, kills: 10, headshots: 0, score: 100, map: "ndu", durationMs: minutes(5), ...fields });
+  assert.deepEqual(validateNzpGame(game({ round: 12, kills: 180, headshots: 60, score: 21_000, durationMs: minutes(25) })).game, { round: 12, kills: 180, headshots: 60, score: 21_000, map: "ndu", durationMs: minutes(25) });
+  for (const body of [{}, game({ round: 0 }), game({ round: 256, durationMs: minutes(60) }), game({ kills: 1.5 }), game({ map: "../evil" }),
+    game({ headshots: 11 }), game({ headshots: undefined }), game({ headshots: -1 })]) {
     assert.equal(validateNzpGame(body).game, undefined, JSON.stringify(body));
   }
-  assert.equal(validateNzpGame({ round: 30, kills: 10, score: 100, map: "ndu", durationMs: minutes(1) }).status, 422, "30 rounds in a minute");
-  assert.equal(validateNzpGame({ round: 2, kills: 5000, score: 100, map: "ndu", durationMs: minutes(1) }).status, 422, "5000 kills in a minute");
-  assert.equal(validateNzpGame({ round: 2, kills: 10, score: 900_000, map: "ndu", durationMs: minutes(5) }).status, 422, "points out of all proportion");
+  assert.equal(validateNzpGame(game({ round: 30, durationMs: minutes(1) })).status, 422, "30 rounds in a minute");
+  assert.equal(validateNzpGame(game({ kills: 5000, durationMs: minutes(1) })).status, 422, "5000 kills in a minute");
+  assert.equal(validateNzpGame(game({ score: 900_000 })).status, 422, "points out of all proportion");
 });
 
 test("rankings keep each player's best round and their total kills and points across games", () => {
@@ -105,17 +131,12 @@ test("rankings keep each player's best round and their total kills and points ac
 });
 
 test("HTTP rankings need a Discord session, a run token and a plausible game", async (t) => {
-  const directory = mkdtempSync(join(tmpdir(), "daivr-nzp-test-"));
-  const previous = { dir: process.env.NZP_DATA_DIR, secret: process.env.COMMENTS_SESSION_SECRET };
-  process.env.NZP_DATA_DIR = directory;
-  process.env.COMMENTS_SESSION_SECRET = "nzp-test-only-secret";
+  const restore = useTempData(t);
   const server = createServer(handleNzpRequest);
   await new Promise((done) => server.listen(0, "127.0.0.1", done));
   t.after(async () => {
     await new Promise((done) => server.close(done));
-    if (previous.dir === undefined) delete process.env.NZP_DATA_DIR; else process.env.NZP_DATA_DIR = previous.dir;
-    if (previous.secret === undefined) delete process.env.COMMENTS_SESSION_SECRET; else process.env.COMMENTS_SESSION_SECRET = previous.secret;
-    rmSync(directory, { recursive: true, force: true });
+    restore();
   });
   async function api(path, { id, body, method = body ? "POST" : "GET", headers = {} } = {}) {
     const payload = Buffer.from(JSON.stringify({ id, username: id, exp: Date.now() + 60000 })).toString("base64url");
@@ -126,7 +147,7 @@ test("HTTP rankings need a Discord session, a run token and a plausible game", a
     });
     return { status: response.status, data: await response.json() };
   }
-  const game = { round: 9, kills: 120, score: 11_000, map: "ndu", durationMs: minutes(15) };
+  const game = { round: 9, kills: 120, headshots: 40, score: 11_000, map: "ndu", durationMs: minutes(15) };
   const runToken = issueRunToken("nzp", Date.now() - minutes(20));
   assert.equal((await api("game", { body: { ...game, runToken } })).status, 401);
   assert.equal((await api("game", { id: "alice", body: { ...game, runToken }, headers: { Origin: "https://other.test" } })).status, 403);
@@ -142,4 +163,40 @@ test("HTTP rankings need a Discord session, a run token and a plausible game", a
   assert.deepEqual([boards.data.board, boards.data.leaderboard.map(({ discordId, value }) => [discordId, value])], ["kills", [["alice", 120]]]);
   assert.equal((await api("leaderboard?board=nope")).status, 400);
   assert.ok((await api("run", { method: "POST" })).data.token.length > 40);
+});
+
+test("NZ:P takes one daily slot with a rotating goal, and players without it keep a regular challenge", () => {
+  const day = nzpDay();
+  const locked = dailyChallenge(day), unlocked = dailyChallenge(day, { nzp: true });
+  assert.equal(unlocked.game, "nzp");
+  assert.ok(["round", "headshots", "kills", "score"].includes(unlocked.metric));
+  assert.ok(unlocked.task && unlocked.reward);
+  assert.notEqual(locked.game, "nzp");
+  assert.equal(locked.fallback, true);
+  assert.equal(locked.date, unlocked.date);
+  const laps = Array.from({ length: 4 }, (_, lap) => dailyChallenge(day + lap * DAILY_CHALLENGES.length * DAY, { nzp: true }));
+  assert.deepEqual(new Set(laps.map((challenge) => challenge.game)), new Set(["nzp"]));
+  assert.equal(new Set(laps.map((challenge) => challenge.metric)).size, 4, "every NZ:P day has the next goal");
+  for (let offset = 1; offset < DAILY_CHALLENGES.length; offset++) {
+    assert.deepEqual(dailyChallenge(day + offset * DAY), dailyChallenge(day + offset * DAY, { nzp: true }), "other days are the same for everyone");
+  }
+  const stats = { round: 7, kills: 90, headshots: 33, score: 9000 };
+  assert.equal(dailyChallengeValue(unlocked, stats), stats[unlocked.metric]);
+  assert.equal(dailyChallengeValue(locked, 42), 42);
+  assert.notEqual(dailyChallengeKey(locked), dailyChallengeKey(unlocked));
+});
+
+test("NZ:P games count for the daily goal only for players who have NZ:P", (t) => {
+  t.after(useTempData());
+  const day = nzpDay();
+  const challenge = dailyChallenge(day, { nzp: true });
+  const result = (value) => ({ round: 1, kills: 0, headshots: 0, score: 0, [challenge.metric]: value });
+  writeFileSync(join(process.env.NZP_DATA_DIR, "nzp-leaderboard.json"), JSON.stringify({ scores: [{ discordId: "zed", games: 3 }] }));
+  const zed = { id: "zed", username: "Zed" }, ana = { id: "ana", username: "Ana" };
+  assert.equal(recordDailyRun(zed, "nzp", result(challenge.goal - 1), day).complete, false);
+  assert.equal(recordDailyRun(zed, "nzp", result(challenge.goal), day).complete, true);
+  assert.equal(readPlayers().zed.daily.key, dailyChallengeKey(challenge));
+  assert.equal(recordDailyRun(ana, "nzp", result(challenge.goal * 10), day), undefined, "Ana has no NZ:P, so her challenge is a regular game");
+  const fallback = dailyChallenge(day);
+  assert.equal(recordDailyRun(ana, fallback.game, fallback.goal, day).complete, true);
 });

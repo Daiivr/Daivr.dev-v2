@@ -190,16 +190,21 @@ async function boot() {
   const programs = Object.fromEntries(PROGS.map((file) => [`nzp/${file}`, download(`./progs/${file}`, track(file))]));
   for (const file of [game, ...Object.values(programs)]) file.catch((error) => fail(error.message || "NZ:P's game files could not download. Retry."));
   const name = await discordName();
+  // FTE writes its console straight to console.log (_emscriptenfte_print in
+  // ftewebgl.js), never through Module.print, so the stats lines are read there.
+  // This page is the game frame alone, so the tap touches nothing else.
+  const log = console.log.bind(console);
+  console.log = (...args) => {
+    log(...args);
+    const stats = typeof args[0] === "string" ? nzpStatsLine(args[0]) : null;
+    if (stats && window.parent !== window) window.parent.postMessage({ type: "nzp:stats", ...stats }, location.origin);
+  };
   window.Module = {
     canvas,
     arguments: name ? ["+set", "name", name] : [],
     files: { "default.fmf": `${upstream}default.fmf`, "nzp/game.pk3": game, ...programs },
     locateFile: (path) => new URL(path, upstream).href,
-    print(text) {
-      console.log(text);
-      const stats = nzpStatsLine(text);
-      if (stats && window.parent !== window) window.parent.postMessage({ type: "nzp:stats", ...stats }, location.origin);
-    },
+    print: (text) => console.log(text),
     printErr: (text) => console.warn(text),
     // Engine status lines ("nzp/game.pk3 (…)", "Running...") stay off screen.
     setStatus: () => {},

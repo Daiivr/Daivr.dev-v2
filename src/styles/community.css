@@ -69,6 +69,10 @@
   .player-passport.accent-skyline { --passport-accent: #5bdcff; }
   .player-passport.accent-roadrunner { --passport-accent: #ffc76b; }
   .player-passport.accent-orbital { --passport-accent: #c5a0ff; }
+  .player-passport.accent-survivor { --passport-accent: #ff5d6c; }
+  .player-passport.accent-marksman { --passport-accent: #ff9b45; }
+  .player-passport.accent-exterminator { --passport-accent: #c9f04f; }
+  .player-passport.accent-tycoon { --passport-accent: #f3dd7c; }
   .player-passport img { width: 48px; height: 48px; object-fit: cover; border: 1px solid color-mix(in srgb, var(--passport-accent) 45%, transparent); padding: 3px; background: #020604; }
   .player-passport small { color: var(--passport-accent); font-size: 12px; }
   .player-passport h3 { overflow-wrap: anywhere; }

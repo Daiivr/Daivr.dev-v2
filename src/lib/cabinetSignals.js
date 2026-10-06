@@ -5,7 +5,7 @@ import { useSyncExternalStore } from "react";
 // siempre (`daivr-player-card` desde PlayerHub, `daivr-presence` desde el
 // stream del libro de visitas); aqui solo se guarda el ultimo para que quien
 // monte tarde no se quede sin dato y para no re-renderizar App entero.
-const values = { player: null, online: null, visitHello: null, visitRoster: [], weather: null };
+const values = { player: null, online: null, visitHello: null, visitRoster: [], weather: null, nzpUnlocked: false };
 const listeners = new Set();
 
 function update(key, value) {
@@ -25,6 +25,9 @@ if (typeof window !== "undefined") {
   window.addEventListener("daivr-visits-roster", (event) => update("visitRoster", Array.isArray(event.detail) ? event.detail : []));
   // El tiempo de fuera (/api/weather), que carga ScreenBuddy: lo usa el cielo del footer.
   window.addEventListener("daivr-outside-weather", (event) => update("weather", event.detail?.available ? event.detail : null));
+  // NZ:P desbloqueado (diario de Buddy completo), que anuncia App: decide si el
+  // reto diario del dia de NZ:P es el de NZ:P o el de repuesto.
+  window.addEventListener("daivr-nzp-unlocked", (event) => update("nzpUnlocked", Boolean(event.detail)));
 }
 
 function subscribe(listener) {

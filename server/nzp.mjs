@@ -2,13 +2,15 @@ import { DEFAULT_AVATAR_URL, refreshLeaderboardProfiles } from "./discord-avatar
 import { getSessionUser } from "./comments.mjs";
 import { readJsonBody, sameOrigin } from "./http-guards.mjs";
 import { apiPath, createRateLimiter, createScoreStore, sendJson } from "./leaderboard.mjs";
+import { NZP_DATA_ENVS, NZP_LEADERBOARD_FILE } from "./nzp-unlock.mjs";
+import { recordDailyRun } from "./player-store.mjs";
 import { checkRunDuration, sendRunToken } from "./run-tokens.mjs";
 
 // Rankings de NZ:P: la ronda mas alta en una partida, y en total los zombis
 // matados y los puntos ganados. El cartucho manda una ficha por partida con lo
-// que conto el propio cliente del juego (tools/nzp-qc, Daivr_ReportStats).
+// que conto el propio cliente del juego (tools/nzp-qc, Daivr_ReportStats), y la
+// misma ficha cuenta para el reto diario cuando ese dia toca NZ:P.
 const GAME = "nzp";
-const DATA_ENVS = ["NZP_DATA_DIR", "GAME_DATA_DIR"];
 // El cliente recibe la ronda como byte y las bajas como short.
 const MAX_ROUND = 255;
 const MAX_KILLS = 65_535;
@@ -27,16 +29,16 @@ export const NZP_BOARDS = {
 };
 
 export function validateNzpGame(body) {
-  const round = Number(body?.round), kills = Number(body?.kills), score = Number(body?.score), durationMs = Math.round(Number(body?.durationMs));
+  const round = Number(body?.round), kills = Number(body?.kills), headshots = Number(body?.headshots), score = Number(body?.score), durationMs = Math.round(Number(body?.durationMs));
   const map = typeof body?.map === "string" && /^[A-Za-z0-9_-]{1,32}$/.test(body.map) ? body.map : "";
-  if (![round, kills, score].every(Number.isInteger) || round < 1 || round > MAX_ROUND || kills < 0 || kills > MAX_KILLS || score < 0 || score > MAX_SCORE
+  if (![round, kills, headshots, score].every(Number.isInteger) || round < 1 || round > MAX_ROUND || kills < 0 || kills > MAX_KILLS || headshots < 0 || headshots > kills || score < 0 || score > MAX_SCORE
     || !Number.isFinite(durationMs) || durationMs < 0 || durationMs > MAX_DURATION_MS || !map) {
     return { error: "NZ:P game failed validation." };
   }
   if (round > 1 + durationMs / MIN_MS_PER_ROUND || kills > 10 + (durationMs / 1000) * MAX_KILLS_PER_SECOND || score > kills * 300 + round * 5000 + 5000) {
     return { error: "NZ:P game was faster than the validation floor.", status: 422 };
   }
-  return { game: { round, kills, score, map, durationMs } };
+  return { game: { round, kills, headshots, score, map, durationMs } };
 }
 
 export function createNzpRankings(store) {
@@ -88,6 +90,7 @@ export function createNzpRankings(store) {
         totalKills: (Number(current.totalKills) || 0) + game.kills,
         killsAt: game.kills ? now : current.killsAt || now,
         totalScore: (Number(current.totalScore) || 0) + game.score,
+        totalHeadshots: (Number(current.totalHeadshots) || 0) + (game.headshots || 0),
         scoreAt: game.score ? now : current.scoreAt || now,
         games: (Number(current.games) || 0) + 1,
         lastGame: game,
@@ -99,7 +102,7 @@ export function createNzpRankings(store) {
   };
 }
 
-const rankings = createNzpRankings(createScoreStore("nzp-leaderboard.json", DATA_ENVS));
+const rankings = createNzpRankings(createScoreStore(NZP_LEADERBOARD_FILE, NZP_DATA_ENVS));
 const isRateLimited = createRateLimiter(60_000, 20);
 
 export async function handleNzpRequest(request, response) {
@@ -116,7 +119,10 @@ export async function handleNzpRequest(request, response) {
   }
   if (method === "GET" && path === "me") return sendJson(response, 200, { authenticated: !!user, user, stats: user ? rankings.forUser(user.id) : null });
   if (method === "POST" && path === "run") return sendRunToken(response, GAME);
-  if (method === "POST" && path === "game") {
+  // "game" saves a finished (or abandoned) game to the rankings and the daily
+  // challenge; "challenge" only checks the daily goal mid-game, so the notice
+  // can say it is done while the game is still running.
+  if (method === "POST" && (path === "game" || path === "challenge")) {
     if (!user) return sendJson(response, 401, { error: "Connect Discord to save NZ:P games." });
     if (isRateLimited(user.id)) return sendJson(response, 429, { error: "Too many NZ:P games submitted." });
     let body;
@@ -129,8 +135,10 @@ export async function handleNzpRequest(request, response) {
     if (!game) return sendJson(response, status || 400, { error });
     const run = checkRunDuration(body.runToken, GAME, game.durationMs);
     if (!run.ok) return sendJson(response, run.status, { error: run.error });
+    if (path === "challenge") return sendJson(response, 200, { daily: recordDailyRun(user, GAME, game) || null });
     rankings.record(user, game);
-    return sendJson(response, 200, { stats: rankings.forUser(user.id) });
+    const daily = recordDailyRun(user, GAME, game) || null;
+    return sendJson(response, 200, { stats: rankings.forUser(user.id), daily });
   }
   return sendJson(response, 404, { error: "NZ:P endpoint not found." });
 }

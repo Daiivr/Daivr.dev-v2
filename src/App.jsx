@@ -163,6 +163,8 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
   }, [adventure.journalComplete, mobileView]);
 
   useEffect(() => { if (mobileView) setKonamiView((view) => view === "nzp" ? "library" : view); }, [mobileView]);
+  // El reto diario del dia de NZ:P depende de tenerlo (lib/cabinetSignals.js).
+  useEffect(() => { window.dispatchEvent(new CustomEvent("daivr-nzp-unlocked", { detail: adventure.journalComplete })); }, [adventure.journalComplete]);
 
   const terminalUsed = useUsedOnce(terminalOpen);
   const buddyModalUsed = useUsedOnce(Boolean(buddyModal));

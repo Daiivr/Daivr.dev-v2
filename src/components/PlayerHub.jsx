@@ -1,7 +1,7 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowUpRight, Award, Clock3, Flame, Gamepad2, HeartHandshake, Inbox, LockKeyhole, Pencil, ScrollText, SlidersHorizontal, Trophy, X, Zap } from "lucide-react";
-import { PLAYER_GAMES } from "../../shared/player-catalog.mjs";
+import { PLAYER_GAMES, gameTitle } from "../../shared/player-catalog.mjs";
 import { CommunityInbox } from "./CommunityInbox";
 import { PlayerBadge } from "./PlayerBadge";
 import { PlayerRankings } from "./PlayerRankings";
@@ -10,7 +10,7 @@ import { PlayerRankings } from "./PlayerRankings";
 // (src/lib/cabinetSignals.js) en vez de pedir /api/player otra vez.
 // Cartridge art from the game library, shared by the challenge and the records.
 const coverFor = (game) => `/arcade-library/${game}-cover.webp`;
-const gameName = (game) => PLAYER_GAMES.find((entry) => entry.id === game)?.name || "";
+const gameName = gameTitle;
 const SUBTITLES = {
   passport: "Your player ID and today's challenge.",
   records: "Your best run in every cabinet game.",
@@ -158,8 +158,8 @@ export function PlayerHub({ onPlay, theme = "crt" }) {
           <img className="daily-challenge-cover" src={coverFor(challenge.game)} alt="" />
           <div>
             <h3>{challenge.name}</h3>
-            <p>Score <strong>{challenge.goal.toLocaleString()} {challenge.unit}</strong> in {gameName(challenge.game)}.</p>
-            <span className="daily-challenge-rule">One run</span>
+            <p>{challenge.task ? <><strong>{challenge.task}</strong> in {gameName(challenge.game)}.</> : <>Score <strong>{challenge.goal.toLocaleString()} {challenge.unit}</strong> in {gameName(challenge.game)}.</>}</p>
+            <span className="daily-challenge-rule">{challenge.game === "nzp" ? "One game" : "One run"}</span>
           </div>
         </div>
         <div className="daily-challenge-progress">

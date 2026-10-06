@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="480" height="640" viewBox="0 0 480 640">
-  <defs><radialGradient id="glow"><stop stop-color="#ac4427"/><stop offset="1" stop-color="#171713"/></radialGradient><pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="#ddbc72" stroke-opacity=".08"/></pattern></defs>
-  <path fill="url(#glow)" d="M0 0h480v640H0z"/><path fill="url(#grid)" d="M0 0h480v640H0z"/>
-  <path d="M28 28h424v584H28z" fill="none" stroke="#dcbb70" stroke-width="2"/>
-  <g fill="#090e0b"><path d="M56 416h46V264h18v-26h20v26h18v152h46v-93h30v-64h28v64h38v93h32V276h22v-35h22v35h32v140h36v196H56z"/><path d="M0 470l480-45v215H0z"/></g>
-  <g stroke="#e2c17a" fill="none" stroke-width="3"><circle cx="240" cy="288" r="88" opacity=".35"/><path d="M240 184v36m0 136v36M136 288h36m136 0h36"/></g>
-  <g fill="#f2d391" text-anchor="middle" font-family="monospace"><text x="240" y="78" font-size="16" letter-spacing="4">JOURNAL COMPLETE</text><text x="240" y="206" font-size="102" font-weight="bold" letter-spacing="-8">NZ:P</text><text x="240" y="508" font-size="20" letter-spacing="5">SURVIVE TOGETHER</text><text x="240" y="551" font-size="13" letter-spacing="2">NAZI ZOMBIES: PORTABLE</text><text x="240" y="583" font-size="12" letter-spacing="3">SECRET CARTRIDGE / 06</text></g>
-</svg>

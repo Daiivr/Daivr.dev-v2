@@ -29,6 +29,11 @@ const GAMES = [
   { id: "madrace", aliases: ["drivemad", "drive-mad", "mad"], ranked: true, unit: "level" },
   { id: "rubiks-cube", aliases: ["cube", "rubiks", "rubik"], ranked: false }
 ].map((game) => ({ ...game, name: PLAYER_GAMES.find((entry) => entry.id === game.id)?.name || game.id }));
+// NZ:P only joins the bay once Buddy's journal unlocks it (App announces it).
+const NZP_GAME = { id: "nzp", aliases: ["zombies", "nazi-zombies"], ranked: false, name: "NZ:P" };
+const nzpUnlocked = () => Boolean(getCabinetSignal("nzpUnlocked"));
+const bayGames = () => (nzpUnlocked() ? [...GAMES, NZP_GAME] : GAMES);
+const todaysChallenge = () => dailyChallenge(Date.now(), { nzp: nzpUnlocked() });
 
 const PROJECTS = projects
   .map((project) => ({ title: project.title, slug: projectStories[project.title]?.slug, meta: project.meta }))
@@ -71,8 +76,8 @@ function resolveNode(value) {
 
 function resolveGame(value) {
   const key = String(value || "").toLowerCase();
-  if (["daily", "challenge", "today"].includes(key)) return GAMES.find((game) => game.id === dailyChallenge().game);
-  return GAMES.find((game) => matches(game, key)) || null;
+  if (["daily", "challenge", "today"].includes(key)) return bayGames().find((game) => game.id === todaysChallenge().game);
+  return bayGames().find((game) => matches(game, key)) || null;
 }
 
 function resolveProject(value) {
@@ -222,13 +227,13 @@ export const TERMINAL_COMMANDS = [
     usage: "play [game|daily]",
     summary: "insert a game cartridge",
     group: "cabinet",
-    complete: () => [{ value: "daily", detail: "today's challenge" }, ...GAMES.map((game) => ({ value: game.id, detail: game.name }))],
+    complete: () => [{ value: "daily", detail: "today's challenge" }, ...bayGames().map((game) => ({ value: game.id, detail: game.name }))],
     run: ({ arg, ctx }) => {
       if (!arg) {
-        const daily = dailyChallenge();
+        const daily = todaysChallenge();
         return [
           "CARTRIDGE BAY",
-          ...GAMES.map((game) => `  ${game.id.padEnd(21)}${game.name}${game.id === daily.game ? "  << daily challenge" : ""}`),
+          ...bayGames().map((game) => `  ${game.id.padEnd(21)}${game.name}${game.id === daily.game ? "  << daily challenge" : ""}`),
           "Usage: play <game> or play daily"
         ].join("\n");
       }

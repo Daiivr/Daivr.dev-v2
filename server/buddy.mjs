@@ -179,6 +179,11 @@ function readStore() {
   }
 }
 
+// Server-saved Buddy progress of one player (server/nzp-unlock.mjs reads the journal).
+export function readBuddyAdventure(userId) {
+  return normalizeAdventure(readStore()[userId]?.adventure);
+}
+
 function writeStore(store) {
   writeFileSync(ensureBuddyFile(), JSON.stringify(store, null, 2), "utf8");
 }

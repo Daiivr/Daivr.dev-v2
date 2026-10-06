@@ -7,10 +7,9 @@ The engine (`ftewebgl.js`/`.wasm`) and the game data (`nzp/game.pk3`) still load
 ## What the patch changes
 
 - **Main menu:** no Credits entry, build number or social badges. Arrow keys skip the hidden web-only Quit.
-- **Cooperative → Create Game:** session name (defaults to "<player name> co-op"), optional password, map. Port and max players are gone (always four).
+- **Cooperative → Create Game:** session name (defaults to "<player name> co-op"), optional password, NZ:P's own max players slider (1–8, starts at 4), map. The port row is gone.
 - **Cooperative → Join Game:** opens the session list directly. A padlock marks password sessions, and picking one asks for the password; open sessions join straight away. Single-player games are hidden. When nobody is hosting, the list says so.
-- **Client (CSQC):** on every round change and at game over, prints `[daivr] nzp-stats <phase> <round> <kills> <total score> <map>`. `public/nzp/shell.js` reads that from the console and the cartridge saves it to the rankings.
-
+- **Client (CSQC):** on every round change and at game over, prints `[daivr] nzp-stats <phase> <round> <kills> <headshots> <total score> <map>`. `public/nzp/shell.js` reads that from the console, and the cartridge saves it to the rankings and the daily challenge.
 - **Own session list:** before every co-op list refresh, host or join, the menu sets `com_protocolname NZP-DAIVR` (`Daivr_UseOwnSessions`). Sessions hosted here register on Frag-Net under that name, so Join Game lists only daivr.dev sessions and they stay out of NZ:P's public browser. A launch argument doesn't work for this, because NZ:P's startup resets the cvar to `NZP-REBOOT-WEB`.
 
 ## Rebuilding

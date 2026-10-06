@@ -2,8 +2,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowLeft, Gamepad2, LogIn, Trophy, X } from "lucide-react";
 import { ArcadeTvDetails, ArcadeTvPower } from "./ArcadeTvDetails";
+import { DailyChallengeNotice } from "./DailyChallengeNotice";
 import { RankingAvatar } from "./RankingAvatar";
 import { TV_CLOSE_MS, useTvPowerOn } from "../hooks/useTvPowerOn";
+import { useDailyChallengeNotice } from "../hooks/useDailyChallengeNotice";
 import { armRunToken, runTokenFor } from "../lib/runTokens";
 import "../styles/konami-games.css";
 import "../styles/nzp.css";
@@ -35,6 +37,9 @@ export function NzpModal({ onBack, onClose }) {
   const meRef = useRef(null);
   const gameRef = useRef(null);
   const powered = useTvPowerOn(!exiting, "nzp");
+  const daily = useDailyChallengeNotice({ game: "nzp", open: true, frameRef });
+  const reportRef = useRef(daily.report);
+  reportRef.current = daily.report;
 
   useEffect(() => () => window.clearTimeout(exitTimer.current), []);
   useEffect(() => { armRunToken("nzp"); }, []);
@@ -77,7 +82,7 @@ export function NzpModal({ onBack, onClose }) {
       if (!closing) setNotice("CONNECT DISCORD TO RANK YOUR GAMES");
       return;
     }
-    const body = { round: game.round, kills: game.kills, score: game.score, map: game.map, durationMs: Date.now() - game.startedAt };
+    const body = { round: game.round, kills: game.kills, headshots: game.headshots, score: game.score, map: game.map, durationMs: Date.now() - game.startedAt };
     if (!closing) setNotice(`SAVING ROUND ${game.round}...`);
     runTokenFor("nzp")
       .then((runToken) => fetch("/api/nzp/game", { method: "POST", credentials: "include", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, runToken }) }))
@@ -96,15 +101,17 @@ export function NzpModal({ onBack, onClose }) {
     function receive(event) {
       const frame = frameRef.current?.contentWindow;
       if (!frame || event.source !== frame || event.origin !== window.location.origin || event.data?.type !== "nzp:stats") return;
-      const { phase, round, kills, score, map } = event.data;
+      const { phase, round, kills, headshots, score, map } = event.data;
       let game = gameRef.current;
       // Lower counters or another map mean the last game ended without a game over.
-      if (game && (map !== game.map || round < game.round || kills < game.kills || score < game.score)) {
+      if (game && (map !== game.map || round < game.round || kills < game.kills || headshots < game.headshots || score < game.score)) {
         submitGame(game);
         game = null;
       }
       game ??= { startedAt: Date.now(), map };
-      Object.assign(game, { round, kills, score });
+      Object.assign(game, { round, kills, headshots, score });
+      // The daily goal can complete mid-game (useDailyChallengeNotice).
+      if (round > 0) reportRef.current({ metrics: { round, kills, headshots, score, map }, durationMs: Date.now() - game.startedAt });
       if (phase === "end") {
         submitGame(game);
         gameRef.current = null;
@@ -152,6 +159,7 @@ export function NzpModal({ onBack, onClose }) {
               {powered ? <iframe ref={frameRef} src={NZP_GAME_URL} title="Nazi Zombies: Portable" allow="autoplay; fullscreen; gamepad" allowFullScreen scrolling="no" /> : null}
             </section>
             <ArcadeTvPower powered={powered} off={exiting} />
+            <DailyChallengeNotice notice={daily.notice} onDismiss={daily.dismiss} onRetry={daily.retry} onClose={() => exit(onClose)} />
             {rankingOpen ? <aside className="tower-ranking cross-road-ranking nzp-ranking" aria-label="NZ:P rankings">
               <header><div><small>RANKING.SYS</small><strong>{BOARDS[board].heading}</strong></div><div className="cross-road-ranking-actions"><button type="button" onClick={() => { loadBoard(board); loadMe(); }}>REFRESH</button><button type="button" onClick={() => setRankingOpen(false)} aria-label="Close rankings"><X size={15} /></button></div></header>
               <div className="nzp-ranking-tabs">{Object.entries(BOARDS).map(([name, { tab }]) => <button type="button" key={name} aria-pressed={board === name} onClick={() => setBoard(name)}>{tab}</button>)}</div>

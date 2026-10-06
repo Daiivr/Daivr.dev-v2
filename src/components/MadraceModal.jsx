@@ -1,8 +1,8 @@
 import "../styles/konami-games.css";
-import { ArrowLeft, LogIn, RotateCcw, Trophy, Volume2, X } from "lucide-react";
+import { ArrowLeft, LogIn, RotateCcw, Trophy, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { RankingAvatar } from "./RankingAvatar";
-import { ArcadeTvDetails, ArcadeTvPower } from "./ArcadeTvDetails";
+import { ArcadeTvDetails, ArcadeTvPower, ArcadeTvVolume } from "./ArcadeTvDetails";
 import { useModalPresence } from "../hooks/useModalPresence";
 import { TV_CLOSE_MS, useTvPowerOn } from "../hooks/useTvPowerOn";
 
@@ -135,8 +135,7 @@ export function MadraceModal({ open, onBack, onClose }) {
     }, window.location.origin);
   }
 
-  function updateVolume(event) {
-    const next = Number(event.target.value);
+  function updateVolume(next) {
     setVolume(next);
     localStorage.setItem(VOLUME_KEY, String(next));
     sendVolume(next);
@@ -269,10 +268,10 @@ export function MadraceModal({ open, onBack, onClose }) {
           ) : null}
         </div>
 
-        <ArcadeTvDetails channel="01" powered={powered} off={switchingOff} />
+        <ArcadeTvDetails channel="01" powered={powered} off={switchingOff} volume={{ value: volume, onChange: updateVolume, label: "Drive Mad volume" }} />
         <footer className="madrace-footer">
           <span className={status.includes("FAILED") || status.includes("REQUIRED") ? "is-error" : ""}>{status || (me ? "DISCORD SAVE LINK ONLINE" : "GUEST RUN // SCORES LOCAL ONLY")}</span>
-          <label><Volume2 size={14} /><input type="range" min="0" max="100" value={volume} onChange={updateVolume} /><b>{volume}%</b></label>
+          <ArcadeTvVolume compact value={volume} onChange={updateVolume} label="Drive Mad volume" />
           <p>ARROWS / WASD TO DRIVE <i>•</i> ESC TO CLOSE</p>
         </footer>
 

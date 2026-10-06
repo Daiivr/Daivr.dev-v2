@@ -1,5 +1,5 @@
 diff --git a/source/client/main.qc b/source/client/main.qc
-index aa6f3dc..6f82558 100644
+index aa6f3dc..22a0f36 100644
 --- a/source/client/main.qc
 +++ b/source/client/main.qc
 @@ -136,6 +136,15 @@ float() GenerateAlphaTransparencyQ3Shaders =
@@ -8,11 +8,11 @@ index aa6f3dc..6f82558 100644
  
 +// daivr.dev: report this player's game to the page around the game
 +// (public/nzp/shell.js reads it from the engine's console output):
-+// "[daivr] nzp-stats <phase> <round> <kills> <total score> <map>".
++// "[daivr] nzp-stats <phase> <round> <kills> <headshots> <total score> <map>".
 +void(string phase) Daivr_ReportStats =
 +{
 +	entity me = findfloat(world, playernum, getplayerkeyfloat(player_localnum, "client_index"));
-+	print(sprintf("[daivr] nzp-stats %s %d %d %d %s\n", phase, rounds, me.kills, getstatf(STAT_TOTALSCORE), mapname));
++	print(sprintf("[daivr] nzp-stats %s %d %d %d %d %s\n", phase, rounds, me.kills, me.headshots, getstatf(STAT_TOTALSCORE), mapname));
 +};
 +
  noref void(float apiver, string enginename, float enginever) CSQC_Init =
@@ -127,7 +127,7 @@ index 91dc9fc..268cae6 100644
  	current_menu = MENU_COOPSTOCK;
  };
 diff --git a/source/menu/menu_coop.qc b/source/menu/menu_coop.qc
-index def4893..d9d34b9 100644
+index def4893..7fe0716 100644
 --- a/source/menu/menu_coop.qc
 +++ b/source/menu/menu_coop.qc
 @@ -14,6 +14,9 @@ string server_password;
@@ -228,7 +228,7 @@ index def4893..d9d34b9 100644
  
  	sui_pop_frame();
  };
-@@ -200,28 +219,22 @@ void() Menu_Coop_Join =
+@@ -200,28 +219,25 @@ void() Menu_Coop_Join =
  void() Menu_Coop_Create =
  {
  	Menu_Coop_UpdateHostname();
@@ -240,8 +240,7 @@ index def4893..d9d34b9 100644
  	Menu_DrawTitle("CREATE GAME");
  
 -	Menu_Button(1, "ccm_servername", "SERVER NAME", "Enter a name that will appear in the Server List.");
-+	// daivr.dev: a session is just a name, an optional password and a map, for four
-+	// players. The broker picks the room, so there is no port to set.
++	// daivr.dev: no port row (the broker picks the room); the rest moves up.
 +	Menu_Button(1, "ccm_servername", "SESSION NAME", "The name other players see in Join Game.");
  	Menu_TextInput("ccm_servername", 1, server_hostname, server_hostname_cursor);
  
@@ -253,18 +252,20 @@ index def4893..d9d34b9 100644
 +	Menu_Button(2, "ccm_password", "PASSWORD", "Optional. Leave it empty for an open session.");
 +	Menu_PasswordInput("ccm_password", 2, server_password, server_password_cursor);
  
--	// Max players
+ 	// Max players
 -	Menu_Button(4, "ccm_maxplayers", "MAX PLAYERS", "Change the maximum number of players who can join your server.") ? 0 : 0;
 -    Menu_CvarSlider(4, "ccm_maxplayers", [1, 8, 7], "maxplayers", true, false, false);
--
++	Menu_Button(3, "ccm_maxplayers", "MAX PLAYERS", "Change the maximum number of players who can join your server.") ? 0 : 0;
++    Menu_CvarSlider(3, "ccm_maxplayers", [1, 8, 7], "maxplayers", true, false, false);
+ 
 -	Menu_DrawDivider(5);
 -	Menu_Button(5.25, "ccm_choosemap", "CHOOSE MAP", "Select a Map to start the Game.") ? Menu_StartCoop() : 0;
-+	Menu_DrawDivider(3);
-+	Menu_Button(3.25, "ccm_choosemap", "CHOOSE MAP", "Pick a map, then start the game.") ? Menu_StartCoop() : 0;
++	Menu_DrawDivider(4);
++	Menu_Button(4.25, "ccm_choosemap", "CHOOSE MAP", "Pick a map, then start the game.") ? Menu_StartCoop() : 0;
  
  	Menu_Button(-1, "ccm_back", "BACK", "Return to Co-Op Menu.") ? current_menu = MENU_COOP : 0;
  
-@@ -234,13 +247,30 @@ void() Menu_Coop_EnterCreate =
+@@ -234,13 +250,30 @@ void() Menu_Coop_EnterCreate =
  {
  	localcmd("saveconfig user_settings.cfg\n");
  	localcmd("maxplayers 4\n");
@@ -296,7 +297,7 @@ index def4893..d9d34b9 100644
  };
  
  void() Menu_Coop_EnterBack =
-@@ -261,8 +291,8 @@ void() Menu_Coop =
+@@ -261,8 +294,8 @@ void() Menu_Coop =
  	Menu_TextInput("cm_playername", 1, player_name, player_name_cursor);
  
  	Menu_DrawDivider(2);
@@ -307,7 +308,7 @@ index def4893..d9d34b9 100644
  
  	Menu_Button(-1, "cm_back", "BACK", "Return to Main Menu.") ? Menu_Coop_EnterBack() : 0;
  
-@@ -274,7 +304,7 @@ string menu_coop_browse_buttons[] = {
+@@ -274,7 +307,7 @@ string menu_coop_browse_buttons[] = {
  };
  
  string menu_coop_direct_buttons[] = {
@@ -316,7 +317,7 @@ index def4893..d9d34b9 100644
  };
  
  string menu_coop_join_buttons[] = {
-@@ -282,7 +312,7 @@ string menu_coop_join_buttons[] = {
+@@ -282,7 +315,7 @@ string menu_coop_join_buttons[] = {
  };
  
  string menu_coop_create_buttons[] = {
