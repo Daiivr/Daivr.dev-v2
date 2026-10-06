@@ -1,68 +1,7 @@
 .nzp-modal { font-family: var(--font-mono); color: #e5e7dc; }
-.nzp-modal button:disabled { opacity: .4; cursor: not-allowed; }
-.nzp-modal :is(button, a, input):focus-visible { outline: 2px solid #f2d391; outline-offset: 3px; }
+.nzp-modal :is(button, a):focus-visible { outline: 2px solid #f2d391; outline-offset: 3px; }
 .nzp-modal a { color: #f2d391; text-underline-offset: 3px; }
 .nzp-intro { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.nzp-game { width: 100%; height: 100%; min-width: 0; min-height: 0; background: #050907; }
-.nzp-game iframe { display: block; width: 100%; height: 100%; border: 0; background: #000; }
-.nzp-launch { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; height: 100%; padding: 24px; text-align: center; background: radial-gradient(ellipse at 50% 40%, #77603722, transparent 65%); }
-.nzp-launch img { width: 144px; max-height: 25vh; object-fit: contain; }
-.nzp-launch h3 { margin: 0; color: #f2d391; font: 700 clamp(20px, 2.4vw, 30px)/1.2 var(--font-display); }
-.nzp-launch p { max-width: 390px; margin: 0; color: #98aa9e; font-size: 12px; line-height: 1.7; }
-.nzp-launch small { color: #98aa9e; }
-.nzp-launch-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-.nzp-modal :is(.nzp-launch, .nzp-lobby) button, .nzp-button, .nzp-modal .nzp-stop { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: auto; height: auto; min-height: 38px; padding: 9px 13px; border: 1px solid #b9a25d80; border-radius: 3px; background: #e4bd6415; color: #f2d391; cursor: pointer; font: 12px var(--font-mono); text-decoration: none; }
-.nzp-modal :is(.nzp-launch, .nzp-lobby) button:hover:not(:disabled), .nzp-button:hover, .nzp-modal .nzp-stop:hover:not(:disabled) { background: #e4bd6433; }
-.nzp-lobby { position: absolute; inset: 0 0 0 auto; z-index: 3; width: min(360px, 100%); overflow-y: auto; padding: 22px; border-left: 1px solid #e4bd6455; background: #07120ff5; box-shadow: -18px 0 40px #0008; font-size: 12px; line-height: 1.7; scrollbar-width: none; }
-.nzp-lobby::-webkit-scrollbar { display: none; }
-.nzp-lobby-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
-.nzp-lobby h3 { display: flex; align-items: center; gap: 9px; margin: 0; font-size: 16px; color: #f2d391; }
-.nzp-lobby h4 { margin: 20px 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; }
-.nzp-lobby p { color: #aabbb0; }
-.nzp-modal .nzp-stop { min-height: 28px; padding: 5px 9px; font-size: 9px; }
-.nzp-identity { margin: 0; }
-.nzp-identity strong { color: #e5e7dc; overflow-wrap: anywhere; }
-.nzp-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; margin: 14px 0 12px; padding: 3px; border: 1px solid #b9a25d55; border-radius: 3px; }
-.nzp-modal .nzp-lobby .nzp-tabs button { min-height: 32px; padding: 6px 8px; border: 0; background: transparent; color: #98aa9e; }
-.nzp-modal .nzp-lobby .nzp-tabs button[aria-pressed="true"] { background: #e4bd6426; color: #f2d391; }
-.nzp-tabs span { padding: 0 6px; border-radius: 99px; background: #e4bd6422; color: #f2d391; font-size: 10px; }
-.nzp-members li, .nzp-rooms form { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.nzp-members, .nzp-rooms { list-style: none; margin: 0; padding: 0; }
-.nzp-members li, .nzp-rooms li { padding: 10px 0; border-bottom: 1px solid #ffffff12; overflow-wrap: anywhere; }
-.nzp-members small { color: #c2a45e; }
-.nzp-rooms form { flex-wrap: wrap; }
-.nzp-rooms span { display: grid; flex: 1 1 150px; min-width: 0; }
-.nzp-rooms strong, .nzp-session-card strong { display: flex; align-items: center; gap: 6px; color: #e5e7dc; overflow-wrap: anywhere; }
-.nzp-rooms strong svg, .nzp-session-card strong svg { flex: none; color: #f2d391; }
-.nzp-rooms small, .nzp-session-card small { color: #98aa9e; }
-.nzp-rooms b { font-weight: 700; }
-.nzp-lobby .nzp-live { color: #8fe0a8; }
-.nzp-lobby .nzp-pending { color: #e5c97e; }
-.nzp-unlock { display: flex; flex: 1 1 100%; gap: 6px; }
-.nzp-lobby .nzp-unlock input { flex: 1; padding: 7px 9px; }
-.nzp-modal .nzp-lobby .nzp-icon { min-height: 32px; padding: 6px 8px; }
-.nzp-host { display: grid; gap: 6px; }
-.nzp-host label { margin-top: 6px; color: #d7dccf; font-size: 11px; }
-.nzp-host label:first-child { margin-top: 0; }
-.nzp-host label span, .nzp-host small, .nzp-lobby > small { color: #7f9286; }
-.nzp-host small, .nzp-lobby > small { font-size: 10px; line-height: 1.5; }
-.nzp-host button[type="submit"] { margin-top: 10px; }
-.nzp-rooms-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-.nzp-rooms-heading p { margin: 0; font-size: 11px; line-height: 1.6; }
-.nzp-empty { display: grid; justify-items: start; gap: 10px; margin-top: 12px; }
-.nzp-empty p { margin: 0; }
-.nzp-session h4 { margin-top: 16px; }
-.nzp-session-card { display: grid; gap: 2px; padding: 12px; border: 1px solid #e4bd6440; border-radius: 3px; background: #e4bd640d; }
-.nzp-session-card p { margin: 6px 0 0; }
-.nzp-lobby :is(input, select) { min-width: 0; width: 100%; padding: 10px; background: #030806; color: #e5e7dc; border: 1px solid #b9a25d80; border-radius: 0; font: 12px var(--font-mono); }
-.nzp-lobby input:invalid:not(:placeholder-shown):not(:focus) { border-color: #e0787880; }
-.nzp-lobby .nzp-secondary { margin-top: 16px; border-color: #ffffff30; color: #b7c5bc; background: transparent; }
-.nzp-lobby .nzp-status { color: #f2d391; overflow-wrap: anywhere; }
-.nzp-lobby .nzp-status:empty { display: none; }
-.nzp-note { margin-top: 18px; font-size: 11px; }
-
-@media (max-height: 650px) {
-  .nzp-launch { gap: 10px; padding: 16px; }
-  .nzp-launch img { max-height: 18vh; }
-  .nzp-launch p { font-size: 11px; }
-}
+.nzp-game { width: 100%; height: 100%; min-width: 0; min-height: 0; background: #020303; }
+.nzp-game iframe { display: block; width: 100%; height: 100%; border: 0; background: #020303; }
+.nzp-modal footer em { color: #f2d391; font-style: normal; }

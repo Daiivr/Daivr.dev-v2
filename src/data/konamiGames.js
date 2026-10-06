@@ -52,7 +52,7 @@ export const KONAMI_GAMES = [
     title: "NZ:P",
     program: "NZP.EXE",
     description: "Survive the waves in Nazi Zombies: Portable. A reward for completing Buddy's entire journal.",
-    meta: "SURVIVAL // DISCORD CO-OP",
+    meta: "SURVIVAL // ONLINE CO-OP",
     color: "amber",
     image: "/arcade-library/nzp-cover.svg",
     requiresJournal: true,

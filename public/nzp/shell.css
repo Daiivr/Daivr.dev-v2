@@ -1,7 +1,56 @@
-html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; color: #f2d391; font: 13px monospace; }
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #020303; color: #f2d391; font: 13px "JetBrains Mono", Consolas, monospace; }
 * { box-sizing: border-box; }
 #canvas { position: fixed; inset: 0; display: block; width: 100%; height: 100%; border: 0; padding: 0; outline: none; }
-#loading { position: fixed; inset: 0; display: grid; align-content: center; justify-items: center; padding: 24px; text-align: center; background: #080d0b; }
-#loading[hidden], #progress[hidden], #retry[hidden] { display: none; }
-#progress { width: min(300px, 80vw); accent-color: #f2d391; }
-#retry { padding: 10px 20px; color: inherit; background: #21241a; border: 1px solid #f2d391; cursor: pointer; }
+
+/* Loading screen: a blood-red glow under the round tally marks, which are
+   chalked in as the game downloads. The engine's own status text stays hidden. */
+#loading {
+  position: fixed; inset: 0; z-index: 1; display: grid; place-items: center; padding: 20px; overflow: hidden; text-align: center;
+  background: radial-gradient(ellipse 75% 60% at 50% 64%, #3d070b, transparent 72%), radial-gradient(ellipse at center, #0b0f0d, #020303 78%);
+  transition: opacity .55s ease, visibility .55s;
+}
+#loading::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: repeating-linear-gradient(0deg, #ffffff07 0 1px, transparent 1px 3px); }
+#loading::after { content: ""; position: absolute; inset: -15%; pointer-events: none; background: radial-gradient(ellipse 40% 32% at 50% 58%, #b3121c40, transparent 70%); animation: nzp-breathe 5s ease-in-out infinite; }
+#loading.is-done { opacity: 0; visibility: hidden; }
+#loading[hidden] { display: none; }
+
+.loader { position: relative; z-index: 1; display: grid; justify-items: center; gap: 8px; width: min(440px, 100%); }
+.kicker { margin: 0 0 4px; color: #9b8a69; font-size: 10px; letter-spacing: .34em; text-transform: uppercase; }
+.tally { width: min(190px, 44vw); height: auto; overflow: visible; filter: drop-shadow(0 0 8px #e0262f55); }
+.tally path { fill: none; stroke-width: 8; stroke-linecap: round; }
+.ghosts path { stroke: #e0262f; opacity: .08; }
+.mark { stroke: #c8141e; stroke-dasharray: 1; stroke-dashoffset: 1; transition: stroke-dashoffset .6s cubic-bezier(.65, 0, .3, 1); }
+.mark.is-drawn { stroke-dashoffset: 0; }
+.mark.is-latest { animation: nzp-flicker 3.2s linear infinite; }
+.percent { margin: 6px 0 0; color: #f2d391; font: 900 clamp(30px, 7vw, 52px)/1 Orbitron, "JetBrains Mono", sans-serif; letter-spacing: .05em; font-variant-numeric: tabular-nums; text-shadow: 0 0 20px #f2d39130; }
+.stage { margin: 0; color: #eadfc4; font-size: 11px; font-weight: 700; letter-spacing: .26em; text-transform: uppercase; }
+.meter { position: relative; width: min(300px, 78%); height: 3px; margin-top: 6px; overflow: hidden; background: #ffffff12; }
+.meter i { position: absolute; inset: 0; transform-origin: 0 50%; transform: scaleX(var(--progress, 0)); background: linear-gradient(90deg, #6d0b11, #e0262f); box-shadow: 0 0 10px #e0262f; transition: transform .35s linear; }
+.detail { min-height: 1.6em; margin: 0; color: #8b978d; font-size: 11px; font-variant-numeric: tabular-nums; }
+.tip { min-height: 3.4em; max-width: 360px; margin: 12px 0 0; color: #b6aa8e; font-size: 11px; line-height: 1.65; transition: opacity .4s ease; }
+.tip.is-swapping { opacity: 0; }
+#retry { margin-top: 8px; padding: 10px 22px; border: 1px solid #f2d39199; background: #e4bd6415; color: #f2d391; font: 700 11px "JetBrains Mono", Consolas, monospace; letter-spacing: .14em; text-transform: uppercase; cursor: pointer; }
+#retry:hover { background: #e4bd6430; }
+#retry:focus-visible { outline: 2px solid #f2d391; outline-offset: 3px; }
+#retry[hidden] { display: none; }
+
+/* Unknown download size: a scanning sweep instead of a fill. */
+#loading.is-indeterminate .meter i { right: auto; width: 32%; transform: none; animation: nzp-scan 1.4s ease-in-out infinite; }
+#loading.is-indeterminate .percent { visibility: hidden; }
+#loading:is(.is-failed, .is-message) :is(.percent, .meter, .detail, .tip) { display: none; }
+#loading.is-message .tally { display: none; }
+#loading.is-failed .stage { max-width: 340px; color: #f2d391; line-height: 1.7; letter-spacing: .08em; text-transform: none; }
+
+@keyframes nzp-breathe { 50% { opacity: .55; transform: scale(1.05); } }
+@keyframes nzp-scan { from { transform: translateX(-110%); } to { transform: translateX(320%); } }
+@keyframes nzp-flicker { 0%, 46%, 50%, 76%, 100% { opacity: 1; } 47% { opacity: .5; } 48% { opacity: .9; } 49% { opacity: .6; } 77% { opacity: .75; } }
+
+@media (max-height: 430px) {
+  .tally { width: 120px; }
+  .tip { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #loading, .tip, .meter i { transition: none; }
+  #loading::after, .mark.is-latest, #loading.is-indeterminate .meter i { animation: none; }
+  .mark { transition: none; }
+}

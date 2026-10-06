@@ -4,11 +4,39 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Nazi Zombies: Portable</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Orbitron:wght@900&display=swap" />
     <link rel="stylesheet" href="./shell.css" />
   </head>
   <body>
     <canvas id="canvas" aria-label="NZ:P game" tabindex="0"></canvas>
-    <div id="loading" role="status"><p id="status">Loading NZ:P…</p><progress id="progress" hidden></progress><button id="retry" hidden>Retry</button></div>
+    <div id="loading">
+      <div class="loader">
+        <p class="kicker">Nazi Zombies: Portable</p>
+        <!-- Round tally marks, drawn in as the game loads: four strokes and the slash. -->
+        <svg class="tally" viewBox="0 0 150 96" aria-hidden="true">
+          <defs>
+            <filter id="chalk" x="-10%" y="-10%" width="120%" height="120%">
+              <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="7" result="grain" />
+              <feDisplacementMap in="SourceGraphic" in2="grain" scale="4" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+          </defs>
+          <g class="ghosts" filter="url(#chalk)">
+            <path d="M27 13 C28 36 25 60 28 84" /><path d="M53 11 C52 38 55 60 53 82" /><path d="M79 14 C81 37 78 61 80 85" /><path d="M105 11 C104 37 107 59 105 83" /><path d="M9 70 C47 57 92 39 141 21" />
+          </g>
+          <g filter="url(#chalk)">
+            <path class="mark" pathLength="1" d="M27 13 C28 36 25 60 28 84" /><path class="mark" pathLength="1" d="M53 11 C52 38 55 60 53 82" /><path class="mark" pathLength="1" d="M79 14 C81 37 78 61 80 85" /><path class="mark" pathLength="1" d="M105 11 C104 37 107 59 105 83" /><path class="mark" pathLength="1" d="M9 70 C47 57 92 39 141 21" />
+          </g>
+        </svg>
+        <p id="percent" class="percent" aria-hidden="true">0%</p>
+        <p id="stage" class="stage" role="status">Opening the cartridge</p>
+        <div id="meter" class="meter" role="progressbar" aria-label="Loading NZ:P" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i></i></div>
+        <p id="detail" class="detail"></p>
+        <p id="tip" class="tip"></p>
+        <button id="retry" type="button" hidden>Retry</button>
+      </div>
+    </div>
     <script type="module" src="./shell.js"></script>
   </body>
 </html>

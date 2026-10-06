@@ -49,7 +49,9 @@ const GAME_POLICY = [
 const NZP_POLICY = [
   "default-src 'self'",
   "script-src 'self' 'wasm-unsafe-eval' https://nzp.gay",
-  "style-src 'self'",
+  // Fuentes de la pantalla de carga (las mismas Orbitron/JetBrains Mono de la web).
+  "style-src 'self' https://fonts.googleapis.com",
+  "font-src 'self' https://fonts.gstatic.com",
   "connect-src 'self' https://nzp.gay wss://master.frag-net.com:27950",
   "img-src 'self' data: blob:",
   "media-src 'self' blob:",

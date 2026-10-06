@@ -1,6 +1,5 @@
 import { handleArcadeXpRequest } from "./arcade-xp.mjs";
 import { handleBuddyRequest } from "./buddy.mjs";
-import { handleNzpRequest } from "./nzp.mjs";
 import { handleCommentsRequest } from "./comments.mjs";
 import { handleCrossRoadRequest } from "./cross-road.mjs";
 import { handleDiscordProfileFrameRequest } from "./discord-profile-frame.mjs";
@@ -29,7 +28,6 @@ const under = (path) => (pathname) => pathname === path || pathname.startsWith(`
 const below = (path) => (pathname) => pathname.startsWith(`${path}/`);
 
 export const API_ROUTES = [
-  { match: exact("/api/nzp/lobby"), handle: handleNzpRequest },
   { match: exact("/api/player"), handle: handlePlayerRequest },
   { match: below("/api/tradedex"), handle: handleTradeDexVirusTotalRequest },
   { match: exact("/api/discord-streak"), handle: handleDiscordStreakRequest },
