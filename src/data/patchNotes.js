@@ -5,6 +5,16 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.64.4",
+    codename: "COME ON IN",
+    date: "2026-10-07",
+    summary: "Joining a friend's NZ:P co-op session works now, and every session shows up once.",
+    entries: [
+      ["fix", "Joining a co-op session loaded forever. The host's game answered under NZ:P's public name instead of this site's, so it turned every player from here away. Joins now go straight in."],
+      ["fix", "Each co-op session showed up twice in Join Game. NZ:P opens two connections per host, and the list now shows the session once."]
+    ]
+  },
+  {
     version: "v2.64.3",
     codename: "OPEN DOORS",
     date: "2026-10-07",

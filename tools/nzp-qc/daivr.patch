@@ -12,7 +12,7 @@ index 86dfcc0..20aa7eb 100644
  		drawfill([g_width/2 - 271, 177], [270 * 2 + 2, 1], [0.2, 0.2, 0.2], 1, 0);
  		drawfill([g_width/2 - 271, 178 + scoreboard_text_size + 4], [270 * 2 + 2, 1], [0.2, 0.2, 0.2], 1, 0);
 diff --git a/source/client/main.qc b/source/client/main.qc
-index aa6f3dc..f60a26a 100644
+index aa6f3dc..db8bdf0 100644
 --- a/source/client/main.qc
 +++ b/source/client/main.qc
 @@ -28,6 +28,10 @@ float need_vid_reload;
@@ -45,7 +45,20 @@ index aa6f3dc..f60a26a 100644
  noref void(float apiver, string enginename, float enginever) CSQC_Init =
  {
  	setwindowcaption("Nazi Zombies: Portable");
-@@ -982,7 +998,22 @@ noref void(float width, float height, float menushown) CSQC_UpdateView =
+@@ -172,7 +188,11 @@ noref void(float apiver, string enginename, float enginever) CSQC_Init =
+ 		platform_is_web = false;
+ 
+ 	if (platform_is_web) {
+-		cvar_set("com_protocolname", "NZP-REBOOT-WEB");
++		// daivr.dev: sessions list and join under their own name (menu/m_menu.qc,
++		// Daivr_UseOwnSessions). This runs on every map load, and on a host the
++		// game server shares the cvar: with NZ:P's name here it answered joins as
++		// NZP-REBOOT-WEB and rejected our players ("Game mismatch"), forever.
++		cvar_set("com_protocolname", "NZP-DAIVR");
+ 		hud_round_color = '107 0 0';
+ 	}
+ 
+@@ -982,7 +1002,22 @@ noref void(float width, float height, float menushown) CSQC_UpdateView =
  	//does what you think it does
  	renderscene();
  
@@ -69,7 +82,7 @@ index aa6f3dc..f60a26a 100644
  	{
  		// sorta-nasty hack: flashes should still draw if we're
  		// drawing the menu.
-@@ -1230,6 +1261,7 @@ noref void() CSQC_Parse_Event =
+@@ -1230,6 +1265,7 @@ noref void() CSQC_Parse_Event =
  			break;
  		case CSQC_EVENT_ROUNDCHANGE:
  			rounds = readbyte();
@@ -77,7 +90,7 @@ index aa6f3dc..f60a26a 100644
  			break;
  		case CSQC_EVENT_BROADCASTMESSAGE:
  			broadcast_type = readbyte();
-@@ -1307,6 +1339,9 @@ noref void() CSQC_Parse_Event =
+@@ -1307,6 +1343,9 @@ noref void() CSQC_Parse_Event =
  			break;
  		case EVENT_ENDGAME:
  			in_endgame_sequence = true;
@@ -119,7 +132,7 @@ index 23c18c9..c2d788e 100644
  #endif // MENU
  
 diff --git a/source/menu/m_menu.qc b/source/menu/m_menu.qc
-index 91dc9fc..110fe9b 100644
+index 91dc9fc..0872b00 100644
 --- a/source/menu/m_menu.qc
 +++ b/source/menu/m_menu.qc
 @@ -556,7 +556,7 @@ void(float order, float sub_order, string header) Menu_DrawCreditContributor =
@@ -170,7 +183,55 @@ index 91dc9fc..110fe9b 100644
  void(string menu_title) Menu_DrawTitle =
  {
  	sui_set_align([SUI_ALIGN_START, SUI_ALIGN_START]);
-@@ -794,6 +826,17 @@ string Menu_CleanUpServerAddress(string server_address) =
+@@ -789,11 +821,66 @@ string Menu_CleanUpServerAddress(string server_address) =
+ 	return server_address;
+ };
+ 
++// daivr.dev: the broker room number at the end of a session address (rtc:///639).
++float(string address) Menu_ServerRoom =
++{
++	for (float i = strlen(address) - 1; i >= 0; i--) {
++		if (substring(address, i, 1) == "/")
++			return stof(substring(address, i + 1, strlen(address) - i - 1));
++	}
++
++	return -10;
++};
++
++// daivr.dev: each web host registers two broker rooms in a row (n and n+1) that
++// lead to the same server, so the list shows the session once. A copy has the
++// same name, map and player counts and the next or previous room number.
++float menu_server_rows[64];
++float(float num_servers) Menu_ServerRows =
++{
++	float f_name = gethostcacheindexforkey("name"), f_map = gethostcacheindexforkey("map"), f_address = gethostcacheindexforkey("cname");
++	float f_humans = gethostcacheindexforkey("numhumans"), f_max = gethostcacheindexforkey("maxplayers");
++	float rows = 0;
++
++	for (float i = 0; i < num_servers && rows < menu_server_rows.length; i++) {
++		float copy = false;
++
++		for (float r = 0; r < rows; r++) {
++			float j = menu_server_rows[r];
++			if (gethostcachestring(f_name, i) == gethostcachestring(f_name, j) && gethostcachestring(f_map, i) == gethostcachestring(f_map, j)
++				&& gethostcachestring(f_humans, i) == gethostcachestring(f_humans, j) && gethostcachestring(f_max, i) == gethostcachestring(f_max, j)
++				&& fabs(Menu_ServerRoom(gethostcachestring(f_address, i)) - Menu_ServerRoom(gethostcachestring(f_address, j))) == 1) {
++				copy = true;
++				break;
++			}
++		}
++
++		if (!copy) {
++			menu_server_rows[rows] = i;
++			rows += 1;
++		}
++	}
++
++	return rows;
++};
++
+ //
+ // Menu_ServerList(id, pos, size, scrollofs, num_servers)
  // Draw the master server list
  //
  void(float type) Menu_PlaySound;
@@ -178,9 +239,10 @@ index 91dc9fc..110fe9b 100644
 +void(string server_address, string server_name) Menu_Coop_AskPassword;
 +#endif // MENU
 +
-+// daivr.dev: sessions hosted from daivr.dev register and list under their own
-+// Frag-Net game name, so Join Game only shows them. NZ:P's startup resets the
-+// cvar, so it is set again right before every co-op list, host or join.
++// daivr.dev: sessions hosted from daivr.dev register, list and join under their
++// own Frag-Net game name, so Join Game only shows them. The menu and client
++// start with it too (menu/main.qc, client/main.qc); setting it again right
++// before every co-op list, host or join keeps it right if anything resets it.
 +void() Daivr_UseOwnSessions =
 +{
 +	cvar_set("com_protocolname", "NZP-DAIVR");
@@ -188,7 +250,21 @@ index 91dc9fc..110fe9b 100644
  void(string id, vector pos, vector size, __inout vector scrollofs, float num_servers) Menu_ServerList =
  {
  	vector rowsize = [size.x, 16];
-@@ -827,11 +870,18 @@ void(string id, vector pos, vector size, __inout vector scrollofs, float num_ser
+@@ -806,9 +893,11 @@ void(string id, vector pos, vector size, __inout vector scrollofs, float num_ser
+ 	int map_display_x = 0;
+ 	int player_display_x = 0;
+ 
+-	sui_list_view_begin(strcat(id, "scrl"), pos, size, rowsize, num_servers, scrollofs, [0, 16]);
+-	for (float index = sui_list_item(listitem_pos); index > -1; index = sui_list_item(listitem_pos))
++	float num_rows = Menu_ServerRows(num_servers);
++	sui_list_view_begin(strcat(id, "scrl"), pos, size, rowsize, num_rows, scrollofs, [0, 16]);
++	for (float row = sui_list_item(listitem_pos); row > -1; row = sui_list_item(listitem_pos))
+ 	{
++		float index = menu_server_rows[row];
+ 		sui_push_frame(listitem_pos, rowsize);
+ 
+ 		string listitem_id = strcat(id, "scrl", ftos(index));
+@@ -827,11 +916,18 @@ void(string id, vector pos, vector size, __inout vector scrollofs, float num_ser
  		// do it
  		if (sui_is_clicked(listitem_id)) {
  			Menu_PlaySound(MENU_SND_ENTER);
@@ -211,7 +287,7 @@ index 91dc9fc..110fe9b 100644
  		}
  #endif // MENU
  
-@@ -840,11 +890,28 @@ void(string id, vector pos, vector size, __inout vector scrollofs, float num_ser
+@@ -840,11 +936,28 @@ void(string id, vector pos, vector size, __inout vector scrollofs, float num_ser
  		sui_fill(bpos, bsize, [0.25, 0.1, 0.1], 0.5, 0);
  		sui_text(bpos + [8, 2], MENU_TEXT_SMALL, str2ascii(gethostcachestring(gethostcacheindexforkey("name"), index)), MENU_TEXT_1, 1, 0);
  
@@ -241,7 +317,7 @@ index 91dc9fc..110fe9b 100644
  
  		// players
  		bpos.x = bsize.x * 7;
-@@ -876,6 +943,7 @@ void(string id, vector pos, vector size, __inout vector scrollofs, float num_ser
+@@ -876,6 +989,7 @@ void(string id, vector pos, vector size, __inout vector scrollofs, float num_ser
  
  void() Menu_StartCoop =
  {
@@ -249,7 +325,7 @@ index 91dc9fc..110fe9b 100644
  	localcmd("sv_public 2; sv_listen_qw 1\n");
  	current_menu = MENU_COOPSTOCK;
  };
-@@ -1003,7 +1071,9 @@ float last_menu;
+@@ -1003,7 +1117,9 @@ float last_menu;
  void(vector size) root_menu =
  {
  	sui_set_align([SUI_ALIGN_CENTER, SUI_ALIGN_CENTER]);
@@ -260,7 +336,7 @@ index 91dc9fc..110fe9b 100644
  	switch (current_menu)
  	{
  
-@@ -1027,6 +1097,7 @@ void(vector size) root_menu =
+@@ -1027,6 +1143,7 @@ void(vector size) root_menu =
  #else
  
  		case MENU_PAUSE: Menu_Pause(); break;
@@ -269,7 +345,7 @@ index 91dc9fc..110fe9b 100644
  #endif // MENU
  
 diff --git a/source/menu/main.qc b/source/menu/main.qc
-index cc41929..22d477a 100644
+index cc41929..e1594bc 100644
 --- a/source/menu/main.qc
 +++ b/source/menu/main.qc
 @@ -112,13 +112,22 @@ void() Menu_MapFinder =
@@ -299,6 +375,16 @@ index cc41929..22d477a 100644
  
  		float settings = fopen(strcat("maps/", user_maps[index].map_name, ".txt"), FILE_READ);
  		if (settings != -1) {
+@@ -216,7 +225,8 @@ void() m_init =
+ 	running_platform = Menu_GetPlatform();
+ 
+ 	if (running_platform == PLATFORM_WEB) {
+-		localcmd("com_protocolname NZP-REBOOT-WEB\n");
++		// daivr.dev: our own session name, as in client/main.qc.
++		localcmd("com_protocolname NZP-DAIVR\n");
+ 	}
+ 
+ 	// Init Cvars
 diff --git a/source/menu/menu_coop.qc b/source/menu/menu_coop.qc
 index def4893..7fe0716 100644
 --- a/source/menu/menu_coop.qc
