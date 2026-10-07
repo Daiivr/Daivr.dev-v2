@@ -5,6 +5,15 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.64.6",
+    codename: "GRIP",
+    date: "2026-10-07",
+    summary: "Your friends' weapons sit in their hands now, through every move.",
+    entries: [
+      ["fix", "Other players' weapons floated near their hands instead of in them, and drifted off while they walked, crouched or reloaded. The weapon now follows the hands through every animation: both hands on the grip while aiming, the right hand while sprinting or reloading, the raised hand when downed."]
+    ]
+  },
+  {
     version: "v2.64.5",
     codename: "HOLD STILL",
     date: "2026-10-07",
