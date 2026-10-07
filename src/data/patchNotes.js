@@ -5,6 +5,15 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.64.3",
+    codename: "OPEN DOORS",
+    date: "2026-10-07",
+    summary: "NZ:P's Join Game list finally shows the co-op sessions other players are hosting.",
+    entries: [
+      ["fix", "Join Game always said there were no open sessions, even while someone was hosting. The site's security policy blocked the session list, so a session could be hosted but nobody else could see it to join."]
+    ]
+  },
+  {
     version: "v2.64.2",
     codename: "BACKBLAST",
     date: "2026-10-06",

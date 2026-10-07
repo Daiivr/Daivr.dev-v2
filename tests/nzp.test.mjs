@@ -73,7 +73,11 @@ test("the game frame gets its own CSP for the upstream engine, Frag-Net co-op an
   const policy = securityHeaders({ headers: {} }, "/")["Content-Security-Policy"];
   assert.ok(policy.includes("frame-src 'self';"));
   const gamePolicy = securityHeaders({ headers: {} }, "/nzp/index.html")["Content-Security-Policy"];
-  for (const source of ["https://nzp.gay", "wss://master.frag-net.com:27950", "https://fonts.googleapis.com", "https://fonts.gstatic.com"]) assert.ok(gamePolicy.includes(source), source);
+  for (const source of ["https://nzp.gay", "https://fonts.googleapis.com", "https://fonts.gstatic.com"]) assert.ok(gamePolicy.includes(source), source);
+  // Join Game's session list is an https GET to Frag-Net's master; hosting and
+  // joining go over its wss relay. Missing the https one empties the list.
+  const connect = gamePolicy.split(";").map((directive) => directive.trim()).find((directive) => directive.startsWith("connect-src ")).split(" ");
+  for (const source of ["https://master.frag-net.com:27950", "wss://master.frag-net.com:27950"]) assert.ok(connect.includes(source), source);
   assert.equal(gamePolicy.includes("unsafe-inline"), false);
 });
 

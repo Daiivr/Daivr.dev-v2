@@ -52,7 +52,10 @@ const NZP_POLICY = [
   // Fuentes de la pantalla de carga (las mismas Orbitron/JetBrains Mono de la web).
   "style-src 'self' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com",
-  "connect-src 'self' https://nzp.gay wss://master.frag-net.com:27950",
+  // Frag-Net: la lista de partidas de Join Game es un GET https a
+  // master.frag-net.com:27950/raw/NZP-DAIVR; crear y unirse van por wss al
+  // mismo host. Sin el https, la lista sale vacia para todos en produccion.
+  "connect-src 'self' https://nzp.gay https://master.frag-net.com:27950 wss://master.frag-net.com:27950",
   "img-src 'self' data: blob:",
   "media-src 'self' blob:",
   "worker-src 'self' blob:",

@@ -41,7 +41,10 @@ Opening the cartridge powers on the TV and boots NZ:P straight into its own main
   - Saving needs the Discord session and a run token armed when the cartridge opens. The game can't have lasted longer than the token has existed.
   - Validation limits: round 1–255 (a byte in the client), kills up to 65,535, at least 8 s per round, at most 10 kills per second, and points in proportion to kills and rounds.
   - Data lives in `nzp-leaderboard.json` (`NZP_DATA_DIR`/`GAME_DATA_DIR`). The client counts the stats, so this is plausibility checking, not anti-cheat.
-- **CSP:** the wrapper has its own CSP allowing the upstream engine/assets, the Frag-Net relay WebSocket and Google Fonts (the loader uses the site's Orbitron/JetBrains Mono), without widening the rest of the site's policy.
+- **CSP:** the wrapper has its own CSP allowing the upstream engine/assets, Frag-Net and Google Fonts (the loader uses the site's Orbitron/JetBrains Mono), without widening the rest of the site's policy.
+  - Frag-Net needs both `https://master.frag-net.com:27950`, because Join Game's session list is an HTTPS GET of `/raw/NZP-DAIVR`, and `wss://master.frag-net.com:27950`, the relay used to host and join.
+  - Without the HTTPS entry, the list came back empty for every visitor while hosting still worked.
+  - The CSP is only sent in production (`node server.mjs`), so the Vite dev server can't catch this. Check CSP changes against `node server.mjs` after a build.
 - **Keyboard:** events are handled once at the document; the wrapper stops propagation to FTE's duplicate canvas listener without cancelling defaults or debouncing. Esc never closes the cartridge (it closes the rankings panel if open); use the close or back buttons.
 - **Network:** the game and Frag-Net networking need internet access. Upstream P2P can fail behind restrictive NAT/firewalls. See [NZ:P networking documentation](https://docs.nzp.gay/server/server-setup).
 - **Unlocking** follows the existing local Buddy save, for guests and signed-in players alike.
