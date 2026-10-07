@@ -5,6 +5,16 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.64.7",
+    codename: "WALKOUT",
+    date: "2026-10-07",
+    summary: "The NZ:P cartridge stays open until you close it, and closing it leaves a co-op match properly.",
+    entries: [
+      ["fix", "A click outside the NZ:P TV no longer closes the game. It only closes from its own close and back buttons."],
+      ["fix", "Closing NZ:P during a co-op match now leaves it properly. If the host closes, the match ends and everyone else goes back to the menu. If another player closes, they leave the match instead of staying behind frozen in the host's game."]
+    ]
+  },
+  {
     version: "v2.64.6",
     codename: "GRIP",
     date: "2026-10-07",

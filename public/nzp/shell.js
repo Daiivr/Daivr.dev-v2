@@ -221,3 +221,20 @@ async function boot() {
   document.head.appendChild(script);
 }
 boot().catch((error) => fail(error.message || "NZ:P could not load. Please retry."));
+
+// Leave a co-op match properly before this page goes away. As the host this
+// shuts the server down, which sends the other players back to the menu; as a
+// guest it drops us from the match instead of leaving a frozen player behind
+// until the server times us out. One engine frame runs straight away so the
+// disconnect is sent before the cartridge removes the frame. The cartridge
+// calls this directly (same origin) when it closes.
+let left = false;
+window.daivrNzpLeave = () => {
+  const ftec = window.FTEC;
+  if (left || !ftec?.cbufadd) return;
+  left = true;
+  // cbufadd queues the command, then throws because ftewebgl.js doesn't export _free.
+  try { ftec.cbufadd("disconnect\n"); } catch {}
+  try { ftec.step(performance.now()); } catch {}
+};
+addEventListener("pagehide", () => window.daivrNzpLeave());

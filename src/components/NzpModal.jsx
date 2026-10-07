@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { ArrowLeft, Gamepad2, LogIn, Trophy, X } from "lucide-react";
 import { ArcadeTvDetails, ArcadeTvPower } from "./ArcadeTvDetails";
@@ -11,6 +11,8 @@ import "../styles/konami-games.css";
 import "../styles/nzp.css";
 
 const NZP_GAME_URL = "/nzp/index.html";
+// Time for the disconnect to leave the browser before the game frame goes.
+const LEAVE_MS = 250;
 const number = (value) => Number(value || 0).toLocaleString("en-US");
 const BOARDS = {
   round: { tab: "ROUND", heading: "HIGHEST ROUND", format: (value) => `ROUND ${value}` },
@@ -21,8 +23,10 @@ const MAPS = { ndu: "Nacht der Untoten", nzp_warehouse2: "Warehouse", nzp_xmas2:
 const mapName = (id) => MAPS[id] || id || "";
 
 // The cartridge boots straight into NZ:P's own menus. Co-op lives in the game's
-// Cooperative menu, and every finished (or abandoned) game is saved to the
-// three rankings from the stats the game's client prints (tools/nzp-qc).
+// Cooperative menu, and every finished game is saved to the three rankings
+// from the stats the game's client prints (tools/nzp-qc). It only closes from
+// its own buttons, and closing leaves a co-op match properly (shell.js,
+// daivrNzpLeave): a host's closes it for everyone, a guest's drops just them.
 export function NzpModal({ onBack, onClose }) {
   const [exiting, setExiting] = useState(false);
   const [notice, setNotice] = useState("");
@@ -34,6 +38,7 @@ export function NzpModal({ onBack, onClose }) {
   const [myStats, setMyStats] = useState(null);
   const exitTimer = useRef(null);
   const frameRef = useRef(null);
+  const frameWindow = useRef(null);
   const meRef = useRef(null);
   const gameRef = useRef(null);
   const powered = useTvPowerOn(!exiting, "nzp");
@@ -43,6 +48,13 @@ export function NzpModal({ onBack, onClose }) {
 
   useEffect(() => () => window.clearTimeout(exitTimer.current), []);
   useEffect(() => { armRunToken("nzp"); }, []);
+
+  const leaveMatch = useCallback(() => {
+    try { frameWindow.current?.daivrNzpLeave?.(); } catch { /* the frame is already gone */ }
+  }, []);
+  // Any other way out (the library closing it on a phone-sized window, say):
+  // layout cleanups run before React removes the frame.
+  useLayoutEffect(() => leaveMatch, [leaveMatch]);
 
   const loadMe = useCallback(async () => {
     try {
@@ -125,8 +137,10 @@ export function NzpModal({ onBack, onClose }) {
 
   function exit(callback) {
     if (exitTimer.current !== null) return;
+    leaveMatch();
     setExiting(true);
-    exitTimer.current = window.setTimeout(callback, window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : TV_CLOSE_MS);
+    const animation = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 0 : TV_CLOSE_MS;
+    exitTimer.current = window.setTimeout(callback, Math.max(animation, frameWindow.current ? LEAVE_MS : 0));
   }
 
   function fullscreen() {
@@ -144,7 +158,7 @@ export function NzpModal({ onBack, onClose }) {
     <Dialog.Root open onOpenChange={(open) => { if (!open) exit(onClose); }}>
       <Dialog.Portal>
         <Dialog.Overlay className="arcade-embed-backdrop motion-backdrop" data-state={exiting ? "closed" : "open"}>
-        <Dialog.Content className="arcade-embed-modal arcade-tv nzp-modal motion-panel" data-state={exiting ? "closed" : "open"} onEscapeKeyDown={(event) => { event.preventDefault(); if (rankingOpen) setRankingOpen(false); }}>
+        <Dialog.Content className="arcade-embed-modal arcade-tv nzp-modal motion-panel" data-state={exiting ? "closed" : "open"} onEscapeKeyDown={(event) => { event.preventDefault(); if (rankingOpen) setRankingOpen(false); }} onInteractOutside={(event) => event.preventDefault()}>
           <header>
             <div className="arcade-embed-title"><button type="button" onClick={() => exit(onBack)} aria-label="Back to secret game library"><ArrowLeft size={17} /></button><span><small>JOURNAL REWARD // CARTRIDGE 06</small><Dialog.Title asChild><strong><Gamepad2 size={19} /> NZ:P</strong></Dialog.Title></span></div>
             <div>
@@ -155,7 +169,7 @@ export function NzpModal({ onBack, onClose }) {
           <div className="arcade-embed-screen">
             <Dialog.Description className="nzp-intro">The archive is complete. NZ:P opens in its own main menu: play Solo, or choose Cooperative to host or join a game with friends.</Dialog.Description>
             <section className="nzp-game" aria-label="NZ:P game">
-              {powered ? <iframe ref={frameRef} src={NZP_GAME_URL} title="Nazi Zombies: Portable" allow="autoplay; fullscreen; gamepad" allowFullScreen scrolling="no" /> : null}
+              {powered ? <iframe ref={frameRef} src={NZP_GAME_URL} title="Nazi Zombies: Portable" allow="autoplay; fullscreen; gamepad" allowFullScreen scrolling="no" onLoad={() => { frameWindow.current = frameRef.current?.contentWindow || null; }} /> : null}
             </section>
             <ArcadeTvPower powered={powered} off={exiting} />
             <DailyChallengeNotice notice={daily.notice} onDismiss={daily.dismiss} onRetry={daily.retry} onClose={() => exit(onClose)} />
