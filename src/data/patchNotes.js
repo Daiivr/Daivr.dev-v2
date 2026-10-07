@@ -5,6 +5,17 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.64.5",
+    codename: "HOLD STILL",
+    date: "2026-10-07",
+    summary: "In NZ:P co-op you can see what your friends are holding, the host's pause stops the game for everyone, and P opens the pause menu.",
+    entries: [
+      ["new", "Other players hold their weapon in co-op, whether standing, crouched or prone. NZ:P never showed it before."],
+      ["new", "When the host opens the pause menu, the game pauses for everyone, and the other players see PAUSED BY THE HOST until it resumes. Only the host can pause a co-op game."],
+      ["new", "P opens and closes the pause menu, so you don't have to leave full screen with Escape first. Change it under Configuration → Controls → Bindings → PAUSE MENU."]
+    ]
+  },
+  {
     version: "v2.64.4",
     codename: "COME ON IN",
     date: "2026-10-07",
