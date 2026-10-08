@@ -54,7 +54,7 @@ export const KONAMI_GAMES = [
     description: "Survive the waves in Nazi Zombies: Portable. A reward for completing Buddy's entire journal.",
     meta: "SURVIVAL // ONLINE CO-OP",
     color: "amber",
-    image: "/arcade-library/nzp-cover.webp",
+    image: "/arcade-library/nzp-bunker-cover.webp",
     requiresJournal: true,
     desktopOnly: true
   }

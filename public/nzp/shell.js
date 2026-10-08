@@ -1,5 +1,6 @@
 import { nzpPlayerName } from "./player-name.mjs";
 import { nzpStatsLine } from "./stats-line.mjs";
+import { NZP_CUSTOM_MAPS } from "./custom-maps.mjs";
 
 const upstream = "https://nzp.gay/";
 const PROGS = ["menu.dat", "csprogs.dat", "qwprogs.dat"];
@@ -177,18 +178,24 @@ async function boot() {
   if (matchMedia("(max-width: 760px)").matches && window === window.top) return showMessage("NZ:P is available in the desktop library.");
   stage.textContent = "Downloading the horde";
   // The engine accepts a promise per file, so it starts while the big archive streams in.
-  const game = download(`${upstream}nzp/game.pk3`, track("game")).then((buffer) => {
+  const game = download(`${upstream}nzp/game.pk3`, track("game"));
+  // Mount complete packages before the native menu scans maps/*.bsp. Every
+  // player receives the same assets, including when joining a co-op host.
+  const maps = Object.fromEntries(NZP_CUSTOM_MAPS.map(({ archive, name }) => [
+    `nzp/${archive}`, download(`./custom-maps/${archive}`, track(archive)).catch(() => {
+      throw new Error(`${name} could not download. Check your connection and retry.`);
+    })
+  ]));
+  // Menu, client and server programs are daivr.dev's own build (tools/nzp-qc).
+  const programs = Object.fromEntries(PROGS.map((file) => [`nzp/${file}`, download(`./progs/${file}`, track(file))]));
+  Promise.all([game, ...Object.values(maps), ...Object.values(programs)]).then(() => {
     downloading = false;
     if (!failed) {
       stage.textContent = "Waking the engine";
       setProgress(0.96);
       detail.textContent = "";
     }
-    return buffer;
-  });
-  // Menu, client and server programs are daivr.dev's own build (tools/nzp-qc).
-  const programs = Object.fromEntries(PROGS.map((file) => [`nzp/${file}`, download(`./progs/${file}`, track(file))]));
-  for (const file of [game, ...Object.values(programs)]) file.catch((error) => fail(error.message || "NZ:P's game files could not download. Retry."));
+  }).catch((error) => fail(error.message || "NZ:P's game files could not download. Retry."));
   const name = await discordName();
   // FTE writes its console straight to console.log (_emscriptenfte_print in
   // ftewebgl.js), never through Module.print, so the stats lines are read there.
@@ -202,7 +209,7 @@ async function boot() {
   window.Module = {
     canvas,
     arguments: name ? ["+set", "name", name] : [],
-    files: { "default.fmf": `${upstream}default.fmf`, "nzp/game.pk3": game, ...programs },
+    files: { "default.fmf": `${upstream}default.fmf`, "nzp/game.pk3": game, ...maps, ...programs },
     locateFile: (path) => new URL(path, upstream).href,
     print: (text) => console.log(text),
     printErr: (text) => console.warn(text),

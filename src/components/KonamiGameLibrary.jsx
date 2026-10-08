@@ -6,11 +6,12 @@ import { availableKonamiGames } from "../data/konamiGames";
 import { useMobileView } from "../hooks/useMobileView";
 
 const MOUNT_STATUS = {
-  aligning: "BUS DOOR OPEN // ALIGNING PIN GUIDE",
-  seating: "INSERTING CARTRIDGE // ENGAGING CONTACTS",
-  locked: "CLICK // CARTRIDGE SEATED",
-  booting: "POWER ON // STARTING PROGRAM"
+  aligning: "Cartridge ready",
+  seating: "Inserting cartridge",
+  locked: "Cartridge locked in",
+  booting: "Starting your game"
 };
+const MOUNT_TIMING = { seating: 1150, locked: 2400, booting: 2900, launch: 3700 };
 
 function GameCartridge({ game, className = "" }) {
   return (
@@ -53,32 +54,20 @@ export function KonamiGameLibrary({ open, onClose, onSelect, journalComplete = f
     };
   }, [open]);
 
-  useEffect(() => {
-    if (!open) return;
-    const cartridge = document.getElementById(`library-cart-${games[Math.min(selectedIndex, games.length - 1)].id}`);
-    const shelf = cartridge?.parentElement;
-    if (!shelf) return;
-    const centerCartridge = () => {
-      if (shelf.scrollWidth <= shelf.clientWidth) return;
-      const left = shelf.scrollLeft + cartridge.getBoundingClientRect().left - shelf.getBoundingClientRect().left - (shelf.clientWidth - cartridge.clientWidth) / 2;
-      shelf.scrollTo({ left, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" });
-    };
-    const observer = new ResizeObserver(centerCartridge);
-    observer.observe(shelf);
-    return () => observer.disconnect();
-  }, [open, selectedIndex, journalComplete, mobileView]);
-
   function mountGame(gameId) {
     if (mountingRef.current || !games.some((game) => game.id === gameId)) return;
     mountingRef.current = true;
     setMountingGame(gameId);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setMountPhase("booting");
+      timersRef.current = [window.setTimeout(() => onSelect(gameId), 250)];
+      return;
+    }
     setMountPhase("aligning");
     playMountAudio();
     timersRef.current = [
-      window.setTimeout(() => setMountPhase("seating"), 1000),
-      window.setTimeout(() => setMountPhase("locked"), 1950),
-      window.setTimeout(() => setMountPhase("booting"), 2380),
-      window.setTimeout(() => onSelect(gameId), 2760)
+      ...["seating", "locked", "booting"].map((phase) => window.setTimeout(() => setMountPhase(phase), MOUNT_TIMING[phase])),
+      window.setTimeout(() => onSelect(gameId), MOUNT_TIMING.launch)
     ];
   }
 
@@ -88,14 +77,31 @@ export function KonamiGameLibrary({ open, onClose, onSelect, journalComplete = f
       if (!AudioContext) return;
       const context = new AudioContext();
       audioRef.current = context;
+      void context.resume().catch(() => {});
+      // A quiet filtered scrape follows the contacts into the slot, ending at the latch.
+      const slideDuration = .85;
+      const slideBuffer = context.createBuffer(1, Math.ceil(context.sampleRate * slideDuration), context.sampleRate);
+      const samples = slideBuffer.getChannelData(0);
+      for (let index = 0; index < samples.length; index += 1) samples[index] = Math.random() * 2 - 1;
+      const slide = context.createBufferSource();
+      const filter = context.createBiquadFilter();
+      const slideGain = context.createGain();
+      slide.buffer = slideBuffer;
+      filter.type = "lowpass";
+      filter.frequency.value = 1100;
+      const slideStart = context.currentTime + 1.48;
+      slideGain.gain.setValueAtTime(0, slideStart);
+      slideGain.gain.linearRampToValueAtTime(.018, slideStart + .15);
+      slideGain.gain.linearRampToValueAtTime(0, slideStart + slideDuration);
+      slide.connect(filter).connect(slideGain).connect(context.destination);
+      slide.start(slideStart);
+      slide.stop(slideStart + slideDuration);
       const tones = [
-        [0.56, 1240, 0.03, "triangle", 0.035],
-        [1.82, 92, 0.05, "square", 0.05],
-        [1.95, 118, 0.05, "square", 0.085],
-        [1.99, 66, 0.1, "square", 0.08],
-        [2.05, 1520, 0.025, "square", 0.04],
-        [2.42, 392, 0.07, "square", 0.05],
-        [2.5, 784, 0.1, "square", 0.05]
+        [1.45, 150, 0.04, "triangle", 0.025],
+        [MOUNT_TIMING.locked / 1000, 112, 0.065, "triangle", 0.07],
+        [MOUNT_TIMING.locked / 1000 + .045, 68, 0.08, "sine", 0.06],
+        [MOUNT_TIMING.booting / 1000, 392, 0.09, "triangle", 0.035],
+        [MOUNT_TIMING.booting / 1000 + .12, 784, 0.15, "sine", 0.04]
       ];
       tones.forEach(([delay, frequency, duration, type, peak]) => {
         const oscillator = context.createOscillator();
@@ -120,7 +126,7 @@ export function KonamiGameLibrary({ open, onClose, onSelect, journalComplete = f
   const selectRelative = (step) => setSelectedIndex((index) => (index + step + games.length) % games.length);
 
   function onShelfKeyDown(event, index) {
-    const direction = { ArrowLeft: -1, ArrowRight: 1 }[event.key];
+    const direction = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -3, ArrowDown: 3 }[event.key];
     if (!direction && !["Home", "End"].includes(event.key)) return;
     event.preventDefault();
     const next = event.key === "Home" ? 0 : event.key === "End" ? games.length - 1 : (index + direction + games.length) % games.length;
@@ -143,57 +149,65 @@ export function KonamiGameLibrary({ open, onClose, onSelect, journalComplete = f
 
         <div className="konami-library-room">
           <div className="konami-shelf-cabinet">
-            <div className="konami-shelf-heading"><span><Gamepad2 size={14} /> THE COLLECTION</span><b>VOL. 01 — {String(games.length).padStart(2, "0")}</b></div>
+            <div className="konami-shelf-heading"><span><Gamepad2 size={16} /> DAI’S GAME SHELF</span><b>EST. 1986</b></div>
             <div className="konami-cartridge-shelves" role="tablist" aria-label="Game cartridges">
-              {games.map((game, index) => (
-                <button className={`konami-shelf-cart is-${game.color} ${selectedIndex === index ? "is-current" : ""}`} type="button" role="tab" id={`library-cart-${game.id}`} aria-selected={selectedIndex === index} aria-controls="library-game-preview" tabIndex={selectedIndex === index ? 0 : -1} aria-label={game.title} onClick={() => setSelectedIndex(index)} onFocus={() => setSelectedIndex(index)} onKeyDown={(event) => onShelfKeyDown(event, index)} disabled={Boolean(mountingGame)} key={game.id}>
-                  <GameCartridge game={game} />
-                  <span className="konami-shelf-plaque"><i>{String(index + 1).padStart(2, "0")}</i>{game.title}<b aria-hidden="true" /></span>
-                </button>
+              {[0, 3].map((start) => (
+                <div className="konami-shelf-row" role="presentation" key={start}>
+                  {games.slice(start, start + 3).map((game, offset) => {
+                    const index = start + offset;
+                    return (
+                      <button className={`konami-shelf-cart is-${game.color} ${selectedIndex === index ? "is-current" : ""}`} type="button" role="tab" id={`library-cart-${game.id}`} aria-selected={selectedIndex === index} aria-controls="library-game-preview" tabIndex={selectedIndex === index ? 0 : -1} aria-label={game.title} onClick={() => setSelectedIndex(index)} onFocus={() => setSelectedIndex(index)} onKeyDown={(event) => onShelfKeyDown(event, index)} disabled={Boolean(mountingGame)} key={game.id}>
+                        <GameCartridge game={game} />
+                        <span className="konami-shelf-plaque"><i>{String(index + 1).padStart(2, "0")}</i>{game.title}<b aria-hidden="true" /></span>
+                      </button>
+                    );
+                  })}
+                  {start === 3 && games.length < 6 && <div className="konami-shelf-keepsake" aria-hidden="true"><Gamepad2 size={40} /><span>ONE MORE<br />ROUND.</span><small>DAI’S PRIVATE COLLECTION</small></div>}
+                </div>
               ))}
-              {games.length < 6 && <div className="konami-shelf-keepsake" aria-hidden="true"><Gamepad2 size={40} /><span>ONE MORE<br />ROUND.</span><small>DAI’S PRIVATE COLLECTION</small></div>}
             </div>
-            <p className="konami-shelf-hint">Pick a cartridge to take a closer look.</p>
+            <p className="konami-shelf-hint"><span>THE GOOD STUFF. ALWAYS WITHIN REACH.</span>Pick a cartridge. Make yourself at home.</p>
           </div>
           <div className={`konami-game-preview is-${selectedGame.color}`} role="tabpanel" id="library-game-preview" aria-labelledby={`library-cart-${selectedGame.id}`} tabIndex={0}>
+            <div className="konami-station-heading"><span><i aria-hidden="true" /> PLAYER 01</span><span>THE PLAY CORNER</span></div>
             <div className="konami-preview-monitor">
               <div className="konami-preview-screen"><img src={selectedGame.image} alt={`${selectedGame.title} cover art`} /><span>READY TO PLAY</span></div>
-              <div className="konami-monitor-chin"><span>DAIVR / COLOR SYSTEM</span><i /><b /></div>
+              <div className="konami-monitor-chin"><span><strong>DAIVR</strong> COLOR / STEREO</span><b aria-hidden="true" /><span className="konami-monitor-dials" aria-hidden="true"><em /><em /></span><i aria-hidden="true" /></div>
             </div>
             <div className="konami-preview-copy">
-              <div className="konami-preview-counter"><small>CARTRIDGE {String(selectedIndex + 1).padStart(2, "0")} / {String(games.length).padStart(2, "0")}</small><div><button type="button" aria-label="Previous cartridge" disabled={Boolean(mountingGame)} onClick={() => selectRelative(-1)}><ChevronLeft size={16} /></button><button type="button" aria-label="Next cartridge" disabled={Boolean(mountingGame)} onClick={() => selectRelative(1)}><ChevronRight size={16} /></button></div></div>
-              <h3>{selectedGame.title}</h3>
+              <div className="konami-preview-counter"><div className="konami-preview-title"><small>CARTRIDGE {String(selectedIndex + 1).padStart(2, "0")} / {String(games.length).padStart(2, "0")}</small><h3>{selectedGame.title}</h3></div><div className="konami-preview-navigation"><button type="button" aria-label="Previous cartridge" disabled={Boolean(mountingGame)} onClick={() => selectRelative(-1)}><ChevronLeft size={16} /></button><button type="button" aria-label="Next cartridge" disabled={Boolean(mountingGame)} onClick={() => selectRelative(1)}><ChevronRight size={16} /></button></div></div>
               <p>{selectedGame.description}</p>
               <span className="konami-preview-meta">{selectedGame.meta}</span>
             </div>
-            <div className="konami-play-deck"><span className="konami-play-slot" aria-hidden="true" /><button type="button" className="konami-insert-game" disabled={Boolean(mountingGame)} onClick={() => mountGame(selectedGame.id)}><Play size={16} fill="currentColor" /> Insert & play <span>↵</span></button><small><i /> STATION-86 <b>CARTRIDGE SYSTEM</b></small></div>
+            <div className="konami-play-deck">
+              <div className="konami-deck-top"><span>CARTRIDGE INPUT<span className="konami-play-slot" aria-hidden="true" /></span><i className="konami-deck-vents" aria-hidden="true" /></div>
+              <button type="button" className="konami-insert-game" disabled={Boolean(mountingGame)} onClick={() => mountGame(selectedGame.id)}><Play size={16} fill="currentColor" /> Insert & play <span>↵</span></button>
+              <small><i /> STATION-86 <b>GOOD GAMES. NO QUARTERS.</b></small>
+            </div>
           </div>
         </div>
 
         {mountedGame ? (
-          <div className={`konami-mount-sequence is-${mountedGame.color} is-${mountPhase}`} aria-live="polite">
-            <div className="konami-mount-rig" aria-hidden="true">
-              <span className="konami-console-deck">
-                <i className="konami-console-slot"><b className="is-flap-left" /><b className="is-flap-right" /></i>
-              </span>
-              <GameCartridge game={mountedGame} className="konami-mount-cartridge" />
-              <span className="konami-console-face">
-                <i className="konami-console-vents"><b /><b /><b /><b /><b /></i>
-                <span className="konami-console-brand"><strong>DAIVR STATION-86</strong><small>KONAMI.SYS COMPATIBLE</small></span>
-                <span className="konami-console-power">
-                  <b className="konami-console-switch"><i /></b>
-                  <i className="konami-console-led" />
-                  <em>PWR</em>
-                </span>
-                <i className="konami-console-vents"><b /><b /><b /><b /><b /></i>
-              </span>
-              <span className="konami-mount-burst" />
-              <span className="konami-mount-dust"><b /><b /><b /><b /><b /><b /></span>
+          <div className={`konami-mount-sequence konami-loader is-${mountedGame.color} is-${mountPhase}`} style={{ "--load-duration": `${MOUNT_TIMING.launch}ms` }}>
+            <div className="konami-loader-card">
+              <div className="konami-loader-heading"><span>DAIVR / HOME ARCADE</span><span>STATION 86</span></div>
+              <div className="konami-loader-stage" aria-hidden="true">
+                <div className="konami-loader-table" />
+                <div className="konami-loader-hardware">
+                  <div className="konami-loader-console-top"><span className="konami-loader-top-vents" /><i /><span className="konami-loader-slot-label">INSERT THIS SIDE ↓</span></div>
+                  <div className="konami-loader-insertion"><div className="konami-loader-cartridge-body"><GameCartridge game={mountedGame} className="konami-loader-cartridge" /><i className="konami-loader-cartridge-edge" /></div></div>
+                  <div className="konami-loader-slot-lip" />
+                  <div className="konami-loader-console-front">
+                  <span className="konami-loader-brand"><strong>STATION<span>86</span></strong><small>HOME ARCADE SYSTEM</small></span>
+                  <span className="konami-loader-display">{mountPhase === "booting" ? "PLAY" : mountPhase === "locked" ? "READY" : "— —"}<i /></span>
+                  <span className="konami-loader-power"><b /><i /> POWER</span>
+                  <span className="konami-loader-speaker" />
+                  </div>
+                  <div className="konami-loader-feet"><i /><i /></div>
+                </div>
+              </div>
+              <div className="konami-loader-copy" role="status" aria-live="polite"><small>{MOUNT_STATUS[mountPhase]}</small><strong>{mountedGame.title}</strong><p>One cartridge. A whole other world.</p></div>
             </div>
-            <strong>MOUNTING {mountedGame.program}</strong>
-            <small key={mountPhase}>{MOUNT_STATUS[mountPhase] || MOUNT_STATUS.aligning}</small>
-            <span className="konami-mount-progress"><i /></span>
-            <span className="konami-mount-flash" />
           </div>
         ) : null}
 

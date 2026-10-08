@@ -1,0 +1,90 @@
+"""Repackage the five community releases for FTE. Python 3 standard library only.
+
+Run: py -3 tools/nzp-maps/import.py [directory containing the downloaded ZIPs]
+Without a directory, download into a temporary cache. Source checksums are pinned;
+review upstream changes before changing them. Never extract untrusted paths.
+"""
+import hashlib
+import json
+from pathlib import Path, PurePosixPath
+import sys
+import tempfile
+import urllib.request
+import zipfile
+
+ROOT = Path(__file__).resolve().parents[2]
+MAPS = [
+    dict(id="town", name="Town", author="glitcheking", discussion=470,
+         download="https://github.com/user-attachments/files/17387321/town.update.zip",
+         sourceSha256="2ef79d5624d151e7c5a72a5714866f2c676f0a1de1c246a5f9eb20f285d49ec0"),
+    dict(id="isolation", name="Isolation", author="TheLungy", discussion=882,
+         download="https://archive.org/download/nzp-isolation_20240824_0250/NZP%20Isolation.zip",
+         sourceSha256="42d1c23a52509068c539bf87c385a933eea3201908da821863314b3563e29a4c"),
+    dict(id="pump", name="Pump", author="Naievil & oldschool125", discussion=166,
+         download="https://archive.org/download/nzp_pump/nzp_pump.zip",
+         sourceSha256="9c7397410dce80e175a2b9637079807ad7847c31fc43ca63b2c0a416774ab572"),
+    dict(id="fnaf", name="Freddy Fazbear's Pizza", author="Veemonster / panicmanic2410", discussion=340,
+         download="https://github.com/nzp-team/nzportable/files/12528521/FNAF_PC.zip",
+         sourceSha256="57554c47f9eb42f1daf47fc79a9989a87361163ea1468beb07384868a32c6737"),
+    dict(id="azurepurgatory", name="Azure Purgatory", author="Blake Izayoi", discussion=898,
+         download="https://archive.org/download/azure-purgatory-nzp/AzurePurgatory.zip",
+         sourceSha256="febf9e6ea0cef7aea43b36df2fda4180b9f8a34df72a56d63353cff6245a3186"),
+]
+
+
+def menu_info(name, author, description):
+    # Menu_MapFinder reads title, eight description lines, author and two flags.
+    return ("\n".join([name, *description, *[""] * (8 - len(description)), author, "0", "1"]) + "\n").encode()
+
+
+def main():
+    cache = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(tempfile.gettempdir()) / "daivr-nzp-custom-maps"
+    cache.mkdir(parents=True, exist_ok=True)
+    output = ROOT / "public/nzp/custom-maps"
+    output.mkdir(parents=True, exist_ok=True)
+    manifest = []
+    mounted = set()
+    for item in MAPS:
+        map_id = item["id"]
+        source = cache / ("azure.zip" if map_id == "azurepurgatory" else f"{map_id}.zip")
+        if not source.exists():
+            urllib.request.urlretrieve(item["download"], source)
+        assert hashlib.sha256(source.read_bytes()).hexdigest() == item["sourceSha256"], f"Source changed: {source}"
+        entries = {}
+        with zipfile.ZipFile(source) as archive:
+            for entry in archive.infolist():
+                if entry.is_dir():
+                    continue
+                path = PurePosixPath(entry.filename)
+                assert not path.is_absolute() and ".." not in path.parts and "\\" not in entry.filename
+                assert path.suffix.lower() in {".bsp", ".way", ".txt", ".png", ".mdl", ".pcx", ".wav"}
+                name = str(path)
+                # Matching map / waypoint / thumbnail names on case-sensitive hosts.
+                if path.parts[0] == "maps" or name.startswith(("gfx/menu/custom/", "gfx/lscreen/")):
+                    name = name.lower()
+                assert name.lower() not in mounted, f"Asset collision: {name}"
+                mounted.add(name.lower())
+                entries[name] = archive.read(entry)
+        if map_id == "isolation":
+            entries["maps/isolation.txt"] = menu_info(item["name"], item["author"], ["An isolated outpost.", "Restore the power, explore", "and find a way to escape."])
+        elif map_id == "pump":
+            entries["maps/pump.txt"] = menu_info(item["name"], item["author"], ["A deserted gas station", "in a fog-covered city.", "A classic community map."])
+        assert f"maps/{map_id}.bsp" in entries and f"maps/{map_id}.way" in entries
+        target = output / f"{map_id}.pk3"
+        with zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+            for name, data in sorted(entries.items()):
+                info = zipfile.ZipInfo(name, date_time=(2026, 10, 8, 0, 0, 0))
+                info.compress_type = zipfile.ZIP_DEFLATED
+                info.external_attr = 0o100644 << 16
+                archive.writestr(info, data, compresslevel=9)
+        manifest.append({**item, "source": f"https://github.com/nzp-team/nzportable/discussions/{item['discussion']}",
+                         "archive": target.name, "bytes": target.stat().st_size,
+                         "sha256": hashlib.sha256(target.read_bytes()).hexdigest()})
+        print(f"{item['name']}: {len(entries)} files, {target.stat().st_size:,} bytes")
+    (ROOT / "public/nzp/custom-maps.mjs").write_text(
+        "// Generated by tools/nzp-maps/import.py. Credits and pinned source releases.\n"
+        + "export const NZP_CUSTOM_MAPS = " + json.dumps(manifest, indent=2) + ";\n", encoding="utf-8")
+
+
+if __name__ == "__main__":
+    main()

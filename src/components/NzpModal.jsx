@@ -20,7 +20,8 @@ const BOARDS = {
   score: { tab: "MONEY", heading: "MONEY EARNED", format: (value) => `${number(value)} PTS` }
 };
 const MAPS = { ndu: "Nacht der Untoten", nzp_warehouse2: "Warehouse", nzp_xmas2: "Tikhaya Noch", nzp_warehouse: "Warehouse (Classic)", christmas_special: "Christmas Special", lexi_house: "House", lexi_temple: "Temple", lexi_overlook: "Overlook" };
-const mapName = (id) => MAPS[id] || id || "";
+const COMMUNITY_MAPS = { town: "Town", isolation: "Isolation", pump: "Pump", fnaf: "Freddy Fazbear's Pizza", azurepurgatory: "Azure Purgatory" };
+const mapName = (id) => MAPS[id] || COMMUNITY_MAPS[id?.toLowerCase()] || id || "";
 
 // The cartridge boots straight into NZ:P's own menus. Co-op lives in the game's
 // Cooperative menu, and every finished game is saved to the three rankings

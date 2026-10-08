@@ -1,0 +1,78 @@
+@layer components {
+  .konami-loader { background: radial-gradient(ellipse at 50% 46%, #7f70412b, transparent 57%), #050906f5; backdrop-filter: blur(12px); }
+  .konami-loader-card { width: min(620px, 100%); padding: 12px 18px 24px; }
+  .konami-loader-heading { display: flex; justify-content: space-between; padding: 0 10px; color: #a5ab96; font: 700 9px/1.5 var(--font-mono); letter-spacing: .18em; }
+  .konami-loader-heading > span:last-child { color: #d5c59b; }
+  .konami-loader-stage { position: relative; width: 100%; aspect-ratio: 1.38; margin: 8px auto 20px; isolation: isolate; transition: transform .65s ease-out; }
+  .konami-loader-stage::before { content: ""; position: absolute; z-index: -1; inset: 35% -10% -8%; opacity: 0; background: radial-gradient(ellipse at 50% 70%, var(--mount-soft), transparent 65%); filter: blur(18px); transition: opacity .6s ease-out; }
+  .is-booting .konami-loader-stage { transform: scale(1.025); }.is-booting .konami-loader-stage::before { opacity: .24; }
+  .konami-loader-table { position: absolute; z-index: -1; left: -12%; right: -12%; top: 62%; bottom: -6%; background: radial-gradient(ellipse at 50% 60%, #72533b3d, transparent 68%); }
+  .konami-loader-table::after { content: ""; position: absolute; left: 15%; right: 15%; bottom: 6%; height: 21%; border-radius: 50%; background: #000c; filter: blur(11px); }
+  .konami-loader-hardware { position: absolute; inset: 0 5%; animation: konami-loader-contact var(--load-duration) linear both; }
+  /* Clip at the slot opening, above the front panel: the cartridge enters the lid. */
+  .konami-loader-insertion { position: absolute; z-index: 3; inset: 0 0 33%; overflow: hidden; }
+  .konami-loader-cartridge-body { position: absolute; left: 50%; bottom: 0; width: 35%; height: 69%; transform: translate(-50%, 56%); transform-origin: 50% 100%; animation: konami-loader-insert var(--load-duration) linear both; }
+  .konami-loader-cartridge-body > .konami-loader-cartridge { position: absolute; inset: 0; width: 100%; height: 100%; grid-template-rows: 9% minmax(0, 1fr) 11%; border-radius: 7px 7px 3px 3px; transform: skewY(-1deg); box-shadow: inset 2px 2px #e9ead049, inset -4px -2px #020804b0, inset 0 0 0 5px #222921, 4px 0 #101710; }
+  .konami-loader-cartridge-edge { position: absolute; top: 4px; bottom: 2px; right: -7px; width: 7px; border-radius: 0 3px 2px 0; background: repeating-linear-gradient(0deg, #9a9d8022 0 1px, transparent 1px 4px), linear-gradient(90deg, #555d49, #161e14); transform: skewY(24deg); transform-origin: left; }
+  .konami-loader-cartridge-body::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: 7px; background: linear-gradient(115deg, #fff6, transparent 28% 70%, #0005); opacity: .15; animation: konami-loader-label-light var(--load-duration) linear both; }
+  .konami-loader-cartridge .konami-cartridge-label { margin: 5% 7%; }
+  .konami-loader-cartridge .konami-cartridge-label strong { font-size: clamp(.6rem, 1.5vw, .85rem); }
+  .konami-loader-cartridge .konami-cartridge-label em { font-size: .35rem; }
+  .konami-loader-cartridge .konami-cartridge-grip { padding: 3px 17px; }
+  .konami-loader-cartridge .konami-cartridge-contacts { margin-inline: 17%; }
+  .konami-loader-console-top { position: absolute; z-index: 1; top: 56%; bottom: 24%; width: 100%; border: 1px solid #999c83; border-radius: 8px 8px 0 0; background: linear-gradient(90deg, #352319 0 3.5%, transparent 3.7% 96.3%, #302218 96.5%), linear-gradient(#717766, #515c47 65%, #7c836b); clip-path: polygon(6% 0, 94% 0, 100% 100%, 0 100%); box-shadow: inset 0 2px #e0e3bb55; }
+  .konami-loader-console-top > i { position: absolute; z-index: 2; top: 42%; left: 50%; width: 39%; height: 13%; transform: translateX(-50%); border: 2px solid #b3b799; border-radius: 3px; background: #040704; box-shadow: 0 1px #eeebc966, 0 -2px #111b10, inset 0 4px 5px #000; }
+  .konami-loader-console-top::after { content: ""; position: absolute; left: 28%; right: 25%; top: 0; bottom: 12%; background: linear-gradient(140deg, transparent, #050903a1); filter: blur(5px); transform-origin: bottom; animation: konami-loader-shadow var(--load-duration) linear both; }
+  .konami-loader-top-vents { position: absolute; top: 17%; left: 13%; right: 13%; height: 10%; background: repeating-linear-gradient(90deg, #172214 0 3px, #b9bea252 3px 4px, transparent 4px 8px); opacity: .8; }
+  .konami-loader-slot-label { position: absolute; bottom: 12%; left: 0; right: 0; color: #d3d6b9; text-align: center; font: 700 6px/1 var(--font-mono); letter-spacing: .14em; }
+  .konami-loader-slot-lip { position: absolute; z-index: 4; left: 30.5%; right: 30.5%; top: 66.8%; height: 1.5%; border-top: 2px solid #d4d8b588; border-radius: 0 0 3px 3px; background: linear-gradient(#182512, #82896d); box-shadow: 0 2px 3px #071005aa; }
+  .konami-loader-console-front { position: absolute; z-index: 5; top: 76%; bottom: 3%; display: grid; grid-template-columns: 1fr auto; align-content: center; align-items: center; gap: 12px 14px; width: 100%; padding: 10px 7%; border: 1px solid #858b71; border-radius: 2px 2px 10px 10px; background: linear-gradient(90deg, transparent 0 3.5%, #444f39 3.7%, #2c3827 96.3%, transparent 96.5%), url('/arcade-library/walnut-grain.svg') center / 400px 180px; box-shadow: inset 0 2px #e3e4c77d, inset 0 -5px #10170b, 0 5px #090f07, 0 12px 18px #0009; }
+  .konami-loader-console-front::before { content: ""; position: absolute; top: 8px; left: 2%; right: 2%; height: 4px; background: radial-gradient(circle at 2px 2px, #aaa98b 0 1px, #182010 1px 2px, transparent 2px) left center / 4px 4px no-repeat, radial-gradient(circle at 2px 2px, #aaa98b 0 1px, #182010 1px 2px, transparent 2px) right center / 4px 4px no-repeat; }
+  .konami-loader-brand strong { display: block; color: #eeecd6; font: 800 clamp(10px, 1.5vw, 16px)/1.1 var(--font-display); letter-spacing: .08em; }
+  .konami-loader-brand strong > span { color: #a9b398; margin-left: 3px; }
+  .konami-loader-brand small { display: block; margin-top: 5px; color: #b9c2a7; font: 700 6px/1.4 var(--font-mono); letter-spacing: .15em; }
+  .konami-loader-display { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid #969b7355; border-radius: 3px; background: #071008; color: #6b765b; font: 800 10px/1 var(--font-mono); box-shadow: inset 0 2px 4px #000; transition: color .2s, box-shadow .3s; }
+  .konami-loader-display i { width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+  .konami-loader-power { display: flex; align-items: center; gap: 7px; color: #c3c8b0; font: 700 6px/1 var(--font-mono); letter-spacing: .12em; }
+  .konami-loader-power > b { position: relative; width: 27px; height: 11px; border: 1px solid #8b96726b; border-radius: 2px; background: #080f07; }
+  .konami-loader-power > b::after { content: ""; position: absolute; top: 1px; bottom: 1px; left: 1px; width: 11px; border-radius: 1px; background: linear-gradient(#bdc5a7, #687855); box-shadow: 1px 1px #000; transition: transform .15s; }
+  .konami-loader-power > i { width: 5px; height: 5px; border-radius: 50%; background: #303b20; box-shadow: inset 0 1px #000; }
+  .is-locked .konami-loader-display, .is-booting .konami-loader-display { color: var(--mount-accent); }
+  .is-booting .konami-loader-power > b::after { transform: translateX(12px); }
+  .is-booting .konami-loader-power > i { background: var(--mount-accent); box-shadow: 0 0 12px var(--mount-accent); }
+  .is-booting .konami-loader-display { box-shadow: inset 0 2px 4px #000, 0 0 18px var(--mount-soft); }
+  .konami-loader-speaker { height: 12px; background: repeating-linear-gradient(0deg, #0c1608 0 2px, #7d836355 2px 3px, transparent 3px 5px); }
+  .konami-loader-feet { position: absolute; z-index: 0; bottom: 0; left: 8%; right: 8%; display: flex; justify-content: space-between; }
+  .konami-loader-feet i { width: 9%; height: 9px; border-radius: 0 0 3px 3px; background: linear-gradient(#050704, #252c1e); }
+  .konami-loader-copy { text-align: center; }
+  .konami-loader-copy > small { color: var(--mount-accent); font: 700 9px/1.5 var(--font-mono); letter-spacing: .18em; text-transform: uppercase; }
+  .konami-loader-copy > strong { display: block; margin-top: 7px; color: #f1edda; font: 800 clamp(1.2rem, 3vw, 1.85rem)/1.3 var(--font-display); }
+  .konami-loader-copy > p { margin-top: 8px; color: #a3ad98; font-size: 11px; line-height: 1.5; }
+  @keyframes konami-loader-insert {
+    0% { opacity: 0; transform: translate(-85%, -54%) rotate(-13deg); }
+    10% { opacity: 1; transform: translate(-60%, -36%) rotate(-6deg); animation-timing-function: ease-out; }
+    23%, 31% { opacity: 1; transform: translate(-50%, -25%) rotate(0); animation-timing-function: cubic-bezier(.5,0,.7,.6); }
+    40% { transform: translate(-50%, 0); animation-timing-function: cubic-bezier(.25,.1,.4,1); }
+    59% { transform: translate(-50%, 48%); animation-timing-function: ease-in; }
+    65% { transform: translate(-50%, 58%); animation-timing-function: ease-out; }
+    69%, 100% { opacity: 1; transform: translate(-50%, 56%); }
+  }
+  @keyframes konami-loader-contact { 0%, 64%, 73%, 100% { transform: translateY(0); } 66% { transform: translateY(2px); } 69% { transform: translateY(-.5px); } }
+  @keyframes konami-loader-shadow { 0%, 15% { opacity: .12; transform: scale(.7); } 40% { opacity: .6; transform: scale(1); } 65%, 100% { opacity: .9; transform: scale(.6, .6); } }
+  @keyframes konami-loader-label-light { 0%, 30% { opacity: .3; } 65%, 100% { opacity: .06; } }
+  @media (max-width: 480px) {
+    .konami-loader-card { padding-inline: 0; }.konami-loader-heading { font-size: 7px; }
+    .konami-loader-stage { margin-top: 22px; }
+    .konami-loader-console-front { gap: 6px 8px; padding-block: 5px; }
+    .konami-loader-brand small, .konami-loader-slot-label { display: none; }
+    .konami-loader-display { padding: 5px 6px; font-size: 7px; }.konami-loader-power { font-size: 5px; gap: 4px; }
+    .konami-loader-cartridge .konami-cartridge-grip { padding: 2px 12px; gap: 3px; }.konami-loader-cartridge .konami-cartridge-label em { display: none; }
+    .konami-loader-cartridge .konami-cartridge-label strong { font-size: .5rem; left: 4px; bottom: 5px; }
+  }
+  @media (max-height: 650px) and (min-width: 481px) { .konami-loader-card { width: min(490px, 100%); }.konami-loader-stage { margin-block: 0 10px; } }
+  @media (max-height: 500px) { .konami-loader-card { width: min(380px, calc((100dvh - 180px) * 1.38), 100%); padding: 0; }.konami-loader-stage { margin-block: 0 10px; }.konami-loader-heading { font-size: 6px; }.konami-loader-brand small, .konami-loader-slot-label { display: none; }.konami-loader-console-front { gap: 4px; padding-block: 4px; }.konami-loader-display { padding: 4px; font-size: 6px; }.konami-loader-copy > strong { font-size: 1.1rem; }.konami-loader-copy > p { font-size: 9px; } }
+  @media (prefers-reduced-motion: reduce) {
+    .konami-loader, .konami-loader-hardware, .konami-loader-cartridge-body, .konami-loader-cartridge-body::after, .konami-loader-console-top::after { animation: none; }
+    .konami-loader-cartridge-body { transform: translate(-50%, 56%); }
+  }
+}

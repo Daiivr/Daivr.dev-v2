@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test scripts/test-*.mjs tests/*.test.mjs",
-    "test:nzp": "node --test tests/nzp.test.mjs",
+    "test:nzp": "node --test tests/nzp.test.mjs tests/nzp-maps.test.mjs",
     "build:nzp-progs": "node tools/nzp-qc/build.mjs",
     "dev": "vite --host 0.0.0.0 --port 5173",
     "preview": "vite preview --host 0.0.0.0 --port 4173",
