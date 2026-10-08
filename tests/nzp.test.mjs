@@ -148,6 +148,46 @@ test("a best round saved on a test map before those were refused drops off the r
   assert.equal(saved[0].bestRoundMap, "ndu");
 });
 
+test("map rankings retain each map's best, filter before limiting, and keep personal ranks in scope", () => {
+  let saved = [];
+  const store = { read: () => structuredClone(saved), write: (entries) => { saved = entries; } };
+  let rankings = createNzpRankings(store);
+  const record = (id, map, round, day) => rankings.record({ id, username: id }, { round, map, kills: 10, score: 1000 }, `2026-10-${day}T00:00:00.000Z`);
+  record("a", "ndu", 30, "01");
+  record("b", "town", 12, "02");
+  record("a", "Town", 12, "03");
+  record("a", "town", 8, "04");
+  record("c", "town", 9, "05");
+  record("a", "town", 12, "06");
+  rankings = createNzpRankings(store); // Results survive reopening the store.
+  assert.deepEqual(rankings.leaderboard("round", 1, "town").map(({ discordId, value }) => [discordId, value]), [["b", 12]]);
+  assert.deepEqual(rankings.leaderboard("round", 10, "TOWN").map(({ discordId, value }) => [discordId, value]), [["b", 12], ["a", 12], ["c", 9]]);
+  assert.equal(rankings.forUser("a", "town").ranks.round, 2);
+  assert.equal(rankings.forUser("a", "town").bestRound, 12);
+  assert.equal(rankings.forUser("a").bestRound, 30);
+  assert.equal(rankings.forUser("a", "town").totalKills, 40);
+  assert.equal(rankings.forUser("a", "pump").ranks.round, null);
+  assert.equal(rankings.forUser("a", "pump").bestRound, 0);
+  assert.deepEqual(rankings.leaderboard("round", 10, "pump"), []);
+  assert.deepEqual(rankings.maps(), ["ndu", "town"]);
+});
+
+test("legacy best and last games seed map records without inventing history or changing totals", () => {
+  let saved = [{ discordId: "old", bestRound: 20, bestRoundMap: "FNAF", bestRoundAt: "2026-10-01T00:00:00Z", totalKills: 50, games: 5,
+    lastGame: { round: 7, map: "town" }, lastPlayedAt: "2026-10-02T00:00:00Z" }];
+  const rankings = createNzpRankings({ read: () => structuredClone(saved), write: (entries) => { saved = entries; } });
+  assert.equal(rankings.leaderboard("round", 10, "fnaf")[0].value, 20);
+  assert.equal(rankings.leaderboard("round", 10, "town")[0].value, 7);
+  assert.deepEqual(rankings.leaderboard("round", 10, "isolation"), []);
+  assert.equal(saved[0].roundsByMap, undefined, "reading never rewrites the store");
+  rankings.record({ id: "old", username: "Old" }, { round: 3, map: "pump", kills: 2, score: 500 });
+  assert.deepEqual(Object.keys(saved[0].roundsByMap).sort(), ["fnaf", "pump", "town"]);
+  assert.equal(saved[0].totalKills, 52);
+  saved.push({ discordId: "test", bestRound: 100, bestRoundMap: "weapon_test", lastGame: { round: 70, map: "town", custom: true }, roundsByMap: { weapon_test: { round: 100 } } });
+  assert.deepEqual(rankings.leaderboard("round", 10, "weapon_test"), []);
+  assert.equal(rankings.forUser("test", "town").bestRound, 0);
+});
+
 test("HTTP rankings need a Discord session, a run token and a plausible game", async (t) => {
   const restore = useTempData(t);
   const server = createServer(handleNzpRequest);
@@ -180,6 +220,21 @@ test("HTTP rankings need a Discord session, a run token and a plausible game", a
   const boards = await api("leaderboard?board=kills");
   assert.deepEqual([boards.data.board, boards.data.leaderboard.map(({ discordId, value }) => [discordId, value])], ["kills", [["alice", 120]]]);
   assert.equal((await api("leaderboard?board=nope")).status, 400);
+  assert.equal((await api("leaderboard?board=constructor")).status, 400);
+  const town = await api("game", { id: "alice", body: { ...game, map: "Town", round: 5, runToken } });
+  assert.equal(town.status, 200);
+  const filtered = await api("leaderboard?board=round&map=TOWN", { id: "alice" });
+  assert.equal(filtered.data.map, "town");
+  assert.deepEqual(filtered.data.leaderboard.map(({ value, map }) => [value, map]), [[5, "town"]]);
+  assert.equal(filtered.data.stats.bestRound, 5);
+  assert.equal(filtered.data.stats.ranks.round, 1);
+  assert.equal((await api("me", { id: "alice" })).data.stats.bestRound, 9, "overall best stays independent");
+  const emptyMap = await api("leaderboard?board=round&map=pump", { id: "alice" });
+  assert.deepEqual(emptyMap.data.leaderboard, []);
+  assert.equal(emptyMap.data.stats.ranks.round, null);
+  assert.deepEqual(emptyMap.data.maps, ["ndu", "town"]);
+  assert.equal((await api("leaderboard?map=town")).data.stats, null, "guests can filter without personal data");
+  for (const query of ["map=../town", "map=weapon_test", "board=kills&map=town", "board=score&map=town"]) assert.equal((await api(`leaderboard?${query}`)).status, 400);
   assert.ok((await api("run", { method: "POST" })).data.token.length > 40);
 });
 

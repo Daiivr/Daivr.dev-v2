@@ -24,6 +24,24 @@ const MAX_KILLS_PER_SECOND = 10;
 // Mapas de prueba de los desarrolladores que vienen en game.pk3. El menu ya no
 // los ofrece (daivr.patch), pero una partida en ellos no cuenta.
 const UNRANKED_MAPS = new Set(["weapon_test"]);
+const mapId = (value) => typeof value === "string" && /^[A-Za-z0-9_-]{1,32}$/.test(value) ? value.toLowerCase() : "";
+
+// Older stores kept only the overall best and the last game. Recover those
+// known results without inventing a history for maps that were never retained.
+function roundsByMap(entry) {
+  const rounds = Object.create(null);
+  const add = (id, round, at) => {
+    id = mapId(id);
+    round = Number(round);
+    if (!id || UNRANKED_MAPS.has(id) || !Number.isInteger(round) || round < 1 || round > MAX_ROUND) return;
+    const previous = rounds[id];
+    if (!previous || round > previous.round || (round === previous.round && at && (!previous.at || new Date(at) < new Date(previous.at)))) rounds[id] = { round, at };
+  };
+  for (const [id, result] of Object.entries(entry.roundsByMap || {})) add(id, result?.round, result?.at);
+  add(entry.bestRoundMap, entry.bestRound, entry.bestRoundAt);
+  if (!entry.lastGame?.custom) add(entry.lastGame?.map, entry.lastGame?.round, entry.lastPlayedAt);
+  return rounds;
+}
 
 export const NZP_BOARDS = {
   round: { field: "bestRound", since: "bestRoundAt" },
@@ -33,7 +51,7 @@ export const NZP_BOARDS = {
 
 export function validateNzpGame(body) {
   const round = Number(body?.round), kills = Number(body?.kills), headshots = Number(body?.headshots), score = Number(body?.score), durationMs = Math.round(Number(body?.durationMs));
-  const map = typeof body?.map === "string" && /^[A-Za-z0-9_-]{1,32}$/.test(body.map) ? body.map : "";
+  const map = mapId(body?.map);
   if (![round, kills, headshots, score].every(Number.isInteger) || round < 1 || round > MAX_ROUND || kills < 0 || kills > MAX_KILLS || headshots < 0 || headshots > kills || score < 0 || score > MAX_SCORE
     || typeof body.custom !== "boolean" || !Number.isFinite(durationMs) || durationMs < 0 || durationMs > MAX_DURATION_MS || !map) {
     return { error: "NZ:P game failed validation." };
@@ -56,6 +74,11 @@ export function createNzpRankings(store) {
   const read = () => store.read().map((entry) => (UNRANKED_MAPS.has(String(entry.bestRoundMap || "").toLowerCase())
     ? { ...entry, bestRound: 0, bestRoundMap: "", bestRoundAt: undefined }
     : entry));
+  const scoped = (map) => read().map((entry) => {
+    if (!map) return entry;
+    const result = roundsByMap(entry)[mapId(map)];
+    return { ...entry, bestRound: result?.round || 0, bestRoundMap: result ? mapId(map) : "", bestRoundAt: result?.at };
+  });
   const sorted = (entries, board) => {
     const { field, since } = NZP_BOARDS[board];
     return entries
@@ -71,12 +94,15 @@ export function createNzpRankings(store) {
     ...(board === "round" ? { map: entry.bestRoundMap || "" } : {})
   });
   return {
-    leaderboard(board, limit = 10) {
-      const size = Math.min(50, Math.max(1, Number(limit) || 10));
-      return sorted(read(), board).slice(0, size).map((entry, index) => toPublic(entry, index + 1, board));
+    maps() {
+      return [...new Set(read().flatMap((entry) => Object.keys(roundsByMap(entry))))].sort();
     },
-    forUser(userId) {
-      const entries = read();
+    leaderboard(board, limit = 10, map = "") {
+      const size = Math.min(50, Math.max(1, Number(limit) || 10));
+      return sorted(scoped(board === "round" ? map : ""), board).slice(0, size).map((entry, index) => toPublic(entry, index + 1, board));
+    },
+    forUser(userId, map = "") {
+      const entries = scoped(map);
       const entry = entries.find((item) => String(item.discordId) === String(userId));
       if (!entry) return null;
       const ranks = Object.fromEntries(Object.keys(NZP_BOARDS).map((board) => {
@@ -94,8 +120,12 @@ export function createNzpRankings(store) {
       const index = entries.findIndex((entry) => String(entry.discordId) === String(user.id));
       const current = index >= 0 ? entries[index] : { discordId: String(user.id), createdAt: now };
       const best = game.round > (Number(current.bestRound) || 0);
+      const perMap = roundsByMap(current);
+      const id = mapId(game.map);
+      if (id && !UNRANKED_MAPS.has(id) && game.round > (perMap[id]?.round || 0)) perMap[id] = { round: game.round, at: now };
       const next = {
         ...current,
+        roundsByMap: perMap,
         username: user.username,
         avatarUrl: user.avatarUrl || DEFAULT_AVATAR_URL,
         bestRound: best ? game.round : Number(current.bestRound) || 0,
@@ -127,9 +157,12 @@ export async function handleNzpRequest(request, response) {
 
   if (method === "GET" && path === "leaderboard") {
     const board = url.searchParams.get("board") || "round";
-    if (!NZP_BOARDS[board]) return sendJson(response, 400, { error: "Unknown NZ:P ranking." });
-    const leaderboard = await refreshLeaderboardProfiles(rankings.leaderboard(board, url.searchParams.get("limit")));
-    return sendJson(response, 200, { board, leaderboard });
+    if (!Object.hasOwn(NZP_BOARDS, board)) return sendJson(response, 400, { error: "Unknown NZ:P ranking." });
+    const requestedMap = url.searchParams.get("map") || "";
+    const map = mapId(requestedMap);
+    if (requestedMap && (board !== "round" || !map || UNRANKED_MAPS.has(map))) return sendJson(response, 400, { error: "Invalid NZ:P map filter." });
+    const leaderboard = await refreshLeaderboardProfiles(rankings.leaderboard(board, url.searchParams.get("limit"), map));
+    return sendJson(response, 200, { board, map, leaderboard, maps: rankings.maps(), stats: user ? rankings.forUser(user.id, map) : null });
   }
   if (method === "GET" && path === "me") return sendJson(response, 200, { authenticated: !!user, user, stats: user ? rankings.forUser(user.id) : null });
   if (method === "POST" && path === "run") return sendRunToken(response, GAME);
