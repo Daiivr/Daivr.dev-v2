@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "music:encrypt": "node scripts/encrypt-music.mjs",
+    "test:music": "node --test tests/music.test.mjs",
     "test": "node --test scripts/test-*.mjs tests/*.test.mjs",
     "test:nzp": "node --test tests/nzp.test.mjs tests/nzp-maps.test.mjs",
     "build:nzp-progs": "node tools/nzp-qc/build.mjs",

@@ -77,6 +77,7 @@ import { ProgramSections } from "./components/ProgramSections";
 import { Sidebar } from "./components/Sidebar";
 import { SiteFooter } from "./components/SiteFooter";
 import { UpdateNotice } from "./components/UpdateNotice";
+import { MusicPlayer } from "./components/MusicPlayer";
 import { SystemGatePage } from "./components/SystemGatePage";
 
 // Piezas que solo hacen falta cuando se usan: se descargan la primera vez y
@@ -618,6 +619,7 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
       ) : null}
 
       <AttractMode enabled={!entrySplashOpen && !konamiView} />
+      <MusicPlayer entrySplashOpen={entrySplashOpen} hidden={entrySplashOpen || Boolean(konamiView) || Boolean(buddyModal) || terminalOpen || isLaunching} />
 
       <UpdateNotice hidden={entrySplashOpen} shellRef={shellRef} playingGame={konamiView === "nzp" || konamiView === "madrace" || konamiView === "tower-block" || EMBED_GAMES.includes(konamiView)} />
 

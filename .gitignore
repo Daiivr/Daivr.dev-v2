@@ -11,6 +11,10 @@ data/cross-road-leaderboard.json
 .env
 .env.local
 .env.*.local
+# Original music stays local; only encrypted music goes in Git.
+/private/music-source/
+/public/assets/music/
+/private/music-encrypted/*.tmp
 .codex-*.log
 .codex-*.log
 data/space-cadet-pinball-leaderboard.json

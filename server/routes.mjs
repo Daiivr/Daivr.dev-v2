@@ -15,6 +15,7 @@ import { handleVersionRequest } from "./version.mjs";
 import { handleVisitsRequest } from "./visits.mjs";
 import { handleTradeDexVirusTotalRequest } from "./virustotal.mjs";
 import { handleWeatherRequest } from "./weather.mjs";
+import { handleMusicRequest } from "./music.mjs";
 
 // Tabla unica de la API. La usan server.mjs (produccion) y el middleware de
 // vite.config.js (desarrollo): antes cada uno tenia su propia lista y se
@@ -29,6 +30,7 @@ const under = (path) => (pathname) => pathname === path || pathname.startsWith(`
 const below = (path) => (pathname) => pathname.startsWith(`${path}/`);
 
 export const API_ROUTES = [
+  { match: under("/api/music"), handle: handleMusicRequest },
   { match: exact("/api/player"), handle: handlePlayerRequest },
   { match: below("/api/tradedex"), handle: handleTradeDexVirusTotalRequest },
   { match: exact("/api/discord-streak"), handle: handleDiscordStreakRequest },

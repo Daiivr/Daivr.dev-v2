@@ -94,6 +94,9 @@ export default defineConfig({
     chunkSizeWarningLimit: 2500
   },
   server: {
+    fs: {
+      deny: [".env", ".env.*", "*.{crt,pem}", "**/.git/**", "**/private/**"],
+    },
     host: "0.0.0.0",
     port: 5173,
     watch: {
