@@ -63,6 +63,7 @@ import { useBuddyLoadout } from "./hooks/useBuddyLoadout";
 import { useCartridgeSwap } from "./hooks/useCartridgeSwap";
 import { getLatestFps } from "./hooks/useFps";
 import { useRandomGlitchWords } from "./hooks/useRandomGlitchWords";
+import { useTabIdentity } from "./hooks/useTabIdentity";
 import { ArcadeBackground } from "./components/ArcadeBackground";
 import { CabinetTopbar } from "./components/CabinetTopbar";
 import { AttractMode } from "./components/AttractMode";
@@ -131,6 +132,7 @@ export default function App(props) {
 // La puerta y el .app-shell los pone CabinetRoot (chunk de entrada); aqui llega
 // si la puerta sigue abierta y por donde devolverle lo que necesita.
 function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass, onGateBridge }) {
+  useTabIdentity();
   const [theme, setTheme] = useState("crt");
   const [terminalOpen, setTerminalOpen] = useState(false);
   const [buildLog, setBuildLog] = useState("$ dai.exe --status\nDai.exe offline // 0/6 up\nwaiting for RUN...");

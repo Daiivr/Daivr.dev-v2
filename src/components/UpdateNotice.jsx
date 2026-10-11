@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { RefreshCw } from "lucide-react";
+import { Fish, RefreshCw, ShieldCheck } from "lucide-react";
 import { CabinetNotice } from "./CabinetNotice";
 import "../styles/update-notice.css";
 import { useCabinetSignal } from "../lib/cabinetSignals";
 import {
   checkForUpdate,
+  currentBuild,
   reloadIntoUpdate,
   UPDATE_CHECK_MS,
   UPDATE_FIRST_CHECK_MS,
@@ -130,14 +131,49 @@ export function UpdateNotice({ hidden = false, shellRef, playingGame = false }) 
     </CabinetNotice>;
   }
 
-  return <CabinetNotice className={noticeClass} label="New build available" channel={playingGame ? "SYSTEM UPDATE" : "NEW BUILD LIVE"}
+  // Dentro de un juego se queda la tele de siempre (estilo CabinetNotice).
+  if (playingGame) {
+    return <CabinetNotice className={noticeClass} label="New build available" channel="SYSTEM UPDATE"
+      actions={armed ? <><span className="cabinet-notice-waiting"><RefreshCw size={12} aria-hidden="true" />{fishing ? "After this catch…" : "Reloading…"}</span><button type="button" onClick={() => setArmed(false)}>Cancel</button></> : <>
+        {fishing ? <button className="is-primary" type="button" onClick={() => setArmed(true)}>After catch</button> : null}
+        <button className={fishing ? "" : "is-primary"} type="button" onClick={reload}><RefreshCw size={12} aria-hidden="true" />Reload now</button>
+        <button type="button" onClick={() => setCollapsed(true)}>Later</button>
+      </>}>
+      <h2>{title}</h2>
+      {update.newRelease && update.codename ? <p className="cabinet-notice-subtitle" title={update.summary || update.codename}>{update.codename}</p> : null}
+      <p>{fishing ? "Buddy is fishing. Reload after the catch to keep it." : "Reload for the latest. Your Buddy, catches and progress are saved."}</p>
+    </CabinetNotice>;
+  }
+
+  // En la pagina: de que version a cual se pasa, el nombre del parche, lo que
+  // trae (resumen de la nota) y que nada se pierde al recargar.
+  const ownVersion = currentBuild().version;
+  const fromVersion = update.newRelease && ownVersion !== update.version ? ownVersion : "";
+  const summary = update.newRelease ? update.summary : "Fixes and polish since you opened the page.";
+  const versionLabel = fromVersion ? `Update from ${fromVersion} to ${update.version}` : title;
+
+  return <CabinetNotice className={noticeClass} label="New build available" channel="NEW BUILD LIVE"
     actions={armed ? <><span className="cabinet-notice-waiting"><RefreshCw size={12} aria-hidden="true" />{fishing ? "After this catch…" : "Reloading…"}</span><button type="button" onClick={() => setArmed(false)}>Cancel</button></> : <>
-      {fishing ? <button className="is-primary" type="button" onClick={() => setArmed(true)}>After catch</button> : null}
-      <button className={fishing ? "" : "is-primary"} type="button" onClick={reload}><RefreshCw size={12} aria-hidden="true" />Reload now</button>
-      <button type="button" onClick={() => setCollapsed(true)}>Later</button>
+      {fishing ? <button className="is-primary" type="button" onClick={() => setArmed(true)}><Fish size={13} aria-hidden="true" />After catch</button> : null}
+      <button className={fishing ? "" : "is-primary"} type="button" onClick={reload}><RefreshCw size={13} aria-hidden="true" />Reload now</button>
+      <button className="is-later" type="button" onClick={() => setCollapsed(true)}>Later<small>30m</small></button>
     </>}>
-    <h2>{title}</h2>
-    {update.newRelease && update.codename ? <p className="cabinet-notice-subtitle" title={update.summary || update.codename}>{update.codename}</p> : null}
-    <p>{fishing ? "Buddy is fishing. Reload after the catch to keep it." : "Reload for the latest. Your Buddy, catches and progress are saved."}</p>
+    <div className="update-notice-version">
+      <span className="sr-only">{versionLabel}</span>
+      {fromVersion ? <>
+        <span className="update-notice-from" aria-hidden="true">{fromVersion}</span>
+        <span className="update-notice-arrow" aria-hidden="true"><i /><i /><i /></span>
+      </> : null}
+      <h2 aria-hidden="true">{update.newRelease ? update.version : "Fresh build"}</h2>
+    </div>
+    <div className="update-notice-tags">
+      {update.newRelease && update.codename ? <span className="update-notice-codename">{update.codename}</span> : null}
+      <span className="update-notice-build">BUILD {update.build.slice(0, 6).toUpperCase()}</span>
+    </div>
+    {summary ? <p className="update-notice-summary" title={summary}>{summary}</p> : null}
+    <p className={`update-notice-safe${fishing ? " is-fishing" : ""}`}>
+      {fishing ? <Fish size={13} aria-hidden="true" /> : <ShieldCheck size={13} aria-hidden="true" />}
+      {fishing ? "Buddy is fishing. Reload after the catch to keep it." : "Buddy, catches and progress are saved."}
+    </p>
   </CabinetNotice>;
 }

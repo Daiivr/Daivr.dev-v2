@@ -5,6 +5,19 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.67.0",
+    codename: "PIXEL PUSHER",
+    date: "2026-10-11",
+    summary: "A hand-drawn pixel cursor that changes shape with what you point at, and a browser tab that wears your Discord face.",
+    entries: [
+      ["new", "The cursor is pixel art now, with a dark outline so it stays readable on any background. It turns into a pointing hand over links and buttons, an I-beam over text boxes, and an open hand over things you can drag, which closes into a fist while you hold them."],
+      ["new", "Clicks throw out a little burst of pixel sparks, and the arrow leans into fast swipes before springing back upright."],
+      ["new", "Busy and locked things get a small badge next to the arrow: a spinning ring, or a no-entry sign."],
+      ["new", "Signed in with Discord, your browser tab wears your avatar as its icon and your name in the title."],
+      ["buff", "The new-build card shows which version you are on and which one just landed, the patch name, and what it brings. It also has a glowing frame, and Later tells you it comes back in 30 minutes. Inside games the update notice keeps its TV look."]
+    ]
+  },
+  {
     version: "v2.66.0",
     codename: "TITLE SCREEN",
     date: "2026-10-10",

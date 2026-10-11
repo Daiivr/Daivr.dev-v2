@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { CURSOR_CELL, CURSOR_SPRITES, CURSOR_TONES, SPRITE_BY_MODE } from "../lib/cursorSprites";
 
 const CURSOR_LABELS = {
   blocked: "LOCK",
@@ -40,6 +41,15 @@ const LOCK_CHASE_FRAMES = 90;
 // real y no contra el frame, se siente igual a 60 que a 144 Hz.
 const FOLLOW_HALF_LIFE = 21;
 
+// Inclinacion de la flecha al moverse: gira sobre la punta como si el cuerpo
+// se quedara atras y vuelve a su sitio al parar. Grados por px/ms de
+// velocidad horizontal, tope y medias vidas del suavizado.
+const TILT_PER_SPEED = 7;
+const TILT_MAX = 14;
+const TILT_HALF_LIFE = 45;
+const VELOCITY_HALF_LIFE = 50;
+const SPARK_COUNT = 8;
+
 // Contenido que dibuja su propio puntero: dentro de un iframe no llegan
 // eventos, asi que el falso cursor se quedaria clavado en el borde.
 const NATIVE_TAGS = new Set(["EMBED", "FRAME", "IFRAME", "OBJECT"]);
@@ -62,6 +72,7 @@ export function SignalCursor({ theme = "crt" }) {
     const page = document.documentElement;
     const pointer = { x: -80, y: -80 };
     const follower = { x: -80, y: -80 };
+    const motion = { tilt: 0, velocity: 0, lastX: 0, lastTime: 0 };
     let animationFrame = 0;
     let lastFrame = 0;
     let refreshFrame = 0;
@@ -230,6 +241,7 @@ export function SignalCursor({ theme = "crt" }) {
       if (next.mode !== mode) {
         mode = next.mode;
         root.dataset.mode = next.mode;
+        root.dataset.sprite = SPRITE_BY_MODE[next.mode] || "arrow";
         label.textContent = CURSOR_LABELS[next.mode];
         publish(next.mode);
       }
@@ -269,7 +281,13 @@ export function SignalCursor({ theme = "crt" }) {
       root.style.setProperty("--signal-frame-x", `${follower.x}px`);
       root.style.setProperty("--signal-frame-y", `${follower.y}px`);
 
-      if (Math.abs(distanceX) > 0.1 || Math.abs(distanceY) > 0.1) {
+      motion.velocity *= 2 ** (-delta / VELOCITY_HALF_LIFE);
+      const tiltTarget = Math.max(-TILT_MAX, Math.min(TILT_MAX, motion.velocity * TILT_PER_SPEED));
+      motion.tilt += (tiltTarget - motion.tilt) * (1 - 2 ** (-delta / TILT_HALF_LIFE));
+      if (Math.abs(motion.tilt) < 0.05 && Math.abs(tiltTarget) < 0.05) motion.tilt = 0;
+      root.style.setProperty("--signal-tilt", `${motion.tilt.toFixed(2)}deg`);
+
+      if (Math.abs(distanceX) > 0.1 || Math.abs(distanceY) > 0.1 || motion.tilt) {
         animationFrame = window.requestAnimationFrame(paint);
       } else {
         follower.x = pointer.x;
@@ -318,6 +336,14 @@ export function SignalCursor({ theme = "crt" }) {
 
     function updatePointer(event) {
       if (event.pointerType === "touch") return;
+      // Velocidad horizontal suavizada para la inclinacion; un salto largo
+      // entre muestras (volver a la ventana) no cuenta como movimiento.
+      if (motion.lastTime && event.timeStamp > motion.lastTime && event.timeStamp - motion.lastTime < 100) {
+        const speed = (event.clientX - motion.lastX) / (event.timeStamp - motion.lastTime);
+        motion.velocity += (speed - motion.velocity) * 0.4;
+      }
+      motion.lastX = event.clientX;
+      motion.lastTime = event.timeStamp;
       pointer.x = event.clientX;
       pointer.y = event.clientY;
 
@@ -356,12 +382,19 @@ export function SignalCursor({ theme = "crt" }) {
       root.classList.add("is-pressed");
       if (mode === "grab") applyMode({ mode: "grabbing", node: lockNode });
 
+      // Anillo + chispas de pixel que salen disparadas desde el clic.
       const pulse = document.createElement("span");
       pulse.className = "signal-cursor__pulse";
       pulse.style.setProperty("--pulse-x", `${event.clientX}px`);
       pulse.style.setProperty("--pulse-y", `${event.clientY}px`);
+      pulse.appendChild(document.createElement("b"));
+      for (let index = 0; index < SPARK_COUNT; index += 1) {
+        const spark = document.createElement("i");
+        spark.style.setProperty("--spark", index);
+        pulse.appendChild(spark);
+      }
       root.appendChild(pulse);
-      pulse.addEventListener("animationend", () => pulse.remove(), { once: true });
+      window.setTimeout(() => pulse.remove(), 420);
     }
 
     function beginTextSelection() {
@@ -452,6 +485,7 @@ export function SignalCursor({ theme = "crt" }) {
       data-edge-x="left"
       data-edge-y="top"
       data-mode="default"
+      data-sprite="arrow"
       ref={rootRef}
       aria-hidden="true"
     >
@@ -461,7 +495,24 @@ export function SignalCursor({ theme = "crt" }) {
         <i className="signal-cursor__lock-corner is-bl" />
         <i className="signal-cursor__lock-corner is-br" />
       </span>
-      <span className="signal-cursor__core" />
+      <span className="signal-cursor__core">
+        {CURSOR_SPRITES.map((sprite) => (
+          <svg
+            className={`signal-cursor__sprite is-${sprite.name}`}
+            height={sprite.height * CURSOR_CELL}
+            key={sprite.name}
+            shapeRendering="crispEdges"
+            style={{ "--hot-x": sprite.hot[0], "--hot-y": sprite.hot[1] }}
+            viewBox={`0 0 ${sprite.width} ${sprite.height}`}
+            width={sprite.width * CURSOR_CELL}
+          >
+            {CURSOR_TONES.map((tone) => sprite.paths[tone] && (
+              <path className={`is-tone-${tone.toLowerCase()}`} d={sprite.paths[tone]} key={tone} />
+            ))}
+          </svg>
+        ))}
+        <i className="signal-cursor__badge" />
+      </span>
       <span className="signal-cursor__frame">
         <span className="signal-cursor__frame-mark">
           <i /><i /><i /><i />
