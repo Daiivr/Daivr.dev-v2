@@ -5,6 +5,21 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.65.0",
+    codename: "NEEDLE DROP",
+    date: "2026-10-10",
+    summary: "DAI FM gets a live spectrum, stereo meters, a tracklist, and a liquid transformation between the ink drop and the deck.",
+    entries: [
+      ["new", "A live spectrum sits over the seek bar. On desktop its bars come from the song itself (phones get a lighter animated version). They light up to the playhead, and take each track's label colour at the tips. Click or drag across it to seek."],
+      ["new", "L/R level meters with falling peak markers replace the old STEREO badge."],
+      ["new", "Tap the 02 / 05 counter to open the Side A tracklist and jump straight to any song. Escape folds it back into the deck."],
+      ["new", "Every track has its own label colour: on the record, the spectrum, and the tracklist."],
+      ["buff", "The record and the play button glow with the kick drum, and the docked record sends out rings while music plays."],
+      ["buff", "The disc now sits in the middle of the ink drop. Opening the deck floods the ink out with a small overshoot while the record spins along. Closing drains it back, and the drop wobbles as it lands."],
+      ["buff", "Media keys and your system's now-playing controls can play, pause and skip DAI FM. Shuffle and repeat-one join the deck too."]
+    ]
+  },
+  {
     version: "v2.64.7",
     codename: "WALKOUT",
     date: "2026-10-07",
