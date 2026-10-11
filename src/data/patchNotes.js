@@ -14,7 +14,8 @@ export const patchNotes = [
       ["new", "Clicks throw out a little burst of pixel sparks, and the arrow leans into fast swipes before springing back upright."],
       ["new", "Busy and locked things get a small badge next to the arrow: a spinning ring, or a no-entry sign."],
       ["new", "Signed in with Discord, your browser tab wears your avatar as its icon and your name in the title."],
-      ["buff", "The new-build card shows which version you are on and which one just landed, the patch name, and what it brings. It also has a glowing frame, and Later tells you it comes back in 30 minutes. Inside games the update notice keeps its TV look."]
+      ["buff", "The new-build card shows which version you are on and which one just landed, the patch name, and what it brings. It also has a glowing frame, and Later tells you it comes back in 30 minutes. Inside games the update notice keeps its TV look."],
+      ["fix", "On the attract-mode scoreboard, Dai's row now shows the live Discord profile picture instead of the card art."]
     ]
   },
   {

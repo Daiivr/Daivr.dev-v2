@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { profile } from "../data/site";
+import { discord, profile } from "../data/site";
+import { getDiscordAvatarUrl, getLastPresence } from "../hooks/useLanyardPresence";
 import { useCabinetSignal } from "../lib/cabinetSignals";
 
 const IDLE_MS = 5 * 60 * 1000;
@@ -16,8 +17,10 @@ const RANKS = ["1ST", "2ND", "3RD", "4TH", "5TH"];
 // Rivales de la casa: cada uno es el personaje de un juego favorito de la
 // estanteria, con su color y su retrato. face = [ancho imagen / lado del
 // recorte, x / lado, y / lado] para encuadrar la cara en el avatar cuadrado.
+// DAI (house) lleva su foto de Discord en cuanto Lanyard la ha dado; la
+// ilustracion de profile.avatar solo queda de reserva.
 const HIGH_SCORES = [
-  { name: "DAI", points: "999990", tag: "house record", accent: "var(--color-glitch)", image: profile.avatar, face: [1.6154, 0.2423, 0.0385] },
+  { name: "DAI", house: true, points: "999990", tag: "house record", accent: "var(--color-glitch)", image: profile.avatar, face: [1.6154, 0.2423, 0.0385] },
   { name: "2B", points: "524220", tag: "nier:automata", accent: "#dfffea", image: "/games/nier-2b-card.webp", face: [2.2615, 0.6923, 0] },
   { name: "ARTHUR", points: "117401", tag: "red dead ii", accent: "var(--color-danger-arcade)", image: "/games/rdr2-arthur-card.webp", face: [2.19, 0.5667, 0.3] },
   { name: "DWELLER", points: "076000", tag: "fallout 76", accent: "var(--color-cabinet)", image: "/games/fallout-76-power-armor-card.webp", face: [2.087, 0.3913, 0] }
@@ -193,8 +196,9 @@ export function AttractMode({ enabled }) {
 
   const playerScore = String(Math.max(0, playerXp)).padStart(6, "0");
   const hiScore = String(Math.max(HOUSE_HI_SCORE, playerXp)).padStart(6, "0");
+  const daiAvatar = getDiscordAvatarUrl(getLastPresence(discord.userId)?.discord_user, 128);
   const rows = [
-    ...HIGH_SCORES,
+    ...HIGH_SCORES.map((row) => (row.house && daiAvatar ? { ...row, image: daiAvatar, face: null } : row)),
     {
       name: "YOU",
       points: playerScore,

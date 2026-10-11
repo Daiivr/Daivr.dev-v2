@@ -6,6 +6,15 @@ const DEFAULT_POLL_MS = 15000;
 const RECONNECT_MIN_MS = 1000;
 const RECONNECT_MAX_MS = 30000;
 
+// Ultima presencia recibida por usuario. Quien solo necesita el dato y no el
+// directo (el avatar de Dai en el modo attract) la lee de aqui en vez de abrir
+// otro socket mas: cada llamada al hook abre el suyo.
+const lastPresence = new Map();
+
+export function getLastPresence(userId) {
+  return lastPresence.get(userId) || null;
+}
+
 export const discordStatusMeta = {
   online: {
     label: "online",
@@ -62,6 +71,7 @@ export function useLanyardPresence(userId, pollMs = DEFAULT_POLL_MS) {
 
     function applyPresence(data) {
       if (!active || !data) return;
+      lastPresence.set(userId, data);
 
       setState({
         data,
