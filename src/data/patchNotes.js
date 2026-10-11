@@ -5,6 +5,21 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.66.0",
+    codename: "TITLE SCREEN",
+    date: "2026-10-10",
+    summary: "Attract mode is now a full arcade title screen: a CRT that switches on and off, a sunset over a moving grid, and a high-score table with faces.",
+    entries: [
+      ["new", "A 1UP / HI-SCORE / IN ARCADE strip runs across the top. 1UP is your real passport XP, and IN ARCADE counts who's here right now."],
+      ["new", "The DAI.EXE logo sits in front of a striped retro sun on the horizon, over a neon grid floor that scrolls toward you. Every few seconds the logo glitches."],
+      ["new", "The top players have faces and colours: Dai, 2B, Arthur and the Dweller each get their own, and the YOU row shows your Discord avatar once you're signed in."],
+      ["new", "Inserting a coin now launches you back in. The logo, scores and coin slot dive into the horizon, the sun flares up, the grid hits warp speed with streaks flying past, and PLAYER 1 READY! loads before the screen switches off. The bird on the scoreboard flies off as it starts."],
+      ["buff", "The screen powers on like an old CRT, and switches off by collapsing to a line and then a dot before handing you back the site."],
+      ["buff", "The coin slot is a brushed-steel plate with screws, arrows and a status light. INSERT COIN now flashes white and gold, so it never fades out completely."],
+      ["fix", "The site no longer shows through behind attract mode, and the logo stays centred instead of drifting off to one side."]
+    ]
+  },
+  {
     version: "v2.65.0",
     codename: "NEEDLE DROP",
     date: "2026-10-10",

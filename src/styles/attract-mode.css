@@ -1,167 +1,576 @@
 @layer components {
+  /*
+    Pantalla de titulo a pantalla completa: filas HUD / titulo / tabla / moneda.
+    El suelo ocupa las dos ultimas filas, asi el borde de arriba de la fila 3 es
+    el horizonte exacto donde se pone el sol, mida lo que mida el viewport.
+  */
   .attract-mode {
     position: fixed;
     inset: 0;
     z-index: 70;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr) auto auto;
     overflow: hidden;
     background:
-      radial-gradient(circle at 50% 42%, rgba(6, 22, 14, 0.55), rgba(2, 6, 4, 0.94) 70%),
-      rgba(2, 6, 4, 0.92);
-    animation: attract-fade-in 700ms ease both;
+      radial-gradient(ellipse 80% 42% at 50% 52%, color-mix(in srgb, var(--color-glitch) 9%, transparent), transparent 72%),
+      linear-gradient(180deg, #010302 0%, #020a06 38%, #04130b 52%, #020604 100%);
+    /* backwards: al terminar no queda ningun filter/scale sobre toda la pantalla */
+    animation: attract-power-on 820ms cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
     cursor: var(--cursor-default, default);
   }
 
   .attract-mode.is-closing {
-    animation: attract-fade-out 420ms ease both;
+    animation: attract-power-off 560ms cubic-bezier(0.5, 0, 0.8, 0.4) both;
   }
 
-  .attract-grid {
+  /* Cielo: dos capas de estrellas que parpadean a destiempo y derivan despacio */
+  .attract-sky {
     position: absolute;
-    inset: 0;
+    inset: 0 0 38% 0;
+    overflow: hidden;
+    mask-image: linear-gradient(180deg, #000 0%, #000 55%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .attract-sky i {
+    position: absolute;
+    inset: 0 -380px 0 0;
     background:
-      linear-gradient(rgba(63, 255, 151, 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(63, 255, 151, 0.04) 1px, transparent 1px);
-    background-size: 44px 44px;
-    mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 0.9), transparent 78%);
-    animation: attract-grid-drift 16s linear infinite;
+      radial-gradient(circle at 18px 26px, rgba(255, 255, 255, 0.9) 0 1px, transparent 1.6px),
+      radial-gradient(circle at 132px 64px, rgba(180, 255, 207, 0.75) 0 1px, transparent 1.6px),
+      radial-gradient(circle at 204px 148px, rgba(255, 255, 255, 0.6) 0 1px, transparent 1.6px),
+      radial-gradient(circle at 76px 118px, rgba(69, 216, 255, 0.7) 0 1px, transparent 1.6px);
+    background-size: 240px 190px;
+    animation:
+      attract-stars-drift 90s linear infinite,
+      attract-stars-twinkle 3.2s ease-in-out infinite alternate;
   }
 
-  .attract-vignette {
-    position: absolute;
-    inset: 0;
+  .attract-sky i + i {
     background:
-      linear-gradient(rgba(255, 255, 255, 0.035) 50%, transparent 50%),
-      radial-gradient(circle at center, transparent 55%, rgba(0, 0, 0, 0.6));
-    background-size: 100% 4px, auto;
-    mix-blend-mode: screen;
-    opacity: 0.5;
+      radial-gradient(circle at 40px 90px, rgba(255, 255, 255, 0.95) 0 1.3px, transparent 2px),
+      radial-gradient(circle at 250px 30px, rgba(255, 209, 102, 0.75) 0 1.2px, transparent 2px),
+      radial-gradient(circle at 330px 200px, rgba(255, 61, 157, 0.6) 0 1.2px, transparent 2px);
+    background-size: 380px 260px;
+    animation:
+      attract-stars-drift 150s linear infinite,
+      attract-stars-twinkle 4.6s ease-in-out -2.1s infinite alternate;
   }
 
-  /* Deriva estilo DVD: dos ejes con duraciones distintas */
-  .attract-drift-x {
+  /* HUD de recreativa: 1UP / HI-SCORE / gente en el arcade */
+  .attract-hud {
+    grid-row: 1;
+    position: relative;
+    z-index: 3;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    padding: clamp(1.3rem, 3.4vh, 2rem) clamp(1.4rem, 5vw, 4.5rem) 0;
+  }
+
+  .attract-hud-cell {
+    display: grid;
+    justify-items: center;
+    gap: 0.55rem;
+  }
+
+  .attract-hud-cell.is-player {
+    justify-items: start;
+  }
+
+  .attract-hud-cell.is-online {
+    justify-items: end;
+  }
+
+  .attract-hud-cell small {
+    color: var(--color-danger-arcade);
+    font-family: var(--font-pixel);
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-shadow: 0 0 10px color-mix(in srgb, var(--color-danger-arcade) 55%, transparent);
+  }
+
+  .attract-hud-cell.is-player small {
+    animation: attract-hud-blink 1s steps(1, end) infinite;
+  }
+
+  .attract-hud-cell.is-hi small {
+    color: var(--color-cabinet);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--color-cabinet) 55%, transparent);
+  }
+
+  .attract-hud-cell.is-online small {
+    color: var(--color-cyan-arcade);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--color-cyan-arcade) 55%, transparent);
+  }
+
+  .attract-hud-cell b {
+    color: #fff;
+    font-family: var(--font-pixel);
+    font-size: clamp(0.75rem, 1.3vw, 1rem);
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-shadow: 0 0 14px color-mix(in srgb, var(--color-phosphor) 45%, transparent);
+  }
+
+  /* Titulo: logo delante de un sol retro con lamas, apoyado en el horizonte */
+  .attract-title {
+    grid-row: 2;
+    position: relative;
+    z-index: 1;
+    display: grid;
+    place-items: end center;
+    min-height: 0;
+  }
+
+  .attract-sun {
+    --sun: clamp(210px, 26vw, 400px);
+    grid-area: 1 / 1;
+    position: relative;
+    width: var(--sun);
+    height: calc(var(--sun) * 0.56);
+    pointer-events: none;
+  }
+
+  .attract-sun::before {
+    content: "";
     position: absolute;
-    inset: 8% 0 auto 0;
-    animation: attract-drift-x 13s ease-in-out infinite alternate;
-    width: max-content;
+    left: 50%;
+    bottom: -30%;
+    width: 210%;
+    height: 190%;
+    background: radial-gradient(
+      ellipse at 50% 72%,
+      color-mix(in srgb, var(--color-glitch) 34%, transparent),
+      color-mix(in srgb, var(--color-cabinet) 9%, transparent) 42%,
+      transparent 68%
+    );
+    translate: -50% 0;
+    animation: attract-sun-breathe 4.2s ease-in-out infinite alternate;
   }
 
-  .attract-drift-y {
-    animation: attract-drift-y 8.6s ease-in-out infinite alternate;
+  .attract-sun::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--sun);
+    height: var(--sun);
+    border-radius: 50%;
+    background: linear-gradient(180deg, #fff6cf 0%, var(--color-cabinet) 22%, #ff9a4d 38%, var(--color-glitch) 56%);
+    mask-image: linear-gradient(
+      180deg,
+      #000 0 32%,
+      transparent 32% 34%,
+      #000 34% 40%,
+      transparent 40% 43%,
+      #000 43% 47.5%,
+      transparent 47.5% 51.5%,
+      #000 51.5% 54.5%,
+      transparent 54.5% 100%
+    );
+    opacity: 0.88;
   }
 
   .attract-logo {
+    grid-area: 1 / 1;
+    position: relative;
+    z-index: 1;
     display: grid;
     justify-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
+    margin-bottom: clamp(1.1rem, 4vh, 2.4rem);
     text-align: center;
+    animation: attract-logo-float 5.6s ease-in-out infinite alternate;
   }
 
   .attract-logo strong {
-    color: #fff;
+    position: relative;
+    display: block;
     font-family: var(--font-display);
     font-size: clamp(3rem, 9vw, 6.5rem);
     font-weight: 900;
     letter-spacing: 0.04em;
     line-height: 1;
-    text-shadow:
-      0 0 24px color-mix(in srgb, var(--color-phosphor) 55%, transparent),
-      4px 0 0 color-mix(in srgb, var(--color-glitch) 55%, transparent),
-      -4px 0 0 color-mix(in srgb, var(--color-cyan-arcade) 55%, transparent);
-    animation: attract-logo-hue 7s linear infinite;
+    filter:
+      drop-shadow(0 5px 0 #03140a)
+      drop-shadow(0 0 22px color-mix(in srgb, var(--color-phosphor) 48%, transparent));
+  }
+
+  /* Relleno degradado + barrido de brillo; los fantasmas RGB van por debajo */
+  .attract-logo strong span {
+    position: relative;
+    z-index: 1;
+    display: block;
+    color: transparent;
+    background:
+      linear-gradient(100deg, transparent 42%, rgba(255, 255, 255, 0.95) 50%, transparent 58%) no-repeat,
+      linear-gradient(180deg, #ffffff 0%, #f1fff6 46%, var(--color-phosphor-soft) 53%, var(--color-phosphor) 100%);
+    background-size: 260% 100%, 100% 100%;
+    background-position: 160% 0, 0 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation:
+      attract-logo-shine 5s ease-in-out 1.2s infinite,
+      attract-logo-jolt 4.2s steps(1, end) infinite;
+  }
+
+  .attract-logo strong::before,
+  .attract-logo strong::after {
+    --glitch-dir: -1;
+    content: attr(data-text);
+    position: absolute;
+    inset: 0;
+    color: var(--color-glitch);
+    opacity: 0.7;
+    translate: calc(var(--glitch-dir) * 4px) 0;
+    animation: attract-logo-glitch 4.2s steps(1, end) infinite;
+  }
+
+  .attract-logo strong::after {
+    --glitch-dir: 1;
+    color: var(--color-cyan-arcade);
   }
 
   .attract-logo-kicker,
   .attract-logo-sub {
     color: var(--color-phosphor-soft);
-    font-size: 0.62rem;
+    font-size: 0.64rem;
     font-weight: 900;
-    letter-spacing: 0.32em;
+    letter-spacing: 0.34em;
     text-transform: uppercase;
-    opacity: 0.65;
+    text-shadow: 0 1px 0 #010302, 0 0 8px #010302;
   }
 
+  /* Halo oscuro: el kicker cae encima de la cupula del sol */
+  .attract-logo-kicker {
+    color: #e9fff1;
+    text-shadow:
+      0 1px 0 #010302,
+      0 0 4px #010302,
+      0 0 10px #010302,
+      0 0 18px rgba(1, 3, 2, 0.85);
+  }
+
+  /* Subtitulo en placa oscura: queda legible encima de las lamas del sol */
   .attract-logo-sub {
+    padding: 0.32rem 0.75rem 0.32rem 1.09rem;
+    border: 1px solid color-mix(in srgb, var(--color-cyan-arcade) 30%, transparent);
+    background: rgba(2, 8, 6, 0.78);
     color: var(--color-cyan-arcade);
+    clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
   }
 
-  .attract-scores {
+  /* Suelo de rejilla en perspectiva que avanza hacia el jugador */
+  .attract-floor {
+    grid-row: 3 / 5;
+    grid-column: 1;
+    position: relative;
+    z-index: 1;
+    overflow: hidden;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-phosphor) 12%, #020604) 0%,
+      #030c07 34%,
+      #020604 100%
+    );
+    pointer-events: none;
+  }
+
+  .attract-floor::before {
+    content: "";
     position: absolute;
-    left: 50%;
-    top: 52%;
-    width: min(420px, calc(100% - 3rem));
-    transform: translateX(-50%);
-    display: grid;
-    gap: 0.65rem;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--color-phosphor) 70%, transparent) 20%,
+      color-mix(in srgb, var(--color-phosphor) 30%, #fff) 50%,
+      color-mix(in srgb, var(--color-phosphor) 70%, transparent) 80%,
+      transparent
+    );
+    box-shadow: 0 0 22px 3px color-mix(in srgb, var(--color-phosphor) 45%, transparent);
   }
 
+  /*
+    Marco QUIETO con la perspectiva y el fundido: la mascara no puede ir en el
+    plano que se mueve, porque saltaria con el al reiniciar cada ciclo (el
+    horizonte parpadeaba). El fundido de arriba tapa ademas las lineas lejanas,
+    mas finas que un pixel, que titilan al desplazarse.
+  */
+  .attract-floor i {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    perspective: 520px;
+    perspective-origin: 50% 0;
+    mask-image: linear-gradient(
+      180deg,
+      transparent 0,
+      rgba(0, 0, 0, 0.12) 14px,
+      rgba(0, 0, 0, 0.55) 46px,
+      #000 104px,
+      #000 50%,
+      rgba(0, 0, 0, 0.4) 100%
+    );
+  }
+
+  .attract-floor i::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -70%;
+    right: -70%;
+    height: 320%;
+    background:
+      linear-gradient(color-mix(in srgb, var(--color-phosphor) 50%, transparent) 2px, transparent 2px),
+      linear-gradient(90deg, color-mix(in srgb, var(--color-phosphor) 34%, transparent) 2px, transparent 2px);
+    background-position: 0 0, 50% 0;
+    background-size: 100% 34px, 34px 100%;
+    transform-origin: 50% 0;
+    transform: rotateX(78deg);
+    animation: attract-floor-run 0.9s linear infinite;
+  }
+
+  /* Tabla de puntajes */
+  .attract-scores {
+    grid-row: 3;
+    grid-column: 1;
+    position: relative;
+    z-index: 2;
+    justify-self: center;
+    display: grid;
+    gap: 0.6rem;
+    width: min(480px, calc(100% - 2rem));
+    padding-top: clamp(1rem, 2.8vh, 1.8rem);
+  }
+
+  /* El pajaro de PerchedBirds se posa encima de este titulo */
   .attract-scores-title {
+    justify-self: center;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     color: var(--color-cabinet);
-    font-size: 0.72rem;
+    font-family: var(--font-pixel);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-shadow: 0 0 14px color-mix(in srgb, var(--color-cabinet) 50%, transparent);
+  }
+
+  .attract-scores-title::before,
+  .attract-scores-title::after {
+    content: "";
+    width: clamp(1.4rem, 5vw, 3rem);
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--color-cabinet));
+  }
+
+  .attract-scores-title::after {
+    background: linear-gradient(90deg, var(--color-cabinet), transparent);
+  }
+
+  .attract-scores-board {
+    position: relative;
+    padding: 0.5rem 0.55rem 0.65rem;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 26%, transparent);
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--color-phosphor) 7%, transparent), transparent 38%),
+      rgba(2, 9, 5, 0.86);
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 255, 255, 0.03),
+      inset 0 0 34px rgba(0, 0, 0, 0.5);
+    clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+  }
+
+  .attract-scores-head,
+  .attract-scores li {
+    display: grid;
+    grid-template-columns: 2.6rem 2.15rem minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 0.8rem;
+    padding-inline: 1.05rem 0.7rem;
+  }
+
+  .attract-scores-head {
+    padding-block: 0.15rem 0.5rem;
+    margin-bottom: 0.35rem;
+    border-bottom: 1px dashed color-mix(in srgb, var(--color-phosphor) 22%, transparent);
+    color: var(--color-phosphor-soft);
+    font-size: 0.56rem;
     font-weight: 900;
-    letter-spacing: 0.3em;
-    text-align: center;
-    text-transform: uppercase;
-    text-shadow: 0 0 14px color-mix(in srgb, var(--color-cabinet) 40%, transparent);
+    letter-spacing: 0.26em;
+    opacity: 0.5;
+  }
+
+  .attract-scores-head span:nth-child(2) {
+    grid-column: 2 / 4;
   }
 
   .attract-scores ol {
     display: grid;
-    gap: 0.3rem;
+    gap: 0.22rem;
   }
 
   .attract-scores li {
-    display: grid;
-    grid-template-columns: 2.2rem minmax(0, 1fr) auto;
-    gap: 0.8rem;
-    padding: 0.32rem 0.65rem;
+    position: relative;
+    overflow: hidden;
+    padding-block: 0.36rem;
     color: var(--color-phosphor-soft);
-    font-size: 0.82rem;
-    font-weight: 900;
-    letter-spacing: 0.14em;
-    opacity: 0.55;
-    transition: opacity 300ms ease, background 300ms ease;
+    opacity: 0.6;
+    transition: opacity 260ms ease, background-color 260ms ease;
+    animation: attract-row-in 480ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+    animation-delay: calc(700ms + var(--row-index, 0) * 110ms);
   }
 
-  .attract-scores li.is-highlight {
-    background: color-mix(in srgb, var(--color-phosphor) 8%, transparent);
-    box-shadow: inset 2px 0 0 var(--color-phosphor);
-    color: #fff;
-    opacity: 1;
+  .attract-score-rank {
+    color: var(--row-accent);
+    font-family: var(--font-pixel);
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
   }
 
-  .attract-scores li span {
-    color: var(--color-phosphor);
+  /* Retrato recortado a la cara (ver HIGH_SCORES.face) con trama CRT encima */
+  .attract-score-face {
+    --face-box: 2.15rem;
+    position: relative;
+    width: var(--face-box);
+    height: var(--face-box);
+    background-color: color-mix(in srgb, var(--row-accent) 28%, #06120c);
+    background-repeat: no-repeat;
+    background-size: calc(var(--face-size, 1) * 100%) auto;
+    background-position:
+      calc(var(--face-x, 0) * var(--face-box) * -1)
+      calc(var(--face-y, 0) * var(--face-box) * -1);
+    filter: brightness(1.15) saturate(1.08);
+    clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px);
+  }
+
+  .attract-score-face.is-avatar {
+    background-size: cover;
+    background-position: center;
+  }
+
+  .attract-score-face::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(rgba(0, 0, 0, 0.22) 1px, transparent 1px) 0 0 / 100% 3px,
+      linear-gradient(180deg, transparent 55%, color-mix(in srgb, var(--row-accent) 30%, transparent));
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--row-accent) 60%, transparent);
+  }
+
+  .attract-score-face.is-empty::before {
+    content: "?";
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--row-accent);
+    font-family: var(--font-pixel);
+    font-size: 0.75rem;
+    animation: attract-hud-blink 1.4s steps(1, end) infinite;
+  }
+
+  .attract-scores li strong {
+    display: grid;
+    min-width: 0;
+    gap: 0.28rem;
+    color: #f4fff8;
+    font-family: var(--font-pixel);
+    font-size: 0.72rem;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+  }
+
+  .attract-scores li small {
+    overflow: hidden;
+    color: color-mix(in srgb, var(--row-accent) 72%, var(--color-phosphor-soft));
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0.75;
   }
 
   .attract-scores li em {
+    color: var(--row-accent);
+    font-family: var(--font-pixel);
+    font-size: 0.72rem;
     font-style: normal;
-    color: var(--color-cabinet);
+    letter-spacing: 0.06em;
+    text-shadow: 0 0 10px color-mix(in srgb, var(--row-accent) 45%, transparent);
   }
 
-  .attract-coin-dock {
+  .attract-scores li.is-highlight {
+    background-color: color-mix(in srgb, var(--row-accent) 13%, transparent);
+    box-shadow: inset 3px 0 0 var(--row-accent);
+    opacity: 1;
+  }
+
+  .attract-scores li.is-highlight strong {
+    text-shadow: 0 0 12px color-mix(in srgb, var(--row-accent) 70%, transparent);
+  }
+
+  /* Cursor ▶ de seleccion y barrido de luz cada vez que la fila se enciende */
+  .attract-scores li.is-highlight::before {
+    content: "";
     position: absolute;
-    bottom: clamp(1.4rem, 6vh, 3.2rem);
-    left: 50%;
-    transform: translateX(-50%);
+    top: 50%;
+    left: 0.32rem;
+    width: 6px;
+    height: 10px;
+    background: var(--row-accent);
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+    translate: 0 -50%;
+    animation: attract-cursor-nudge 520ms steps(2, end) infinite;
+  }
+
+  .attract-scores li.is-highlight::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.16) 50%, transparent 70%);
+    translate: -100% 0;
+    animation: attract-row-shine 900ms ease-out both;
+    pointer-events: none;
+  }
+
+  /* Ranura de moneda */
+  .attract-coin-dock {
+    grid-row: 4;
+    grid-column: 1;
+    position: relative;
+    z-index: 2;
+    justify-self: center;
+    padding: clamp(0.6rem, 2vh, 1.4rem) 0 clamp(1.7rem, 4.6vh, 2.8rem);
   }
 
   .attract-coin-slot {
     display: grid;
     justify-items: center;
-    gap: 0.55rem;
+    gap: 0.62rem;
     border: 0;
     background: transparent;
-    padding: 0.6rem 1rem;
+    padding: 0.5rem 1rem;
     cursor: var(--cursor-pointer, pointer);
   }
 
   .attract-coin-slot-label {
     color: #fff;
-    font-size: clamp(0.72rem, 1.6vw, 0.95rem);
-    font-weight: 900;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    text-shadow: 0 0 18px color-mix(in srgb, var(--color-phosphor) 50%, transparent);
+    font-family: var(--font-pixel);
+    font-size: clamp(0.8rem, 1.5vw, 1rem);
+    letter-spacing: 0.14em;
+    text-shadow: 0 0 18px color-mix(in srgb, var(--color-phosphor) 55%, transparent);
     animation: attract-coin-blink 1.1s steps(1, end) infinite;
     white-space: nowrap;
   }
@@ -176,24 +585,26 @@
     text-shadow: 0 0 20px color-mix(in srgb, var(--color-phosphor) 70%, transparent);
   }
 
-  /* Placa metalica con ranura vertical, LED de estado y moneda que cae */
+  /* Placa de acero cepillado con tornillos, ranura, flechas y LED */
   .attract-coin-slot-plate {
     position: relative;
     display: grid;
-    width: 92px;
-    height: 68px;
+    width: 124px;
+    height: 80px;
     place-items: center;
-    border: 1px solid color-mix(in srgb, var(--color-phosphor) 34%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 30%, #3a453e);
     background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 40%),
-      linear-gradient(rgba(63, 255, 151, 0.04) 1px, transparent 1px),
-      rgba(4, 12, 8, 0.92);
-    background-size: auto, 100% 3px, auto;
+      radial-gradient(circle at 10px 10px, #8c9a91 0 1.6px, #141b17 2.2px 3.2px, transparent 3.8px),
+      radial-gradient(circle at calc(100% - 10px) 10px, #8c9a91 0 1.6px, #141b17 2.2px 3.2px, transparent 3.8px),
+      radial-gradient(circle at 10px calc(100% - 10px), #8c9a91 0 1.6px, #141b17 2.2px 3.2px, transparent 3.8px),
+      radial-gradient(circle at calc(100% - 10px) calc(100% - 10px), #8c9a91 0 1.6px, #141b17 2.2px 3.2px, transparent 3.8px),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 34%, rgba(0, 0, 0, 0.3)),
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 3px),
+      linear-gradient(160deg, #2a352f, #0d1511);
     box-shadow:
-      inset 0 0 0 1px rgba(255, 255, 255, 0.04),
-      inset 0 0 22px rgba(0, 0, 0, 0.55),
-      0 0 26px color-mix(in srgb, var(--color-phosphor) 12%, transparent);
-    clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px);
+      inset 0 1px 0 rgba(255, 255, 255, 0.12),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.5),
+      0 0 30px color-mix(in srgb, var(--color-phosphor) 14%, transparent);
     transition: box-shadow 240ms ease, border-color 240ms ease;
   }
 
@@ -201,9 +612,9 @@
   .attract-coin-slot:focus-visible .attract-coin-slot-plate {
     border-color: color-mix(in srgb, var(--color-phosphor) 62%, transparent);
     box-shadow:
-      inset 0 0 0 1px rgba(255, 255, 255, 0.06),
-      inset 0 0 22px rgba(0, 0, 0, 0.55),
-      0 0 34px color-mix(in srgb, var(--color-phosphor) 26%, transparent);
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.5),
+      0 0 40px color-mix(in srgb, var(--color-phosphor) 30%, transparent);
   }
 
   .attract-coin-slot:focus-visible {
@@ -211,34 +622,82 @@
     outline-offset: 4px;
   }
 
+  .attract-coin-engrave {
+    position: absolute;
+    top: 7px;
+    left: 0;
+    right: 0;
+    color: rgba(225, 240, 230, 0.42);
+    font-family: var(--font-mono);
+    font-size: 0.45rem;
+    font-style: normal;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+    text-align: center;
+    text-shadow: 0 1px 0 rgba(0, 0, 0, 0.8);
+    white-space: nowrap;
+  }
+
   .attract-coin-hole {
-    width: 7px;
-    height: 30px;
+    width: 8px;
+    height: 34px;
+    border-radius: 2px;
     background: #010302;
     box-shadow:
       inset 0 0 6px rgba(0, 0, 0, 0.9),
-      0 0 10px color-mix(in srgb, var(--color-phosphor) 22%, transparent),
-      inset 0 0 0 1px rgba(63, 255, 151, 0.22);
+      0 0 0 3px #1a221d,
+      0 0 0 4px rgba(255, 255, 255, 0.06),
+      0 0 14px color-mix(in srgb, var(--color-phosphor) 22%, transparent),
+      inset 0 0 0 1px rgba(63, 255, 151, 0.24);
     transition: box-shadow 200ms ease;
   }
 
   .attract-coin-slot.is-credited .attract-coin-hole {
     box-shadow:
       inset 0 0 6px rgba(0, 0, 0, 0.9),
-      0 0 22px color-mix(in srgb, var(--color-phosphor) 65%, transparent),
+      0 0 0 3px #1a221d,
+      0 0 0 4px rgba(255, 255, 255, 0.06),
+      0 0 24px color-mix(in srgb, var(--color-phosphor) 70%, transparent),
       inset 0 0 0 1px color-mix(in srgb, var(--color-phosphor) 75%, transparent);
+  }
+
+  .attract-coin-arrow {
+    position: absolute;
+    top: 50%;
+    width: 8px;
+    height: 12px;
+    background: var(--color-cabinet);
+    translate: 0 -50%;
+    animation: attract-arrow-blink 900ms steps(1, end) infinite;
+  }
+
+  .attract-coin-arrow.is-left {
+    left: calc(50% - 26px);
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+  }
+
+  .attract-coin-arrow.is-right {
+    right: calc(50% - 26px);
+    clip-path: polygon(100% 0, 0 50%, 100% 100%);
+  }
+
+  .attract-coin-slot.is-dropping .attract-coin-arrow,
+  .attract-coin-slot.is-credited .attract-coin-arrow {
+    animation: none;
+    opacity: 0.25;
   }
 
   .attract-coin-light {
     position: absolute;
-    bottom: 7px;
+    bottom: 8px;
     left: 50%;
-    width: 22px;
+    width: 24px;
     height: 4px;
+    border-radius: 1px;
     background: var(--color-danger-arcade);
     box-shadow: 0 0 10px currentColor;
     color: var(--color-danger-arcade);
-    transform: translateX(-50%);
+    translate: -50% 0;
     transition: background 200ms ease, color 200ms ease;
   }
 
@@ -250,17 +709,18 @@
   /* La moneda: dorada, cae desde arriba, gira de canto y entra en la ranura */
   .attract-coin-piece {
     position: absolute;
-    top: 8px;
+    top: 6px;
     left: 50%;
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background:
       radial-gradient(circle at 34% 30%, #fff2c4 0 18%, transparent 40%),
-      radial-gradient(circle, var(--color-cabinet) 62%, #c99a2e 66% 100%);
+      radial-gradient(circle, var(--color-cabinet) 60%, #c99a2e 64% 100%);
     box-shadow:
       inset 0 0 0 2px rgba(201, 154, 46, 0.9),
-      0 0 14px color-mix(in srgb, var(--color-cabinet) 55%, transparent);
+      inset 0 0 0 5px rgba(255, 242, 196, 0.25),
+      0 0 16px color-mix(in srgb, var(--color-cabinet) 60%, transparent);
     opacity: 0;
     transform: translate(-50%, -46px);
     pointer-events: none;
@@ -271,13 +731,27 @@
   }
 
   .attract-coin-slot-sub {
+    display: flex;
+    align-items: center;
     color: var(--color-phosphor-soft);
-    font-size: 0.58rem;
+    font-size: 0.6rem;
     font-weight: 900;
     letter-spacing: 0.2em;
     text-transform: uppercase;
-    opacity: 0.6;
+    opacity: 0.72;
     white-space: nowrap;
+  }
+
+  .attract-coin-slot-sub kbd {
+    margin-right: 0.6rem;
+    padding: 0.12rem 0.42rem;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 45%, transparent);
+    border-bottom-width: 2px;
+    background: color-mix(in srgb, var(--color-phosphor) 9%, transparent);
+    color: #fff;
+    font: inherit;
+    font-size: 0.54rem;
+    letter-spacing: 0.14em;
   }
 
   .attract-coin-slot.is-credited .attract-coin-slot-sub {
@@ -287,22 +761,414 @@
 
   .attract-corner {
     position: absolute;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
     color: var(--color-phosphor-soft);
-    font-size: 0.6rem;
+    font-size: 0.58rem;
     font-weight: 900;
     letter-spacing: 0.24em;
     text-transform: uppercase;
-    opacity: 0.5;
+    opacity: 0.55;
   }
 
-  .attract-corner-tl {
-    top: 1.1rem;
-    left: 1.2rem;
+  .attract-corner-bl {
+    left: clamp(1.4rem, 2.4vw, 2.2rem);
+    bottom: clamp(1.2rem, 2.2vw, 1.8rem);
+  }
+
+  .attract-corner-bl i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-danger-arcade);
+    box-shadow: 0 0 8px var(--color-danger-arcade);
+    animation: attract-hud-blink 1.2s steps(1, end) infinite;
   }
 
   .attract-corner-br {
-    right: 1.2rem;
-    bottom: 1.1rem;
+    right: clamp(1.4rem, 2.4vw, 2.2rem);
+    bottom: clamp(1.2rem, 2.2vw, 1.8rem);
+    color: var(--color-cabinet);
+    font-family: var(--font-pixel);
+    font-size: 0.6rem;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    opacity: 0.8;
+  }
+
+  .attract-mode.is-credited .attract-corner-br {
+    animation: attract-hud-blink 240ms steps(1, end) infinite;
+  }
+
+  /* Cristal del CRT: lineas de barrido, banda de refresco, vineta y bisel curvo */
+  .attract-crt {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    overflow: hidden;
+    background:
+      repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.2) 0 1px, transparent 1px 3px),
+      radial-gradient(ellipse at center, transparent 56%, rgba(0, 0, 0, 0.58) 100%);
+    pointer-events: none;
+  }
+
+  .attract-crt::before {
+    content: "";
+    position: absolute;
+    inset: clamp(5px, 0.8vw, 12px);
+    border-radius: clamp(14px, 2.2vw, 30px);
+    box-shadow:
+      0 0 0 80px #010302,
+      inset 0 0 0 1px color-mix(in srgb, var(--color-phosphor) 12%, transparent),
+      inset 0 0 90px rgba(0, 0, 0, 0.55);
+  }
+
+  .attract-crt::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 22vh;
+    background: linear-gradient(180deg, transparent, rgba(180, 255, 207, 0.045) 60%, transparent);
+    translate: 0 -30vh;
+    animation: attract-crt-roll 8s linear infinite;
+  }
+
+  .attract-flash {
+    position: absolute;
+    inset: 0;
+    z-index: 6;
+    background: radial-gradient(circle at 50% 78%, rgba(225, 255, 236, 0.5), color-mix(in srgb, var(--color-phosphor) 14%, transparent) 55%, transparent 80%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .attract-mode.is-credited .attract-flash {
+    animation: attract-credit-flash 560ms ease-out both;
+  }
+
+  /*
+    Salida tras la moneda (LAUNCH_MS): logo, tabla y ranura se zambullen en el
+    horizonte (--dive-y, medido en JS, apunta su transform-origin ahi), el sol
+    se enciende, el suelo pasa a velocidad warp y salen estelas desde el punto
+    de fuga mientras aparece PLAYER 1 READY!. Despues entra el apagado del CRT.
+  */
+  .attract-mode.is-launching .attract-dive {
+    transform-origin: 50% var(--dive-y, 50%);
+    animation: attract-dive 780ms cubic-bezier(0.42, 0, 0.72, 0.36) both;
+  }
+
+  .attract-mode.is-launching .attract-scores {
+    animation-delay: 70ms;
+  }
+
+  .attract-mode.is-launching .attract-coin-dock {
+    animation-delay: 140ms;
+  }
+
+  .attract-mode.is-launching .attract-sun {
+    transform-origin: 50% 100%;
+    animation: attract-sun-flare 1000ms cubic-bezier(0.5, 0, 0.9, 0.5) both;
+  }
+
+  .attract-mode.is-launching .attract-floor i::before {
+    animation-duration: 0.18s;
+  }
+
+  .attract-mode.is-launching .attract-hud {
+    animation: attract-hud-out 420ms ease-in both;
+  }
+
+  .attract-mode.is-launching .attract-corner {
+    animation: attract-corner-out 420ms ease-in both;
+  }
+
+  .attract-warp {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .attract-mode.is-launching .attract-warp {
+    opacity: 1;
+    transition: opacity 240ms ease;
+  }
+
+  /* Dos anillos de estelas que se expanden desde el horizonte, a destiempo */
+  .attract-warp::before,
+  .attract-warp::after {
+    content: "";
+    position: absolute;
+    top: var(--horizon, 40%);
+    left: 50%;
+    width: 260vmax;
+    height: 260vmax;
+    background: repeating-conic-gradient(
+      from 0deg,
+      transparent 0deg 4.1deg,
+      color-mix(in srgb, var(--color-phosphor-soft) 60%, transparent) 4.1deg 4.4deg,
+      transparent 4.4deg 7.3deg,
+      color-mix(in srgb, var(--color-cabinet) 45%, transparent) 7.3deg 7.5deg,
+      transparent 7.5deg 11deg
+    );
+    mask-image: radial-gradient(circle closest-side, transparent 0 10%, #000 15% 24%, transparent 32%);
+    opacity: 0;
+    translate: -50% -50%;
+  }
+
+  .attract-warp::after {
+    rotate: 5deg;
+  }
+
+  .attract-mode.is-launching .attract-warp::before,
+  .attract-mode.is-launching .attract-warp::after {
+    animation: attract-warp-streak 440ms cubic-bezier(0.5, 0, 1, 1) infinite;
+  }
+
+  .attract-mode.is-launching .attract-warp::after {
+    animation-delay: -220ms;
+  }
+
+  .attract-ready {
+    position: absolute;
+    top: 57%;
+    left: 50%;
+    z-index: 4;
+    display: grid;
+    justify-items: center;
+    gap: 0.75rem;
+    text-align: center;
+    translate: -50% -50%;
+    pointer-events: none;
+    animation: attract-ready-in 420ms cubic-bezier(0.2, 0.9, 0.3, 1.25) 260ms both;
+  }
+
+  /* Halo oscuro: separa el cartel de la tabla que aun se esta encogiendo */
+  .attract-ready::before {
+    content: "";
+    position: absolute;
+    inset: -45% -35%;
+    z-index: -1;
+    background: radial-gradient(closest-side, rgba(1, 4, 2, 0.88), rgba(1, 4, 2, 0.55) 55%, transparent);
+  }
+
+  .attract-ready small {
+    color: var(--color-cyan-arcade);
+    font-family: var(--font-pixel);
+    font-size: 0.72rem;
+    letter-spacing: 0.24em;
+    text-shadow: 0 0 12px color-mix(in srgb, var(--color-cyan-arcade) 60%, transparent);
+  }
+
+  .attract-ready strong {
+    color: #fff;
+    font-family: var(--font-pixel);
+    font-size: clamp(1.8rem, 5vw, 3.4rem);
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    text-shadow:
+      4px 4px 0 color-mix(in srgb, var(--color-glitch) 70%, #020604),
+      0 0 28px color-mix(in srgb, var(--color-phosphor) 70%, transparent);
+    animation: attract-ready-flash 260ms steps(1, end) 680ms infinite;
+  }
+
+  /* Barra de carga a saltos, como las de recreativa */
+  .attract-ready-bar {
+    width: min(260px, 64vw);
+    height: 10px;
+    padding: 2px;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 55%, transparent);
+    background: rgba(2, 8, 5, 0.8);
+  }
+
+  .attract-ready-bar i {
+    display: block;
+    height: 100%;
+    background: linear-gradient(90deg, var(--color-phosphor), var(--color-cyan-arcade));
+    box-shadow: 0 0 10px color-mix(in srgb, var(--color-phosphor) 60%, transparent);
+    transform-origin: 0 50%;
+    animation: attract-ready-load 700ms steps(12, end) 300ms both;
+  }
+
+  .attract-ready em {
+    color: var(--color-phosphor-soft);
+    font-size: 0.58rem;
+    font-style: normal;
+    font-weight: 900;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    opacity: 0.75;
+  }
+
+  /* Pantallas bajas: el logo y el sol escalan con la altura y todo se aprieta */
+  @media (max-height: 760px) {
+    .attract-hud {
+      padding-top: 1rem;
+    }
+
+    .attract-logo strong {
+      font-size: min(7.5vw, 10.5vh);
+    }
+
+    .attract-logo {
+      gap: 0.4rem;
+      margin-bottom: 0.8rem;
+    }
+
+    .attract-sun {
+      --sun: clamp(150px, 30vh, 260px);
+    }
+
+    .attract-scores {
+      gap: 0.45rem;
+      padding-top: 0.8rem;
+    }
+
+    .attract-scores-head {
+      display: none;
+    }
+
+    .attract-scores li {
+      padding-block: 0.2rem;
+    }
+
+    .attract-score-face {
+      --face-box: 1.7rem;
+    }
+
+    .attract-coin-dock {
+      padding-block: 0.4rem 1.1rem;
+    }
+
+    .attract-coin-slot {
+      gap: 0.45rem;
+      padding-block: 0.3rem;
+    }
+
+    .attract-coin-slot-plate {
+      width: 108px;
+      height: 66px;
+    }
+
+    .attract-coin-engrave {
+      top: 5px;
+    }
+
+    .attract-coin-hole {
+      height: 28px;
+    }
+  }
+
+  @media (max-height: 600px) {
+    .attract-logo-kicker,
+    .attract-logo-sub,
+    .attract-scores li small {
+      display: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .attract-hud {
+      padding-inline: 1.2rem;
+    }
+
+    .attract-hud-cell small {
+      font-size: 0.5rem;
+    }
+
+    .attract-hud-cell b {
+      font-size: 0.66rem;
+    }
+
+    .attract-logo-kicker,
+    .attract-logo-sub {
+      font-size: 0.5rem;
+      letter-spacing: 0.22em;
+    }
+
+    .attract-scores-head,
+    .attract-scores li {
+      grid-template-columns: 2.1rem 1.9rem minmax(0, 1fr) auto;
+      gap: 0.6rem;
+      padding-inline: 0.85rem 0.5rem;
+    }
+
+    .attract-score-face {
+      --face-box: 1.9rem;
+    }
+
+    .attract-scores li strong,
+    .attract-scores li em {
+      font-size: 0.6rem;
+    }
+
+    .attract-score-rank {
+      font-size: 0.52rem;
+    }
+
+    .attract-coin-slot-sub {
+      font-size: 0.5rem;
+      letter-spacing: 0.14em;
+    }
+
+    .attract-corner-bl {
+      display: none;
+    }
+  }
+
+  @keyframes attract-power-on {
+    0% {
+      opacity: 0;
+      scale: 1 0.004;
+      filter: brightness(3);
+    }
+
+    14% {
+      opacity: 1;
+      scale: 1 0.004;
+      filter: brightness(3);
+    }
+
+    48% {
+      scale: 1 1;
+      filter: brightness(1.6);
+    }
+
+    100% {
+      opacity: 1;
+      scale: none;
+      filter: none;
+    }
+  }
+
+  @keyframes attract-power-off {
+    0% {
+      opacity: 1;
+      scale: none;
+      filter: none;
+    }
+
+    45% {
+      scale: 1 0.006;
+      filter: brightness(3.2);
+    }
+
+    78% {
+      opacity: 1;
+      scale: 0.04 0.006;
+    }
+
+    100% {
+      opacity: 0;
+      scale: 0 0.006;
+      filter: brightness(3.2);
+    }
   }
 
   @keyframes attract-fade-in {
@@ -325,56 +1191,206 @@
     }
   }
 
-  @keyframes attract-grid-drift {
-    from {
-      background-position: 0 0, 0 0;
-    }
-
+  @keyframes attract-stars-drift {
     to {
-      background-position: 0 44px, 44px 0;
+      translate: -380px 0;
     }
   }
 
-  @keyframes attract-drift-x {
+  @keyframes attract-stars-twinkle {
     from {
-      transform: translateX(4vw);
+      opacity: 0.35;
     }
 
     to {
-      transform: translateX(calc(96vw - 100%));
+      opacity: 1;
     }
   }
 
-  @keyframes attract-drift-y {
-    from {
-      transform: translateY(0);
-    }
-
-    to {
-      transform: translateY(22vh);
-    }
-  }
-
-  @keyframes attract-logo-hue {
+  @keyframes attract-hud-blink {
     0%,
-    100% {
-      filter: hue-rotate(0deg);
+    55% {
+      opacity: 1;
     }
 
-    50% {
-      filter: hue-rotate(38deg);
+    56%,
+    100% {
+      opacity: 0.15;
+    }
+  }
+
+  @keyframes attract-sun-breathe {
+    from {
+      opacity: 0.7;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes attract-logo-float {
+    from {
+      translate: 0 0;
+    }
+
+    to {
+      translate: 0 -8px;
+    }
+  }
+
+  @keyframes attract-logo-shine {
+    0%,
+    55% {
+      background-position: 160% 0, 0 0;
+    }
+
+    85%,
+    100% {
+      background-position: -60% 0, 0 0;
+    }
+  }
+
+  @keyframes attract-logo-glitch {
+    0%,
+    86%,
+    100% {
+      translate: calc(var(--glitch-dir) * 4px) 0;
+      clip-path: none;
+    }
+
+    88% {
+      translate: calc(var(--glitch-dir) * 12px) 0;
+      clip-path: inset(10% 0 58% 0);
+    }
+
+    90% {
+      translate: calc(var(--glitch-dir) * -9px) 0;
+      clip-path: inset(62% 0 6% 0);
+    }
+
+    92% {
+      translate: calc(var(--glitch-dir) * 7px) 0;
+      clip-path: inset(34% 0 38% 0);
+    }
+
+    94% {
+      translate: calc(var(--glitch-dir) * 4px) 0;
+      clip-path: none;
+    }
+  }
+
+  @keyframes attract-logo-jolt {
+    0%,
+    86%,
+    94%,
+    100% {
+      translate: 0 0;
+    }
+
+    88% {
+      translate: 4px 0;
+    }
+
+    90% {
+      translate: -3px 0;
+    }
+
+    92% {
+      translate: 2px 0;
+    }
+  }
+
+  @keyframes attract-floor-run {
+    from {
+      transform: rotateX(78deg) translateY(-34px);
+    }
+
+    to {
+      transform: rotateX(78deg) translateY(0);
+    }
+  }
+
+  @keyframes attract-row-in {
+    from {
+      opacity: 0;
+      translate: 2.4rem 0;
+      filter: brightness(2.4);
+    }
+
+    to {
+      translate: 0 0;
+      filter: none;
+    }
+  }
+
+  @keyframes attract-row-shine {
+    from {
+      translate: -100% 0;
+    }
+
+    to {
+      translate: 100% 0;
+    }
+  }
+
+  @keyframes attract-cursor-nudge {
+    from {
+      translate: 0 -50%;
+    }
+
+    to {
+      translate: 3px -50%;
     }
   }
 
   @keyframes attract-coin-blink {
     0%,
     58% {
+      color: #fff;
       opacity: 1;
     }
 
     59%,
     100% {
-      opacity: 0.12;
+      color: var(--color-cabinet);
+      opacity: 0.4;
+    }
+  }
+
+  @keyframes attract-arrow-blink {
+    0%,
+    50% {
+      opacity: 1;
+    }
+
+    51%,
+    100% {
+      opacity: 0.2;
+    }
+  }
+
+  @keyframes attract-crt-roll {
+    from {
+      translate: 0 -30vh;
+    }
+
+    to {
+      translate: 0 110vh;
+    }
+  }
+
+  @keyframes attract-credit-flash {
+    0% {
+      opacity: 0;
+    }
+
+    18% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
     }
   }
 
@@ -390,40 +1406,130 @@
 
     58% {
       opacity: 1;
-      transform: translate(-50%, -6px) rotate(160deg) scaleX(0.72);
+      transform: translate(-50%, -2px) rotate(160deg) scaleX(0.72);
     }
 
     82% {
       opacity: 1;
-      transform: translate(-50%, 8px) rotate(200deg) scaleX(0.3);
+      transform: translate(-50%, 18px) rotate(200deg) scaleX(0.3);
     }
 
     100% {
       opacity: 0;
-      transform: translate(-50%, 16px) rotate(210deg) scaleX(0.14);
+      transform: translate(-50%, 26px) rotate(210deg) scaleX(0.14);
+    }
+  }
+
+  @keyframes attract-dive {
+    to {
+      opacity: 0;
+      scale: 0.06;
+      filter: blur(2px) brightness(2);
+    }
+  }
+
+  @keyframes attract-sun-flare {
+    to {
+      scale: 2.3;
+      filter: brightness(1.9) saturate(1.3);
+    }
+  }
+
+  @keyframes attract-hud-out {
+    to {
+      opacity: 0;
+      translate: 0 -28px;
+    }
+  }
+
+  @keyframes attract-corner-out {
+    to {
+      opacity: 0;
+      translate: 0 20px;
+    }
+  }
+
+  @keyframes attract-warp-streak {
+    0% {
+      opacity: 0;
+      scale: 0.3;
+    }
+
+    30% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0.15;
+      scale: 2.3;
+    }
+  }
+
+  @keyframes attract-ready-in {
+    from {
+      opacity: 0;
+      scale: 2.4;
+      filter: blur(6px);
+    }
+
+    to {
+      opacity: 1;
+      scale: 1;
+      filter: none;
+    }
+  }
+
+  @keyframes attract-ready-flash {
+    0%,
+    50% {
+      color: #fff;
+    }
+
+    51%,
+    100% {
+      color: var(--color-cabinet);
+    }
+  }
+
+  @keyframes attract-ready-load {
+    from {
+      scale: 0 1;
+    }
+
+    to {
+      scale: 1 1;
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .attract-mode,
+    .attract-mode {
+      animation: attract-fade-in 300ms ease both;
+    }
+
     .attract-mode.is-closing {
-      animation: none;
+      animation: attract-fade-out 300ms ease both;
     }
 
-    .attract-grid,
-    .attract-drift-x,
-    .attract-drift-y,
-    .attract-logo strong,
+    .attract-sky i,
+    .attract-hud-cell small,
+    .attract-sun::before,
+    .attract-logo,
+    .attract-logo strong span,
+    .attract-logo strong::before,
+    .attract-logo strong::after,
+    .attract-floor i::before,
+    .attract-scores li,
+    .attract-scores li.is-highlight::before,
+    .attract-scores li.is-highlight::after,
+    .attract-score-face.is-empty::before,
     .attract-coin-slot-label,
-    .attract-coin-piece {
+    .attract-coin-arrow,
+    .attract-coin-piece,
+    .attract-corner-bl i,
+    .attract-mode.is-credited .attract-corner-br,
+    .attract-crt::after,
+    .attract-mode.is-credited .attract-flash {
       animation: none;
-    }
-
-    .attract-drift-x {
-      inset: 14% 0 auto 0;
-      width: 100%;
-      display: grid;
-      justify-items: center;
     }
   }
 }

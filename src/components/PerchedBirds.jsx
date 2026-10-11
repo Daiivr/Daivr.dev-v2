@@ -126,9 +126,12 @@ export function PerchedBirds() {
 
     const handleMotionStart = () => trackLayout(1200);
     const handleSplashEnter = () => flyAway(SPLASH_PERCH.id);
+    // Al entrar la moneda del modo attract, el pajaro sale volando antes de la zambullida.
+    const handleAttractLaunch = () => flyAway(ATTRACT_PERCH.id);
     scanPerches();
     window.addEventListener("resize", requestMeasure);
     window.addEventListener("daivr-splash-enter", handleSplashEnter);
+    window.addEventListener("daivr-attract-launch", handleAttractLaunch);
     document.addEventListener("transitionrun", handleMotionStart, true);
     document.addEventListener("animationstart", handleMotionStart, true);
 
@@ -138,6 +141,7 @@ export function PerchedBirds() {
       resizeObserver.disconnect();
       window.removeEventListener("resize", requestMeasure);
       window.removeEventListener("daivr-splash-enter", handleSplashEnter);
+      window.removeEventListener("daivr-attract-launch", handleAttractLaunch);
       document.removeEventListener("transitionrun", handleMotionStart, true);
       document.removeEventListener("animationstart", handleMotionStart, true);
       if (frame) cancelAnimationFrame(frame);
