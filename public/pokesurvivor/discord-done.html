@@ -1,0 +1,25 @@
+<!doctype html>
+<!-- Fin del login con Discord que abre PokéSurvivor (js/net/daivr.js). El
+     servidor vuelve aqui en vez de al libro de visitas (LOGIN_RETURN_PATHS en
+     server/comments.mjs): se avisa al juego y la ventana se cierra sola. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>PokéSurvivor · Discord</title>
+<style>
+  html, body { height: 100%; margin: 0; background: #0a1430; color: #f4f1e6; font: 600 15px/1.5 system-ui, sans-serif; }
+  body { display: grid; place-items: center; text-align: center; padding: 16px; box-sizing: border-box; }
+  b { display: block; color: #ffcb3d; font-size: 18px; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<p><b>Signed in with Discord</b>You can go back to PokéSurvivor.</p>
+<script>
+  try { new BroadcastChannel('daivr-discord-auth').postMessage('done'); } catch (e) { /* navegador antiguo */ }
+  try { localStorage.setItem('ps.daivr.auth', String(Date.now())); } catch (e) { /* almacenamiento bloqueado */ }
+  setTimeout(function () { window.close(); }, 250);
+</script>
+</body>
+</html>

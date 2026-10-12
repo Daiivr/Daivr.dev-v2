@@ -10,6 +10,10 @@ import { dailyXp } from "../shared/player-progression.mjs";
 import { reconcileProgression, secretBadges } from "./player-progression.mjs";
 import { buildPlayerRankings } from "./player-rankings.mjs";
 
+// Cartuchos con marca en el pasaporte: cada uno guarda <juego>-leaderboard.json
+// con { scores: [{ discordId, bestScore, ... }] } (PokéSurvivor: segundos aguantados).
+const RECORD_GAMES = ["tower-block", "cross-road", "space-cadet-pinball", "madrace", "pokesurvivor"];
+
 function readExisting(name, envs = []) {
   const path = getDataFile(name, envs);
   if (!existsSync(path)) return {};
@@ -19,7 +23,7 @@ function readExisting(name, envs = []) {
 function passportSources() {
   return {
     buddies: readExisting("buddy-friendship.json", ["COMMENTS_DATA_DIR"]),
-    games: Object.fromEntries(["tower-block", "cross-road", "space-cadet-pinball", "madrace"].map((game) => {
+    games: Object.fromEntries(RECORD_GAMES.map((game) => {
       const env = `${game.replaceAll("-", "_").toUpperCase()}_DATA_DIR`;
       return [game, readExisting(`${game}-leaderboard.json`, [env, "GAME_DATA_DIR"]).scores || []];
     }))
@@ -29,7 +33,7 @@ function passportSources() {
 function passport(user, saved, comments, sources = passportSources()) {
   const buddy = sources.buddies[user.id] || {};
   const level = [0, 10, 25, 60, 120].filter((threshold) => (buddy.pets || 0) >= threshold).length;
-  const records = ["tower-block", "cross-road", "space-cadet-pinball", "madrace"].map((game) => {
+  const records = RECORD_GAMES.map((game) => {
     const score = sources.games[game].find((entry) => String(entry.discordId) === String(user.id));
     return { game, best: game === "madrace" ? score?.highestLevel ?? null : score?.bestScore ?? null };
   });

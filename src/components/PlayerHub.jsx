@@ -11,6 +11,9 @@ import { PlayerRankings } from "./PlayerRankings";
 // Cartridge art from the game library, shared by the challenge and the records.
 const coverFor = (game) => `/arcade-library/${game}-cover.webp`;
 const gameName = gameTitle;
+// PokéSurvivor's record is seconds survived: shown as a clock.
+const recordValue = (record) => record.game === "pokesurvivor" ? `${Math.floor(record.best / 60)}:${String(record.best % 60).padStart(2, "0")}` : record.best.toLocaleString();
+const recordLabel = (game) => game === "madrace" ? "highest level" : game === "pokesurvivor" ? "longest survival" : "best score";
 const SUBTITLES = {
   passport: "Your player ID and today's challenge.",
   records: "Your best run in every cabinet game.",
@@ -175,7 +178,7 @@ export function PlayerHub({ onPlay, theme = "crt" }) {
         <small className="daily-challenge-note">{data?.user ? "Progress saves after an accepted run." : "Sign in before playing to save progress."}</small>
       </section> : null}
       </div> : null}
-      {view === "records" && card ? <section className="passport-records-panel" aria-label="Personal bests"><h3><Trophy size={14} aria-hidden="true" />Your high scores</h3><div className="passport-records">{card.records.map((record) => <div key={record.game} className={record.best === null ? "is-empty" : undefined}><img src={coverFor(record.game)} alt="" /><span>{gameName(record.game)}</span><strong>{record.best === null ? "No run yet" : record.best.toLocaleString()}</strong><small>{record.best === null ? "Play to set a record" : record.game === "madrace" ? "highest level" : "best score"}</small></div>)}</div></section> : null}
+      {view === "records" && card ? <section className="passport-records-panel" aria-label="Personal bests"><h3><Trophy size={14} aria-hidden="true" />Your high scores</h3><div className="passport-records">{card.records.map((record) => <div key={record.game} className={record.best === null ? "is-empty" : undefined}><img src={coverFor(record.game)} alt="" /><span>{gameName(record.game)}</span><strong>{record.best === null ? "No run yet" : recordValue(record)}</strong><small>{record.best === null ? "Play to set a record" : recordLabel(record.game)}</small></div>)}</div></section> : null}
       {view === "customize" && card && edit ? <section className="passport-customize">
         <form className="passport-form" onSubmit={save} onChange={() => setSaveMessage("")}>
           <div className="passport-fields">

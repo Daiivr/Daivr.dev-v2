@@ -30,3 +30,9 @@ data/gif-previews/
 
 # Tests locales (corepack pnpm test): no hacen falta para la web.
 scripts/test-*.mjs
+
+# Tarball del commit fijado de PokéSurvivor (tools/pokesurvivor/build.mjs lo descarga).
+tools/pokesurvivor/.cache/
+# PokéSurvivor (server/pokesurvivor.mjs): partidas, amigos y rankings de la API local.
+data/pokesurvivor-*.json
+data/pokesurvivor-saves/

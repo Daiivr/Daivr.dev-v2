@@ -8,6 +8,7 @@ import { handleGameImageRequest } from "./game-image.mjs";
 import { handleMadraceRequest } from "./madrace.mjs";
 import { handleNzpRequest } from "./nzp.mjs";
 import { handlePlayerRequest } from "./player.mjs";
+import { handlePokesurvivorRequest } from "./pokesurvivor.mjs";
 import { handleSpaceCadetPinballRequest } from "./space-cadet-pinball.mjs";
 import { handleSteamPlaytimeRequest } from "./steam-playtime.mjs";
 import { handleTowerBlockRequest } from "./tower-block.mjs";
@@ -45,6 +46,7 @@ export const API_ROUTES = [
   { match: below("/api/cross-road"), handle: handleCrossRoadRequest },
   { match: below("/api/space-cadet-pinball"), handle: handleSpaceCadetPinballRequest },
   { match: below("/api/nzp"), handle: handleNzpRequest },
+  { match: below("/api/pokesurvivor"), handle: (request, response) => handlePokesurvivorRequest(request, response) },
   { match: under("/api/buddy"), handle: handleBuddyRequest },
   { match: exact("/api/game-image"), handle: handleGameImageRequest },
   { match: exact("/api/weather"), handle: (request, response) => handleWeatherRequest(request, response) },

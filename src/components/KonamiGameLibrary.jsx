@@ -124,9 +124,13 @@ export function KonamiGameLibrary({ open, onClose, onSelect, journalComplete = f
   const mountedGame = games.find((game) => game.id === mountingGame);
   const selectedGame = games[Math.min(selectedIndex, games.length - 1)];
   const selectRelative = (step) => setSelectedIndex((index) => (index + step + games.length) % games.length);
+  // Two shelves of three; a seventh cartridge (NZ:P next to the regular six,
+  // desktop only) turns them into shelves of four.
+  const columns = games.length > 6 ? 4 : 3;
+  const rowStarts = [0, columns];
 
   function onShelfKeyDown(event, index) {
-    const direction = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -3, ArrowDown: 3 }[event.key];
+    const direction = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -columns, ArrowDown: columns }[event.key];
     if (!direction && !["Home", "End"].includes(event.key)) return;
     event.preventDefault();
     const next = event.key === "Home" ? 0 : event.key === "End" ? games.length - 1 : (index + direction + games.length) % games.length;
@@ -150,10 +154,10 @@ export function KonamiGameLibrary({ open, onClose, onSelect, journalComplete = f
         <div className="konami-library-room">
           <div className="konami-shelf-cabinet">
             <div className="konami-shelf-heading"><span><Gamepad2 size={16} /> DAI’S GAME SHELF</span><b>EST. 1986</b></div>
-            <div className="konami-cartridge-shelves" role="tablist" aria-label="Game cartridges">
-              {[0, 3].map((start) => (
+            <div className={`konami-cartridge-shelves ${columns === 4 ? "is-wide" : ""}`} role="tablist" aria-label="Game cartridges">
+              {rowStarts.map((start) => (
                 <div className="konami-shelf-row" role="presentation" key={start}>
-                  {games.slice(start, start + 3).map((game, offset) => {
+                  {games.slice(start, start + columns).map((game, offset) => {
                     const index = start + offset;
                     return (
                       <button className={`konami-shelf-cart is-${game.color} ${selectedIndex === index ? "is-current" : ""}`} type="button" role="tab" id={`library-cart-${game.id}`} aria-selected={selectedIndex === index} aria-controls="library-game-preview" tabIndex={selectedIndex === index ? 0 : -1} aria-label={game.title} onClick={() => setSelectedIndex(index)} onFocus={() => setSelectedIndex(index)} onKeyDown={(event) => onShelfKeyDown(event, index)} disabled={Boolean(mountingGame)} key={game.id}>
@@ -162,7 +166,7 @@ export function KonamiGameLibrary({ open, onClose, onSelect, journalComplete = f
                       </button>
                     );
                   })}
-                  {start === 3 && games.length < 6 && <div className="konami-shelf-keepsake" aria-hidden="true"><Gamepad2 size={40} /><span>ONE MORE<br />ROUND.</span><small>DAI’S PRIVATE COLLECTION</small></div>}
+                  {start === columns && games.length < columns * 2 && <div className="konami-shelf-keepsake" aria-hidden="true"><Gamepad2 size={40} /><span>ONE MORE<br />ROUND.</span><small>DAI’S PRIVATE COLLECTION</small></div>}
                 </div>
               ))}
             </div>

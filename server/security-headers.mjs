@@ -6,7 +6,7 @@
 // Drive Mad en openprocessing) y Emscripten. Llevan una politica propia mas
 // permisiva con los scripts; lo que comparten con la web es que nadie de fuera
 // puede enmarcarlas y que no cargan plugins.
-export const GAME_PATH_PREFIXES = ["/madrace/", "/cross-road/", "/tower-block/", "/rubiks-cube/", "/space-cadet-pinball/"];
+export const GAME_PATH_PREFIXES = ["/madrace/", "/cross-road/", "/tower-block/", "/rubiks-cube/", "/space-cadet-pinball/", "/pokesurvivor/"];
 
 const SITE_POLICY = [
   "default-src 'self'",

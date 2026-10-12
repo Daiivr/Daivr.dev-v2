@@ -101,7 +101,12 @@ export default defineConfig({
     port: 5173,
     watch: {
       // Only the runtime score/state store at the repo root; src/data must stay watched.
-      ignored: [`${fileURLToPath(new URL("data", import.meta.url)).replace(/\\/g, "/")}/**`]
+      // PokéSurvivor's ~13k sprite sheets never change at runtime (tools/pokesurvivor
+      // rebuilds them; restart the dev server after a rebuild).
+      ignored: [
+        `${fileURLToPath(new URL("data", import.meta.url)).replace(/\\/g, "/")}/**`,
+        `${fileURLToPath(new URL("public/pokesurvivor", import.meta.url)).replace(/\\/g, "/")}/**`
+      ]
     }
   }
 });

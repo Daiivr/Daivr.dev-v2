@@ -13,6 +13,7 @@
   .konami-shelf-heading b { font-size: 8px; color: #dec19a; font-weight: 500; }
   .konami-cartridge-shelves { border: 1px solid #24170e; background: #241b14; box-shadow: 0 1px #c99a5855; }
   .konami-shelf-row { position: relative; isolation: isolate; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; padding: 22px 20px 0; background: radial-gradient(ellipse at 50% -10%, #f6b95a36, transparent 65%), linear-gradient(#08060470, #090604bb), var(--walnut-grain) center / 480px 320px, #1a120e; box-shadow: inset 0 12px 15px -9px #000, inset 12px 0 16px -8px #000c, inset -12px 0 16px -8px #000c; }
+  .konami-cartridge-shelves.is-wide .konami-shelf-row { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; padding-inline: 14px; }
   .konami-shelf-row::before { content: ""; position: absolute; top: 1px; left: 10%; right: 10%; height: 3px; border-radius: 3px; background: #fff1cc; box-shadow: 0 0 3px 1px #ffe4a9, 0 2px 10px 3px #ffba5977, 0 11px 23px 7px #ffa83d38, 0 30px 52px 15px #e99a2720; }
   .konami-shelf-row::after { content: ""; position: absolute; z-index: -1; left: -5px; right: -5px; bottom: 0; height: 32px; border-top: 1px solid #bc9056; border-bottom: 4px solid #160d09; background: linear-gradient(#b58b4e4d 0, #140c0755 9px, #d3a36570 10px, #24160922 12px, #09060466 100%), var(--walnut-grain) center / 400px 160px, #342317; box-shadow: 0 10px 15px #000a, inset 0 1px #ffe0a34d; }
   .konami-shelf-cart, .konami-shelf-keepsake { position: relative; min-width: 0; height: 184px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 0; padding: 0 0 33px; border: 0; background: none; cursor: var(--cursor-pointer, pointer); isolation: isolate; perspective: 700px; }
@@ -22,6 +23,7 @@
   .konami-shelf-cart.is-amber, .konami-game-preview.is-amber { --disk-accent: #ffd166; }
   .konami-shelf-cart.is-magenta, .konami-game-preview.is-magenta { --disk-accent: #ff74b5; }
   .konami-shelf-cart.is-violet, .konami-game-preview.is-violet { --disk-accent: #b797ff; }
+  .konami-shelf-cart.is-red, .konami-game-preview.is-red { --disk-accent: #ff6b6b; }
   .konami-shelf-cart > .konami-cartridge { width: min(132px, 100%); height: 148px; grid-template-rows: 13px minmax(0, 1fr) 17px; transform-origin: bottom center; transform: rotateY(-9deg) rotateZ(1deg); }
   .konami-shelf-cart:nth-child(2) > .konami-cartridge { transform: rotateY(-7deg) rotateZ(-2deg); }
   .konami-shelf-cart .konami-cartridge-label { margin: 5px 8px 6px; }

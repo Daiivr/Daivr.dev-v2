@@ -12,7 +12,7 @@ export function useDailyChallengeNotice({ game, open, frameRef }) {
   const reportRef = useRef(() => {});
   useEffect(() => {
     setNotice(null);
-    if (!open || !["tower-block", "cross-road", "space-cadet-pinball", "nzp"].includes(game)) return;
+    if (!open || !["tower-block", "cross-road", "space-cadet-pinball", "nzp", "pokesurvivor"].includes(game)) return;
     const controller = new AbortController();
     let challenge;
     let sample;

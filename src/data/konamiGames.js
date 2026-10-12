@@ -48,6 +48,16 @@ export const KONAMI_GAMES = [
     image: "/arcade-library/space-cadet-pinball-cover.webp"
   },
   {
+    id: "pokesurvivor",
+    title: "PokéSurvivor",
+    program: "POKE.SURVIVOR",
+    description: "Survive the hordes with your Pokémon partner: 966 to collect, shinies, legendaries, and online co-op for up to four.",
+    meta: "BULLET HEAVEN // DISCORD SAVE + CO-OP",
+    color: "red",
+    image: "/arcade-library/pokesurvivor-cover.webp",
+    desktopOnly: true
+  },
+  {
     id: "nzp",
     title: "NZ:P",
     program: "NZP.EXE",

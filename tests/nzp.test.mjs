@@ -64,7 +64,7 @@ test("NZ:P needs every catch and patrol find; duplicates, junk IDs, and totals c
   }
   assert.equal(availableKonamiGames(false).some(({ id }) => id === "nzp"), false);
   assert.equal(availableKonamiGames(true).at(-1).id, "nzp");
-  assert.equal(availableKonamiGames(false).length, 5);
+  assert.equal(availableKonamiGames(false).length, 6);
   assert.equal(availableKonamiGames(true, true).some(({ id }) => id === "nzp"), false);
   assert.equal(availableKonamiGames(true, true).length, 5);
 });

@@ -9,11 +9,16 @@ import { TV_CLOSE_MS, useTvPowerOn } from "../hooks/useTvPowerOn";
 import { DailyChallengeNotice } from "./DailyChallengeNotice";
 import { armRunToken, runTokenFor } from "../lib/runTokens";
 
-const VOLUME_KEY = "daivr.pinballVolume.v1";
-// La mesa es ruidosa y el cartucho se abre sin avisar: arranca bajo y el que
-// quiera mas lo sube. Tiene que coincidir con el del shell del juego, que lee
-// la misma clave de localStorage.
-const DEFAULT_VOLUME = 0.1;
+// Fader de volumen de la tele. Cada cartucho con fader guarda su volumen en
+// `key` (el juego lee esa misma clave de localStorage al arrancar), lo recibe
+// en `message` al moverlo y avisa con `ready` para que se le mande el actual.
+// La mesa de pinball es ruidosa y el cartucho se abre sin avisar: arranca bajo
+// y el que quiera mas lo sube.
+const PINBALL_VOLUME = { key: "daivr.pinballVolume.v1", fallback: 0.1, message: "daivr:pinball-volume", ready: "daivr:pinball-ready" };
+const POKESURVIVOR_VOLUME = { key: "daivr.pokesurvivor.volume.v1", fallback: 0.6, message: "daivr:pokesurvivor-volume", ready: "daivr:pokesurvivor-ready" };
+
+// PokéSurvivor ranks seconds survived.
+const clock = (seconds) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
 
 const GAME_CONFIG = {
   "cross-road": {
@@ -34,8 +39,21 @@ const GAME_CONFIG = {
     subtitle: "SECRET PROGRAM // DISK 05",
     src: "/space-cadet-pinball/index.html",
     controls: "Z + / FLIPPERS // SPACE PLUNGER // F2 NEW GAME",
-    volume: true,
+    volume: PINBALL_VOLUME,
     ranking: { api: "space-cadet-pinball", heading: "TOP CADETS", scanning: "READING THE TABLE...", format: (value) => Number(value).toLocaleString("en-US"), saving: (value) => `LOGGING ${Number(value).toLocaleString("en-US")}...`, saved: (value, rank) => `${Number(value).toLocaleString("en-US")} LOGGED // RANK #${rank}` }
+  },
+  // The game saves its own runs (Discord login inside the cartridge, server/pokesurvivor.mjs)
+  // and reports them here with daivr:pokesurvivor-run. Esc pauses the game. Volume
+  // and full screen live on the set (the game hides its own buttons inside it).
+  pokesurvivor: {
+    title: "POKE.SURVIVOR",
+    subtitle: "SECRET PROGRAM // DISK 06",
+    src: "/pokesurvivor/index.html",
+    controls: "WASD / ARROWS MOVE // 1-4 OR Q/E SWAP MOVES",
+    escHint: "ESC PAUSES",
+    volume: POKESURVIVOR_VOLUME,
+    fullscreen: true,
+    ranking: { api: "pokesurvivor", heading: "LONGEST SURVIVORS", scanning: "COUNTING THE HORDE...", format: clock, detail: (entry) => `LV ${entry.bestLevel || 1}`, saved: (value, rank) => `SURVIVED ${clock(value)} // RANK #${rank}` }
   }
 };
 
@@ -44,12 +62,13 @@ function formatDuration(value) {
   return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
-function readStoredVolume() {
+function readStoredVolume(settings) {
+  if (!settings) return 0;
   try {
-    const stored = window.localStorage.getItem(VOLUME_KEY);
+    const stored = window.localStorage.getItem(settings.key);
     const value = Number(stored);
-    return stored !== null && Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : DEFAULT_VOLUME;
-  } catch { return DEFAULT_VOLUME; }
+    return stored !== null && Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : settings.fallback;
+  } catch { return settings.fallback; }
 }
 
 export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
@@ -60,7 +79,7 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
   const [myScore, setMyScore] = useState(null);
   const [rankingLoading, setRankingLoading] = useState(false);
   const [status, setStatus] = useState("");
-  const [volume, setVolume] = useState(readStoredVolume);
+  const [volume, setVolume] = useState(() => readStoredVolume(GAME_CONFIG[game]?.volume));
   const [gameOver, setGameOver] = useState(null);
   const frameRef = useRef(null);
   const daily = useDailyChallengeNotice({ game, open, frameRef });
@@ -75,6 +94,10 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
   const config = GAME_CONFIG[shownGame];
   const ranking = config?.ranking;
   const hasRanking = Boolean(ranking);
+  const volumeSettings = config?.volume;
+
+  // Each cartridge has its own volume: read it again when another one goes in.
+  useEffect(() => { setVolume(readStoredVolume(GAME_CONFIG[game]?.volume)); }, [game]);
 
   const loadLeaderboard = useCallback(async (quiet = false) => {
     if (!ranking) return;
@@ -115,11 +138,19 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
   }, []);
 
   const changeVolume = useCallback((value) => {
+    if (!volumeSettings) return;
     const next = Math.min(1, Math.max(0, Number(value)));
     setVolume(next);
-    try { window.localStorage.setItem(VOLUME_KEY, String(next)); } catch { /* almacenamiento bloqueado */ }
-    postToGame({ type: "daivr:pinball-volume", value: next });
-  }, [postToGame]);
+    try { window.localStorage.setItem(volumeSettings.key, String(next)); } catch { /* almacenamiento bloqueado */ }
+    postToGame({ type: volumeSettings.message, value: next });
+  }, [postToGame, volumeSettings]);
+
+  // Like NZ:P: the set's FULL SCREEN button enlarges the game frame itself.
+  const fullscreen = useCallback(() => {
+    const frame = frameRef.current;
+    if (!frame?.requestFullscreen) { setStatus("FULL SCREEN IS UNAVAILABLE IN THIS BROWSER"); return; }
+    frame.requestFullscreen().then(() => frame.contentWindow?.focus(), () => setStatus("FULL SCREEN IS UNAVAILABLE IN THIS BROWSER"));
+  }, []);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -135,9 +166,21 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
         setGameOver({ score: Math.max(0, Number(event.data.score) || 0), durationMs: Math.max(0, Number(event.data.durationMs) || 0), previousBest: Number(myScore?.bestScore || 0) });
         return;
       }
-      if (event.data?.type === "daivr:pinball-ready") {
-        postToGame({ type: "daivr:pinball-volume", value: volume });
-        if (me?.username) postToGame({ type: "daivr:pinball-player", name: me.username });
+      if (volumeSettings && event.data?.type === volumeSettings.ready) {
+        postToGame({ type: volumeSettings.message, value: volume });
+        if (event.data.type === "daivr:pinball-ready" && me?.username) postToGame({ type: "daivr:pinball-player", name: me.username });
+        return;
+      }
+      // PokéSurvivor submits its runs itself and tells the set how it went;
+      // signing in inside the cartridge also refreshes the trophy panel.
+      if (event.data?.type === "daivr:pokesurvivor-login") { loadLeaderboard(true); window.dispatchEvent(new Event("daivr-player-progress")); return; }
+      if (event.data?.type === "daivr:pokesurvivor-run" && ranking) {
+        const seconds = Math.max(0, Number(event.data.t) || 0);
+        const score = event.data.score && Number.isFinite(Number(event.data.score.rank)) ? event.data.score : null;
+        if (score) setMyScore(score);
+        setStatus(score ? ranking.saved(seconds, score.rank) : event.data.mode === "g" ? `GROUP RUN // ${clock(seconds)} SURVIVED` : event.data.signedIn ? `${clock(seconds)} SURVIVED` : "DISCORD LINK REQUIRED TO RANK");
+        loadLeaderboard(true);
+        window.dispatchEvent(new Event("daivr-player-progress"));
         return;
       }
       if (!ranking) return;
@@ -152,13 +195,13 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
     }
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, [me, myScore, onClose, open, postToGame, ranking, rankingOpen, volume]);
+  }, [loadLeaderboard, me, myScore, onClose, open, postToGame, ranking, rankingOpen, volume, volumeSettings]);
 
   // El nombre puede llegar despues del arranque (login ya hecho, fetch en vuelo).
   useEffect(() => {
-    if (!open || !config?.volume || !me?.username) return;
+    if (!open || shownGame !== "space-cadet-pinball" || !me?.username) return;
     postToGame({ type: "daivr:pinball-player", name: me.username });
-  }, [config, me, open, postToGame]);
+  }, [me, open, postToGame, shownGame]);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -173,7 +216,7 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
 
   if (!config) return null;
 
-  // The set's volume fader (ArcadeTvVolume) works in 0-100; the table in 0-1.
+  // The set's volume fader (ArcadeTvVolume) works in 0-100; the games in 0-1.
   const volumeControl = config?.volume ? { value: volume * 100, onChange: (next) => changeVolume(next / 100), label: `${config.title} volume` } : null;
 
   return (
@@ -183,7 +226,7 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
           <div className="arcade-embed-title"><button type="button" onClick={onBack} aria-label="Back to game library"><ArrowLeft size={17} /></button><span><small>{config.subtitle}</small><strong><Gamepad2 size={19} /> {config.title}</strong></span></div>
           <div>{hasRanking ? <button className={rankingOpen ? "is-active" : ""} type="button" onClick={() => setRankingOpen((value) => !value)} aria-label={`Toggle ${config.title} leaderboard`}><Trophy size={16} /></button> : null}<button type="button" onClick={() => { setGameOver(null); setInstance((value) => value + 1); }} aria-label={`Restart ${config.title}`}><RotateCcw size={16} /></button><button type="button" onClick={onClose} aria-label={`Close ${config.title}`}><X size={18} /></button></div>
         </header>
-        <div className="arcade-embed-screen">{powered ? <iframe key={instance} ref={frameRef} src={config.src} title={config.title} allow="autoplay; fullscreen" onLoad={(event) => { if (game === "cross-road" && !rankingOpen) event.currentTarget.contentWindow?.focus(); }} /> : null}
+        <div className="arcade-embed-screen">{powered ? <iframe key={instance} ref={frameRef} src={config.src} title={config.title} allow="autoplay; fullscreen" onLoad={(event) => { if ((game === "cross-road" || game === "pokesurvivor") && !rankingOpen) event.currentTarget.contentWindow?.focus(); }} /> : null}
           <ArcadeTvPower powered={powered} off={switchingOff} />
           <DailyChallengeNotice notice={daily.notice} onDismiss={daily.dismiss} onRetry={daily.retry} onClose={onClose} />
           {shownGameOver ? (
@@ -212,15 +255,15 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
           ) : null}
           {hasRanking && rankingOpen ? <aside className="tower-ranking cross-road-ranking" aria-label={`${config.title} leaderboard`}>
             <header><div><small>RANKING.SYS</small><strong>{ranking.heading}</strong></div><div className="cross-road-ranking-actions"><button type="button" onClick={() => loadLeaderboard()}>REFRESH</button><button type="button" onClick={() => setRankingOpen(false)} aria-label="Close leaderboard"><X size={15} /></button></div></header>
-            {me ? <div className="tower-ranking-self"><RankingAvatar src={me.avatarUrl} name={me.username} loading="eager" /><span><small>LINKED AS {me.username}</small><strong>{myScore ? `#${myScore.rank} // ${ranking.format(myScore.bestScore)} // ${formatDuration(myScore.bestDurationMs)}` : "NO RUN RECORDED"}</strong></span></div> : <a href="/api/comments/auth/discord"><LogIn size={15} /> CONNECT DISCORD TO RANK</a>}
-            {rankingLoading ? <p>{ranking.scanning}</p> : <ol>{leaderboard.map((entry) => <li className={entry.discordId === me?.id ? "is-player" : ""} key={entry.discordId}><b>{String(entry.rank).padStart(2,"0")}</b><RankingAvatar src={entry.avatarUrl} name={entry.username} /><span>{entry.username}</span><em>{ranking.format(entry.bestScore)}</em><small>{formatDuration(entry.bestDurationMs)}</small></li>)}</ol>}
+            {me ? <div className="tower-ranking-self"><RankingAvatar src={me.avatarUrl} name={me.username} loading="eager" /><span><small>LINKED AS {me.username}</small><strong>{myScore ? `#${myScore.rank} // ${ranking.format(myScore.bestScore)} // ${ranking.detail ? ranking.detail(myScore) : formatDuration(myScore.bestDurationMs)}` : "NO RUN RECORDED"}</strong></span></div> : <a href="/api/comments/auth/discord"><LogIn size={15} /> CONNECT DISCORD TO RANK</a>}
+            {rankingLoading ? <p>{ranking.scanning}</p> : <ol>{leaderboard.map((entry) => <li className={entry.discordId === me?.id ? "is-player" : ""} key={entry.discordId}><b>{String(entry.rank).padStart(2,"0")}</b><RankingAvatar src={entry.avatarUrl} name={entry.username} /><span>{entry.username}</span><em>{ranking.format(entry.bestScore)}</em><small>{ranking.detail ? ranking.detail(entry) : formatDuration(entry.bestDurationMs)}</small></li>)}</ol>}
           </aside> : null}
         </div>
-        <ArcadeTvDetails channel={{ "cross-road": "03", "rubiks-cube": "04", "space-cadet-pinball": "05" }[shownGame]} powered={powered} off={switchingOff} volume={volumeControl} />
+        <ArcadeTvDetails channel={{ "cross-road": "03", "rubiks-cube": "04", "space-cadet-pinball": "05", pokesurvivor: "06" }[shownGame]} powered={powered} off={switchingOff} volume={volumeControl} onFullscreen={config.fullscreen ? fullscreen : undefined} />
         <footer>
           <span>{config.controls}</span>
           {volumeControl ? <ArcadeTvVolume compact {...volumeControl} /> : null}
-          <b>{status || "PROGRAM ONLINE"}</b><em>ESC TO CLOSE</em>
+          <b>{status || "PROGRAM ONLINE"}</b><em>{config.escHint || "ESC TO CLOSE"}</em>
         </footer>
       </section>
     </div>

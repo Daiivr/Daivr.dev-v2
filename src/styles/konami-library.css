@@ -37,6 +37,7 @@
   .is-green .konami-cartridge-label em { color:#3fff97; }
   .is-amber .konami-cartridge-label em { color:#ffd166; }.is-magenta .konami-cartridge-label em { color:#ff3d9d; }
   .is-violet .konami-cartridge-label em { color:#a97bff; }
+  .is-red .konami-cartridge-label em { color:#ff6b6b; }
   .konami-cartridge-label strong { bottom:7px; color:#fff; font-family:var(--font-display); font-size:1.05rem; letter-spacing:.06em; }
   .konami-cartridge-contacts { display:grid; grid-template-columns:repeat(6,1fr); gap:4px; margin:0 25px; padding:3px 4px 0; background:#03100a; }
   .konami-cartridge-contacts b { background:linear-gradient(180deg,#ffd166,#91661e); box-shadow:inset 1px 0 rgba(255,255,255,.34); }
@@ -62,6 +63,7 @@
   .konami-mount-sequence.is-amber { --mount-accent:#ffd166; --mount-soft:rgba(255,209,102,.5); }
   .konami-mount-sequence.is-magenta { --mount-accent:#ff3d9d; --mount-soft:rgba(255,61,157,.5); }
   .konami-mount-sequence.is-violet { --mount-accent:#a97bff; --mount-soft:rgba(169,123,255,.5); }
+  .konami-mount-sequence.is-red { --mount-accent:#ff6b6b; --mount-soft:rgba(255,107,107,.5); }
   .konami-mount-rig { --kc-w:210px; --kc-h:226px; --seat-y:172px; position:relative; flex:none; width:min(460px,94%); height:420px; animation:konami-rig-in .45s cubic-bezier(.2,.85,.3,1) both,konami-rig-thunk .24s linear 1.94s; }
   .konami-mount-rig .konami-cartridge { position:absolute; top:10px; left:50%; z-index:2; width:var(--kc-w); height:var(--kc-h); animation:konami-cart-journey 2.4s linear both; }
   .konami-console-deck { position:absolute; bottom:128px; left:50%; z-index:1; display:flex; align-items:flex-end; justify-content:center; width:min(430px,100%); height:20px; transform:translateX(-50%); border:1px solid rgba(63,255,151,.38); border-bottom:0; background:linear-gradient(180deg,#16402f,#0a2418); clip-path:polygon(14px 0,calc(100% - 14px) 0,100% 100%,0 100%); }

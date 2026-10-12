@@ -50,7 +50,7 @@ import "./styles/footer-sky.css";
 import "./styles/modal-motion.css";
 import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { bootNodes, discord, games, navItems, profile, projects } from "./data/site";
-import { availableKonamiGames } from "./data/konamiGames";
+import { availableKonamiGames, KONAMI_GAMES } from "./data/konamiGames";
 import { preloadImages } from "./lib/preloadImages";
 import { ChunkBoundary, lazyChunk } from "./lib/chunkRecovery";
 import { getSeasonalEvent } from "./lib/seasons";
@@ -91,7 +91,7 @@ const KonamiGameLibrary = lazyChunk(() => import("./components/KonamiGameLibrary
 const MadraceModal = lazyChunk(() => import("./components/MadraceModal"), (module) => module.MadraceModal);
 const TowerBlockModal = lazyChunk(() => import("./components/TowerBlockModal"), (module) => module.TowerBlockModal);
 const ArcadeEmbedModal = lazyChunk(() => import("./components/ArcadeEmbedModal"), (module) => module.ArcadeEmbedModal);
-const EMBED_GAMES = ["cross-road", "rubiks-cube", "space-cadet-pinball"];
+const EMBED_GAMES = ["cross-road", "rubiks-cube", "space-cadet-pinball", "pokesurvivor"];
 
 function useUsedOnce(active) {
   const [used, setUsed] = useState(active);
@@ -165,7 +165,8 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
     if (availableKonamiGames(adventure.journalComplete, mobileView).some((entry) => entry.id === game)) setKonamiView(game);
   }, [adventure.journalComplete, mobileView]);
 
-  useEffect(() => { if (mobileView) setKonamiView((view) => view === "nzp" ? "library" : view); }, [mobileView]);
+  // Desktop-only cartridges (NZ:P, PokéSurvivor) close back to the library on phones.
+  useEffect(() => { if (mobileView) setKonamiView((view) => KONAMI_GAMES.some((game) => game.id === view && game.desktopOnly) ? "library" : view); }, [mobileView]);
   // El reto diario del dia de NZ:P depende de tenerlo (lib/cabinetSignals.js).
   useEffect(() => { window.dispatchEvent(new CustomEvent("daivr-nzp-unlocked", { detail: adventure.journalComplete })); }, [adventure.journalComplete]);
 

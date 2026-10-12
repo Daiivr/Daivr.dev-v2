@@ -190,7 +190,7 @@ export function NzpModal({ onBack, onClose }) {
         <Dialog.Overlay className="arcade-embed-backdrop motion-backdrop" data-state={exiting ? "closed" : "open"}>
         <Dialog.Content className="arcade-embed-modal arcade-tv nzp-modal motion-panel" data-state={exiting ? "closed" : "open"} onEscapeKeyDown={(event) => { event.preventDefault(); if (rankingOpen) setRankingOpen(false); }} onInteractOutside={(event) => event.preventDefault()}>
           <header>
-            <div className="arcade-embed-title"><button type="button" onClick={() => exit(onBack)} aria-label="Back to secret game library"><ArrowLeft size={17} /></button><span><small>JOURNAL REWARD // CARTRIDGE 06</small><Dialog.Title asChild><strong><Gamepad2 size={19} /> NZ:P</strong></Dialog.Title></span></div>
+            <div className="arcade-embed-title"><button type="button" onClick={() => exit(onBack)} aria-label="Back to secret game library"><ArrowLeft size={17} /></button><span><small>JOURNAL REWARD // CARTRIDGE 07</small><Dialog.Title asChild><strong><Gamepad2 size={19} /> NZ:P</strong></Dialog.Title></span></div>
             <div>
               <button type="button" className={rankingOpen ? "is-active" : ""} onClick={() => setRankingOpen((value) => !value)} aria-label="Toggle NZ:P rankings" aria-expanded={rankingOpen}><Trophy size={16} /></button>
               <button type="button" onClick={() => exit(onClose)} aria-label="Close NZ:P"><X size={18} /></button>
@@ -211,7 +211,7 @@ export function NzpModal({ onBack, onClose }) {
               {rankingLoading ? <p role="status">COUNTING THE HORDE...</p> : rankingError ? <p role="status">RANKING OFFLINE. TRY REFRESH.</p> : leaderboard.length ? <ol>{leaderboard.map((entry) => <li className={entry.discordId === me?.id ? "is-player" : ""} key={entry.discordId}><b>{String(entry.rank).padStart(2, "0")}</b><RankingAvatar src={entry.avatarUrl} name={entry.username} /><span>{entry.username}</span><em>{BOARDS[board].format(entry.value)}</em><small>{board === "round" ? mapName(entry.map) : ""}</small></li>)}</ol> : <p role="status">{activeMap ? `NO ROUNDS RECORDED ON ${mapName(activeMap).toUpperCase()} YET` : "NO SURVIVORS ON RECORD YET"}</p>}
             </aside> : null}
           </div>
-          <ArcadeTvDetails channel="06" powered={powered} off={exiting} onFullscreen={fullscreen} />
+          <ArcadeTvDetails channel="07" powered={powered} off={exiting} onFullscreen={fullscreen} />
           <footer><span>WASD TO MOVE // MOUSE TO AIM // ESC RELEASES POINTER</span><a href="https://github.com/nzp-team/nzportable" target="_blank" rel="noreferrer">NZ:P TEAM</a>{notice ? <em role="status">{notice}</em> : <b>PROGRAM ONLINE</b>}</footer>
         </Dialog.Content>
         </Dialog.Overlay>

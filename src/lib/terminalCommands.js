@@ -27,7 +27,10 @@ const GAMES = [
   { id: "cross-road", aliases: ["cross", "crossroad", "road"], ranked: true, unit: "road" },
   { id: "space-cadet-pinball", aliases: ["pinball", "spacecadet", "space-cadet", "cadet"], ranked: true, unit: "points" },
   { id: "madrace", aliases: ["drivemad", "drive-mad", "mad"], ranked: true, unit: "level" },
-  { id: "rubiks-cube", aliases: ["cube", "rubiks", "rubik"], ranked: false }
+  { id: "rubiks-cube", aliases: ["cube", "rubiks", "rubik"], ranked: false },
+  // Its record is seconds survived in a solo run.
+  { id: "pokesurvivor", aliases: ["poke", "pokemon", "survivor", "poke-survivor"], ranked: true, unit: "survived", desktopOnly: true,
+    format: (entry) => `${Math.floor(entry.bestScore / 60)}:${String(entry.bestScore % 60).padStart(2, "0")} survived // level ${entry.bestLevel}` }
 ].map((game) => ({ ...game, name: PLAYER_GAMES.find((entry) => entry.id === game.id)?.name || game.id }));
 // NZ:P only joins the bay once Buddy's journal unlocks it (App announces it).
 const NZP_GAME = { id: "nzp", aliases: ["zombies", "nazi-zombies"], ranked: false, name: "NZ:P" };
@@ -239,6 +242,7 @@ export const TERMINAL_COMMANDS = [
       }
       const game = resolveGame(arg);
       if (!game) return `No cartridge called ${arg}.\nRun play to list the bay.`;
+      if (game.desktopOnly && typeof window !== "undefined" && window.matchMedia?.("(max-width: 760px)").matches) return `${game.name} is available in the desktop library.`;
       ctx.close();
       ctx.openGame(game.id);
       return `Inserting ${game.name} // cartridge seated.`;
@@ -276,7 +280,7 @@ export const TERMINAL_COMMANDS = [
           const { leaderboard = [] } = await fetchJson(`/api/${game.id}/leaderboard?limit=5`);
           if (!leaderboard.length) return `${game.name.toUpperCase()} // TOP 5\n  No runs recorded yet.`;
           return `${game.name.toUpperCase()} // TOP 5\n${table(leaderboard.map((entry) => [entry.rank, entry.username,
-            game.id === "madrace" ? `level ${entry.highestLevel} // ${duration(entry.bestTimeMs)}` : `${Number(entry.bestScore).toLocaleString("en-US")} ${game.unit} // ${duration(entry.bestDurationMs)}`]))}`;
+            game.format ? game.format(entry) : game.id === "madrace" ? `level ${entry.highestLevel} // ${duration(entry.bestTimeMs)}` : `${Number(entry.bestScore).toLocaleString("en-US")} ${game.unit} // ${duration(entry.bestDurationMs)}`]))}`;
         } catch {
           return "RANKING LINK OFFLINE // Try again shortly.";
         }

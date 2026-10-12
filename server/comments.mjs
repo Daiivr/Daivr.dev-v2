@@ -17,6 +17,11 @@ const PREFERENCES_FILENAME = "preferences.json";
 const COMMENTS_DATA_ENVS = ["COMMENTS_DATA_DIR"];
 const SESSION_COOKIE = "daivr_comment_session";
 const STATE_COOKIE = "daivr_comment_state";
+const RETURN_COOKIE = "daivr_comment_return";
+// Paginas a las que puede volver el login en vez de al libro de visitas. Lista
+// cerrada (nada de rutas libres): PokéSurvivor entra con Discord en una ventana
+// emergente que termina en una pagina que avisa al juego y se cierra.
+const LOGIN_RETURN_PATHS = new Set(["/pokesurvivor/discord-done.html"]);
 const DISCORD_CALLBACK_PATH = "/api/comments/auth/callback";
 const DISCORD_AUTH_URL = "https://discord.com/oauth2/authorize";
 const DISCORD_TOKEN_URL = "https://discord.com/api/oauth2/token";
@@ -519,8 +524,12 @@ async function handleDiscordStart(request, response) {
 
   console.info(`[comments-auth] start host=${request.headers?.host || "unknown"} redirect=${new URL(getRedirectUri(request)).pathname}`);
 
+  const returnPath = new URL(request.url || "/", "http://localhost").searchParams.get("return") || "";
   redirect(response, url.toString(), {
-    "Set-Cookie": serializeCookie(STATE_COOKIE, state, { maxAge: 10 * 60 })
+    "Set-Cookie": [
+      serializeCookie(STATE_COOKIE, state, { maxAge: 10 * 60 }),
+      serializeCookie(RETURN_COOKIE, LOGIN_RETURN_PATHS.has(returnPath) ? returnPath : "", { maxAge: LOGIN_RETURN_PATHS.has(returnPath) ? 10 * 60 : 0 })
+    ]
   });
 }
 
@@ -567,10 +576,12 @@ async function handleDiscordCallback(request, response) {
       exp: Date.now() + 7 * 24 * 60 * 60 * 1000
     });
 
-    redirect(response, `${getBaseUrl(request)}/#contact`, {
+    const returnPath = parseCookies(request)[RETURN_COOKIE];
+    redirect(response, `${getBaseUrl(request)}${LOGIN_RETURN_PATHS.has(returnPath) ? returnPath : "/#contact"}`, {
       "Set-Cookie": [
         serializeCookie(SESSION_COOKIE, session, { maxAge: 7 * 24 * 60 * 60 }),
-        serializeCookie(STATE_COOKIE, "", { maxAge: 0 })
+        serializeCookie(STATE_COOKIE, "", { maxAge: 0 }),
+        serializeCookie(RETURN_COOKIE, "", { maxAge: 0 })
       ]
     });
   } catch (error) {

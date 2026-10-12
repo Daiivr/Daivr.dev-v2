@@ -3,7 +3,8 @@ export const PLAYER_GAMES = [
   { id: "cross-road", name: "Cross Road" },
   { id: "space-cadet-pinball", name: "Space Cadet" },
   { id: "madrace", name: "Drive Mad" },
-  { id: "rubiks-cube", name: "Rubik's Cube" }
+  { id: "rubiks-cube", name: "Rubik's Cube" },
+  { id: "pokesurvivor", name: "PokéSurvivor" }
 ];
 // NZ:P stays out of PLAYER_GAMES (the passport's favorite-game list) because
 // it is a secret reward; it only needs a name for its daily challenge.
@@ -19,7 +20,9 @@ export const DAILY_CHALLENGES = [
     { metric: "headshots", name: "Steady aim", task: "Land 40 headshots", goal: 40, unit: "headshots", reward: "Marksman" },
     { metric: "kills", name: "Horde control", task: "Kill 150 zombies", goal: 150, unit: "kills", reward: "Exterminator" },
     { metric: "score", name: "Big spender", task: "Earn 15,000 points", goal: 15000, unit: "points", reward: "Tycoon" }
-  ] }
+  ] },
+  // Seconds survived in one PokéSurvivor run, solo or in a group (server/pokesurvivor.mjs).
+  { game: "pokesurvivor", name: "Horde survivor", task: "Survive 5 minutes", goal: 300, unit: "seconds", reward: "Trainer" }
 ];
 const REGULAR_CHALLENGES = DAILY_CHALLENGES.filter((challenge) => !challenge.variants);
 const pick = (list, index) => list[((index % list.length) + list.length) % list.length];

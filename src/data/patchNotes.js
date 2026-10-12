@@ -5,6 +5,20 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.68.0",
+    codename: "WILD ENCOUNTER",
+    date: "2026-10-12",
+    summary: "PokéSurvivor joins the secret library as cartridge 06: a Pokémon horde-survival game with 966 partners to collect, saved to your Discord account, with online co-op for up to four.",
+    entries: [
+      ["new", "PokéSurvivor is cartridge 06 in the secret library. Pick a partner from a personality test, survive the hordes, evolve your moves and take on legendaries through rifts. It plays on desktop only, like NZ:P."],
+      ["new", "It uses the cabinet's Discord sign-in: if you're already signed in, the game opens straight into your save, and your collection follows you to any computer. Guests can still play, they just don't keep anything."],
+      ["new", "Co-op works like NZ:P's lobby. Create a game with a name, an optional password and room for 2 to 4, or join one from the list of open games. Locked games ask for the password, and closing the cartridge leaves the game straight away."],
+      ["new", "Its TV has a LONGEST SURVIVORS trophy board with Discord faces, and finished runs show your rank right in the set. Your best run goes on your passport, and the in-game leaderboard keeps its daily, weekly, monthly and all-time boards."],
+      ["new", "New daily challenge, Horde survivor: last five minutes in one PokéSurvivor run, solo or in a group, to earn the Trainer title and card accent."],
+      ["buff", "With NZ:P unlocked the shelf holds seven cartridges, so it switches to rows of four. NZ:P is now cartridge 07."]
+    ]
+  },
+  {
     version: "v2.67.0",
     codename: "PIXEL PUSHER",
     date: "2026-10-11",
