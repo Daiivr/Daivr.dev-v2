@@ -16,6 +16,8 @@
   :is(.page-perched-bird.is-perched, .buddy-ambient-creature.is-bird.phase-perched) .pixel-bird-head { animation: bird-look-around 4.2s steps(3, end) infinite; }
   :is(.page-perched-bird.is-perched, .buddy-ambient-creature.is-bird.phase-perched) .pixel-bird-tail { animation: bird-tail-flick 3.4s steps(3, end) infinite; }
   :is(.page-perched-bird.is-perched, .buddy-ambient-creature.is-bird.phase-perched) .pixel-bird-eye { animation: bird-eye-blink 3.7s steps(1, end) infinite; }
+  /* Fuera de la vista (PerchedBirds lo marca) el pajaro se queda quieto. */
+  .page-perched-bird[data-offscreen] * { animation-play-state: paused !important; }
 
   :is(.page-perched-bird, .buddy-ambient-creature.is-bird) .pixel-bird-wing { transform-box: view-box; transform-origin: 19px 15px; }
   :is(.page-perched-bird.is-arriving, .page-perched-bird.is-flying, .buddy-ambient-creature.is-bird.phase-fly-in, .buddy-ambient-creature.is-bird.phase-fly-out) .pixel-bird-wing {

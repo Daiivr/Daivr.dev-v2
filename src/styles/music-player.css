@@ -103,8 +103,10 @@
 /* Status line + tracklist toggle. */
 .music-status { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 16px; padding-top: 10px; border-top: 1px solid #b4ffcf1a; }
 .music-status-label { display: flex; align-items: center; gap: 7px; font-size: 9px; font-weight: 700; letter-spacing: .07em; color: var(--music-accent); }
-.music-status-dot { width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
-.is-playing .music-status-dot { animation: music-on-air 1.6s ease-out infinite; }
+.music-status-dot { position: relative; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+/* The on-air ripple is a pseudo that scales and fades (box-shadow repainted every frame). */
+.music-status-dot::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: currentColor; opacity: 0; }
+.is-playing .music-status-dot::after { animation: music-on-air 1.6s ease-out infinite; }
 .music-queue-toggle {
   position: relative;
   display: inline-flex;
@@ -224,17 +226,18 @@
 .music-queue-name strong { font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .music-queue-name span { font-size: 9px; color: var(--music-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .music-queue-state { display: flex; align-items: flex-end; justify-content: center; gap: 2px; height: 12px; color: var(--music-muted); opacity: 0; transition: opacity 160ms; }
-.music-queue-state i { width: 2px; border-radius: 1px; background: var(--queue-color); }
-.music-queue-state i:nth-child(1) { height: 5px; }
-.music-queue-state i:nth-child(2) { height: 10px; }
-.music-queue-state i:nth-child(3) { height: 7px; }
+/* Bars scale from the bottom: animating height relaid the page out every frame. */
+.music-queue-state i { width: 2px; height: 12px; border-radius: 1px; background: var(--queue-color); transform-origin: 50% 100%; }
+.music-queue-state i:nth-child(1) { transform: scaleY(.42); }
+.music-queue-state i:nth-child(2) { transform: scaleY(.83); }
+.music-queue-state i:nth-child(3) { transform: scaleY(.58); }
 .music-queue button.is-current { background: color-mix(in srgb, var(--queue-color) 10%, transparent); }
 .music-queue button.is-current::before { opacity: 1; box-shadow: 0 0 8px var(--queue-color); }
 .music-queue button.is-current strong { color: var(--queue-color); }
 .music-queue button.is-current .music-queue-state { opacity: 1; }
-.music-queue button.is-live .music-queue-state i { animation: music-eq .8s ease-in-out infinite alternate; }
-.music-queue button.is-live .music-queue-state i:nth-child(2) { animation-duration: .55s; animation-delay: -.2s; }
-.music-queue button.is-live .music-queue-state i:nth-child(3) { animation-duration: .7s; animation-delay: -.45s; }
+.is-queue .music-queue button.is-live .music-queue-state i { animation: music-eq .8s ease-in-out infinite alternate; }
+.is-queue .music-queue button.is-live .music-queue-state i:nth-child(2) { animation-duration: .55s; animation-delay: -.2s; }
+.is-queue .music-queue button.is-live .music-queue-state i:nth-child(3) { animation-duration: .7s; animation-delay: -.45s; }
 
 .music-bottom { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 54px; border-top: 1px solid #b4ffcf1a; }
 .music-volume { display: flex; align-items: center; gap: 6px; min-width: 0; flex: 1; }
@@ -299,8 +302,8 @@
 @keyframes music-ink-land { 0% { transform: scale(1, 1); } 22% { transform: scale(1.11, .965); } 48% { transform: scale(.955, 1.025); } 72% { transform: scale(1.025, .99); } 100% { transform: scale(1, 1); } }
 @keyframes music-record-land { 0% { transform: translate(0, 0) rotate(-3deg) scale(1); } 22% { transform: translate(-3px, 1px) rotate(-9deg) scale(1.09, .92); } 48% { transform: translate(1px, -1.5px) rotate(2deg) scale(.95, 1.05); } 72% { transform: translate(-.5px, .5px) rotate(-4deg) scale(1.02, .98); } 100% { transform: translate(0, 0) rotate(-3deg) scale(1); } }
 @keyframes music-wave { 0% { transform: scale(1); opacity: .6; } 100% { transform: scale(2.3); opacity: 0; } }
-@keyframes music-on-air { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 70%, transparent); } 100% { box-shadow: 0 0 0 6px transparent; } }
-@keyframes music-eq { from { height: 3px; } to { height: 12px; } }
+@keyframes music-on-air { 0% { opacity: .7; transform: scale(1); } 100% { opacity: 0; transform: scale(4); } }
+@keyframes music-eq { from { transform: scaleY(.25); } to { transform: scaleY(1); } }
 @media (prefers-reduced-motion: reduce) {
   .music-island *, .music-island *::before, .music-island *::after { animation: none !important; transition: none !important; }
 }

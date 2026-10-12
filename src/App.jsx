@@ -61,6 +61,7 @@ import { useMobileView } from "./hooks/useMobileView";
 import { useBuddyFriendship } from "./hooks/useBuddyFriendship";
 import { useBuddyLoadout } from "./hooks/useBuddyLoadout";
 import { useCartridgeSwap } from "./hooks/useCartridgeSwap";
+import { useOffscreenPause } from "./hooks/useOffscreenPause";
 import { getLatestFps } from "./hooks/useFps";
 import { useRandomGlitchWords } from "./hooks/useRandomGlitchWords";
 import { useTabIdentity } from "./hooks/useTabIdentity";
@@ -158,6 +159,7 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
   const mobileView = useMobileView();
   const loadout = useBuddyLoadout({ friendship, adventure });
   const cartPhase = useCartridgeSwap(shellRef);
+  useOffscreenPause(shellRef);
   const buddy = { friendship, adventure, ...loadout };
   const closeKonami = useCallback(() => setKonamiView(null), []);
   const openKonamiLibrary = useCallback(() => setKonamiView("library"), []);
@@ -176,6 +178,8 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
   const madraceUsed = useUsedOnce(konamiView === "madrace");
   const towerUsed = useUsedOnce(konamiView === "tower-block");
   const embedUsed = useUsedOnce(EMBED_GAMES.includes(konamiView));
+  // Cualquier vista que no sea la biblioteca es un juego abierto en su tele.
+  const playingGame = Boolean(konamiView) && konamiView !== "library";
   const shellClass = `${theme === "glitch" ? "theme-glitch" : ""} ${isLaunching ? "is-launching" : ""} ${powerOutage ? `has-power-outage outage-${powerOutage}` : ""} ${seasonalEvent ? `season-${seasonalEvent}` : ""}`;
   const gateBridgeKey = JSON.stringify([seasonalEvent, friendship.level, adventure.inventoryIds, loadout.effectiveHiddenGear, loadout.unlockedGearIds]);
 
@@ -622,9 +626,9 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
       ) : null}
 
       <AttractMode enabled={!entrySplashOpen && !konamiView} />
-      <MusicPlayer entrySplashOpen={entrySplashOpen} hidden={entrySplashOpen || Boolean(konamiView) || Boolean(buddyModal) || terminalOpen || isLaunching} />
+      <MusicPlayer entrySplashOpen={entrySplashOpen} ducked={playingGame} hidden={entrySplashOpen || Boolean(konamiView) || Boolean(buddyModal) || terminalOpen || isLaunching} />
 
-      <UpdateNotice hidden={entrySplashOpen} shellRef={shellRef} playingGame={konamiView === "nzp" || konamiView === "madrace" || konamiView === "tower-block" || EMBED_GAMES.includes(konamiView)} />
+      <UpdateNotice hidden={entrySplashOpen} shellRef={shellRef} playingGame={playingGame} />
 
       <LazyPiece show={libraryUsed}>
         <KonamiGameLibrary journalComplete={adventure.journalComplete} open={konamiView === "library"} onClose={closeKonami} onSelect={selectKonamiGame} />

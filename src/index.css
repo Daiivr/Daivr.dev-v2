@@ -354,6 +354,15 @@
     animation-play-state: paused;
   }
 
+  /* Secciones lejos de la vista (useOffscreenPause): sus animaciones en bucle se
+     congelan hasta que vuelven a acercarse. */
+  #main > section[data-offscreen],
+  #main > section[data-offscreen] *,
+  #main > section[data-offscreen] *::before,
+  #main > section[data-offscreen] *::after {
+    animation-play-state: paused !important;
+  }
+
   .arcade-bg::before,
   .arcade-bg::after,
   .arcade-bg-nebula,
@@ -424,24 +433,45 @@
     animation: arcade-nebula-drift-far 168s ease-in-out infinite alternate-reverse;
   }
 
-  /* Paralaje en una sola capa: tres teselas de tamano distinto que recorren 1,
-     2 y 3 teselas en el mismo ciclo, asi que las de delante van tres veces mas
-     rapido que las del fondo y todas cierran el bucle a la vez. */
-  .arcade-bg-stars {
+  /* Paralaje: tres capas de teselas de tamano distinto que recorren 1, 2 y 3
+     teselas en el mismo ciclo, asi que las de delante van tres veces mas rapido
+     que las del fondo y todas cierran el bucle a la vez. Cada capa sobresale
+     por arriba y por la izquierda lo que recorre y se mueve con transform: antes
+     se animaba background-position y el navegador repintaba la pantalla entera
+     en cada frame. */
+  .arcade-bg-stars > i {
+    position: absolute;
+    top: calc(var(--star-travel) * -1);
+    left: calc(var(--star-travel) * -1);
+    right: 0;
+    bottom: 0;
+    opacity: 0.95;
+    animation: arcade-star-drift 210s linear infinite;
+  }
+
+  .arcade-bg-stars > i:nth-child(1) {
+    --star-travel: 150px;
     background-image:
       radial-gradient(1px 1px at 18px 32px, var(--bg-star-far), transparent 60%),
       radial-gradient(1px 1px at 96px 19px, var(--bg-star-far), transparent 60%),
-      radial-gradient(1px 1px at 57px 108px, var(--bg-star-far), transparent 60%),
+      radial-gradient(1px 1px at 57px 108px, var(--bg-star-far), transparent 60%);
+    background-size: 150px 150px;
+  }
+
+  .arcade-bg-stars > i:nth-child(2) {
+    --star-travel: 380px;
+    background-image:
       radial-gradient(1.3px 1.3px at 34px 76px, var(--bg-star), transparent 62%),
-      radial-gradient(1.3px 1.3px at 146px 132px, var(--bg-star), transparent 62%),
+      radial-gradient(1.3px 1.3px at 146px 132px, var(--bg-star), transparent 62%);
+    background-size: 190px 190px;
+  }
+
+  .arcade-bg-stars > i:nth-child(3) {
+    --star-travel: 750px;
+    background-image:
       radial-gradient(2px 2px at 62px 44px, var(--bg-star) 24%, color-mix(in srgb, var(--bg-star) 26%, transparent) 48%, transparent 70%),
       radial-gradient(2px 2px at 188px 166px, var(--bg-star-hot) 24%, color-mix(in srgb, var(--bg-star-hot) 26%, transparent) 48%, transparent 70%);
-    background-size:
-      150px 150px, 150px 150px, 150px 150px,
-      190px 190px, 190px 190px,
-      250px 250px, 250px 250px;
-    opacity: 0.95;
-    animation: arcade-star-drift 210s linear infinite;
+    background-size: 250px 250px;
   }
 
   .arcade-bg-rain {
@@ -565,6 +595,7 @@
      entero en vez de dejar la deriva corriendo. */
   @media (prefers-reduced-motion: reduce) {
     .arcade-bg > *,
+    .arcade-bg-stars > i,
     .arcade-bg-nebula::before,
     .arcade-bg-nebula::after {
       animation: none !important;
@@ -3619,14 +3650,11 @@
    vuelta sobre si mismo y el salto del bucle no se ve. */
 @keyframes arcade-star-drift {
   from {
-    background-position: 0 0, 0 0, 0 0, 0 0, 0 0, 0 0, 0 0;
+    transform: translate3d(0, 0, 0);
   }
 
   to {
-    background-position:
-      150px 150px, 150px 150px, 150px 150px,
-      380px 380px, 380px 380px,
-      750px 750px, 750px 750px;
+    transform: translate3d(var(--star-travel), var(--star-travel), 0);
   }
 }
 

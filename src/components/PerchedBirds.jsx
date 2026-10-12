@@ -44,11 +44,33 @@ export function PerchedBirds() {
   const birdNodesRef = useRef(new Map());
   const dismissedRef = useRef(new Set());
   const timersRef = useRef(new Set());
+  const visibilityRef = useRef(null);
 
   useEffect(() => {
     let frame = 0;
     let trackingUntil = 0;
+    let perchKey = "";
+    // Lo ultimo escrito en cada pajaro: solo se toca el estilo si cambia, porque
+    // escribir --bird-left/--bird-top en cada frame obligaba a recalcular estilo y
+    // layout de toda la pagina a 60 fps.
+    const written = new WeakMap();
     const resizeObserver = new ResizeObserver(requestMeasure);
+    // Un pajaro fuera de la vista congela su animacion (pixel-birds.css): son
+    // animaciones dentro del SVG y el navegador las calcula en cada frame.
+    const visibility = new IntersectionObserver((entries) => {
+      for (const entry of entries) entry.target.toggleAttribute("data-offscreen", !entry.isIntersecting);
+    });
+    visibilityRef.current = visibility;
+    birdNodesRef.current.forEach((node) => visibility.observe(node));
+
+    function write(node, left, top, visible) {
+      const last = written.get(node);
+      if (last && last.left === left && last.top === top && last.visible === visible) return;
+      written.set(node, { left, top, visible });
+      node.style.setProperty("--bird-left", `${left}px`);
+      node.style.setProperty("--bird-top", `${top}px`);
+      node.style.visibility = visible ? "visible" : "hidden";
+    }
 
     function measure() {
       frame = 0;
@@ -58,7 +80,7 @@ export function PerchedBirds() {
         if (!node || node.classList.contains("is-flying")) return;
 
         if (!target.isConnected) {
-          node.style.visibility = "hidden";
+          write(node, 0, 0, false);
           return;
         }
 
@@ -76,9 +98,7 @@ export function PerchedBirds() {
         const left = align === "center"
           ? leftEdge + rect.width / 2 - 17
           : side === "left" ? leftEdge + 4 : rightEdge - 38;
-        node.style.setProperty("--bird-left", `${Math.round(left)}px`);
-        node.style.setProperty("--bird-top", `${Math.round(topEdge - 24)}px`);
-        node.style.visibility = rect.width && rect.height ? "visible" : "hidden";
+        write(node, Math.round(left), Math.round(topEdge - 24), Boolean(rect.width && rect.height));
       });
 
       if (performance.now() < trackingUntil) frame = requestAnimationFrame(measure);
@@ -102,9 +122,19 @@ export function PerchedBirds() {
         .map((perch) => ({ ...perch, target: document.querySelector(perch.selector) }))
         .filter((perch) => perch.target);
 
+      // Los cambios de layout que mueven las perchas sin cambiarles el tamano
+      // (algo que crece encima) cambian el alto del contenido: tambien se observa.
+      const content = document.querySelector(".cabinet-layout");
+      const key = found.map((perch) => perch.id).join() + (content ? "+layout" : "");
+      const targetsChanged = key !== perchKey || found.some((perch) => targetsRef.current.get(perch.id) !== perch.target);
+      // El MutationObserver salta con cualquier cambio del DOM; si las perchas son
+      // las mismas no hay nada que volver a montar ni que seguir.
+      if (!targetsChanged) return;
+      perchKey = key;
       resizeObserver.disconnect();
       targetsRef.current = new Map(found.map((perch) => [perch.id, perch.target]));
       found.forEach((perch) => resizeObserver.observe(perch.target));
+      if (content) resizeObserver.observe(content);
 
       setBirds((current) => {
         const next = found.map((perch) => ({
@@ -124,7 +154,16 @@ export function PerchedBirds() {
     const mutationObserver = new MutationObserver(scanPerches);
     mutationObserver.observe(document.body, { childList: true, subtree: true });
 
-    const handleMotionStart = () => trackLayout(1200);
+    // Solo siguen las animaciones de una percha o de algo que la contiene: son
+    // las que pueden moverla. Antes cualquier animacion de la pagina (hay mas de
+    // cien en bucle) reenganchaba el seguimiento frame a frame.
+    const handleMotionStart = (event) => {
+      const source = event.target;
+      if (!(source instanceof Element)) return;
+      for (const target of targetsRef.current.values()) {
+        if (source.contains(target)) { trackLayout(1200); return; }
+      }
+    };
     const handleSplashEnter = () => flyAway(SPLASH_PERCH.id);
     // Al entrar la moneda del modo attract, el pajaro sale volando antes de la zambullida.
     const handleAttractLaunch = () => flyAway(ATTRACT_PERCH.id);
@@ -139,6 +178,8 @@ export function PerchedBirds() {
     return () => {
       mutationObserver.disconnect();
       resizeObserver.disconnect();
+      visibility.disconnect();
+      visibilityRef.current = null;
       window.removeEventListener("resize", requestMeasure);
       window.removeEventListener("daivr-splash-enter", handleSplashEnter);
       window.removeEventListener("daivr-attract-launch", handleAttractLaunch);
@@ -170,8 +211,10 @@ export function PerchedBirds() {
       data-side={bird.side}
       data-align={bird.align}
       ref={(node) => {
-        if (node) birdNodesRef.current.set(bird.id, node);
-        else birdNodesRef.current.delete(bird.id);
+        if (node) {
+          birdNodesRef.current.set(bird.id, node);
+          visibilityRef.current?.observe(node);
+        } else birdNodesRef.current.delete(bird.id);
       }}
       style={{
         "--bird-left": "-100px",

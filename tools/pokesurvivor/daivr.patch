@@ -1,8 +1,226 @@
 diff --git a/css/style.css b/css/style.css
-index 5224464..84eed67 100644
+index 5224464..9e9f3be 100644
 --- a/css/style.css
 +++ b/css/style.css
-@@ -466,6 +466,10 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius:
+@@ -106,26 +106,108 @@ input { font: inherit; }
+ .grow { flex: 1; }
+ 
+ /* Lista de menú con cursor (flecha pixel art), como en PMD */
+-.menu-list { display: flex; flex-direction: column; gap: 4px; }
++/* daivr.dev: "Jugar" es una tarjeta dorada, cada opción lleva su icono en una
++   casilla de su color (--mi) y el cursor asoma por fuera de la lista. */
++.menu-list { display: flex; flex-direction: column; gap: 2px; }
+ .menu-item {
+-  appearance: none; background: none; border: 0; cursor: pointer;
+-  text-align: left; padding: 8px 10px 8px 30px; border-radius: 6px;
+-  font-size: 22px; font-weight: 700; letter-spacing: .5px;
++  --mi: #9fb1c9;
++  appearance: none; border: 0; cursor: pointer;
++  display: grid; grid-template-columns: 40px 1fr; column-gap: 12px; align-items: center;
++  text-align: left; padding: 7px 32px 7px 8px; border-radius: 8px;
++  font-size: 21px; font-weight: 700; letter-spacing: .5px; line-height: 1.15;
+   text-shadow: 2px 2px 0 var(--shadow);
+   position: relative;
+-}
+-.menu-item small { display: block; font-size: 13px; font-weight: 400; color: var(--muted); letter-spacing: 0; }
++  /* raya fina entre opciones */
++  background: linear-gradient(90deg, transparent, rgba(244,248,255,.13) 12%, rgba(244,248,255,.13) 88%, transparent) top / 100% 2px no-repeat;
++  transition: background-color .12s;
++  animation: mi-in .34s cubic-bezier(.2, .8, .3, 1.15) backwards;
++  animation-delay: calc(var(--i, 0) * 35ms + 60ms);
++}
++.menu-item.play + .menu-item { background-image: none; }
++.menu-item small { grid-column: 2; display: block; margin-top: 2px; font-size: 13px; font-weight: 400; color: var(--muted); letter-spacing: 0; }
++.menu-item small.gold { color: var(--gold); }
+ .menu-item::before {
+-  content: ''; position: absolute; left: 6px; top: 14px; width: 16px; height: 24px;
++  content: ''; position: absolute; left: -19px; top: 50%; width: 16px; height: 24px; margin-top: -12px;
+   background: var(--ico-cursor) no-repeat center / contain; image-rendering: pixelated;
+   opacity: 0; transition: opacity .1s, transform .1s; transform: translateX(-4px);
+ }
+-.menu-item:hover, .menu-item:focus-visible { background: rgba(255,255,255,.08); outline: none; }
++/* flechita a la derecha (triángulo de píxeles de 2 px) */
++.menu-item::after {
++  content: ''; position: absolute; right: 12px; top: 50%; width: 6px; height: 10px; margin-top: -5px;
++  background: var(--edge);
++  clip-path: polygon(0 0, 33.3% 0, 33.3% 20%, 66.6% 20%, 66.6% 40%, 100% 40%, 100% 60%, 66.6% 60%, 66.6% 80%, 33.3% 80%, 33.3% 100%, 0 100%);
++  opacity: 0; transition: opacity .12s, transform .12s; transform: translateX(-4px);
++}
++.menu-item:hover, .menu-item:focus-visible { background-color: rgba(255,255,255,.09); outline: none; }
+ .menu-item:hover::before, .menu-item:focus-visible::before { opacity: 1; transform: none; }
+-.menu-item.play { font-size: 30px; color: var(--gold); }
+-.menu-item { display: grid; grid-template-columns: 34px 1fr; column-gap: 8px; align-items: center; }
+-.menu-item small { grid-column: 2; }
+-.mi-ico { grid-row: span 2; display: flex; }
++.menu-item:hover::after, .menu-item:focus-visible::after { opacity: .8; transform: none; }
++.mi-ico {
++  grid-row: span 2; display: grid; place-items: center;
++  width: 40px; height: 40px; border-radius: 10px;
++  background: linear-gradient(180deg, color-mix(in srgb, var(--mi) 55%, var(--box1)), color-mix(in srgb, var(--mi) 22%, var(--edge-out)));
++  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--mi) 70%, #fff), inset 0 -3px 0 rgba(0,0,0,.25), 0 2px 0 var(--edge-out);
++  transition: transform .16s cubic-bezier(.3, 1.6, .5, 1);
++}
++.menu-item:hover .mi-ico, .menu-item:focus-visible .mi-ico { transform: translateY(-2px) rotate(-6deg) scale(1.06); }
++.menu-item:active .mi-ico { transform: scale(.94); }
++.menu-item[data-go=dex] { --mi: #4fb4ff; }
++.menu-item[data-go=upgrades] { --mi: #5fe08a; }
++.menu-item[data-go=gacha] { --mi: #c47bff; }
++.menu-item[data-go=goals] { --mi: #ffcb3d; }
++.menu-item[data-go=friends] { --mi: #3fd6c8; }
++.menu-item[data-go=rank] { --mi: #ff9f43; }
++/* Jugar: como .btn.gold, con un brillo que la cruza de vez en cuando */
++.menu-item.play {
++  grid-template-columns: 48px 1fr; margin-bottom: 10px; padding: 11px 44px 11px 10px;
++  border: 3px solid #fff7d6; border-radius: 10px;
++  font-size: 30px; color: #3a2300; text-shadow: 1px 1px 0 rgba(255,255,255,.45);
++  background: linear-gradient(180deg, #ffe892, #ffcf4a 50%, #f0a31e);
++  box-shadow: 0 0 0 2px var(--edge-out), 0 4px 0 2px var(--edge-out), inset 0 -4px 0 rgba(165,95,0,.3), inset 0 2px 0 rgba(255,255,255,.65);
++  overflow: hidden; isolation: isolate;
++  transition: filter .12s, transform .06s;
++}
++.menu-item.play small { color: #6b4300; text-shadow: none; }
++.menu-item.play:hover, .menu-item.play:focus-visible { background-color: transparent; filter: brightness(1.07) saturate(1.05); }
++.menu-item.play:active { transform: translateY(2px); box-shadow: 0 0 0 2px var(--edge-out), 0 2px 0 2px var(--edge-out), inset 0 -4px 0 rgba(165,95,0,.3), inset 0 2px 0 rgba(255,255,255,.65); }
++.menu-item.play .mi-ico {
++  width: 48px; height: 48px; border-radius: 50%;
++  background: radial-gradient(circle at 35% 30%, #fff, #fff4cf 58%, #ffd77a);
++  box-shadow: inset 0 0 0 2px #fff, inset 0 -3px 0 rgba(165,95,0,.28), 0 2px 0 rgba(107,67,0,.45);
++}
++.menu-item.play .mi-ico img { width: 32px; height: 32px; }
++.menu-item.play:hover .mi-ico, .menu-item.play:focus-visible .mi-ico { transform: rotate(-16deg) scale(1.06); }
++.menu-item.play::before {
++  left: 0; top: 0; width: 100%; height: 100%; margin: 0; z-index: -1;
++  background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,.55) 50%, transparent 60%) no-repeat;
++  background-size: 250% 100%; background-position: 160% 0;
++  image-rendering: auto; opacity: 1; transform: none;
++  animation: mi-shine 4s ease-in-out 1.2s infinite;
++}
++.menu-item.play::after {
++  right: 16px; width: 10px; height: 18px; margin-top: -9px; background: #3a2300;
++  clip-path: polygon(0 0, 20% 0, 20% 11.1%, 40% 11.1%, 40% 22.2%, 60% 22.2%, 60% 33.3%, 80% 33.3%, 80% 44.4%, 100% 44.4%, 100% 55.6%, 80% 55.6%, 80% 66.7%, 60% 66.7%, 60% 77.8%, 40% 77.8%, 40% 88.9%, 20% 88.9%, 20% 100%, 0 100%);
++  opacity: .75; transform: none;
++}
++.menu-item.play:hover::after, .menu-item.play:focus-visible::after { opacity: 1; animation: mi-nudge .7s ease-in-out infinite; }
++@keyframes mi-in { from { opacity: 0; transform: translateX(16px); } }
++@keyframes mi-shine { 0%, 65% { background-position: 160% 0; } 100% { background-position: -60% 0; } }
++@keyframes mi-nudge { 50% { transform: translateX(4px); } }
++/* Estadísticas del menú: cuatro casillas con icono */
++.menu-stats-box { padding: 12px 14px; }
++.menu-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
++.ms {
++  display: flex; align-items: center; gap: 8px; min-width: 0;
++  padding: 6px 8px; border-radius: 8px;
++  background: rgba(5,12,34,.35); box-shadow: inset 0 0 0 2px rgba(244,248,255,.12);
++}
++.ms img { flex: none; }
++.ms span { min-width: 0; }
++.ms small { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
++.ms b { display: block; font-size: 18px; line-height: 1.1; color: #fff; }
++.ms-guest { grid-column: 1 / -1; text-align: center; font-size: 13px; color: #ffb0b8; }
++@media (prefers-reduced-motion: reduce) {
++  .menu-item, .menu-item.play::before { animation: none; }
++}
+ 
+ /* ---------- formularios ---------- */
+ .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+@@ -235,6 +317,63 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
+ .partner-card { text-align: center; margin-top: 10px; }
+ .partner-card .nm { font-size: 24px; font-weight: 700; text-shadow: 3px 3px 0 var(--shadow); }
+ .partner-card .lv { color: var(--muted); font-size: 14px; text-shadow: 2px 2px 0 var(--shadow); }
++/* daivr.dev: logo con franjas de color (como los títulos de arcade) que flota
++   un poco, y el compañero en un escenario del color de su tipo con su placa. */
++.menu-left .logo { position: relative; animation: logo-float 5s ease-in-out infinite; }
++.menu-left .logo .t1 {
++  background: linear-gradient(180deg, #fff6c2 0 40%, #ffd23f 40% 62%, #f7a823 62%);
++  -webkit-background-clip: text; background-clip: text; color: transparent;
++  text-shadow: none;
++  filter: drop-shadow(3px 3px 0 #a55f00) drop-shadow(3px 3px 0 var(--shadow));
++}
++.menu-left .logo .t2 {
++  display: inline-block; margin-top: 12px; padding: 3px 14px 4px 17px;
++  background: linear-gradient(180deg, var(--box1), var(--box2));
++  border: 2px solid var(--edge); border-radius: 6px;
++  box-shadow: 0 0 0 2px var(--edge-out), inset 0 0 0 1px var(--edge-in), 0 6px 14px rgba(0,0,0,.35);
++  text-shadow: 2px 2px 0 var(--shadow);
++}
++/* destellos de píxeles en las esquinas del título */
++.menu-left .logo::before, .menu-left .logo::after {
++  content: ''; position: absolute; width: 14px; height: 14px; background: #fff6c2;
++  clip-path: polygon(50% 0, 64% 36%, 100% 50%, 64% 64%, 50% 100%, 36% 64%, 0 50%, 36% 36%);
++  animation: logo-twinkle 2.6s ease-in-out infinite;
++}
++.menu-left .logo::before { left: -16px; top: -10px; }
++.menu-left .logo::after { right: -12px; bottom: 22px; width: 10px; height: 10px; animation-delay: 1.3s; }
++@keyframes logo-float { 50% { translate: 0 -5px; } }
++@keyframes logo-twinkle { 0%, 100% { opacity: 0; scale: .4; } 50% { opacity: 1; scale: 1; } }
++.partner-card { display: flex; flex-direction: column; align-items: center; margin-top: 16px; }
++.partner-tag {
++  position: relative; z-index: 1; margin-bottom: -11px;
++  padding: 3px 12px 2px; border-radius: 6px;
++  background: var(--stage-c, #5b83d6); color: #10131a; text-shadow: none;
++  font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase;
++  box-shadow: 0 0 0 2px #0b1838, inset 0 -2px 0 rgba(0,0,0,.2), inset 0 2px 0 rgba(255,255,255,.35);
++}
++.partner-card .stage {
++  margin: 0;
++  background:
++    radial-gradient(ellipse 36% 11% at 50% 88%, color-mix(in srgb, var(--stage-c, #5b83d6) 55%, transparent), transparent),
++    radial-gradient(ellipse 54% 18% at 50% 88%, rgba(255,255,255,.07), transparent),
++    radial-gradient(circle at 50% 46%, color-mix(in srgb, var(--stage-c, #5b83d6) 24%, transparent), transparent 64%),
++    linear-gradient(180deg, rgba(20,36,78,.92), rgba(8,14,34,.95));
++  box-shadow: 0 0 0 3px #0b1838, 0 14px 34px rgba(0,0,0,.5), 0 0 44px color-mix(in srgb, var(--stage-c, #5b83d6) 30%, transparent),
++    inset 0 0 0 2px rgba(255,255,255,.07), inset 0 -40px 50px -30px rgba(0,0,0,.45);
++}
++.partner-plate {
++  position: relative; z-index: 1; margin-top: -18px; min-width: 190px;
++  padding: 6px 18px 8px;
++  background: linear-gradient(180deg, var(--box1), var(--box2));
++  border: 3px solid var(--edge); border-radius: 10px;
++  box-shadow: 0 0 0 2px var(--edge-out), inset 0 0 0 2px var(--edge-in), 0 10px 22px rgba(0,0,0,.45);
++}
++.partner-card .nm { line-height: 1.1; }
++.partner-card .lv { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 4px 2px; margin-top: 4px; }
++.partner-card .lv .rar { display: inline-flex; align-items: center; gap: 4px; margin-left: 4px; font-size: 12px; font-weight: 700; }
++@media (prefers-reduced-motion: reduce) {
++  .menu-left .logo, .menu-left .logo::before, .menu-left .logo::after { animation: none; }
++}
+ .menu-right {
+   width: min(380px, 100%); display: flex; flex-direction: column;
+   /* Arriba deja sitio a la barra superior; si no cabe todo, se desplaza
+@@ -247,15 +386,27 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
+ /* Portátiles con poca altura: menú más compacto y, si hace falta, en dos columnas. */
+ @media (max-height: 780px) and (min-height: 521px) {
+   .menu-right { padding-top: 62px; gap: 10px; }
+-  .menu-right .box { padding: 10px 14px; }
+-  .menu-item { font-size: 17px; padding: 5px 10px; }
+-  .menu-item.play { font-size: 24px; }
++  .menu-right .box { padding: 10px 14px 10px 22px; }
++  .menu-item { font-size: 17px; padding: 5px 28px 5px 6px; grid-template-columns: 32px 1fr; column-gap: 10px; }
++  .menu-item.play { font-size: 24px; padding: 7px 38px 7px 8px; grid-template-columns: 38px 1fr; margin-bottom: 8px; }
+   .menu-item small { font-size: 11px; }
++  .mi-ico { width: 32px; height: 32px; border-radius: 8px; }
++  .mi-ico img { width: 22px; height: 22px; }
++  .menu-item.play .mi-ico { width: 38px; height: 38px; }
++  .menu-item.play .mi-ico img { width: 26px; height: 26px; }
++  .menu-right .menu-stats-box { padding: 8px 10px; }
++  .ms { padding: 4px 6px; gap: 6px; }
++  .ms b { font-size: 15px; }
++  .ms small { font-size: 10px; }
+ }
+ @media (max-height: 660px) and (min-height: 521px) {
+   .menu-right { width: min(500px, 52vw); }
+-  .menu-list { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 6px; }
+-  .menu-item.play { grid-column: span 2; }
++  .menu-right .box { padding-left: 14px; }
++  .menu-list { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 6px; }
++  .menu-item.play { grid-column: span 2; margin-bottom: 4px; }
++  /* en dos columnas cada opción es una casilla, sin cursor ni flechita */
++  .menu-item { background-image: none; background-color: rgba(5,12,34,.25); padding-right: 6px; }
++  .menu-item:not(.play)::before, .menu-item:not(.play)::after { display: none; }
+   .menu-item small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+   .menu-left .logo .t1 { font-size: clamp(32px, 5vw, 52px); }
+   #menu-partner { height: min(30vh, 200px); width: auto; }
+@@ -466,6 +617,10 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius:
  
  /* ============ nube, aviso legal ============ */
  .btn.google { background: linear-gradient(180deg, #ffffff, #dfe6f2); color: #1f2a44; text-shadow: none; }
@@ -13,7 +231,7 @@ index 5224464..84eed67 100644
  .sync { display: inline-block; width: 9px; height: 9px; margin-left: 8px; border-radius: 2px;
    box-shadow: 0 0 0 2px #0b1838; vertical-align: 1px; }
  .sync.ok { background: #5fe08a; }
-@@ -497,6 +501,20 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius:
+@@ -497,6 +652,20 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius:
  .dot.pend { background: var(--r4); }
  #fr-add { margin: 10px 0 0; }
  #fr-add .field { min-width: 180px; }
@@ -34,8 +252,42 @@ index 5224464..84eed67 100644
  
  .lobby-members { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
  .lob-card {
+@@ -696,18 +865,27 @@ a.btn { text-decoration: none; display: inline-block; color: var(--ink); }
+   #menu-partner { height: min(34vh, 130px); width: auto; }
+   .partner-card { margin-top: 2px; }
+   .partner-card .nm { font-size: 17px; }
+-  .partner-card .lv { font-size: 12px; }
++  .partner-card .lv { font-size: 12px; margin-top: 2px; }
++  .partner-tag { font-size: 10px; padding: 2px 8px 1px; margin-bottom: -8px; }
++  .partner-plate { margin-top: -10px; min-width: 140px; padding: 3px 10px 4px; border-width: 2px; }
++  .menu-left .logo .t2 { margin-top: 5px; padding: 1px 8px 2px 10px; }
++  .menu-left .logo::before, .menu-left .logo::after { display: none; }
+   .menu-right { width: min(54vw, 420px); padding: 50px 8px 6px; gap: 6px; justify-content: flex-start; overflow-y: auto; }
+   .menu-right .box { padding: 6px 8px; }
+   .menu-right > .box:last-child { display: none; }
+   .menu-right > :first-child { margin-top: 0; }
+   .ach-pop { top: auto; bottom: 8px; }
+-  .menu-list { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 4px; }
+-  .menu-item { font-size: 15px; padding: 4px 6px; grid-template-columns: 22px 1fr; column-gap: 6px; }
+-  .menu-item small { font-size: 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+-  .menu-item.play { grid-column: span 2; font-size: 21px; }
+-  .menu-item::before { display: none; }
++  .menu-list { display: grid; grid-template-columns: 1fr 1fr; gap: 3px 4px; }
++  .menu-item { font-size: 15px; padding: 4px 6px; grid-template-columns: 24px 1fr; column-gap: 6px;
++    background-image: none; background-color: rgba(5,12,34,.25); }
++  .menu-item small { font-size: 10px; margin-top: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
++  .menu-item.play { grid-column: span 2; font-size: 21px; padding: 5px 30px 5px 6px; grid-template-columns: 30px 1fr; margin-bottom: 3px; }
++  .menu-item:not(.play)::before, .menu-item:not(.play)::after { display: none; }
++  .menu-item.play::after { right: 10px; }
++  .mi-ico { width: 24px; height: 24px; border-radius: 6px; }
+   .mi-ico img { width: 20px; height: 20px; }
++  .menu-item.play .mi-ico { width: 30px; height: 30px; }
++  .menu-item.play .mi-ico img { width: 22px; height: 22px; }
+   .box.settings { max-height: calc(100dvh - 12px); }
+ }
+ /* Móviles muy bajos (iPhone SE y similares): sin subtítulos en el menú, para que quepa entero. */
 diff --git a/dev.html b/dev.html
-index 401ccf6..499eb25 100644
+index 401ccf6..18504af 100644
 --- a/dev.html
 +++ b/dev.html
 @@ -29,7 +29,6 @@
@@ -71,7 +323,26 @@ index 401ccf6..499eb25 100644
      </div>
      <div class="row" style="margin-top:10px">
        <button id="btn-guest" class="btn ghost grow" type="button">Jugar como invitado</button>
-@@ -179,7 +176,7 @@
+@@ -166,26 +163,29 @@
+       <div class="t2">Mundo Misterioso</div>
+     </div>
+     <div class="partner-card">
++      <div class="partner-tag">Compañero</div>
+       <canvas id="menu-partner" class="stage" width="260" height="200"></canvas>
+-      <div class="nm" id="menu-partner-name"></div>
+-      <div class="lv" id="menu-partner-info"></div>
++      <div class="partner-plate">
++        <div class="nm" id="menu-partner-name"></div>
++        <div class="lv" id="menu-partner-info"></div>
++      </div>
+     </div>
+   </div>
+   <div class="menu-right">
+-    <div class="box">
++    <div class="box menu-box">
+       <div class="menu-list">
+         <button class="menu-item play" data-go="play">Jugar<small>Entra en la mazmorra</small></button>
+         <button class="menu-item" data-go="dex">Pokémon<small id="menu-dex-count">Tu colección</small></button>
          <button class="menu-item" data-go="upgrades">Mejoras<small>Haz más fuerte cada run</small></button>
          <button class="menu-item" data-go="gacha">Gacha<small>9 regiones · Pokémon y shinies</small></button>
          <button class="menu-item" data-go="goals">Misiones<small id="menu-goals-sub">Misiones, logros y perfil</small></button>
@@ -80,7 +351,15 @@ index 401ccf6..499eb25 100644
          <button class="menu-item" data-go="rank">Ranking<small>Quién aguanta más</small></button>
          <button class="menu-item" data-go="settings">Ajustes<small>Sonido, gráficos, controles y cuenta</small></button>
        </div>
-@@ -198,7 +195,6 @@
+     </div>
+-    <div class="box" style="padding:14px 18px">
+-      <div id="menu-stats" style="font-size:14px;color:var(--muted)"></div>
++    <div class="box menu-stats-box">
++      <div id="menu-stats" class="menu-stats"></div>
+     </div>
+   </div>
+ </section>
+@@ -198,7 +198,6 @@
    <button id="btn-sound" class="btn small ghost" title="Sonido"></button>
    <button id="btn-full" class="btn small ghost hidden" title="Pantalla completa"></button>
    <button id="btn-settings" class="btn small ghost" title="Ajustes"></button>
@@ -88,7 +367,7 @@ index 401ccf6..499eb25 100644
  </div>
  <div id="sound-panel" class="box sound-panel hidden"></div>
  <div id="credits-line" class="credits-line hidden">Proyecto de fan sin ánimo de lucro · Sprites: SpriteCollab (CC BY-NC 4.0) · Pokémon © Nintendo/Creatures/GAME FREAK · <a href="#" class="legal-link" data-legal>Aviso legal</a></div>
-@@ -232,34 +228,32 @@
+@@ -232,34 +231,32 @@
      <div class="row between"><h2>Aviso legal</h2><button class="btn small ghost" id="legal-close">Cerrar</button></div>
      <h3>Proyecto de fan</h3>
      <p><b>PokéSurvivor</b> es un juego hecho por fans, <b>gratuito y sin ánimo de lucro</b>.
@@ -135,7 +414,7 @@ index 401ccf6..499eb25 100644
      <p>Puedes borrar tu cuenta cuando quieras (se borran también tu apodo, tus amigos y tus marcas):</p>
      <div class="row">
        <button class="btn small" id="legal-delete">Borrar mi cuenta y mi partida</button>
-@@ -309,8 +303,8 @@
+@@ -309,8 +306,8 @@
  <section id="scr-nick" class="scr dim hidden">
    <div class="box" style="width:min(440px,100%)">
      <h2>Elige tu apodo</h2>
@@ -146,7 +425,7 @@ index 401ccf6..499eb25 100644
      <form id="nick-form" autocomplete="off">
        <input id="nick-in" class="field" maxlength="16" spellcheck="false" placeholder="3-16 letras, números o _">
        <p id="nick-err" class="err"></p>
-@@ -335,10 +329,28 @@
+@@ -335,10 +332,28 @@
    </div>
  </section>
  
@@ -176,7 +455,7 @@ index 401ccf6..499eb25 100644
        <div class="row"><button id="lobby-menu" class="btn small ghost">Menú</button><button id="lobby-leave" class="btn small ghost">Salir de la sala</button></div></div>
      <p class="sub" id="lobby-sub"></p>
      <div id="lobby-members" class="lobby-members"></div>
-@@ -525,7 +537,7 @@
+@@ -525,7 +540,7 @@
  <script defer src="js/data/pokedex.js"></script>
  <script defer src="js/data/sprites-meta.js"></script>
  <!-- núcleo -->
@@ -185,7 +464,7 @@ index 401ccf6..499eb25 100644
  <script defer src="js/core/db.js"></script>
  <script defer src="js/core/audio.js"></script>
  <script defer src="js/core/input.js"></script>
-@@ -567,7 +579,6 @@
+@@ -567,7 +582,6 @@
  <script defer src="js/systems/hazards.js"></script>
  <!-- red: amigos, salas, cooperativo y ranking -->
  <script defer src="js/net/social.js"></script>
@@ -765,9 +1044,18 @@ index 5c16cb4..30f499f 100644
    get url() { return this.kofi ? 'https://ko-fi.com/' + this.kofi : ''; }
  };
 diff --git a/js/data/lang-en.js b/js/data/lang-en.js
-index 98dc572..b91a19d 100644
+index 98dc572..dbe8a3f 100644
 --- a/js/data/lang-en.js
 +++ b/js/data/lang-en.js
+@@ -273,7 +273,7 @@ G.I18n.add({
+   'Aviso legal': 'Legal notice',
+   // colección
+   'Volver': 'Back', 'Todos': 'All', 'Tengo': 'Owned', 'Me faltan': 'Missing', 'Legendaria': 'Legendary', 'Épica': 'Epic', 'Rara': 'Rare',
+-  'Poco común': 'Uncommon', 'Común': 'Common', 'Ninguno con este filtro.': 'None with this filter.', 'Ataque': 'Attack', 'Vida': 'HP', 'Velocidad': 'Speed',
++  'Poco común': 'Uncommon', 'Común': 'Common', 'Compañero': 'Partner', 'Ninguno con este filtro.': 'None with this filter.', 'Ataque': 'Attack', 'Vida': 'HP', 'Velocidad': 'Speed',
+   'Empieza con': 'Starts with', 'Es tu compañero': 'It\'s your partner', 'Elegir de compañero{x}': 'Choose as partner{x}', '(shiny)': '(shiny)',
+   'Aún no lo tienes.': 'You don\'t have it yet.', 'Consíguelo en el banner de': 'Get it from the banner of', 'o derrotándolo cuando salga shiny.': 'or by defeating it when it shows up shiny.',
+   '{x} es ahora tu compañero': '{x} is now your partner', '{x} shiny es ahora tu compañero': 'Shiny {x} is now your partner',
 @@ -420,7 +420,7 @@ G.I18n.add({
    ': sin anuncios ni pagos. Pokémon y sus personajes son propiedad de Nintendo, Creatures y GAME FREAK; este proyecto no está afiliado a ellos.': ': no ads or payments. Pokémon and its characters are owned by Nintendo, Creatures and GAME FREAK; this project is not affiliated with them.',
    'Créditos': 'Credits', 'Sprites:': 'Sprites:', 'PMD SpriteCollab y sus artistas (CC BY-NC 4.0).': 'PMD SpriteCollab and its artists (CC BY-NC 4.0).',
@@ -2332,10 +2620,21 @@ index 181fc08..46c446b 100644
  
    return { init, open };
 diff --git a/js/ui/menu.js b/js/ui/menu.js
-index c2a3498..6ca7cc0 100644
+index c2a3498..93f3184 100644
 --- a/js/ui/menu.js
 +++ b/js/ui/menu.js
-@@ -16,14 +16,16 @@ G.MenuUI = (() => {
+@@ -6,8 +6,9 @@ G.MenuUI = (() => {
+ 
+   function init() {
+     const ICON = { play: 'ball', dex: 'book', upgrades: 'up', gacha: 'ball4', goals: 'medal3', friends: 'friends', rank: 'trophy', settings: 'gear' };
+-    document.querySelectorAll('#scr-menu [data-go]').forEach(b => {
++    document.querySelectorAll('#scr-menu [data-go]').forEach((b, i) => {
+       b.insertAdjacentHTML('afterbegin', `<span class="mi-ico">${G.Icons.html(ICON[b.dataset.go], 26)}</span>`);
++      b.style.setProperty('--i', i);   // daivr.dev: las opciones entran una detrás de otra
+       b.dataset.sfx = b.dataset.go === 'play' ? 'confirm' : 'click';
+       b.onclick = () => {
+         const go = b.dataset.go;
+@@ -16,14 +17,16 @@ G.MenuUI = (() => {
          else if (go === 'upgrades') openUpgrades();
          else if (go === 'gacha') G.GachaUI.open();
          else if (go === 'goals') G.GoalsUI.open();
@@ -2354,7 +2653,38 @@ index c2a3498..6ca7cc0 100644
        if (G.DB.guest && !confirm('Eres invitado: se perderá todo el progreso. ¿Salir?')) return;
        G.Audio.music(null);
        G.DB.logout().then(() => G.Flow.toLogin());
-@@ -74,14 +76,16 @@ G.MenuUI = (() => {
+@@ -39,20 +42,25 @@ G.MenuUI = (() => {
+     G.UI.chrome(true);
+     G.UI.show('scr-menu');
+     G.UI.sprite($('menu-partner'), mon.dex, { lively: true, scale: 4, hero: true, shiny });
+-    $('menu-partner').style.setProperty('--stage-c', shiny ? '#9ae6ff' : G.U.TYPE_COLOR[mon.types[0]]);
++    // daivr.dev: el color va en la tarjeta entera (recuadro, etiqueta y brillo).
++    $('menu-partner').closest('.partner-card').style.setProperty('--stage-c', shiny ? '#9ae6ff' : G.U.TYPE_COLOR[mon.types[0]]);
+     $('menu-partner').classList.toggle('shiny', shiny);
+     $('menu-partner-name').innerHTML = mon.name + (shiny ? ' ' + G.Icons.html('shiny', 24) : '');
+-    $('menu-partner-info').innerHTML = G.UI.typeChips(mon.types) + ' ' + G.UI.stars(mon.rarity);
++    $('menu-partner-info').innerHTML = G.UI.typeChips(mon.types) +
++      `<span class="rar" style="color:${G.Gacha.RARITY_COLOR[mon.rarity]}">${G.UI.stars(mon.rarity)} ${G.Gacha.RARITY_NAME[mon.rarity]}</span>`;
+ 
+     const owned = Object.keys(s.owned).filter(d => G.DEX_BY[d]).length;
+     const shinies = Object.keys(s.shiny || {}).length;
+     $('menu-dex-count').textContent = `${owned} / ${G.DEX.length}` + (shinies ? ` · ${shinies} shiny` : '');
+ 
++    // daivr.dev: las estadísticas van en cuatro casillas con icono.
+     const st = s.stats;
++    const stat = (ico, label, value) =>
++      `<div class="ms">${G.Icons.html(ico, 20)}<span><small>${label}</small><b>${value}</b></span></div>`;
+     $('menu-stats').innerHTML =
+-      `Runs <b style="color:#fff">${st.runs}</b> · Mejor tiempo <b style="color:#fff">${G.U.mmss(st.bestTime)}</b><br>` +
+-      `Mejor nivel <b style="color:#fff">${st.bestLevel}</b> · Derrotados <b style="color:#fff">${st.totalKills.toLocaleString('es')}</b>` +
+-      (G.DB.guest ? '<br><span style="color:#ffb0b8">Modo invitado: no se guarda</span>' : '');
++      stat('ball', 'Runs', st.runs) + stat('clock', 'Mejor tiempo', G.U.mmss(st.bestTime)) +
++      stat('star', 'Mejor nivel', st.bestLevel) + stat('fist', 'Derrotados', st.totalKills.toLocaleString('es')) +
++      (G.DB.guest ? '<div class="ms-guest">Modo invitado: no se guarda</div>' : '');
+ 
+     socialLine();
+     // Premios de misiones por recoger.
+@@ -74,14 +82,16 @@ G.MenuUI = (() => {
    function socialLine() {
      const room = G.Social.room;
      const play = document.querySelector('#scr-menu [data-go=play] small');

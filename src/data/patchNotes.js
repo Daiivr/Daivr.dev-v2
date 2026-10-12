@@ -5,6 +5,22 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.69.0",
+    codename: "CHANNEL SURF",
+    date: "2026-10-12",
+    summary: "The secret library lights up: the cartridge you pick glows on its shelf, the TV flips channels, and inserting a cartridge happens under a desk lamp. PokéSurvivor's main menu got a makeover too, and the cabinet's music steps aside while you play.",
+    entries: [
+      ["buff", "The cartridge you pick lights its spot on the shelf in its own colour, and the others dim a little. Dust drifts through the shelf lamps."],
+      ["buff", "The library TV flips channels when you switch cartridges and shows the channel number. The play corner takes on the game's colour, each game's tags are chips, and a light sweeps the cartridge slot while it waits."],
+      ["new", "When the bottom shelf has a free spot, it holds a flickering neon sign."],
+      ["buff", "Inserting a cartridge now happens on a walnut desk under a hanging lamp. The game's colour glows up out of the slot once it locks in, and a READY, INSERT, LOCK, PLAY track shows how far along it is."],
+      ["buff", "PokéSurvivor's main menu: Jugar is a gold button, every option has its own coloured icon, and your stats sit in four tiles. Your partner stands on a stage lit in its type's colour, with a nameplate that shows its type and rarity."],
+      ["fix", "PokéSurvivor's menu now highlights unclaimed mission rewards and friend requests in gold, like it was meant to."],
+      ["buff", "DAI FM fades to silence when you open a game and fades back in when you close it. The song keeps playing in the meantime."],
+      ["fix", "The cabinet runs a lot smoother. The perched birds stopped re-measuring the page on every frame, the starfield no longer repaints the whole screen, and sections you've scrolled away from pause their animations until you come back."]
+    ]
+  },
+  {
     version: "v2.68.0",
     codename: "WILD ENCOUNTER",
     date: "2026-10-12",

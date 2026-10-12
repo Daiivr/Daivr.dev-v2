@@ -15,7 +15,7 @@ function timestamp(seconds) {
   return `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
 }
 
-export function MusicPlayer({ hidden = false, entrySplashOpen = false, tracks = musicTracks }) {
+export function MusicPlayer({ hidden = false, ducked = false, entrySplashOpen = false, tracks = musicTracks }) {
   const [expanded, setExpanded] = useState(false);
   const [docked, setDocked] = useState(true);
   const [morphing, setMorphing] = useState("");
@@ -60,6 +60,9 @@ export function MusicPlayer({ hidden = false, entrySplashOpen = false, tracks = 
   const recordTop = useTransform(morph, (value) => 284 - Math.max(0, value) * 236);
   const recordScale = useTransform(morph, (value) => 0.72 + Math.max(0, value) * 0.28);
   const panelGlow = useTransform(morph, [0.45, 1], [0, 1]);
+  // Gain on top of the listener's volume: a game TV fades the music to 0
+  // (it keeps playing) and closing the game brings it back.
+  const duck = useMotionValue(ducked ? 0 : 1);
 
   useEffect(() => {
     const from = morph.get();
@@ -130,9 +133,20 @@ export function MusicPlayer({ hidden = false, entrySplashOpen = false, tracks = 
   }, [track?.src, play]);
 
   useEffect(() => {
-    audioRef.current.volume = volume;
+    const audio = audioRef.current;
+    const apply = () => { audio.volume = volume * duck.get(); };
+    apply();
+    return duck.on("change", apply);
+  }, [duck, volume]);
+
+  useEffect(() => {
     audioRef.current.muted = muted;
-  }, [volume, muted]);
+  }, [muted]);
+
+  useEffect(() => {
+    const animation = animate(duck, ducked ? 0 : 1, { duration: ducked ? 0.6 : 1.2, ease: "easeInOut" });
+    return () => animation.stop();
+  }, [duck, ducked]);
 
   useEffect(() => {
     const audio = audioRef.current;

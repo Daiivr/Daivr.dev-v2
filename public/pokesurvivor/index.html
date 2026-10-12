@@ -106,13 +106,16 @@
       <div class="t2">Mundo Misterioso</div>
     </div>
     <div class="partner-card">
+      <div class="partner-tag">Compañero</div>
       <canvas id="menu-partner" class="stage" width="260" height="200"></canvas>
-      <div class="nm" id="menu-partner-name"></div>
-      <div class="lv" id="menu-partner-info"></div>
+      <div class="partner-plate">
+        <div class="nm" id="menu-partner-name"></div>
+        <div class="lv" id="menu-partner-info"></div>
+      </div>
     </div>
   </div>
   <div class="menu-right">
-    <div class="box">
+    <div class="box menu-box">
       <div class="menu-list">
         <button class="menu-item play" data-go="play">Jugar<small>Entra en la mazmorra</small></button>
         <button class="menu-item" data-go="dex">Pokémon<small id="menu-dex-count">Tu colección</small></button>
@@ -124,8 +127,8 @@
         <button class="menu-item" data-go="settings">Ajustes<small>Sonido, gráficos, controles y cuenta</small></button>
       </div>
     </div>
-    <div class="box" style="padding:14px 18px">
-      <div id="menu-stats" style="font-size:14px;color:var(--muted)"></div>
+    <div class="box menu-stats-box">
+      <div id="menu-stats" class="menu-stats"></div>
     </div>
   </div>
 </section>
@@ -470,6 +473,6 @@
 </section>
 
 <!-- datos generados -->
-<script defer src="js/app.min.js?v=c91a0d771a"></script>
+<script defer src="js/app.min.js?v=d4478dcf5f"></script>
 </body>
 </html>

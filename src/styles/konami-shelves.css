@@ -1,9 +1,10 @@
 /* Hoja perezosa: entra por konami-games.css con el primer juego Konami. */
+@property --disk-accent { syntax: "<color>"; inherits: true; initial-value: #45d8ff; }
 @layer components {
   .konami-shelf-library { width: min(1120px, 100%); background: #09120f; }
   .konami-shelf-library > header { padding: 20px 26px 18px; background: radial-gradient(ellipse at 0 0, #26644d33, transparent 65%), #0a1913; }
   .konami-shelf-library h2 { margin-top: 8px; font-size: clamp(1.25rem, 2.5vw, 1.85rem); line-height: 1.2; text-shadow: 0 2px #020806; }
-  .konami-library-room { --walnut-grain: url('/arcade-library/walnut-grain.svg'); min-height: 0; display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; padding: 26px; overflow: auto; overscroll-behavior: contain; background: radial-gradient(ellipse at 20% 20%, #b8773610, transparent 65%), #0b100e; }
+  .konami-library-room { --walnut-grain: url('/arcade-library/walnut-grain.svg'); min-height: 0; display: grid; grid-template-columns: 1.5fr 1fr; gap: 30px; padding: 26px; overflow: auto; overscroll-behavior: contain; --disk-accent: #45d8ff; background: radial-gradient(ellipse 42% 60% at 82% 26%, color-mix(in srgb, var(--disk-accent) 11%, transparent), transparent), radial-gradient(ellipse at 20% 20%, #b8773618, transparent 65%), #0b100e; transition: --disk-accent .5s ease; }
   /* One continuous timber cabinet, with a recessed back and a ledge per row. */
   .konami-shelf-cabinet { position: relative; min-width: 0; align-self: start; border: 1px solid #705037; border-radius: 7px 7px 3px 3px; padding: 0 18px; background: linear-gradient(90deg, #09060480, #bb88551c 2%, transparent 5% 94%, #b98b522b 97%, #08050499), var(--walnut-grain) center / 512px 256px, #302018; box-shadow: inset 0 2px #dbad7138, inset 2px 0 #cb945333, inset -3px -3px #130c0899, 0 5px 0 #1b100c, 0 16px 24px #000a; }
   .konami-shelf-cabinet::before, .konami-shelf-cabinet::after { content: ""; position: absolute; bottom: -10px; width: 25px; height: 9px; border-radius: 0 0 3px 3px; background: linear-gradient(90deg, #291b13, #5a3b26, #24160e); }
@@ -19,11 +20,11 @@
   .konami-shelf-cart, .konami-shelf-keepsake { position: relative; min-width: 0; height: 184px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 0; padding: 0 0 33px; border: 0; background: none; cursor: var(--cursor-pointer, pointer); isolation: isolate; perspective: 700px; }
   .konami-shelf-cart::before { content: ""; position: absolute; z-index: -1; bottom: 24px; left: 3%; right: -6%; height: 15px; border-radius: 50%; background: #100a07; filter: blur(5px); transform: skewX(-15deg); opacity: .8; transition: opacity .22s; }
   .konami-shelf-cart { --disk-accent: #45d8ff; color: #bbd1c4; }
-  .konami-shelf-cart.is-green, .konami-game-preview.is-green { --disk-accent: #3fff97; }
-  .konami-shelf-cart.is-amber, .konami-game-preview.is-amber { --disk-accent: #ffd166; }
-  .konami-shelf-cart.is-magenta, .konami-game-preview.is-magenta { --disk-accent: #ff74b5; }
-  .konami-shelf-cart.is-violet, .konami-game-preview.is-violet { --disk-accent: #b797ff; }
-  .konami-shelf-cart.is-red, .konami-game-preview.is-red { --disk-accent: #ff6b6b; }
+  .konami-shelf-cart.is-green, .konami-game-preview.is-green, .konami-library-room.is-green { --disk-accent: #3fff97; }
+  .konami-shelf-cart.is-amber, .konami-game-preview.is-amber, .konami-library-room.is-amber { --disk-accent: #ffd166; }
+  .konami-shelf-cart.is-magenta, .konami-game-preview.is-magenta, .konami-library-room.is-magenta { --disk-accent: #ff74b5; }
+  .konami-shelf-cart.is-violet, .konami-game-preview.is-violet, .konami-library-room.is-violet { --disk-accent: #b797ff; }
+  .konami-shelf-cart.is-red, .konami-game-preview.is-red, .konami-library-room.is-red { --disk-accent: #ff6b6b; }
   .konami-shelf-cart > .konami-cartridge { width: min(132px, 100%); height: 148px; grid-template-rows: 13px minmax(0, 1fr) 17px; transform-origin: bottom center; transform: rotateY(-9deg) rotateZ(1deg); }
   .konami-shelf-cart:nth-child(2) > .konami-cartridge { transform: rotateY(-7deg) rotateZ(-2deg); }
   .konami-shelf-cart .konami-cartridge-label { margin: 5px 8px 6px; }
@@ -34,9 +35,15 @@
   .konami-shelf-plaque { position: absolute; bottom: 6px; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 5px; width: max-content; max-width: 100%; height: 19px; padding: 2px 6px; border: 1px solid #c4a57470; border-radius: 2px; background: linear-gradient(#dfc89e, #bba179); color: #35271a; font: 800 9px/1 var(--font-mono); box-shadow: 0 1px 3px #0008, inset 0 1px #fff6; white-space: nowrap; }
   .konami-shelf-plaque i { font-size: 7px; font-style: normal; opacity: .6; }
   .konami-shelf-plaque b { width: 4px; height: 4px; background: #526251; }
-  .konami-shelf-cart.is-current .konami-shelf-plaque { color: #f4e7cc; border-color: #eed3a1; background: #30251b; }
+  .konami-shelf-cart.is-current .konami-shelf-plaque { color: #f4e7cc; border-color: color-mix(in srgb, var(--disk-accent) 65%, #eed3a1); background: #30251b; box-shadow: 0 1px 3px #0008, 0 0 12px color-mix(in srgb, var(--disk-accent) 35%, transparent), inset 0 1px #fff2; }
   .konami-shelf-cart.is-current .konami-shelf-plaque b { background: var(--disk-accent); box-shadow: 0 0 7px var(--disk-accent); }
   .konami-shelf-cart.is-current .konami-cartridge { transform: translateY(-8px) rotateY(-5deg) rotateZ(-3deg); filter: brightness(1.12); }
+  .konami-shelf-cart:not(.is-current) > .konami-cartridge { filter: brightness(.8) saturate(.82); }
+  .konami-shelf-cart > .konami-cartridge { transition: transform .3s cubic-bezier(.3, 1.35, .5, 1), filter .25s ease; }
+  /* Pool of light on the ledge, plus a soft wash up the back wall. closest-side keeps
+     both gradients inside the box, so they fade out before any edge can show. */
+  .konami-shelf-cart::after { content: ""; position: absolute; z-index: -2; inset: -6% -16% 2px; pointer-events: none; opacity: 0; transition: opacity .3s ease; background: radial-gradient(closest-side at 50% 88%, color-mix(in srgb, var(--disk-accent) 72%, transparent), color-mix(in srgb, var(--disk-accent) 26%, transparent) 50%, transparent), radial-gradient(closest-side at 50% 54%, color-mix(in srgb, var(--disk-accent) 32%, transparent), color-mix(in srgb, var(--disk-accent) 12%, transparent) 50%, transparent); }
+  .konami-shelf-cart.is-current::after { opacity: 1; }
   @media (hover: hover) { .konami-shelf-cart:not(:disabled):hover .konami-cartridge { transform: translateY(-13px) rotateY(0deg) rotateZ(-2deg); filter: brightness(1.18); } }
   .konami-shelf-cart:focus-visible { outline: 2px solid var(--disk-accent); outline-offset: 3px; border-radius: 3px; }
   .konami-shelf-keepsake { justify-content: center; padding-top: 15px; color: #b4ad82; cursor: default; text-align: center; }
@@ -89,8 +96,10 @@
   .konami-play-slot { display: block; height: 9px; margin-top: 6px; border-radius: 2px; background: #070a06; border: 1px solid #94977b77; box-shadow: inset 0 3px 2px #000, 0 1px #c6c9a133; }
   .konami-deck-vents { width: 54px; height: 22px; background: repeating-linear-gradient(90deg, #080d08 0 3px, #7e836555 3px 4px, transparent 4px 7px); transform: skewX(-12deg); }
   .konami-insert-game { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 46px; padding: 0 13px; border: 1px solid #d7d9be; border-bottom: 4px solid #777d64; border-radius: 4px; background: linear-gradient(#e0e0c9, #b7bba1); color: #1b291f; box-shadow: 0 3px 0 #0b100a, inset 0 1px #ffffeb; font: 800 12px/1 var(--font-mono); cursor: var(--cursor-pointer, pointer); transition: background .18s, transform .18s; }
-  .konami-insert-game > svg { color: #244a34; }
-  .konami-insert-game > span { margin-left: auto; color: #45583c; }.konami-insert-game > svg { margin-right: auto; }
+  .konami-insert-icon { display: grid; place-items: center; width: 26px; height: 26px; flex: none; margin-right: auto; border-radius: 50%; color: #07130c; background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--disk-accent) 45%, #fff), var(--disk-accent) 62%, color-mix(in srgb, var(--disk-accent) 60%, #000)); box-shadow: 0 0 10px color-mix(in srgb, var(--disk-accent) 55%, transparent), inset 0 -2px #0003, 0 1px #0006; }
+  .konami-insert-icon > svg { margin-left: 2px; }
+  .konami-insert-game > span { margin-left: auto; padding: 3px 6px 2px; border: 1px solid #8f947c; border-bottom-width: 3px; border-radius: 3px; background: linear-gradient(#e9e9d4, #cfd2b9); color: #45583c; font-size: 11px; }
+  .konami-insert-game:not(:disabled):hover .konami-insert-icon { animation: konami-insert-pulse 1.1s ease-in-out infinite; }
   .konami-insert-game:not(:disabled):hover { background: linear-gradient(#f3f1d9, #d1d4b8); }
   .konami-insert-game:not(:disabled):active { transform: translateY(2px); }
   .konami-play-deck > small { display: flex; align-items: center; gap: 5px; margin-top: 10px; color: #b1c2a6; font: 700 6px/1 var(--font-mono); letter-spacing: .08em; }
@@ -102,6 +111,45 @@
   .konami-shelf-library .konami-console-deck { background: repeating-linear-gradient(90deg, #fff1 0 1px, transparent 1px 8px), linear-gradient(#627153, #283e2c); border-color: #7b8964; }
   .konami-shelf-library .konami-console-vents b { box-shadow: inset 2px 0 #020603, 1px 0 #a3af7655; }
   .theme-glitch .konami-shelf-cabinet { filter: hue-rotate(18deg); }
+
+  /* Dust drifting through each shelf lamp. */
+  .konami-shelf-dust { position: absolute; z-index: -1; top: 3px; left: 9%; right: 9%; height: 78%; pointer-events: none; opacity: .55; background-image: radial-gradient(circle, #ffe7b4 0 1px, transparent 1.6px), radial-gradient(circle, #ffd58c 0 .8px, transparent 1.3px), radial-gradient(circle, #fff4d6 0 1.2px, transparent 1.8px); background-size: 97px 53px, 61px 83px, 149px 71px; background-position: 0 0, 23px 31px, 71px 11px; -webkit-mask-image: linear-gradient(#000 10%, transparent 85%); mask-image: linear-gradient(#000 10%, transparent 85%); animation: konami-dust 26s linear infinite; }
+  .konami-shelf-row:last-child .konami-shelf-dust { animation-duration: 31s; animation-direction: reverse; }
+  @keyframes konami-dust { to { background-position: 97px -53px, -38px -52px, 220px -60px; } }
+
+  /* The empty slot is a neon sign on the back wall. */
+  .konami-shelf-keepsake { background: radial-gradient(ellipse 60% 48% at 50% 46%, #ff3d9d1f, transparent 70%); }
+  .konami-shelf-keepsake::before { content: ""; position: absolute; inset: 12% 6% 27%; border: 2px solid #ff8cc4; border-radius: 12px; box-shadow: 0 0 5px #ff74b5, 0 0 16px #ff3d9d99, inset 0 0 7px #ff74b566; animation: konami-neon 9s linear infinite; }
+  .konami-shelf-keepsake > svg { color: #8ff0ff; filter: drop-shadow(0 0 3px #45d8ff) drop-shadow(0 0 10px #45d8ffaa); }
+  .konami-shelf-keepsake > span { color: #ffe6f2; text-shadow: 0 0 3px #ff8cc4, 0 0 10px #ff3d9d, 0 0 22px #ff3d9daa; animation: konami-neon 9s linear 1.7s infinite; }
+  .konami-shelf-keepsake > small { color: #d9b9c9; text-shadow: 0 0 8px #ff3d9d55; }
+  @keyframes konami-neon { 0%, 31%, 35%, 38%, 100% { opacity: 1; } 33%, 36.5% { opacity: .35; } }
+
+  /* The TV: lit by the game, a channel flip on every switch and a CH readout. */
+  .konami-game-preview { isolation: isolate; transition: --disk-accent .5s ease; }
+  .konami-game-preview::before { content: ""; position: absolute; z-index: -1; inset: 0; border-radius: inherit; pointer-events: none; background: radial-gradient(ellipse 85% 42% at 50% 24%, color-mix(in srgb, var(--disk-accent) 12%, transparent), transparent); }
+  .konami-preview-monitor { box-shadow: inset 2px 2px #d4d3bc30, inset -3px -3px #080b08bb, 0 4px 0 #090b08, 0 9px 16px #0008, 0 0 40px color-mix(in srgb, var(--disk-accent) 14%, transparent); }
+  .konami-preview-screen { box-shadow: 0 0 0 1px #77796977, 0 2px 0 #888b6c33, 0 0 22px color-mix(in srgb, var(--disk-accent) 24%, transparent); }
+  .konami-preview-screen img { animation: konami-channel-in .45s cubic-bezier(.2, .8, .3, 1) both; }
+  .konami-preview-static { position: absolute; z-index: 2; inset: 0; pointer-events: none; opacity: 0; mix-blend-mode: screen; background: repeating-linear-gradient(0deg, #e9fff3 0 1px, #0b1611 1px 2px, #9cb7a8 2px 3px, transparent 3px 5px, #dfeee6 5px 6px, transparent 6px 9px); background-size: 100% 13px; animation: konami-static .5s steps(7) both; }
+  .konami-preview-osd { position: absolute; z-index: 3; top: 9px; right: 11px; color: color-mix(in srgb, var(--disk-accent) 50%, #fff); font: 800 10px/1 var(--font-mono); letter-spacing: .14em; text-shadow: 0 0 8px var(--disk-accent), 0 1px #000; }
+  .konami-preview-screen > span::after { content: "_"; margin-left: 2px; animation: konami-caret 1.1s steps(1) infinite; }
+  @keyframes konami-channel-in { 0% { opacity: .3; transform: scale(1.08, .03); filter: brightness(3) saturate(0); } 45% { opacity: 1; transform: scale(1.02, 1.03); filter: brightness(1.5) saturate(.5); } 100% { opacity: 1; transform: none; filter: none; } }
+  @keyframes konami-static { 0% { opacity: .9; background-position: 0 0; } 55% { opacity: .4; background-position: 0 -45px; } 100% { opacity: 0; background-position: 0 -80px; } }
+  @keyframes konami-caret { 50% { opacity: 0; } }
+
+  /* Copy card: an accent spine, a glowing title and the tags as chips. */
+  .konami-preview-copy { box-shadow: inset 3px 0 color-mix(in srgb, var(--disk-accent) 75%, transparent), inset 0 1px #cfccad10, 0 2px 4px #0005; }
+  .konami-preview-copy h3 { text-shadow: 0 0 20px color-mix(in srgb, var(--disk-accent) 38%, transparent), 0 2px #020806; }
+  .konami-preview-meta { display: flex; flex-wrap: wrap; gap: 6px; }
+  .konami-preview-meta b { padding: 4px 7px 3px; border: 1px solid color-mix(in srgb, var(--disk-accent) 45%, transparent); border-radius: 3px; background: color-mix(in srgb, var(--disk-accent) 10%, #161b16); color: color-mix(in srgb, var(--disk-accent) 40%, #e9e7cf); font-weight: 800; letter-spacing: .08em; }
+  .konami-preview-counter button:not(:disabled):hover { border-color: color-mix(in srgb, var(--disk-accent) 55%, transparent); background: color-mix(in srgb, var(--disk-accent) 18%, #242a21); color: #fff; }
+
+  /* Cartridge slot: a light sweeps inside it while it waits. */
+  .konami-play-slot { position: relative; overflow: hidden; }
+  .konami-play-slot::after { content: ""; position: absolute; inset: 2px 0; width: 30%; border-radius: 2px; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--disk-accent) 80%, transparent), transparent); filter: blur(1px); animation: konami-slot-scan 2.6s ease-in-out infinite; }
+  @keyframes konami-slot-scan { 0% { translate: -110% 0; } 60%, 100% { translate: 360% 0; } }
+  @keyframes konami-insert-pulse { 50% { box-shadow: 0 0 18px color-mix(in srgb, var(--disk-accent) 85%, transparent), inset 0 -2px #0003, 0 1px #0006; scale: 1.08; } }
   @media (min-width: 801px) and (max-width: 1000px) {
     .konami-library-room { grid-template-columns: 1.15fr 1fr; }
     .konami-preview-counter { align-items: flex-start; }
@@ -163,5 +211,5 @@
     .konami-preview-meta { padding-top: 6px; margin-top: 7px; }
     .konami-play-deck { padding: 8px 12px 10px; }.konami-deck-top { margin-bottom: 9px; }
   }
-  @media (prefers-reduced-motion: reduce) { .konami-shelf-library *, .konami-shelf-library *::before, .konami-shelf-library *::after { transition: none !important; }.konami-shelf-cart > .konami-cartridge, .konami-shelf-cart:nth-child(2) > .konami-cartridge, .konami-shelf-cart.is-current .konami-cartridge, .konami-shelf-cart:not(:disabled):hover .konami-cartridge { transform: none; } }
+  @media (prefers-reduced-motion: reduce) { .konami-shelf-library *, .konami-shelf-library *::before, .konami-shelf-library *::after { transition: none !important; }.konami-shelf-cart > .konami-cartridge, .konami-shelf-cart:nth-child(2) > .konami-cartridge, .konami-shelf-cart.is-current .konami-cartridge, .konami-shelf-cart:not(:disabled):hover .konami-cartridge { transform: none; } .konami-shelf-dust, .konami-shelf-keepsake::before, .konami-shelf-keepsake > span, .konami-preview-screen img, .konami-preview-static, .konami-preview-screen > span::after, .konami-play-slot::after, .konami-insert-icon { animation: none !important; } .konami-preview-static { display: none; } }
 }

@@ -17,7 +17,8 @@ export function ArcadeBackground() {
   return (
     <div className="arcade-bg" aria-hidden="true">
       <div className="arcade-bg-nebula" />
-      <div className="arcade-bg-stars" />
+      {/* Tres capas de estrellas (lejos, medio, cerca) que se deslizan con transform. */}
+      <div className="arcade-bg-stars"><i /><i /><i /></div>
       {/* Las trazas pasan a ser constelaciones: el span es el segmento y sus
           pseudos las dos estrellas que une. */}
       <div className="arcade-bg-circuit">

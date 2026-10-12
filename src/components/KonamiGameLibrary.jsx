@@ -12,6 +12,7 @@ const MOUNT_STATUS = {
   booting: "Starting your game"
 };
 const MOUNT_TIMING = { seating: 1150, locked: 2400, booting: 2900, launch: 3700 };
+const MOUNT_STEPS = [["aligning", "READY"], ["seating", "INSERT"], ["locked", "LOCK"], ["booting", "PLAY"]];
 
 function GameCartridge({ game, className = "" }) {
   return (
@@ -122,6 +123,7 @@ export function KonamiGameLibrary({ open, onClose, onSelect, journalComplete = f
 
   if (!open) return null;
   const mountedGame = games.find((game) => game.id === mountingGame);
+  const mountStep = MOUNT_STEPS.findIndex(([phase]) => phase === mountPhase);
   const selectedGame = games[Math.min(selectedIndex, games.length - 1)];
   const selectRelative = (step) => setSelectedIndex((index) => (index + step + games.length) % games.length);
   // Two shelves of three; a seventh cartridge (NZ:P next to the regular six,
@@ -151,12 +153,13 @@ export function KonamiGameLibrary({ open, onClose, onSelect, journalComplete = f
           <button type="button" onClick={onClose} ref={closeRef} aria-label="Close secret game library"><X size={19} /></button>
         </header>
 
-        <div className="konami-library-room">
+        <div className={`konami-library-room is-${selectedGame.color}`}>
           <div className="konami-shelf-cabinet">
             <div className="konami-shelf-heading"><span><Gamepad2 size={16} /> DAI’S GAME SHELF</span><b>EST. 1986</b></div>
             <div className={`konami-cartridge-shelves ${columns === 4 ? "is-wide" : ""}`} role="tablist" aria-label="Game cartridges">
               {rowStarts.map((start) => (
                 <div className="konami-shelf-row" role="presentation" key={start}>
+                  <i className="konami-shelf-dust" aria-hidden="true" />
                   {games.slice(start, start + columns).map((game, offset) => {
                     const index = start + offset;
                     return (
@@ -175,17 +178,18 @@ export function KonamiGameLibrary({ open, onClose, onSelect, journalComplete = f
           <div className={`konami-game-preview is-${selectedGame.color}`} role="tabpanel" id="library-game-preview" aria-labelledby={`library-cart-${selectedGame.id}`} tabIndex={0}>
             <div className="konami-station-heading"><span><i aria-hidden="true" /> PLAYER 01</span><span>THE PLAY CORNER</span></div>
             <div className="konami-preview-monitor">
-              <div className="konami-preview-screen"><img src={selectedGame.image} alt={`${selectedGame.title} cover art`} /><span>READY TO PLAY</span></div>
+              {/* Keyed on the cartridge, so every switch replays the channel flip. */}
+              <div className="konami-preview-screen"><img key={selectedGame.id} src={selectedGame.image} alt={`${selectedGame.title} cover art`} /><span>READY TO PLAY</span><b className="konami-preview-osd" aria-hidden="true">CH {String(selectedIndex + 1).padStart(2, "0")}</b><i key={`static-${selectedGame.id}`} className="konami-preview-static" aria-hidden="true" /></div>
               <div className="konami-monitor-chin"><span><strong>DAIVR</strong> COLOR / STEREO</span><b aria-hidden="true" /><span className="konami-monitor-dials" aria-hidden="true"><em /><em /></span><i aria-hidden="true" /></div>
             </div>
             <div className="konami-preview-copy">
               <div className="konami-preview-counter"><div className="konami-preview-title"><small>CARTRIDGE {String(selectedIndex + 1).padStart(2, "0")} / {String(games.length).padStart(2, "0")}</small><h3>{selectedGame.title}</h3></div><div className="konami-preview-navigation"><button type="button" aria-label="Previous cartridge" disabled={Boolean(mountingGame)} onClick={() => selectRelative(-1)}><ChevronLeft size={16} /></button><button type="button" aria-label="Next cartridge" disabled={Boolean(mountingGame)} onClick={() => selectRelative(1)}><ChevronRight size={16} /></button></div></div>
               <p>{selectedGame.description}</p>
-              <span className="konami-preview-meta">{selectedGame.meta}</span>
+              <span className="konami-preview-meta">{selectedGame.meta.split("//").map((tag) => <b key={tag}>{tag.trim()}</b>)}</span>
             </div>
             <div className="konami-play-deck">
               <div className="konami-deck-top"><span>CARTRIDGE INPUT<span className="konami-play-slot" aria-hidden="true" /></span><i className="konami-deck-vents" aria-hidden="true" /></div>
-              <button type="button" className="konami-insert-game" disabled={Boolean(mountingGame)} onClick={() => mountGame(selectedGame.id)}><Play size={16} fill="currentColor" /> Insert & play <span>↵</span></button>
+              <button type="button" className="konami-insert-game" disabled={Boolean(mountingGame)} onClick={() => mountGame(selectedGame.id)}><i className="konami-insert-icon" aria-hidden="true"><Play size={13} fill="currentColor" /></i> Insert & play <span>↵</span></button>
               <small><i /> STATION-86 <b>GOOD GAMES. NO QUARTERS.</b></small>
             </div>
           </div>
@@ -193,8 +197,9 @@ export function KonamiGameLibrary({ open, onClose, onSelect, journalComplete = f
 
         {mountedGame ? (
           <div className={`konami-mount-sequence konami-loader is-${mountedGame.color} is-${mountPhase}`} style={{ "--load-duration": `${MOUNT_TIMING.launch}ms` }}>
+            <div className="konami-loader-lamp" aria-hidden="true"><i className="konami-loader-shade" /><span className="konami-loader-beam"><i /></span><span className="konami-loader-motes" /></div>
             <div className="konami-loader-card">
-              <div className="konami-loader-heading"><span>DAIVR / HOME ARCADE</span><span>STATION 86</span></div>
+              <div className="konami-loader-heading"><span>DAIVR / HOME ARCADE</span><i aria-hidden="true" /><span>STATION 86</span></div>
               <div className="konami-loader-stage" aria-hidden="true">
                 <div className="konami-loader-table" />
                 <div className="konami-loader-hardware">
@@ -210,7 +215,9 @@ export function KonamiGameLibrary({ open, onClose, onSelect, journalComplete = f
                   <div className="konami-loader-feet"><i /><i /></div>
                 </div>
               </div>
-              <div className="konami-loader-copy" role="status" aria-live="polite"><small>{MOUNT_STATUS[mountPhase]}</small><strong>{mountedGame.title}</strong><p>One cartridge. A whole other world.</p></div>
+              <div className="konami-loader-copy" role="status" aria-live="polite"><small>{MOUNT_STATUS[mountPhase]}</small><strong>{mountedGame.title}</strong><p>One cartridge. A whole other world.</p>
+                <ol className="konami-loader-steps" aria-hidden="true">{MOUNT_STEPS.map(([phase, label], index) => <li className={index < mountStep ? "is-done" : index === mountStep ? "is-active" : ""} key={phase}><i />{label}</li>)}</ol>
+              </div>
             </div>
           </div>
         ) : null}

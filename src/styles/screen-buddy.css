@@ -242,8 +242,11 @@
     animation: buddy-visor-glint 2.1s steps(2, end) infinite;
   }
 
+  /* Los LEDs laten con fill-opacity: opacity en un elemento SVG cambia sus
+     propiedades de pintado y obliga a recomponer las capas de toda la pagina en
+     cada frame; fill-opacity solo repinta el rect. */
   .buddy-led {
-    animation: buddy-led-pulse 1.8s ease-in-out infinite;
+    animation: buddy-led-fill 1.8s ease-in-out infinite;
   }
 
   .buddy-antenna-spark {
@@ -274,12 +277,12 @@
   }
 
   .buddy-power {
-    animation: buddy-led-pulse 2.6s ease-in-out infinite;
+    animation: buddy-led-fill 2.6s ease-in-out infinite;
   }
 
   /* Hablando: la antena "transmite" */
   .screen-buddy-root.is-talk .buddy-led {
-    animation: buddy-led-pulse 0.32s steps(2, end) infinite;
+    animation: buddy-led-fill 0.32s steps(2, end) infinite;
   }
 
   /* Escenario del splash de entrada: ancla al buddy perchado sobre la puerta
@@ -1226,7 +1229,7 @@
 
   :is(.buddy-fishing-rig, .buddy-fishing-rod-overlay, .buddy-rod-icon).rod-golden .buddy-rod-tip {
     fill: #f4fff8;
-    animation: buddy-led-pulse 1.4s ease-in-out infinite;
+    animation: buddy-led-fill 1.4s ease-in-out infinite;
   }
 
   .buddy-fishing-rig.rod-golden .buddy-fishing-rod-art,
@@ -1645,6 +1648,17 @@
     94%,
     97% {
       transform: scaleY(0.12);
+    }
+  }
+
+  @keyframes buddy-led-fill {
+    0%,
+    100% {
+      fill-opacity: 1;
+    }
+
+    50% {
+      fill-opacity: 0.35;
     }
   }
 
