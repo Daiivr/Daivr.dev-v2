@@ -1,5 +1,5 @@
 diff --git a/css/style.css b/css/style.css
-index 6f72ce0..f75f88f 100644
+index 6f72ce0..4b6df5f 100644
 --- a/css/style.css
 +++ b/css/style.css
 @@ -113,26 +113,108 @@ input { font: inherit; }
@@ -252,7 +252,18 @@ index 6f72ce0..f75f88f 100644
  
  .lobby-members { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
  .lob-card {
-@@ -558,7 +727,7 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius:
+@@ -516,6 +685,10 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius:
+ .lob-card .conn { font-size: 12px; color: var(--green); }
+ .lob-card .conn.wait { color: var(--gold); }
+ .lob-card.empty { border-style: dashed; border-color: rgba(244,248,255,.18); color: var(--muted); }
++/* daivr.dev: pasar el anfitrión a otro jugador de la sala. */
++.lob-card .lob-host { display: inline-flex; align-items: center; gap: 5px; margin-top: 6px; padding: 4px 10px; font-size: 12px; border-width: 2px; }
++.lob-card .lob-host img { image-rendering: pixelated; }
++.lob-card .lob-host:hover { border-color: var(--gold); color: var(--gold); }
+ 
+ .invite-pop {
+   position: fixed; right: 18px; bottom: 54px; z-index: 70; width: min(340px, calc(100% - 32px));
+@@ -558,7 +731,7 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius:
  select.field { font-family: var(--font); }
  
  /* ---------- tragaperras del gacha ---------- */
@@ -261,7 +272,7 @@ index 6f72ce0..f75f88f 100644
    filter: drop-shadow(0 0 30px rgba(255,90,90,.35)); animation: pop .25s ease-out both; }
  
  /* ---------- misiones, logros, perfil y objetos ---------- */
-@@ -707,18 +876,27 @@ a.btn { text-decoration: none; display: inline-block; color: var(--ink); }
+@@ -707,18 +880,27 @@ a.btn { text-decoration: none; display: inline-block; color: var(--ink); }
    #menu-partner { height: min(34vh, 130px); width: auto; }
    .partner-card { margin-top: 2px; }
    .partner-card .nm { font-size: 17px; }
@@ -1086,6 +1097,111 @@ index 21c4448..b75549e 100644
      get mode() { return mode; },
      get localReason() { return localReason; },
      get syncState() { return syncState; },
+diff --git a/js/core/sprites.js b/js/core/sprites.js
+index 74cc9d9..c2643bc 100644
+--- a/js/core/sprites.js
++++ b/js/core/sprites.js
+@@ -20,25 +20,36 @@ G.Sprites = (() => {
+   function hovers(dex) { const m = meta(dex); return !!(m && m.hv); }
+ 
+   /**
+-   * Versión blanca de una imagen (para el destello al recibir un golpe).
++   * Versión de un solo color de una imagen: blanca para el destello al recibir
++   * un golpe, azul para el aura de los escudos.
+    * Se hace una vez por hoja con composición "source-in": mucho más barato
+    * que ctx.filter en cada dibujo, que era lo que más ralentizaba con muchos
+    * enemigos a la vez.
+    */
+-  const whites = new WeakMap();
+-  function white(img) {
+-    let c = whites.get(img);
++  const tints = new Map();           // color -> WeakMap(img -> canvas)
++  function tinted(img, color) {
++    let byImg = tints.get(color);
++    if (!byImg) tints.set(color, byImg = new WeakMap());
++    let c = byImg.get(img);
+     if (c) return c;
+     c = document.createElement('canvas');
+     c.width = img.width; c.height = img.height;
+     const x = c.getContext('2d');
+     x.drawImage(img, 0, 0);
+     x.globalCompositeOperation = 'source-in';
+-    x.fillStyle = '#ffffff';
++    x.fillStyle = color;
+     x.fillRect(0, 0, c.width, c.height);
+-    whites.set(img, c);
++    byImg.set(img, c);
+     return c;
+   }
++  function white(img) { return tinted(img, '#ffffff'); }
++
++  // Aura: la silueta teñida asomando 1 píxel de arte por cada lado (fuerte),
++  // 2 por fuera (tenue) y una lengua que sube y tiembla, como la energía de
++  // los juegos pixel art.
++  const AURA_IN = [[-1, 0], [1, 0], [0, -1], [0, 1]];
++  const AURA_OUT = [[-2, 0], [2, 0], [0, -2], [0, 2], [-1, -1], [1, -1], [-1, 1], [1, 1]];
++  const AURA_UP = [[0, -4], [-1, -3], [1, -3]];
+ 
+   /** ¿Tiene versión shiny? (assets/pokemon/{dex}/s/) */
+   function hasShiny(dex) { const m = meta(dex); return !!(m && m.sh); }
+@@ -224,23 +235,50 @@ G.Sprites = (() => {
+       }
+     }
+ 
+-    /** Dibuja con los pies en (x, y). opts: { flash, alpha } */
+-    draw(ctx, x, y, opts = {}) {
++    /** Hoja y fotograma que se ven ahora (mientras carga una animación, Idle). */
++    _frame() {
+       let m = animMeta(this.dex, this.cur, this.shiny);
+       let s = sheet(this.dex, this.cur, this.shiny);
+-      const k = PX * this.scale;
++      let frame = this.frame;
+       if (s && !s.ready) {
+-        // Mientras carga esta animación, enseña Idle si ya está.
+         const idle = sheet(this.dex, 'Idle', this.shiny);
+-        if (idle && idle.ready) { s = idle; m = animMeta(this.dex, 'Idle', this.shiny); }
++        if (idle && idle.ready) { s = idle; m = animMeta(this.dex, 'Idle', this.shiny); frame = 0; }
+       }
+-      const frame = s === sheet(this.dex, this.cur, this.shiny) ? this.frame : 0;
+-      if (!m || !s || !s.ready) {
++      return m && s && s.ready ? { m, s, frame } : null;
++    }
++
++    /**
++     * Aura del color dado alrededor de la silueta. Va ANTES que draw(), con los
++     * mismos (x, y): el sprite tapa el centro y sólo queda el borde. a = 0..1.
++     */
++    aura(ctx, x, y, color, a = 1) {
++      const f = this._frame();
++      if (!f || a <= 0) return;
++      const { m, s, frame } = f, k = PX * this.scale;
++      const sx = Math.min(frame, m.n - 1) * m.w, sy = Math.min(this.dir, m.r - 1) * m.h;
++      const dx = Math.round(x - m.ax * k), dy = Math.round(y - m.ay * k), W = m.w * k, H = m.h * k;
++      const img = tinted(s.img, color), prev = ctx.globalAlpha;
++      const flick = 0.5 + 0.5 * Math.sin(performance.now() / 70 + dx * 0.13);
++      ctx.globalAlpha = prev * a * (0.08 + flick * 0.12);
++      for (const [ox, oy] of AURA_UP) ctx.drawImage(img, sx, sy, m.w, m.h, dx + ox * k, dy + oy * k, W, H);
++      ctx.globalAlpha = prev * a * 0.3;
++      for (const [ox, oy] of AURA_OUT) ctx.drawImage(img, sx, sy, m.w, m.h, dx + ox * k, dy + oy * k, W, H);
++      ctx.globalAlpha = prev * a;
++      for (const [ox, oy] of AURA_IN) ctx.drawImage(img, sx, sy, m.w, m.h, dx + ox * k, dy + oy * k, W, H);
++      ctx.globalAlpha = prev;
++    }
++
++    /** Dibuja con los pies en (x, y). opts: { flash, alpha } */
++    draw(ctx, x, y, opts = {}) {
++      const f = this._frame();
++      const k = PX * this.scale;
++      if (!f) {
+         // Respaldo: bolita, por si falta el fichero.
+         ctx.fillStyle = opts.color || '#6b7a94';
+         ctx.beginPath(); ctx.arc(x, y - 12 * k, 8 * k, 0, 6.2832); ctx.fill();
+         return;
+       }
++      const { m, s, frame } = f;
+       const row = Math.min(this.dir, m.r - 1);
+       const alpha = opts.alpha == null ? 1 : opts.alpha;
+       if (alpha <= 0) return;
 diff --git a/js/core/updater.js b/js/core/updater.js
 index c6a3929..6d67110 100644
 --- a/js/core/updater.js
@@ -1101,6 +1217,36 @@ index c6a3929..6d67110 100644
      if (!mine || !location.protocol.startsWith('http')) return;
      clearInterval(timer);
      timer = setInterval(loop, 2000);
+diff --git a/js/data/enemies.js b/js/data/enemies.js
+index 36e7077..db5c433 100644
+--- a/js/data/enemies.js
++++ b/js/data/enemies.js
+@@ -233,8 +233,24 @@ G.Enemies = (() => {
+     return out;
+   }
+ 
++  /**
++   * daivr.dev: definición de `dex` con los stats del tramo del segundo `t`
++   * (migración del anfitrión: sus enemigos se rehacen en el nuevo). Los jefes,
++   * con los del jefe de esa hora.
++   */
++  function defAt(dex, t, boss = false) {
++    const p = G.DEX_BY[dex] || G.DEX_BY[25];
++    if (boss) {
++      if (!bosses) rollRun();
++      const slot = bosses.filter(b => b.at <= t).pop() || bosses[0];
++      return Object.assign({}, slot, { dex: p.dex, name: p.name });
++    }
++    const ti = tierAt(t);
++    return defFor(p, TIERS[ti], ti);
++  }
++
+   return {
+-    TIERS, BOSS_SLOTS, LATE_FROM, rollRun, scale, bossScale, late, bagAt, upcomingDex, candidates, hordeTypes, hordeDefs,
++    TIERS, BOSS_SLOTS, LATE_FROM, rollRun, scale, bossScale, late, bagAt, upcomingDex, candidates, hordeTypes, hordeDefs, defAt,
+     get BOSSES() { if (!bosses) rollRun(); return bosses; },
+     get cast() { if (!cast) rollRun(); return cast; }
+   };
 diff --git a/js/data/funding.js b/js/data/funding.js
 index 5c16cb4..30f499f 100644
 --- a/js/data/funding.js
@@ -1123,7 +1269,7 @@ index 5c16cb4..30f499f 100644
    get url() { return this.kofi ? 'https://ko-fi.com/' + this.kofi : ''; }
  };
 diff --git a/js/data/lang-en.js b/js/data/lang-en.js
-index 23adbb8..26ae915 100644
+index 23adbb8..6bf5951 100644
 --- a/js/data/lang-en.js
 +++ b/js/data/lang-en.js
 @@ -274,7 +274,7 @@ G.I18n.add({
@@ -1153,7 +1299,7 @@ index 23adbb8..26ae915 100644
    'Cuanta más gente juega, más cuestan los servidores. Lo que sobre se guarda para los gastos de los meses siguientes.': 'The more people play, the more the servers cost. Anything left over is saved for the following months\' costs.',
    'Juego de fans {x}: sin anuncios ni compras. Pokémon y sus personajes son propiedad de Nintendo, Creatures y GAME FREAK; este proyecto no está afiliado a ellos.': 'Fan game {x}: no ads or purchases. Pokémon and its characters are owned by Nintendo, Creatures and GAME FREAK; this project is not affiliated with them.',
    ': sin anuncios ni compras. Pokémon y sus personajes son propiedad de Nintendo, Creatures y GAME FREAK; este proyecto no está afiliado a ellos.': ': no ads or purchases. Pokémon and its characters are owned by Nintendo, Creatures and GAME FREAK; this project is not affiliated with them.',
-@@ -537,5 +537,30 @@ G.I18n.add({
+@@ -537,5 +537,39 @@ G.I18n.add({
      'Tap the moves you do not want in your cards ({x}). The starting move cannot be banned.',
    'Ya tienes {x} vetados: quita uno primero': 'You already have {x} banned: remove one first',
    'En iPhone, Safari no deja poner las webs a pantalla completa. Pulsa Compartir y luego "Añadir a pantalla de inicio": abriendo el juego desde ese icono se juega a pantalla completa.':
@@ -1183,13 +1329,235 @@ index 23adbb8..26ae915 100644
 +  '. Fuente Pixelify Sans (OFL). La música y los efectos de sonido son originales del juego.': '. Pixelify Sans font (OFL). The music and sound effects are original to the game.',
 +  'Si eres titular de derechos y quieres que retiremos algo, escribe en el libro de visitas de daivr.dev y lo quitaremos lo antes posible.': 'If you are a rights holder and want something removed, write in the daivr.dev guestbook and we\'ll take it down as soon as possible.',
 +  'con el de tus compañeros (como en una videollamada), así que cada uno puede llegar a ver la dirección IP del otro. Las partidas abiertas las ve cualquiera que haya entrado con Discord: ponles contraseña para jugar sólo con gente que conozcas. Si la conexión directa no es posible, la partida pasa por el servidor de daivr.dev.': 'to your teammates\' browsers (like a video call), so each of you may be able to see the others\' IP address. Open games are visible to anyone signed in with Discord: add a password to play only with people you know. If a direct connection isn\'t possible, the game goes through the daivr.dev server.',
-+  'Cooperativo': 'Co-op'
++  'Cooperativo': 'Co-op',
++  // daivr.dev: migración y cambio de anfitrión.
++  'Hacer anfitrión': 'Make host', 'Pasarle la sala a {x}': 'Hand the room to {x}',
++  'Ahora eres el anfitrión de la sala': 'You are now the room host', '{x} es ahora el anfitrión': '{x} is now the host',
++  'Sólo el anfitrión puede pasar la sala.': 'Only the host can hand over the room.',
++  'No se pudo pasar el anfitrión ({x}).': 'Could not hand over the host ({x}).',
++  'El anfitrión se ha ido: ahora lo eres tú': 'The host left: you are the host now',
++  'El anfitrión se ha ido: ahora lo es {x}': 'The host left: {x} is the host now',
++  '{x} (anfitrión) se ha ido: buscando un nuevo anfitrión…': '{x} (host) left: looking for a new host…',
++  'La partida ha terminado: el anfitrión ha dejado el grupo': 'The match ended: the host left the party'
  });
+diff --git a/js/entities/enemy.js b/js/entities/enemy.js
+index f0d2efc..326d8b9 100644
+--- a/js/entities/enemy.js
++++ b/js/entities/enemy.js
+@@ -677,11 +677,32 @@
+       if (alpha <= 0) return;
+ 
+       const gold = this.golden || this.behavior === 'thief' || (this.remote && !this.boss && G.Events.golden);
++      const fury = this.ai && this.ai.fury;
++      const t = performance.now() / 1000, k = G.Sprites.PX, snap = G.FX.snap;
++      // Resplandor en el suelo (jefes, shinies, dorados), a escalones de píxel:
++      // halo tenue, centro más vivo y un filo.
+       if ((this.boss || this.shiny || gold) && !this.dead) {
++        const col = fury ? '#ff4a4a' : this.shiny ? '#9ae6ff' : gold ? '#ffd23f' : '#ffd95e';
++        const a = (gold && !this.boss ? 0.32 : 0.22) + Math.sin(this.bob * 0.5) * 0.06;
+         ctx.save();
+-        ctx.globalAlpha = (gold && !this.boss ? 0.32 : 0.22) + Math.sin(this.bob * 0.5) * 0.06;
+-        ctx.fillStyle = this.ai && this.ai.fury ? '#ff4a4a' : this.shiny ? '#9ae6ff' : gold ? '#ffd23f' : '#ffd95e';
+-        ctx.beginPath(); ctx.ellipse(this.x, this.y, this.r * 1.6, this.r * 0.6, 0, 0, 6.2832); ctx.fill();
++        ctx.globalAlpha = a * 0.7;
++        G.FX.ellipse(ctx, this.x, this.y, this.r * 1.6, this.r * 0.6, col);
++        ctx.globalAlpha = a;
++        G.FX.ellipse(ctx, this.x, this.y, this.r * 1.05, this.r * 0.4, col);
++        ctx.globalAlpha = Math.min(1, a * 2);
++        G.FX.ellipseRing(ctx, this.x, this.y, this.r * 1.6, this.r * 0.6, col);
++        ctx.restore();
++      }
++
++      // Quemado / envenenado: charco del color en el suelo (debajo del Pokémon).
++      const burning = this.burn > 0 || (this.net && this.net.st & 1);
++      const status = !this.dead && (this.burn > 0 || this.poison > 0 || (this.net && this.net.st & 3)) ? G.VFX.PAL[burning ? 'fire' : 'poison'] : null;
++      if (status) {
++        ctx.save();
++        ctx.globalAlpha = 0.4;
++        G.FX.ellipse(ctx, this.x, this.y, this.r * 1.2, this.r * 0.5, status[2]);
++        ctx.globalAlpha = 0.7;
++        G.FX.ellipseRing(ctx, this.x, this.y, this.r * 1.2, this.r * 0.5, status[3]);
+         ctx.restore();
+       }
+ 
+@@ -691,27 +712,43 @@
+       // Los que flotan ya van en el aire en su sprite: sólo se mecen un poco.
+       // (Y los que saltan, en arco.)
+       const lift = (this.flying && !this.boss ? 1 + Math.sin(this.bob) * 1.5 : 0) + (this.jumpLift || 0);
++      // Aura pegada a la silueta: azul con escudo (la burbuja de antes se
++      // solapaba con las de al lado en cuanto un apoyo protegía a un grupo),
++      // dorada en jefes y dorados, roja con el jefe furioso.
++      const shielded = !this.dead && (this.shield > 0 || (this.net && this.net.st & 4));
++      if (shielded) {
++        let a = 0.8 + Math.sin(this.bob * 1.3) * 0.2;
++        // Le queda poco: parpadea.
++        if (this.shieldT > 0 && this.shieldT < 1.5 && Math.sin(t * 28) > 0) a *= 0.35;
++        this.anim.aura(ctx, this.x, this.y - lift, '#8fd4ff', a);
++      } else if (!this.dead && (this.boss || gold)) {
++        this.anim.aura(ctx, this.x, this.y - lift, fury ? '#ff5a4a' : '#ffd23f', 0.55 + Math.sin(this.bob * 0.9) * 0.15);
++      }
+       this.anim.draw(ctx, this.x, this.y - lift, { flash: this.flash > 0, alpha });
+       ctx.restore();
+ 
+       if (this.dead) return;
+ 
+-      // Escudo: burbuja azul.
+-      if (this.shield > 0 || (this.net && this.net.st & 4)) {
+-        ctx.save();
+-        ctx.globalAlpha = 0.35 + Math.sin(this.bob) * 0.08;
+-        ctx.strokeStyle = '#9fd8ff'; ctx.lineWidth = 2;
+-        ctx.fillStyle = 'rgba(127,200,255,.14)';
+-        ctx.beginPath(); ctx.ellipse(this.x, this.y - this.bodyH * 0.45, this.r * 1.5, this.bodyH * 0.65, 0, 0, 6.2832);
+-        ctx.fill(); ctx.stroke();
+-        ctx.restore();
+-      }
+-
+-      if (this.burn > 0 || this.poison > 0 || (this.net && this.net.st & 3)) {
++      // Motas que suben por el aura del escudo; brasas o burbujas si está
++      // quemado o envenenado (todo en la cuadrícula de píxeles de arte).
++      if (shielded || status) {
+         ctx.save();
+-        ctx.globalAlpha = 0.45;
+-        ctx.fillStyle = this.burn > 0 || (this.net && this.net.st & 1) ? '#ff8a3d' : '#c86bdc';
+-        ctx.beginPath(); ctx.ellipse(this.x, this.y, this.r * 1.2, this.r * 0.5, 0, 0, 6.2832); ctx.fill();
++        for (let i = 0; i < 3; i++) {
++          if (shielded) {
++            const ph = (t * 0.8 + i / 3 + this.id * 0.618) % 1;
++            ctx.globalAlpha = (1 - ph) * 0.9;
++            ctx.fillStyle = '#e4f6ff';
++            ctx.fillRect(snap(this.x + Math.sin(i * 2.4 + this.id) * this.r * 0.9), snap(this.y - lift - this.bodyH * (0.15 + ph)), k, k);
++          }
++          if (status) {
++            const ph = (t * (burning ? 1.3 : 0.6) + i / 3 + this.id * 0.37) % 1;
++            const s = !burning && ph > 0.55 ? 2 * k : k;
++            ctx.globalAlpha = 1 - ph;
++            ctx.fillStyle = status[ph < 0.35 ? 4 : 3];
++            ctx.fillRect(snap(this.x + Math.sin(i * 2.1 + this.id + (burning ? ph * 4 : 0)) * this.r * 0.8),
++                         snap(this.y - this.bodyH * ph * (burning ? 0.9 : 0.6)), s, s);
++          }
++        }
+         ctx.restore();
+       }
+ 
+@@ -719,13 +756,15 @@
+       const SUP = { healer: 'heart', shielder: 'shield', summoner: 'friends' };
+       if (SUP[this.behavior]) G.Icons.draw(ctx, SUP[this.behavior], Math.round(this.x - 6), Math.round(this.y - this.bodyH - (this.hp < this.maxHp ? 26 : 18)), 12);
+ 
++      // Vida: barrita pixel con contorno de tinta, canal oscuro y brillo arriba.
+       if (this.boss || this.hp < this.maxHp) {
+-        const w = this.boss ? 90 : Math.max(22, this.r * 2);
+-        const y = this.y - this.bodyH - 10;
+-        ctx.fillStyle = 'rgba(0,0,0,.6)';
+-        ctx.fillRect(this.x - w / 2, y, w, 3.4);
+-        ctx.fillStyle = this.boss ? '#ffcb3d' : '#ff5f6d';
+-        ctx.fillRect(this.x - w / 2, y, w * Math.max(0, this.hp / this.maxHp), 3.4);
++        const w = snap(this.boss ? 90 : Math.max(22, this.r * 2));
++        const x = snap(this.x - w / 2), y = snap(this.y - this.bodyH - 10), f = Math.max(0, this.hp / this.maxHp);
++        const fw = Math.max(f > 0 ? 1 : 0, Math.round(w * f));
++        ctx.fillStyle = '#1b1528'; ctx.fillRect(x - 1, y - 1, w + 2, k * 2 + 2);
++        ctx.fillStyle = this.boss ? '#4a3208' : '#4a1220'; ctx.fillRect(x, y, w, k * 2);
++        ctx.fillStyle = this.boss ? '#ffcb3d' : '#ff5f6d'; ctx.fillRect(x, y, fw, k * 2);
++        ctx.fillStyle = this.boss ? '#fff0a8' : '#ffb3bb'; ctx.fillRect(x, y, fw, 1);
+       }
+     }
+   }
+@@ -956,7 +995,29 @@
+     function bossAlive() { return list.some(e => e.boss && !e.dead); }
+     function shinies() { return list.filter(e => e.shiny && !e.dead); }
+ 
+-    return { clear, all, add, get, addRemote, removeRemote, stash, restore, clearRemote, update, drawables, queryCircle, rebuildGrid, bossAlive, shinies, nearestPlayer,
++    /**
++     * daivr.dev, migración del anfitrión (net/coop.js): las copias de los
++     * enemigos del que se ha ido pasan a ser de verdad, con el mismo Pokémon,
++     * sitio, vida y daño. → { id viejo: id nuevo } (para la grieta).
++     */
++    function adoptRemote(t) {
++      const old = list.filter(e => e.remote && !e.dead);
++      clearRemote();
++      const ids = {};
++      for (const r of old) {
++        const def = Object.assign({}, G.Enemies.defAt(r.dex, t, r.boss));
++        if (r.behavior && r.behavior !== 'remote') def.behavior = r.behavior;
++        const sc = r.boss ? G.Enemies.bossScale(t) : G.Enemies.scale(t);
++        const e = new Enemy(def, r.x, r.y, { hp: 1, spd: sc.spd, dmg: 1 }, r.boss);
++        e.maxHp = r.maxHp; e.hp = G.U.clamp(r.hp, 1, r.maxHp); e.dmg = r.dmg;
++        if (r.shiny) { e.shiny = true; e.anim = new G.Sprites.Animator(e.dex, e.scale, true); e.xp *= 5; }
++        if (G.Events.golden && !e.boss) e.makeGolden();
++        ids[r.id] = add(e).id;
++      }
++      return ids;
++    }
++
++    return { clear, all, add, get, addRemote, removeRemote, adoptRemote, stash, restore, clearRemote, update, drawables, queryCircle, rebuildGrid, bossAlive, shinies, nearestPlayer,
+              get count() { return list.length; } };
+   })();
+ })();
+diff --git a/js/entities/fx.js b/js/entities/fx.js
+index 8326745..fd2bd09 100644
+--- a/js/entities/fx.js
++++ b/js/entities/fx.js
+@@ -87,6 +87,33 @@ G.FX = (() => {
+     rings.push({ x, y, r0, r1, color, life, t: 0, width });
+   }
+ 
++  /** Elipse rellena en la rejilla de píxeles (filas de bloques, sin suavizado). */
++  function ellipse(ctx, x, y, rx, ry, color) {
++    if (rx < PX || ry < PX) return;
++    ctx.fillStyle = color;
++    const cx = snap(x), cy = snap(y), n = Math.max(1, Math.round(ry / PX));
++    for (let i = -n; i < n; i++) {
++      const v = (i + 0.5) / n, hw = snap(rx * Math.sqrt(1 - v * v));
++      if (hw > 0) ctx.fillRect(cx - hw, cy + i * PX, hw * 2, PX);
++    }
++  }
++
++  /** Contorno de elipse en la rejilla de píxeles (grosor en píxeles de arte). */
++  function ellipseRing(ctx, x, y, rx, ry, color, thick = 1) {
++    if (rx < PX || ry < PX) return;
++    ctx.fillStyle = color;
++    const cx = snap(x), cy = snap(y), n = Math.max(1, Math.round(ry / PX)), t = thick * PX;
++    const rxi = rx - t, ryi = ry - t;
++    for (let i = -n; i < n; i++) {
++      const yy = (i + 0.5) * PX, v = (i + 0.5) / n;
++      const ho = snap(rx * Math.sqrt(1 - v * v));
++      if (ho <= 0) continue;
++      const hi = ryi > 0 && Math.abs(yy) < ryi ? snap(rxi * Math.sqrt(1 - (yy / ryi) ** 2)) : 0;
++      if (hi <= 0) ctx.fillRect(cx - ho, cy + i * PX, ho * 2, PX);
++      else { ctx.fillRect(cx - ho, cy + i * PX, ho - hi, PX); ctx.fillRect(cx + hi, cy + i * PX, ho - hi, PX); }
++    }
++  }
++
+   /** Golpe cuerpo a cuerpo. fx: { pal, melee } (ver G.VFX.forMove). */
+   function slash(x, y, angle, radius, arc, color, fx = {}) {
+     const pal = fx.pal || 'normal';
+@@ -265,6 +292,6 @@ G.FX = (() => {
+     }
+   }
+ 
+-  return { clear, px, burst, spark, sp, twinkle, trail, dmgText, ring, slash, beam, update, draw,
++  return { clear, px, burst, spark, sp, twinkle, trail, dmgText, ring, slash, beam, update, draw, ellipse, ellipseRing, snap,
+            get count() { return parts.length + sprites.length + texts.length; } };
+ })();
 diff --git a/js/entities/pickup.js b/js/entities/pickup.js
-index d9e4ae5..256c26c 100644
+index d9e4ae5..bcc3645 100644
 --- a/js/entities/pickup.js
 +++ b/js/entities/pickup.js
-@@ -167,17 +167,10 @@ G.Pickups = (() => {
+@@ -60,6 +60,14 @@ G.Pickups = (() => {
+     list.push(o);
+   }
+ 
++  /**
++   * daivr.dev, migración del anfitrión: lo que hay en el suelo pasa a ser tuyo,
++   * con números nuevos (los demás borran sus copias y les llegan éstos).
++   */
++  function adoptRemote() {
++    for (const o of list) { o.id = nextId++; if (G.Coop.isHost) G.Coop.pickupAdded(o); }
++  }
++
+   function removeId(id) {
+     const i = list.findIndex(p => p.id === id);
+     if (i < 0) return null;
+@@ -167,17 +175,10 @@ G.Pickups = (() => {
  
        ctx.globalAlpha = 1;
        ctx.fillStyle = k.color;
@@ -1211,8 +1579,15 @@ index d9e4ae5..256c26c 100644
        } else {
          // Baya, imán y bomba: su icono pixel art.
          const ICON = { heal: 'berry', magnet: 'magnet', bomb: 'bomb', ticket: 'ticket', ticket10: 'ticket10' };
+@@ -198,5 +199,5 @@ G.Pickups = (() => {
+     ctx.globalAlpha = 1;
+   }
+ 
+-  return { clear, all, dropXp, drop, update, draw, addRemote, removeId, pullAll, KIND, get count() { return list.length; } };
++  return { clear, all, dropXp, drop, update, draw, addRemote, adoptRemote, removeId, pullAll, KIND, get count() { return list.length; } };
+ })();
 diff --git a/js/game.js b/js/game.js
-index f788c9c..bd8b98c 100644
+index f788c9c..b05c430 100644
 --- a/js/game.js
 +++ b/js/game.js
 @@ -18,6 +18,7 @@ G.Game = (() => {
@@ -1231,17 +1606,91 @@ index f788c9c..bd8b98c 100644
  
      pl = new G.Player(mon, perks, !!save.partnerShiny && G.DB.ownsShiny(mon.dex));
      banked = { t1: 0, t10: 0 };
-@@ -133,6 +135,9 @@ G.Game = (() => {
+@@ -133,14 +135,21 @@ G.Game = (() => {
      // Hojas de sprites locales: el compañero y los primeros enemigos.
      G.Sprites.preload([mon.dex], 8000, pl.shiny);
      G.Audio.music(G.BIOME_MUSIC[0]);
 +    // daivr.dev: el servidor da una ficha al empezar; ninguna marca del ranking
-+    // puede durar más que el tiempo real desde entonces (net/ranking.js).
-+    if (!coop || G.Coop.isHost) G.Ranking.runStarted(coop ? 'g' : 's');
++    // puede durar más que el tiempo real desde entonces (net/ranking.js). En
++    // grupo la piden todos: si el anfitrión se va, la marca la sube el nuevo.
++    G.Ranking.runStarted(coop ? 'g' : 's');
      deathT = 0;
  
      state = 'playing';
-@@ -303,8 +308,12 @@ G.Game = (() => {
+   }
+ 
+   function quitRun() {
+-    if (G.Coop.active) G.Coop.leave();
++    // Anfitrión con dos o más compañeros: te vas del grupo y la partida sigue
++    // con otro de anfitrión (net/coop.js).
++    const handOver = G.Coop.active && G.Coop.leave();
+     endRun(false);
++    if (handOver) G.Social.leaveRoom();
+   }
+ 
+   /** Todos los jugadores de la partida (tú primero). */
+@@ -210,9 +219,30 @@ G.Game = (() => {
+       if (d) Object.assign(pl, { kills: d.ki, bosses: d.bo, coins: d.co, level: Math.max(pl.level, d.lv || 1), t1: d.t1 || pl.t1, t10: d.t10 || pl.t10 });
+       if (d && d.t) time = d.t;
+       if (d && d.why === 'host') G.UI.toast('El anfitrión ha terminado la partida', 3200);
+-      endRun(!(d && d.why === 'host'));
++      if (d && d.why === 'left') G.UI.toast(HOST_LEFT, 4200);
++      endRun(!(d && (d.why === 'host' || d.why === 'left')));
+     },
+     lost(msg) { G.UI.toast(msg, 3600); endRun(false); },
++    // daivr.dev: el anfitrión se ha ido del grupo y nadie ha podido seguir de anfitrión.
++    hostLeft() { G.UI.toast(HOST_LEFT, 4200); endRun(false); },
++    /** Grupo: el anfitrión se ha ido y ahora lo eres tú (net/coop.js). */
++    promoted() {
++      holdBy = [];                                   // la pausa de fusión era del anfitrión que se fue
++      if (state === 'held' && !awayBy) state = 'playing';
++      const ids = G.EnemyMgr.adoptRemote(time);      // sus enemigos pasan a ser tuyos...
++      G.Pickups.adoptRemote();                       // ...y lo que hay en el suelo
++      G.Rift.adopt(ids);
++      G.Spawner.resume(time);                        // sin repetir los jefes que ya salieron
++      // Si había cartas de nivel a medias, se reparten otra vez para todos.
++      if (state === 'levelup') G.Coop.levelStart(pl.level);
++      G.Spawner.say('El anfitrión se ha ido: ahora lo eres tú', 3.4, true);
++    },
++    /** Grupo: el anfitrión se ha ido y ahora lo es otro. */
++    newHost(name) {
++      holdBy = [];
++      if (state === 'held' && !awayBy) state = 'playing';
++      G.Spawner.say('El anfitrión se ha ido: ahora lo es ' + name, 3.4, true);
++    },
+     item(id) { offerItem(id); },
+     mateLeft() {},
+     /** Grupo: quién está eligiendo fusión. Mientras haya alguien, todo parado. */
+@@ -229,9 +259,13 @@ G.Game = (() => {
+         G.Spawner.say(awayBy ? awayText() : '', awayBy ? 999 : 0, true);
+       }
+     },
+-    /** Grupo (invitado): el anfitrión se ha ido de la pestaña o no responde: todo parado. */
+-    away(name) {
++    /**
++     * Grupo (invitado): el anfitrión se ha ido de la pestaña o no responde
++     * (o se ha ido del todo y se busca otro: migrate): todo parado.
++     */
++    away(name, migrate = false) {
+       awayBy = name || null;
++      awayMigrate = !!(awayBy && migrate);
+       if (awayBy) {
+         if (state === 'playing') state = 'held';
+         G.Spawner.say(awayText(), 999, true);
+@@ -241,8 +275,10 @@ G.Game = (() => {
+       }
+     }
+   };
+-  let awayBy = null;
+-  const awayText = () => 'Pausa: esperando a ' + awayBy + ' (anfitrión)…';
++  let awayBy = null, awayMigrate = false;
++  const awayText = () => awayMigrate ? awayBy + ' (anfitrión) se ha ido: buscando un nuevo anfitrión…'
++                                     : 'Pausa: esperando a ' + awayBy + ' (anfitrión)…';
++  const HOST_LEFT = 'La partida ha terminado: el anfitrión ha dejado el grupo';
+ 
+   /** Has llevado a casa a un Pokémon perdido y se une a ti (events.js). */
+   G.onRescue = (dex, name) => {
+@@ -303,8 +339,12 @@ G.Game = (() => {
  
      // Ranking: en solitario cada uno lo suyo; en grupo lo sube el anfitrión.
      const mark = { t: Math.floor(time), lv: pl.level, kills: pl.kills };
@@ -1256,7 +1705,7 @@ index f788c9c..bd8b98c 100644
  
      G.RunUI.showOver({
        dead, time, level: pl.level, kills: pl.kills, bosses: pl.bosses, coins, record, t1: pl.t1, t10: pl.t10,
-@@ -554,6 +563,12 @@ G.Game = (() => {
+@@ -554,6 +594,12 @@ G.Game = (() => {
        return;
      }
      time += dt;
@@ -1311,12 +1760,179 @@ index b47d54d..3fb8ee4 100644
 +  // (En daivr.dev el juego va dentro de la web: sin service worker de PWA,
 +  // que guardaría en caché versiones viejas entre despliegues.)
  })();
+diff --git a/js/net/coop.js b/js/net/coop.js
+index c0cfd5e..c335cec 100644
+--- a/js/net/coop.js
++++ b/js/net/coop.js
+@@ -40,6 +40,11 @@ G.Coop = (() => {
+   let hostAway = false, stalled = false, lastHostAt = 0;
+   const STALL_MS = 2500;
+   let members = [];
++  // daivr.dev: si el anfitrión se va con dos o más jugadores en la partida, el
++  // servidor le pasa la sala al que lleva más tiempo en ella ('room-migrated')
++  // y la partida sigue. Mientras llega, todo parado; si no llega, se acaba.
++  let migrating = null, migrateTimer = 0;
++  const MIGRATE_WAIT_MS = 12000;
+ 
+   // ---------------- escalado de dificultad ----------------
+ 
+@@ -63,6 +68,7 @@ G.Coop = (() => {
+     mates.clear();
+     outEv = []; flushT = 0; waiting = new Set(); holds = new Set();
+     hostAway = false; stalled = false; lastHostAt = performance.now();
++    migrating = null; clearTimeout(migrateTimer);
+     cfg.members.forEach((m, i) => {
+       const x = (i - (cfg.members.length - 1) / 2) * 34, y = 0;
+       if (m.uid === me) { pl.x = x; pl.y = y; pl.uid = me; pl.coopHost = host; pl.tagColor = COLORS[i]; return; }
+@@ -79,20 +85,29 @@ G.Coop = (() => {
+   function end() {
+     active = false; host = false; local = null;
+     mates.clear(); outEv = []; waiting = new Set(); holds = new Set();
++    migrating = null; clearTimeout(migrateTimer);
+   }
+ 
+-  /** Te vas de la partida (los demás siguen). */
+-  function leave() {
+-    if (!active) return;
++  /**
++   * Te vas de la partida (los demás siguen). Si eres el anfitrión y quedan
++   * dos o más, la partida sigue con otro de anfitrión ('hl': el servidor lo
++   * elige cuando sales de la sala); si sólo queda uno, se acaba para él.
++   * @param left  te vas también del grupo (cierras el juego o la tele)
++   * → true si tienes que salir de la sala para que la partida pase a otro.
++   */
++  function leave(left = false) {
++    if (!active) return false;
++    let handOver = false;
+     if (host) {
+-      // Si se va el anfitrión, la partida termina para todos.
+-      emit(['ov', Object.assign(api.summary ? api.summary() : {}, { why: 'host' })]);
+-      flushAll();
++      handOver = [...mates.values()].filter(m => m.connected).length >= 2;
++      emit(handOver ? ['hl'] : ['ov', Object.assign(api.summary ? api.summary() : {}, { why: left ? 'left' : 'host' })]);
++      flushAll(true);
+     } else {
+       outEv.push(['bye']);
+-      flushClient(true);
++      flushClient(true, true);
+     }
+     end();
++    return handOver;
+   }
+ 
+   // ---------------- lista de jugadores ----------------
+@@ -174,11 +189,12 @@ G.Coop = (() => {
+              p, e: enemyList(m.pl), ev };
+   }
+ 
+-  function flushAll() { for (const m of mates.values()) if (m.connected) G.Net.send(m.uid, hostFrame(m)); }
++  /** @param sure  también por el relé (lo último antes de irse) */
++  function flushAll(sure) { for (const m of mates.values()) if (m.connected) G.Net.send(m.uid, hostFrame(m), sure); }
+ 
+-  function flushClient(force) {
++  function flushClient(force, sure) {
+     if (!force && !outEv.length && flushT > 0) return;
+-    G.Net.toHost({ k: 'f', p: myState(), ev: outEv });
++    G.Net.toHost({ k: 'f', p: myState(), ev: outEv }, sure);
+     outEv = [];
+   }
+ 
+@@ -216,9 +232,64 @@ G.Coop = (() => {
+   G.Net.onPeer((u, mode) => {
+     if (!active || (mode !== 'closed' && mode !== 'failed')) return;
+     if (host) mateGone(u);
+-    else if (u === hostUid) { const cb = api.lost; end(); if (cb) cb('Se ha perdido la conexión con el anfitrión.'); }
++    else if (u === hostUid) {
++      // Sin sala, el anfitrión se ha ido del grupo; esperando migración, lo
++      // decide el servidor ('room-migrated' o 'room-closed').
++      if (!G.Social.room) hostGone();
++      else if (!migrating) { const cb = api.lost; end(); if (cb) cb('Se ha perdido la conexión con el anfitrión.'); }
++    }
+   });
+ 
++  // ---------------- migración del anfitrión (daivr.dev) ----------------
++
++  G.Social.on((what, d) => {
++    if (!active) return;
++    if (what === 'room-migrated' && d) migrated(d.from, d.to);
++    else if (what === 'room-closed' && !host) hostGone();
++  });
++
++  /** Invitado: el anfitrión avisa de que se va ('hl'); se espera al nuevo. */
++  function hostLeaving() {
++    if (migrating) return;
++    migrating = hostUid;
++    clearTimeout(migrateTimer);
++    migrateTimer = setTimeout(() => { if (active && migrating) hostGone(); }, MIGRATE_WAIT_MS);
++    updateAway();
++  }
++
++  /** Invitado: el anfitrión se ha ido y la partida no puede seguir. */
++  function hostGone() {
++    if (!active || host) return;
++    const cb = api.hostLeft;
++    end();
++    if (cb) cb();
++  }
++
++  /** El servidor ha pasado la sala de `from` (que se ha ido) a `to`. */
++  function migrated(from, to) {
++    if (host || from !== hostUid) return;
++    clearTimeout(migrateTimer);
++    migrating = null;
++    const old = mates.get(from);
++    if (old) { old.connected = false; G.Projectiles.clearOrbs(old.pl); }
++    hostUid = to;
++    hostAway = false; stalled = false; lastHostAt = performance.now();
++    waiting = new Set(); holds = new Set();
++    for (const m of mates.values()) { m.q = []; m.flushT = 0; }
++    updateAway();                      // (antes del aviso del nuevo anfitrión: esto lo borraría)
++    if (to === me) {
++      host = true;
++      local.coopHost = true;
++      // Lo del anfitrión que se fue (enemigos, objetos) pasa a ser tuyo y se
++      // manda a los demás, que borran sus copias (abajo, en su ordenador).
++      if (api.promoted) api.promoted();
++    } else if (api.newHost) {
++      G.EnemyMgr.clearRemote();
++      G.Pickups.clear();
++      api.newHost(nameOf(to));
++    }
++  }
++
+   function mateGone(u) {
+     const m = mates.get(u);
+     if (!m || !m.connected) return;
+@@ -273,8 +344,13 @@ G.Coop = (() => {
+ 
+   // --- en el invitado ---
+ 
+-  /** Invitado: se para (o sigue) según si el anfitrión está. */
+-  function updateAway() { if (api.away) api.away(hostAway || stalled ? nameOf(hostUid) : null); }
++  /** Invitado: se para (o sigue) según si el anfitrión está (o se ha ido y se busca otro). */
++  function updateAway() {
++    if (!api.away) return;
++    if (host) api.away(null);
++    else if (migrating) api.away(nameOf(migrating), true);
++    else api.away(hostAway || stalled ? nameOf(hostUid) : null);
++  }
+ 
+   // Anfitrión: al irse de la pestaña avisa a todos al momento (después ya no
+   // podrá mandar nada) y al volver, que sigue.
+@@ -340,6 +416,7 @@ G.Coop = (() => {
+       case 'lr': api.resume(); break;
+       case 'hp': api.hold && api.hold(ev[1]); break;
+       case 'ha': hostAway = !!ev[1]; updateAway(); break;
++      case 'hl': hostLeaving(); break;
+       case 'sh': api.shiny(ev[1]); break;
+       case 'ov': { const cb = api.over; const d = ev[1]; end(); cb(d); break; }
+       case 'rift': case 'riftx': case 'arena': case 'aw': case 'al': G.Rift.onEvent(ev); break;
 diff --git a/js/net/daivr.js b/js/net/daivr.js
 new file mode 100644
-index 0000000..1a31213
+index 0000000..885c272
 --- /dev/null
 +++ b/js/net/daivr.js
-@@ -0,0 +1,138 @@
+@@ -0,0 +1,143 @@
 +/* ============ daivr.js — conexión con daivr.dev ============
 + * En daivr.dev el juego no usa Firebase: la cuenta es la sesión de Discord de
 + * la web y todo lo online va a su API (server/pokesurvivor.mjs en daivr.dev):
@@ -1335,6 +1951,11 @@ index 0000000..1a31213
 +  if (window.parent !== window) document.documentElement.classList.add('in-daivr-tv');
 +  const EVENTS = ['hello', 'friends', 'invites', 'room', 'rooms', 'relay', 'replaced'];
 +  const handlers = new Map();
++  // Lo que se manda al cerrar (salir de la sala, el último mensaje del relé):
++  // al apagar la tele se quita el iframe y sus peticiones se cancelan aunque
++  // lleven keepalive, así que van con el fetch de la web, que sigue abierta.
++  let lastFetch = fetch.bind(window);
++  try { if (window.parent !== window && window.parent.fetch) lastFetch = window.parent.fetch.bind(window.parent); } catch (e) { /* otro origen */ }
 +
 +  function on(name, fn) { if (!handlers.has(name)) handlers.set(name, new Set()); handlers.get(name).add(fn); }
 +  function off(name, fn) { const s = handlers.get(name); if (s) s.delete(fn); }
@@ -1359,7 +1980,7 @@ index 0000000..1a31213
 +    let ctrl = null, t = 0;
 +    if (opts.timeout && window.AbortController) { ctrl = new AbortController(); init.signal = ctrl.signal; t = setTimeout(() => ctrl.abort(), opts.timeout); }
 +    try {
-+      const r = await fetch(BASE + path, init);
++      const r = await (opts.keepalive ? lastFetch : fetch)(BASE + path, init);
 +      let j = null;
 +      try { j = await r.json(); } catch (e) { /* sin cuerpo */ }
 +      if (!r.ok) throw Object.assign(new Error((j && j.error) || 'HTTP ' + r.status), { code: (j && j.code) || String(r.status), status: r.status });
@@ -1456,7 +2077,7 @@ index 0000000..1a31213
 +  };
 +})();
 diff --git a/js/net/net.js b/js/net/net.js
-index 0e67e3e..c2be491 100644
+index 0e67e3e..7f25e24 100644
 --- a/js/net/net.js
 +++ b/js/net/net.js
 @@ -4,14 +4,11 @@
@@ -1488,7 +2109,12 @@ index 0e67e3e..c2be491 100644
 -  // junta ('failed') y el anfitrión lo reintenta cada RETRY_MS. Por la base de datos
 -  // sólo pasa la señalización (unos pocos mensajes pequeños para conectarse).
 -  const ALLOW_RELAY = false, RETRY_MS = 15000;
--
++  // El original apagó su relé por la Realtime Database (12-10-2026, por coste):
++  // sin conexión directa ni TURN, esa pareja no podía jugar ('failed') y el
++  // anfitrión lo reintentaba cada RETRY_MS. En daivr.dev el relé es el servidor
++  // de la web y sigue encendido: sin conexión directa, la partida va por él.
++  const ALLOW_RELAY = true, RETRY_MS = 15000;
+ 
 -  // ---------------- TURN (Cloudflare) ----------------
 -  const TURN_URL = 'https://turn.pokesurvivor.com/';
 -  let turn = null, turnAt = 0, turnReq = null;
@@ -1508,12 +2134,10 @@ index 0e67e3e..c2be491 100644
 -      .catch(e => { console.warn('[Net] TURN:', e.message); return null; })
 -      .finally(() => { turnReq = null; });
 -    return turnReq;
-+  // El original apagó su relé por la Realtime Database (12-10-2026, por coste):
-+  // sin conexión directa ni TURN, esa pareja no podía jugar ('failed') y el
-+  // anfitrión lo reintentaba cada RETRY_MS. En daivr.dev el relé es el servidor
-+  // de la web y sigue encendido: sin conexión directa, la partida va por él.
-+  const ALLOW_RELAY = true, RETRY_MS = 15000;
-+
+-  }
+-  /** Espera las credenciales como mucho 2,5 s (si tardan más, se conecta sin ellas). */
+-  const waitTurn = () => Promise.race([fetchTurn(), new Promise(r => setTimeout(r, 2500))]);
+-  const iceServers = () => (turn ? ICE.concat(turn.servers) : ICE);
 +  // ---------------- TURN ----------------
 +  // El original pedía claves de un TURN de Cloudflare con el token de
 +  // Firebase. En daivr.dev no hay: lo que no conecta directo va por el relé.
@@ -1523,7 +2147,9 @@ index 0e67e3e..c2be491 100644
 +
 +  let uid = null, roomId = null, isHost = false, hostUid = null;
 +  let listening = false;
-+
+ 
+-  let rtdb = null, uid = null, roomId = null, isHost = false, hostUid = null;
+-  let qref = null;
 +  /** Mensajes del relé (llegan por el stream de daivr.dev). */
 +  function onRelay(d) {
 +    if (!roomId || !d || !d.f || !Array.isArray(d.items)) return;
@@ -1532,19 +2158,16 @@ index 0e67e3e..c2be491 100644
 +      if (m.sig) onSignal(m.f, m.sig);
 +      else deliver(m.f, m.d);
 +    }
-   }
--  /** Espera las credenciales como mucho 2,5 s (si tardan más, se conecta sin ellas). */
--  const waitTurn = () => Promise.race([fetchTurn(), new Promise(r => setTimeout(r, 2500))]);
--  const iceServers = () => (turn ? ICE.concat(turn.servers) : ICE);
--
--  let rtdb = null, uid = null, roomId = null, isHost = false, hostUid = null;
--  let qref = null;
++  }
    const peers = new Map();         // uid -> { pc, dc, mode, timer }
    const handlers = new Set(), peerHandlers = new Set();
    let stats = { sent: 0, recv: 0, relaySent: 0 };
-@@ -70,20 +60,9 @@ G.Net = (() => {
+@@ -68,34 +58,39 @@ G.Net = (() => {
+   // ---------------- apertura ----------------
+ 
    function open(id, host, hostId) {
-     if (roomId === id) return;
+-    if (roomId === id) return;
++    if (roomId === id) { if (hostUid !== hostId) rehost(hostId); return; }
      close();
 -    const fb = G.DB.fb;
 -    rtdb = fb.rtdb; uid = fb.uid;
@@ -1561,11 +2184,39 @@ index 0e67e3e..c2be491 100644
 -      if (m.sig) onSignal(m.f, m.sig);
 -      else deliver(m.f, m.d);
 -    });
+-    // Invitado: hueco para el anfitrión desde ya (se sustituye al llegar su
+-    // oferta). Así, si no llega nunca, se sigue por el relé y se sabe cuándo se va.
+-    if (!isHost) {
+-      const p = { pc: null, dc: null, mode: 'connecting', timer: 0 };
+-      p.timer = setTimeout(() => { if (p.mode === 'connecting') { p.mode = ALLOW_RELAY ? 'relay' : 'failed'; emitPeer(hostId); } }, DIRECT_TIMEOUT + 3000);
+-      peers.set(hostId, p);
+-    }
 +    if (!listening) { listening = true; G.Daivr.on('relay', onRelay); }
-     // Invitado: hueco para el anfitrión desde ya (se sustituye al llegar su
-     // oferta). Así, si no llega nunca, se sigue por el relé y se sabe cuándo se va.
-     if (!isHost) {
-@@ -95,7 +74,6 @@ G.Net = (() => {
++    waitHost();
++  }
++
++  // Invitado: hueco para el anfitrión desde ya (se sustituye al llegar su
++  // oferta). Así, si no llega nunca, se sigue por el relé y se sabe cuándo se va.
++  function waitHost() {
++    if (isHost) return;
++    const p = { pc: null, dc: null, mode: 'connecting', timer: 0 };
++    const hostId = hostUid;
++    p.timer = setTimeout(() => { if (p.mode === 'connecting') { p.mode = ALLOW_RELAY ? 'relay' : 'failed'; emitPeer(hostId); } }, DIRECT_TIMEOUT + 3000);
++    peers.set(hostId, p);
++  }
++
++  /**
++   * daivr.dev: la misma sala con otro anfitrión (se lo han pasado en la sala
++   * de espera, o el de la partida se ha ido). Las conexiones se rehacen en
++   * estrella alrededor del nuevo, sin avisar de 'closed' (no es que se vaya
++   * nadie: coop.js ya sabe qué ha pasado por la sala).
++   */
++  function rehost(hostId) {
++    for (const u of [...peers.keys()]) drop(u, true);
++    pendingIce.clear();
++    hostUid = hostId; isHost = hostId === uid;
++    waitHost();
+   }
  
    function close() {
      for (const u of [...peers.keys()]) drop(u);
@@ -1573,7 +2224,7 @@ index 0e67e3e..c2be491 100644
      roomId = null; isHost = false; hostUid = null;
    }
  
-@@ -227,8 +205,8 @@ G.Net = (() => {
+@@ -227,16 +222,17 @@ G.Net = (() => {
    // ---------------- envío / recepción ----------------
  
    function relayPush(to, env) {
@@ -1583,7 +2234,27 @@ index 0e67e3e..c2be491 100644
 +    G.Daivr.relay(to, env);
    }
  
-   function send(to, msg) {
+-  function send(to, msg) {
++  /** @param sure  también por el relé aunque haya canal directo (lo último antes de irse: el canal muere con la página) */
++  function send(to, msg, sure = false) {
+     if (!roomId) return;
+     const p = peers.get(to);
+     stats.sent++;
+     if (p && p.dc && p.dc.readyState === 'open') {
+-      try { p.dc.send(JSON.stringify(msg)); return; } catch (e) { /* cae al relé */ }
++      try { p.dc.send(JSON.stringify(msg)); if (!sure) return; } catch (e) { /* cae al relé */ }
+     }
+     // Sin relé, los datos de la partida no van por la base de datos (se pierden: esa
+     // pareja no está conectada). Sólo pasa el aviso de empezar.
+@@ -245,7 +241,7 @@ G.Net = (() => {
+     relayPush(to, { f: uid, d: msg });
+   }
+ 
+-  function toHost(msg) { if (!isHost && hostUid) send(hostUid, msg); }
++  function toHost(msg, sure) { if (!isHost && hostUid) send(hostUid, msg, sure); }
+   function broadcast(msg, except) { for (const u of peers.keys()) if (u !== except) send(u, msg); }
+ 
+   function deliver(from, msg) {
 diff --git a/js/net/ranking.js b/js/net/ranking.js
 index 3e1331f..4c9f92f 100644
 --- a/js/net/ranking.js
@@ -1976,7 +2647,7 @@ index 3e1331f..4c9f92f 100644
 +  return { PERIODS, periodIds, board, runStarted, submitSolo, submitGroup, top, myRank, removeMine };
  })();
 diff --git a/js/net/social.js b/js/net/social.js
-index 95544a0..3556bb9 100644
+index 95544a0..1214e22 100644
 --- a/js/net/social.js
 +++ b/js/net/social.js
 @@ -1,23 +1,17 @@
@@ -2014,7 +2685,7 @@ index 95544a0..3556bb9 100644
   *
   * El resto del juego escucha los cambios con G.Social.on(fn).
   */
-@@ -25,366 +19,262 @@ G.Social = (() => {
+@@ -25,366 +19,276 @@ G.Social = (() => {
    const VALID = /^[A-Za-z0-9_ñÑáéíóúÁÉÍÓÚ]{3,16}$/;
    const MAX_PLAYERS = 4;
    const INVITE_TTL = 3 * 60 * 1000;
@@ -2039,12 +2710,8 @@ index 95544a0..3556bb9 100644
    const listeners = new Set();
 -  let started = false;
 +  let started = false, playing = false, wired = false, startP = null;
- 
-   function emit(what) { listeners.forEach(fn => { try { fn(what); } catch (e) { console.warn(e); } }); }
--  const ts = () => firebase.database.ServerValue.TIMESTAMP;
--  const fts = () => firebase.firestore.FieldValue.serverTimestamp();
--  const msOf = v => (v && v.toMillis ? v.toMillis() : +v || 0);
--  const pidOf = (a, b) => (a < b ? a + '_' + b : b + '_' + a);
++
++  function emit(what, data) { listeners.forEach(fn => { try { fn(what, data); } catch (e) { console.warn(e); } }); }
 +  const api = (path, body) => G.Daivr.api(path, body);
 +  const errCode = e => (e && (e.code || e.message)) || 'error';
 +
@@ -2082,12 +2749,21 @@ index 95544a0..3556bb9 100644
 +    if (d.room) {
 +      if (!room || room.id !== d.room.id) return;
 +      room = roomFrom(d.room);
++      // daivr.dev: otro anfitrión. room-migrated: el de la partida se ha ido
++      // (coop.js); room-host: se lo han pasado en la sala de espera.
++      if (d.migrated) emit('room-migrated', d.migrated);
++      else if (d.transferred) emit('room-host', d.transferred);
 +      emit('room');
 +    } else if (room && room.id === d.id) {
 +      if (d.closed) closedRoom(); else { room = null; emit('room'); }
 +    }
 +  }
-+
+ 
+-  function emit(what) { listeners.forEach(fn => { try { fn(what); } catch (e) { console.warn(e); } }); }
+-  const ts = () => firebase.database.ServerValue.TIMESTAMP;
+-  const fts = () => firebase.firestore.FieldValue.serverTimestamp();
+-  const msOf = v => (v && v.toMillis ? v.toMillis() : +v || 0);
+-  const pidOf = (a, b) => (a < b ? a + '_' + b : b + '_' + a);
 +  function onHello(d) {
 +    if (!d) return;
 +    if (d.nick && (!me || me.name !== d.nick)) { me = { uid, name: d.nick }; if (G.DB.user !== d.nick) G.DB.setName(d.nick); }
@@ -2114,7 +2790,7 @@ index 95544a0..3556bb9 100644
 +    // demás lo ven ya, sin esperar a que el servidor note la desconexión).
 +    addEventListener('pagehide', () => {
 +      if (!room) return;
-+      if (G.Coop && G.Coop.active) G.Coop.leave();
++      if (G.Coop && G.Coop.active) G.Coop.leave(true);
 +      G.Daivr.flush(true);
 +      room = null;
 +      G.Daivr.api('room/leave', {}, { keepalive: true }).catch(() => {});
@@ -2533,6 +3209,16 @@ index 95544a0..3556bb9 100644
 -    rtOff();
      emit('room');
 +    await api('room/leave', {}).catch(() => {});
++  }
++
++  /** daivr.dev: el anfitrión le pasa la sala a otro jugador (sólo en la sala de espera). */
++  async function transferHost(to) {
++    if (!room || !room.isHost) return { ok: false, error: 'Sólo el anfitrión puede pasar la sala.' };
++    try {
++      const r = await api('room/host', { to });
++      if (r.room && room && room.id === r.room.id) { room = roomFrom(r.room); emit('room'); }
++      return { ok: true };
++    } catch (e) { return { ok: false, error: 'No se pudo pasar el anfitrión (' + errCode(e) + ').' }; }
    }
  
    /** El anfitrión cierra la sala a nuevos jugadores al empezar la partida. */
@@ -2549,7 +3235,7 @@ index 95544a0..3556bb9 100644
    }
  
    // ---------------- invitaciones ----------------
-@@ -392,46 +282,26 @@ G.Social = (() => {
+@@ -392,46 +296,26 @@ G.Social = (() => {
    async function invite(other) {
      const f = friends.get(other);
      if (!f || f.status !== 'ok') return { ok: false, error: 'Sólo puedes invitar a tus amigos.' };
@@ -2601,7 +3287,7 @@ index 95544a0..3556bb9 100644
      emit('invites');
    }
  
-@@ -455,51 +325,42 @@ G.Social = (() => {
+@@ -455,51 +339,42 @@ G.Social = (() => {
    let pubT = 0, pubAt = 0, pubLast = '';
    /**
     * Sube tu perfil (con un poco de espera, por si cambias varias cosas
@@ -2660,11 +3346,11 @@ index 95544a0..3556bb9 100644
    return {
      start, stop, claimNick, request, accept, remove, publishProfile, getProfile, profileData,
 -    createRoom, joinRoom, leaveRoom, setOpen, refreshMember, setPlaying, refreshPresence,
-+    createRoom, joinRoom, leaveRoom, listRooms, setOpen, refreshMember, setPlaying, refreshPresence,
++    createRoom, joinRoom, leaveRoom, listRooms, setOpen, transferHost, refreshMember, setPlaying, refreshPresence,
      invite, acceptInvite, declineInvite,
      on(fn) { listeners.add(fn); }, off(fn) { listeners.delete(fn); },
      get me() { return me; },
-@@ -507,6 +368,7 @@ G.Social = (() => {
+@@ -507,6 +382,7 @@ G.Social = (() => {
      get friends() { return [...friends.values()]; },
      get invites() { return [...invites.values()]; },
      get room() { return room; },
@@ -2672,8 +3358,150 @@ index 95544a0..3556bb9 100644
      get uid() { return uid; },
      VALID, MAX_PLAYERS
    };
+diff --git a/js/systems/events.js b/js/systems/events.js
+index c81f7dc..e9b09e3 100644
+--- a/js/systems/events.js
++++ b/js/systems/events.js
+@@ -324,7 +324,7 @@ G.Events = (() => {
+   function edgeArrow(ctx, w, h, cam, x, y, col, label, F) {
+     const sx = (x - cam.left()) * cam.scale, sy = (y - cam.top()) * cam.scale;
+     if (sx > 0 && sx < w && sy > 0 && sy < h) return;
+-    const M = 44, ex = G.U.clamp(sx, M, w - M), ey = G.U.clamp(sy, M + 70, h - M - 80);
++    const M = 44, ex = G.U.clamp(sx, M, w - M), ey = G.U.clamp(sy, M + 70, h - M - 104);
+     const a = Math.atan2(sy - ey, sx - ex), ca = Math.cos(a), sa = Math.sin(a);
+     const pulse = 0.65 + Math.sin(performance.now() / 160) * 0.35;
+     ctx.save();
+diff --git a/js/systems/hazards.js b/js/systems/hazards.js
+index 1ccdf15..894f04f 100644
+--- a/js/systems/hazards.js
++++ b/js/systems/hazards.js
+@@ -59,35 +59,71 @@ G.Hazards = (() => {
+     }
+   }
+ 
+-  /** Avisos en el suelo (debajo de los Pokémon). */
++  // Flechas de píxeles (en píxeles de arte): "v" que se cierra sobre la zona y
++  // ">" que avanza por el rayo.
++  const CHEVRON_IN = [[-2, -1], [2, -1], [-1, 0], [1, 0], [0, 1]];
++  const CHEVRON_FWD = [[-1, -2], [0, -1], [1, 0], [0, 1], [-1, 2]];
++
++  /** Avisos en el suelo (debajo de los Pokémon), en pixel art con la paleta del tipo. */
+   function draw(ctx) {
+-    const blink = Math.sin(performance.now() / 60) > 0;
++    const now = performance.now(), blink = Math.sin(now / 60) > 0;
++    const PX = G.Sprites.PX, snap = G.FX.snap;
++    const dot = (x, y, c) => { ctx.fillStyle = c; ctx.fillRect(snap(x), snap(y), PX, PX); };
+     for (const h of list) {
+       if (h.hit) continue;
+       const k = Math.min(1, h.t / h.delay);
++      const P = G.VFX.PAL[h.type] || [h.color, h.color, h.color, h.color, '#ffffff'];
++      const hot = k > 0.75 && blink;        // a punto de caer: parpadea en claro
+       ctx.save();
+       if (h.kind === 'zone') {
++        const rx = h.r, ry = h.r * 0.75;
++        // Zona entera, tenue, y lo que se va llenando.
+         ctx.globalAlpha = 0.16;
+-        ctx.fillStyle = h.color;
+-        ctx.beginPath(); ctx.ellipse(h.x, h.y, h.r, h.r * 0.75, 0, 0, 6.2832); ctx.fill();
+-        ctx.globalAlpha = 0.32;
+-        ctx.beginPath(); ctx.ellipse(h.x, h.y, h.r * k, h.r * 0.75 * k, 0, 0, 6.2832); ctx.fill();
+-        ctx.globalAlpha = k > 0.75 && blink ? 0.95 : 0.6;
+-        ctx.strokeStyle = h.color; ctx.lineWidth = 2;
+-        ctx.setLineDash([4, 4]);
+-        ctx.beginPath(); ctx.ellipse(h.x, h.y, h.r, h.r * 0.75, 0, 0, 6.2832); ctx.stroke();
++        G.FX.ellipse(ctx, h.x, h.y, rx, ry, P[2]);
++        ctx.globalAlpha = 0.3;
++        G.FX.ellipse(ctx, h.x, h.y, rx * k, ry * k, P[2]);
++        // La sombra de lo que va a caer, que crece en el centro.
++        ctx.globalAlpha = 0.3 * k;
++        G.FX.ellipse(ctx, h.x, h.y + PX, rx * (0.18 + 0.22 * k), ry * (0.18 + 0.22 * k), P[0]);
++        // Borde: contorno oscuro por fuera y el filo del color del tipo.
++        ctx.globalAlpha = 0.55;
++        G.FX.ellipseRing(ctx, h.x, h.y, rx + PX, ry + PX, P[0]);
++        ctx.globalAlpha = hot ? 1 : 0.85;
++        G.FX.ellipseRing(ctx, h.x, h.y, rx, ry, hot ? P[4] : P[3]);
++        // Cuatro flechas que se cierran sobre el borde según se acerca el golpe.
++        const out = (1 - k) * 18;
++        for (const [ax, ay] of [[0, -1], [1, 0], [0, 1], [-1, 0]]) {
++          const cx = h.x + ax * (rx + 10 + out), cy = h.y + ay * (ry + 8 + out);
++          for (const [u, v] of CHEVRON_IN) {
++            // El patrón apunta hacia abajo; se gira para que apunte al centro.
++            const ox = ay ? u * -ay : v * -ax, oy = ay ? v * -ay : u * ax;
++            dot(cx + ox * PX, cy + oy * PX + PX, P[0]);
++            dot(cx + ox * PX, cy + oy * PX, hot ? P[4] : P[3]);
++          }
++        }
+       } else {
+         ctx.translate(h.x, h.y);
+         ctx.rotate(h.angle);
++        const hw = h.w / 2;
+         ctx.globalAlpha = 0.14;
+-        ctx.fillStyle = h.color;
+-        ctx.fillRect(0, -h.w / 2, h.len, h.w);
+-        ctx.globalAlpha = 0.34;
+-        ctx.fillRect(0, -h.w / 2 * k, h.len, h.w * k);
+-        ctx.globalAlpha = k > 0.75 && blink ? 0.95 : 0.55;
+-        ctx.strokeStyle = h.color; ctx.lineWidth = 2;
+-        ctx.setLineDash([6, 4]);
+-        ctx.strokeRect(0, -h.w / 2, h.len, h.w);
++        ctx.fillStyle = P[2];
++        ctx.fillRect(0, -hw, h.len, h.w);
++        ctx.globalAlpha = 0.3;
++        ctx.fillRect(0, -hw * k, h.len, h.w * k);
++        // Filos: oscuro por fuera, color del tipo por dentro.
++        ctx.globalAlpha = 0.55;
++        ctx.fillStyle = P[0];
++        ctx.fillRect(0, -hw - PX, h.len, PX); ctx.fillRect(0, hw, h.len, PX);
++        ctx.globalAlpha = hot ? 1 : 0.85;
++        ctx.fillStyle = hot ? P[4] : P[3];
++        ctx.fillRect(0, -hw, h.len, PX); ctx.fillRect(0, hw - PX, h.len, PX);
++        // Flechas que corren por el centro en la dirección del rayo.
++        const gap = 22, off = (now * 0.12) % gap;
++        ctx.globalAlpha = 0.35 + 0.65 * k;
++        ctx.fillStyle = hot ? P[4] : P[3];
++        for (let d = off + 8; d < h.len - 6; d += gap) {
++          for (const [u, v] of CHEVRON_FWD) ctx.fillRect(Math.round(d + u * PX), v * PX - PX / 2, PX, PX);
++        }
+       }
+       ctx.restore();
+     }
+diff --git a/js/systems/rift.js b/js/systems/rift.js
+index 093bc67..0ddfc2c 100644
+--- a/js/systems/rift.js
++++ b/js/systems/rift.js
+@@ -266,6 +266,12 @@ G.Rift = (() => {
+ 
+   return {
+     reset, update, drawable, onEvent, enterRequest() { if (!arena) start(); },
++    /** daivr.dev, migración del anfitrión: el legendario de la arena tiene otro número. */
++    adopt(ids) {
++      if (!arena) return;
++      const boss = G.EnemyMgr.get(ids[arena.bossId]) || G.EnemyMgr.all().find(e => e.boss && !e.dead);
++      arena.bossId = boss ? boss.id : 0;
++    },
+     get rift() { return rift; }, get arena() { return arena; },
+     get inArena() { return !!arena; },
+     get timeLeft() { return arena ? Math.max(0, ARENA_TIME - arena.t) : 0; },
+diff --git a/js/systems/spawner.js b/js/systems/spawner.js
+index e327b64..3cee962 100644
+--- a/js/systems/spawner.js
++++ b/js/systems/spawner.js
+@@ -183,6 +183,12 @@ G.Spawner = (() => {
+   /** Invitado en cooperativo: sólo corre el reloj del aviso. */
+   function tickBanner(dt) { if (announceT > 0) announceT -= dt; }
+ 
+-  return { reset, update, ahead, burst, tickBanner, banner, say, rate, SHINY_RATE, CAP,
++  /** daivr.dev, migración del anfitrión: los jefes que ya han salido no vuelven a salir. */
++  function resume(t) {
++    const list = G.Enemies.BOSSES;
++    while (list[bossIdx] && list[bossIdx].at <= t) bossIdx++;
++  }
++
++  return { reset, update, resume, ahead, burst, tickBanner, banner, say, rate, SHINY_RATE, CAP,
+            debugForceShiny(n = 1) { forceShiny = n; } };
+ })();
 diff --git a/js/ui/hud.js b/js/ui/hud.js
-index 440d2a5..f932d26 100644
+index 440d2a5..d836a05 100644
 --- a/js/ui/hud.js
 +++ b/js/ui/hud.js
 @@ -2,6 +2,15 @@
@@ -2692,29 +3520,211 @@ index 440d2a5..f932d26 100644
    const F = (w, s) => `${w} ${s}px Pixelify,"Segoe UI",system-ui,sans-serif`;
  
    function roundRect(ctx, x, y, w, h, r) {
-@@ -25,6 +34,18 @@ G.HUD = (() => {
+@@ -25,88 +34,292 @@ G.HUD = (() => {
      }
    }
  
-+  function panel(ctx, x, y, w, h) {
-+    roundRect(ctx, x - 2, y, w + 4, h + 5, 12);
-+    ctx.fillStyle = MENU.outer; ctx.fill();
-+    roundRect(ctx, x, y, w, h, 10);
-+    const gradient = ctx.createLinearGradient(0, y, 0, y + h);
-+    gradient.addColorStop(0, MENU.top); gradient.addColorStop(1, MENU.bottom);
-+    ctx.fillStyle = gradient; ctx.fill();
-+    ctx.lineWidth = 2; ctx.strokeStyle = MENU.edge; ctx.stroke();
-+    roundRect(ctx, x + 3, y + 3, w - 6, h - 6, 7);
-+    ctx.lineWidth = 1; ctx.strokeStyle = MENU.inner; ctx.stroke();
++  // ---------------- pixel art ----------------
++  // La interfaz va en "píxeles de arte" de 2 px, con el contorno oscuro de los
++  // sprites y los iconos, esquinas en escalera y degradados en franjas.
++  const P = 2, INK = '#1b1528', SHADOW = '#0a1430', WELL = '#132a63';
++
++  const rgbs = new Map(), mixes = new Map();
++  function rgb(hex) {
++    let c = rgbs.get(hex);
++    if (!c) {
++      const n = parseInt(hex.replace('#', '').slice(0, 6), 16) || 0;
++      rgbs.set(hex, c = [n >> 16 & 255, n >> 8 & 255, n & 255]);
++    }
++    return c;
 +  }
++  /** Mezcla dos colores #rrggbb y devuelve otro #rrggbb (t en dieciseisavos, con caché: va en cada fotograma). */
++  function mix(a, b, t) {
++    const q = Math.round(G.U.clamp(t, 0, 1) * 16), key = a + b + q;
++    let c = mixes.get(key);
++    if (c) return c;
++    const A = rgb(a), B = rgb(b), f = q / 16;
++    c = '#' + [0, 1, 2].map(i => Math.round(A[i] + (B[i] - A[i]) * f).toString(16).padStart(2, '0')).join('');
++    if (mixes.size > 600) mixes.clear();
++    mixes.set(key, c);
++    return c;
++  }
++
++  /** Rectángulo con las esquinas en escalera (c: 0, P o 2P). */
++  function pxRect(ctx, x, y, w, h, c, col) {
++    ctx.fillStyle = col;
++    if (c <= 0) { ctx.fillRect(x, y, w, h); return; }
++    ctx.fillRect(x + c, y, w - 2 * c, h);
++    ctx.fillRect(x, y + c, w, h - 2 * c);
++    if (c > P) ctx.fillRect(x + P, y + P, w - 2 * P, h - 2 * P);
++  }
++
++  /** Degradado vertical en franjas de 2 píxeles de arte. */
++  function bands(ctx, x, y, w, h, top, bottom) {
++    const step = 2 * P;
++    for (let k = 0; k < h; k += step) {
++      ctx.fillStyle = mix(top, bottom, k / Math.max(1, h - step));
++      ctx.fillRect(x, y + k, w, Math.min(step, h - k));
++    }
++  }
++
++  /** Caja de menú PMD en pixel art: sombra dura, contorno, borde blanco, filo azul y fondo en franjas. */
++  function frame(ctx, x, y, w, h, edge = MENU.edge) {
++    x = Math.round(x); y = Math.round(y);
++    pxRect(ctx, x, y + 2 * P, w, h, 2 * P, 'rgba(4,8,22,.4)');
++    pxRect(ctx, x, y, w, h, 2 * P, MENU.outer);
++    pxRect(ctx, x + P, y + P, w - 2 * P, h - 2 * P, P, edge);
++    pxRect(ctx, x + 2 * P, y + 2 * P, w - 4 * P, h - 4 * P, P, MENU.inner);
++    bands(ctx, x + 3 * P, y + 3 * P, w - 6 * P, h - 6 * P, MENU.top, MENU.bottom);
++    ctx.fillStyle = 'rgba(255,255,255,.12)';
++    ctx.fillRect(x + 3 * P, y + 3 * P, w - 6 * P, P);
++  }
++
++  /** Texto con la sombra dura de los menús (text-shadow: 2px 2px 0). */
++  function shadowText(ctx, s, x, y, col, maxW, sh = P) {
++    ctx.fillStyle = SHADOW;
++    if (maxW) ctx.fillText(s, x + sh, y + sh, maxW); else ctx.fillText(s, x + sh, y + sh);
++    ctx.fillStyle = col;
++    if (maxW) ctx.fillText(s, x, y, maxW); else ctx.fillText(s, x, y);
++  }
++
++  /**
++   * Barra pixel: contorno, canal oscuro, relleno con brillo arriba y sombra
++   * abajo. opts: { to (degradado en columnas hasta ese color), trail (fracción
++   * del rastro blanco de daño), seg (muescas cada N px), bg }
++   */
++  function pxBar(ctx, x, y, w, h, frac, col, opts = {}) {
++    x = Math.round(x); y = Math.round(y); w = Math.round(w);
++    pxRect(ctx, x - P, y - P, w + 2 * P, h + 2 * P, P, INK);
++    ctx.fillStyle = opts.bg || '#0d1a3d';
++    ctx.fillRect(x, y, w, h);
++    const snap = f => Math.round(w * G.U.clamp(f, 0, 1) / P) * P;
++    const fw = snap(frac);
++    if (opts.trail != null) {
++      const tw = snap(opts.trail);
++      if (tw > fw) { ctx.fillStyle = '#fff4f0'; ctx.fillRect(x + fw, y, tw - fw, h); }
++    }
++    if (fw > 0) {
++      if (opts.to) {
++        const step = 3 * P;
++        for (let k = 0; k < fw; k += step) {
++          ctx.fillStyle = mix(col, opts.to, k / Math.max(1, w - step));
++          ctx.fillRect(x + k, y, Math.min(step, fw - k), h);
++        }
++      } else { ctx.fillStyle = col; ctx.fillRect(x, y, fw, h); }
++      ctx.fillStyle = 'rgba(255,255,255,.4)'; ctx.fillRect(x, y, fw, P);
++      if (h > 2 * P) { ctx.fillStyle = 'rgba(0,0,0,.24)'; ctx.fillRect(x, y + h - P, fw, P); }
++    }
++    if (opts.seg) {
++      ctx.fillStyle = 'rgba(6,12,30,.5)';
++      for (let k = opts.seg; k < w; k += opts.seg) ctx.fillRect(x + Math.round(k), y, 1, h);
++    }
++  }
++
++  /** Placa pequeña (contorno de tinta, fondo oscuro, raya de color a la izquierda). Devuelve el ancho. */
++  function chipW(ctx, text, icon) { ctx.font = F(800, 10); return Math.round(ctx.measureText(text).width) + 14 + (icon ? 17 : 0); }
++  function chip(ctx, x, y, text, col, icon) {
++    const cw = chipW(ctx, text, icon);
++    x = Math.round(x); y = Math.round(y);
++    pxRect(ctx, x, y + P, cw, 18, P, 'rgba(4,8,22,.4)');
++    pxRect(ctx, x, y, cw, 18, P, INK);
++    ctx.fillStyle = WELL; ctx.fillRect(x + P, y + P, cw - 2 * P, 18 - 2 * P);
++    ctx.fillStyle = col; ctx.fillRect(x + P, y + P, P, 18 - 2 * P);
++    if (icon) G.Icons.draw(ctx, icon, x + 6, y + 2, 14);
++    ctx.textAlign = 'left';
++    shadowText(ctx, text, x + 8 + (icon ? 17 : 0), y + 13, col, 0, 1);
++    return cw;
++  }
++
++  // Retrato: el Idle de frente del Pokémon, encuadrado por su caja opaca (se
++  // calcula una vez por especie leyendo los píxeles de la hoja).
++  const crops = new Map();
++  function cropOf(key, s, m) {
++    let c = crops.get(key);
++    if (c) return c;
++    const cw = m.w * m.n, cv = document.createElement('canvas');
++    cv.width = cw; cv.height = m.h;
++    const x = cv.getContext('2d', { willReadFrequently: true });
++    x.drawImage(s.img, 0, 0, cw, m.h, 0, 0, cw, m.h);
++    const d = x.getImageData(0, 0, cw, m.h).data;
++    let x0 = m.w, y0 = m.h, x1 = -1, y1 = -1;
++    for (let yy = 0; yy < m.h; yy++) {
++      for (let xx = 0; xx < cw; xx++) {
++        if (d[(yy * cw + xx) * 4 + 3] < 24) continue;
++        const fx = xx % m.w;
++        if (fx < x0) x0 = fx;
++        if (fx > x1) x1 = fx;
++        if (yy < y0) y0 = yy;
++        y1 = yy;
++      }
++    }
++    c = x1 < 0 ? { x: 0, y: 0, w: m.w, h: m.h } : { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
++    crops.set(key, c);
++    return c;
++  }
++
++  /** Marco con el Pokémon animado dentro (fondo del color de su tipo). opts: { flash, dim } */
++  function portrait(ctx, mon, shiny, x, y, size, opts = {}) {
++    x = Math.round(x); y = Math.round(y);
++    const tc = G.U.TYPE_COLOR[mon.types && mon.types[0]] || MENU.inner;
++    const inner = size - 2 * P;
++    pxRect(ctx, x, y, size, size, P, INK);
++    bands(ctx, x + P, y + P, inner, inner, mix(tc, '#0b1838', 0.3), mix(tc, '#0b1838', 0.8));
++    ctx.fillStyle = 'rgba(255,255,255,.14)';
++    ctx.fillRect(x + P, y + P, inner, P);
++    const m = G.Sprites.animMeta(mon.dex, 'Idle', shiny), s = G.Sprites.sheet(mon.dex, 'Idle', shiny);
++    if (!m || !s || !s.ready) return;
++    const c = cropOf(mon.dex + (shiny ? 's' : ''), s, m);
++    // x2 como en el mapa si cabe (aunque se corte un poco por los lados); si no, x1;
++    // y si ni así se reconoce (un legendario en una tarjeta pequeña), en miniatura.
++    let k = c.w * 2 <= inner * 1.25 ? 2 : 1;
++    const fit = Math.min((inner - 2 * P) / c.w, (inner - 2 * P) / c.h), tiny = k === 1 && fit < 0.7;
++    if (tiny) k = fit;
++    let total = 0;
++    for (let i = 0; i < m.n; i++) total += m.d[i];
++    let t = (performance.now() * 0.06) % total, f = 0;
++    while (f < m.n - 1 && t >= m.d[f]) { t -= m.d[f]; f++; }
++    // De cuerpo entero si cabe; si no, primer plano (como los retratos de PMD).
++    const dx = Math.round(x + P + inner / 2 - (c.x + c.w / 2) * k);
++    const dy = c.h * k <= inner - 2 * P ? Math.round(y + size - 2 * P - (c.y + c.h) * k) : y + 3 * P - c.y * k;
++    ctx.save();
++    ctx.beginPath(); ctx.rect(x + P, y + P, inner, inner); ctx.clip();
++    if (tiny) { ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; }
++    if (opts.dim) ctx.globalAlpha = 0.4;
++    ctx.drawImage(s.img, f * m.w, 0, m.w, m.h, dx, dy, m.w * k, m.h * k);
++    if (opts.flash) {
++      ctx.globalAlpha = 0.6;
++      ctx.drawImage(G.Sprites.white(s.img), f * m.w, 0, m.w, m.h, dx, dy, m.w * k, m.h * k);
++    }
++    ctx.restore();
++  }
++
++  /** Hueco de la barra de movimientos: contorno, filo y fondo hundido. */
++  function slot(ctx, x, y, s, ring, fill) {
++    pxRect(ctx, x, y, s, s, P, INK);
++    pxRect(ctx, x + P, y + P, s - 2 * P, s - 2 * P, 0, ring);
++    ctx.fillStyle = fill; ctx.fillRect(x + 2 * P, y + 2 * P, s - 4 * P, s - 4 * P);
++    ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.fillRect(x + 2 * P, y + 2 * P, s - 4 * P, P);
++  }
++
++  // Estado entre fotogramas: rastro de la vida perdida y destello al subir de nivel.
++  let lastPl = null, hpTrail = 1, trailHold = 0, lastLevel = 0, levelAt = -1e9, lastNow = 0;
 +
    function draw(ctx, w, h, pl, st) {
      ctx.save();
      ctx.textBaseline = 'alphabetic';
-@@ -40,22 +61,27 @@ G.HUD = (() => {
-     ctx.fillStyle = g;
-     ctx.fillRect(0, 0, w * G.U.clamp(xpF, 0, 1), 7);
+     G.Touch.clearButtons();
+     const touch = G.Touch.active;
  
+-    // ---------- barra de experiencia (borde superior) ----------
+-    const xpF = pl.xp / pl.xpNext;
+-    ctx.fillStyle = 'rgba(0,0,0,.5)';
+-    ctx.fillRect(0, 0, w, 7);
+-    const g = ctx.createLinearGradient(0, 0, w, 0);
+-    g.addColorStop(0, '#4fd1ff'); g.addColorStop(1, '#a98bff');
+-    ctx.fillStyle = g;
+-    ctx.fillRect(0, 0, w * G.U.clamp(xpF, 0, 1), 7);
+-
 -    // ---------- vida + nivel ----------
 -    const px = 16, py = 20;
 -    ctx.font = F(800, 13);
@@ -2722,7 +3732,30 @@ index 440d2a5..f932d26 100644
 -    ctx.textAlign = 'left';
 -    ctx.fillText(pl.mon.name, px, py + 10);
 -
--    ctx.font = F(700, 11);
++    const now = performance.now(), dt = Math.min(0.1, (now - lastNow) / 1000);
++    lastNow = now;
++    const hp = G.U.clamp(pl.hp / pl.maxHp, 0, 1);
++    if (pl !== lastPl) { lastPl = pl; hpTrail = hp; trailHold = 0; lastLevel = pl.level; levelAt = -1e9; }
++    // Rastro de daño: se queda un momento y luego baja hasta la vida real.
++    if (hp >= hpTrail) { hpTrail = hp; trailHold = 0; }
++    else if (!trailHold) trailHold = now + 420;
++    else if (now > trailHold) hpTrail = Math.max(hp, hpTrail - dt * 0.7);
++    if (pl.level !== lastLevel) { if (pl.level > lastLevel) levelAt = now; lastLevel = pl.level; }
++
++    // ---------- tu Pokémon: retrato, nombre, nivel y vida ----------
++    const px = 12, py = 14, compact = w < 800;
++    const hw = Math.round(Math.min(280, Math.max(224, w * .3))), ch = 72;
++    const hpColor = hp > .5 ? MENU.green : hp > .25 ? MENU.gold : MENU.red;
++    // Poca vida: el borde parpadea en rojo.
++    const danger = hp <= .25 && !pl.dead && Math.sin(now / 110) > 0;
++    frame(ctx, px, py, hw, ch, danger ? MENU.red : MENU.edge);
++    const ps = ch - 8 * P;
++    portrait(ctx, pl.mon, pl.shiny, px + 4 * P, py + 4 * P, ps, { flash: pl.flash > 0 });
++    const cx = px + 4 * P + ps + 5 * P, cr = px + hw - 5 * P;
++    ctx.textAlign = 'right'; ctx.font = F(800, 16);
++    shadowText(ctx, String(pl.level), cr, py + 26, MENU.gold);
++    const lvW = ctx.measureText(String(pl.level)).width;
+     ctx.font = F(700, 11);
 -    ctx.fillStyle = '#ffcb3d';
 -    ctx.fillText('Nv. ' + pl.level, px, py + 26);
 -
@@ -2731,84 +3764,100 @@ index 440d2a5..f932d26 100644
 -    ctx.fillStyle = 'rgba(255,255,255,.95)';
 -    ctx.textAlign = 'center';
 -    ctx.fillText(Math.ceil(pl.hp) + ' / ' + Math.round(pl.maxHp), px + 48 + 84, py + 26);
-+    // Menu-styled health card: readable against every biome.
-+    const px = 12, py = 16, compact = w < 800;
-+    const hw = Math.min(252, Math.max(176, w * .31));
-+    const hp = G.U.clamp(pl.hp / pl.maxHp, 0, 1);
-+    const hpColor = hp > .5 ? MENU.green : hp > .25 ? MENU.gold : MENU.red;
-+    panel(ctx, px, py, hw, 78);
-+    ctx.textAlign = 'left'; ctx.font = F(800, 17); ctx.fillStyle = '#f4f8ff';
-+    ctx.fillText(pl.mon.name, px + 12, py + 23, hw - 24);
-+    G.Icons.draw(ctx, 'xp', px + 10, py + 29, 18);
-+    ctx.font = F(700, 12); ctx.fillStyle = MENU.muted;
-+    ctx.fillText('Nv. ' + pl.level, px + 34, py + 43);
-+    ctx.textAlign = 'right'; ctx.fillStyle = '#f4f8ff';
-+    ctx.fillText(Math.ceil(pl.hp) + ' / ' + Math.round(pl.maxHp) + ' HP', px + hw - 12, py + 43);
-+    const barX = px + 12, barY = py + 53, barW = hw - 24;
-+    roundRect(ctx, barX - 2, barY - 2, barW + 4, 18, 7);
-+    ctx.fillStyle = MENU.outer; ctx.fill();
-+    ctx.lineWidth = 1; ctx.strokeStyle = MENU.inner; ctx.stroke();
-+    bar(ctx, barX, barY, barW, 14, hp, hpColor, '#142956');
-+    ctx.save(); roundRect(ctx, barX, barY, barW, 14, 7); ctx.clip();
-+    ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(barX, barY, Math.round(barW * hp), 3);
-+    ctx.restore();
- 
-     // buffs activos
+-
+-    // buffs activos
++    shadowText(ctx, 'Nv.', cr - lvW - 4, py + 26, MENU.muted, 0, 1);
++    const nvW = ctx.measureText('Nv.').width;
++    ctx.textAlign = 'left'; ctx.font = F(800, 16);
++    shadowText(ctx, pl.mon.name, cx, py + 26, '#f4f8ff', Math.max(40, cr - cx - lvW - nvW - 12));
++    // "HP" en su placa, como en los combates de Pokémon, y la barra al lado.
++    const hpY = py + 36;
++    pxRect(ctx, cx, hpY, 24, 14, P, INK);
++    ctx.font = F(800, 10); ctx.textAlign = 'center';
++    ctx.fillStyle = MENU.gold; ctx.fillText('HP', cx + 12, hpY + 11);
++    const barX = cx + 24 + 2 * P, barW = cr - barX;
++    pxBar(ctx, barX, hpY + 3, barW, 4 * P, hp, danger ? '#ff8a96' : hpColor, { trail: hpTrail, seg: barW / 10 });
++    ctx.textAlign = 'right'; ctx.font = F(800, 12);
++    const maxTxt = ' / ' + Math.round(pl.maxHp);
++    shadowText(ctx, maxTxt, cr, py + 64, MENU.muted, 0, 1);
++    shadowText(ctx, String(Math.ceil(pl.hp)), cr - ctx.measureText(maxTxt).width, py + 64, '#f4f8ff', 0, 1);
++
++    // buffs activos (placas debajo de la tarjeta)
      const COL = { atk: '#ff6b4d', spd: '#7fe0ff', def: '#b0b8c8', regen: '#5fe08a' };
-@@ -68,21 +94,28 @@ G.HUD = (() => {
-       ctx.font = F(800, 9);
-       const txt = LBL[k] + ' ×' + b.n;
-       const tw = ctx.measureText(txt).width + 12;
+     const LBL = { atk: 'ATK', spd: 'VEL', def: 'DEF', regen: 'REG' };
++    const chipY = py + ch + 3 * P;
+     let bx = px;
+-    ctx.textAlign = 'left';
+     for (const k in pl.buffs) {
+       const b = pl.buffs[k];
+       if (b.n <= 0) continue;
+-      ctx.font = F(800, 9);
+-      const txt = LBL[k] + ' ×' + b.n;
+-      const tw = ctx.measureText(txt).width + 12;
 -      roundRect(ctx, bx, py + 34, tw, 15, 7);
-+      roundRect(ctx, bx, py + 84, tw, 15, 7);
-       ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fill();
-       ctx.fillStyle = COL[k];
+-      ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fill();
+-      ctx.fillStyle = COL[k];
 -      ctx.fillText(txt, bx + 6, py + 45);
-+      ctx.fillText(txt, bx + 6, py + 95);
-       bx += tw + 5;
+-      bx += tw + 5;
++      bx += chip(ctx, bx, chipY, LBL[k] + ' ×' + b.n, COL[k]) + 4;
      }
  
 -    // ---------- reloj / bioma / kills ----------
--    ctx.textAlign = 'center';
++    // ---------- reloj, bioma, KO y monedas ----------
++    const timerW = compact ? 176 : 212, timerH = 64;
++    const timerX = Math.round(compact ? w - timerW - 12 - (touch ? 56 : 0) : (w - timerW) / 2);
++    const timerC = timerX + timerW / 2, ty = py + 6;
++    frame(ctx, timerX, ty, timerW, timerH);
++    // El bioma en una pestaña montada sobre el borde de arriba.
++    ctx.font = F(800, 10);
++    const biome = G.World.biomeName().toUpperCase();
++    const tabW = Math.min(timerW - 28, Math.round(ctx.measureText(biome).width) + 18);
++    const tabX = Math.round(timerC - tabW / 2), tabY = ty - 8;
++    pxRect(ctx, tabX, tabY, tabW, 16, P, INK);
++    pxRect(ctx, tabX + P, tabY + P, tabW - 2 * P, 16 - 2 * P, 0, MENU.inner);
++    ctx.fillStyle = MENU.bottom; ctx.fillRect(tabX + 2 * P, tabY + 2 * P, tabW - 4 * P, 16 - 4 * P);
+     ctx.textAlign = 'center';
 -    ctx.font = F(800, 26);
 -    ctx.fillStyle = 'rgba(255,255,255,.95)';
 -    ctx.fillText(G.U.mmss(st.time), w / 2, 42);
 -    ctx.font = F(600, 10);
 -    ctx.fillStyle = '#8fa3c4';
 -    ctx.fillText(G.World.biomeName().toUpperCase() + '  ·  ' + pl.kills + ' DERROTADOS  ·  ' + pl.coins + ' MONEDAS', w / 2, 58);
-+    // Timer and run counters share a same blue and white frame as the menus.
-+    const timerW = compact ? 170 : 208;
-+    const timerX = compact ? w - timerW - 12 - (touch ? 56 : 0) : (w - timerW) / 2;
-+    const timerC = timerX + timerW / 2;
-+    panel(ctx, timerX, py, timerW, 78);
-+    ctx.textAlign = 'center'; ctx.font = F(700, 10); ctx.fillStyle = MENU.muted;
-+    ctx.fillText(G.World.biomeName().toUpperCase(), timerC, py + 16, timerW - 20);
-+    ctx.font = F(800, 34); ctx.fillStyle = MENU.gold;
-+    ctx.fillText(G.U.mmss(st.time), timerC, py + 48);
-+    ctx.font = F(700, 11); ctx.fillStyle = '#d8e4f5';
-+    ctx.textAlign = 'left'; ctx.fillText(pl.kills + ' KO', timerX + 12, py + 68);
-+    const coins = String(pl.coins), coinW = ctx.measureText(coins).width;
-+    G.Icons.draw(ctx, 'coin', timerX + timerW - coinW - 34, py + 54, 18);
-+    ctx.textAlign = 'right'; ctx.fillStyle = MENU.gold;
-+    ctx.fillText(coins, timerX + timerW - 12, py + 68);
++    shadowText(ctx, biome, timerC, tabY + 12, '#dbe6ff', tabW - 12, 1);
++    ctx.font = F(800, 32);
++    shadowText(ctx, G.U.mmss(st.time), timerC, ty + 41, MENU.gold);
++    const rowY = ty + timerH - 9;
++    G.Icons.draw(ctx, 'fist', timerX + 4 * P, rowY - 12, 14);
++    ctx.font = F(800, 12); ctx.textAlign = 'left';
++    shadowText(ctx, pl.kills + ' KO', timerX + 4 * P + 17, rowY, '#e6eeff', 0, 1);
++    const coins = String(pl.coins);
++    ctx.textAlign = 'right';
++    shadowText(ctx, coins, timerX + timerW - 5 * P, rowY, MENU.gold, 0, 1);
++    G.Icons.draw(ctx, 'coin', timerX + timerW - 5 * P - ctx.measureText(coins).width - 18, rowY - 13, 15);
  
      // ---------- clima (arriba a la derecha) ----------
      const wx = G.Weather.current;
-@@ -91,7 +124,7 @@ G.HUD = (() => {
-       ctx.textAlign = 'left';
+     if (wx) {
+-      ctx.font = F(800, 11);
+-      ctx.textAlign = 'left';
        const txt = wx.name.toUpperCase() + ' · ' + Math.ceil(wx.left) + 's';
-       const tw = ctx.measureText(txt).width + 40;
+-      const tw = ctx.measureText(txt).width + 40;
 -      const x0 = w - tw - 16 - (touch ? 56 : 0), y0 = 14;
-+      const x0 = w - tw - 16 - (touch ? 56 : 0), y0 = compact ? 102 : 16;
-       roundRect(ctx, x0, y0, tw, 26, 9);
-       ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fill();
-       G.Icons.draw(ctx, wx.icon, x0 + 6, y0 + 3, 20);
-@@ -103,10 +136,11 @@ G.HUD = (() => {
+-      roundRect(ctx, x0, y0, tw, 26, 9);
+-      ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fill();
+-      G.Icons.draw(ctx, wx.icon, x0 + 6, y0 + 3, 20);
+-      ctx.fillStyle = wx.color;
+-      ctx.fillText(txt, x0 + 32, y0 + 17);
++      const x0 = w - chipW(ctx, txt, wx.icon) - 14 - (touch ? 56 : 0), y0 = compact ? ty + timerH + 4 * P : 16;
++      chip(ctx, x0, y0, txt, wx.color, wx.icon);
+     }
+ 
+     // ---------- barra del jefe ----------
      const boss = G.EnemyMgr.all().find(e => e.boss && !e.dead);
      if (boss) {
        const bw = Math.min(420, w - 80);
 -      bar(ctx, (w - bw) / 2, 70, bw, 12, boss.hp / boss.maxHp, '#ffcb3d');
-+      bar(ctx, (w - bw) / 2, 136, bw, 14, boss.hp / boss.maxHp, '#ffcb3d');
++      pxBar(ctx, (w - bw) / 2, 136, bw, 14, boss.hp / boss.maxHp, '#ffcb3d', { seg: bw / 20 });
        ctx.font = F(800, 10);
        ctx.fillStyle = '#20160a';
 -      ctx.fillText(boss.name.toUpperCase(), w / 2, 80);
@@ -2817,25 +3866,47 @@ index 440d2a5..f932d26 100644
      }
  
      // ---------- aviso ----------
-@@ -138,14 +172,14 @@ G.HUD = (() => {
-       ctx.font = F(800, 9);
-       ctx.textAlign = 'left';
-       const tw = ctx.measureText(txt).width + 12;
+@@ -116,7 +329,7 @@ G.HUD = (() => {
+       const sx = (e.x - cam.left()) * cam.scale, sy = (e.y - cam.top()) * cam.scale;
+       if (sx > 0 && sx < w && sy > 0 && sy < h) continue;
+       const M = 34;
+-      const ex = G.U.clamp(sx, M, w - M), ey = G.U.clamp(sy, M + 60, h - M - 70);
++      const ex = G.U.clamp(sx, M, w - M), ey = G.U.clamp(sy, M + 60, h - M - 94);   // por encima del dock
+       const a = Math.atan2(sy - ey, sx - ex);
+       ctx.save();
+       ctx.globalAlpha = pulse;
+@@ -134,18 +347,11 @@ G.HUD = (() => {
+ 
+     // Poder de altar activo.
+     if (pl.power) {
+-      const pw = pl.power, txt = pw.def.name.toUpperCase() + ' ' + Math.ceil(pw.t) + 's';
+-      ctx.font = F(800, 9);
+-      ctx.textAlign = 'left';
+-      const tw = ctx.measureText(txt).width + 12;
 -      roundRect(ctx, bx, py + 34, tw, 15, 7);
-+      roundRect(ctx, bx, py + 84, tw, 15, 7);
-       ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fill();
-       ctx.fillStyle = pw.def.color;
+-      ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fill();
+-      ctx.fillStyle = pw.def.color;
 -      ctx.fillText(txt, bx + 6, py + 45);
-+      ctx.fillText(txt, bx + 6, py + 95);
-       bx += tw + 5;
+-      bx += tw + 5;
++      const pw = pl.power;
++      bx += chip(ctx, bx, chipY, pw.def.name.toUpperCase() + ' ' + Math.ceil(pw.t) + 's', pw.def.color) + 4;
      }
  
 -    if (G.Coop.active) drawCoop(ctx, w, h, pl, px, py + (bx > px ? 56 : 40));
-+    if (G.Coop.active) drawCoop(ctx, w, h, pl, px, py + (bx > px ? 106 : 84));
++    if (G.Coop.active) drawCoop(ctx, w, h, pl, px, bx > px ? chipY + 18 + 4 * P : py + ch + 4 * P, hw - 6 * P);
  
      // Grieta: flecha grande que late en el borde si no se ve, y si se ve, una
      // flecha que bota encima; en la arena, cuenta atrás.
-@@ -199,7 +233,7 @@ G.HUD = (() => {
+@@ -157,7 +363,7 @@ G.HUD = (() => {
+       const off = sx < 0 || sx > w || sy < 0 || sy > h;
+       ctx.save();
+       if (off) {
+-        const M = 52, ex = G.U.clamp(sx, M, w - M), ey = G.U.clamp(sy, M + 70, h - M - 80);
++        const M = 52, ex = G.U.clamp(sx, M, w - M), ey = G.U.clamp(sy, M + 70, h - M - 104);
+         const a = Math.atan2(sy - ey, sx - ex), ca = Math.cos(a), sa = Math.sin(a);
+         ctx.translate(ex, ey);
+         // Halo que late.
+@@ -199,7 +405,7 @@ G.HUD = (() => {
        ctx.textAlign = 'center';
        ctx.font = F(800, 12);
        ctx.fillStyle = '#d9c2ff';
@@ -2844,6 +3915,353 @@ index 440d2a5..f932d26 100644
      }
  
      // Eventos: cuenta atrás, flecha al Pokémon perdido / a la marca y a los duendes.
+@@ -237,120 +443,148 @@ G.HUD = (() => {
+       ctx.restore();
+     }
+ 
+-    // ---------- ranura de movimientos ----------
+-    const S = 54, GAP = 9;
++    // ---------- dock de abajo: objeto + movimientos + experiencia ----------
++    const S = 50, GAP = 8, SEP = 18, PAD = 5 * P;
+     const n = Math.max(1, pl.slots.length);
+-    const totalW = n * S + (n - 1) * GAP;
+-    let sx = (w - totalW) / 2;
++    const movesW = n * S + (n - 1) * GAP;
++    const bondW = pl.bonds > 0 ? 44 : 0;
++    const rowW = S + SEP + movesW + bondW;
++    const dockW = Math.max(320, rowW + 2 * PAD), dockH = PAD + S + 4 * P + 14 + PAD;
++    const dockX = Math.round((w - dockW) / 2);
+     // Por encima de la barra de inicio del iPhone (allí los toques a veces no llegan).
+-    const sy = h - S - 18 - (touch ? Math.min(28, G.Touch.safeArea().bottom) : 0);
++    const dockY = h - dockH - 4 * P - (touch ? Math.min(28, G.Touch.safeArea().bottom) : 0);
++    frame(ctx, dockX, dockY, dockW, dockH);
++    const ix = Math.round(dockX + (dockW - rowW) / 2), sy = dockY + PAD;
++    const sx = ix + S + SEP;
+     const BOND = '#ff8ad8';
+     const cdOf = m => m.kind === 'orbit' ? 0 : G.U.clamp(m.t / (m.cd * pl.cdMul), 0, 1);
++    const tags = [];                     // placas con nombre encima del dock
++
++    // Objeto equipado (a la izquierda, separado por una raya).
++    slot(ctx, ix, sy, S, pl.item ? '#ffd23f' : '#29478f', pl.item ? '#3a2a0e' : WELL);
++    if (pl.item) {
++      G.Icons.draw(ctx, pl.item, ix + (S - 34) / 2, sy + (S - 34) / 2, 34);
++      tags.push({ x: ix + S / 2, text: G.Items.BY[pl.item].name, col: '#ffd23f', fill: '#3a2a0e', low: true });
++    } else {
++      ctx.fillStyle = 'rgba(185,203,240,.16)';
++      ctx.fillRect(ix + S / 2 - 3 * P, sy + S / 2 - P / 2, 6 * P, P);
++      ctx.fillRect(ix + S / 2 - P / 2, sy + S / 2 - 3 * P, P, 6 * P);
++    }
++    ctx.fillStyle = MENU.outer; ctx.fillRect(ix + S + SEP / 2 - P, sy + 3 * P, P, S - 6 * P);
++    ctx.fillStyle = MENU.inner; ctx.fillRect(ix + S + SEP / 2, sy + 3 * P, P, S - 6 * P);
+ 
+     for (let i = 0; i < n; i++) {
+       const g = pl.slots[i] || [];
+       const m = g[0];
+       const fused = g.length > 1;
+       const on = i === pl.active;
+-      const x = sx + i * (S + GAP);
+-      const y = on ? sy - 6 : sy;
++      const x = sx + i * (S + GAP), y = sy;
+       // Tocar (o hacer clic en) un icono activa ese movimiento.
+       if (m) G.Touch.addButton(x, y, S, S, () => { if (G.Game.state === 'playing' && pl.active !== i) { pl.setActive(i); G.Audio.sfx('click'); } }, GAP / 2 + 3);
+       const col = m ? G.U.TYPE_COLOR[m.type] : '#4a5468';
+-
+-      // fondo
+-      roundRect(ctx, x, y, S, S, 12);
+-      ctx.fillStyle = on ? 'rgba(20,30,50,.95)' : 'rgba(10,16,28,.8)';
+-      ctx.fill();
+-      ctx.lineWidth = on ? 2.5 : fused || (m && m.evolved) ? 2 : 1.2;
+-      // Vínculo: borde rosa. Evolucionado: dorado.
+-      ctx.strokeStyle = fused ? BOND : m && m.evolved ? '#ffd23f' : on ? col : 'rgba(140,170,210,.22)';
+-      ctx.stroke();
+-
+-      if (!m) continue;
+-
+-      if (fused) {
+-        // Vínculo: los movimientos en una cuadrícula de 2×2, cada uno con su recarga.
+-        const C = 22, P = (S - C * 2) / 3;
+-        g.forEach((gm, k) => {
+-          const cx = x + P + (k % 2) * (C + P), cy = y + P + Math.floor(k / 2) * (C + P);
+-          G.Icons.draw(ctx, 'move:' + gm.id, cx, cy, C);
+-          const f = cdOf(gm);
+-          if (f > 0) { ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(cx, cy, C, C * f); }
+-          if (gm.evolved) { ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 1; ctx.strokeRect(cx + 0.5, cy + 0.5, C - 1, C - 1); }
+-          // Destello al lanzarse.
+-          const fl = 1 - (performance.now() - (gm.castAt || 0)) / 180;
+-          if (fl > 0) { ctx.fillStyle = 'rgba(255,255,255,' + (fl * 0.55).toFixed(2) + ')'; ctx.fillRect(cx, cy, C, C); }
+-        });
+-      } else {
+-        // recarga: se vacía de abajo a arriba
+-        const cdFrac = cdOf(m);
+-        if (cdFrac > 0) {
+-          ctx.save();
+-          roundRect(ctx, x, y, S, S, 12); ctx.clip();
+-          ctx.fillStyle = 'rgba(0,0,0,.6)';
+-          ctx.fillRect(x, y, S, S * cdFrac);
+-          ctx.restore();
+-        }
+-
+-        // emblema del tipo + insignia de la familia
+-        G.Icons.draw(ctx, 'move:' + m.id, x + (S - 32) / 2, y + (S - 32) / 2 - 2, 32);
+-
+-        // nivel del movimiento (puntitos)
+-        const dots = m.def.maxLvl;
+-        const dw = 4, dgap = 2;
+-        const tw = dots * dw + (dots - 1) * dgap;
+-        for (let d = 0; d < dots; d++) {
+-          ctx.fillStyle = d < m.lvl ? col : 'rgba(255,255,255,.18)';
+-          ctx.fillRect(x + (S - tw) / 2 + d * (dw + dgap), y + S - 9, dw, 3);
++      // Vínculo: filo rosa. Evolucionado: dorado. Activo: el color del tipo, con halo.
++      const ring = fused ? BOND : m && m.evolved ? '#ffd23f' : on ? col : '#29478f';
++      if (on) {
++        ctx.globalAlpha = 0.35 + Math.sin(now / 260) * 0.12;
++        pxRect(ctx, x - 2 * P, y - 2 * P, S + 4 * P, S + 4 * P, 2 * P, col);
++        ctx.globalAlpha = 1;
++        pxRect(ctx, x - P, y - P, S + 2 * P, S + 2 * P, 2 * P, MENU.edge);
++      }
++      slot(ctx, x, y, S, ring, on && m ? mix(col, '#0b1838', 0.72) : WELL);
++
++      if (m) {
++        const inner = S - 4 * P, x0 = x + 2 * P, y0 = y + 2 * P;
++        if (fused) {
++          // Vínculo: los movimientos en una cuadrícula de 2×2, cada uno con su recarga.
++          const C = 18, Q = (inner - C * 2) / 3;
++          g.forEach((gm, k) => {
++            const cx = Math.round(x0 + Q + (k % 2) * (C + Q)), cy = Math.round(y0 + Q + Math.floor(k / 2) * (C + Q));
++            G.Icons.draw(ctx, 'move:' + gm.id, cx, cy, C);
++            const f = cdOf(gm);
++            if (f > 0) { ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fillRect(cx, cy, C, Math.round(C * f)); }
++            if (gm.evolved) { ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 1; ctx.strokeRect(cx + 0.5, cy + 0.5, C - 1, C - 1); }
++            // Destello al lanzarse.
++            const fl = 1 - (now - (gm.castAt || 0)) / 180;
++            if (fl > 0) { ctx.fillStyle = 'rgba(255,255,255,' + (fl * 0.55).toFixed(2) + ')'; ctx.fillRect(cx, cy, C, C); }
++          });
++        } else {
++          // emblema del tipo + insignia de la familia
++          G.Icons.draw(ctx, 'move:' + m.id, x + (S - 30) / 2, y + (S - 30) / 2 - P, 30);
++          // recarga: la sombra baja de arriba y se va recogiendo, con una raya del color del tipo
++          const cdFrac = cdOf(m);
++          if (cdFrac > 0) {
++            const ch2 = Math.round(inner * cdFrac / P) * P;
++            ctx.fillStyle = 'rgba(4,8,22,.62)'; ctx.fillRect(x0, y0, inner, ch2);
++            ctx.fillStyle = col; ctx.fillRect(x0, y0 + ch2 - P, inner, P);
++          }
++          // nivel del movimiento (cuadraditos)
++          const dots = m.def.maxLvl, dw = 2 * P, dgap = P;
++          const tw = dots * dw + (dots - 1) * dgap;
++          const dx0 = Math.round(x + (S - tw) / 2), dy0 = y + S - 4 * P - P;
++          for (let d = 0; d < dots; d++) {
++            ctx.fillStyle = INK; ctx.fillRect(dx0 + d * (dw + dgap) - 1, dy0 - 1, dw + 2, P + 2);
++            ctx.fillStyle = d < m.lvl ? col : 'rgba(255,255,255,.2)';
++            ctx.fillRect(dx0 + d * (dw + dgap), dy0, dw, P);
++          }
+         }
+       }
+ 
+-      // tecla
+-      ctx.font = F(800, 9);
+-      ctx.fillStyle = fused ? BOND : on ? col : 'rgba(180,200,230,.6)';
+-      ctx.textAlign = 'left';
+-      ctx.fillText(String(i + 1), x + 3, y + 10);
++      // tecla, en una placa en la esquina
++      pxRect(ctx, x - P, y - P, 14, 14, P, INK);
++      ctx.fillStyle = on ? MENU.edge : MENU.bottom; ctx.fillRect(x, y, 14 - 2 * P, 14 - 2 * P);
++      ctx.font = F(800, 9); ctx.textAlign = 'center';
++      ctx.fillStyle = on ? INK : fused ? BOND : '#c9d6f5';
++      ctx.fillText(String(i + 1), x + 5, y + 8);
+ 
+       // nombre encima del activo (con un vínculo: "Ascuas +2")
+-      if (on) {
+-        ctx.font = F(700, 10);
+-        ctx.textAlign = 'center';
+-        ctx.fillStyle = fused ? BOND : col;
+-        ctx.fillText(fused ? m.name + ' +' + (g.length - 1) : m.name, x + S / 2, y - 7);
+-      }
++      if (on && m) tags.push({ x: x + S / 2, text: fused ? m.name + ' +' + (g.length - 1) : m.name, col: '#ffffff', fill: fused ? '#7a2a63' : mix(col, '#0b1838', 0.45), edge: fused ? BOND : col });
+     }
+ 
+     // ---------- vínculo guardado (aún no hay dos movimientos sueltos) ----------
+     if (pl.bonds > 0) {
+-      const bx = sx + totalW + 12, by = sy + S / 2 - 12;
+-      G.Icons.draw(ctx, 'bond', bx, by, 24);
++      const bx2 = sx + movesW + 12, by = sy + S / 2 - 14;
++      G.Icons.draw(ctx, 'bond', bx2, by, 24);
+       if (pl.bonds > 1) {
+-        ctx.font = F(800, 10);
++        ctx.font = F(800, 11);
+         ctx.textAlign = 'left';
+-        ctx.fillStyle = BOND;
+-        ctx.fillText('×' + pl.bonds, bx + 25, by + 20);
++        shadowText(ctx, '×' + pl.bonds, bx2 + 6, by + 38, BOND, 0, 1);
+       }
+     }
+ 
+-    // ---------- objeto equipado (a la izquierda de los movimientos) ----------
++    // ---------- experiencia (franja de abajo del dock) ----------
+     {
+-      const ix = sx - S - 18, iy = sy;
+-      roundRect(ctx, ix, iy, S, S, 12);
+-      ctx.fillStyle = pl.item ? 'rgba(40,30,10,.9)' : 'rgba(10,16,28,.55)';
+-      ctx.fill();
+-      ctx.lineWidth = pl.item ? 2 : 1;
+-      ctx.strokeStyle = pl.item ? '#ffd23f' : 'rgba(140,170,210,.18)';
+-      ctx.stroke();
+-      if (pl.item) {
+-        G.Icons.draw(ctx, pl.item, ix + (S - 36) / 2, iy + (S - 36) / 2, 36);
+-        ctx.font = F(700, 9);
+-        ctx.textAlign = 'center';
+-        ctx.fillStyle = '#ffd23f';
+-        ctx.fillText(G.Items.BY[pl.item].name, ix + S / 2, iy - 6);
++      const xy = sy + S + 4 * P, xl = dockX + PAD, xr = dockX + dockW - PAD;
++      pxRect(ctx, xl, xy, 32, 14, P, INK);
++      ctx.font = F(800, 10); ctx.textAlign = 'center';
++      ctx.fillStyle = '#4fd1ff'; ctx.fillText('EXP', xl + 16, xy + 11);
++      const flash = G.U.clamp(1 - (now - levelAt) / 700, 0, 1);
++      pxBar(ctx, xl + 32 + 2 * P, xy + 4, xr - xl - 32 - 2 * P, 3 * P, pl.xp / pl.xpNext, '#4fd1ff', { to: '#a98bff' });
++      if (flash > 0) {
++        ctx.globalAlpha = flash;
++        ctx.fillStyle = '#ffffff'; ctx.fillRect(xl + 32 + 2 * P, xy + 4, xr - xl - 32 - 2 * P, 3 * P);
++        ctx.globalAlpha = 1;
+       }
+     }
+ 
++    // Placas con el nombre del movimiento activo y del objeto, con un piquito
++    // hacia su hueco (si se pisan, gana el movimiento).
++    ctx.font = F(800, 10);
++    const placed = [];
++    for (const t of tags.sort((a, b) => (a.low ? 1 : 0) - (b.low ? 1 : 0))) {
++      const tw = Math.round(ctx.measureText(t.text).width) + 14;
++      const x0 = Math.round(G.U.clamp(t.x - tw / 2, 4, w - tw - 4)), y0 = dockY - 22;
++      if (placed.some(p => x0 < p[1] + 4 && p[0] < x0 + tw + 4)) continue;
++      placed.push([x0, x0 + tw]);
++      pxRect(ctx, x0, y0, tw, 17, P, INK);
++      ctx.fillStyle = t.edge || t.col; ctx.fillRect(x0 + P, y0 + P, tw - 2 * P, 17 - 2 * P);
++      ctx.fillStyle = t.fill; ctx.fillRect(x0 + 2 * P, y0 + 2 * P, tw - 4 * P, 17 - 4 * P);
++      const tx = Math.round(t.x / P) * P;
++      ctx.fillStyle = INK; ctx.fillRect(tx - 3 * P, y0 + 17, 6 * P, P); ctx.fillRect(tx - 2 * P, y0 + 17 + P, 4 * P, P);
++      ctx.fillStyle = t.edge || t.col; ctx.fillRect(tx - 2 * P, y0 + 17 - P, 4 * P, P); ctx.fillRect(tx - P, y0 + 17, 2 * P, P);
++      ctx.textAlign = 'center';
++      shadowText(ctx, t.text, x0 + tw / 2, y0 + 12, t.col, 0, 1);
++    }
++
+     // ---------- botón de pausa (táctil) ----------
+     if (touch) {
+       const sa = G.Touch.safeArea();
+@@ -365,11 +599,12 @@ G.HUD = (() => {
+ 
+     // pista de controles
+     if (st.time < 14) {
+-      ctx.font = F(600, 10);
++      ctx.font = F(700, 11);
+       ctx.textAlign = 'center';
+-      ctx.fillStyle = 'rgba(180,200,230,.55)';
+-      ctx.fillText(touch ? 'Arrastra el dedo para moverte  ·  toca un ataque para cambiarlo'
+-                         : 'WASD moverse  ·  1-4 / Q / E o clic en un ataque para cambiarlo  ·  Esc pausa', w / 2, h - 4);
++      ctx.globalAlpha = G.U.clamp(14 - st.time, 0, 1) * 0.9;
++      shadowText(ctx, touch ? 'Arrastra el dedo para moverte  ·  toca un ataque para cambiarlo'
++                       : 'WASD moverse  ·  1-4 / Q / E o clic en un ataque para cambiarlo  ·  Esc pausa', w / 2, dockY - 32, '#dbe6ff', 0, 1);
++      ctx.globalAlpha = 1;
+     }
+ 
+     ctx.restore();
+@@ -383,25 +618,31 @@ G.HUD = (() => {
+    *   y a cuántos metros están (roja y parpadeando si está caído).
+    * - Si has caído tú: aviso y barra de "te están levantando".
+    */
+-  function drawCoop(ctx, w, h, pl, px, top) {
++  function drawCoop(ctx, w, h, pl, px, top, cw) {
+     const cam = G.Camera;
+     const t = performance.now() / 1000;
++    // Una tarjeta por compañero (como la tuya, en pequeño): retrato, su color, nombre y vida.
++    const CH = 44, ps = CH - 8 * P;
+     let y = top;
+-    ctx.textAlign = 'left';
+     for (const m of G.Coop.mates) {
+       if (!m.connected) continue;
+-      const o = m.pl;
+-      ctx.font = F(800, 10);
+-      ctx.fillStyle = m.color;
+-      ctx.fillText(m.name, px, y + 9);
+-      const lx = px + 78;
+-      bar(ctx, lx, y + 1, 110, 8, o.dead ? 0 : o.hp / o.maxHp, o.dead ? '#ff5f6d' : '#5fe08a');
+-      if (o.dead) {
+-        ctx.font = F(800, 9);
+-        ctx.fillStyle = Math.sin(t * 8) > 0 ? '#ff8a96' : '#ffd0d5';
+-        ctx.fillText('CAÍDO', lx + 116, y + 9);
+-      }
+-      y += 15;
++      const o = m.pl, blink = Math.sin(t * 8) > 0;
++      const f = o.dead ? 0 : G.U.clamp(o.hp / o.maxHp, 0, 1);
++      frame(ctx, px, y, cw, CH, o.dead && blink ? MENU.red : MENU.edge);
++      portrait(ctx, o.mon, o.shiny, px + 4 * P, y + 4 * P, ps, { dim: o.dead });
++      // Su color, en la esquina del retrato (el mismo que su nombre en el mapa).
++      pxRect(ctx, px + 4 * P - P, y + 4 * P + ps - 10 + P, 10, 10, P, INK);
++      ctx.fillStyle = m.color; ctx.fillRect(px + 4 * P, y + 4 * P + ps - 10 + 2 * P, 10 - 2 * P, 10 - 2 * P);
++      const cx = px + 4 * P + ps + 4 * P, cr = px + cw - 5 * P;
++      ctx.font = F(800, 11); ctx.textAlign = 'right';
++      const right = o.dead ? 'CAÍDO' : Math.ceil(o.hp) + '/' + Math.round(o.maxHp);
++      shadowText(ctx, right, cr, y + 20, o.dead ? (blink ? '#ff8a96' : '#ffd0d5') : MENU.muted, 0, 1);
++      const rw = ctx.measureText(right).width;
++      ctx.font = F(800, 13); ctx.textAlign = 'left';
++      shadowText(ctx, m.name, cx, y + 20, m.color, Math.max(30, cr - cx - rw - 8), 1);
++      const col = f > .5 ? MENU.green : f > .25 ? MENU.gold : MENU.red;
++      pxBar(ctx, cx + P, y + 27, cr - cx - 2 * P, 3 * P, f, col, { seg: (cr - cx) / 8 });
++      y += CH + 4 * P;
+     }
+ 
+     // Flechas hacia los compañeros fuera de la vista.
+@@ -411,26 +652,28 @@ G.HUD = (() => {
+       const sx = (o.x - cam.left()) * cam.scale, sy = (o.y - o.bodyH * 0.5 - cam.top()) * cam.scale;
+       if (sx > 0 && sx < w && sy > 0 && sy < h) continue;
+       const M = 42;
+-      const ex = G.U.clamp(sx, M, w - M), ey = G.U.clamp(sy, M + 70, h - M - 80);
++      const ex = G.U.clamp(sx, M, w - M), ey = G.U.clamp(sy, M + 70, h - M - 104);
+       const a = Math.atan2(sy - ey, sx - ex);
+       const metres = Math.round(G.U.dist(pl.x, pl.y, o.x, o.y) / 32);
+       const col = o.dead ? (Math.sin(t * 8) > 0 ? '#ff5f6d' : '#ffd0d5') : m.color;
+       ctx.save();
+-      ctx.translate(ex, ey);
+-      // Flecha
+-      ctx.fillStyle = 'rgba(0,0,0,.55)';
+-      ctx.beginPath(); ctx.arc(0, 0, 17, 0, 6.2832); ctx.fill();
+-      ctx.fillStyle = col;
+-      ctx.beginPath();
+-      ctx.moveTo(Math.cos(a) * 28, Math.sin(a) * 28);
+-      ctx.lineTo(Math.cos(a + 2.4) * 14, Math.sin(a + 2.4) * 14);
+-      ctx.lineTo(Math.cos(a - 2.4) * 14, Math.sin(a - 2.4) * 14);
+-      ctx.closePath(); ctx.fill();
+-      // Inicial del compañero dentro del círculo
++      ctx.translate(Math.round(ex), Math.round(ey));
++      // Flecha (con contorno de tinta) y, encima, la placa con su inicial.
++      const tri = (r, k) => {
++        ctx.beginPath();
++        ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
++        ctx.lineTo(Math.cos(a + 2.4) * k, Math.sin(a + 2.4) * k);
++        ctx.lineTo(Math.cos(a - 2.4) * k, Math.sin(a - 2.4) * k);
++        ctx.closePath(); ctx.fill();
++      };
++      ctx.fillStyle = INK; tri(32, 16);
++      ctx.fillStyle = col; tri(28, 14);
++      pxRect(ctx, -14, -14, 28, 28, 2 * P, INK);
++      pxRect(ctx, -12, -12, 24, 24, P, col);
++      ctx.fillStyle = MENU.bottom; ctx.fillRect(-10, -10, 20, 20);
+       ctx.font = F(800, 14);
+       ctx.textAlign = 'center';
+-      ctx.fillStyle = '#fff';
+-      ctx.fillText(m.name.charAt(0).toUpperCase(), 0, 5);
++      shadowText(ctx, m.name.charAt(0).toUpperCase(), 0, 5, '#fff', 0, 1);
+       // Nombre y distancia: al lado contrario de la flecha, para que no se salga
+       const lx = -Math.cos(a) * 30, ly = -Math.sin(a) * 26 + 4;
+       ctx.font = F(800, 12);
+@@ -454,7 +697,7 @@ G.HUD = (() => {
+       ctx.fillStyle = '#ffb0b8';
+       ctx.fillText(msg, w / 2, h * 0.62);
+       const f = (pl.reviveT || 0) / G.Player.REVIVE_TIME;
+-      if (f > 0) bar(ctx, w / 2 - 110, h * 0.62 + 12, 220, 10, f, '#5fe08a');
++      if (f > 0) pxBar(ctx, w / 2 - 110, h * 0.62 + 12, 220, 10, f, MENU.green);
+       ctx.restore();
+     }
+   }
 diff --git a/js/ui/icons.js b/js/ui/icons.js
 index 9783f67..8bbe127 100644
 --- a/js/ui/icons.js
@@ -3133,10 +4551,21 @@ index 1b42e92..50004ed 100644
        + `<div class="row wrap" style="gap:8px;margin-top:12px">
             <button class="btn" id="set-logout">Cerrar sesión</button>
 diff --git a/js/ui/slots.js b/js/ui/slots.js
-index 66e5571..9c05431 100644
+index 66e5571..a29fa91 100644
 --- a/js/ui/slots.js
 +++ b/js/ui/slots.js
-@@ -35,7 +35,7 @@ G.Slots = (() => {
+@@ -14,7 +14,9 @@ G.Slots = (() => {
+   const W = 176, H = 170, CELL = 30;
+   const SYM = G.Icons.RARITY_BALL;
+   const STRIP = ['ball', 'ball2', 'ball', 'ball3', 'ball', 'ball2', 'ballLux', 'ball', 'ball4', 'ball2', 'ball3', 'shiny', 'ball', 'ball2'];
+-  const REEL_X = [26, 65, 104], REEL_W = 36, REEL_Y = 44, REEL_H = 46, MID = REEL_Y + REEL_H / 2;
++  // Cristal de x=23 a 139: tres rodillos de 34 con 3 entre ellos y 4 a cada lado
++  // (eran de 36 y el tercero tapaba el marco derecho).
++  const REEL_X = [27, 64, 101], REEL_W = 34, ICON_X = (REEL_W - 24) / 2, REEL_Y = 44, REEL_H = 46, MID = REEL_Y + REEL_H / 2;
+   const C = {
+     body: '#c8323c', bodyD: '#8e1f2a', bodyL: '#ef6464', trim: '#ffd23f', trimD: '#c08a10',
+     dark: '#1b1528', glass: '#0d1230', reel: '#f4efe2', reelD: '#c9c1ad', chrome: '#c9d2de', chromeD: '#7d8899',
+@@ -35,7 +37,7 @@ G.Slots = (() => {
  
    /** Anima las tiradas. → Promise que se resuelve al terminar. */
    async function play(canvas, results) {
@@ -3145,7 +4574,7 @@ index 66e5571..9c05431 100644
      fast = false;
      cv.onclick = () => { fast = true; };
      st = {
-@@ -133,7 +133,7 @@ G.Slots = (() => {
+@@ -133,7 +135,7 @@ G.Slots = (() => {
    const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
  
    function draw() {
@@ -3154,7 +4583,7 @@ index 66e5571..9c05431 100644
      ctx.imageSmoothingEnabled = false;
      ctx.clearRect(0, 0, W, H);
      const t = st.t;
-@@ -153,10 +153,10 @@ G.Slots = (() => {
+@@ -153,10 +155,10 @@ G.Slots = (() => {
      let i = 0;
      for (let x = 16; x < 146; x += 7) { bulb(x, 5, i++, winCol); bulb(x, 29, i++, winCol); }
      for (let y = 12; y < 28; y += 7) { bulb(15, y, i++, winCol); bulb(146, y, i++, winCol); }
@@ -3168,7 +4597,7 @@ index 66e5571..9c05431 100644
  
      // --- ventana de rodillos ---
      R(20, 38, 122, 58, C.dark);
-@@ -176,9 +176,9 @@ G.Slots = (() => {
+@@ -176,9 +178,9 @@ G.Slots = (() => {
      // --- marcador ---
      R(36, 100, 90, 16, C.dark);
      R(37, 101, 88, 14, C.led);
@@ -3181,8 +4610,32 @@ index 66e5571..9c05431 100644
      // Botoncitos decorativos.
      R(132, 102, 8, 6, C.trim); R(132, 108, 8, 2, C.trimD);
      R(22, 102, 8, 6, '#5fe08a'); R(22, 108, 8, 2, '#2f9a52');
+@@ -229,18 +231,18 @@ G.Slots = (() => {
+         const name = STRIP[((i0 - k) % STRIP.length + STRIP.length) % STRIP.length];
+         const y = Math.round(MID - 12 + k * CELL + base);
+         ctx.globalAlpha = rl.speed > 300 ? 0.75 : 1;
+-        G.Icons.draw(ctx, name, x + 6, y, 24);
+-        if (rl.speed > 300) { ctx.globalAlpha = 0.25; G.Icons.draw(ctx, name, x + 6, y - 6, 24); }
++        G.Icons.draw(ctx, name, x + ICON_X, y, 24);
++        if (rl.speed > 300) { ctx.globalAlpha = 0.25; G.Icons.draw(ctx, name, x + ICON_X, y - 6, 24); }
+         ctx.globalAlpha = 1;
+       }
+     } else {
+       const by = Math.round(Math.sin(rl.bounce * Math.PI) * 5);
+       const n = STRIP.indexOf(rl.sym);
+       ctx.globalAlpha = 0.35;
+-      G.Icons.draw(ctx, STRIP[(n + 3) % STRIP.length], x + 6, MID - 12 - CELL + by, 24);
+-      G.Icons.draw(ctx, STRIP[(n + 5) % STRIP.length], x + 6, MID - 12 + CELL + by, 24);
++      G.Icons.draw(ctx, STRIP[(n + 3) % STRIP.length], x + ICON_X, MID - 12 - CELL + by, 24);
++      G.Icons.draw(ctx, STRIP[(n + 5) % STRIP.length], x + ICON_X, MID - 12 + CELL + by, 24);
+       ctx.globalAlpha = 1;
+-      G.Icons.draw(ctx, rl.sym, x + 6, MID - 12 + by, 24);
++      G.Icons.draw(ctx, rl.sym, x + ICON_X, MID - 12 + by, 24);
+     }
+     // Sombra curva del rodillo (arriba y abajo más oscuro).
+     ctx.globalAlpha = 0.28;
 diff --git a/js/ui/social-ui.js b/js/ui/social-ui.js
-index f22ab03..9ce1735 100644
+index f22ab03..7e39c8e 100644
 --- a/js/ui/social-ui.js
 +++ b/js/ui/social-ui.js
 @@ -139,6 +139,119 @@
@@ -3305,7 +4758,33 @@ index f22ab03..9ce1735 100644
    // ======================= SALA =======================
  
    G.LobbyUI = (() => {
-@@ -191,8 +304,10 @@
+@@ -154,16 +267,23 @@
+       $('lobby-start').onclick = start;
+       $('lobby-start').dataset.sfx = 'confirm';
+       // Conecta / desconecta la red al entrar o salir de una sala.
+-      G.Social.on(what => {
++      G.Social.on((what, d) => {
+         const room = G.Social.room;
++        const inRun = G.Game.state !== 'ui';
+         if (room) {
+           G.Net.open(room.id, room.isHost, room.host);
+           G.Net.syncMembers(room.members.map(m => m.uid));
+         } else if (G.Net.open_) G.Net.close();
++        // (Si la sala se cierra en plena partida, ya lo dice el aviso de la partida.)
+         if (what === 'room-closed') {
+-          G.UI.toast('La sala se ha cerrado', 2600);
++          if (!inRun) G.UI.toast('La sala se ha cerrado', 2600);
+           if (G.UI.isOpen('scr-lobby')) G.MenuUI.open();
+         }
++        // daivr.dev: el anfitrión le ha pasado la sala a otro.
++        if (what === 'room-host' && room && d) {
++          const to = room.members.find(m => m.uid === d.to);
++          G.UI.toast(d.to === G.Social.uid ? 'Ahora eres el anfitrión de la sala' : (to ? to.name : '?') + ' es ahora el anfitrión', 2800);
++        }
+         if (G.UI.isOpen('scr-lobby')) render();
+       });
+       G.Net.onPeer(() => { if (G.UI.isOpen('scr-lobby')) render(); });
+@@ -191,17 +311,19 @@
        const room = G.Social.room;
        if (!room) return;
        const ms = room.members;
@@ -3316,8 +4795,11 @@ index f22ab03..9ce1735 100644
 +        ? 'Eres el anfitrión. Invita a tus amigos (hasta ' + room.max + ') y empezad cuando estéis.'
          : 'Estás en la sala de ' + ((ms.find(m => m.uid === room.host) || {}).name || '…') + '. El anfitrión empezará la partida.';
  
-       // Las tarjetas sólo se rehacen si cambian los miembros (los sprites no parpadean).
-@@ -201,7 +316,7 @@
+-      // Las tarjetas sólo se rehacen si cambian los miembros (los sprites no parpadean).
+-      const key = ms.map(m => m.uid + ':' + m.dex + ':' + (m.shiny ? 1 : 0)).join('|');
++      // Las tarjetas sólo se rehacen si cambian los miembros o el anfitrión (los sprites no parpadean).
++      const key = room.host + '>' + (room.isHost ? 1 : 0) + '>' + ms.map(m => m.uid + ':' + m.dex + ':' + (m.shiny ? 1 : 0)).join('|');
+       const box = $('lobby-members');
        if (key !== membersKey) {
          membersKey = key;
          box.innerHTML = '';
@@ -3326,7 +4808,28 @@ index f22ab03..9ce1735 100644
            const m = ms[i];
            const c = document.createElement('div');
            c.className = 'lob-card' + (m ? '' : ' empty');
-@@ -222,7 +337,7 @@
+@@ -209,6 +331,20 @@
+             c.style.setProperty('--pc', G.Coop.COLORS[i]);
+             c.appendChild(G.UI.spriteCanvas(m.dex, 120, 96, { scale: 2, lively: true, shiny: !!m.shiny }));
+             c.insertAdjacentHTML('beforeend', `<b translate="no">${esc(m.name)}</b><small>${esc((G.DEX_BY[m.dex] || {}).name || '')}</small><span class="conn" data-u="${m.uid}"></span>`);
++            // daivr.dev: el anfitrión puede pasarle la sala a cualquiera de los demás.
++            if (room.isHost && m.uid !== room.host) {
++              const b = document.createElement('button');
++              b.type = 'button';
++              b.className = 'btn small ghost lob-host';
++              b.innerHTML = G.Icons.html('crown', 14) + '<span>Hacer anfitrión</span>';
++              b.title = 'Pasarle la sala a ' + m.name;
++              b.onclick = async () => {
++                b.disabled = true;
++                const r = await G.Social.transferHost(m.uid);
++                if (!r.ok) { b.disabled = false; G.UI.toast(r.error, 3000); }
++              };
++              c.appendChild(b);
++            }
+           } else c.innerHTML = '<span>Libre</span>';
+           box.appendChild(c);
+         }
+@@ -222,7 +358,7 @@
        });
  
        // Invitar (sólo el anfitrión y si queda sitio).
@@ -3335,7 +4838,7 @@ index f22ab03..9ce1735 100644
        $('lobby-inv-title').classList.toggle('hidden', !canInvite);
        const inv = $('lobby-invite');
        inv.classList.toggle('hidden', !canInvite);
-@@ -247,7 +362,7 @@
+@@ -247,7 +383,7 @@
        const connecting = ms.some(m => m.uid !== room.host && G.Net.mode(m.uid) === 'connecting');
        const failed = ms.some(m => m.uid !== room.host && G.Net.mode(m.uid) === 'failed');
        btn.disabled = !room.isHost || ms.length < 2 || connecting || failed;
@@ -3344,7 +4847,7 @@ index f22ab03..9ce1735 100644
        $('lobby-note').textContent = !room.isHost ? 'Cuando el anfitrión empiece, entraréis todos a la vez.'
          : ms.length < 2 ? 'Necesitas al menos un amigo en la sala.'
          : failed ? 'No se puede conectar con algún amigo: su red (o la tuya) no deja jugar en grupo. Probad con otra wifi o datos móviles; se reintenta solo.'
-@@ -305,7 +420,7 @@
+@@ -305,7 +441,7 @@
    })();
  
    G.SocialUI = {

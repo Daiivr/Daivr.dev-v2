@@ -5,6 +5,22 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.73.0",
+    codename: "PASS THE CROWN",
+    date: "2026-10-13",
+    summary: "PokéSurvivor's HUD is pixel art now, wild Pokémon effects got the same treatment, and co-op games no longer end just because the host leaves.",
+    entries: [
+      ["buff", "PokéSurvivor's HUD is drawn in pixel art like the menus: your Pokémon's card has its animated portrait and a segmented HP bar that leaves a trail when you get hit, the clock wears the area's name on a tab, and each teammate gets a small card with their partner and health."],
+      ["buff", "The EXP bar moved to the bottom, into a new dock that holds your item and your moves. The active move gets a glow and its name in a tag, and every slot shows its hotkey, cooldown and level."],
+      ["buff", "Shields cast by support Pokémon are now a pixel aura around the shielded Pokémon instead of a bubble, and they flicker when about to break. Bosses and golden Pokémon get a gold aura, red when a boss gets angry."],
+      ["buff", "Attack warnings are pixel art too. Landing zones fill up, show the shadow of what's about to drop, and close in with four arrows. Beams march arrows down their lane. Burn and poison leave embers and bubbles, and the HP bars over wild Pokémon have an outline."],
+      ["new", "Host migration: if the host leaves a co-op game with two or more players still in it, the game goes on and the longest-standing player becomes the host. With only two players, the other one gets a clear notice that the host left."],
+      ["new", "In the waiting room the host can hand the room over to anyone in it with Make host."],
+      ["fix", "Closing the TV now takes you out of a co-op game right away. Before, the others waited about 15 seconds before the game noticed you were gone."],
+      ["fix", "The Poké Slots reel window shows its right-hand frame again. The third reel used to cover it."]
+    ]
+  },
+  {
     version: "v2.72.0",
     codename: "FRONT DESK",
     date: "2026-10-13",

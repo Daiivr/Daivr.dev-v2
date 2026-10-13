@@ -432,7 +432,7 @@ export function createPokesurvivorService({ now = () => Date.now() } = {}) {
     return { id: room.id, host: room.host, open: room.open, name: room.name, max: room.max, locked: Boolean(room.password), members };
   }
 
-  function pushRoom(room) { const view = roomView(room); for (const uid of room.members.keys()) push(uid, "room", { room: view }); }
+  function pushRoom(room, extra) { const view = roomView(room); for (const uid of room.members.keys()) push(uid, "room", { room: view, ...extra }); }
 
   /** La lista de partidas abiertas (las que aun no han empezado). */
   function sessionsList() {
@@ -494,8 +494,15 @@ export function createPokesurvivorService({ now = () => Date.now() } = {}) {
     roomOf.delete(uid);
     const room = rooms.get(id);
     if (!room) return;
-    if (room.host === uid) {
-      // Si se va el anfitrion, la sala se cierra para todos.
+    const others = [...room.members.values()].filter((m) => m.uid !== uid).sort((a, b) => a.at - b.at);
+    if (room.host === uid && !room.open && others.length >= 2) {
+      // Partida en marcha con dos o mas compañeros: sigue, y el anfitrion pasa
+      // al que lleva mas tiempo en la sala. Su marca de grupo la sube el nuevo
+      // (con el equipo que empezo, como cuando se va un invitado).
+      room.members.delete(uid);
+      setHost(room, others[0].uid, { migrated: { from: uid, to: others[0].uid } });
+    } else if (room.host === uid) {
+      // Si no (sala de espera, o solo quedaba uno), la sala se cierra para todos.
       rooms.delete(id);
       for (const other of room.members.keys()) {
         if (other === uid) continue;
@@ -517,6 +524,26 @@ export function createPokesurvivorService({ now = () => Date.now() } = {}) {
     const room = rooms.get(roomOf.get(uid));
     if (!room || room.host !== uid) fail(403, "not-host");
     return room;
+  }
+
+  /** Cambia el anfitrion (las invitaciones del anterior caducan; la partida en marcha la sube el nuevo). */
+  function setHost(room, to, extra) {
+    const from = room.host;
+    room.host = to;
+    if (room.started) room.started.host = to;
+    retractInvites(from);
+    pushRoom(room, extra);
+    broadcastSessions();
+  }
+
+  /** El anfitrion le pasa la sala a otro jugador (solo en la sala de espera). */
+  function transferHost(uid, to) {
+    const room = hostedRoom(uid);
+    to = String(to || "");
+    if (!room.open) fail(409, "room-started");
+    if (to === uid || !room.members.has(to)) fail(400, "not-member");
+    setHost(room, to, { transferred: { from: uid, to } });
+    return roomView(room);
   }
 
   /** El anfitrion cierra la sala al empezar la partida y la reabre al volver. */
@@ -785,7 +812,7 @@ export function createPokesurvivorService({ now = () => Date.now() } = {}) {
 
   return {
     readSave, storeSave, claimNick, publishProfile, profileOf, requestFriend, acceptFriend, removeFriend, setPlaying,
-    attachStream, snapshot, sessionsList, createRoom, joinRoom, leaveRoom, setRoomOpen, updateMember, invite, declineInvite, relay,
+    attachStream, snapshot, sessionsList, createRoom, joinRoom, leaveRoom, setRoomOpen, transferHost, updateMember, invite, declineInvite, relay,
     submitRun, checkChallenge, rankingView, siteLeaderboard, siteScore, passportStats, deleteAccount, nickOf, isOnline
   };
 }
@@ -876,6 +903,7 @@ export async function handlePokesurvivorRequest(request, response, svc = getServ
       case "room/join": return sendJson(response, 200, { room: svc.joinRoom(uid, body.id, body) });
       case "room/leave": svc.leaveRoom(uid); return sendJson(response, 200, { ok: true });
       case "room/open": svc.setRoomOpen(uid, body.open); return sendJson(response, 200, { ok: true });
+      case "room/host": return sendJson(response, 200, { room: svc.transferHost(uid, body.to) });
       case "room/member": svc.updateMember(uid, body); return sendJson(response, 200, { ok: true });
       case "invite": svc.invite(uid, body.to); return sendJson(response, 200, { ok: true });
       case "invite/decline": svc.declineInvite(uid, body.from); return sendJson(response, 200, { ok: true });

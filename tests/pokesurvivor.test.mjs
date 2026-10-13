@@ -155,9 +155,36 @@ test("friends see each other online through the stream, and rooms follow the ori
   service.joinRoom("6", duo.id, {});
   assert.throws(() => service.joinRoom("4", duo.id, {}), { code: "room-full" });
 
+  // The host of a started game with two or more others left: the game goes on
+  // and the longest-standing member becomes the host.
   service.leaveRoom("1");
-  assert.deepEqual(streams[2].last("room"), { room: null, id: room.id, closed: true }, "the host leaving closes the room");
-  assert.equal(service.snapshot("2").room, null);
+  const moved = streams[2].last("room");
+  assert.deepEqual(moved.migrated, { from: "1", to: "2" });
+  assert.equal(moved.room.host, "2");
+  assert.deepEqual(moved.room.members.map((m) => m.uid), ["2", "3"]);
+  assert.deepEqual(streams[3].last("room").migrated, { from: "1", to: "2" }, "everyone left hears about it");
+  assert.deepEqual(streams[1].last("room"), { room: null, id: room.id });
+  assert.equal(service.snapshot("2").room.host, "2");
+  // ...but with only one player left there is no one to hand it to: closed.
+  service.leaveRoom("2");
+  assert.deepEqual(streams[3].last("room"), { room: null, id: room.id, closed: true }, "the last host leaving closes the room");
+  assert.equal(service.snapshot("3").room, null);
+
+  // In the waiting room the host leaving still closes it (they can hand it over first).
+  const lobby = service.createRoom("1", { dex: 25 });
+  service.joinRoom("3", lobby.id, {});
+  service.joinRoom("4", lobby.id, {});
+  assert.throws(() => service.transferHost("3", "4"), { code: "not-host" });
+  assert.throws(() => service.transferHost("1", "6"), { code: "not-member" });
+  assert.throws(() => service.transferHost("1", "1"), { code: "not-member" });
+  assert.equal(service.transferHost("1", "4").host, "4");
+  assert.deepEqual(streams[3].last("room").transferred, { from: "1", to: "4" });
+  assert.equal(service.sessionsList().find((s) => s.id === lobby.id).host, "Trainer4", "the open list shows the new host");
+  service.setRoomOpen("4", false);
+  assert.throws(() => service.transferHost("4", "1"), { code: "room-started" }, "only before the game starts");
+  service.setRoomOpen("4", true);
+  service.leaveRoom("4");
+  assert.deepEqual(streams[3].last("room"), { room: null, id: lobby.id, closed: true }, "the host leaving the waiting room closes it");
 
   // A second tab takes over the stream; the first one stops reconnecting.
   const tab = sink();
@@ -224,6 +251,25 @@ test("rankings: solo boards per period, group runs only for the team that starte
   // Next day: the daily board starts empty again.
   clock += DAY;
   assert.deepEqual(service.rankingView("1", new URLSearchParams("mode=s&period=d")).rows, []);
+});
+
+test("after a host migration the new host submits the group mark, for the team that started", (t) => {
+  const data = useTempData();
+  t.after(data.restore);
+  const clock = Date.UTC(2026, 9, 12, 12);
+  const service = createPokesurvivorService({ now: () => clock });
+  ["1", "2", "3"].forEach((id) => service.claimNick(id, `Trainer${id}`));
+  const token = issueRunToken("pokesurvivor", clock - minutes(30));
+  const room = service.createRoom("1", { dex: 25 });
+  service.joinRoom("2", room.id, { dex: 7 });
+  service.joinRoom("3", room.id, { dex: 4 });
+  service.setRoomOpen("1", false);
+  service.leaveRoom("1");
+  const team = [{ uid: "1", dex: 25 }, { uid: "2", dex: 7 }, { uid: "3", dex: 4 }];
+  assert.throws(() => service.submitRun(user("1"), { mode: "g", t: 400, lv: 20, kills: 400, members: team, runToken: token }), { code: "bad-team" }, "the host who left no longer submits");
+  assert.throws(() => service.submitRun(user("3"), { mode: "g", t: 400, lv: 20, kills: 400, members: team, runToken: token }), { code: "bad-team" }, "nor does a guest");
+  assert.deepEqual(service.submitRun(user("2"), { mode: "g", t: 400, lv: 20, kills: 400, members: team, runToken: token }).better.sort(), ["a", "d", "m", "w"]);
+  assert.equal(service.rankingView("3", new URLSearchParams("mode=g&period=w")).rows[0].id, "1_2_3");
 });
 
 test("surviving five minutes completes PokéSurvivor's daily challenge, mid-run or at the end", (t) => {
