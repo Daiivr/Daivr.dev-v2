@@ -56,9 +56,7 @@ export function HostSwitch({ hostId, unlockedIds = ["original"], onChoose, progr
   }, [open]);
 
   function choose(id) {
-    setOpen(false);
     if (id !== current.id) onChoose?.(id);
-    triggerRef.current?.focus();
   }
 
   function goUnlock(view) {
