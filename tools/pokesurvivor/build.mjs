@@ -142,6 +142,7 @@ async function main() {
     cpSync(join(HERE, "discord-done.html"), join(OUT, "discord-done.html"));
     writeFileSync(join(OUT, "idle-frames.json"), JSON.stringify(idleFrames(readFileSync(join(work, "js", "data", "sprites-meta.js"), "utf8"))));
     for (const path of OUTPUTS) cpSync(join(work, path), join(OUT, path), { recursive: true });
+    cpSync(join(HERE, "assets"), join(OUT, "assets"), { recursive: true });
     console.log(`[pokesurvivor] ${files} scripts -> js/app.min.js (${Math.round(code.length / 1024)} KB), public/pokesurvivor ready`);
   } finally {
     rmSync(work, { recursive: true, force: true });

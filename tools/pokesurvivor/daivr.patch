@@ -1,5 +1,5 @@
 diff --git a/css/style.css b/css/style.css
-index 10951d5..68a4411 100644
+index 6f72ce0..f75f88f 100644
 --- a/css/style.css
 +++ b/css/style.css
 @@ -113,26 +113,108 @@ input { font: inherit; }
@@ -252,6 +252,15 @@ index 10951d5..68a4411 100644
  
  .lobby-members { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
  .lob-card {
+@@ -558,7 +727,7 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius:
+ select.field { font-family: var(--font); }
+ 
+ /* ---------- tragaperras del gacha ---------- */
+-#slot { width: min(528px, 92vw, 66vh); height: auto; image-rendering: pixelated; cursor: pointer;
++#slot { display: block; margin-inline: auto; flex: 0 0 auto; width: min(528px, 92vw, 66vh); height: auto; image-rendering: pixelated; cursor: pointer;
+   filter: drop-shadow(0 0 30px rgba(255,90,90,.35)); animation: pop .25s ease-out both; }
+ 
+ /* ---------- misiones, logros, perfil y objetos ---------- */
 @@ -707,18 +876,27 @@ a.btn { text-decoration: none; display: inline-block; color: var(--ink); }
    #menu-partner { height: min(34vh, 130px); width: auto; }
    .partner-card { margin-top: 2px; }
@@ -287,7 +296,7 @@ index 10951d5..68a4411 100644
  }
  /* Móviles muy bajos (iPhone SE y similares): sin subtítulos en el menú, para que quepa entero. */
 diff --git a/dev.html b/dev.html
-index 4cb407d..be75822 100644
+index 5367602..037efd3 100644
 --- a/dev.html
 +++ b/dev.html
 @@ -29,7 +29,6 @@
@@ -474,7 +483,7 @@ index 4cb407d..be75822 100644
  <script defer src="js/net/coop.js"></script>
  <script defer src="js/net/ranking.js"></script>
 diff --git a/js/core/audio.js b/js/core/audio.js
-index b5b1f47..f1bc8b4 100644
+index 7be9b55..a6f36a3 100644
 --- a/js/core/audio.js
 +++ b/js/core/audio.js
 @@ -15,9 +15,24 @@ G.Audio = (() => {
@@ -525,7 +534,7 @@ index b5b1f47..f1bc8b4 100644
      canPlay() { return !!ctx && ctx.state === 'running'; },
      get settings() { return settings; },
 diff --git a/js/core/db.js b/js/core/db.js
-index 39f3083..5cc8da4 100644
+index 21c4448..b75549e 100644
 --- a/js/core/db.js
 +++ b/js/core/db.js
 @@ -1,22 +1,20 @@
@@ -1114,7 +1123,7 @@ index 5c16cb4..30f499f 100644
    get url() { return this.kofi ? 'https://ko-fi.com/' + this.kofi : ''; }
  };
 diff --git a/js/data/lang-en.js b/js/data/lang-en.js
-index eeab62e..18e7a6c 100644
+index 23adbb8..26ae915 100644
 --- a/js/data/lang-en.js
 +++ b/js/data/lang-en.js
 @@ -274,7 +274,7 @@ G.I18n.add({
@@ -1176,8 +1185,34 @@ index eeab62e..18e7a6c 100644
 +  'con el de tus compañeros (como en una videollamada), así que cada uno puede llegar a ver la dirección IP del otro. Las partidas abiertas las ve cualquiera que haya entrado con Discord: ponles contraseña para jugar sólo con gente que conozcas. Si la conexión directa no es posible, la partida pasa por el servidor de daivr.dev.': 'to your teammates\' browsers (like a video call), so each of you may be able to see the others\' IP address. Open games are visible to anyone signed in with Discord: add a password to play only with people you know. If a direct connection isn\'t possible, the game goes through the daivr.dev server.',
 +  'Cooperativo': 'Co-op'
  });
+diff --git a/js/entities/pickup.js b/js/entities/pickup.js
+index d9e4ae5..256c26c 100644
+--- a/js/entities/pickup.js
++++ b/js/entities/pickup.js
+@@ -167,17 +167,10 @@ G.Pickups = (() => {
+ 
+       ctx.globalAlpha = 1;
+       ctx.fillStyle = k.color;
+-      if (p.kind === 'xp' || p.kind === 'xpBig') {
+-        ctx.beginPath();
+-        ctx.moveTo(p.x, y - r); ctx.lineTo(p.x + r * 0.78, y);
+-        ctx.lineTo(p.x, y + r); ctx.lineTo(p.x - r * 0.78, y);
+-        ctx.closePath(); ctx.fill();
+-      } else if (p.kind === 'coin') {
+-        // Moneda que gira: elipse que se estrecha.
+-        const sx = Math.max(0.25, Math.abs(Math.cos(p.t * 0.9)));
+-        ctx.beginPath(); ctx.ellipse(p.x, y, r * sx, r, 0, 0, 6.2832); ctx.fill();
+-        ctx.fillStyle = '#b8860b';
+-        ctx.beginPath(); ctx.ellipse(p.x, y, r * sx * 0.5, r * 0.5, 0, 0, 6.2832); ctx.fill();
++      if (p.kind === 'xp' || p.kind === 'xpBig' || p.kind === 'coin') {
++        const size = p.kind === 'xpBig' ? 22 : p.kind === 'coin' ? 18 : 16;
++        G.Icons.draw(ctx, p.kind === 'coin' ? 'coin' : 'xp', p.x-size/2, y-size/2, size);
++        continue;
+       } else {
+         // Baya, imán y bomba: su icono pixel art.
+         const ICON = { heal: 'berry', magnet: 'magnet', bomb: 'bomb', ticket: 'ticket', ticket10: 'ticket10' };
 diff --git a/js/game.js b/js/game.js
-index eaf92fa..1a58c7d 100644
+index f788c9c..bd8b98c 100644
 --- a/js/game.js
 +++ b/js/game.js
 @@ -18,6 +18,7 @@ G.Game = (() => {
@@ -1235,10 +1270,10 @@ index eaf92fa..1a58c7d 100644
      const b = Math.floor(time / 240);
      if (b !== biome && !G.Rift.inArena) {
 diff --git a/js/main.js b/js/main.js
-index 17342a0..9fb9247 100644
+index b47d54d..3fb8ee4 100644
 --- a/js/main.js
 +++ b/js/main.js
-@@ -33,7 +33,22 @@
+@@ -33,19 +33,32 @@
      return true;
    }
  
@@ -1261,7 +1296,11 @@ index 17342a0..9fb9247 100644
      if (maintenance()) return;
      if (broken()) return;
      G.I18n.startDom();
-@@ -44,8 +59,6 @@
+     // Espera a la fuente pixel para que la UI no salte al cargarla.
+     const ready = document.fonts && document.fonts.load ? document.fonts.load('16px Pixelify') : Promise.resolve();
+-    ready.catch(() => {}).then(() => G.Flow.boot());
++    Promise.all([ready.catch(() => {}), G.Icons.ready]).then(() => G.Flow.boot());
+   }
    if (document.readyState === 'loading') addEventListener('DOMContentLoaded', boot);
    else boot();
  
@@ -1274,7 +1313,7 @@ index 17342a0..9fb9247 100644
  })();
 diff --git a/js/net/daivr.js b/js/net/daivr.js
 new file mode 100644
-index 0000000..0f73e38
+index 0000000..1a31213
 --- /dev/null
 +++ b/js/net/daivr.js
 @@ -0,0 +1,138 @@
@@ -1417,7 +1456,7 @@ index 0000000..0f73e38
 +  };
 +})();
 diff --git a/js/net/net.js b/js/net/net.js
-index 8d76de0..73c2c77 100644
+index 0e67e3e..c2be491 100644
 --- a/js/net/net.js
 +++ b/js/net/net.js
 @@ -4,14 +4,11 @@
@@ -1546,7 +1585,7 @@ index 8d76de0..73c2c77 100644
  
    function send(to, msg) {
 diff --git a/js/net/ranking.js b/js/net/ranking.js
-index 5ba04a8..4a3ec45 100644
+index 3e1331f..4c9f92f 100644
 --- a/js/net/ranking.js
 +++ b/js/net/ranking.js
 @@ -1,47 +1,29 @@
@@ -1937,7 +1976,7 @@ index 5ba04a8..4a3ec45 100644
 +  return { PERIODS, periodIds, board, runStarted, submitSolo, submitGroup, top, myRank, removeMine };
  })();
 diff --git a/js/net/social.js b/js/net/social.js
-index ad29c74..cefd2ba 100644
+index 95544a0..3556bb9 100644
 --- a/js/net/social.js
 +++ b/js/net/social.js
 @@ -1,23 +1,17 @@
@@ -2633,8 +2672,180 @@ index ad29c74..cefd2ba 100644
      get uid() { return uid; },
      VALID, MAX_PLAYERS
    };
+diff --git a/js/ui/hud.js b/js/ui/hud.js
+index 440d2a5..f932d26 100644
+--- a/js/ui/hud.js
++++ b/js/ui/hud.js
+@@ -2,6 +2,15 @@
+  * Se dibuja en coordenadas de PANTALLA (sin la transformación de cámara).
+  */
+ G.HUD = (() => {
++  // Share the game's PMD menu palette rather than introducing a separate HUD theme.
++  const menuStyle = getComputedStyle(document.documentElement);
++  const menuColor = (name, fallback) => menuStyle.getPropertyValue(name).trim() || fallback;
++  const MENU = {
++    top: menuColor('--box1', '#2c519f'), bottom: menuColor('--box2', '#1a3170'),
++    edge: menuColor('--edge', '#f4f8ff'), inner: menuColor('--edge-in', '#5b83d6'),
++    outer: menuColor('--edge-out', '#0b1838'), muted: menuColor('--muted', '#b9cbf0'),
++    gold: menuColor('--gold', '#ffd23f'), green: menuColor('--green', '#5fe08a'), red: menuColor('--red', '#ff5f6d')
++  };
+   const F = (w, s) => `${w} ${s}px Pixelify,"Segoe UI",system-ui,sans-serif`;
+ 
+   function roundRect(ctx, x, y, w, h, r) {
+@@ -25,6 +34,18 @@ G.HUD = (() => {
+     }
+   }
+ 
++  function panel(ctx, x, y, w, h) {
++    roundRect(ctx, x - 2, y, w + 4, h + 5, 12);
++    ctx.fillStyle = MENU.outer; ctx.fill();
++    roundRect(ctx, x, y, w, h, 10);
++    const gradient = ctx.createLinearGradient(0, y, 0, y + h);
++    gradient.addColorStop(0, MENU.top); gradient.addColorStop(1, MENU.bottom);
++    ctx.fillStyle = gradient; ctx.fill();
++    ctx.lineWidth = 2; ctx.strokeStyle = MENU.edge; ctx.stroke();
++    roundRect(ctx, x + 3, y + 3, w - 6, h - 6, 7);
++    ctx.lineWidth = 1; ctx.strokeStyle = MENU.inner; ctx.stroke();
++  }
++
+   function draw(ctx, w, h, pl, st) {
+     ctx.save();
+     ctx.textBaseline = 'alphabetic';
+@@ -40,22 +61,27 @@ G.HUD = (() => {
+     ctx.fillStyle = g;
+     ctx.fillRect(0, 0, w * G.U.clamp(xpF, 0, 1), 7);
+ 
+-    // ---------- vida + nivel ----------
+-    const px = 16, py = 20;
+-    ctx.font = F(800, 13);
+-    ctx.fillStyle = '#eaf2ff';
+-    ctx.textAlign = 'left';
+-    ctx.fillText(pl.mon.name, px, py + 10);
+-
+-    ctx.font = F(700, 11);
+-    ctx.fillStyle = '#ffcb3d';
+-    ctx.fillText('Nv. ' + pl.level, px, py + 26);
+-
+-    bar(ctx, px + 48, py + 17, 168, 11, pl.hp / pl.maxHp, '#ff5f6d');
+-    ctx.font = F(700, 10);
+-    ctx.fillStyle = 'rgba(255,255,255,.95)';
+-    ctx.textAlign = 'center';
+-    ctx.fillText(Math.ceil(pl.hp) + ' / ' + Math.round(pl.maxHp), px + 48 + 84, py + 26);
++    // Menu-styled health card: readable against every biome.
++    const px = 12, py = 16, compact = w < 800;
++    const hw = Math.min(252, Math.max(176, w * .31));
++    const hp = G.U.clamp(pl.hp / pl.maxHp, 0, 1);
++    const hpColor = hp > .5 ? MENU.green : hp > .25 ? MENU.gold : MENU.red;
++    panel(ctx, px, py, hw, 78);
++    ctx.textAlign = 'left'; ctx.font = F(800, 17); ctx.fillStyle = '#f4f8ff';
++    ctx.fillText(pl.mon.name, px + 12, py + 23, hw - 24);
++    G.Icons.draw(ctx, 'xp', px + 10, py + 29, 18);
++    ctx.font = F(700, 12); ctx.fillStyle = MENU.muted;
++    ctx.fillText('Nv. ' + pl.level, px + 34, py + 43);
++    ctx.textAlign = 'right'; ctx.fillStyle = '#f4f8ff';
++    ctx.fillText(Math.ceil(pl.hp) + ' / ' + Math.round(pl.maxHp) + ' HP', px + hw - 12, py + 43);
++    const barX = px + 12, barY = py + 53, barW = hw - 24;
++    roundRect(ctx, barX - 2, barY - 2, barW + 4, 18, 7);
++    ctx.fillStyle = MENU.outer; ctx.fill();
++    ctx.lineWidth = 1; ctx.strokeStyle = MENU.inner; ctx.stroke();
++    bar(ctx, barX, barY, barW, 14, hp, hpColor, '#142956');
++    ctx.save(); roundRect(ctx, barX, barY, barW, 14, 7); ctx.clip();
++    ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(barX, barY, Math.round(barW * hp), 3);
++    ctx.restore();
+ 
+     // buffs activos
+     const COL = { atk: '#ff6b4d', spd: '#7fe0ff', def: '#b0b8c8', regen: '#5fe08a' };
+@@ -68,21 +94,28 @@ G.HUD = (() => {
+       ctx.font = F(800, 9);
+       const txt = LBL[k] + ' ×' + b.n;
+       const tw = ctx.measureText(txt).width + 12;
+-      roundRect(ctx, bx, py + 34, tw, 15, 7);
++      roundRect(ctx, bx, py + 84, tw, 15, 7);
+       ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.fill();
+       ctx.fillStyle = COL[k];
+-      ctx.fillText(txt, bx + 6, py + 45);
++      ctx.fillText(txt, bx + 6, py + 95);
+       bx += tw + 5;
+     }
+ 
+-    // ---------- reloj / bioma / kills ----------
+-    ctx.textAlign = 'center';
+-    ctx.font = F(800, 26);
+-    ctx.fillStyle = 'rgba(255,255,255,.95)';
+-    ctx.fillText(G.U.mmss(st.time), w / 2, 42);
+-    ctx.font = F(600, 10);
+-    ctx.fillStyle = '#8fa3c4';
+-    ctx.fillText(G.World.biomeName().toUpperCase() + '  ·  ' + pl.kills + ' DERROTADOS  ·  ' + pl.coins + ' MONEDAS', w / 2, 58);
++    // Timer and run counters share a same blue and white frame as the menus.
++    const timerW = compact ? 170 : 208;
++    const timerX = compact ? w - timerW - 12 - (touch ? 56 : 0) : (w - timerW) / 2;
++    const timerC = timerX + timerW / 2;
++    panel(ctx, timerX, py, timerW, 78);
++    ctx.textAlign = 'center'; ctx.font = F(700, 10); ctx.fillStyle = MENU.muted;
++    ctx.fillText(G.World.biomeName().toUpperCase(), timerC, py + 16, timerW - 20);
++    ctx.font = F(800, 34); ctx.fillStyle = MENU.gold;
++    ctx.fillText(G.U.mmss(st.time), timerC, py + 48);
++    ctx.font = F(700, 11); ctx.fillStyle = '#d8e4f5';
++    ctx.textAlign = 'left'; ctx.fillText(pl.kills + ' KO', timerX + 12, py + 68);
++    const coins = String(pl.coins), coinW = ctx.measureText(coins).width;
++    G.Icons.draw(ctx, 'coin', timerX + timerW - coinW - 34, py + 54, 18);
++    ctx.textAlign = 'right'; ctx.fillStyle = MENU.gold;
++    ctx.fillText(coins, timerX + timerW - 12, py + 68);
+ 
+     // ---------- clima (arriba a la derecha) ----------
+     const wx = G.Weather.current;
+@@ -91,7 +124,7 @@ G.HUD = (() => {
+       ctx.textAlign = 'left';
+       const txt = wx.name.toUpperCase() + ' · ' + Math.ceil(wx.left) + 's';
+       const tw = ctx.measureText(txt).width + 40;
+-      const x0 = w - tw - 16 - (touch ? 56 : 0), y0 = 14;
++      const x0 = w - tw - 16 - (touch ? 56 : 0), y0 = compact ? 102 : 16;
+       roundRect(ctx, x0, y0, tw, 26, 9);
+       ctx.fillStyle = 'rgba(0,0,0,.55)'; ctx.fill();
+       G.Icons.draw(ctx, wx.icon, x0 + 6, y0 + 3, 20);
+@@ -103,10 +136,11 @@ G.HUD = (() => {
+     const boss = G.EnemyMgr.all().find(e => e.boss && !e.dead);
+     if (boss) {
+       const bw = Math.min(420, w - 80);
+-      bar(ctx, (w - bw) / 2, 70, bw, 12, boss.hp / boss.maxHp, '#ffcb3d');
++      bar(ctx, (w - bw) / 2, 136, bw, 14, boss.hp / boss.maxHp, '#ffcb3d');
+       ctx.font = F(800, 10);
+       ctx.fillStyle = '#20160a';
+-      ctx.fillText(boss.name.toUpperCase(), w / 2, 80);
++      ctx.textAlign = 'center';
++      ctx.fillText(boss.name.toUpperCase(), w / 2, 147);
+     }
+ 
+     // ---------- aviso ----------
+@@ -138,14 +172,14 @@ G.HUD = (() => {
+       ctx.font = F(800, 9);
+       ctx.textAlign = 'left';
+       const tw = ctx.measureText(txt).width + 12;
+-      roundRect(ctx, bx, py + 34, tw, 15, 7);
++      roundRect(ctx, bx, py + 84, tw, 15, 7);
+       ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fill();
+       ctx.fillStyle = pw.def.color;
+-      ctx.fillText(txt, bx + 6, py + 45);
++      ctx.fillText(txt, bx + 6, py + 95);
+       bx += tw + 5;
+     }
+ 
+-    if (G.Coop.active) drawCoop(ctx, w, h, pl, px, py + (bx > px ? 56 : 40));
++    if (G.Coop.active) drawCoop(ctx, w, h, pl, px, py + (bx > px ? 106 : 84));
+ 
+     // Grieta: flecha grande que late en el borde si no se ve, y si se ve, una
+     // flecha que bota encima; en la arena, cuenta atrás.
+@@ -199,7 +233,7 @@ G.HUD = (() => {
+       ctx.textAlign = 'center';
+       ctx.font = F(800, 12);
+       ctx.fillStyle = '#d9c2ff';
+-      ctx.fillText('GRIETA · ' + G.U.mmss(G.Rift.timeLeft), w / 2, boss ? 98 : 76);
++      ctx.fillText('GRIETA · ' + G.U.mmss(G.Rift.timeLeft), w / 2, boss ? 168 : 130);
+     }
+ 
+     // Eventos: cuenta atrás, flecha al Pokémon perdido / a la marca y a los duendes.
 diff --git a/js/ui/icons.js b/js/ui/icons.js
-index 2411767..c9132f0 100644
+index 9783f67..8bbe127 100644
 --- a/js/ui/icons.js
 +++ b/js/ui/icons.js
 @@ -48,6 +48,10 @@ G.Icons = (() => {
@@ -2648,6 +2859,45 @@ index 2411767..c9132f0 100644
      shield: { pal: { s: '#9fb1c9', d: '#5d6f8c', w: '#e6eef8', r: '#4fb4ff' }, rows: [
        '............', '.kkkkkkkkkk.', '.kwwsssssdk.', '.kwssrrssdk.', '.kwssrrssdk.', '.kssrrrrsdk.',
        '.kssrrrrsdk.', '..kssrrsdk..', '..kssssddk..', '...ksssdk...', '....kddk....', '.....kk.....'] },
+@@ -222,6 +226,23 @@ G.Icons = (() => {
+   const cache = new Map();      // clave -> canvas a 1×
+   const urls = new Map();
+ 
++  // Supplied item art, cropped at draw time to remove transparent padding.
++  const raster = {
++    xp: { file: 'xp-candy.png', crop: [20, 41, 438, 438] },
++    coin: { file: 'gold-cap.png', crop: [33, 33, 66, 62] }
++  };
++  const ready = Promise.all(Object.entries(raster).map(([name, art]) => new Promise(resolve => {
++    const image = new Image();
++    image.onload = () => {
++      const [x, y, w, h] = art.crop, side = Math.max(w, h);
++      const cv = document.createElement('canvas'); cv.width = cv.height = side;
++      cv.getContext('2d').drawImage(image, x, y, w, h, (side-w)/2, (side-h)/2, w, h);
++      cache.set(name, cv); urls.set(name, cv.toDataURL()); resolve();
++    };
++    image.onerror = () => resolve(); // Keep the built-in fallback if an asset is unavailable.
++    image.src = 'assets/icons/' + art.file;
++  })));
++
+   function shade(hex, k) {
+     const n = parseInt(hex.slice(1), 16);
+     const f = c => Math.max(0, Math.min(255, Math.round(c * k)));
+@@ -361,6 +382,7 @@ G.Icons = (() => {
+    * icono de 16 px pintado a 24 duplicaría unos píxeles sí y otros no.
+    */
+   function snap(name, size) {
++    if (raster[name]) return Math.round(size);
+     const w = canvas(name).width;
+     return w * Math.max(1, Math.round(size / w));
+   }
+@@ -416,5 +438,5 @@ G.Icons = (() => {
+     r.setProperty('--ico-cursor', `url("${url('cursor')}")`);
+   }
+ 
+-  return { canvas, url, html, draw, twinkle, rarity, RARITY_BALL, installCss, UI, TYPE_GLYPH };
++  return { ready, canvas, url, html, draw, twinkle, rarity, RARITY_BALL, installCss, UI, TYPE_GLYPH };
+ })();
 diff --git a/js/ui/login.js b/js/ui/login.js
 index 181fc08..46c446b 100644
 --- a/js/ui/login.js
@@ -2818,7 +3068,7 @@ index b541f40..1e5e9c0 100644
    }
  
 diff --git a/js/ui/news-ui.js b/js/ui/news-ui.js
-index fb13471..122781b 100644
+index 164de3d..a8a21b4 100644
 --- a/js/ui/news-ui.js
 +++ b/js/ui/news-ui.js
 @@ -6,6 +6,15 @@ G.NewsUI = (() => {
@@ -2847,7 +3097,7 @@ index fb13471..122781b 100644
        PARTS.filter(([k]) => v[k] && v[k].length).map(([k, lbl]) =>
          `<div class="news-part"><span class="news-tag ${k}">${lbl[en]}</span><ul>${v[k].map(t => `<li>${esc(t[en])}</li>`).join('')}</ul></div>`).join('') +
 diff --git a/js/ui/settings-ui.js b/js/ui/settings-ui.js
-index cac5c49..99ce1c6 100644
+index 1b42e92..50004ed 100644
 --- a/js/ui/settings-ui.js
 +++ b/js/ui/settings-ui.js
 @@ -7,7 +7,6 @@ G.SettingsUI = (() => {
@@ -2882,8 +3132,57 @@ index cac5c49..99ce1c6 100644
        + `<div class="set-row"><div class="grow"><b>Partida</b></div><span>${esc(SYNC[st] || st)}</span></div>`
        + `<div class="row wrap" style="gap:8px;margin-top:12px">
             <button class="btn" id="set-logout">Cerrar sesión</button>
+diff --git a/js/ui/slots.js b/js/ui/slots.js
+index 66e5571..9c05431 100644
+--- a/js/ui/slots.js
++++ b/js/ui/slots.js
+@@ -35,7 +35,7 @@ G.Slots = (() => {
+ 
+   /** Anima las tiradas. → Promise que se resuelve al terminar. */
+   async function play(canvas, results) {
+-    cv = canvas; ctx = cv.getContext('2d');
++    cv = canvas; cv.width = W * 3; cv.height = H * 3; ctx = cv.getContext('2d');
+     fast = false;
+     cv.onclick = () => { fast = true; };
+     st = {
+@@ -133,7 +133,7 @@ G.Slots = (() => {
+   const R = (x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x, y, w, h); };
+ 
+   function draw() {
+-    ctx.setTransform(1, 0, 0, 1, 0, 0);
++    ctx.setTransform(3, 0, 0, 3, 0, 0);
+     ctx.imageSmoothingEnabled = false;
+     ctx.clearRect(0, 0, W, H);
+     const t = st.t;
+@@ -153,10 +153,10 @@ G.Slots = (() => {
+     let i = 0;
+     for (let x = 16; x < 146; x += 7) { bulb(x, 5, i++, winCol); bulb(x, 29, i++, winCol); }
+     for (let y = 12; y < 28; y += 7) { bulb(15, y, i++, winCol); bulb(146, y, i++, winCol); }
+-    ctx.font = '700 12px Pixelify,"Segoe UI",sans-serif';
++    ctx.font = '700 13px Pixelify,"Segoe UI",sans-serif';
+     ctx.textAlign = 'center';
+-    ctx.fillStyle = C.dark; ctx.fillText('POKé SLOTS', W / 2 + 1, 23);
+-    ctx.fillStyle = C.trim; ctx.fillText('POKé SLOTS', W / 2, 22);
++    ctx.fillStyle = '#080711'; ctx.fillText('POKÉ SLOTS', 81, 24);
++    ctx.fillStyle = '#fff0aa'; ctx.fillText('POKÉ SLOTS', 81, 22);
+ 
+     // --- ventana de rodillos ---
+     R(20, 38, 122, 58, C.dark);
+@@ -176,9 +176,9 @@ G.Slots = (() => {
+     // --- marcador ---
+     R(36, 100, 90, 16, C.dark);
+     R(37, 101, 88, 14, C.led);
+-    ctx.font = '700 8px Pixelify,"Segoe UI",sans-serif';
+-    ctx.fillStyle = st.ledCol || C.bulbOn;
+-    if (!st.frenzy || Math.floor(t * 10) % 2 === 0) ctx.fillText(st.led, 81, 111);
++    ctx.font = '700 10px Pixelify,"Segoe UI",sans-serif';
++    ctx.fillStyle = '#fff3cd';
++    ctx.fillText(st.led, 81, 111, 82);
+     // Botoncitos decorativos.
+     R(132, 102, 8, 6, C.trim); R(132, 108, 8, 2, C.trimD);
+     R(22, 102, 8, 6, '#5fe08a'); R(22, 108, 8, 2, '#2f9a52');
 diff --git a/js/ui/social-ui.js b/js/ui/social-ui.js
-index 88eec8b..cf6f1f7 100644
+index f22ab03..9ce1735 100644
 --- a/js/ui/social-ui.js
 +++ b/js/ui/social-ui.js
 @@ -139,6 +139,119 @@
@@ -3055,7 +3354,7 @@ index 88eec8b..cf6f1f7 100644
    };
  })();
 diff --git a/js/ui/ui.js b/js/ui/ui.js
-index f6759a5..2a692c0 100644
+index ff71eba..3665660 100644
 --- a/js/ui/ui.js
 +++ b/js/ui/ui.js
 @@ -9,7 +9,8 @@ G.UI = (() => {

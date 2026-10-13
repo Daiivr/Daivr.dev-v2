@@ -727,7 +727,7 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius: 
 select.field { font-family: var(--font); }
 
 /* ---------- tragaperras del gacha ---------- */
-#slot { width: min(528px, 92vw, 66vh); height: auto; image-rendering: pixelated; cursor: pointer;
+#slot { display: block; margin-inline: auto; flex: 0 0 auto; width: min(528px, 92vw, 66vh); height: auto; image-rendering: pixelated; cursor: pointer;
   filter: drop-shadow(0 0 30px rgba(255,90,90,.35)); animation: pop .25s ease-out both; }
 
 /* ---------- misiones, logros, perfil y objetos ---------- */
