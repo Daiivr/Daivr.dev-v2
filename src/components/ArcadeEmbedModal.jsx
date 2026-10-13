@@ -2,6 +2,7 @@ import "../styles/konami-games.css";
 import { ArrowLeft, Gamepad2, LogIn, Play, RotateCcw, Trophy, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RankingAvatar } from "./RankingAvatar";
+import { PokesurvivorCoopRanking } from "./PokesurvivorCoopRanking";
 import { ArcadeTvDetails, ArcadeTvPower, ArcadeTvVolume } from "./ArcadeTvDetails";
 import { useDailyChallengeNotice } from "../hooks/useDailyChallengeNotice";
 import { useModalPresence } from "../hooks/useModalPresence";
@@ -17,7 +18,8 @@ import { armRunToken, runTokenFor } from "../lib/runTokens";
 const PINBALL_VOLUME = { key: "daivr.pinballVolume.v1", fallback: 0.1, message: "daivr:pinball-volume", ready: "daivr:pinball-ready" };
 const POKESURVIVOR_VOLUME = { key: "daivr.pokesurvivor.volume.v1", fallback: 0.6, message: "daivr:pokesurvivor-volume", ready: "daivr:pokesurvivor-ready" };
 
-// PokéSurvivor ranks seconds survived.
+// PokéSurvivor ranks seconds survived. Its panel also has the game's own co-op
+// board (PokesurvivorCoopRanking): the longest group runs, team by team.
 const clock = (seconds) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
 
 const GAME_CONFIG = {
@@ -26,7 +28,7 @@ const GAME_CONFIG = {
     subtitle: "SECRET PROGRAM // DISK 03",
     src: "/cross-road/index.html",
     controls: "ARROWS TO MOVE // CROSS EVERY LANE",
-    ranking: { api: "cross-road", heading: "TOP ROAD RUNNERS", scanning: "SCANNING LANES...", format: (value) => `ROAD ${value}`, saving: (value) => `SAVING ROAD ${value}...`, saved: (value, rank) => `ROAD ${value} SECURED // RANK #${rank}` }
+    ranking: { api: "cross-road", skin: "cross", heading: "TOP ROAD RUNNERS", scanning: "SCANNING LANES...", format: (value) => `ROAD ${value}`, saving: (value) => `SAVING ROAD ${value}...`, saved: (value, rank) => `ROAD ${value} SECURED // RANK #${rank}` }
   },
   "rubiks-cube": {
     title: "THE.CUBE",
@@ -40,7 +42,7 @@ const GAME_CONFIG = {
     src: "/space-cadet-pinball/index.html",
     controls: "Z + / FLIPPERS // SPACE PLUNGER // F2 NEW GAME",
     volume: PINBALL_VOLUME,
-    ranking: { api: "space-cadet-pinball", heading: "TOP CADETS", scanning: "READING THE TABLE...", format: (value) => Number(value).toLocaleString("en-US"), saving: (value) => `LOGGING ${Number(value).toLocaleString("en-US")}...`, saved: (value, rank) => `${Number(value).toLocaleString("en-US")} LOGGED // RANK #${rank}` }
+    ranking: { api: "space-cadet-pinball", skin: "pinball", heading: "TOP CADETS", scanning: "READING THE TABLE...", format: (value) => Number(value).toLocaleString("en-US"), saving: (value) => `LOGGING ${Number(value).toLocaleString("en-US")}...`, saved: (value, rank) => `${Number(value).toLocaleString("en-US")} LOGGED // RANK #${rank}` }
   },
   // The game saves its own runs (Discord login inside the cartridge, server/pokesurvivor.mjs)
   // and reports them here with daivr:pokesurvivor-run. Esc pauses the game. Volume
@@ -53,7 +55,7 @@ const GAME_CONFIG = {
     escHint: "ESC PAUSES",
     volume: POKESURVIVOR_VOLUME,
     fullscreen: true,
-    ranking: { api: "pokesurvivor", heading: "LONGEST SURVIVORS", scanning: "COUNTING THE HORDE...", format: clock, detail: (entry) => `LV ${entry.bestLevel || 1}`, saved: (value, rank) => `SURVIVED ${clock(value)} // RANK #${rank}` }
+    ranking: { api: "pokesurvivor", skin: "poke", heading: "LONGEST SURVIVORS", coop: { heading: "LONGEST SQUADS" }, scanning: "COUNTING THE HORDE...", format: clock, detail: (entry) => `LV ${entry.bestLevel || 1}`, saved: (value, rank) => `SURVIVED ${clock(value)} // RANK #${rank}` }
   }
 };
 
@@ -78,6 +80,8 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
   const [me, setMe] = useState(null);
   const [myScore, setMyScore] = useState(null);
   const [rankingLoading, setRankingLoading] = useState(false);
+  const [rankBoard, setRankBoard] = useState("solo");
+  const [coopRefresh, setCoopRefresh] = useState(0);
   const [status, setStatus] = useState("");
   const [volume, setVolume] = useState(() => readStoredVolume(GAME_CONFIG[game]?.volume));
   const [gameOver, setGameOver] = useState(null);
@@ -95,6 +99,7 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
   const ranking = config?.ranking;
   const hasRanking = Boolean(ranking);
   const volumeSettings = config?.volume;
+  const coopShown = Boolean(ranking?.coop) && rankBoard === "coop";
 
   // Each cartridge has its own volume: read it again when another one goes in.
   useEffect(() => { setVolume(readStoredVolume(GAME_CONFIG[game]?.volume)); }, [game]);
@@ -117,6 +122,7 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
 
   useEffect(() => {
     setRankingOpen(false);
+    setRankBoard("solo");
     setStatus("");
     setGameOver(null);
     if (open && hasRanking) loadLeaderboard();
@@ -178,6 +184,7 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
         const seconds = Math.max(0, Number(event.data.t) || 0);
         const score = event.data.score && Number.isFinite(Number(event.data.score.rank)) ? event.data.score : null;
         if (score) setMyScore(score);
+        if (event.data.mode === "g") setCoopRefresh((value) => value + 1);
         setStatus(score ? ranking.saved(seconds, score.rank) : event.data.mode === "g" ? `GROUP RUN // ${clock(seconds)} SURVIVED` : event.data.signedIn ? `${clock(seconds)} SURVIVED` : "DISCORD LINK REQUIRED TO RANK");
         loadLeaderboard(true);
         window.dispatchEvent(new Event("daivr-player-progress"));
@@ -253,10 +260,13 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
               </div>
             </div>
           ) : null}
-          {hasRanking && rankingOpen ? <aside className="tower-ranking cross-road-ranking" aria-label={`${config.title} leaderboard`}>
-            <header><div><small>RANKING.SYS</small><strong>{ranking.heading}</strong></div><div className="cross-road-ranking-actions"><button type="button" onClick={() => loadLeaderboard()}>REFRESH</button><button type="button" onClick={() => setRankingOpen(false)} aria-label="Close leaderboard"><X size={15} /></button></div></header>
+          {hasRanking && rankingOpen ? <aside className={`tower-ranking cross-road-ranking rank-skin-${ranking.skin}`} aria-label={`${config.title} leaderboard`}>
+            <header><div><small>RANKING.SYS</small><strong>{coopShown ? ranking.coop.heading : ranking.heading}</strong></div><div className="cross-road-ranking-actions"><button type="button" onClick={() => (coopShown ? setCoopRefresh((value) => value + 1) : loadLeaderboard())}>REFRESH</button><button type="button" onClick={() => setRankingOpen(false)} aria-label="Close leaderboard"><X size={15} /></button></div></header>
+            {ranking.coop ? <div className="rank-board-tabs">{[["solo", "SOLO"], ["coop", "CO-OP"]].map(([id, label]) => <button type="button" key={id} aria-pressed={rankBoard === id} onClick={() => setRankBoard(id)}>{label}</button>)}</div> : null}
+            {coopShown ? <PokesurvivorCoopRanking me={me} refreshKey={coopRefresh} /> : <>
             {me ? <div className="tower-ranking-self"><RankingAvatar src={me.avatarUrl} name={me.username} loading="eager" /><span><small>LINKED AS {me.username}</small><strong>{myScore ? `#${myScore.rank} // ${ranking.format(myScore.bestScore)} // ${ranking.detail ? ranking.detail(myScore) : formatDuration(myScore.bestDurationMs)}` : "NO RUN RECORDED"}</strong></span></div> : <a href="/api/comments/auth/discord"><LogIn size={15} /> CONNECT DISCORD TO RANK</a>}
-            {rankingLoading ? <p>{ranking.scanning}</p> : <ol>{leaderboard.map((entry) => <li className={entry.discordId === me?.id ? "is-player" : ""} key={entry.discordId}><b>{String(entry.rank).padStart(2,"0")}</b><RankingAvatar src={entry.avatarUrl} name={entry.username} /><span>{entry.username}</span><em>{ranking.format(entry.bestScore)}</em><small>{ranking.detail ? ranking.detail(entry) : formatDuration(entry.bestDurationMs)}</small></li>)}</ol>}
+            {rankingLoading ? <p>{ranking.scanning}</p> : <ol>{leaderboard.map((entry) => <li className={entry.discordId === me?.id ? "is-player" : ""} data-rank={entry.rank} key={entry.discordId}><b>{String(entry.rank).padStart(2,"0")}</b><RankingAvatar src={entry.avatarUrl} name={entry.username} /><span>{entry.username}</span><em>{ranking.format(entry.bestScore)}</em><small>{ranking.detail ? ranking.detail(entry) : formatDuration(entry.bestDurationMs)}</small></li>)}</ol>}
+            </>}
           </aside> : null}
         </div>
         <ArcadeTvDetails channel={{ "cross-road": "03", "rubiks-cube": "04", "space-cadet-pinball": "05", pokesurvivor: "06" }[shownGame]} powered={powered} off={switchingOff} volume={volumeControl} onFullscreen={config.fullscreen ? fullscreen : undefined} />

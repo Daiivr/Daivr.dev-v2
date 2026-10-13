@@ -3,10 +3,14 @@ import { ArrowRight } from "lucide-react";
 import { getLocalBuddyLevel } from "../hooks/useBuddyFriendship";
 import { currentBuild } from "../lib/buildUpdate";
 import { consumeGateReturn } from "../lib/gateReturn";
+import { getHostAvailability } from "../lib/gateHost";
+import { getHostAvatar, MIKU_HOST_AVATAR } from "../lib/hostAvatar";
 import { AvatarScenePlaceholder } from "./AvatarScenePlaceholder";
 import { BuddySprite } from "./BuddySprite";
 import { GatePatina } from "./GatePatina";
 import { GateLamp } from "./GateLamp";
+import { GateHinges } from "./GateHinges";
+import { GateLock } from "./GateLock";
 import { SeasonalSplashNotice } from "./SeasonalSplashNotice";
 import { SeasonalScenery } from "./SeasonalScenery";
 
@@ -31,9 +35,11 @@ const LINE_HOLD = 1800;
 const FAST_LINE_HOLD = 1300;
 // Shared with CSS so the overlay stays mounted through the entire reveal.
 const GATE_OPEN_MS = 1200;
-// Si el VRM no llega (red lenta, GPU sin WebGL) el anfitrion habla igual: el
-// saludo nunca puede quedarse esperando a trece megas de descarga.
+// A slow/offline host must not trap visitors outside. This timeout unlocks
+// the entrance only; speech still waits for a visible host.
 const HOST_PATIENCE_MS = 9000;
+// Segmentos de la barra de carga del HUD.
+const SIGNAL_SEGMENTS = 24;
 
 const SEASON_ASIDES = {
   halloween: "ignore the spiders. they pay rent.",
@@ -85,12 +91,22 @@ function buildReturnLines({ gateReturn, hostName, linked, visitorName }) {
   ];
 }
 
-function buildScript({ gateReturn, hostName, linked, seasonalEvent, visitorName }) {
+function buildScript({ gateReturn, hostName, linked, mikuHost, seasonalEvent, visitorName }) {
   const lines = gateReturn
     ? buildReturnLines({ gateReturn, hostName, linked, visitorName })
-    : linked
-      ? [`oh — ${visitorName}!`, "discord pass checks out. good to have you back."]
-      : ["oh — hey. didn't hear you walk up.", `i'm ${hostName}. i keep dai's cabinet running.`];
+    : mikuHost
+      ? [linked ? `oh — ${visitorName}! miku here.` : "oh — hey! i'm miku."]
+      : linked
+        ? [`oh — ${visitorName}!`, "discord pass checks out. good to have you back."]
+        : ["oh — hey. didn't hear you walk up.", `i'm ${hostName}. i keep dai's cabinet running.`];
+
+  if (mikuHost) {
+    if (gateReturn) lines.push("miku here, by the way. a little change of host.");
+    lines.push(
+      "since you unlocked buddy's miku costume, i'll be your host whenever you equip it!",
+      "unequip it and your usual host will be back."
+    );
+  }
 
   if (!gateReturn) {
     lines.push(linked
@@ -116,10 +132,13 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const [discordUser, setDiscordUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const [hostStage, setHostStage] = useState("loading");
+  const avatarUrl = getHostAvatar({ unlockedGear, hiddenGear });
+  const [avatarState, setAvatarState] = useState(() => ({ url: avatarUrl, stage: "loading", progress: 0 }));
+  const hostStage = avatarState.url === avatarUrl ? avatarState.stage : "loading";
+  const avatarProgress = avatarState.url === avatarUrl ? avatarState.progress : 0;
   const [hostOverdue, setHostOverdue] = useState(false);
+  const [pageVisible, setPageVisible] = useState(() => document.visibilityState !== "hidden");
   const [buddyAwake, setBuddyAwake] = useState(false);
-  const [avatarProgress, setAvatarProgress] = useState(0);
   // Read after commit: Suspense may discard a render, so consuming storage
   // inside a state initializer could lose the greeting before it is displayed.
   const [gateReturn, setGateReturn] = useState(returnContext);
@@ -144,25 +163,30 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   const typeTimerRef = useRef(0);
   const openTimerRef = useRef(0);
 
+  // Reset before painting so the new host starts her own greeting, and the
+  // previous model's readiness cannot reveal speech during the replacement.
+  if (avatarState.url !== avatarUrl) {
+    setAvatarState({ url: avatarUrl, stage: "loading", progress: 0 });
+    setLineIndex(0);
+    setTyped(0);
+  }
+
   const visitorName = discordUser?.username || "guest";
-  const hostName = compact ? "buddy" : "the host";
+  const mikuHost = !compact && avatarUrl === MIKU_HOST_AVATAR;
+  const hostName = compact ? "buddy" : mikuHost ? "miku" : "the host";
   const script = useMemo(
-    () => buildScript({ gateReturn, hostName, linked: Boolean(discordUser), seasonalEvent, visitorName }),
-    [discordUser, gateReturn, hostName, seasonalEvent, visitorName]
+    () => buildScript({ gateReturn, hostName, linked: Boolean(discordUser), mikuHost, seasonalEvent, visitorName }),
+    [discordUser, gateReturn, hostName, mikuHost, seasonalEvent, visitorName]
   );
 
-  const hostPresent = compact
-    ? buddyAwake && cabinetReady
-    : hostOverdue || hostStage === "greeting" || hostStage === "waving" || hostStage === "error";
-  const talking = hostPresent && authChecked && returnChecked && !opening;
+  const { present: hostPresent, canProceed: hostCanProceed } = getHostAvailability({ compact, buddyAwake, cabinetReady, hostStage, hostOverdue });
+  const talking = hostPresent && pageVisible && authChecked && returnChecked && !opening;
   const line = script[lineIndex] ?? "";
   const lineComplete = typed >= line.length;
   const lastLine = lineIndex >= script.length - 1;
   const scriptDone = talking && lastLine && lineComplete;
-  // La puerta no se abre hasta que la barra del HUD esta llena. hostPresent ya
-  // cubre las salidas de emergencia (host caido, WebGL ausente, los 9s de
-  // HOST_PATIENCE_MS), asi que esperar aqui no puede dejar a nadie encerrado.
-  const gateReady = authChecked && hostPresent && cabinetReady;
+  // Keep the timeout/error escape route separate from the speech readiness.
+  const gateReady = authChecked && hostCanProceed && cabinetReady;
   const canEnter = gateReady && !opening;
 
   useEffect(() => {
@@ -171,6 +195,12 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
     setGateReturn(returnContext || consumeGateReturn());
     setReturnChecked(true);
   }, [returnContext]);
+
+  useEffect(() => {
+    const syncVisibility = () => setPageVisible(document.visibilityState !== "hidden");
+    document.addEventListener("visibilitychange", syncVisibility);
+    return () => document.removeEventListener("visibilitychange", syncVisibility);
+  }, []);
 
   useEffect(() => {
     const compactQuery = window.matchMedia("(max-width: 800px)");
@@ -334,12 +364,12 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
     return () => window.removeEventListener("keydown", enterOnKey);
   }, [requestEnter]);
 
-  const streaming = !compact && !hostPresent;
+  const streaming = !compact && !hostPresent && hostStage !== "error";
   const signalProgress = streaming ? Math.max(0, Math.min(100, Math.round(avatarProgress))) : 100;
   const signalCopy = streaming
     ? avatarProgress > 0
-      ? "streaming host"
-      : "linking host signal"
+      ? "getting the host ready"
+      : "connecting to the room"
     : hostStage === "error" && !compact
       ? "host offline // gate still open"
       : "system ready";
@@ -352,7 +382,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
 
   return (
     <div
-      className={`entry-gate ${compact ? "is-compact" : "is-immersive"} ${opening ? "is-opening" : ""} ${scriptDone ? "is-armed" : ""} ${hostPresent ? "is-host-present" : "is-host-waiting"} ${lampOn ? "is-lamp-on" : "is-lamp-off"}`}
+      className={`entry-gate ${compact ? "is-compact" : "is-immersive"} ${opening ? "is-opening" : ""} ${gateReady ? "is-ready" : ""} ${scriptDone ? "is-armed" : ""} ${hostPresent ? "is-host-present" : "is-host-waiting"} ${lampOn ? "is-lamp-on" : "is-lamp-off"}`}
       style={{ "--gate-open-duration": `${GATE_OPEN_MS}ms` }}
       role="dialog"
       aria-modal="true"
@@ -369,8 +399,9 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
       </div>
 
       <div className="entry-gate-doors" aria-hidden="true">
-        {["left", "right"].map(side => <i key={side} className={`entry-gate-door is-${side}`}><i className="entry-gate-door-shade" /><i className="entry-gate-door-texture" /><span className="entry-gate-door-hardware"><i/><i/><i/><i/><span className="gate-door-vent"/></span><GatePatina side={side} seasonalEvent={seasonalEvent} /></i>)}
+        {["left", "right"].map(side => <i key={side} className={`entry-gate-door is-${side}`}><i className="entry-gate-door-shade" /><i className="entry-gate-door-texture" /><span className="entry-gate-door-hardware"><i/><i/><i/><i/><span className="gate-door-vent"/><span className="gate-door-hazard"/><span className="gate-door-rivets"/></span><GateHinges /><GatePatina side={side} seasonalEvent={seasonalEvent} /></i>)}
         <i className="entry-gate-seam" />
+        <GateLock progress={signalProgress} />
       </div>
 
       <div className="entry-gate-room-light" aria-hidden="true" />
@@ -488,15 +519,18 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
               <i className="entry-gate-buddy-pad" aria-hidden="true" />
             </div>
           ) : (
+            <>
             <Suspense fallback={<AvatarScenePlaceholder displayName={visitorName} />}>
               <AvatarGreeting
+                avatarUrl={avatarUrl}
                 active={!opening}
                 lampOn={lampOn}
                 displayName={visitorName}
-                onLoadProgress={setAvatarProgress}
-                onStage={setHostStage}
+                onLoadProgress={(progress) => setAvatarState((current) => ({ ...current, progress }))}
+                onStage={(stage) => setAvatarState((current) => ({ ...current, stage }))}
               />
             </Suspense>
+            </>
           )}
         </div>
 
@@ -540,9 +574,12 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
           <path className="entry-gate-spill-shine" d="M20 8Q34 5 45 8M66 9Q82 5 93 8M109 8Q119 6 126 8M101 17Q103 23 101 27" />
         </svg>
         <div className={`entry-gate-signal ${streaming ? "is-streaming" : "is-open"}`}>
-          <div className="entry-gate-signal-heading"><span><i aria-hidden="true" />{signalCopy}</span><small>{streaming ? `${signalProgress}%` : "READY"}</small></div>
+          <div className="entry-gate-signal-heading"><span><i aria-hidden="true" />{signalCopy}</span><small>{streaming ? <><s aria-hidden="true">888</s><b>{String(signalProgress).padStart(3, "0")}</b><em>%</em></> : "READY"}</small></div>
           {streaming ? <i className="entry-gate-signal-meter" role="progressbar" aria-label="Host loading progress" aria-valuemin={0} aria-valuemax={100} aria-valuenow={streaming && signalProgress === 0 ? undefined : signalProgress} aria-valuetext={streaming ? `${signalCopy}, ${signalProgress}%` : signalCopy}>
-            <b style={{ width: `${signalProgress}%` }} />
+            {Array.from({ length: SIGNAL_SEGMENTS }, (_, index) => {
+              const lit = Math.floor(signalProgress / 100 * SIGNAL_SEGMENTS);
+              return <b key={index} className={index < lit ? "is-lit" : index === lit ? "is-next" : ""} style={{ "--t": index / (SIGNAL_SEGMENTS - 1) }} />;
+            })}
           </i> : null}
         </div>
 

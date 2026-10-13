@@ -235,7 +235,7 @@ export function MadraceModal({ open, onBack, onClose }) {
           <ArcadeTvPower powered={powered} off={switchingOff} />
 
           {leaderboardOpen ? (
-            <aside className="madrace-leaderboard" aria-label="Madrace leaderboard">
+            <aside className="madrace-leaderboard rank-skin-madrace" aria-label="Madrace leaderboard">
               <div className="madrace-leaderboard-head">
                 <div><span>RANKING.SYS</span><strong>TOP DRIVERS</strong></div>
                 <button type="button" onClick={refreshAndResume}>REFRESH</button>
@@ -254,7 +254,7 @@ export function MadraceModal({ open, onBack, onClose }) {
               {loading ? <p className="madrace-ranking-status">SCANNING SCORES...</p> : (
                 <ol>
                   {leaderboard.map((entry) => (
-                    <li className={entry.discordId === me?.id ? "is-player" : ""} key={entry.discordId}>
+                    <li className={entry.discordId === me?.id ? "is-player" : ""} data-rank={entry.rank} key={entry.discordId}>
                       <b>{String(entry.rank).padStart(2, "0")}</b>
                       <RankingAvatar src={entry.avatarUrl} name={entry.username} />
                       <span>{entry.username}</span>

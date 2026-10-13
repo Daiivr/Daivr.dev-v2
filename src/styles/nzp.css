@@ -5,11 +5,49 @@
 .nzp-game { width: 100%; height: 100%; min-width: 0; min-height: 0; background: #020303; }
 .nzp-game iframe { display: block; width: 100%; height: 100%; border: 0; background: #020303; }
 .nzp-modal footer em { color: #f2d391; font-style: normal; }
-.nzp-ranking-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 12px 12px 0; }
-.nzp-modal .nzp-ranking-tabs button { display: block; width: 100%; height: 30px; padding: 0 6px; border: 1px solid rgba(63, 255, 151, .22); border-radius: 0; background: transparent; color: var(--color-phosphor-soft); cursor: pointer; font: 900 .55rem var(--font-mono); letter-spacing: .14em; }
-.nzp-modal .nzp-ranking-tabs button:hover { border-color: rgba(63, 255, 151, .5); color: #3fff97; }
-.nzp-modal .nzp-ranking-tabs button[aria-pressed="true"] { border-color: #3fff97; background: rgba(63, 255, 151, .12); color: #3fff97; }
-.nzp-map-filter { display: flex; align-items: center; gap: 12px; margin: 12px 12px 0; padding: 8px 10px; border: 1px solid rgba(63, 255, 151, .22); background: rgba(63, 255, 151, .035); }
-.nzp-map-filter label { color: #79b99a; font: 800 .55rem var(--font-mono); letter-spacing: .14em; }
-.nzp-map-filter select { flex: 1; min-width: 0; min-height: 30px; padding: 4px 24px 4px 8px; border: 0; border-left: 1px solid rgba(63, 255, 151, .18); border-radius: 0; background: #06160e; color: #c9ffe0; color-scheme: dark; font: 700 .65rem var(--font-mono); cursor: pointer; }
-.nzp-map-filter select:focus-visible { outline: 2px solid #3fff97; outline-offset: 3px; }
+
+/* RANKING.SYS con la piel de NZ:P: sangre y tiza, los tonos de la pantalla de
+   carga (public/nzp/shell.css). Esta hoja va sin capa, asi que gana a la base
+   comun de .tower-ranking (konami-library.css) sin subir especificidad. */
+.nzp-ranking {
+  border-left: 1px solid #6d0b11;
+  background:
+    repeating-linear-gradient(0deg, #ffffff06 0 1px, transparent 1px 3px),
+    radial-gradient(ellipse 50% 38% at 50% 100%, #3d070bb3, #3d070b40 50%, transparent),
+    #050707;
+  box-shadow: -25px 0 55px #000c, inset 1px 0 #e0262f26;
+  scrollbar-color: #6d0b11 transparent;
+}
+.nzp-ranking > header { border-bottom: 0; background: linear-gradient(#0b0f0d, #070909); }
+.nzp-ranking > header::after { content: ""; position: absolute; inset: auto 0 -1px; height: 2px; background: linear-gradient(90deg, #6d0b11, #e0262f 50%, #6d0b11); box-shadow: 0 0 10px #e0262f99; }
+.nzp-ranking > header small { color: #9b8a69; font-size: .52rem; font-weight: 700; letter-spacing: .34em; }
+.nzp-ranking > header strong { margin-top: 3px; color: #f2d391; font: 900 1.1rem/1.15 var(--font-display); letter-spacing: .07em; text-shadow: 0 0 20px #f2d39140; }
+.nzp-ranking header button { border: 1px solid #f2d39199; border-radius: 0; background: #e4bd6415; color: #f2d391; font: 700 .55rem var(--font-mono); letter-spacing: .14em; transition: background .15s; }
+.nzp-ranking header button:hover { background: #e4bd6430; }
+.nzp-ranking .cross-road-ranking-actions button:last-child { border-color: #e0262f99; background: #c8141e1f; color: #ff5a62; }
+.nzp-ranking .cross-road-ranking-actions button:last-child:hover { background: #c8141e40; }
+.nzp-ranking-tabs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin: 14px 12px 0; }
+.nzp-modal .nzp-ranking-tabs button { display: block; width: 100%; height: 30px; padding: 0 6px; border: 1px solid #f2d39130; border-radius: 0; background: transparent; color: #9b8a69; cursor: pointer; font: 700 .55rem var(--font-mono); letter-spacing: .2em; }
+.nzp-modal .nzp-ranking-tabs button:hover { border-color: #f2d39170; color: #eadfc4; }
+.nzp-modal .nzp-ranking-tabs button[aria-pressed="true"] { border-color: #e0262f; background: linear-gradient(#c8141e40, #6d0b1126); color: #f2d391; box-shadow: inset 0 -2px #e0262f; }
+.nzp-map-filter { display: flex; align-items: center; gap: 12px; margin: 12px 12px 0; padding: 8px 10px; border: 1px solid #f2d39126; background: #e4bd640a; }
+.nzp-map-filter label { color: #9b8a69; font: 700 .55rem var(--font-mono); letter-spacing: .2em; }
+.nzp-map-filter select { flex: 1; min-width: 0; min-height: 30px; padding: 4px 24px 4px 8px; border: 0; border-left: 1px solid #f2d39126; border-radius: 0; background: #0b0f0d; color: #eadfc4; color-scheme: dark; font: 700 .65rem var(--font-mono); cursor: pointer; }
+.nzp-map-filter select:focus-visible { outline: 2px solid #f2d391; outline-offset: 3px; }
+.nzp-ranking .tower-ranking-self { border-color: #f2d39155; background: #e4bd640d; }
+.nzp-ranking .tower-ranking-self small { color: #9b8a69; letter-spacing: .24em; }
+.nzp-ranking .tower-ranking-self strong { color: #eadfc4; }
+.nzp-ranking > a { border-color: #f2d39199; background: #e4bd6415; letter-spacing: .14em; }
+.nzp-ranking > p { color: #b6aa8e; font-weight: 700; letter-spacing: .26em; }
+.nzp-ranking li { border-left: 2px solid #6d0b11; background: linear-gradient(90deg, #3d070b66, #0b0f0dcc 45%); color: #b6aa8e; }
+.nzp-ranking li.is-player { border-left-color: #f2d391; background: linear-gradient(90deg, #f2d39126, #0b0f0dcc 55%); color: #fff; }
+/* Los numeros de ronda del HUD: rojo sangre; el primero parpadea como la
+   ultima marca de la pantalla de carga. */
+.nzp-ranking li > b { color: #e0262f; font: 900 .9rem var(--font-display); text-shadow: 0 0 10px #e0262f80; }
+.nzp-ranking li[data-rank="1"] > b { animation: nzp-rank-flicker 3.2s linear infinite; }
+.nzp-ranking li span { color: #eadfc4; }
+.nzp-ranking li em { color: #f2d391; font-size: .56rem; letter-spacing: .06em; }
+.nzp-ranking li small { color: #8b978d; }
+.nzp-ranking .ranking-avatar { border-color: #6d0b11; background: #120607; color: #f2d391; }
+@keyframes nzp-rank-flicker { 0%, 46%, 50%, 76%, 100% { opacity: 1; } 47% { opacity: .5; } 48% { opacity: .9; } 49% { opacity: .6; } 77% { opacity: .75; } }
+@media (prefers-reduced-motion: reduce) { .nzp-ranking li[data-rank="1"] > b { animation: none; } }

@@ -112,6 +112,24 @@ async function bundle(work) {
   return { html, code, files: files.length };
 }
 
+// Primer fotograma de Idle de cada Pokemon ({dex: [w, h]}; [w, h, 0] si no
+// tiene shiny; [w, h, ws, hs] si el shiny tiene otra medida). Con esto la web
+// pinta los equipos del ranking de grupo de la tele sin cargar el juego
+// (src/components/PokesurvivorCoopRanking.jsx). Sale de js/data/sprites-meta.js,
+// que es una linea JSON por Pokemon.
+export function idleFrames(source) {
+  const frames = {};
+  for (const line of source.split(/\r?\n/)) {
+    const match = /^\s*(\d+):\s*(\{.*\}),?\s*$/.exec(line);
+    if (!match) continue;
+    const meta = JSON.parse(match[2]);
+    const idle = meta.a?.Idle, shiny = meta.sa?.Idle;
+    if (!idle) continue;
+    frames[match[1]] = !meta.sh ? [idle.w, idle.h, 0] : shiny ? [idle.w, idle.h, shiny.w, shiny.h] : [idle.w, idle.h];
+  }
+  return frames;
+}
+
 async function main() {
   const work = await upstreamTree();
   try {
@@ -122,6 +140,7 @@ async function main() {
     writeFileSync(join(OUT, "index.html"), html);
     writeFileSync(join(OUT, "js", "app.min.js"), code);
     cpSync(join(HERE, "discord-done.html"), join(OUT, "discord-done.html"));
+    writeFileSync(join(OUT, "idle-frames.json"), JSON.stringify(idleFrames(readFileSync(join(work, "js", "data", "sprites-meta.js"), "utf8"))));
     for (const path of OUTPUTS) cpSync(join(work, path), join(OUT, path), { recursive: true });
     console.log(`[pokesurvivor] ${files} scripts -> js/app.min.js (${Math.round(code.length / 1024)} KB), public/pokesurvivor ready`);
   } finally {

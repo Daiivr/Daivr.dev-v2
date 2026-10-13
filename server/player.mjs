@@ -7,7 +7,8 @@ import { readJsonBody, sameOrigin } from "./http-guards.mjs";
 import { dailyChallenge, PLAYER_GAMES } from "../shared/player-catalog.mjs";
 import { challengeStats, challengeBadges } from "../shared/player-achievements.mjs";
 import { dailyXp } from "../shared/player-progression.mjs";
-import { reconcileProgression, secretBadges } from "./player-progression.mjs";
+import { pokesurvivorBadges, reconcileProgression, secretBadges } from "./player-progression.mjs";
+import { pokesurvivorPassportStats } from "./pokesurvivor.mjs";
 import { buildPlayerRankings } from "./player-rankings.mjs";
 
 // Cartuchos con marca en el pasaporte: cada uno guarda <juego>-leaderboard.json
@@ -26,7 +27,13 @@ function passportSources() {
     games: Object.fromEntries(RECORD_GAMES.map((game) => {
       const env = `${game.replaceAll("-", "_").toUpperCase()}_DATA_DIR`;
       return [game, readExisting(`${game}-leaderboard.json`, [env, "GAME_DATA_DIR"]).scores || []];
-    }))
+    })),
+    // Pokédex, shinies, legendarios y squads de PokéSurvivor (se lee al pedirlo).
+    // Un fallo ahi solo deja esas medallas para la proxima vez.
+    pokesurvivor: (id) => {
+      try { return pokesurvivorPassportStats(id); }
+      catch (error) { console.error("[player] pokesurvivor stats:", error.message); return null; }
+    }
   };
 }
 
@@ -46,6 +53,8 @@ function passport(user, saved, comments, sources = passportSources()) {
   if (records.some((record) => record.best > 0)) badges.push({ id: "player", label: "Arcade player", tier: "base", xp: 50, description: "Set a minigame record." });
   badges.push(...milestones.filter((badge) => badge.earned));
   badges.push(...secretBadges(buddy.adventure));
+  const pokesurvivor = sources.pokesurvivor?.(user.id);
+  if (pokesurvivor) badges.push(...pokesurvivorBadges({ ...pokesurvivor, bestTime: Math.max(pokesurvivor.groupBest, records.find((record) => record.game === "pokesurvivor").best || 0) }));
   const reconciled = reconcileProgression(saved, badges);
   const earnedBadges = reconciled.badges;
   const cosmetics = saved.cosmetics || [];

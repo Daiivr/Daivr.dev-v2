@@ -1,5 +1,5 @@
 /* Avatar scene ---------------------------------------------------------------
-   The VRM host and its scan effect. Layout of the frame around it belongs
+   The VRM host. Layout of the frame around it belongs
    to entry-gate.css; this file only paints what lives inside the canvas box, so
    the scene can be dropped into any container that gives it a size. */
 
@@ -22,7 +22,7 @@
   height: 100% !important;
   filter: saturate(0.94) contrast(1.03);
   opacity: 0;
-  transition: opacity 240ms ease-out, filter 480ms ease-out;
+  transition: opacity 480ms ease-out, filter 480ms ease-out;
 }
 
 .entry-avatar-scene.is-ready.is-revealed canvas {
@@ -33,29 +33,7 @@
   opacity: 0;
 }
 
-.entry-avatar-scan {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.025) 50%, transparent 50%) 0 0 / 100% 4px,
-    linear-gradient(180deg, transparent 0 46%, rgba(69, 216, 255, 0.1) 50%, transparent 54%);
-  opacity: 0.74;
-  mix-blend-mode: screen;
-  animation: avatar-scan 4.2s ease-in-out infinite;
-}
-
-@keyframes avatar-scan {
-  0%, 100% { background-position: 0 0, 0 -58vh; }
-  50% { background-position: 0 0, 0 58vh; }
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .entry-avatar-scan {
-    animation: none;
-  }
-
   .entry-avatar-scene canvas {
     transition: none;
   }

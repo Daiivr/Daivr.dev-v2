@@ -19,6 +19,29 @@ export function secretBadges(adventure = {}) {
   return SECRET_BADGES.filter((badge) => badge.test(adventure)).map(({ test, ...badge }) => ({ ...badge, secret: true, earned: true }));
 }
 
+// PokéSurvivor (cartucho 06), tambien secretas. `dex`, `shinies` y `legends`
+// son los que tiene la partida guardada; `bestTime`, los segundos de la mejor
+// partida sola o en grupo (las dos validadas con ficha de partida).
+// server/pokesurvivor.mjs passportStats.
+export const POKESURVIVOR_DEX_SIZE = 966;
+const DEX_MEDALS = [[10, "Pokédex rookie", "bronze", 150], [30, "Field researcher", "silver", 400], [50, "Halfway there", "gold", 800], [75, "Pokémon professor", "platinum", 1500], [100, "Gotta catch 'em all", "diamond", 3000]];
+const SURVIVAL_MEDALS = [[5, "Still standing", "bronze", 100], [10, "Ten-minute trainer", "silver", 300], [15, "Horde breaker", "gold", 600], [20, "Unbreakable", "platinum", 1200], [30, "Last one standing", "diamond", 2500]];
+const POKESURVIVOR_BADGES = [
+  ...DEX_MEDALS.map(([percent, label, tier, xp]) => {
+    const caught = Math.ceil(POKESURVIVOR_DEX_SIZE * percent / 100);
+    return { id: `pokesurvivor-dex-${percent}`, label, tier, xp, target: `${percent}%`, icon: "dex", description: `Registered ${percent}% of PokéSurvivor's Pokédex: ${caught} of ${POKESURVIVOR_DEX_SIZE} Pokémon.`, test: (p) => p.dex >= caught };
+  }),
+  ...SURVIVAL_MEDALS.map(([minutes, label, tier, xp]) => ({ id: `pokesurvivor-survive-${minutes}`, label, tier, xp, target: `${minutes}m`, icon: "survive", description: `Survived ${minutes} minutes in one PokéSurvivor run, solo or with a squad.`, test: (p) => p.bestTime >= minutes * 60 })),
+  { id: "pokesurvivor-shiny", label: "Something sparkly", tier: "gold", xp: 500, icon: "shiny", description: "Caught a shiny Pokémon in PokéSurvivor.", test: (p) => p.shinies > 0 },
+  { id: "pokesurvivor-legend", label: "Rift breaker", tier: "gold", xp: 600, icon: "legend", description: "Defeated a legendary Pokémon in a PokéSurvivor rift.", test: (p) => p.legends > 0 },
+  { id: "pokesurvivor-squad", label: "Squad up", tier: "silver", xp: 250, icon: "squad", description: "Put a co-op team on PokéSurvivor's squad board.", test: (p) => p.squadRuns > 0 }
+];
+
+export function pokesurvivorBadges(stats = {}) {
+  const p = { dex: 0, shinies: 0, legends: 0, bestTime: 0, squadRuns: 0, ...stats };
+  return POKESURVIVOR_BADGES.filter((badge) => badge.test(p)).map(({ test, ...badge }) => ({ ...badge, secret: true, earned: true }));
+}
+
 // One ledger entry per UTC win and badge. Re-reading, syncing, and replaying
 // cannot award XP twice. Backfill known history without inventing old streaks.
 export function reconcileProgression(saved, eligibleBadges, now = Date.now()) {

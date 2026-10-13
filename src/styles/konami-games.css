@@ -2,8 +2,12 @@
    iframe y la tele de detalles). Las importan los cuatro componentes
    perezosos, asi que Vite las junta en un solo CSS que llega con el primer
    juego que se abre. El orden es el de siempre y decide los empates. */
+/* Fuentes de las pieles de ranking (arcade-rankings.css): las mismas que usan
+   Drive Mad, Cross Road y Tower Block dentro de sus iframes. */
+@import url("https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Barlow+Condensed:wght@700;800;900&family=Share+Tech+Mono&display=swap");
 @import "./madrace.css";
 @import "./konami-library.css";
 @import "./konami-shelves.css";
 @import "./konami-loader.css";
 @import "./arcade-tv.css";
+@import "./arcade-rankings.css";

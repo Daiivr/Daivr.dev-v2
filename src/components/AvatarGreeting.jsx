@@ -6,8 +6,9 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { warmAvatarResources, yieldAvatarWork } from "../lib/avatarWarmup";
+import { observeAvatarVisibility } from "../lib/gateHost";
+import { DEFAULT_HOST_AVATAR, MIKU_HOST_AVATAR } from "../lib/hostAvatar";
 
-const AVATAR_URL = "/models/dai-greeter-optimized.vrm";
 const GREETING_URL = "/motions/greeting.vrma";
 const REVEAL_TIME = 1.82;
 // Reparto del medidor AVATAR LINK. Antes marcaba 100% al terminar la descarga,
@@ -33,7 +34,7 @@ const CAMERA_DISTANCE = 3.61;
 const CAMERA_HEIGHT = 1.24;
 const CAMERA_TARGET_Y = 1.1;
 
-function AvatarRig({ active, onError, onPhaseChange, onProgress, onReady, onReveal, reducedMotion }) {
+function AvatarRig({ avatarUrl, active, onError, onPhaseChange, onProgress, onReady, onReveal, reducedMotion }) {
   const { camera, gl, scene } = useThree();
   const [vrm, setVrm] = useState(null);
   const idleGroupRef = useRef(null);
@@ -88,7 +89,7 @@ function AvatarRig({ active, onError, onPhaseChange, onProgress, onReady, onReve
         // El VRM es el 94% de la descarga: su progreso alimenta el medidor
         // AVATAR LINK para que la espera deje de ser una barra inventada.
         const [avatarGltf, animationGltf] = await Promise.all([
-          avatarLoader.loadAsync(AVATAR_URL, (event) => {
+          avatarLoader.loadAsync(avatarUrl, (event) => {
             if (disposed || !event.lengthComputable || !event.total) return;
             onProgressRef.current?.((event.loaded / event.total) * PROGRESS_DOWNLOAD);
           }),
@@ -178,7 +179,7 @@ function AvatarRig({ active, onError, onPhaseChange, onProgress, onReady, onReve
       actionRef.current = null;
       waveActionsRef.current = [];
     };
-  }, [camera, gl, scene]);
+  }, [avatarUrl, camera, gl, scene]);
 
   useFrame((_, delta) => {
     const mixer = mixerRef.current;
@@ -281,17 +282,26 @@ function AvatarRig({ active, onError, onPhaseChange, onProgress, onReady, onReve
 
   if (!vrm) return null;
   return (
-    <group ref={idleGroupRef} position={[0, -0.05, 0]}>
+    // Miku's rig is shorter; match the original host's framing and speech height.
+    <group ref={idleGroupRef} position={[0, -0.05, 0]} scale={avatarUrl === MIKU_HOST_AVATAR ? 1.18 : 1}>
       <primitive object={vrm.scene} dispose={null} />
     </group>
   );
 }
 
-export function AvatarGreeting({ active, displayName, onLoadProgress, onStage, lampOn = true }) {
+// Remount the scene on outfit changes to dispose the previous model and reset
+// its animation, loading progress, and visibility before allowing speech.
+export function AvatarGreeting({ avatarUrl = DEFAULT_HOST_AVATAR, ...props }) {
+  return <AvatarGreetingScene key={avatarUrl} avatarUrl={avatarUrl} {...props} />;
+}
+
+function AvatarGreetingScene({ avatarUrl, active, displayName, onLoadProgress, onStage, lampOn = true }) {
   const [status, setStatus] = useState("loading");
   const [motionPhase, setMotionPhase] = useState("concealed");
   const [reducedMotion, setReducedMotion] = useState(false);
   const [revealed, setRevealed] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const sceneElementRef = useRef(null);
   const onLoadProgressRef = useRef(onLoadProgress);
   const onStageRef = useRef(onStage);
   const reportedPercentRef = useRef(-1);
@@ -316,24 +326,30 @@ export function AvatarGreeting({ active, displayName, onLoadProgress, onStage, l
     return () => query.removeEventListener?.("change", updatePreference);
   }, []);
 
-  // La puerta arranca su saludo cuando el anfitrion ya esta en pantalla, asi
-  // que necesita la fase de la escena y no solo el porcentaje de descarga.
+  useEffect(() => {
+    if (status !== "ready" || !revealed || !active) {
+      setVisible(false);
+      return undefined;
+    }
+    return observeAvatarVisibility(sceneElementRef.current, setVisible);
+  }, [active, revealed, status]);
+
+  // Speech waits for the canvas fade to finish in a foreground tab, not just
+  // for the animation mixer to reach its entrance pose.
   const stage = status === "error"
     ? "error"
     : status !== "ready"
       ? "loading"
-      : motionPhase === "waving"
-        ? "waving"
-        : revealed
-          ? "greeting"
-          : "arriving";
+      : !visible
+        ? "arriving"
+        : motionPhase === "waving" ? "waving" : "greeting";
 
   useEffect(() => {
     onStageRef.current?.(stage);
   }, [stage]);
 
   return (
-    <div className={`entry-avatar-scene is-${status} is-${motionPhase} ${revealed ? "is-revealed" : ""}`} aria-label={`3D avatar greeting ${displayName}`} role="img">
+    <div ref={sceneElementRef} className={`entry-avatar-scene is-${status} is-${motionPhase} ${revealed ? "is-revealed" : ""}`} aria-label={`3D avatar greeting ${displayName}`} role="img">
       <Canvas
         camera={{ fov: CAMERA_FOV, near: 0.1, far: 20, position: [0, CAMERA_HEIGHT, CAMERA_DISTANCE] }}
         dpr={[1, 1.5]}
@@ -350,6 +366,7 @@ export function AvatarGreeting({ active, displayName, onLoadProgress, onStage, l
         <directionalLight color="#45d8ff" intensity={lampOn ? 1.35 : 1.2} position={[-3, 2.2, 1]} />
         <pointLight color="#ff3d9d" intensity={lampOn ? 3.5 : 3} position={[2, 1.25, 0.3]} distance={4.5} />
         <AvatarRig
+          avatarUrl={avatarUrl}
           active={active}
           onError={() => setStatus("error")}
           onPhaseChange={setMotionPhase}
@@ -359,7 +376,6 @@ export function AvatarGreeting({ active, displayName, onLoadProgress, onStage, l
           reducedMotion={reducedMotion}
         />
       </Canvas>
-      <div className="entry-avatar-scan" aria-hidden="true" />
     </div>
   );
 }

@@ -5,6 +5,21 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.70.0",
+    codename: "HOUSE COLOURS",
+    date: "2026-10-13",
+    summary: "Every game's trophy board now looks like its game, PokéSurvivor gets a co-op ranking and secret passport medals, and inserting a cartridge is a whole little scene with a TV that switches on.",
+    entries: [
+      ["new", "PokéSurvivor hides secret passport medals. Filling your Pokédex and lasting longer in a run are a good place to start looking, and they show up in your collection the moment you earn them."],
+      ["buff", "Each RANKING.SYS board dresses like its cartridge. Madrace is a sunny Drive Mad sky with chunky tiles, Tower Block stacks pastel slabs, Cross Road deals paper cards on the grass under a road, Space Cadet copies the table's grey side panel, PokéSurvivor uses Mystery Dungeon boxes, and NZ:P runs blood red."],
+      ["new", "PokéSurvivor's trophy board has a CO-OP tab: the longest group runs, team by team, with every player's partner Pokémon next to their names."],
+      ["buff", "Inserting a cartridge happens in a room now: an old TV with rabbit ears, a bigger Station 86 and a controller plugged into port 1. The cartridge swings in and clicks into the slot, the TV crackles, then the power switch flips, the screen shows your game and a GAME ON neon lights the room in its colour."],
+      ["buff", "While it loads you get the game's description and tags."],
+      ["buff", "The entry gate got heavier: riveted, hinged doors, worn hazard stripes and a vault lock on the seam. Its ring of lights fills up while the host streams in, then it turns green, pulls its bolts and turns its wheel once you can enter, and splits with the doors when you do."],
+      ["buff", "The loading bar under the gate is a row of lights now, with a little segment counter, and the Open the gate button's lights follow the lock."]
+    ]
+  },
+  {
     version: "v2.69.0",
     codename: "CHANNEL SURF",
     date: "2026-10-12",

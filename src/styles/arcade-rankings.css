@@ -1,0 +1,244 @@
+/* Hoja perezosa: entra por konami-games.css con el primer juego Konami.
+   Cada RANKING.SYS lleva la piel de su cartucho. La estructura es la comun
+   (.tower-ranking en konami-library.css, .madrace-leaderboard en madrace.css)
+   y aqui solo cambia el aspecto, con la clase rank-skin-<juego> del <aside>.
+   Ojo con los botones de cabecera: el de cerrar necesita (0,3,3) para ganar a
+   `.arcade-embed-modal header>div:last-child button:last-child`, y
+   `.tower-ranking li.is-player` (0,2,1) pisa el fondo de las filas, asi que
+   cada piel repite el suyo. La de NZ:P vive en nzp.css, que va sin capa. */
+
+/* La fuente pixel del propio PokéSurvivor (OFL); el iframe ya la ha cargado. */
+@font-face {
+  font-family: "Daivr Pixelify";
+  src: url("/pokesurvivor/assets/fonts/PixelifySans.ttf") format("truetype");
+  font-weight: 400 700;
+  font-display: swap;
+}
+
+@layer components {
+  /* ---------- DISK 01 // MADRACE: cielo de Drive Mad, montes facetados y
+     baldosas de voxel con canto. ---------- */
+  .madrace-leaderboard.rank-skin-madrace {
+    border-left: 4px solid #0d4fa8;
+    background:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 430 200' preserveAspectRatio='xMidYMax slice'%3E%3Cpath d='M-20 200L95 40l25 160z' fill='%236cc0ff'/%3E%3Cpath d='M95 40l135 160H120z' fill='%234ea6f4'/%3E%3Cpath d='M170 200L320 8l25 192z' fill='%2378c8ff'/%3E%3Cpath d='M320 8l150 192H345z' fill='%2355abf5'/%3E%3Cpath d='M140 200l70-90 12 90z' fill='%238ad2ff'/%3E%3Cpath d='M210 110l80 90h-68z' fill='%2364b5f7'/%3E%3C/svg%3E") 50% 100% / 100% 200px no-repeat,
+      linear-gradient(180deg, #55bbff, #2b8ff0 55%, #1d74d8);
+    box-shadow: -24px 0 55px rgba(0,0,0,.6), inset 3px 0 rgba(255,255,255,.3);
+    color: #12305e;
+    font-family: "Baloo 2", "Trebuchet MS", system-ui, sans-serif;
+    scrollbar-color: #ffffffb0 transparent;
+  }
+  .rank-skin-madrace .madrace-leaderboard-head { padding: 13px 14px 11px 16px; border-bottom: 0; background: #1c6fd6; box-shadow: 0 5px #0f4f9f, 0 10px 14px rgba(5,40,90,.3); }
+  .rank-skin-madrace .madrace-leaderboard-head span { color: #c4e8ff; font-size: .7rem; font-weight: 800; letter-spacing: .14em; }
+  .rank-skin-madrace .madrace-leaderboard-head strong { display: block; color: #fff; font-family: inherit; font-size: 1.5rem; font-weight: 800; line-height: 1.05; letter-spacing: .03em; text-shadow: 0 3px #0b3f86; }
+  .madrace-leaderboard.rank-skin-madrace button { min-height: 32px; border: 0; border-radius: 10px; padding: 3px 14px 0; background: linear-gradient(#80e15e, #5cc43e); box-shadow: 0 4px #348a24, inset 0 2px rgba(255,255,255,.4); color: #fff; font: 800 .8rem/1 "Baloo 2", "Trebuchet MS", system-ui, sans-serif; letter-spacing: .06em; text-shadow: 0 2px #2c7a1e; transition: transform .1s, box-shadow .1s, filter .15s; }
+  .madrace-leaderboard.rank-skin-madrace button:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 5px #348a24, inset 0 2px rgba(255,255,255,.4); }
+  .madrace-leaderboard.rank-skin-madrace button:active { transform: translateY(3px); box-shadow: 0 1px #348a24, inset 0 2px rgba(255,255,255,.4); }
+  .rank-skin-madrace .madrace-player-record { margin: 20px 12px 16px; border: 0; border-radius: 14px; padding: 9px 11px; background: #fff; box-shadow: 0 5px #a9c4e6, 0 10px 18px rgba(6,42,96,.25); }
+  .rank-skin-madrace .madrace-player-record span { color: #2b8ff0; font-size: .68rem; font-weight: 800; letter-spacing: .1em; }
+  .rank-skin-madrace .madrace-player-record strong { color: #12305e; font-size: .92rem; font-weight: 800; }
+  .madrace-leaderboard.rank-skin-madrace .madrace-player-record button { width: 34px; min-height: 34px; padding: 0; background: linear-gradient(#ff8d7c, #f0604f); box-shadow: 0 4px #b73a2e, inset 0 2px rgba(255,255,255,.35); }
+  .rank-skin-madrace .madrace-login { margin: 20px 12px 16px; border: 0; border-radius: 12px; padding: 12px 12px 10px; background: linear-gradient(#ffdb4d, #ffc21c); box-shadow: 0 5px #c98a00; color: #4a2c00; font-size: .85rem; font-weight: 800; letter-spacing: .06em; }
+  .rank-skin-madrace .madrace-ranking-status { color: #fff; font-size: .95rem; font-weight: 800; letter-spacing: .08em; text-shadow: 0 2px #0b3f86; }
+  .rank-skin-madrace ol { gap: 10px; padding: 2px 12px 20px; }
+  .rank-skin-madrace li { grid-template-columns: 30px 36px minmax(0,1fr) auto auto; gap: 10px; min-height: 52px; border: 0; border-radius: 12px; padding: 7px 10px; background: #fff; box-shadow: 0 5px #a9c4e6; color: #12305e; }
+  /* La fila propia es la plataforma de la portada: cesped encima y canto rosa. */
+  .rank-skin-madrace li.is-player { padding-top: 13px; background: linear-gradient(#7bdc52 0 7px, #fff 7px); box-shadow: 0 5px #e39b8e; color: #12305e; }
+  .rank-skin-madrace li b { display: grid; height: 28px; place-items: center; border-radius: 8px; padding-top: 2px; background: #d9ecff; box-shadow: 0 3px #9cc2ea; color: #1d5fae; font-size: .82rem; font-weight: 800; }
+  .rank-skin-madrace li[data-rank="1"] b { background: #ffd23a; box-shadow: 0 3px #c98a00; color: #5a3600; }
+  .rank-skin-madrace li[data-rank="2"] b { background: #eef3f8; box-shadow: 0 3px #9fb1c4; color: #42566e; }
+  .rank-skin-madrace li[data-rank="3"] b { background: #ffbb88; box-shadow: 0 3px #c46d36; color: #5e2a0a; }
+  .rank-skin-madrace li span { font-size: .9rem; font-weight: 800; }
+  .rank-skin-madrace li em { border-radius: 6px; padding: 3px 8px 1px; background: #ef9a8e; box-shadow: 0 3px #b8655d; color: #fff; font-size: .75rem; font-weight: 800; text-shadow: 0 1px #a9554d; }
+  .rank-skin-madrace li small { color: #4a6a99; font-size: .75rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .rank-skin-madrace .ranking-avatar { border: 0; border-radius: 10px; background: linear-gradient(#55bbff, #1d74d8); color: #fff; font-weight: 800; }
+
+  /* ---------- DISK 02 // TOWER.BLOCK: la rejilla del juego y cada fila es una
+     losa pastel; el tono corre por la torre como en script.js. ---------- */
+  .tower-ranking.rank-skin-tower {
+    border-left: 1px solid #45d8ff55;
+    background:
+      linear-gradient(rgba(63,255,151,.055) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(69,216,255,.045) 1px, transparent 1px),
+      #071b16;
+    background-size: 42px 42px, 42px 42px, auto;
+    color: #dffff0;
+    font-family: "Share Tech Mono", var(--font-mono);
+    scrollbar-color: #45d8ff66 transparent;
+  }
+  .rank-skin-tower > header { border-bottom: 1px solid #45d8ff33; background: #071b16f2; }
+  .rank-skin-tower > header small,.rank-skin-tower .tower-ranking-self small { color: #45d8ff; font-family: inherit; font-size: .66rem; font-weight: 400; letter-spacing: .18em; }
+  .rank-skin-tower > header strong { font-family: inherit; font-size: 1.55rem; font-weight: 400; line-height: 1.1; letter-spacing: .1em; text-shadow: 2px 0 #ff3d9d, -2px 0 #45d8ff, 0 0 18px rgba(63,255,151,.35); }
+  .tower-ranking.rank-skin-tower header button { height: 32px; border: 1px solid #3fff97; padding: 0 12px; background: rgba(2,12,8,.88); color: #fff; font: 400 .72rem "Share Tech Mono", var(--font-mono); letter-spacing: .13em; clip-path: polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px); transition: background .15s, color .15s; }
+  .tower-ranking.rank-skin-tower header button:hover { background: #3fff97; color: #071b16; }
+  /* La losa base del juego (#333344) hace de ficha propia. */
+  .rank-skin-tower .tower-ranking-self { margin: 14px 14px 18px; border: 0; padding: 9px 10px; background: #333344; box-shadow: 0 6px #222230, inset 0 1px #ffffff1a; }
+  .rank-skin-tower .tower-ranking-self strong { font-size: .78rem; font-weight: 400; letter-spacing: .06em; }
+  .rank-skin-tower .tower-ranking-self .ranking-avatar { border: 0; box-shadow: 0 0 0 2px #45d8ff66; }
+  .rank-skin-tower > a { margin: 14px 14px 18px; border: 1px solid #3fff97; background: rgba(2,12,8,.88); color: #3fff97; font-size: .72rem; font-weight: 400; letter-spacing: .14em; clip-path: polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px); }
+  .rank-skin-tower > p { color: #3fff97; font-size: .72rem; letter-spacing: .16em; text-shadow: 0 0 12px rgba(63,255,151,.45); }
+  .rank-skin-tower ol { gap: 10px; padding: 2px 14px 22px; }
+  .rank-skin-tower li {
+    --slab: hsl(calc(190 + var(--i, 0) * 17) 74% 80%);
+    --side: hsl(calc(190 + var(--i, 0) * 17) 30% 44%);
+    grid-template-columns: 30px 34px minmax(0,1fr) auto auto;
+    min-height: 46px; border: 0; padding: 6px 10px;
+    background: linear-gradient(rgba(255,255,255,.28), transparent 70%), var(--slab);
+    box-shadow: 0 6px var(--side);
+    color: #0b1d17;
+  }
+  .rank-skin-tower li.is-player { background: linear-gradient(rgba(255,255,255,.28), transparent 70%), var(--slab); outline: 2px solid #fff; outline-offset: 3px; color: #0b1d17; }
+  .rank-skin-tower li > b { color: #0b1d17; font-size: 1.05rem; font-weight: 400; text-shadow: 1.5px 0 #ff3d9d, -1.5px 0 #45d8ff; }
+  .rank-skin-tower li span { font-size: .82rem; font-weight: 400; letter-spacing: .04em; }
+  .rank-skin-tower li em { padding: 3px 7px; background: rgba(255,255,255,.5); color: #0b1d17; font-size: .7rem; font-weight: 400; letter-spacing: .06em; }
+  .rank-skin-tower li small { color: #0b1d17a8; font-size: .7rem; font-weight: 400; }
+  .rank-skin-tower li .ranking-avatar { border: 0; background: #0b1d1726; color: #0b1d17; box-shadow: 0 0 0 2px #0b1d1733; }
+  /* El bloque gris del arranque, debajo de la torre. */
+  .rank-skin-tower ol::after { content: ""; height: 12px; margin-top: 2px; background: #333344; box-shadow: 0 6px #222230; }
+
+  /* ---------- DISK 03 // CROSS.ROAD: cesped a cuadros, carretel con raya y
+     tarjetas de papel con sombra dura, como el resultado del juego. ---------- */
+  .tower-ranking.rank-skin-cross {
+    border-left: 3px solid #263e32;
+    background: repeating-conic-gradient(#8db864 0 25%, #97c16e 0 50%) 0 0 / 32px 32px;
+    box-shadow: -10px 0 0 rgba(24,42,36,.3), -25px 0 55px rgba(0,0,0,.6);
+    color: #fff9e6;
+    font-family: "Barlow Condensed", "Arial Narrow", sans-serif;
+    scrollbar-color: #263e32 #7aa456;
+  }
+  .rank-skin-cross > header { padding: 13px 14px 27px; border-bottom: 0; background: #263e32; }
+  .rank-skin-cross > header::after { content: ""; position: absolute; inset: auto 0 0; height: 14px; border-top: 2px solid #c9c2a6; background: repeating-linear-gradient(90deg, #fff9e6 0 14px, transparent 14px 28px) 0 50% / 100% 2px no-repeat, #4d5359; }
+  .rank-skin-cross > header small { color: #ffdc76; font-family: inherit; font-size: .78rem; font-weight: 800; letter-spacing: .22em; }
+  .rank-skin-cross > header strong { margin-top: 3px; color: #fff9e6; font-family: "Press Start 2P", monospace; font-size: .78rem; line-height: 1.45; letter-spacing: -.02em; text-shadow: 2px 2px #182a24; }
+  .tower-ranking.rank-skin-cross header button { height: 32px; border: 2px solid #182a24; padding: 0 12px; background: #ffdd78; box-shadow: 3px 4px #182a24; color: #283e32; font: 900 .85rem "Barlow Condensed", "Arial Narrow", sans-serif; letter-spacing: .08em; transition: transform .15s, box-shadow .15s, background .15s; }
+  .tower-ranking.rank-skin-cross header div > button:last-child { width: 32px; padding: 0; border-color: #182a24; background: #fff8e5; color: #283e32; }
+  .tower-ranking.rank-skin-cross header button:hover { transform: translateY(-2px); background: #ffe8a2; box-shadow: 3px 6px #182a24; }
+  .tower-ranking.rank-skin-cross header button:active { transform: translate(2px,3px); box-shadow: 1px 1px #182a24; }
+  .rank-skin-cross .tower-ranking-self { margin: 18px 16px 16px 14px; border: 3px solid #263e32; padding: 8px 10px; background: #fff5da; box-shadow: 6px 7px #263e32; }
+  .rank-skin-cross .tower-ranking-self small { color: #677453; font-family: inherit; font-size: .74rem; font-weight: 800; letter-spacing: .16em; }
+  .rank-skin-cross .tower-ranking-self strong { color: #263e32; font-size: 1.1rem; font-weight: 900; letter-spacing: .02em; }
+  .rank-skin-cross > a { margin: 18px 16px 16px 14px; border: 2px solid #283e32; background: #ffdd78; box-shadow: 4px 5px #283e32; color: #283e32; font-size: .95rem; font-weight: 900; letter-spacing: .07em; }
+  .rank-skin-cross > p { color: #fff9e6; font-size: .95rem; font-weight: 800; letter-spacing: .18em; text-shadow: 1px 2px 3px #263e2d; }
+  .rank-skin-cross ol { gap: 10px; padding: 0 17px 20px 14px; }
+  .rank-skin-cross li { grid-template-columns: 30px 34px minmax(0,1fr) auto auto; min-height: 50px; border: 2px solid #2d4435; padding: 6px 10px 6px 7px; background: #fff8e5; box-shadow: 3px 4px #2d4435; color: #263e32; }
+  .rank-skin-cross li.is-player { border-color: #2d4435; background: #ffdd78; color: #263e32; }
+  .rank-skin-cross li > b { display: grid; height: 26px; place-items: center; background: #253c32; box-shadow: 2px 2px #182a24; color: #fff9e6; font: 400 .52rem "Press Start 2P", monospace; }
+  .rank-skin-cross li[data-rank="1"] > b { color: #ffdc76; }
+  .rank-skin-cross li span { font-size: 1.08rem; font-weight: 800; letter-spacing: .02em; }
+  .rank-skin-cross li em { color: #4d8054; font: 400 .56rem "Press Start 2P", monospace; }
+  .rank-skin-cross li small { color: #677453; font-size: .88rem; font-weight: 700; }
+  .rank-skin-cross .ranking-avatar { border: 2px solid #2d4435; background: #91bb68; color: #263e32; font-weight: 900; }
+
+  /* ---------- DISK 05 // SPACE.CADET: el panel lateral de la mesa: marco
+     gris biselado, pozos negros, letra lila y el recuadro rojo de BALL. ---------- */
+  .tower-ranking.rank-skin-pinball {
+    border-left: 0;
+    background: linear-gradient(90deg, #6e6e6e, #9b9b9b 5%, #8b8b8b 55%, #7b7b7b);
+    box-shadow: inset 3px 0 #cfcfcf, -25px 0 55px rgba(0,0,0,.76);
+    color: #a49cff;
+    font-family: "Press Start 2P", monospace;
+    scrollbar-color: #555 #8b8b8b;
+  }
+  /* El marco gris que rodea la cabecera fija es su sombra extendida. */
+  .rank-skin-pinball > header {
+    top: 9px; margin: 9px 9px 0; padding: 12px 10px;
+    border: 3px solid; border-color: #3f3f3f #d6d6d6 #d6d6d6 #3f3f3f;
+    background:
+      radial-gradient(circle 1.4px at 9% 28%, #fff 55%, transparent),
+      radial-gradient(circle 1px at 31% 78%, #cfd3ff 55%, transparent),
+      radial-gradient(circle 1.6px at 57% 18%, #fff 55%, transparent),
+      radial-gradient(circle 1px at 72% 64%, #b9b4ff 55%, transparent),
+      radial-gradient(circle 1.2px at 46% 50%, #fff 55%, transparent),
+      radial-gradient(circle 1px at 88% 30%, #fff 55%, transparent),
+      #02020a;
+    box-shadow: 0 0 0 9px #8b8b8b;
+  }
+  .rank-skin-pinball > header small { color: #e01e1e; font-family: inherit; font-size: .42rem; font-weight: 400; letter-spacing: .1em; }
+  .rank-skin-pinball > header strong { margin-top: 7px; color: #a49cff; font-family: inherit; font-size: .9rem; line-height: 1.3; letter-spacing: 0; text-shadow: 0 0 10px #6a5cff99; }
+  .tower-ranking.rank-skin-pinball header button { height: 28px; border: 2px solid; border-color: #ececec #3a3a3a #3a3a3a #ececec; padding: 0 8px; background: #b5b5b5; color: #101010; font: 400 .42rem "Press Start 2P", monospace; letter-spacing: 0; }
+  .tower-ranking.rank-skin-pinball header div > button:last-child { width: 28px; padding: 0; border-color: #ececec #3a3a3a #3a3a3a #ececec; color: #c01010; }
+  .tower-ranking.rank-skin-pinball header button:active { border-color: #3a3a3a #ececec #ececec #3a3a3a; }
+  .rank-skin-pinball .tower-ranking-self,.rank-skin-pinball > a,.rank-skin-pinball > p,.rank-skin-pinball li { border: 3px solid; border-color: #3f3f3f #d6d6d6 #d6d6d6 #3f3f3f; background: #000; }
+  .rank-skin-pinball .tower-ranking-self { margin: 18px 9px 9px; padding: 8px; }
+  .rank-skin-pinball .tower-ranking-self small { color: #e01e1e; font-family: inherit; font-size: .4rem; font-weight: 400; letter-spacing: .06em; }
+  .rank-skin-pinball .tower-ranking-self strong { margin-top: 6px; color: #a49cff; font-size: .5rem; line-height: 1.4; }
+  .rank-skin-pinball > a { margin: 18px 9px 9px; padding: 12px 8px; color: #a49cff; font-size: .45rem; font-weight: 400; letter-spacing: 0; line-height: 1.5; }
+  .rank-skin-pinball > p { margin: 9px; padding: 18px 10px; color: #a49cff; font-size: .48rem; letter-spacing: 0; line-height: 1.6; }
+  .rank-skin-pinball ol { gap: 7px; padding: 0 9px 12px; }
+  .rank-skin-pinball li { grid-template-columns: 32px 32px minmax(0,1fr) auto; grid-template-rows: auto auto; column-gap: 9px; row-gap: 4px; min-height: 50px; padding: 6px 8px; color: #a49cff; }
+  .rank-skin-pinball li.is-player { border-color: #3f3f3f #d6d6d6 #d6d6d6 #3f3f3f; background: #0d0a33; color: #d6d2ff; }
+  .rank-skin-pinball li > b,.rank-skin-pinball li .ranking-avatar { grid-row: span 2; }
+  .rank-skin-pinball li > b { display: grid; height: 26px; place-items: center; border: 2px solid #d41c1c; color: #a49cff; font-size: .5rem; font-weight: 400; }
+  .rank-skin-pinball li[data-rank="1"] > b { background: #d41c1c; color: #fff; }
+  .rank-skin-pinball li span { font-size: .48rem; font-weight: 400; line-height: 1.4; }
+  .rank-skin-pinball li em { grid-row: span 2; color: inherit; font-size: .62rem; font-weight: 400; text-shadow: 0 0 8px #6a5cff88; }
+  .rank-skin-pinball li small { grid-column: 3; grid-row: 2; color: #6a64a8; font-size: .38rem; font-weight: 400; }
+  .rank-skin-pinball .ranking-avatar { width: 32px; height: 32px; border: 2px solid #2a2a2a; background: #14112e; color: #a49cff; font-size: .45rem; font-weight: 400; }
+
+  /* ---------- DISK 06 // POKE.SURVIVOR: caja azul de Mundo Misterioso con doble
+     borde blanco, la misma fuente pixel y el cursor de PMD en tu fila. ---------- */
+  .tower-ranking.rank-skin-poke {
+    inset: 12px 12px 12px auto;
+    width: min(430px, calc(92% - 12px));
+    border: 3px solid #f4f8ff;
+    border-radius: 12px;
+    background: linear-gradient(180deg, #2c519f, #1a3170);
+    box-shadow: 0 0 0 3px #0b1838, inset 0 0 0 2px #5b83d6, -18px 0 50px rgba(0,0,0,.55);
+    color: #fff;
+    font-family: "Daivr Pixelify", "Segoe UI", system-ui, sans-serif;
+    text-shadow: 2px 2px #0a1430;
+    -webkit-font-smoothing: none;
+    scrollbar-color: #5b83d6 transparent;
+  }
+  .rank-skin-poke > header { align-items: flex-start; padding: 13px 13px 12px 14px; border-bottom: 2px solid rgba(244,248,255,.2); background: #2c519f; box-shadow: inset 2px 2px #5b83d6, inset -2px 0 #5b83d6; }
+  .rank-skin-poke > header div { justify-items: start; }
+  .rank-skin-poke > header small { padding: 1px 8px 2px; border: 2px solid #ffe7d1; border-radius: 6px; background: linear-gradient(#ffa552, #ee6f28); box-shadow: 0 0 0 2px #0b1838; color: #fff; font-family: inherit; font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-shadow: 1px 1px #8a3200; }
+  .rank-skin-poke > header strong { margin-top: 8px; font-family: inherit; font-size: 1.35rem; font-weight: 700; line-height: 1.1; letter-spacing: .03em; }
+  .tower-ranking.rank-skin-poke header button { height: 32px; border: 3px solid #f4f8ff; border-radius: 9px; padding: 0 11px; background: linear-gradient(#3d67c0, #26468f); box-shadow: 0 0 0 2px #0b1838, 0 4px #0b1838; color: #fff; font: 700 .85rem "Daivr Pixelify", "Segoe UI", system-ui, sans-serif; letter-spacing: .03em; text-shadow: 2px 2px #0a1430; transition: transform .06s, filter .12s; }
+  .tower-ranking.rank-skin-poke header div > button:last-child { width: 32px; padding: 0; border-color: #f4f8ff; background: linear-gradient(#ff7b86, #d8404e); color: #fff; }
+  .tower-ranking.rank-skin-poke header button:hover { filter: brightness(1.15); }
+  .tower-ranking.rank-skin-poke header button:active { transform: translateY(2px); box-shadow: 0 0 0 2px #0b1838, 0 2px #0b1838; }
+  .rank-skin-poke .tower-ranking-self { margin: 14px 12px 12px 24px; border: 2px solid #ffd23f; border-radius: 8px; padding: 7px 10px; background: rgba(255,210,63,.1); }
+  .rank-skin-poke .tower-ranking-self small { color: #b9cbf0; font-family: inherit; font-size: .78rem; font-weight: 400; letter-spacing: .02em; }
+  .rank-skin-poke .tower-ranking-self strong { font-size: 1rem; font-weight: 700; }
+  .rank-skin-poke > a { margin: 14px 12px 12px 24px; border: 3px solid #fff7d6; border-radius: 9px; background: linear-gradient(#ffe37a, #f0a31e); box-shadow: 0 0 0 2px #0b1838, 0 4px #0b1838; color: #3a2300; font-size: .95rem; font-weight: 700; letter-spacing: .03em; text-shadow: 1px 1px rgba(255,255,255,.4); }
+  .rank-skin-poke > p { color: #b9cbf0; font-size: 1rem; letter-spacing: .04em; }
+  .rank-skin-poke ol { gap: 5px; padding: 0 12px 14px 24px; }
+  .rank-skin-poke li { position: relative; grid-template-columns: 30px 34px minmax(0,1fr) auto auto; gap: 10px; min-height: 46px; border: 2px solid transparent; border-radius: 8px; padding: 4px 10px; background: rgba(0,0,0,.2); color: #fff; }
+  .rank-skin-poke li.is-player { border-color: #ffd23f; background: rgba(255,210,63,.1); color: #fff; }
+  /* Flecha de pixeles en escalones de 3 px (la sombra es la misma forma, desplazada). */
+  .rank-skin-poke li.is-player::before,.rank-skin-poke li.is-player::after { content: ""; position: absolute; top: 50%; left: -18px; width: 9px; height: 15px; margin-top: -8px; clip-path: polygon(0 0,33.3% 0,33.3% 20%,66.6% 20%,66.6% 40%,100% 40%,100% 60%,66.6% 60%,66.6% 80%,33.3% 80%,33.3% 100%,0 100%); animation: rank-pmd-cursor .8s steps(1) infinite; }
+  .rank-skin-poke li.is-player::before { margin: -6px 0 0 2px; background: #0a1430; }
+  .rank-skin-poke li.is-player::after { background: #f4f8ff; }
+  .rank-skin-poke li > b { color: #b9cbf0; font-size: 1.1rem; font-weight: 700; }
+  .rank-skin-poke li[data-rank="1"] > b { color: #ffd23f; }
+  .rank-skin-poke li[data-rank="2"] > b { color: #dfe7f5; }
+  .rank-skin-poke li[data-rank="3"] > b { color: #e0a36b; }
+  .rank-skin-poke li span { font-size: 1rem; font-weight: 700; }
+  .rank-skin-poke li em { color: #fff; font-size: 1.2rem; font-weight: 700; }
+  .rank-skin-poke li small { color: #b9cbf0; font-size: .8rem; font-weight: 400; }
+  .rank-skin-poke .ranking-avatar { border: 2px solid #f4f8ff; border-radius: 6px; background: #1a3170; color: #fff; font-weight: 700; text-shadow: none; }
+  /* SOLO / CO-OP: botones de la caja, el elegido con el borde blanco. */
+  .rank-skin-poke .rank-board-tabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 14px 12px 0 24px; }
+  .tower-ranking.rank-skin-poke .rank-board-tabs button { display: block; width: 100%; height: 32px; border: 2px solid rgba(244,248,255,.3); border-radius: 8px; background: rgba(0,0,0,.22); color: #b9cbf0; cursor: var(--cursor-pointer,pointer); font: 700 .95rem "Daivr Pixelify", "Segoe UI", system-ui, sans-serif; letter-spacing: .04em; text-shadow: 2px 2px #0a1430; transition: filter .12s, background .12s; }
+  .tower-ranking.rank-skin-poke .rank-board-tabs button:hover { background: rgba(244,248,255,.08); color: #fff; }
+  .tower-ranking.rank-skin-poke .rank-board-tabs button[aria-pressed="true"] { border: 3px solid #f4f8ff; background: linear-gradient(#3d67c0, #26468f); box-shadow: 0 0 0 2px #0b1838, 0 3px #0b1838; color: #fff; }
+  /* Ranking de grupo: los compañeros del equipo, pisandose un poco. */
+  .rank-skin-poke .rank-coop-list li { grid-template-columns: 30px auto minmax(0,1fr) auto; min-height: 50px; }
+  .rank-skin-poke .rank-coop-team { display: flex; align-items: flex-end; overflow: visible; }
+  .rank-coop-mon { display: block; width: 32px; height: 32px; object-fit: contain; object-position: 50% 100%; image-rendering: pixelated; opacity: 0; filter: drop-shadow(2px 2px 0 #0a1430); transition: opacity .2s; }
+  .rank-coop-mon.is-ready { opacity: 1; }
+  .rank-coop-mon + .rank-coop-mon { margin-left: -9px; }
+  .rank-skin-poke .rank-coop-who { display: grid; min-width: 0; }
+  .rank-skin-poke .rank-coop-who strong { overflow: hidden; font-size: .95rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+  .rank-skin-poke .rank-coop-who small { overflow: hidden; color: #b9cbf0; font-size: .75rem; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
+
+  @keyframes rank-pmd-cursor { 50% { translate: -3px 0; } }
+
+  @media (max-width: 680px) {
+    .rank-skin-madrace li { grid-template-columns: 28px 30px minmax(0,1fr) auto; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .rank-skin-poke li.is-player::before,.rank-skin-poke li.is-player::after { animation: none; }
+  }
+}

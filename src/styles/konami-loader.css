@@ -1,61 +1,92 @@
 @layer components {
   .konami-loader { background: radial-gradient(ellipse at 50% 46%, #7f70412b, transparent 57%), #050906f5; backdrop-filter: blur(12px); }
-  .konami-loader-card { width: min(620px, 100%); padding: 12px 18px 24px; }
+  /* El ancho tambien sale del alto: la escena se ve a 760x372 y debajo va el texto. */
+  .konami-loader-card { position: relative; z-index: 1; width: min(900px, 100%, calc((100dvh - 290px) * 2.04)); padding: 4px 0 14px; }
   .konami-loader-heading { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 0 10px; color: #a5ab96; font: 700 9px/1.5 var(--font-mono); letter-spacing: .18em; }
   .konami-loader-heading > span:last-child { color: #d5c59b; }
   .konami-loader-heading > span:first-child { display: flex; align-items: center; gap: 8px; }
   .konami-loader-heading > span:first-child::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--mount-accent); box-shadow: 0 0 8px var(--mount-accent); animation: konami-loader-live 1.2s steps(1) infinite; }
   .konami-loader-heading > i { flex: 1; height: 1px; background: repeating-linear-gradient(90deg, #a5ab9655 0 4px, transparent 4px 9px); }
-  .konami-loader-stage { position: relative; width: 100%; aspect-ratio: 1.38; margin: 8px auto 20px; isolation: isolate; transition: transform .65s ease-out; }
-  .konami-loader-stage::before { content: ""; position: absolute; z-index: -1; inset: 35% -10% -8%; opacity: 0; background: radial-gradient(ellipse at 50% 70%, var(--mount-soft), transparent 65%); filter: blur(18px); transition: opacity .6s ease-out; }
-  .is-booting .konami-loader-stage { transform: scale(1.025); }.is-booting .konami-loader-stage::before { opacity: .42; }
-  .konami-loader-table { position: absolute; z-index: -1; left: -26%; right: -26%; top: 63%; bottom: -16%; background: radial-gradient(ellipse 40% 55% at 50% 30%, #ffd59a2e, transparent 75%), linear-gradient(#ffe1a81a, #0000 8%, #0007), url('/arcade-library/walnut-grain.svg') center / 420px 190px, #2a1b12; -webkit-mask-image: radial-gradient(ellipse 50% 100% at 50% 0, #000 45%, transparent 100%); mask-image: radial-gradient(ellipse 50% 100% at 50% 0, #000 45%, transparent 100%); box-shadow: inset 0 1px #f3c58a40; }
-  .konami-loader-table::after { content: ""; position: absolute; left: 15%; right: 15%; bottom: 6%; height: 21%; border-radius: 50%; background: #000c; filter: blur(11px); }
-  .konami-loader-hardware { position: absolute; inset: 0 5%; animation: konami-loader-contact var(--load-duration) linear both; }
-  /* Clip at the slot opening, above the front panel: the cartridge enters the lid. */
-  .konami-loader-insertion { position: absolute; z-index: 3; inset: 0 0 33%; overflow: hidden; }
-  .konami-loader-cartridge-body { position: absolute; left: 50%; bottom: 0; width: 35%; height: 69%; transform: translate(-50%, 56%); transform-origin: 50% 100%; animation: konami-loader-insert var(--load-duration) linear both; }
-  .konami-loader-cartridge-body > .konami-loader-cartridge { position: absolute; inset: 0; width: 100%; height: 100%; grid-template-rows: 9% minmax(0, 1fr) 11%; border-radius: 7px 7px 3px 3px; transform: skewY(-1deg); box-shadow: inset 2px 2px #e9ead049, inset -4px -2px #020804b0, inset 0 0 0 5px #222921, 4px 0 #101710; }
-  .konami-loader-cartridge-edge { position: absolute; top: 4px; bottom: 2px; right: -7px; width: 7px; border-radius: 0 3px 2px 0; background: repeating-linear-gradient(0deg, #9a9d8022 0 1px, transparent 1px 4px), linear-gradient(90deg, #555d49, #161e14); transform: skewY(24deg); transform-origin: left; }
-  .konami-loader-cartridge-body::after { content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: 7px; background: linear-gradient(115deg, #fff6, transparent 28% 70%, #0005); opacity: .15; animation: konami-loader-label-light var(--load-duration) linear both; }
-  .konami-loader-cartridge .konami-cartridge-label { margin: 5% 7%; }
-  .konami-loader-cartridge .konami-cartridge-label strong { font-size: clamp(.6rem, 1.5vw, .85rem); }
-  .konami-loader-cartridge .konami-cartridge-label em { font-size: .35rem; }
-  .konami-loader-cartridge .konami-cartridge-grip { padding: 3px 17px; }
-  .konami-loader-cartridge .konami-cartridge-contacts { margin-inline: 17%; }
-  .konami-loader-console-top { position: absolute; z-index: 1; top: 56%; bottom: 24%; width: 100%; border: 1px solid #999c83; border-radius: 8px 8px 0 0; background: radial-gradient(ellipse 42% 90% at 50% 0, #ffe2aa30, transparent 75%), linear-gradient(90deg, #352319 0 3.5%, transparent 3.7% 96.3%, #302218 96.5%), linear-gradient(#717766, #515c47 65%, #7c836b); clip-path: polygon(6% 0, 94% 0, 100% 100%, 0 100%); box-shadow: inset 0 2px #e0e3bb55; }
-  .konami-loader-console-top > i { position: absolute; z-index: 2; top: 42%; left: 50%; width: 39%; height: 13%; transform: translateX(-50%); border: 2px solid #b3b799; border-radius: 3px; background: #040704; box-shadow: 0 1px #eeebc966, 0 -2px #111b10, inset 0 4px 5px #000; }
-  .konami-loader-console-top::after { content: ""; position: absolute; left: 28%; right: 25%; top: 0; bottom: 12%; background: linear-gradient(140deg, transparent, #050903a1); filter: blur(5px); transform-origin: bottom; animation: konami-loader-shadow var(--load-duration) linear both; }
-  .konami-loader-top-vents { position: absolute; top: 17%; left: 13%; right: 13%; height: 10%; background: repeating-linear-gradient(90deg, #172214 0 3px, #b9bea252 3px 4px, transparent 4px 8px); opacity: .8; }
-  .konami-loader-slot-label { position: absolute; bottom: 12%; left: 0; right: 0; color: #d3d6b9; text-align: center; font: 700 6px/1 var(--font-mono); letter-spacing: .14em; }
-  .konami-loader-slot-lip { position: absolute; z-index: 4; left: 30.5%; right: 30.5%; top: 66.8%; height: 1.5%; border-top: 2px solid #d4d8b588; border-radius: 0 0 3px 3px; background: linear-gradient(#182512, #82896d); box-shadow: 0 2px 3px #071005aa; }
-  .konami-loader-slot-lip::after { content: ""; position: absolute; left: -12%; right: -12%; bottom: 0; height: 2200%; pointer-events: none; opacity: 0; mix-blend-mode: screen; background: radial-gradient(ellipse 50% 100% at 50% 100%, var(--mount-soft), transparent); transition: opacity .5s ease-out; }
-  .is-locked .konami-loader-slot-lip::after { opacity: .65; }.is-booting .konami-loader-slot-lip::after { opacity: 1; }
-  .konami-loader-console-front { position: absolute; z-index: 5; top: 76%; bottom: 3%; display: grid; grid-template-columns: 1fr auto; align-content: center; align-items: center; gap: 12px 14px; width: 100%; padding: 10px 7%; border: 1px solid #858b71; border-radius: 2px 2px 10px 10px; background: linear-gradient(90deg, transparent 0 3.5%, #444f39 3.7%, #2c3827 96.3%, transparent 96.5%), url('/arcade-library/walnut-grain.svg') center / 400px 180px; box-shadow: inset 0 2px #e3e4c77d, inset 0 -5px #10170b, 0 5px #090f07, 0 12px 18px #0009; }
-  .konami-loader-console-front::before { content: ""; position: absolute; top: 8px; left: 2%; right: 2%; height: 4px; background: radial-gradient(circle at 2px 2px, #aaa98b 0 1px, #182010 1px 2px, transparent 2px) left center / 4px 4px no-repeat, radial-gradient(circle at 2px 2px, #aaa98b 0 1px, #182010 1px 2px, transparent 2px) right center / 4px 4px no-repeat; }
-  .konami-loader-brand strong { display: block; color: #eeecd6; font: 800 clamp(10px, 1.5vw, 16px)/1.1 var(--font-display); letter-spacing: .08em; }
-  .konami-loader-brand strong > span { color: #a9b398; margin-left: 3px; }
-  .konami-loader-brand small { display: block; margin-top: 5px; color: #b9c2a7; font: 700 6px/1.4 var(--font-mono); letter-spacing: .15em; }
-  .konami-loader-display { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid #969b7355; border-radius: 3px; background: #071008; color: #6b765b; font: 800 10px/1 var(--font-mono); box-shadow: inset 0 2px 4px #000; transition: color .2s, box-shadow .3s; }
-  .konami-loader-display i { width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
-  .konami-loader-power { display: flex; align-items: center; gap: 7px; color: #c3c8b0; font: 700 6px/1 var(--font-mono); letter-spacing: .12em; }
-  .konami-loader-power > b { position: relative; width: 27px; height: 11px; border: 1px solid #8b96726b; border-radius: 2px; background: #080f07; }
-  .konami-loader-power > b::after { content: ""; position: absolute; top: 1px; bottom: 1px; left: 1px; width: 11px; border-radius: 1px; background: linear-gradient(#bdc5a7, #687855); box-shadow: 1px 1px #000; transition: transform .15s; }
-  .konami-loader-power > i { width: 5px; height: 5px; border-radius: 50%; background: #303b20; box-shadow: inset 0 1px #000; }
-  .is-locked .konami-loader-display, .is-booting .konami-loader-display { color: var(--mount-accent); }
-  .is-booting .konami-loader-power > b::after { transform: translateX(12px); }
-  .is-booting .konami-loader-power > i { background: var(--mount-accent); box-shadow: 0 0 12px var(--mount-accent); }
-  .is-booting .konami-loader-display { box-shadow: inset 0 2px 4px #000, 0 0 18px var(--mount-soft); }
-  .konami-loader-speaker { height: 12px; background: repeating-linear-gradient(0deg, #0c1608 0 2px, #7d836355 2px 3px, transparent 3px 5px); }
-  .konami-loader-feet { position: absolute; z-index: 0; bottom: 0; left: 8%; right: 8%; display: flex; justify-content: space-between; }
-  .konami-loader-feet i { width: 9%; height: 9px; border-radius: 0 0 3px 3px; background: linear-gradient(#050704, #252c1e); }
+  .konami-loader-stage { position: relative; margin: 2px auto 10px; }
+
+  /* ---------- La escena (KonamiStationLoader.jsx) ---------- */
+  .k86-scene { display: block; width: 100%; height: auto; overflow: visible; }
+  .k86-material-grain { fill: #fff; opacity: .32; mix-blend-mode: soft-light; pointer-events: none; }
+  .k86-material-grain.is-enamel { opacity: .28; }
+  .k86-accent-stop { stop-color: var(--mount-accent); }
+  /* La tele tiñe la habitacion con el color del cartucho al encenderse. */
+  .k86-wash { opacity: 0; transition: opacity .9s ease-out; }
+  .is-booting .k86-wash { opacity: 1; }
+
+  /* Neon: tubo de cristal apagado; parpadea al encajar y luce al arrancar. */
+  .k86-neon-tube { fill: none; stroke: #39433a; stroke-width: 2; stroke-linejoin: round; transition: stroke .3s; }
+  .k86-neon-tube text { stroke-width: 1.3; font: 800 22px "Baloo 2", var(--font-display); letter-spacing: .06em; text-anchor: middle; }
+  .k86-neon-halo { opacity: 0; transition: opacity .5s ease-out; }
+  .is-locked .k86-neon-tube { stroke: var(--mount-accent); animation: k86-neon-flicker .5s steps(1) both; }
+  .is-booting .k86-neon-tube { stroke: color-mix(in srgb, var(--mount-accent) 55%, #fff); filter: drop-shadow(0 0 2px var(--mount-accent)) drop-shadow(0 0 7px var(--mount-accent)); }
+  .is-booting .k86-neon-halo { opacity: 1; }
+  .k86-tv-brand { fill: #262e22; font: 800 6px var(--font-display); letter-spacing: .2em; text-anchor: middle; }
+  /* LED del canal: segmentos apagados hasta que la tele enciende. */
+  .k86-tv-channel { fill: #3a1411; font: 800 9px var(--font-mono); letter-spacing: .12em; text-anchor: middle; transition: fill .2s; }
+  .is-booting .k86-tv-channel { fill: #ff4a3d; filter: drop-shadow(0 0 2px #ff4a3d); }
+  .k86-tv-dial { transform-box: fill-box; transform-origin: 50% 50%; transform: rotate(-80deg); transition: transform .35s cubic-bezier(.3, 1.5, .5, 1); }
+  .is-booting .k86-tv-dial { transform: rotate(10deg); }
+  .k86-tv-bloom { opacity: 0; transition: opacity .6s ease-out .15s; }
+  .is-booting .k86-tv-bloom { opacity: .85; }
+  .k86-tv-led { fill: #3b2421; transition: fill .2s; }
+  .is-booting .k86-tv-led { fill: #ff5a4f; filter: drop-shadow(0 0 3px #ff5a4f); }
+  .k86-static { opacity: 0; visibility: hidden; }
+  .is-locked .k86-static { visibility: visible; }
+  .is-locked .k86-static.is-a { animation: k86-static-a .14s steps(1) infinite; }
+  .is-locked .k86-static.is-b { animation: k86-static-b .14s steps(1) infinite; }
+  .k86-tv-picture { opacity: 0; transform-box: fill-box; transform-origin: 50% 50%; }
+  .is-booting .k86-tv-picture { animation: k86-crt-on .55s cubic-bezier(.2,.8,.3,1) .12s both; }
+  .k86-tv-line { fill: #f4fff8; opacity: 0; transform-box: fill-box; transform-origin: 50% 50%; }
+  .is-booting .k86-tv-line { animation: k86-crt-line .5s ease-out both; }
+  .k86-osd { fill: var(--mount-accent); font: 800 7px var(--font-mono); letter-spacing: .12em; paint-order: stroke; stroke: #000; stroke-width: 2px; stroke-opacity: .6; }
+
+  .is-locked .k86-console { animation: k86-thunk .3s ease-out; }
+  .k86-slot-light { fill: var(--mount-accent); opacity: 0; transition: opacity .35s ease-out; }
+  .k86-slot-glow { opacity: 0; transition: opacity .5s ease-out; }
+  .is-locked .k86-slot-light { opacity: .5; }.is-locked .k86-slot-glow { opacity: .6; }
+  .is-booting .k86-slot-light { opacity: .85; }.is-booting .k86-slot-glow { opacity: 1; }
+  .k86-cart-shadow { opacity: 0; transform-box: fill-box; transform-origin: 50% 50%; animation: k86-cart-shadow var(--load-duration) linear both; }
+  .k86-slot-label { fill: #d3d6b9; font: 700 5px var(--font-mono); letter-spacing: .16em; text-anchor: middle; opacity: .7; }
+  .k86-stripe { fill: var(--mount-accent); opacity: .8; }
+  .k86-logo { fill: #eeecd6; font: 800 15px var(--font-display); letter-spacing: .08em; }
+  .k86-logo tspan { fill: #a9b398; }
+  .k86-small { fill: #b9c2a7; font: 700 5.5px var(--font-mono); letter-spacing: .14em; }
+  .k86-display { fill: #56614b; font: 800 9px var(--font-mono); letter-spacing: .14em; text-anchor: middle; transition: fill .2s; }
+  .is-locked .k86-display,.is-booting .k86-display { fill: var(--mount-accent); }
+  .k86-power-knob { fill: #c3caad; transition: transform .2s cubic-bezier(.3,1.5,.5,1); }
+  .is-booting .k86-power-knob { transform: translateX(12px); }
+  .k86-power-led { fill: #2b351f; transition: fill .2s; }
+  .is-booting .k86-power-led { fill: var(--mount-accent); filter: drop-shadow(0 0 3px var(--mount-accent)); }
+
+  .k86-cart { transform-box: fill-box; transform-origin: 50% 100%; animation: k86-insert var(--load-duration) linear both; }
+  .k86-cart-frame { fill: none; stroke: var(--mount-accent); stroke-opacity: .65; stroke-width: 1.2; }
+  .k86-cart-program { fill: var(--mount-accent); font: 900 5.5px var(--font-mono); letter-spacing: .12em; }
+  .k86-cart-title { fill: #fff; font: 800 11px var(--font-display); letter-spacing: .03em; }
+
+  .k86-pad-brand { fill: #33432f; font: 800 4.8px var(--font-mono); letter-spacing: .14em; text-anchor: middle; }
+  .k86-pad-model { font-size: 4px; letter-spacing: .2em; }
+  .k86-pad-label { fill: #283c2c; font: 700 3.6px var(--font-mono); letter-spacing: .08em; text-anchor: middle; }
+  .k86-pad-button-letter { fill: #fff7df; fill-opacity: .85; font: 800 5px var(--font-mono); text-anchor: middle; }
+  .k86-pad-btn { fill: var(--mount-accent); stroke: #0a0f09; stroke-width: .8; }
+  .k86-pad-btn.is-b,.k86-pad-btn.is-y { fill: color-mix(in srgb, var(--mount-accent) 55%, #2a3326); }
+
+  /* ---------- Texto y pasos ---------- */
   .konami-loader-copy { text-align: center; }
   .konami-loader-copy > small { color: var(--mount-accent); font: 700 9px/1.5 var(--font-mono); letter-spacing: .18em; text-transform: uppercase; }
   .konami-loader-copy > small::after { content: ""; display: inline-block; width: 2.2em; text-align: left; animation: konami-loader-dots 1.2s steps(1) infinite; }
   .is-booting .konami-loader-copy > small::after { content: " ▶"; white-space: pre; animation: none; }
-  .konami-loader-copy > strong { display: block; margin-top: 7px; color: #f1edda; font: 800 clamp(1.2rem, 3vw, 1.85rem)/1.3 var(--font-display); transition: text-shadow .5s ease-out, color .5s; }
+  .konami-loader-copy > strong { display: block; margin-top: 4px; color: #f1edda; font: 800 clamp(1.3rem, 3vw, 2rem)/1.25 var(--font-display); letter-spacing: .03em; transition: text-shadow .5s ease-out, color .5s; }
   .is-booting .konami-loader-copy > strong { color: #fff; text-shadow: 0 0 24px var(--mount-soft), 0 2px #020806; }
-  .konami-loader-steps { display: flex; justify-content: center; margin: 18px auto 0; padding: 0; max-width: 360px; list-style: none; }
+  .konami-loader-copy > p { max-width: 470px; margin: 6px auto 0; color: #a3ad98; font-size: 11px; line-height: 1.55; }
+  .konami-loader-tags { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 11px; }
+  .konami-loader-tags b { padding: 4px 8px 3px; border: 1px solid #a5ab9633; background: #0b130a; color: #b7c0a4; font: 700 7.5px/1.2 var(--font-mono); letter-spacing: .14em; }
+  .konami-loader-tags b:first-child { border-color: color-mix(in srgb, var(--mount-accent) 55%, transparent); background: color-mix(in srgb, var(--mount-accent) 12%, #0b130a); color: var(--mount-accent); }
+  .konami-loader-steps { display: flex; justify-content: center; margin: 16px auto 0; padding: 0; max-width: 380px; list-style: none; }
   .konami-loader-steps li { position: relative; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 7px; color: #5f6a58; font: 800 8px/1 var(--font-mono); letter-spacing: .16em; transition: color .3s; }
   /* the rail between two steps, filled once the step on its left is done */
   .konami-loader-steps li + li::before { content: ""; position: absolute; top: 4px; right: calc(50% + 9px); left: calc(-50% + 9px); height: 2px; background: #26301f; transition: background-color .4s ease-out, box-shadow .4s; }
@@ -67,46 +98,55 @@
   .konami-loader-steps li.is-active > i { border-color: var(--mount-accent); box-shadow: 0 0 10px var(--mount-soft); animation: konami-loader-live .8s steps(1) infinite; }
 
   /* Desk lamp over the console: cord, shade, a soft cone (blurred, so no edge shows) and dust in it. */
-  .konami-loader-lamp { position: absolute; z-index: 0; top: 0; left: 50%; width: min(620px, 84%); height: 60%; translate: -50% 0; pointer-events: none; }
-  .konami-loader-lamp::before { content: ""; position: absolute; top: 0; left: 50%; width: 2px; height: 34px; margin-left: -1px; background: linear-gradient(#0000, #3d4236 40%, #565c4c); }
-  .konami-loader-shade { position: absolute; z-index: 1; top: 34px; left: 50%; width: 78px; height: 28px; margin-left: -39px; border-radius: 40px 40px 5px 5px / 30px 30px 5px 5px; background: linear-gradient(90deg, #22271f, #5d6553 42%, #3a4134 70%, #20251d); box-shadow: inset 0 2px #b4ba9f55, inset 0 -3px #0007, 0 6px 14px #000c; }
-  .konami-loader-shade::after { content: ""; position: absolute; left: 16%; right: 16%; bottom: -4px; height: 8px; border-radius: 50%; background: #fff4d6; box-shadow: 0 0 8px 2px #ffe2a8, 0 0 34px 12px #ffc46a55; }
-  .konami-loader-beam { position: absolute; inset: 58px 0 0; filter: blur(14px); opacity: .9; }
-  .konami-loader-beam > i, .konami-loader-motes { position: absolute; inset: 0; clip-path: polygon(44% 0, 56% 0, 96% 100%, 4% 100%); }
-  .konami-loader-beam > i { background: linear-gradient(#ffe3ad2e, #ffd48c14 55%, transparent 96%); }
-  .konami-loader-motes { top: 58px; opacity: .6; background-image: radial-gradient(circle, #ffeec8 0 1px, transparent 1.6px), radial-gradient(circle, #ffd894 0 .8px, transparent 1.3px), radial-gradient(circle, #fff6df 0 1.1px, transparent 1.7px), radial-gradient(circle, #ffe4b0 0 .7px, transparent 1.2px); background-size: 173px 127px, 109px 163px, 227px 139px, 67px 211px; background-position: 0 0, 41px 77px, 113px 29px, 23px 151px; -webkit-mask-image: linear-gradient(#000 15%, transparent 90%); mask-image: linear-gradient(#000 15%, transparent 90%); animation: konami-loader-motes 22s linear infinite; }
-  .is-locked .konami-loader-lamp { animation: konami-loader-lamp-dip .4s steps(1) both; }
+  /* Por encima de la escena: la pared es opaca y el cono tiene que caer sobre ella. */
+  /* Por encima de la escena: la pared es opaca y el cono tiene que caer sobre
+     ella. Se mece despacio desde el techo (rotate, con el cable como eje). */
+  .konami-loader-lamp { position: absolute; z-index: 2; top: 0; left: 50%; width: min(700px, 84%); height: 58%; translate: -50% 0; transform-origin: 50% 0; pointer-events: none; animation: konami-loader-sway 5.5s ease-in-out infinite alternate; }
+  .konami-loader-shade { position: absolute; z-index: 1; top: 0; left: 50%; width: 154px; height: 121px; margin-left: -77px; overflow: visible; transform-origin: 50% 0; filter: drop-shadow(0 4px 3px #0006); }
+  .konami-loader-beam { position: absolute; inset: 104px 0 0; filter: blur(14px); opacity: .85; mix-blend-mode: screen; }
+  .konami-loader-beam > i, .konami-loader-motes { position: absolute; inset: 0; clip-path: polygon(43% 0, 57% 0, 96% 100%, 4% 100%); }
+  /* Nucleo mas estrecho y caliente dentro del cono. */
+  .konami-loader-beam > b { position: absolute; inset: 0; clip-path: polygon(46% 0, 54% 0, 72% 100%, 28% 100%); background: linear-gradient(#fff0cc3d, #ffdc9a14 50%, transparent 85%); }
+  .konami-loader-beam > i { background: linear-gradient(#ffe3ad2e, #ffd48c12 55%, transparent 96%); }
+  .konami-loader-motes { top: 104px; opacity: .6; background-image: radial-gradient(circle, #ffeec8 0 1px, transparent 1.6px), radial-gradient(circle, #ffd894 0 .8px, transparent 1.3px), radial-gradient(circle, #fff6df 0 1.1px, transparent 1.7px), radial-gradient(circle, #ffe4b0 0 .7px, transparent 1.2px); background-size: 173px 127px, 109px 163px, 227px 139px, 67px 211px; background-position: 0 0, 41px 77px, 113px 29px, 23px 151px; -webkit-mask-image: linear-gradient(#000 15%, transparent 90%); mask-image: linear-gradient(#000 15%, transparent 90%); animation: konami-loader-motes 22s linear infinite; }
+  .is-locked .konami-loader-lamp { animation: konami-loader-sway 5.5s ease-in-out infinite alternate, konami-loader-lamp-dip .4s steps(1) both; }
+
   @keyframes konami-loader-live { 50% { opacity: .25; } }
   @keyframes konami-loader-dots { 0% { content: ""; } 25% { content: "."; } 50% { content: ".."; } 75% { content: "..."; } }
   @keyframes konami-loader-motes { to { background-position: 173px 127px, -68px 163px, 340px 139px, 23px 362px; } }
+  @keyframes konami-loader-sway { from { rotate: -.9deg; } to { rotate: .9deg; } }
   @keyframes konami-loader-lamp-dip { 0%, 100% { opacity: 1; } 30% { opacity: .55; } 55% { opacity: .9; } 70% { opacity: .7; } }
-  .konami-loader-copy > p { margin-top: 8px; color: #a3ad98; font-size: 11px; line-height: 1.5; }
-  @keyframes konami-loader-insert {
-    0% { opacity: 0; transform: translate(-85%, -54%) rotate(-13deg); }
-    10% { opacity: 1; transform: translate(-60%, -36%) rotate(-6deg); animation-timing-function: ease-out; }
-    23%, 31% { opacity: 1; transform: translate(-50%, -25%) rotate(0); animation-timing-function: cubic-bezier(.5,0,.7,.6); }
-    40% { transform: translate(-50%, 0); animation-timing-function: cubic-bezier(.25,.1,.4,1); }
-    59% { transform: translate(-50%, 48%); animation-timing-function: ease-in; }
-    65% { transform: translate(-50%, 58%); animation-timing-function: ease-out; }
-    69%, 100% { opacity: 1; transform: translate(-50%, 56%); }
+  /* 3.7 s en total: entra girando (0-0.8 s), se alinea sobre la ranura hasta
+     SEATING (1.15 s = 31%), baja y hace clic justo antes de LOCKED (2.4 s = 65%). */
+  @keyframes k86-insert {
+    0% { opacity: 0; transform: translate(-46px, -196px) rotate(-14deg); }
+    9% { opacity: 1; transform: translate(-14px, -112px) rotate(-5deg); animation-timing-function: ease-out; }
+    21% { transform: translate(0, -70px) rotate(1deg); animation-timing-function: ease-in-out; }
+    26% { transform: translate(0, -62px) rotate(0); animation-timing-function: ease-in-out; }
+    31% { transform: translate(0, -65px) rotate(0); animation-timing-function: cubic-bezier(.45, 0, .7, .45); }
+    58% { transform: translate(0, -4px); animation-timing-function: ease-in; }
+    62% { transform: translate(0, 3px); animation-timing-function: ease-out; }
+    66%, 100% { opacity: 1; transform: translate(0, 0); }
   }
-  @keyframes konami-loader-contact { 0%, 64%, 73%, 100% { transform: translateY(0); } 66% { transform: translateY(2px); } 69% { transform: translateY(-.5px); } }
-  @keyframes konami-loader-shadow { 0%, 15% { opacity: .12; transform: scale(.7); } 40% { opacity: .6; transform: scale(1); } 65%, 100% { opacity: .9; transform: scale(.6, .6); } }
-  @keyframes konami-loader-label-light { 0%, 30% { opacity: .3; } 65%, 100% { opacity: .06; } }
+  @keyframes k86-cart-shadow { 0%, 6% { opacity: 0; transform: scale(.4); } 26%, 31% { opacity: .75; transform: scale(.85); } 56% { opacity: .9; transform: scale(.72); } 64%, 100% { opacity: 0; transform: scale(.6); } }
+  @keyframes k86-neon-flicker { 0%, 22%, 48% { opacity: .25; } 12%, 36%, 60%, 100% { opacity: .8; } }
+  @keyframes k86-thunk { 0%, 100% { transform: translateY(0); } 30% { transform: translateY(2.5px); } 65% { transform: translateY(-.6px); } }
+  @keyframes k86-static-a { 0% { opacity: .9; } 50% { opacity: 0; } }
+  @keyframes k86-static-b { 0% { opacity: 0; } 50% { opacity: .9; } }
+  @keyframes k86-crt-line { 0% { opacity: 1; transform: scale(.04, 1); } 40% { opacity: 1; transform: scale(1, 1); } 100% { opacity: 0; transform: scale(1, 8); } }
+  @keyframes k86-crt-on { 0% { opacity: 1; transform: scale(1, .03); filter: brightness(3); } 45% { transform: scale(1, .4); } 100% { opacity: 1; transform: scale(1, 1); filter: brightness(1); } }
+
   @media (max-width: 480px) {
-    .konami-loader-card { padding-inline: 0; }.konami-loader-heading { font-size: 7px; }
-    .konami-loader-stage { margin-top: 22px; }
-    .konami-loader-console-front { gap: 6px 8px; padding-block: 5px; }
-    .konami-loader-brand small, .konami-loader-slot-label { display: none; }
-    .konami-loader-display { padding: 5px 6px; font-size: 7px; }.konami-loader-power { font-size: 5px; gap: 4px; }
-    .konami-loader-cartridge .konami-cartridge-grip { padding: 2px 12px; gap: 3px; }.konami-loader-cartridge .konami-cartridge-label em { display: none; }
-    .konami-loader-cartridge .konami-cartridge-label strong { font-size: .5rem; left: 4px; bottom: 5px; }
+    .konami-loader-heading { font-size: 7px; }
+    .konami-loader-copy > p { font-size: 10px; }
   }
-  @media (max-height: 650px) and (min-width: 481px) { .konami-loader-card { width: min(490px, 100%); }.konami-loader-stage { margin-block: 0 10px; }.konami-loader-steps { margin-top: 12px; } }
-  @media (max-height: 760px) { .konami-loader-lamp::before { height: 14px; }.konami-loader-shade { top: 14px; scale: .8; }.konami-loader-beam, .konami-loader-motes { top: 36px; } }
-  @media (max-height: 500px) { .konami-loader-card { width: min(380px, calc((100dvh - 180px) * 1.38), 100%); padding: 0; }.konami-loader-stage { margin-block: 0 10px; }.konami-loader-heading { font-size: 6px; }.konami-loader-brand small, .konami-loader-slot-label { display: none; }.konami-loader-console-front { gap: 4px; padding-block: 4px; }.konami-loader-display { padding: 4px; font-size: 6px; }.konami-loader-copy > strong { font-size: 1.1rem; }.konami-loader-copy > p { font-size: 9px; }.konami-loader-steps { display: none; }.konami-loader-lamp { display: none; } }
+  @media (max-height: 760px) { .konami-loader-shade { scale: .8; }.konami-loader-beam, .konami-loader-motes { top: 83px; }.konami-loader-copy > p { display: none; } }
+  @media (max-height: 560px) { .konami-loader-card { width: min(620px, 100%, calc((100dvh - 150px) * 2.04)); padding: 0; }.konami-loader-heading { font-size: 6px; }.konami-loader-tags, .konami-loader-steps, .konami-loader-lamp { display: none; }.konami-loader-copy > strong { font-size: 1.1rem; } }
   @media (prefers-reduced-motion: reduce) {
-    .konami-loader, .konami-loader-hardware, .konami-loader-cartridge-body, .konami-loader-cartridge-body::after, .konami-loader-console-top::after, .konami-loader-motes, .konami-loader-lamp, .konami-loader-heading > span:first-child::before, .konami-loader-steps li > i, .konami-loader-copy > small::after { animation: none; }
-    .konami-loader-cartridge-body { transform: translate(-50%, 56%); }
+    .konami-loader, .konami-loader-motes, .konami-loader-lamp, .konami-loader-heading > span:first-child::before, .konami-loader-steps li > i, .konami-loader-copy > small::after,
+    .k86-cart, .k86-cart-shadow, .k86-console, .k86-static, .k86-tv-picture, .k86-tv-line, .k86-neon-tube { animation: none !important; }
+    .k86-tv-dial { transition: none; }
+    .k86-cart { transform: none; }
+    .is-booting .k86-tv-picture { opacity: 1; }
   }
 }

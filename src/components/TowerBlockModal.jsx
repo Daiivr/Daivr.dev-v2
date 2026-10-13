@@ -113,10 +113,10 @@ export function TowerBlockModal({ open, onBack, onClose }) {
           <DailyChallengeNotice notice={daily.notice} onDismiss={daily.dismiss} onRetry={daily.retry} onClose={onClose} />
           {powered ? <iframe key={instance} ref={frameRef} src="/tower-block/index.html" title="Tower Block minigame" onLoad={(event) => { if (!rankingOpen) event.currentTarget.contentWindow?.focus(); }} /> : null}
           <ArcadeTvPower powered={powered} off={switchingOff} />
-          {rankingOpen ? <aside className="tower-ranking" aria-label="Tower Block leaderboard">
+          {rankingOpen ? <aside className="tower-ranking rank-skin-tower" aria-label="Tower Block leaderboard">
             <header><div><small>RANKING.SYS</small><strong>TOP BUILDERS</strong></div><button type="button" onClick={() => loadLeaderboard()}>REFRESH</button></header>
             {me ? <div className="tower-ranking-self"><RankingAvatar src={me.avatarUrl} name={me.username} loading="eager" /><span><small>LINKED AS {me.username}</small><strong>{myScore ? `#${myScore.rank} // ${myScore.bestScore} BLOCKS // ${formatDuration(myScore.bestDurationMs)}` : "NO TOWER RECORDED"}</strong></span></div> : <a href="/api/comments/auth/discord"><LogIn size={15} /> CONNECT DISCORD TO RANK</a>}
-            {rankingLoading ? <p>SCANNING TOWERS...</p> : <ol>{leaderboard.map((entry) => <li className={entry.discordId === me?.id ? "is-player" : ""} key={entry.discordId}><b>{String(entry.rank).padStart(2,"0")}</b><RankingAvatar src={entry.avatarUrl} name={entry.username} /><span>{entry.username}</span><em>{entry.bestScore} BLOCKS</em><small>{formatDuration(entry.bestDurationMs)}</small></li>)}</ol>}
+            {rankingLoading ? <p>SCANNING TOWERS...</p> : <ol>{leaderboard.map((entry, index) => <li className={entry.discordId === me?.id ? "is-player" : ""} data-rank={entry.rank} style={{ "--i": index }} key={entry.discordId}><b>{String(entry.rank).padStart(2,"0")}</b><RankingAvatar src={entry.avatarUrl} name={entry.username} /><span>{entry.username}</span><em>{entry.bestScore} BLOCKS</em><small>{formatDuration(entry.bestDurationMs)}</small></li>)}</ol>}
           </aside> : null}
         </div>
         <ArcadeTvDetails channel="02" powered={powered} off={switchingOff} />

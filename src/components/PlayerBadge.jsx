@@ -1,4 +1,4 @@
-import { Bug, Fish, Flame, Gamepad2, HeartHandshake, MessageSquare, Moon, Music2, Radar, Shield, Terminal, Trophy } from "lucide-react";
+import { BookOpen, Bug, Crown, Fish, Flame, Gamepad2, HeartHandshake, Hourglass, MessageSquare, Moon, Music2, Radar, Shield, Sparkles, Terminal, Trophy, Users } from "lucide-react";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -6,7 +6,7 @@ export function BadgeEmblem({ badge }) {
   const id = useId().replace(/:/g, "");
   const paint = (name) => `url(#${id}-${name})`;
   const Icon = badge.metric === "streak" ? Flame : badge.metric === "completions" ? Trophy
-    : ({ boot: Terminal, fish: Fish, sighting: Radar, night: Moon, bug: Bug, music: Music2 }[badge.icon] || { signal: MessageSquare, buddy: HeartHandshake, player: Gamepad2 }[badge.id] || Shield);
+    : ({ boot: Terminal, fish: Fish, sighting: Radar, night: Moon, bug: Bug, music: Music2, dex: BookOpen, survive: Hourglass, shiny: Sparkles, legend: Crown, squad: Users }[badge.icon] || { signal: MessageSquare, buddy: HeartHandshake, player: Gamepad2 }[badge.id] || Shield);
   return <span className={`badge-emblem badge-tier-${badge.tier || "base"}`} aria-hidden="true">
     <svg className="badge-emblem-frame" viewBox="0 0 64 72" fill="none">
       <defs>

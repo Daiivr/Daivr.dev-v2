@@ -2,7 +2,8 @@ import "../styles/konami-games.css";
 import { ChevronLeft, ChevronRight, Gamepad2, LockKeyhole, Play, X } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useRef, useState } from "react";
-import { availableKonamiGames } from "../data/konamiGames";
+import { KONAMI_GAMES, availableKonamiGames } from "../data/konamiGames";
+import { KonamiLoaderLamp, KonamiStationLoader } from "./KonamiStationLoader";
 import { useMobileView } from "../hooks/useMobileView";
 
 const MOUNT_STATUS = {
@@ -124,6 +125,8 @@ export function KonamiGameLibrary({ open, onClose, onSelect, journalComplete = f
   if (!open) return null;
   const mountedGame = games.find((game) => game.id === mountingGame);
   const mountStep = MOUNT_STEPS.findIndex(([phase]) => phase === mountPhase);
+  // El mismo canal que luego enseña la tele del juego (ArcadeTvDetails).
+  const mountedChannel = String(KONAMI_GAMES.findIndex((game) => game.id === mountingGame) + 1).padStart(2, "0");
   const selectedGame = games[Math.min(selectedIndex, games.length - 1)];
   const selectRelative = (step) => setSelectedIndex((index) => (index + step + games.length) % games.length);
   // Two shelves of three; a seventh cartridge (NZ:P next to the regular six,
@@ -197,25 +200,12 @@ export function KonamiGameLibrary({ open, onClose, onSelect, journalComplete = f
 
         {mountedGame ? (
           <div className={`konami-mount-sequence konami-loader is-${mountedGame.color} is-${mountPhase}`} style={{ "--load-duration": `${MOUNT_TIMING.launch}ms` }}>
-            <div className="konami-loader-lamp" aria-hidden="true"><i className="konami-loader-shade" /><span className="konami-loader-beam"><i /></span><span className="konami-loader-motes" /></div>
+            <div className="konami-loader-lamp" aria-hidden="true"><KonamiLoaderLamp /><span className="konami-loader-beam"><i /><b /></span><span className="konami-loader-motes" /></div>
             <div className="konami-loader-card">
-              <div className="konami-loader-heading"><span>DAIVR / HOME ARCADE</span><i aria-hidden="true" /><span>STATION 86</span></div>
-              <div className="konami-loader-stage" aria-hidden="true">
-                <div className="konami-loader-table" />
-                <div className="konami-loader-hardware">
-                  <div className="konami-loader-console-top"><span className="konami-loader-top-vents" /><i /><span className="konami-loader-slot-label">INSERT THIS SIDE ↓</span></div>
-                  <div className="konami-loader-insertion"><div className="konami-loader-cartridge-body"><GameCartridge game={mountedGame} className="konami-loader-cartridge" /><i className="konami-loader-cartridge-edge" /></div></div>
-                  <div className="konami-loader-slot-lip" />
-                  <div className="konami-loader-console-front">
-                  <span className="konami-loader-brand"><strong>STATION<span>86</span></strong><small>HOME ARCADE SYSTEM</small></span>
-                  <span className="konami-loader-display">{mountPhase === "booting" ? "PLAY" : mountPhase === "locked" ? "READY" : "— —"}<i /></span>
-                  <span className="konami-loader-power"><b /><i /> POWER</span>
-                  <span className="konami-loader-speaker" />
-                  </div>
-                  <div className="konami-loader-feet"><i /><i /></div>
-                </div>
-              </div>
-              <div className="konami-loader-copy" role="status" aria-live="polite"><small>{MOUNT_STATUS[mountPhase]}</small><strong>{mountedGame.title}</strong><p>One cartridge. A whole other world.</p>
+              <div className="konami-loader-heading"><span>DAIVR / HOME ARCADE</span><i aria-hidden="true" /><span>STATION 86 // CH {mountedChannel}</span></div>
+              <div className="konami-loader-stage"><KonamiStationLoader game={mountedGame} phase={mountPhase} channel={mountedChannel} /></div>
+              <div className="konami-loader-copy" role="status" aria-live="polite"><small>{MOUNT_STATUS[mountPhase]}</small><strong>{mountedGame.title}</strong><p>{mountedGame.description}</p>
+                <span className="konami-loader-tags" aria-hidden="true"><b>{mountedGame.program}</b>{mountedGame.meta.split("//").map((tag) => <b key={tag}>{tag.trim()}</b>)}</span>
                 <ol className="konami-loader-steps" aria-hidden="true">{MOUNT_STEPS.map(([phase, label], index) => <li className={index < mountStep ? "is-done" : index === mountStep ? "is-active" : ""} key={phase}><i />{label}</li>)}</ol>
               </div>
             </div>

@@ -11,7 +11,7 @@ import { readPlayers } from "../server/player-store.mjs";
 import { securityHeaders } from "../server/security-headers.mjs";
 import { createPokesurvivorService, handlePokesurvivorRequest, mergeSaves, periodIds, validateRun } from "../server/pokesurvivor.mjs";
 import { issueRunToken } from "../server/run-tokens.mjs";
-import { extractTar } from "../tools/pokesurvivor/build.mjs";
+import { extractTar, idleFrames } from "../tools/pokesurvivor/build.mjs";
 
 const DAY = 86_400_000;
 const minutes = (count) => count * 60_000;
@@ -211,6 +211,13 @@ test("rankings: solo boards per period, group runs only for the team that starte
   assert.equal(group.me.pos, 1, "everyone in the team sees the group's rank");
   assert.equal(service.siteScore("1").bestScore, 600, "group runs stay out of the solo site board");
 
+  // The passport's secret medals: catches from the save (only real dex numbers),
+  // and the squad board counts for every member of the team.
+  service.storeSave("1", save({ updated: 20, owned: { 1: { at: 1 }, 4: { at: 1 }, 9999: { at: 1 } }, shiny: { 25: { at: 1 } }, legends: { 150: 1 } }));
+  assert.deepEqual(service.passportStats("1"), { dex: 2, shinies: 1, legends: 1, groupBest: 300, squadRuns: 1 });
+  assert.deepEqual(service.passportStats("2"), { dex: 0, shinies: 0, legends: 0, groupBest: 300, squadRuns: 1 });
+  assert.deepEqual(service.passportStats("3"), { dex: 0, shinies: 0, legends: 0, groupBest: 0, squadRuns: 0 });
+
   // Next day: the daily board starts empty again.
   clock += DAY;
   assert.deepEqual(service.rankingView("1", new URLSearchParams("mode=s&period=d")).rows, []);
@@ -286,4 +293,15 @@ test("the build's tar reader follows GitHub's pax paths and strips the top folde
   assert.equal(existsSync(join(directory, "LICENSE")), true);
   assert.equal(existsSync(join(directory, "assets", "pokemon", "25", `${"x".repeat(120)}.png`)), true);
   assert.equal(existsSync(join(directory, "..", "evil")), false);
+});
+
+test("the build lists each Pokémon's first Idle frame for the TV's co-op board", () => {
+  const meta = [
+    "G.SPRITE_META = {",
+    '  25: {"s":1,"a":{"Idle":{"w":40,"h":56,"n":6,"r":8},"Walk":{"w":32,"h":40,"n":4,"r":8}},"sh":1},',
+    '  132: {"s":1,"a":{"Idle":{"w":24,"h":32,"n":2,"r":8}}},',
+    '  351: {"s":1,"a":{"Idle":{"w":32,"h":32,"n":4,"r":8}},"sh":1,"sa":{"Idle":{"w":40,"h":48,"n":4,"r":8}}},',
+    "};"
+  ].join("\r\n");
+  assert.deepEqual(idleFrames(meta), { 25: [40, 56], 132: [24, 32, 0], 351: [32, 32, 40, 48] });
 });

@@ -736,6 +736,22 @@ export function createPokesurvivorService({ now = () => Date.now() } = {}) {
     return { board, rows: list.slice(0, TOP).map(pub), me };
   }
 
+  // ---------------- medallas del pasaporte ----------------
+
+  /**
+   * Lo que miran las medallas secretas de PokéSurvivor del pasaporte
+   * (server/player-progression.mjs): Pokédex, shinies y legendarios de la
+   * partida guardada, y el mejor tiempo en grupo del historico de grupo (que,
+   * como el de solo, pasa por la ficha de partida).
+   */
+  function passportStats(uid) {
+    const id = String(uid);
+    const save = USER_ID.test(id) ? readSave(id) : null;
+    const count = (collection) => Object.keys(collection || {}).filter((key) => dexOk(Number(key))).length;
+    const squads = Object.values(loadRanking().boards.g_all || {}).filter((row) => row.uids.includes(id));
+    return { dex: count(save?.owned), shinies: count(save?.shiny), legends: count(save?.legends), groupBest: Math.max(0, ...squads.map((row) => row.t)), squadRuns: squads.length };
+  }
+
   // ---------------- borrar la cuenta ----------------
 
   function deleteAccount(uid) {
@@ -768,7 +784,7 @@ export function createPokesurvivorService({ now = () => Date.now() } = {}) {
   return {
     readSave, storeSave, claimNick, publishProfile, profileOf, requestFriend, acceptFriend, removeFriend, setPlaying,
     attachStream, snapshot, sessionsList, createRoom, joinRoom, leaveRoom, setRoomOpen, updateMember, invite, declineInvite, relay,
-    submitRun, checkChallenge, rankingView, siteLeaderboard, siteScore, deleteAccount, nickOf, isOnline
+    submitRun, checkChallenge, rankingView, siteLeaderboard, siteScore, passportStats, deleteAccount, nickOf, isOnline
   };
 }
 
@@ -776,6 +792,8 @@ export function createPokesurvivorService({ now = () => Date.now() } = {}) {
 
 let service = null;
 const getService = () => (service ??= createPokesurvivorService());
+// Medallas secretas del pasaporte (server/player.mjs).
+export const pokesurvivorPassportStats = (uid) => getService().passportStats(uid);
 const isRateLimited = createRateLimiter(60_000, 240);
 const isRelayLimited = createRateLimiter(10_000, 600);
 const isSaveLimited = createRateLimiter(60_000, 30);
