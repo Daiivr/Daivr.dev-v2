@@ -134,7 +134,7 @@ export default function App(props) {
 
 // La puerta y el .app-shell los pone CabinetRoot (chunk de entrada); aqui llega
 // si la puerta sigue abierta y por donde devolverle lo que necesita.
-function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass, onGateBridge, onReopenGate }) {
+function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass, onGateBridge }) {
   useTabIdentity();
   const [theme, setTheme] = useState("crt");
   const [terminalOpen, setTerminalOpen] = useState(false);
@@ -186,13 +186,8 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
   const shellClass = `${theme === "glitch" ? "theme-glitch" : ""} ${isLaunching ? "is-launching" : ""} ${powerOutage ? `has-power-outage outage-${powerOutage}` : ""} ${seasonalEvent ? `season-${seasonalEvent}` : ""}`;
   const gateBridgeKey = JSON.stringify([seasonalEvent, friendship.level, adventure.inventoryIds, loadout.effectiveHiddenGear, loadout.unlockedGearIds, loadout.ready, host.hostId]);
 
-  // Cambiar de anfitriona vuelve a cerrar la puerta: la nueva sale a saludar y
-  // se entra otra vez. Las paginas de sistema no tienen puerta; ahi solo se guarda.
+  // Save the next visit's host without interrupting the current session.
   const { chooseHost } = host;
-  const switchHost = useCallback((id) => {
-    if (id === host.hostId || !chooseHost(id)) return;
-    onReopenGate?.({ variant: "host", host: id });
-  }, [chooseHost, host.hostId, onReopenGate]);
 
   useLayoutEffect(() => {
     onShellClass?.(shellClass);
@@ -622,7 +617,7 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
             theme={theme}
             hostId={host.hostId}
             unlockedHostIds={host.unlockedIds}
-            onChooseHost={switchHost}
+            onChooseHost={chooseHost}
             hostProgress={{ coins: adventure.market.coins, species: adventure.discoveredFishCount || 0, totalSpecies: adventure.fishJournal?.length || 0 }}
             onOpenBuddyModal={setBuddyModal}
           />

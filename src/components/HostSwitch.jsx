@@ -30,8 +30,7 @@ function lockFor(host, { coins = 0, species = 0, totalSpecies = 0 }) {
   };
 }
 
-// Selector HOST de la barra superior: quien te recibe en la puerta. Elegir a
-// otra vuelve a cerrar la puerta (App -> CabinetRoot) para que salude ya.
+// The HOST selector saves who greets the visitor on their next visit.
 export function HostSwitch({ hostId, unlockedIds = ["original"], onChoose, progress = {}, onOpenBuddyModal }) {
   const [open, setOpen] = useState(false);
   const presence = useModalPresence(open || null);
@@ -59,6 +58,7 @@ export function HostSwitch({ hostId, unlockedIds = ["original"], onChoose, progr
   function choose(id) {
     setOpen(false);
     if (id !== current.id) onChoose?.(id);
+    triggerRef.current?.focus();
   }
 
   function goUnlock(view) {
@@ -109,17 +109,17 @@ export function HostSwitch({ hostId, unlockedIds = ["original"], onChoose, progr
                     type="button"
                     disabled={!unlocked}
                     aria-pressed={unlocked ? active : undefined}
-                    aria-label={unlocked ? `${host.name}${active ? ", on the gate now" : ", call to the gate"}` : `${host.name}, locked. ${lock.need}`}
+                    aria-label={unlocked ? `${host.name}${active ? ", selected for your next visit" : ", select for your next visit"}` : `${host.name}, locked. ${lock.need}`}
                     onClick={() => choose(host.id)}
                   >
                     <span className="host-card-screen" aria-hidden="true">
                       <img src={host.portrait} alt="" width="320" height="400" loading="lazy" decoding="async" />
                       <span className="host-card-channel">CH {channel(host)}</span>
-                      {active ? <span className="host-card-live"><Check size={11} />ON GATE</span> : null}
+                      {active ? <span className="host-card-live"><Check size={11} />SELECTED</span> : null}
                       {!unlocked ? <span className="host-card-lock"><LockKeyhole size={18} /></span> : null}
                     </span>
                     <strong>{host.name}</strong>
-                    <small>{active ? "Greeting visitors" : unlocked ? "Call to the gate" : lock.need}</small>
+                    <small>{active ? "Your next visit" : unlocked ? "Choose host" : lock.need}</small>
                   </button>
                   {lock ? (
                     <div className="host-card-unlock">
@@ -132,7 +132,7 @@ export function HostSwitch({ hostId, unlockedIds = ["original"], onChoose, progr
               );
             })}
           </ul>
-          <p className="host-switch-note">Switching closes the gate for a moment. Your new host greets you on the way back in.</p>
+          <p className="host-switch-note">Your choice is saved for your next visit. Switching hosts won't reopen the splash.</p>
           </div>
         </div>
       ) : null}

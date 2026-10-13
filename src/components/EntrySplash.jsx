@@ -92,34 +92,22 @@ function buildReturnLines({ gateReturn, hostName, linked, visitorName }) {
   ];
 }
 
-// Lo propio de cada anfitriona: como saluda (con o sin pase de Discord), como
-// se presenta y que dice cuando llega desde el selector HOST de la barra.
+// Each host's greeting and introduction on entry.
 const HOST_LINES = {
-  original: {
-    swap: ["oh — you rang?", "neko, back on the door. the cabinet missed its usual host."]
-  },
   miku: {
     hello: (name) => name ? `oh — ${name}! miku here.` : "oh — hey! i'm miku.",
-    intro: [],
-    swap: ["miku, reporting for gate duty!", "i'll be the one waiting out here from now on."]
+    intro: []
   },
   komoe: {
     hello: (name) => name ? `oh — ${name}! komoe here.` : "oh — hi! i'm komoe.",
-    intro: ["you brought me home from the woodland market, so the gate's my job now."],
-    swap: ["oh! you picked me.", "five thousand coins at the woodland market. i'll make them count.", "i'll keep the door for you from now on."]
-  },
-  // En pantallas estrechas no hay escena 3D: la puerta la guarda Buddy.
-  buddy: {
-    swap: ["beep! new host on the roster.", "she says hi on bigger screens. i've got the door here."]
+    intro: ["you brought me home from the woodland market, so the gate's my job now."]
   }
 };
 const HOST_SWITCH_HINT = "want someone else at the door? there's a host switch up in the top bar.";
 
 function buildScript({ gateReturn, hostId, hostName, linked, seasonalEvent, visitorName }) {
   const voice = HOST_LINES[hostId];
-  const lines = gateReturn?.variant === "host"
-    ? [...(voice?.swap ?? HOST_LINES.original.swap)]
-    : gateReturn
+  const lines = gateReturn
       ? buildReturnLines({ gateReturn, hostName, linked, visitorName })
       : voice?.hello
         ? [voice.hello(linked ? visitorName : ""), ...voice.intro, HOST_SWITCH_HINT]

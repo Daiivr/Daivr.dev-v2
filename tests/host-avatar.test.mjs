@@ -1,6 +1,21 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DEFAULT_HOST_AVATAR, HOSTS, KOMOE_HOST_AVATAR, MIKU_HOST_AVATAR, getHostAvatar, hostById, resolveHostId, unlockedHostIds } from "../src/lib/hostAvatar.js";
+import { DEFAULT_HOST_AVATAR, HOSTS, KOMOE_HOST_AVATAR, MIKU_HOST_AVATAR, getHostAvatar, hostById, readHostChoice, resolveHostId, unlockedHostIds, writeHostChoice } from "../src/lib/hostAvatar.js";
+
+test("a selected host is saved and resolved again on the next visit", () => {
+  const previousWindow = globalThis.window;
+  const saved = new Map();
+  globalThis.window = { localStorage: { getItem: key => saved.get(key) ?? null, setItem: (key, value) => saved.set(key, value) } };
+  try {
+    writeHostChoice("miku");
+    assert.equal(getHostAvatar({ choice: readHostChoice(), unlockedGear: ["miku-costume"] }), MIKU_HOST_AVATAR);
+    writeHostChoice("original");
+    assert.equal(getHostAvatar({ choice: readHostChoice(), unlockedGear: ["miku-costume"] }), DEFAULT_HOST_AVATAR);
+  } finally {
+    if (previousWindow === undefined) delete globalThis.window;
+    else globalThis.window = previousWindow;
+  }
+});
 
 test("the original host is the default, whatever Buddy is wearing", () => {
   assert.equal(getHostAvatar(), DEFAULT_HOST_AVATAR);

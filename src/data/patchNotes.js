@@ -10,7 +10,7 @@ export const patchNotes = [
     date: "2026-10-13",
     summary: "Pick who meets you at the gate from the new HOST switch in the top bar: Neko, the original host, finally has a name, and Miku and Komoe can take her place. Komoe is a new host you can buy at the Woodland Market.",
     entries: [
-      ["new", "A HOST switch sits in the middle of the top bar. Open it to see every host on her own little screen and pick who greets you at the gate. Switching closes the gate for a moment so your new host can say hi, then you head back in."],
+      ["new", "A HOST switch sits in the middle of the top bar. Open it to see every host on her own little screen and pick who greets you at the gate on your next visit. Your choice is saved without reopening the splash or interrupting your current session."],
       ["new", "Komoe joins as a third host. She's a special order at the Woodland Market, on sale every Wednesday and Saturday for 5,000 gold, with a meter that shows how much you've saved toward her."],
       ["buff", "Miku unlocks as a host when you unlock Buddy's Miku costume, and she only greets you when you pick her from the HOST switch. Buddy wearing the costume no longer changes who's at the gate."],
       ["buff", "Locked hosts show as silhouettes with what's left to unlock them, and a button that takes you straight to the catch journal or the market."]
