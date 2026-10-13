@@ -7,11 +7,18 @@
    `.tower-ranking li.is-player` (0,2,1) pisa el fondo de las filas, asi que
    cada piel repite el suyo. La de NZ:P vive en nzp.css, que va sin capa. */
 
-/* La fuente pixel del propio PokéSurvivor (OFL); el iframe ya la ha cargado. */
+/* La fuente pixel del propio PokéSurvivor (OFL), con los números redibujados
+   del juego (el 2, el 5 y el 8 ya no se confunden); el iframe ya la ha cargado. */
 @font-face {
   font-family: "Daivr Pixelify";
-  src: url("/pokesurvivor/assets/fonts/PixelifySans.ttf") format("truetype");
-  font-weight: 400 700;
+  src: url("/pokesurvivor/assets/fonts/PixelifyPS-400.ttf") format("truetype");
+  font-weight: 400 550;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Daivr Pixelify";
+  src: url("/pokesurvivor/assets/fonts/PixelifyPS-700.ttf") format("truetype");
+  font-weight: 551 900;
   font-display: swap;
 }
 

@@ -46,9 +46,9 @@ export function Sidebar({ activeSection, buddy, onOpenBuddyModal, theme, onTheme
   const gearTotal = buddy.gearItems.length || 0;
 
   return (
-    <aside className="cabinet-sidebar border-b border-phosphor/20 bg-ink-950/95 p-4 lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r" onKeyDown={(event) => { if (event.key === "Escape" && mobileOpen) { setMobileOpen(false); menuRef.current?.focus(); } }}>
+    <aside className="cabinet-sidebar p-4 lg:sticky lg:top-0 lg:h-screen" onKeyDown={(event) => { if (event.key === "Escape" && mobileOpen) { setMobileOpen(false); menuRef.current?.focus(); } }}>
       <div className="cabinet-mobile-header">
-      <a className="brand-lockup mb-4" href="#home" aria-label="Dai home">
+      <a className="brand-lockup" href="#home" aria-label="Dai home">
         <span className="brand-mark" aria-hidden="true">
           <span className="brand-mark-core">
             <span>D</span>
@@ -57,10 +57,12 @@ export function Sidebar({ activeSection, buddy, onOpenBuddyModal, theme, onTheme
           <i className="brand-mark-node" />
         </span>
         <span className="grid min-w-0 gap-0.5">
-          <strong className="font-display text-lg leading-none text-white">{profile.handle}</strong>
+          <strong className="brand-lockup-name">{profile.handle}</strong>
           <small className="cabinet-brand-caption">Dai's personal cabinet</small>
         </span>
       </a>
+      {/* Piloto de encendido de la placa (solo escritorio). */}
+      <span className="cabinet-power" aria-hidden="true"><i />PWR</span>
       <div className="cabinet-mobile-actions">
         <button type="button" onClick={() => { setMobileOpen(false); onOpenBuddyModal("inventory"); }} aria-label="Open Buddy inventory">Buddy</button>
         <button ref={menuRef} type="button" aria-expanded={mobileOpen} aria-controls="cabinet-directory" onClick={() => setMobileOpen((current) => !current)}>{mobileOpen ? "Close" : "Menu"}</button>
@@ -100,7 +102,7 @@ export function Sidebar({ activeSection, buddy, onOpenBuddyModal, theme, onTheme
       {/* El dock de Buddy le muestra a el: un retrato con lo que lleva puesto
           (el mismo sprite del footer), y al lado su progreso. Las cuatro
           acciones van en una fila de iconos. */}
-      <div className="panel buddy-nav-card mt-3 p-3">
+      <div className="panel buddy-nav-card">
         <div className="buddy-nav-head">
           <p className="pixel-label buddy-nav-title">BUDDY</p>
           <span className="buddy-nav-level">lv {String(buddy.friendship.level).padStart(2, "0")}</span>
@@ -165,6 +167,7 @@ export function Sidebar({ activeSection, buddy, onOpenBuddyModal, theme, onTheme
         {THEME_MODES.map((mode) => (
           <button
             className={cn("arcade-focus", theme === mode && "is-active")}
+            data-mode={mode}
             key={mode}
             type="button"
             onClick={() => onThemeChange(mode)}

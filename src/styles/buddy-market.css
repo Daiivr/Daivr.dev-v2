@@ -221,6 +221,40 @@
   .market-product-art { box-shadow: inset 0 12px 18px #03151266, 0 3px 6px #03151255; }
   .market-stall-lantern { filter: saturate(.7) brightness(.9); box-shadow: 0 0 14px #b7c59026; }
   .market-price-sign strong, .market-stall-base span { text-shadow: 0 1px #071a16; }
+
+  /* Pedido especial (Komoe): un tablon aparte bajo el puesto, con su retrato
+     en una ventanita iluminada por el farol. */
+  .market-special { position: relative; display: grid; grid-template-columns: 168px minmax(0, 1fr); margin-top: 22px; border: 3px solid var(--woodland-dark); outline: 1px solid var(--stand-wood-light); background: var(--woodland-surface); box-shadow: 0 6px 16px #03151266; }
+  .market-special::before { content: ""; position: absolute; inset: 6px; border: 1px dashed #c1c9a233; pointer-events: none; }
+  .market-special-art {
+    position: relative; overflow: hidden; min-height: 210px; border-right: 6px solid var(--stand-wood-grain);
+    background: radial-gradient(closest-side at 50% 45%, #f4d68f40, transparent), repeating-linear-gradient(0deg, transparent 0 23px, #a2ac7333 23px 24px, #091d1480 24px 26px), var(--woodland-raised);
+  }
+  .market-special-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; transition: transform .25s ease; }
+  .market-special:hover .market-special-art img { transform: translateY(-3px) scale(1.03); }
+  .market-special-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 62%, #0b1914cc), radial-gradient(closest-side, transparent 72%, #03151266); pointer-events: none; }
+  .market-special-tag { position: absolute; z-index: 1; left: 10px; bottom: 10px; padding: 5px 9px; border: 2px solid var(--woodland-dark); background: var(--woodland-timber); background-blend-mode: soft-light; color: var(--stand-lettering); font-size: 8px; font-weight: 800; letter-spacing: 1.6px; box-shadow: inset 0 1px var(--stand-wood-light), 2px 3px 0 #05130d80; text-shadow: 0 1px #071a16; rotate: -2deg; }
+  .market-special-copy { display: grid; align-content: start; gap: 8px; padding: 20px 20px 18px; }
+  .market-special-copy > small { color: #a2ad83; font-size: 8px; letter-spacing: 1.2px; }
+  .market-special-copy h4 { display: flex; align-items: baseline; gap: 10px; color: var(--woodland-text); font-size: 19px; font-weight: 800; }
+  .market-special-copy h4 span { padding: 2px 6px; border: 1px solid #f4d68f66; color: #f4d68f; font-size: 8px; letter-spacing: 1.2px; text-transform: uppercase; }
+  .market-special-copy p { max-width: 420px; margin: 0; color: var(--woodland-muted); font-size: 10px; line-height: 1.6; }
+  .market-special-savings { display: grid; gap: 5px; max-width: 320px; }
+  .market-special-meter { position: relative; display: block; height: 8px; border: 1px solid #b6aa683b; background: repeating-linear-gradient(90deg, #f4d68f14 0 6px, transparent 6px 8px); }
+  .market-special-meter i { position: absolute; inset: 1px auto 1px 1px; width: calc(var(--fill, 0) * (100% - 2px)); background: repeating-linear-gradient(90deg, #f4d68f 0 6px, transparent 6px 8px); }
+  .market-special-savings small { color: #c9b98a; font-size: 9px; font-variant-numeric: tabular-nums; }
+  .market-special-buy { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 6px; }
+  .market-special-buy .market-price-sign { position: relative; bottom: auto; left: auto; transform: rotate(-2deg); min-width: 128px; }
+  .market-special-buy button { display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 34px; padding: 7px 14px; background: var(--stand-canvas); border: 1px solid var(--stand-lettering); color: #263e2d; font-size: 10px; font-weight: 800; cursor: pointer; }
+  .market-special-buy button:disabled { color: #95a18a; background: #ffffff04; border-color: #81916840; cursor: default; }
+  .market-special.is-owned .market-special-buy button:disabled { color: #c8dba6; border-color: #c8dba666; }
+  @media (max-width: 680px) {
+    .market-special { grid-template-columns: 115px minmax(0, 1fr); }
+    .market-special-art { min-height: 0; border-right-width: 3px; }
+    .market-special-copy { padding: 14px 12px; }
+    .market-special-buy .market-price-sign { min-width: 96px; }
+  }
+  @media (prefers-reduced-motion: reduce) { .market-special-art img { transition: none; } }
   @media (max-width: 680px) {
     .buddy-market-stand { left: 12px; width: 116px; height: 82px; }
     .buddy-market { padding: 16px; }

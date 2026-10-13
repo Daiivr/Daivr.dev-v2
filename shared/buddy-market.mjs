@@ -14,7 +14,14 @@ export const MARKET_ITEMS = [
   { id: "market-moon", label: "Moon nightlight", category: "decor", price: 75, description: "A crescent of warm light for your shelf." },
   { id: "market-arcade", label: "Pocket arcade", category: "decor", price: 100, description: "A miniature cabinet. The high score is yours." }
 ];
-export const MARKET_GEAR = MARKET_ITEMS.filter((item) => item.category !== "decor").map((item) => ({ ...item, source: "Footer market" }));
+// Pedidos especiales: fuera de la rotacion, a la venta todos los dias de
+// mercado. Van al final de MARKET_ITEMS para que normalizeMarket cobre antes
+// las piezas pequenas si el saldo no da para todo.
+export const MARKET_SPECIALS = [
+  { id: "host-komoe", label: "Komoe", category: "host", price: 5000, description: "A new host for the entry gate. Once she's yours, pick her from the HOST switch in the top bar." }
+];
+MARKET_ITEMS.push(...MARKET_SPECIALS);
+export const MARKET_GEAR = MARKET_ITEMS.filter((item) => item.category === "wear" || item.category === "gear").map((item) => ({ ...item, source: "Footer market" }));
 const count = (value) => Number.isFinite(Number(value)) ? Math.max(0, Math.min(999999, Math.floor(Number(value)))) : 0;
 const dayFormat = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: MARKET_TIME_ZONE });
 const calendarFormat = new Intl.DateTimeFormat("en-US", { year: "numeric", month: "numeric", day: "numeric", timeZone: MARKET_TIME_ZONE });
@@ -47,6 +54,11 @@ export function marketStock(date = new Date()) {
   return MARKET_ITEMS.filter((item) => ids.includes(item.id));
 }
 
+// La rotacion del dia o un pedido especial.
+export function marketCarries(id, date = new Date()) {
+  return MARKET_SPECIALS.some((item) => item.id === id) || marketStock(date).some((item) => item.id === id);
+}
+
 // Lo ganado en la hoguera y con las estrellas. Nunca se asan mas peces de los
 // pescados; los contadores solo suben, igual que los cofres.
 export function bonusCoins(adventure = {}) {
@@ -65,7 +77,7 @@ export function normalizeMarket(value, fishCollection = {}, bonus = 0) {
   const receipts = value?.purchases && typeof value.purchases === "object" ? value.purchases : {};
   for (const item of MARKET_ITEMS) {
     const timestamp = receipts[item.id];
-    if (typeof timestamp !== "string" || timestamp.length > 32 || !marketIsOpen(new Date(timestamp)) || !marketStock(new Date(timestamp)).some((entry) => entry.id === item.id) || budget < item.price) continue;
+    if (typeof timestamp !== "string" || timestamp.length > 32 || !marketIsOpen(new Date(timestamp)) || !marketCarries(item.id, new Date(timestamp)) || budget < item.price) continue;
     purchases[item.id] = timestamp;
     budget -= item.price;
   }
@@ -104,7 +116,7 @@ export function purchaseMarketItem(adventure, id, date = new Date()) {
   if (!item) return { adventure, message: "That item is not in stock." };
   if (wallet.owned.includes(id)) return { adventure, message: "You already own this item." };
   if (!marketIsOpen(date)) return { adventure, message: "The stand opens on Wednesdays and Saturdays." };
-  if (!marketStock(date).some((entry) => entry.id === id)) return { adventure, message: "That item is not in today's stock. Check the next market day." };
+  if (!marketCarries(id, date)) return { adventure, message: "That item is not in today's stock. Check the next market day." };
   if (wallet.coins < item.price) return { adventure, message: `You need ${item.price - wallet.coins} more coins. Open a chest here in the shop.` };
-  return { adventure: { ...adventure, market: { opened: wallet.opened, rewards: wallet.rewards, purchases: { ...wallet.purchases, [id]: date.toISOString() } } }, message: `${item.label} is yours! Find it in ${item.category === "decor" ? "Room → Collection, on either shelf" : "Inventory"}.` };
+  return { adventure: { ...adventure, market: { opened: wallet.opened, rewards: wallet.rewards, purchases: { ...wallet.purchases, [id]: date.toISOString() } } }, message: item.category === "host" ? `${item.label} is yours! Pick her from the HOST switch in the top bar.` : `${item.label} is yours! Find it in ${item.category === "decor" ? "Room → Collection, on either shelf" : "Inventory"}.` };
 }

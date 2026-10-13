@@ -35,6 +35,7 @@ import "./styles/seasonal-tints.css";
 import "./styles/mobile.css";
 import "./styles/cabinet-sidebar.css";
 import "./styles/cabinet-topbar.css";
+import "./styles/host-switch.css";
 import "./styles/community.css";
 import "./styles/project-story.css";
 import "./styles/discord-desk.css";
@@ -60,6 +61,7 @@ import { useBuddyAdventure } from "./hooks/useBuddyAdventure";
 import { useMobileView } from "./hooks/useMobileView";
 import { useBuddyFriendship } from "./hooks/useBuddyFriendship";
 import { useBuddyLoadout } from "./hooks/useBuddyLoadout";
+import { useHostChoice } from "./hooks/useHostChoice";
 import { useCartridgeSwap } from "./hooks/useCartridgeSwap";
 import { useOffscreenPause } from "./hooks/useOffscreenPause";
 import { getLatestFps } from "./hooks/useFps";
@@ -132,7 +134,7 @@ export default function App(props) {
 
 // La puerta y el .app-shell los pone CabinetRoot (chunk de entrada); aqui llega
 // si la puerta sigue abierta y por donde devolverle lo que necesita.
-function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass, onGateBridge }) {
+function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass, onGateBridge, onReopenGate }) {
   useTabIdentity();
   const [theme, setTheme] = useState("crt");
   const [terminalOpen, setTerminalOpen] = useState(false);
@@ -158,6 +160,7 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
   const adventure = useBuddyAdventure({ onQuestComplete: handleBuddyQuestComplete });
   const mobileView = useMobileView();
   const loadout = useBuddyLoadout({ friendship, adventure });
+  const host = useHostChoice({ loadout, adventure });
   const cartPhase = useCartridgeSwap(shellRef);
   useOffscreenPause(shellRef);
   const buddy = { friendship, adventure, ...loadout };
@@ -181,7 +184,15 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
   // Cualquier vista que no sea la biblioteca es un juego abierto en su tele.
   const playingGame = Boolean(konamiView) && konamiView !== "library";
   const shellClass = `${theme === "glitch" ? "theme-glitch" : ""} ${isLaunching ? "is-launching" : ""} ${powerOutage ? `has-power-outage outage-${powerOutage}` : ""} ${seasonalEvent ? `season-${seasonalEvent}` : ""}`;
-  const gateBridgeKey = JSON.stringify([seasonalEvent, friendship.level, adventure.inventoryIds, loadout.effectiveHiddenGear, loadout.unlockedGearIds, loadout.ready]);
+  const gateBridgeKey = JSON.stringify([seasonalEvent, friendship.level, adventure.inventoryIds, loadout.effectiveHiddenGear, loadout.unlockedGearIds, loadout.ready, host.hostId]);
+
+  // Cambiar de anfitriona vuelve a cerrar la puerta: la nueva sale a saludar y
+  // se entra otra vez. Las paginas de sistema no tienen puerta; ahi solo se guarda.
+  const { chooseHost } = host;
+  const switchHost = useCallback((id) => {
+    if (id === host.hostId || !chooseHost(id)) return;
+    onReopenGate?.({ variant: "host", host: id });
+  }, [chooseHost, host.hostId, onReopenGate]);
 
   useLayoutEffect(() => {
     onShellClass?.(shellClass);
@@ -197,6 +208,7 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
       hiddenGear: loadout.effectiveHiddenGear,
       unlockedGear: loadout.unlockedGearIds,
       hostLoadoutReady: loadout.ready,
+      hostId: host.hostId,
       launchBuddy: setBuddyDrop
     });
   }, [gateBridgeKey, onGateBridge]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -602,7 +614,18 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
         />
 
         <div className="min-w-0">
-          <CabinetTopbar activeSection={activeSection} cartPhase={cartPhase} onOpenTerminal={openTerminal} onPlay={selectKonamiGame} theme={theme} />
+          <CabinetTopbar
+            activeSection={activeSection}
+            cartPhase={cartPhase}
+            onOpenTerminal={openTerminal}
+            onPlay={selectKonamiGame}
+            theme={theme}
+            hostId={host.hostId}
+            unlockedHostIds={host.unlockedIds}
+            onChooseHost={switchHost}
+            hostProgress={{ coins: adventure.market.coins, species: adventure.discoveredFishCount || 0, totalSpecies: adventure.fishJournal?.length || 0 }}
+            onOpenBuddyModal={setBuddyModal}
+          />
 
           <main className={`cart-stage mx-auto w-[min(1180px,calc(100%-clamp(28px,6vw,76px)))] ${cartPhase ? `is-cart-${cartPhase}` : ""}`} id="main" tabIndex={-1}>
             <HeroStation

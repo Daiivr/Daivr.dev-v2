@@ -340,6 +340,7 @@ export function useBuddyLoadout({ friendship, adventure }) {
 
   return {
     activeGearCount,
+    adminUnlock,
     ready: ready && adventure.ready,
     effectiveHiddenGear,
     equipGear,

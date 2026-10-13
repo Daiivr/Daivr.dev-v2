@@ -5,6 +5,33 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.72.0",
+    codename: "FRONT DESK",
+    date: "2026-10-13",
+    summary: "Pick who meets you at the gate from the new HOST switch in the top bar: Neko, the original host, finally has a name, and Miku and Komoe can take her place. Komoe is a new host you can buy at the Woodland Market.",
+    entries: [
+      ["new", "A HOST switch sits in the middle of the top bar. Open it to see every host on her own little screen and pick who greets you at the gate. Switching closes the gate for a moment so your new host can say hi, then you head back in."],
+      ["new", "Komoe joins as a third host. She's a special order at the Woodland Market, on sale every Wednesday and Saturday for 5,000 gold, with a meter that shows how much you've saved toward her."],
+      ["buff", "Miku unlocks as a host when you unlock Buddy's Miku costume, and she only greets you when you pick her from the HOST switch. Buddy wearing the costume no longer changes who's at the gate."],
+      ["buff", "Locked hosts show as silhouettes with what's left to unlock them, and a button that takes you straight to the catch journal or the market."]
+    ]
+  },
+  {
+    version: "v2.71.0",
+    codename: "OVERTIME",
+    date: "2026-10-13",
+    summary: "PokéSurvivor catches up with its latest version: overtime past minute 60, three new upgrades, move shortcuts, a shiny switch under your partner and an in-game news board.",
+    entries: [
+      ["new", "PokéSurvivor's three new upgrades for each Pokémon: Critical Hit, Card reroll and Ban, which keeps a move out of your level-up cards."],
+      ["new", "Move shortcuts, under Upgrades: pin a move to each slot so it's always on the same key."],
+      ["new", "Switch your partner between normal and shiny right under it on the main menu, and read every change to the game from its new News button."],
+      ["new", "Overtime: from minute 60 the wild Pokémon keep getting tougher, faster and faster. Runs past 84 minutes no longer black out or level up forever, and every run counts however long it lasts."],
+      ["buff", "Rifts are less random, unbeaten legendaries show up more, shinies from the gacha are never repeats, and melee moves hit harder while they shield you."],
+      ["buff", "In co-op, the game pauses for everyone while someone picks an item or a fusion, or if the host's tab goes to the background."],
+      ["buff", "The 2, 5 and 8 in the game's pixel font are redrawn so they no longer look alike, on the TV's trophy board too. Runs under a minute no longer go on the leaderboards."]
+    ]
+  },
+  {
     version: "v2.70.0",
     codename: "HOUSE COLOURS",
     date: "2026-10-13",
@@ -16,6 +43,8 @@ export const patchNotes = [
       ["buff", "Inserting a cartridge happens in a room now: an old TV with rabbit ears, a bigger Station 86 and a controller plugged into port 1. The cartridge swings in and clicks into the slot, the TV crackles, then the power switch flips, the screen shows your game and a GAME ON neon lights the room in its colour."],
       ["buff", "While it loads you get the game's description and tags."],
       ["buff", "The entry gate got heavier: riveted, hinged doors, worn hazard stripes and a vault lock on the seam. Its ring of lights fills up while the host streams in, then it turns green, pulls its bolts and turns its wheel once you can enter, and splits with the doors when you do."],
+      ["buff", "The sidebar is part of the cabinet now: a nameplate with a power light, your Discord card on a little monitor, the directory as lit keys with an LED each, Buddy on a handheld with an LCD screen, and a real slide switch for CRT and GLITCH."],
+      ["buff", "Hover CRT or GLITCH on the switch for a preview: CRT glows green with rolling scanlines, GLITCH splits pink and cyan and jitters."],
       ["buff", "The loading bar under the gate is a row of lights now, with a little segment counter, and the Open the gate button's lights follow the lock."]
     ]
   },

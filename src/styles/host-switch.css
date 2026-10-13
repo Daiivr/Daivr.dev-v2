@@ -1,0 +1,231 @@
+/* Selector HOST de la barra superior (HostSwitch.jsx). Cada anfitriona tine
+   su ficha: la original en fosforo, Miku en cian, Komoe en oro. Son variables
+   del tema, asi que GLITCH las recolorea como al resto del armario. */
+@layer components {
+  .host-switch { --host-c: var(--color-phosphor); position: relative; flex: none; }
+  .host-switch.is-miku, .host-card.is-miku, .host-switch-pips .is-miku { --host-c: var(--color-cyan-arcade); }
+  .host-switch.is-komoe, .host-card.is-komoe, .host-switch-pips .is-komoe { --host-c: var(--color-cabinet); }
+  .host-card.is-original, .host-switch-pips .is-original { --host-c: var(--color-phosphor); }
+
+  .host-switch-trigger {
+    --cut: 8px;
+    display: flex;
+    min-height: 44px;
+    align-items: center;
+    gap: 0.6rem;
+    border: 1px solid color-mix(in srgb, var(--host-c) 34%, transparent);
+    background:
+      linear-gradient(90deg, color-mix(in srgb, var(--host-c) 13%, transparent), transparent 62%),
+      repeating-linear-gradient(0deg, transparent 0 2px, color-mix(in srgb, var(--host-c) 4%, transparent) 2px 3px),
+      var(--color-ink-950);
+    padding: 4px 0.7rem 4px 4px;
+    color: var(--host-c);
+    clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+    transition: border-color 180ms, background-color 180ms, box-shadow 180ms;
+  }
+  .host-switch-trigger:hover,
+  .host-switch-trigger:focus-visible,
+  .host-switch.is-open .host-switch-trigger {
+    border-color: var(--host-c);
+    box-shadow: inset 0 0 18px color-mix(in srgb, var(--host-c) 16%, transparent);
+  }
+
+  /* La cara, recortada del retrato de la tarjeta. */
+  .host-switch-face {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    flex: none;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--host-c) 55%, transparent);
+    background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--host-c) 30%, transparent), transparent 70%), var(--color-ink-900);
+    clip-path: polygon(6px 0, 100% 0, 100% 100%, 0 100%, 0 6px);
+  }
+  .host-switch-face img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; transform: scale(1.75); transform-origin: 50% 30%; }
+  .host-switch-face::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, transparent 0 2px, #0006 2px 3px);
+  }
+
+  .host-switch-readout { display: grid; gap: 0.18rem; min-width: 4.6rem; text-align: left; }
+  .host-switch-readout small { color: var(--color-phosphor-soft); font-size: 0.5rem; letter-spacing: 0.12em; white-space: nowrap; }
+  .host-switch-readout small b { color: var(--host-c); font-weight: 700; }
+  .host-switch-readout strong { color: white; font: 900 0.8rem / 1 var(--font-display); letter-spacing: 0.04em; white-space: nowrap; }
+
+  .host-switch-pips { display: flex; gap: 3px; align-items: end; }
+  .host-switch-pips i { width: 4px; height: 9px; background: color-mix(in srgb, var(--host-c) 14%, transparent); transition: background 220ms, height 220ms; }
+  .host-switch-pips i.is-unlocked { background: color-mix(in srgb, var(--host-c) 55%, transparent); }
+  .host-switch-pips i.is-active { height: 14px; background: var(--host-c); box-shadow: 0 0 6px color-mix(in srgb, var(--host-c) 70%, transparent); }
+  .host-switch-chevron { flex: none; transition: rotate 200ms ease; }
+  .host-switch.is-open .host-switch-chevron { rotate: 180deg; }
+
+  /* Panel desplegable, centrado bajo el boton. La sombra va en el envoltorio:
+     el clip-path de las esquinas cortadas se la comeria. */
+  .host-switch-panel {
+    position: absolute;
+    z-index: 5;
+    top: calc(100% + 12px);
+    left: 50%;
+    width: min(612px, calc(100vw - 32px));
+    transform: translateX(-50%);
+    filter: drop-shadow(0 18px 26px #000c);
+  }
+  .host-switch-panel-body {
+    --cut: 14px;
+    border: 1px solid color-mix(in srgb, var(--color-phosphor) 30%, transparent);
+    background:
+      radial-gradient(ellipse at 50% 0, color-mix(in srgb, var(--host-c) 10%, transparent), transparent 60%),
+      repeating-linear-gradient(0deg, transparent 0 3px, color-mix(in srgb, var(--color-phosphor) 3%, transparent) 3px 4px),
+      var(--color-ink-950);
+    padding: 1rem;
+    box-shadow: inset 0 1px color-mix(in srgb, var(--color-phosphor) 14%, transparent);
+    clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+  }
+  .host-switch-panel[data-state="open"] { animation: host-panel-in 220ms cubic-bezier(.2, .8, .25, 1) both; }
+  .host-switch-panel[data-state="closed"] { animation: host-panel-out 150ms ease-in both; pointer-events: none; }
+
+  .host-switch-heading { display: grid; grid-template-columns: 1fr auto; gap: 0.2rem 1rem; align-items: end; margin-bottom: 0.85rem; }
+  .host-switch-heading span { grid-column: 1 / -1; color: var(--color-cyan-arcade); font-size: 0.55rem; }
+  .host-switch-heading strong { color: white; font: 900 1rem / 1.1 var(--font-display); }
+  .host-switch-heading small { color: var(--color-phosphor-soft); font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* Subgrid: la ficha y el medidor de cada tarjeta comparten fila, asi que los
+     medidores quedan alineados aunque un requisito ocupe dos lineas. */
+  .host-switch-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: auto auto; gap: 0.5rem 0.65rem; margin: 0; padding: 0; list-style: none; }
+  .host-card { display: grid; grid-row: span 2; grid-template-rows: subgrid; align-content: start; min-width: 0; }
+  .host-card-unlock { grid-row: 2; }
+
+  .host-card-select {
+    --cut: 10px;
+    display: grid;
+    align-content: start;
+    gap: 0.3rem;
+    width: 100%;
+    border: 1px solid color-mix(in srgb, var(--host-c) 26%, transparent);
+    background: color-mix(in srgb, var(--host-c) 4%, var(--color-ink-950));
+    padding: 0 0 0.7rem;
+    color: inherit;
+    text-align: left;
+    clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+    cursor: pointer;
+    transition: border-color 180ms, background-color 180ms, box-shadow 180ms;
+  }
+  .host-card-select:not(:disabled):hover,
+  .host-card-select:focus-visible { border-color: color-mix(in srgb, var(--host-c) 75%, transparent); background: color-mix(in srgb, var(--host-c) 9%, var(--color-ink-950)); }
+  .host-card-select:focus-visible { outline: 2px solid var(--host-c); outline-offset: -4px; }
+  .host-card.is-active .host-card-select { border-color: var(--host-c); box-shadow: inset 0 0 22px color-mix(in srgb, var(--host-c) 18%, transparent); cursor: default; }
+  .host-card-select:disabled { cursor: default; }
+
+  /* La pantallita de cada anfitriona: su retrato sobre un halo de su color. */
+  .host-card-screen {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    border-bottom: 1px solid color-mix(in srgb, var(--host-c) 30%, transparent);
+    background:
+      radial-gradient(closest-side at 50% 42%, color-mix(in srgb, var(--host-c) 34%, transparent), transparent),
+      linear-gradient(transparent 55%, color-mix(in srgb, var(--host-c) 10%, transparent)),
+      var(--color-ink-900);
+  }
+  .host-card-screen img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; transition: transform 260ms cubic-bezier(.2, .8, .25, 1), filter 260ms; }
+  .host-card-select:not(:disabled):hover .host-card-screen img { transform: translateY(-3px) scale(1.035); }
+  .host-card-screen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent 0 2px, #0005 2px 3px),
+      radial-gradient(closest-side, transparent 70%, #0007);
+    pointer-events: none;
+  }
+  .host-card-channel,
+  .host-card-live { position: absolute; z-index: 1; top: 7px; padding: 2px 5px; font-size: 0.5rem; font-weight: 900; letter-spacing: 0.08em; }
+  .host-card-channel { left: 7px; background: color-mix(in srgb, var(--color-ink-950) 82%, transparent); color: var(--host-c); }
+  .host-card-live { right: 7px; display: inline-flex; align-items: center; gap: 3px; background: var(--host-c); color: var(--color-ink-950); }
+
+  /* Bloqueada: solo su silueta, en negro sobre su halo. */
+  .host-card.is-locked .host-card-screen img { filter: brightness(0); opacity: 0.88; }
+  .host-card-lock {
+    position: absolute;
+    z-index: 1;
+    left: 50%;
+    top: 50%;
+    display: grid;
+    width: 42px;
+    height: 42px;
+    place-items: center;
+    border: 1px solid color-mix(in srgb, var(--host-c) 60%, transparent);
+    background: color-mix(in srgb, var(--color-ink-950) 86%, transparent);
+    color: var(--host-c);
+    transform: translate(-50%, -50%);
+    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  }
+
+  .host-card-select > strong { padding: 0.35rem 0.7rem 0; color: white; font: 900 0.86rem / 1.1 var(--font-display); }
+  .host-card-select > small { padding: 0 0.7rem; color: color-mix(in srgb, var(--host-c) 80%, white); font-size: 0.55rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.4; }
+  .host-card.is-locked .host-card-select > strong { color: color-mix(in srgb, white 70%, transparent); }
+
+  .host-card-unlock { display: grid; gap: 0.35rem; }
+  .host-card-meter { position: relative; display: block; height: 5px; background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--host-c) 16%, transparent) 0 6px, transparent 6px 8px); }
+  .host-card-meter i {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: calc(var(--fill, 0) * 100%);
+    background: repeating-linear-gradient(90deg, var(--host-c) 0 6px, transparent 6px 8px);
+  }
+  .host-card-unlock small { color: var(--color-phosphor-soft); font-size: 0.55rem; font-variant-numeric: tabular-nums; }
+  .host-card-unlock button {
+    display: inline-flex;
+    min-height: 30px;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    border: 1px solid color-mix(in srgb, var(--host-c) 45%, transparent);
+    background: color-mix(in srgb, var(--host-c) 7%, transparent);
+    padding: 0.35rem 0.5rem;
+    color: var(--host-c);
+    font-size: 0.6rem;
+    font-weight: 900;
+    cursor: pointer;
+    transition: border-color 180ms, background-color 180ms;
+  }
+  .host-card-unlock button:hover,
+  .host-card-unlock button:focus-visible { border-color: var(--host-c); background: color-mix(in srgb, var(--host-c) 15%, transparent); }
+
+  .host-switch-note { margin: 0.85rem 0 0; color: color-mix(in srgb, var(--color-phosphor-soft) 72%, transparent); font-size: 0.58rem; line-height: 1.5; }
+
+  /* Sin escena 3D en pantallas estrechas (alli la anfitriona es Buddy). */
+  @media (max-width: 800px) { .host-switch { display: none; } }
+  @media (max-width: 1499px) {
+    .host-switch-readout { min-width: 0; }
+    .host-switch-readout small { display: none; }
+  }
+  /* Bajo 1366 la telemetria ya no cabe con el nombre: queda la cara y el chevron. */
+  @media (max-width: 1365px) {
+    .host-switch-readout,
+    .host-switch-pips { display: none; }
+    .host-switch-trigger { gap: 0.4rem; padding-right: 0.5rem; }
+  }
+  /* Escritorio estrecho (barra lateral + 732px): solo la cara. */
+  @media (max-width: 1099px) {
+    .host-switch-chevron { display: none; }
+    .host-switch-trigger { padding-right: 4px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .host-switch-trigger,
+    .host-switch-pips i,
+    .host-switch-chevron,
+    .host-card-select,
+    .host-card-screen img { transition: none; }
+    .host-switch-panel[data-state="open"] { animation-name: host-panel-fade-in; }
+    .host-switch-panel[data-state="closed"] { animation-name: host-panel-fade-out; }
+  }
+}
+
+@keyframes host-panel-in { from { opacity: 0; translate: 0 -8px; } }
+@keyframes host-panel-out { to { opacity: 0; translate: 0 -4px; } }
+@keyframes host-panel-fade-in { from { opacity: 0; } }
+@keyframes host-panel-fade-out { to { opacity: 0; } }

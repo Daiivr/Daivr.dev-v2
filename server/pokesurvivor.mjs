@@ -177,14 +177,16 @@ function profileFields(body) {
 }
 
 /**
- * Las mismas cotas anti-trampas que el original (firestore.rules, validEntry):
- * hasta 6 h, el nivel y los derrotados tienen que cuadrar con el tiempo. La
- * duracion la vigila ademas la ficha de partida (run-tokens).
+ * El original quito sus cotas de nivel y derrotados (12-10-2026: las partidas
+ * largas, con el "tiempo extra" desde el minuto 60, daban falsos positivos),
+ * asi que aqui solo se comprueba que los numeros tengan sentido. Lo que sigue
+ * vigilando la web es la duracion: la ficha de partida (run-tokens) impide que
+ * una marca dure mas que el tiempo real, y no vive mas de 24 h.
  */
 export function validateRun(body) {
   const t = body?.t, lv = body?.lv, kills = body?.kills;
   if (!["s", "g"].includes(body?.mode)) return null;
-  if (!int(t, 5, 21_600) || !int(lv, 1, Math.floor(10 + t / 4)) || !int(kills, 0, Math.floor(100 + t * 12))) return null;
+  if (!int(t, 5, 86_400) || !int(lv, 1, 9_999) || !int(kills, 0, 10_000_000)) return null;
   if (body.mode === "s") return dexOk(body.dex) ? { mode: "s", t, lv, kills, dex: body.dex, shiny: Boolean(body.shiny) } : null;
   const members = body.members;
   if (!Array.isArray(members) || members.length < 2 || members.length > POKESURVIVOR_MAX_PLAYERS) return null;
@@ -696,7 +698,7 @@ export function createPokesurvivorService({ now = () => Date.now() } = {}) {
   function checkChallenge(user, body) {
     const score = body?.score, durationMs = Math.round(Number(body?.durationMs));
     // El reloj del juego no puede ir más deprisa que el real (guard.js).
-    if (!int(score, 0, 21_600) || !Number.isFinite(durationMs) || durationMs < 0 || score * 1000 > durationMs + 5000) fail(400, "bad-run");
+    if (!int(score, 0, 86_400) || !Number.isFinite(durationMs) || durationMs < 0 || score * 1000 > durationMs + 5000) fail(400, "bad-run");
     const check = checkRunDuration(body.runToken, GAME, durationMs, now());
     if (!check.ok) fail(check.status, check.status === 422 ? "run-too-long" : "run-token");
     return { daily: recordDailyRun(user, GAME, score, now()) || null };

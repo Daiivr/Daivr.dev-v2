@@ -68,6 +68,16 @@ function CabinetShell() {
 
   const launchBuddy = useCallback((start) => bridge?.launchBuddy(start), [bridge]);
 
+  // El selector HOST de la barra superior: la puerta se vuelve a cerrar y la
+  // nueva anfitriona saluda. Lleva su id en el contexto para que la puerta no
+  // monte un instante a la anterior mientras App reenvia el puente.
+  const reopenGate = useCallback((context) => {
+    setGateReturn(context);
+    setGateRevision((revision) => revision + 1);
+    setGateOpen(true);
+  }, []);
+  const hostId = gateReturn?.variant === "host" ? gateReturn.host : bridge?.hostId;
+
   return (
     <div ref={shellRef} className={`app-shell ${shellClass ?? (initialSeason ? `season-${initialSeason}` : "")}`} data-glitch-root>
       {gateOpen ? (
@@ -75,6 +85,7 @@ function CabinetShell() {
           key={gateRevision}
           cabinetReady={Boolean(bridge)}
           hostLoadoutReady={bridge?.hostLoadoutReady ?? false}
+          hostId={hostId}
           returnContext={gateReturn}
           onBuddyLaunch={launchBuddy}
           onEnter={enterCabinet}
@@ -87,7 +98,7 @@ function CabinetShell() {
       ) : null}
       <ChunkBoundary fallback={<CabinetUnavailable />}>
         <Suspense fallback={null}>
-          <CabinetApp shellRef={shellRef} gateOpen={gateOpen} onShellClass={setShellClass} onGateBridge={setBridge} />
+          <CabinetApp shellRef={shellRef} gateOpen={gateOpen} onShellClass={setShellClass} onGateBridge={setBridge} onReopenGate={reopenGate} />
         </Suspense>
       </ChunkBoundary>
     </div>

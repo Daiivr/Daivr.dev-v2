@@ -1,8 +1,8 @@
 diff --git a/css/style.css b/css/style.css
-index 5224464..9e9f3be 100644
+index 10951d5..68a4411 100644
 --- a/css/style.css
 +++ b/css/style.css
-@@ -106,26 +106,108 @@ input { font: inherit; }
+@@ -113,26 +113,108 @@ input { font: inherit; }
  .grow { flex: 1; }
  
  /* Lista de menú con cursor (flecha pixel art), como en PMD */
@@ -123,7 +123,7 @@ index 5224464..9e9f3be 100644
  
  /* ---------- formularios ---------- */
  .tabs { display: flex; gap: 6px; margin-bottom: 14px; }
-@@ -235,6 +317,63 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
+@@ -242,6 +324,63 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
  .partner-card { text-align: center; margin-top: 10px; }
  .partner-card .nm { font-size: 24px; font-weight: 700; text-shadow: 3px 3px 0 var(--shadow); }
  .partner-card .lv { color: var(--muted); font-size: 14px; text-shadow: 2px 2px 0 var(--shadow); }
@@ -187,7 +187,7 @@ index 5224464..9e9f3be 100644
  .menu-right {
    width: min(380px, 100%); display: flex; flex-direction: column;
    /* Arriba deja sitio a la barra superior; si no cabe todo, se desplaza
-@@ -247,15 +386,27 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
+@@ -254,15 +393,27 @@ label { display: block; font-size: 14px; color: var(--muted); margin: 8px 0 4px;
  /* Portátiles con poca altura: menú más compacto y, si hace falta, en dos columnas. */
  @media (max-height: 780px) and (min-height: 521px) {
    .menu-right { padding-top: 62px; gap: 10px; }
@@ -220,7 +220,7 @@ index 5224464..9e9f3be 100644
    .menu-item small { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
    .menu-left .logo .t1 { font-size: clamp(32px, 5vw, 52px); }
    #menu-partner { height: min(30vh, 200px); width: auto; }
-@@ -466,6 +617,10 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius:
+@@ -473,6 +624,10 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius:
  
  /* ============ nube, aviso legal ============ */
  .btn.google { background: linear-gradient(180deg, #ffffff, #dfe6f2); color: #1f2a44; text-shadow: none; }
@@ -231,7 +231,7 @@ index 5224464..9e9f3be 100644
  .sync { display: inline-block; width: 9px; height: 9px; margin-left: 8px; border-radius: 2px;
    box-shadow: 0 0 0 2px #0b1838; vertical-align: 1px; }
  .sync.ok { background: #5fe08a; }
-@@ -497,6 +652,20 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius:
+@@ -504,6 +659,20 @@ input[type=range]::-moz-range-thumb { width: 14px; height: 14px; border-radius:
  .dot.pend { background: var(--r4); }
  #fr-add { margin: 10px 0 0; }
  #fr-add .field { min-width: 180px; }
@@ -252,7 +252,7 @@ index 5224464..9e9f3be 100644
  
  .lobby-members { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
  .lob-card {
-@@ -696,18 +865,27 @@ a.btn { text-decoration: none; display: inline-block; color: var(--ink); }
+@@ -707,18 +876,27 @@ a.btn { text-decoration: none; display: inline-block; color: var(--ink); }
    #menu-partner { height: min(34vh, 130px); width: auto; }
    .partner-card { margin-top: 2px; }
    .partner-card .nm { font-size: 17px; }
@@ -287,7 +287,7 @@ index 5224464..9e9f3be 100644
  }
  /* Móviles muy bajos (iPhone SE y similares): sin subtítulos en el menú, para que quepa entero. */
 diff --git a/dev.html b/dev.html
-index 401ccf6..18504af 100644
+index 4cb407d..be75822 100644
 --- a/dev.html
 +++ b/dev.html
 @@ -29,7 +29,6 @@
@@ -303,10 +303,10 @@ index 401ccf6..18504af 100644
  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
  <meta name="apple-mobile-web-app-title" content="PokéSurvivor">
 -<link rel="preconnect" href="https://www.gstatic.com" crossorigin>
- <link rel="preload" href="assets/fonts/PixelifySans.ttf" as="font" type="font/ttf" crossorigin>
+ <link rel="preload" href="assets/fonts/PixelifyPS-400.ttf" as="font" type="font/ttf" crossorigin>
+ <link rel="preload" href="assets/fonts/PixelifyPS-700.ttf" as="font" type="font/ttf" crossorigin>
  <!-- seo:begin -->
- <!-- Datos estructurados para Google (tipo de página: videojuego gratuito) -->
-@@ -97,7 +95,6 @@
+@@ -98,7 +96,6 @@
        <div class="tab on" data-tab="login">Entrar</div>
        <div class="tab" data-tab="register">Crear cuenta</div>
      </div>
@@ -314,7 +314,7 @@ index 401ccf6..18504af 100644
      <form id="login-form" autocomplete="off">
        <label for="f-user">Nombre</label>
        <input id="f-user" class="field" maxlength="16" spellcheck="false">
-@@ -109,7 +106,7 @@
+@@ -110,7 +107,7 @@
        </div>
      </form>
      <div class="row" style="margin-top:10px">
@@ -323,7 +323,7 @@ index 401ccf6..18504af 100644
      </div>
      <div class="row" style="margin-top:10px">
        <button id="btn-guest" class="btn ghost grow" type="button">Jugar como invitado</button>
-@@ -166,26 +163,29 @@
+@@ -167,27 +164,30 @@
        <div class="t2">Mundo Misterioso</div>
      </div>
      <div class="partner-card">
@@ -335,6 +335,7 @@ index 401ccf6..18504af 100644
 +        <div class="nm" id="menu-partner-name"></div>
 +        <div class="lv" id="menu-partner-info"></div>
 +      </div>
+       <div class="seg hidden" id="menu-shiny"><button data-v="0">Normal</button><button data-v="1"></button></div>
      </div>
    </div>
    <div class="menu-right">
@@ -359,7 +360,7 @@ index 401ccf6..18504af 100644
      </div>
    </div>
  </section>
-@@ -198,7 +198,6 @@
+@@ -201,7 +201,6 @@
    <button id="btn-sound" class="btn small ghost" title="Sonido"></button>
    <button id="btn-full" class="btn small ghost hidden" title="Pantalla completa"></button>
    <button id="btn-settings" class="btn small ghost" title="Ajustes"></button>
@@ -367,7 +368,7 @@ index 401ccf6..18504af 100644
  </div>
  <div id="sound-panel" class="box sound-panel hidden"></div>
  <div id="credits-line" class="credits-line hidden">Proyecto de fan sin ánimo de lucro · Sprites: SpriteCollab (CC BY-NC 4.0) · Pokémon © Nintendo/Creatures/GAME FREAK · <a href="#" class="legal-link" data-legal>Aviso legal</a></div>
-@@ -232,34 +231,32 @@
+@@ -243,34 +242,32 @@
      <div class="row between"><h2>Aviso legal</h2><button class="btn small ghost" id="legal-close">Cerrar</button></div>
      <h3>Proyecto de fan</h3>
      <p><b>PokéSurvivor</b> es un juego hecho por fans, <b>gratuito y sin ánimo de lucro</b>.
@@ -414,7 +415,7 @@ index 401ccf6..18504af 100644
      <p>Puedes borrar tu cuenta cuando quieras (se borran también tu apodo, tus amigos y tus marcas):</p>
      <div class="row">
        <button class="btn small" id="legal-delete">Borrar mi cuenta y mi partida</button>
-@@ -309,8 +306,8 @@
+@@ -320,8 +317,8 @@
  <section id="scr-nick" class="scr dim hidden">
    <div class="box" style="width:min(440px,100%)">
      <h2>Elige tu apodo</h2>
@@ -425,7 +426,7 @@ index 401ccf6..18504af 100644
      <form id="nick-form" autocomplete="off">
        <input id="nick-in" class="field" maxlength="16" spellcheck="false" placeholder="3-16 letras, números o _">
        <p id="nick-err" class="err"></p>
-@@ -335,10 +332,28 @@
+@@ -346,10 +343,28 @@
    </div>
  </section>
  
@@ -455,7 +456,7 @@ index 401ccf6..18504af 100644
        <div class="row"><button id="lobby-menu" class="btn small ghost">Menú</button><button id="lobby-leave" class="btn small ghost">Salir de la sala</button></div></div>
      <p class="sub" id="lobby-sub"></p>
      <div id="lobby-members" class="lobby-members"></div>
-@@ -525,7 +540,7 @@
+@@ -536,7 +551,7 @@
  <script defer src="js/data/pokedex.js"></script>
  <script defer src="js/data/sprites-meta.js"></script>
  <!-- núcleo -->
@@ -464,7 +465,7 @@ index 401ccf6..18504af 100644
  <script defer src="js/core/db.js"></script>
  <script defer src="js/core/audio.js"></script>
  <script defer src="js/core/input.js"></script>
-@@ -567,7 +582,6 @@
+@@ -578,7 +593,6 @@
  <script defer src="js/systems/hazards.js"></script>
  <!-- red: amigos, salas, cooperativo y ranking -->
  <script defer src="js/net/social.js"></script>
@@ -524,7 +525,7 @@ index b5b1f47..f1bc8b4 100644
      canPlay() { return !!ctx && ctx.state === 'running'; },
      get settings() { return settings; },
 diff --git a/js/core/db.js b/js/core/db.js
-index 4d13969..c31bb29 100644
+index 39f3083..5cc8da4 100644
 --- a/js/core/db.js
 +++ b/js/core/db.js
 @@ -1,22 +1,20 @@
@@ -578,7 +579,17 @@ index 4d13969..c31bb29 100644
    let guest = false;
    let save = null;
    let storageOk = true;
-@@ -109,6 +105,7 @@ G.DB = (() => {
+@@ -106,8 +102,7 @@ G.DB = (() => {
+   /**
+    * Quita lo imposible de una partida editada a mano (la copia del navegador
+    * se puede tocar): números negativos o raros, mejoras por encima del
+-   * máximo y Pokémon que no existen. Lo que sí sea posible lo frena el
+-   * servidor (firestore.rules, saves).
++   * máximo y Pokémon que no existen.
+    */
+   function sanitize(s) {
+     const n = v => (Number.isFinite(+v) && +v > 0 ? Math.floor(+v) : 0);
+@@ -153,6 +148,7 @@ G.DB = (() => {
     *   - mejoras y estadísticas: el máximo de cada una
     *   - monedas, compañero, pity...: los de la versión más reciente
     * Es idempotente: fusionar dos veces da lo mismo.
@@ -586,7 +597,7 @@ index 4d13969..c31bb29 100644
     */
    function merge(a, b) {
      if (!a) return b;
-@@ -239,125 +236,65 @@ G.DB = (() => {
+@@ -283,137 +279,65 @@ G.DB = (() => {
      return true;
    }
  
@@ -612,7 +623,10 @@ index 4d13969..c31bb29 100644
 -  // eran decenas de miles de escrituras por hora); lo que cuesta algo
 -  // (gacha, mejoras), a los 30 s. La copia local se guarda siempre al momento (y se fusiona con la
 -  // nube al volver a entrar), y al ocultar o cerrar la pestaña se sube lo pendiente.
--  const PUSH_GAP = 30 * 60 * 1000, PUSH_GAP_URGENT = 30 * 1000;
+-  // Tras tiradas y compras se sube a los 3 min (era 30 s: quien hacía muchas tiradas
+-  // guardaba 2 veces por minuto y eran millones de escrituras al día). Lo hecho sigue
+-  // en la copia del navegador al momento, y se sube al salir de la pestaña.
+-  const PUSH_GAP = 30 * 60 * 1000, PUSH_GAP_URGENT = 3 * 60 * 1000, HIDE_GAP = 10 * 60 * 1000;
 +  // Firebase obligaba a subir como mucho cada 30 min; el servidor de la web
 +  // aguanta más: cada 2 min, y lo que cuesta algo (gacha, mejoras) a los 15 s.
 +  // La copia local se guarda siempre al momento (y se fusiona con la nube al
@@ -657,8 +671,14 @@ index 4d13969..c31bb29 100644
 +    if (!G.Daivr) { localReason = 'config'; return false; }
 +    initial = await G.Daivr.api('me?save=1', undefined, { timeout: 10000 });
      addEventListener('online', () => { if (pending) pushNow(); });
--    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && pending) pushNow(); });
--    addEventListener('pagehide', () => { if (pending) pushNow(); });
+-    // Al salir de la pestaña o cerrarla se sube lo pendiente, pero no más de una
+-    // vez cada 10 min: la gente cambia de pestaña a menudo y cada partida se
+-    // subía cada ~9 min en vez de cada 30 (12-10-2026, el mayor gasto de
+-    // Firebase). Lo que no se sube sigue en la copia de este navegador y se
+-    // sube al volver a entrar.
+-    const hideFlush = () => { if (pending && Date.now() - lastPush > HIDE_GAP) pushNow(); };
+-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') hideFlush(); });
+-    addEventListener('pagehide', hideFlush);
 +    // Al salir (también al cerrar el cartucho en la web, que quita el iframe)
 +    // se sube lo pendiente con keepalive para que sobreviva a la página.
 +    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && pending) pushNow(true); });
@@ -714,10 +734,14 @@ index 4d13969..c31bb29 100644
      // Sólo se sube si hay algo que la nube no tenga (cuenta nueva, progreso de
 -    // este ordenador sin subir...), y SIN esperar: antes el menú no salía hasta
 -    // terminar la subida, y con Firebase lento se tardaba hasta 9 s en entrar.
-+    // este ordenador sin subir...), y SIN esperar a que termine para entrar.
-     const same = remote && JSON.stringify(plain(migrate(remote))) === JSON.stringify(plain(save));
+-    // (Comparar el texto entero daba "distinto" casi siempre y se subía en cada
+-    // entrada: ahora sólo si esta copia es más nueva que la de la nube.)
+-    const same = remote && !opts.legacy && (!cached || (cached.updated || 0) <= (remote.updated || 0));
+-    lastPush = Date.now();       // la primera compra o ticket no sube al momento: espera como las demás
 -    if (!online) { pending = true; setSync('offline'); scheduleRetry(); }
 -    else if (same) setSync('ok');
++    // este ordenador sin subir...), y SIN esperar a que termine para entrar.
++    const same = remote && JSON.stringify(plain(migrate(remote))) === JSON.stringify(plain(save));
 +    if (same) setSync('ok');
      else pushNow();
    }
@@ -740,7 +764,7 @@ index 4d13969..c31bb29 100644
      clearTimeout(pushT); pushT = 0; pushDue = 0;
      if (navigator.onLine === false) {
        pending = true; setSync('offline'); scheduleRetry();
-@@ -366,32 +303,30 @@ G.DB = (() => {
+@@ -422,60 +346,35 @@ G.DB = (() => {
      pending = false;
      lastPush = Date.now();
      setSync('syncing');
@@ -760,8 +784,9 @@ index 4d13969..c31bb29 100644
 +    const keepalive = final && JSON.stringify(body).length < 60000;
      let failed = false;
 -    pushing = Promise.race([tr, timeout]).then(() => {
+-      fails = 0; rejects = 0;
 +    pushing = G.Daivr.api('save', body, { keepalive, timeout: keepalive ? 0 : 15000 }).then(r => {
-       fails = 0;
++      fails = 0;
        // Se FUSIONA con lo de ahora (no se sobrescribe): si has cambiado algo
        // mientras se subía (elegir compañero, una compra...), no se pierde.
 -      if (merged && save) { applyInPlace(merge(plain(save), merged)); write(K_CLOUD + uid, save); }
@@ -770,6 +795,10 @@ index 4d13969..c31bb29 100644
        if (G.UI && G.UI.refreshCoins) G.UI.refreshCoins();
      }).catch(e => {
        console.warn('[DB] no se pudo sincronizar:', e.code || e.message);
+-      // El servidor la rechaza por imposible (partida editada). Se reintenta 10 veces
+-      // (casi 1 h: el margen del servidor crece con el tiempo, por si era un caso
+-      // justo) y si sigue, se ignora el cambio y se vuelve a lo que hay en la nube.
+-      if (e.code === 'permission-denied' && ++rejects >= 10) { rejects = 0; return adoptRemote(); }
        pending = true; failed = true;
 -      setSync(navigator.onLine === false || e.code === 'unavailable' ? 'offline' : 'pending');
 +      // Sesión de Discord caducada (dura 7 días): se sigue guardando en local.
@@ -785,7 +814,31 @@ index 4d13969..c31bb29 100644
        if (!failed && pending && syncState === 'pending') schedulePush(Math.max(1500, PUSH_GAP - (Date.now() - lastPush)));
      });
      return pushing;
-@@ -405,11 +340,7 @@ G.DB = (() => {
+   }
+ 
+-  /** Deja la partida como está en la nube (tras un rechazo del servidor). */
+-  let rejects = 0;
+-  async function adoptRemote() {
+-    try {
+-      const snap = await docRef().get();
+-      if (snap.exists && save) {
+-        applyInPlace(migrate(snap.data().save));
+-        write(K_CLOUD + uid, save);
+-      }
+-      pending = false;
+-      setSync('ok');
+-      if (G.UI && G.UI.refreshCoins) G.UI.refreshCoins();
+-    } catch (e) {
+-      pending = true;
+-      setSync('pending');
+-      scheduleRetry();
+-    }
+-  }
+-
+   // Si ya había una subida programada antes, se respeta (una compra no espera a la siguiente partida).
+   let pushDue = 0;
+   function schedulePush(ms) {
+@@ -484,11 +383,7 @@ G.DB = (() => {
      clearTimeout(pushT); pushDue = due;
      pushT = setTimeout(() => { pushT = 0; pushDue = 0; pushNow(); }, ms);
    }
@@ -798,7 +851,7 @@ index 4d13969..c31bb29 100644
    let fails = 0;
    function scheduleRetry() {
      const ms = Math.min(10 * 60e3, 15e3 * Math.pow(2, fails)) * (0.8 + Math.random() * 0.4);
-@@ -418,31 +349,6 @@ G.DB = (() => {
+@@ -497,33 +392,6 @@ G.DB = (() => {
      retryT = setTimeout(() => { if (pending) pushNow(); }, ms);
    }
  
@@ -816,6 +869,8 @@ index 4d13969..c31bb29 100644
 -      'auth/popup-blocked': 'El navegador bloqueó la ventana de Google. Permite las ventanas emergentes.',
 -      'auth/unauthorized-domain': 'Este dominio no está autorizado en Firebase (Authentication > Configuración > Dominios autorizados).',
 -      'auth/operation-not-allowed': 'Ese método de inicio de sesión no está activado en Firebase.',
+-      // Registro de cuentas nuevas desactivado en Firebase (Authentication > Configuración).
+-      'auth/admin-restricted-operation': 'Ahora mismo no se pueden crear cuentas nuevas. Si ya tienes cuenta, entra normal; si no, puedes jugar como invitado.',
 -      'auth/requires-recent-login': 'Por seguridad, vuelve a iniciar sesión y repite la operación.',
 -      'permission-denied': 'La base de datos rechazó el acceso (revisa las reglas de Firestore).',
 -      'unavailable': 'Sin conexión con la base de datos.'
@@ -830,7 +885,7 @@ index 4d13969..c31bb29 100644
    // =====================================================================
    //                           API PÚBLICA
    // =====================================================================
-@@ -456,56 +362,54 @@ G.DB = (() => {
+@@ -537,56 +405,54 @@ G.DB = (() => {
        try { if (await initCloud()) mode = 'cloud'; }
        catch (e) { console.warn('[DB] sin nube:', e.message); localReason = 'error'; mode = 'local'; }
        if (mode === 'local') { setSync('local'); return restoreLocal(); }
@@ -920,7 +975,7 @@ index 4d13969..c31bb29 100644
    }
  
    /** Cambia el nombre que se ve en la partida (al elegir apodo). */
-@@ -516,7 +420,7 @@ G.DB = (() => {
+@@ -597,7 +463,7 @@ G.DB = (() => {
    }
  
    function playAsGuest() {
@@ -929,7 +984,7 @@ index 4d13969..c31bb29 100644
      save = newSave('Invitado');
      if (mode === 'local') remove(K_SES);
      return { ok: true, isNew: true };
-@@ -540,28 +444,30 @@ G.DB = (() => {
+@@ -621,28 +487,30 @@ G.DB = (() => {
    /** Funciones que se ejecutan al cerrar sesión o borrar la cuenta (amigos, salas...). */
    const leaveHooks = [];
  
@@ -968,7 +1023,7 @@ index 4d13969..c31bb29 100644
      if (guest || !key) return { ok: false, error: 'No hay cuenta que borrar.' };
      if (mode === 'local') {
        const accs = read(K_ACC) || {};
-@@ -572,26 +478,14 @@ G.DB = (() => {
+@@ -653,26 +521,14 @@ G.DB = (() => {
        return { ok: true };
      }
      try {
@@ -999,7 +1054,7 @@ index 4d13969..c31bb29 100644
    }
  
    // ---------------- helpers de partida ----------------
-@@ -620,16 +514,17 @@ G.DB = (() => {
+@@ -701,16 +557,17 @@ G.DB = (() => {
    }
  
    return {
@@ -1022,6 +1077,21 @@ index 4d13969..c31bb29 100644
      get mode() { return mode; },
      get localReason() { return localReason; },
      get syncState() { return syncState; },
+diff --git a/js/core/updater.js b/js/core/updater.js
+index c6a3929..6d67110 100644
+--- a/js/core/updater.js
++++ b/js/core/updater.js
+@@ -71,6 +71,10 @@ G.Updater = (() => {
+   }
+ 
+   function init() {
++    // daivr.dev: las versiones nuevas las avisa la propia web (su aviso de
++    // actualización) y el cartucho se recarga al volver a meterlo: aquí no se
++    // mira version.json ni se recarga solo.
++    if (G.Daivr) return;
+     if (!mine || !location.protocol.startsWith('http')) return;
+     clearInterval(timer);
+     timer = setInterval(loop, 2000);
 diff --git a/js/data/funding.js b/js/data/funding.js
 index 5c16cb4..30f499f 100644
 --- a/js/data/funding.js
@@ -1044,10 +1114,10 @@ index 5c16cb4..30f499f 100644
    get url() { return this.kofi ? 'https://ko-fi.com/' + this.kofi : ''; }
  };
 diff --git a/js/data/lang-en.js b/js/data/lang-en.js
-index 98dc572..dbe8a3f 100644
+index eeab62e..18e7a6c 100644
 --- a/js/data/lang-en.js
 +++ b/js/data/lang-en.js
-@@ -273,7 +273,7 @@ G.I18n.add({
+@@ -274,7 +274,7 @@ G.I18n.add({
    'Aviso legal': 'Legal notice',
    // colección
    'Volver': 'Back', 'Todos': 'All', 'Tengo': 'Owned', 'Me faltan': 'Missing', 'Legendaria': 'Legendary', 'Épica': 'Epic', 'Rara': 'Rare',
@@ -1056,7 +1126,7 @@ index 98dc572..dbe8a3f 100644
    'Empieza con': 'Starts with', 'Es tu compañero': 'It\'s your partner', 'Elegir de compañero{x}': 'Choose as partner{x}', '(shiny)': '(shiny)',
    'Aún no lo tienes.': 'You don\'t have it yet.', 'Consíguelo en el banner de': 'Get it from the banner of', 'o derrotándolo cuando salga shiny.': 'or by defeating it when it shows up shiny.',
    '{x} es ahora tu compañero': '{x} is now your partner', '{x} shiny es ahora tu compañero': 'Shiny {x} is now your partner',
-@@ -420,7 +420,7 @@ G.I18n.add({
+@@ -421,7 +421,7 @@ G.I18n.add({
    ': sin anuncios ni pagos. Pokémon y sus personajes son propiedad de Nintendo, Creatures y GAME FREAK; este proyecto no está afiliado a ellos.': ': no ads or payments. Pokémon and its characters are owned by Nintendo, Creatures and GAME FREAK; this project is not affiliated with them.',
    'Créditos': 'Credits', 'Sprites:': 'Sprites:', 'PMD SpriteCollab y sus artistas (CC BY-NC 4.0).': 'PMD SpriteCollab and its artists (CC BY-NC 4.0).',
    'Datos de los Pokémon:': 'Pokémon data:', 'Música y sonidos:': 'Music and sounds:', 'originales, generados por el propio juego.': 'original, generated by the game itself.',
@@ -1065,7 +1135,7 @@ index 98dc572..dbe8a3f 100644
    'Gira el móvil': 'Rotate your phone', 'PokéSurvivor se juega en horizontal.': 'PokéSurvivor is played in landscape.',
    'No se pudo cargar todo el juego (¿se cortó la conexión?).': 'The game couldn\'t fully load (did the connection drop?).', 'Recargar': 'Reload',
  
-@@ -451,7 +451,7 @@ G.I18n.add({
+@@ -452,7 +452,7 @@ G.I18n.add({
    'donación voluntaria': 'voluntary donation', ': todo el dinero se usa para los': ': all the money goes to the', 'servidores y el dominio': 'servers and the domain', ', nada más.': ', nothing else.',
    'Donar no da ninguna ventaja en el juego.': 'Donating gives no advantage in the game.', 'Lo que cuesta mantenerlo': 'What it costs to keep it running',
    'Servidores (partidas, cuentas, ranking y multijugador)': 'Servers (saves, accounts, leaderboards and multiplayer)',
@@ -1074,12 +1144,12 @@ index 98dc572..dbe8a3f 100644
    'Cuanta más gente juega, más cuestan los servidores. Lo que sobre se guarda para los gastos de los meses siguientes.': 'The more people play, the more the servers cost. Anything left over is saved for the following months\' costs.',
    'Juego de fans {x}: sin anuncios ni compras. Pokémon y sus personajes son propiedad de Nintendo, Creatures y GAME FREAK; este proyecto no está afiliado a ellos.': 'Fan game {x}: no ads or purchases. Pokémon and its characters are owned by Nintendo, Creatures and GAME FREAK; this project is not affiliated with them.',
    ': sin anuncios ni compras. Pokémon y sus personajes son propiedad de Nintendo, Creatures y GAME FREAK; este proyecto no está afiliado a ellos.': ': no ads or purchases. Pokémon and its characters are owned by Nintendo, Creatures and GAME FREAK; this project is not affiliated with them.',
-@@ -516,5 +516,30 @@ G.I18n.add({
-   '¿Te está gustando PokéSurvivor? Lo hago yo solo y los servidores cuestan dinero. Si quieres, puedes ayudarme a mantenerlo en línea.': "Enjoying PokéSurvivor? I make it on my own and the servers cost money. If you'd like, you can help keep it online.",
-   'Apoyar en Ko-fi': 'Support on Ko-fi', 'Entrar con Google (si ya tienes cuenta)': 'Sign in with Google (if you already have an account)',
-   'Este mes se han llenado las plazas de cuentas nuevas: vuelven el 1 de {x}. Si ya tienes cuenta, entra normal. Si no, juega como invitado.': "New accounts are full for this month: they reopen on {x} 1. If you already have an account, sign in as usual. If not, play as a guest.",
--  'Este mes ya no quedan plazas para cuentas nuevas (vuelven el 1 de {x}). Mientras, puedes jugar como invitado.': 'There are no new account slots left this month (they reopen on {x} 1). Meanwhile, you can play as a guest.'
-+  'Este mes ya no quedan plazas para cuentas nuevas (vuelven el 1 de {x}). Mientras, puedes jugar como invitado.': 'There are no new account slots left this month (they reopen on {x} 1). Meanwhile, you can play as a guest.',
+@@ -537,5 +537,30 @@ G.I18n.add({
+     'Tap the moves you do not want in your cards ({x}). The starting move cannot be banned.',
+   'Ya tienes {x} vetados: quita uno primero': 'You already have {x} banned: remove one first',
+   'En iPhone, Safari no deja poner las webs a pantalla completa. Pulsa Compartir y luego "Añadir a pantalla de inicio": abriendo el juego desde ese icono se juega a pantalla completa.':
+-    'On iPhone, Safari does not let websites go fullscreen. Tap Share and then "Add to Home Screen": opening the game from that icon plays it fullscreen.'
++    'On iPhone, Safari does not let websites go fullscreen. Tap Share and then "Add to Home Screen": opening the game from that icon plays it fullscreen.',
 +  // ---------------- daivr.dev (cuenta de Discord, ranking de la web) ----------------
 +  'Entrar con Discord': 'Sign in with Discord', 'Esperando a Discord…': 'Waiting for Discord…',
 +  'Entra con tu cuenta de Discord de daivr.dev: tu partida se guarda en la web y la sigues en cualquier ordenador. Como invitado no se guarda.': 'Sign in with your daivr.dev Discord account: your game is saved on the site and you can continue on any computer. Guest progress is not saved.',
@@ -1107,7 +1177,7 @@ index 98dc572..dbe8a3f 100644
 +  'Cooperativo': 'Co-op'
  });
 diff --git a/js/game.js b/js/game.js
-index 9918d15..48e0606 100644
+index eaf92fa..1a58c7d 100644
 --- a/js/game.js
 +++ b/js/game.js
 @@ -18,6 +18,7 @@ G.Game = (() => {
@@ -1126,15 +1196,24 @@ index 9918d15..48e0606 100644
  
      pl = new G.Player(mon, perks, !!save.partnerShiny && G.DB.ownsShiny(mon.dex));
      banked = { t1: 0, t10: 0 };
-@@ -292,9 +294,13 @@ G.Game = (() => {
+@@ -133,6 +135,9 @@ G.Game = (() => {
+     // Hojas de sprites locales: el compañero y los primeros enemigos.
+     G.Sprites.preload([mon.dex], 8000, pl.shiny);
+     G.Audio.music(G.BIOME_MUSIC[0]);
++    // daivr.dev: el servidor da una ficha al empezar; ninguna marca del ranking
++    // puede durar más que el tiempo real desde entonces (net/ranking.js).
++    if (!coop || G.Coop.isHost) G.Ranking.runStarted(coop ? 'g' : 's');
+     deathT = 0;
+ 
+     state = 'playing';
+@@ -303,8 +308,12 @@ G.Game = (() => {
  
      // Ranking: en solitario cada uno lo suyo; en grupo lo sube el anfitrión.
      const mark = { t: Math.floor(time), lv: pl.level, kills: pl.kills };
-+    let sent = null;
-     if (!clean) G.UI.toast('Esta partida no cuenta para el ranking: se ha detectado algo raro');
--    else if (!coop) G.Ranking.submitSolo(Object.assign(mark, { dex: pl.dex, shiny: pl.shiny }));
+-    if (!coop) G.Ranking.submitSolo(Object.assign(mark, { dex: pl.dex, shiny: pl.shiny }));
 -    else if (wasHost) G.Ranking.submitGroup(Object.assign(mark, { members: team }));
-+    else if (!coop) sent = G.Ranking.submitSolo(Object.assign(mark, { dex: pl.dex, shiny: pl.shiny }));
++    let sent = null;
++    if (!coop) sent = G.Ranking.submitSolo(Object.assign(mark, { dex: pl.dex, shiny: pl.shiny }));
 +    else if (wasHost) sent = G.Ranking.submitGroup(Object.assign(mark, { members: team }));
 +    // daivr.dev: la tele de la web enseña cómo ha ido (y refresca su ranking).
 +    const told = { type: 'daivr:pokesurvivor-run', t: mark.t, mode: coop ? 'g' : 's', signedIn: G.DB.online };
@@ -1142,7 +1221,7 @@ index 9918d15..48e0606 100644
  
      G.RunUI.showOver({
        dead, time, level: pl.level, kills: pl.kills, bosses: pl.bosses, coins, record, t1: pl.t1, t10: pl.t10,
-@@ -527,6 +533,12 @@ G.Game = (() => {
+@@ -554,6 +563,12 @@ G.Game = (() => {
        return;
      }
      time += dt;
@@ -1156,10 +1235,10 @@ index 9918d15..48e0606 100644
      const b = Math.floor(time / 240);
      if (b !== biome && !G.Rift.inArena) {
 diff --git a/js/main.js b/js/main.js
-index 80bada7..91f4096 100644
+index 17342a0..9fb9247 100644
 --- a/js/main.js
 +++ b/js/main.js
-@@ -15,7 +15,22 @@
+@@ -33,7 +33,22 @@
      return true;
    }
  
@@ -1179,10 +1258,10 @@ index 80bada7..91f4096 100644
 +        + (en ? 'PokéSurvivor is available in the desktop library.' : 'PokéSurvivor está en la biblioteca de ordenador.') + '</p></div>';
 +      return;
 +    }
+     if (maintenance()) return;
      if (broken()) return;
      G.I18n.startDom();
-     // Espera a la fuente pixel para que la UI no salte al cargarla.
-@@ -25,8 +40,6 @@
+@@ -44,8 +59,6 @@
    if (document.readyState === 'loading') addEventListener('DOMContentLoaded', boot);
    else boot();
  
@@ -1338,7 +1417,7 @@ index 0000000..0f73e38
 +  };
 +})();
 diff --git a/js/net/net.js b/js/net/net.js
-index 586c56e..cfcce2a 100644
+index 8d76de0..73c2c77 100644
 --- a/js/net/net.js
 +++ b/js/net/net.js
 @@ -4,14 +4,11 @@
@@ -1361,10 +1440,16 @@ index 586c56e..cfcce2a 100644
   *
   * Se envía por el canal directo si está abierto; si no, por el relé. El que
   * recibe escucha los dos, así que no hace falta ponerse de acuerdo.
-@@ -25,32 +22,25 @@ G.Net = (() => {
+@@ -24,38 +21,31 @@ G.Net = (() => {
+   const ICE = [{ urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
                 { urls: 'stun:stun.cloudflare.com:3478' }];
    const DIRECT_TIMEOUT = 9000;     // ms para conseguir canal directo antes de usar el relé
- 
+-  // Relé por la Realtime Database APAGADO (12-10-2026): a 1 $ el GB era lo que más
+-  // costaba del cooperativo. Sin conexión directa ni TURN, esa pareja no puede jugar
+-  // junta ('failed') y el anfitrión lo reintenta cada RETRY_MS. Por la base de datos
+-  // sólo pasa la señalización (unos pocos mensajes pequeños para conectarse).
+-  const ALLOW_RELAY = false, RETRY_MS = 15000;
+-
 -  // ---------------- TURN (Cloudflare) ----------------
 -  const TURN_URL = 'https://turn.pokesurvivor.com/';
 -  let turn = null, turnAt = 0, turnReq = null;
@@ -1384,6 +1469,12 @@ index 586c56e..cfcce2a 100644
 -      .catch(e => { console.warn('[Net] TURN:', e.message); return null; })
 -      .finally(() => { turnReq = null; });
 -    return turnReq;
++  // El original apagó su relé por la Realtime Database (12-10-2026, por coste):
++  // sin conexión directa ni TURN, esa pareja no podía jugar ('failed') y el
++  // anfitrión lo reintentaba cada RETRY_MS. En daivr.dev el relé es el servidor
++  // de la web y sigue encendido: sin conexión directa, la partida va por él.
++  const ALLOW_RELAY = true, RETRY_MS = 15000;
++
 +  // ---------------- TURN ----------------
 +  // El original pedía claves de un TURN de Cloudflare con el token de
 +  // Firebase. En daivr.dev no hay: lo que no conecta directo va por el relé.
@@ -1412,7 +1503,7 @@ index 586c56e..cfcce2a 100644
    const peers = new Map();         // uid -> { pc, dc, mode, timer }
    const handlers = new Set(), peerHandlers = new Set();
    let stats = { sent: 0, recv: 0, relaySent: 0 };
-@@ -65,20 +55,9 @@ G.Net = (() => {
+@@ -70,20 +60,9 @@ G.Net = (() => {
    function open(id, host, hostId) {
      if (roomId === id) return;
      close();
@@ -1435,7 +1526,7 @@ index 586c56e..cfcce2a 100644
      // Invitado: hueco para el anfitrión desde ya (se sustituye al llegar su
      // oferta). Así, si no llega nunca, se sigue por el relé y se sabe cuándo se va.
      if (!isHost) {
-@@ -90,7 +69,6 @@ G.Net = (() => {
+@@ -95,7 +74,6 @@ G.Net = (() => {
  
    function close() {
      for (const u of [...peers.keys()]) drop(u);
@@ -1443,7 +1534,7 @@ index 586c56e..cfcce2a 100644
      roomId = null; isHost = false; hostUid = null;
    }
  
-@@ -217,8 +195,8 @@ G.Net = (() => {
+@@ -227,8 +205,8 @@ G.Net = (() => {
    // ---------------- envío / recepción ----------------
  
    function relayPush(to, env) {
@@ -1455,19 +1546,18 @@ index 586c56e..cfcce2a 100644
  
    function send(to, msg) {
 diff --git a/js/net/ranking.js b/js/net/ranking.js
-index 9f7f07d..22cb4ef 100644
+index 5ba04a8..4a3ec45 100644
 --- a/js/net/ranking.js
 +++ b/js/net/ranking.js
-@@ -1,45 +1,27 @@
+@@ -1,47 +1,29 @@
  /* ============ ranking.js — clasificación de tiempo aguantado ============
 - * Firestore (pensado para gastar lo mínimo del plan gratuito):
 - *
 - *   lbs/{tabla}        RESUMEN: el top 50 de la tabla en UN documento
 - *                      { top: { id: { t, uids, names, dex, shiny, lv, kills } }, me, ev }
 - *                      Ver una pestaña del ranking = 1 lectura (antes ~52).
-- *   lb/{tabla}/e/{id}  la marca de cada jugador o equipo (la que validan las
-- *                      reglas contra trampas y la que sirve para calcular tu
-- *                      puesto si no estás en el top 50)
+- *   lb/{tabla}/e/{id}  la marca de cada jugador o equipo (la que sirve para
+- *                      calcular tu puesto si no estás en el top 50)
 + * En daivr.dev las tablas las guarda su servidor (server/pokesurvivor.mjs):
   *
   *   tabla = modo + periodo:
@@ -1506,6 +1596,10 @@ index 9f7f07d..22cb4ef 100644
 -  //  Pokémon y escribía; ahora también sólo el top 50.)
 -  const TOP_ONLY = new Set(['d', 'w', 'm', 'p']);
 -  const TOP = 50;
+-  // Las runs de menos de 1 minuto no se suben (casi nunca entran en una tabla
+-  // y eran muchas lecturas y escrituras para nada).
++  // Las runs de menos de 1 minuto no se suben (como en el original desde el 12-10-2026).
+   const MIN_T = 60;
 -  const TTL = 30 * 60 * 1000;            // caché de lo leído (30 min: menos lecturas de Firestore)
 +  const TTL = 60 * 1000;                 // lo leído vale 1 min (cambiar de pestaña y volver: 0)
  
@@ -1514,7 +1608,7 @@ index 9f7f07d..22cb4ef 100644
  
    // ---------------- periodos ----------------
  
-@@ -70,287 +52,81 @@ G.Ranking = (() => {
+@@ -72,284 +54,81 @@ G.Ranking = (() => {
      return mode + '_' + periodIds()[period] + (dex && period === 'a' ? '_p' + dex : '');
    }
  
@@ -1549,7 +1643,9 @@ index 9f7f07d..22cb4ef 100644
 +  // ---------------- ficha de partida ----------------
  
 -  // Tus mejores marcas por tabla (para no leer antes de escribir).
--  const bestKey = () => 'ps.rk.best.' + (fbx() ? fbx().uid : '');
+-  // (best2 desde 2026-10-12: se quitaron del ranking las marcas rotas; así quien
+-  //  tenía una vuelve a mirar su marca real y puede volver a entrar.)
+-  const bestKey = () => 'ps.rk.best2.' + (fbx() ? fbx().uid : '');
 -  function bests() { try { return JSON.parse(localStorage.getItem(bestKey()) || '{}'); } catch (e) { return {}; } }
 -  function saveBests(b) {
 -    // Sólo se conservan las tablas de los periodos actuales y las históricas.
@@ -1565,20 +1661,6 @@ index 9f7f07d..22cb4ef 100644
  
    // ---------------- guardar ----------------
  
--  /**
--   * Al empezar la PRIMERA partida de la sesión: el servidor apunta la hora
--   * (anti-trampas: ninguna marca puede durar más que el tiempo real desde
--   * entonces). Una vez por sesión y no en cada partida, para ahorrar escrituras.
--   */
--  let runMarked = '';
--  function runStarted(mode) {
--    const fb = fbx();
--    if (!fb || runMarked === fb.uid) return;
--    runMarked = fb.uid;
--    fb.fs.collection('runs').doc(fb.uid).set({ startedAt: firebase.firestore.FieldValue.serverTimestamp(), mode })
--      .catch(e => { runMarked = ''; console.warn('[Ranking] inicio:', e.code || e.message); });
--  }
--
 -  const rowOf = (id, v) => ({ id, t: v.t, uids: v.uids || [], names: v.names || [], dex: v.dex || [], shiny: v.shiny || [], lv: v.lv, kills: v.kills });
 -  const sorted = top => Object.entries(top || {}).map(([id, v]) => rowOf(id, v)).sort((a, b) => b.t - a.t);
 -
@@ -1592,8 +1674,15 @@ index 9f7f07d..22cb4ef 100644
 -      try {
 -        // ¿Ya tenías una marca mejor? Si este navegador no lo sabe, se mira una vez.
 -        if (known[key] === undefined) {
--          const old = await col(b).doc(id).get();
--          known[key] = old.exists ? old.data().t : 0;
+-          if (TOP_ONLY.has(period)) {
+-            // En estas tablas sólo hay marcas en el top 50: basta con el resumen
+-            // (que además se guarda 30 min y es el mismo que se lee al mirar el ranking).
+-            const top = await summary(b);
+-            known[key] = top[id] ? top[id].t : 0;
+-          } else {
+-            const old = await col(b).doc(id).get();
+-            known[key] = old.exists ? old.data().t : 0;
+-          }
 -        }
 -        if (known[key] >= entry.t) return;
 -        const data = Object.assign({}, entry, { at: firebase.firestore.FieldValue.serverTimestamp() });
@@ -1614,6 +1703,8 @@ index 9f7f07d..22cb4ef 100644
 -            const top = Object.assign({}, s.exists ? s.data().top : {});
 -            const mine = { t: entry.t, uids: entry.uids, names: entry.names, dex: entry.dex, shiny: entry.shiny, lv: entry.lv, kills: entry.kills };
 -            let ev = '';
+-            // Ya estabas con una marca mejor (otro ordenador): nada que escribir.
+-            if (id in top && top[id].t >= entry.t) { entered = false; newTop = top; return; }
 -            if (!(id in top) && Object.keys(top).length >= TOP) {
 -              const low = sorted(top).pop();
 -              if (low.t >= entry.t) {                                // no entra en el top
@@ -1665,7 +1756,7 @@ index 9f7f07d..22cb4ef 100644
 +
    async function submitSolo(r) {
 -    const fb = fbx();
--    if (!fb || !G.Social.me || r.t < 5) return [];
+-    if (!fb || !G.Social.me || r.t < MIN_T) return [];
 -    const ids = periodIds();
 -    const entry = { t: r.t, uids: [fb.uid], names: [G.Social.me.name], dex: [r.dex], shiny: [!!r.shiny], lv: r.lv, kills: r.kills };
 -    const boards = PERIODS.map(([p]) => ['s_' + ids[p], p]);
@@ -1673,14 +1764,14 @@ index 9f7f07d..22cb4ef 100644
 -    const better = await store(boards, fb.uid, entry);
 -    announce(better);
 -    return better;
-+    if (!online() || !G.Social.me || r.t < 5) return null;
++    if (!online() || !G.Social.me || r.t < MIN_T) return null;
 +    return send({ mode: 's', t: r.t, lv: r.lv, kills: r.kills, dex: r.dex, shiny: !!r.shiny });
    }
  
    /** La sube el anfitrión, con todo el equipo. */
    async function submitGroup(r) {
 -    const fb = fbx();
--    if (!fb || r.t < 5 || !r.members || r.members.length < 2) return [];
+-    if (!fb || r.t < MIN_T || !r.members || r.members.length < 2) return [];
 -    const ms = r.members.slice().sort((a, b) => (a.uid < b.uid ? -1 : 1));
 -    const id = ms.map(m => m.uid).join('_');
 -    const entry = { t: r.t, uids: ms.map(m => m.uid), names: ms.map(m => m.name), dex: ms.map(m => m.dex),
@@ -1691,7 +1782,7 @@ index 9f7f07d..22cb4ef 100644
 -    const better = await store(boards, id, entry);
 -    announce(better);
 -    return better;
-+    if (!online() || r.t < 5 || !r.members || r.members.length < 2) return null;
++    if (!online() || r.t < MIN_T || !r.members || r.members.length < 2) return null;
 +    return send({ mode: 'g', t: r.t, lv: r.lv, kills: r.kills, members: r.members.map(m => ({ uid: m.uid, dex: m.dex, shiny: !!m.shiny })) });
    }
  
@@ -1842,10 +1933,11 @@ index 9f7f07d..22cb4ef 100644
 +  /** Al borrar la cuenta el servidor quita tus marcas (DELETE /account). */
 +  async function removeMine() { forget(); }
  
-   return { PERIODS, periodIds, board, runStarted, submitSolo, submitGroup, top, myRank, removeMine };
+-  return { PERIODS, periodIds, board, submitSolo, submitGroup, top, myRank, removeMine };
++  return { PERIODS, periodIds, board, runStarted, submitSolo, submitGroup, top, myRank, removeMine };
  })();
 diff --git a/js/net/social.js b/js/net/social.js
-index 80754a3..cefd2ba 100644
+index ad29c74..cefd2ba 100644
 --- a/js/net/social.js
 +++ b/js/net/social.js
 @@ -1,23 +1,17 @@
@@ -1883,12 +1975,12 @@ index 80754a3..cefd2ba 100644
   *
   * El resto del juego escucha los cambios con G.Social.on(fn).
   */
-@@ -25,346 +19,262 @@ G.Social = (() => {
+@@ -25,366 +19,262 @@ G.Social = (() => {
    const VALID = /^[A-Za-z0-9_ñÑáéíóúÁÉÍÓÚ]{3,16}$/;
    const MAX_PLAYERS = 4;
    const INVITE_TTL = 3 * 60 * 1000;
--  const BEAT = 10 * 60 * 1000;          // latido de presencia
--  const ONLINE = 16 * 60 * 1000;        // "en línea" si el último latido es más reciente
+-  const BEAT = 15 * 60 * 1000;          // latido de presencia (era 10 min: menos escrituras)
+-  const ONLINE = 22 * 60 * 1000;        // "en línea" si el último latido es más reciente
 -  const PRES_TTL = 60 * 1000;           // lo leído de los amigos vale 1 min
  
 -  let fb = null, uid = null;
@@ -2003,8 +2095,18 @@ index 80754a3..cefd2ba 100644
 -    if (started) return me ? 'ok' : 'need-nick';
 -    fb = G.DB.fb; uid = fb.uid;
 -    started = true;
--    const prof = await fb.fs.collection('profiles').doc(uid).get().then(s => s.exists ? s.data() : null).catch(() => null);
--    if (prof) { me = { uid, name: prof.name }; if (G.DB.user !== prof.name) G.DB.setName(prof.name); }
+-    // El apodo no cambia nunca: se recuerda en este navegador y así no se lee
+-    // el perfil en cada visita (una lectura menos por jugador y sesión).
+-    const NICK = 'ps.nick.' + uid;
+-    let cachedNick = null;
+-    try { cachedNick = localStorage.getItem(NICK); } catch (e) { /* nada */ }
+-    const prof = cachedNick ? { name: cachedNick }
+-      : await fb.fs.collection('profiles').doc(uid).get().then(s => s.exists ? s.data() : null).catch(() => null);
+-    if (prof) {
+-      me = { uid, name: prof.name };
+-      if (G.DB.user !== prof.name) G.DB.setName(prof.name);
+-      try { localStorage.setItem(NICK, prof.name); } catch (e) { /* nada */ }
+-    }
 -    else if (G.DB.nameAccount) {
 -      // Cuentas de nombre y contraseña: su nombre ya es único, se usa de apodo.
 +  function start() {
@@ -2062,6 +2164,7 @@ index 80754a3..cefd2ba 100644
 +      return { ok: false, error: 'No se pudo guardar el apodo (' + errCode(e) + ').' };
      }
      me = { uid, name };
+-    try { localStorage.setItem('ps.nick.' + uid, name); } catch (e) { /* nada */ }
      G.DB.setName(name);
 -    if (started && !beatT) online();
      publishProfile(true);
@@ -2079,6 +2182,11 @@ index 80754a3..cefd2ba 100644
 -    document.addEventListener('visibilitychange', onVisible);
 -    window.addEventListener('pagehide', onHide);
 -    listenFriends();
+-  }
+-
+-  /** Invitaciones a salas: sólo te pueden llegar de amigos, así que sin amigos no se escucha (lecturas). */
+-  function listenInvites() {
+-    if (unInv || !fb) return;
 -    unInv = fb.fs.collection('inv').where('to', '==', uid).onSnapshot(snap => {
 -      snap.docChanges().forEach(ch => {
 -        const v = ch.doc.data();
@@ -2111,7 +2219,10 @@ index 80754a3..cefd2ba 100644
 -    document.removeEventListener('visibilitychange', onVisible);
 -    window.removeEventListener('pagehide', onHide);
 -    if (me) await fb.fs.collection('pres').doc(uid).delete().catch(() => {});
--    if (why === 'delete') await deleteAll().catch(e => console.warn('[Social] borrar:', e));
+-    if (why === 'delete') {
+-      try { localStorage.removeItem('ps.nick.' + uid); } catch (e) { /* nada */ }
+-      await deleteAll().catch(e => console.warn('[Social] borrar:', e));
+-    }
 -    friends.clear(); invites.clear(); sentInv.clear(); pres.clear(); presAt = 0;
 -    me = null; started = false; fb = null; uid = null; playing = false;
 +  /** Al cerrar sesión o borrar la cuenta (lo demás lo borra el servidor: DELETE /account). */
@@ -2164,8 +2275,9 @@ index 80754a3..cefd2ba 100644
 -      const hadFriends = hasFriends();
 -      friends = next;
 -      emit('friends');
--      // Tu primer amigo: ahora sí hay quien lea tu "en línea".
+-      // Tu primer amigo: ahora sí hay quien lea tu "en línea" y quien te invite.
 -      if (!hadFriends && hasFriends()) writeStatus();
+-      if (hasFriends()) listenInvites();
 -      // Se mira si está en línea un momento después: tu amigo también acaba de
 -      // recibir la amistad y está apuntando su "en línea" a la vez.
 -      if (added) setTimeout(() => { if (started) refreshPresence(true); }, 2500);
@@ -2398,7 +2510,7 @@ index 80754a3..cefd2ba 100644
    }
  
    // ---------------- invitaciones ----------------
-@@ -372,46 +282,26 @@ G.Social = (() => {
+@@ -392,46 +282,26 @@ G.Social = (() => {
    async function invite(other) {
      const f = friends.get(other);
      if (!f || f.status !== 'ok') return { ok: false, error: 'Sólo puedes invitar a tus amigos.' };
@@ -2450,7 +2562,7 @@ index 80754a3..cefd2ba 100644
      emit('invites');
    }
  
-@@ -435,51 +325,42 @@ G.Social = (() => {
+@@ -455,51 +325,42 @@ G.Social = (() => {
    let pubT = 0, pubAt = 0, pubLast = '';
    /**
     * Sube tu perfil (con un poco de espera, por si cambias varias cosas
@@ -2460,7 +2572,7 @@ index 80754a3..cefd2ba 100644
     */
    function publishProfile(force = false) {
 -    if (!me || !fb) return;
--    if (!force && Date.now() - pubAt < 10 * 60 * 1000) return;
+-    if (!force && Date.now() - pubAt < 30 * 60 * 1000) return;     // como mucho cada 30 min (era 10)
 +    if (!me) return;
 +    if (!force && Date.now() - pubAt < 2 * 60 * 1000) return;
      clearTimeout(pubT);
@@ -2513,7 +2625,7 @@ index 80754a3..cefd2ba 100644
      invite, acceptInvite, declineInvite,
      on(fn) { listeners.add(fn); }, off(fn) { listeners.delete(fn); },
      get me() { return me; },
-@@ -487,6 +368,7 @@ G.Social = (() => {
+@@ -507,6 +368,7 @@ G.Social = (() => {
      get friends() { return [...friends.values()]; },
      get invites() { return [...invites.values()]; },
      get room() { return room; },
@@ -2522,10 +2634,10 @@ index 80754a3..cefd2ba 100644
      VALID, MAX_PLAYERS
    };
 diff --git a/js/ui/icons.js b/js/ui/icons.js
-index 8946d6f..b0688df 100644
+index 2411767..c9132f0 100644
 --- a/js/ui/icons.js
 +++ b/js/ui/icons.js
-@@ -44,6 +44,10 @@ G.Icons = (() => {
+@@ -48,6 +48,10 @@ G.Icons = (() => {
      clock: { pal: { w: '#f4f4ff', y: '#ffd23f', o: '#c9c9e0' }, rows: [
        '....kkkk....', '..kkyyyykk..', '.kyywwwwyyk.', '.kywwwkwwyk.', 'kywwwwkwwwyk', 'kywwwwkwwwyk',
        'kywwwwkkkwyk', 'kywwwwwwwwyk', '.kywwwwwwyk.', '.kyyowwwyyk.', '..kkyyyykk..', '....kkkk....'] },
@@ -2620,7 +2732,7 @@ index 181fc08..46c446b 100644
  
    return { init, open };
 diff --git a/js/ui/menu.js b/js/ui/menu.js
-index c2a3498..93f3184 100644
+index b541f40..1e5e9c0 100644
 --- a/js/ui/menu.js
 +++ b/js/ui/menu.js
 @@ -6,8 +6,9 @@ G.MenuUI = (() => {
@@ -2653,7 +2765,7 @@ index c2a3498..93f3184 100644
        if (G.DB.guest && !confirm('Eres invitado: se perderá todo el progreso. ¿Salir?')) return;
        G.Audio.music(null);
        G.DB.logout().then(() => G.Flow.toLogin());
-@@ -39,20 +42,25 @@ G.MenuUI = (() => {
+@@ -39,10 +42,12 @@ G.MenuUI = (() => {
      G.UI.chrome(true);
      G.UI.show('scr-menu');
      G.UI.sprite($('menu-partner'), mon.dex, { lively: true, scale: 4, hero: true, shiny });
@@ -2665,8 +2777,10 @@ index c2a3498..93f3184 100644
 -    $('menu-partner-info').innerHTML = G.UI.typeChips(mon.types) + ' ' + G.UI.stars(mon.rarity);
 +    $('menu-partner-info').innerHTML = G.UI.typeChips(mon.types) +
 +      `<span class="rar" style="color:${G.Gacha.RARITY_COLOR[mon.rarity]}">${G.UI.stars(mon.rarity)} ${G.Gacha.RARITY_NAME[mon.rarity]}</span>`;
- 
-     const owned = Object.keys(s.owned).filter(d => G.DEX_BY[d]).length;
+     // Normal / shiny a mano, aquí mismo (en el móvil no se encontraba en la ficha).
+     const seg = $('menu-shiny');
+     seg.classList.toggle('hidden', !G.DB.ownsShiny(mon.dex));
+@@ -62,11 +67,14 @@ G.MenuUI = (() => {
      const shinies = Object.keys(s.shiny || {}).length;
      $('menu-dex-count').textContent = `${owned} / ${G.DEX.length}` + (shinies ? ` · ${shinies} shiny` : '');
  
@@ -2684,7 +2798,7 @@ index c2a3498..93f3184 100644
  
      socialLine();
      // Premios de misiones por recoger.
-@@ -74,14 +82,16 @@ G.MenuUI = (() => {
+@@ -88,14 +96,16 @@ G.MenuUI = (() => {
    function socialLine() {
      const room = G.Social.room;
      const play = document.querySelector('#scr-menu [data-go=play] small');
@@ -2703,8 +2817,37 @@ index c2a3498..93f3184 100644
      $('menu-friends-sub').classList.toggle('gold', req > 0);
    }
  
+diff --git a/js/ui/news-ui.js b/js/ui/news-ui.js
+index fb13471..122781b 100644
+--- a/js/ui/news-ui.js
++++ b/js/ui/news-ui.js
+@@ -6,6 +6,15 @@ G.NewsUI = (() => {
+   const $ = G.UI.$;
+   const KEY = 'ps.news.seen';
+   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
++  // daivr.dev: fuera las novedades que en esta copia no son ciertas (servidores
++  // y cuentas del original, actualización automática, móvil, relé apagado).
++  const NOT_HERE = /servidores|se actualiza solo|iPhone|móvil y tablet|no consiguen conectar|lista de amigos/i;
++  const KINDS = ['new', 'chg', 'fix'];
++  const CHANGES = () => G.CHANGELOG.map(v => {
++    const day = Object.assign({}, v);
++    for (const k of KINDS) if (v[k]) day[k] = v[k].filter(t => !NOT_HERE.test(t[0]));
++    return day;
++  }).filter(day => KINDS.some(k => day[k] && day[k].length));
+   const latest = () => (G.CHANGELOG[0] || {}).d || '';
+   function seen() { try { return localStorage.getItem(KEY) || ''; } catch (e) { return ''; } }
+ 
+@@ -27,7 +36,7 @@ G.NewsUI = (() => {
+     const en = G.I18n.lang === 'en' ? 1 : 0;
+     // Cada texto ya va en su idioma: translate="no" para que no lo toque i18n.
+     const PARTS = [['new', ['Nuevo', 'New']], ['chg', ['Cambios', 'Changes']], ['fix', ['Arreglos', 'Fixes']]];
+-    $('news-body').innerHTML = G.CHANGELOG.map(v =>
++    $('news-body').innerHTML = CHANGES().map(v =>
+       `<div class="news-day" translate="no"><h3>${esc(v.title ? v.title[en] : '')}<small>${fmt(v.d)}</small></h3>` +
+       PARTS.filter(([k]) => v[k] && v[k].length).map(([k, lbl]) =>
+         `<div class="news-part"><span class="news-tag ${k}">${lbl[en]}</span><ul>${v[k].map(t => `<li>${esc(t[en])}</li>`).join('')}</ul></div>`).join('') +
 diff --git a/js/ui/settings-ui.js b/js/ui/settings-ui.js
-index fa1befe..9d2f4d3 100644
+index cac5c49..99ce1c6 100644
 --- a/js/ui/settings-ui.js
 +++ b/js/ui/settings-ui.js
 @@ -7,7 +7,6 @@ G.SettingsUI = (() => {
@@ -2715,7 +2858,7 @@ index fa1befe..9d2f4d3 100644
    let tab = 'sound';
  
    function init() {
-@@ -107,8 +106,6 @@ G.SettingsUI = (() => {
+@@ -115,8 +114,6 @@ G.SettingsUI = (() => {
               ${window.PS_PAGES ? `<a class="btn small" href="${G.I18n.lang === 'en' ? 'en/guide/' : 'guia/'}" target="_blank">Guía y preguntas</a>
               <a class="btn small" href="${G.I18n.lang === 'en' ? 'en/pokedex/' : 'pokedex/'}" target="_blank">Pokédex</a>` : ''}
               <button class="btn small" data-legal>Aviso legal y privacidad</button>
@@ -2724,7 +2867,7 @@ index fa1befe..9d2f4d3 100644
             </div>`;
      }
      wire(box);
-@@ -124,10 +121,12 @@ G.SettingsUI = (() => {
+@@ -132,10 +129,12 @@ G.SettingsUI = (() => {
        return;
      }
      const nick = G.Social.me ? G.Social.me.name : (G.DB.user || '');
@@ -2740,7 +2883,7 @@ index fa1befe..9d2f4d3 100644
        + `<div class="row wrap" style="gap:8px;margin-top:12px">
             <button class="btn" id="set-logout">Cerrar sesión</button>
 diff --git a/js/ui/social-ui.js b/js/ui/social-ui.js
-index 8963a06..1384002 100644
+index 88eec8b..cf6f1f7 100644
 --- a/js/ui/social-ui.js
 +++ b/js/ui/social-ui.js
 @@ -139,6 +139,119 @@
@@ -2893,16 +3036,16 @@ index 8963a06..1384002 100644
        $('lobby-inv-title').classList.toggle('hidden', !canInvite);
        const inv = $('lobby-invite');
        inv.classList.toggle('hidden', !canInvite);
-@@ -246,7 +361,7 @@
-       btn.classList.toggle('hidden', !room.isHost);
+@@ -247,7 +362,7 @@
        const connecting = ms.some(m => m.uid !== room.host && G.Net.mode(m.uid) === 'connecting');
-       btn.disabled = !room.isHost || ms.length < 2 || connecting;
+       const failed = ms.some(m => m.uid !== room.host && G.Net.mode(m.uid) === 'failed');
+       btn.disabled = !room.isHost || ms.length < 2 || connecting || failed;
 -      btn.textContent = 'Empezar partida (' + ms.length + '/' + G.Social.MAX_PLAYERS + ')';
 +      btn.textContent = 'Empezar partida (' + ms.length + '/' + room.max + ')';
        $('lobby-note').textContent = !room.isHost ? 'Cuando el anfitrión empiece, entraréis todos a la vez.'
          : ms.length < 2 ? 'Necesitas al menos un amigo en la sala.'
-         : connecting ? 'Conectando con tus amigos…' : 'La partida empieza para todos a la vez.';
-@@ -303,7 +418,7 @@
+         : failed ? 'No se puede conectar con algún amigo: su red (o la tuya) no deja jugar en grupo. Probad con otra wifi o datos móviles; se reintenta solo.'
+@@ -305,7 +420,7 @@
    })();
  
    G.SocialUI = {

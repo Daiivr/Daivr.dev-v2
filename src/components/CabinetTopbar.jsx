@@ -2,6 +2,7 @@ import { Terminal } from "lucide-react";
 import { navItems } from "../data/site";
 import { useCabinetSignal } from "../lib/cabinetSignals";
 import { CabinetTelemetry } from "./CabinetTelemetry";
+import { HostSwitch } from "./HostSwitch";
 import { PlayerHub } from "./PlayerHub";
 
 function compactXp(value) {
@@ -43,7 +44,7 @@ function PresenceCell() {
   );
 }
 
-export function CabinetTopbar({ activeSection, cartPhase, onOpenTerminal, onPlay, theme }) {
+export function CabinetTopbar({ activeSection, cartPhase, onOpenTerminal, onPlay, theme, hostId, unlockedHostIds, onChooseHost, hostProgress, onOpenBuddyModal }) {
   const index = Math.max(0, navItems.findIndex(([, href]) => href === `#${activeSection}`));
   const [label, href] = navItems[index];
 
@@ -59,6 +60,7 @@ export function CabinetTopbar({ activeSection, cartPhase, onOpenTerminal, onPlay
           {navItems.map(([, route], step) => <i className={step === index ? "is-active" : ""} key={route} />)}
         </div>
       </div>
+      <HostSwitch hostId={hostId} unlockedIds={unlockedHostIds} onChoose={onChooseHost} progress={hostProgress} onOpenBuddyModal={onOpenBuddyModal} />
       <div className="cabinet-topbar-controls">
         <PlayerHub onPlay={onPlay} theme={theme} />
         <button className="cabinet-terminal-button arcade-focus" type="button" onClick={onOpenTerminal} aria-label="Open Terminal">

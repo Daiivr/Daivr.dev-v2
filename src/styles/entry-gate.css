@@ -1692,6 +1692,11 @@
   width: max(100%, calc(min(100cqh, var(--host-h)) * 1.12));
   translate: -50% 0;
   pointer-events: none;
+  /* Headroom por anfitriona (AvatarGreeting.jsx, CameraHeadroom): el lienzo
+     crece solo hacia arriba y ella sigue apoyada en el borde de abajo. */
+  top: auto;
+  bottom: 0;
+  height: calc(100% * (1 + var(--avatar-headroom, 0)));
 }
 .entry-gate-speech {
   --gate-host-box: min(100cqh, var(--host-h));
@@ -1858,55 +1863,36 @@
 .gate-door-hinges > i:nth-child(1) { top: 20%; }
 .gate-door-hinges > i:nth-child(2) { top: 64%; }
 .gate-door-hinges svg { display: block; width: 100%; height: 100%; overflow: visible; }
-/* Cerradura ------------------------------------------------------------------
-   Placa partida en dos sobre la junta. Ambar mientras llega la anfitriona (el
-   anillo de LED se llena con la descarga y el siguiente parpadea), cian
-   mientras habla y la cabina termina de cargar, verde con los pernos dentro y
-   el volante girado cuando se puede pasar. */
+/* Recessed pulls and a sliding latch, kept within the center door rail. */
 .entry-gate-lock {
-  --lock-c: #ffb547;
+  --lock-c: #b49c62;
   position: absolute;
   left: 50%;
   top: 47%;
   z-index: 2;
-  width: clamp(144px, 9vw, 174px);
-  aspect-ratio: 160 / 124;
+  width: clamp(48px, 4.4vw, 74px);
+  aspect-ratio: 96 / 168;
   translate: -50% -50%;
   pointer-events: none;
 }
-.entry-gate.is-host-present .entry-gate-lock { --lock-c: var(--color-cyan-arcade); }
-.entry-gate.is-ready .entry-gate-lock { --lock-c: var(--color-phosphor); }
-.entry-gate-lock svg { display: block; width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 6px 8px #000b); }
-.gate-lock-glow { opacity: .35; transition: opacity .5s; }
-.entry-gate.is-ready .gate-lock-glow { opacity: .5; }
-.gate-lock-glow-stop { stop-color: var(--lock-c); transition: stop-color .4s; }
-.gate-lock-bolts { transition: transform .55s cubic-bezier(.5, 0, .2, 1) .2s; }
-.entry-gate.is-ready .gate-lock-bolts.is-left { transform: translateX(36px); }
-.entry-gate.is-ready .gate-lock-bolts.is-right { transform: translateX(-36px); }
-.gate-lock-led { fill: #16201a; stroke: #000; stroke-opacity: .5; stroke-width: .5; transition: fill .25s; }
-.gate-lock-led.is-lit,
-.entry-gate.is-host-present .gate-lock-led { fill: var(--lock-c); filter: drop-shadow(0 0 2px var(--lock-c)); }
-.entry-gate.is-host-waiting .gate-lock-led.is-next { animation: gate-lock-blink .8s steps(1) infinite; }
-.gate-lock-wheel { transform-box: fill-box; transform-origin: 50% 50%; transition: transform .8s cubic-bezier(.3, 1.35, .5, 1) .1s; }
-.entry-gate.is-ready .gate-lock-wheel { transform: rotate(60deg); }
-.gate-lock-core { fill: var(--lock-c); filter: drop-shadow(0 0 3px var(--lock-c)); transition: fill .4s; }
-.gate-lock-label { fill: color-mix(in srgb, var(--lock-c) 70%, #c8d0b8); font: 800 7px var(--font-mono); letter-spacing: .32em; text-anchor: middle; transition: opacity .3s, fill .4s; }
-.gate-lock-label.is-open,
-.entry-gate.is-ready .gate-lock-label.is-locked { opacity: 0; }
-.entry-gate.is-ready .gate-lock-label.is-open { opacity: 1; }
-/* Al abrir: el volante da la vuelta, cara y luz se apagan y cada mitad de la
-   placa se va con su hoja. */
-.entry-gate.is-opening .gate-lock-wheel { animation: gate-lock-turn .36s cubic-bezier(.5, 0, .7, .4) forwards; }
-.entry-gate.is-opening :is(.gate-lock-face, .gate-lock-glow, .gate-lock-label, .gate-lock-caption) { animation: gate-lock-fade .22s ease-in .18s forwards; }
-.entry-gate.is-opening .gate-lock-plate.is-left,
-.entry-gate.is-opening .gate-lock-bolts.is-left { animation: gate-lock-part-left .34s ease-in .24s forwards; }
-.entry-gate.is-opening .gate-lock-plate.is-right,
-.entry-gate.is-opening .gate-lock-bolts.is-right { animation: gate-lock-part-right .34s ease-in .24s forwards; }
-@keyframes gate-lock-blink { 50% { fill: var(--lock-c); } }
-@keyframes gate-lock-turn { from { transform: rotate(60deg); } to { transform: rotate(420deg); } }
-@keyframes gate-lock-fade { to { opacity: 0; } }
-@keyframes gate-lock-part-left { to { transform: translateX(-26px); opacity: 0; } }
-@keyframes gate-lock-part-right { to { transform: translateX(26px); opacity: 0; } }
+.entry-gate.is-host-present .entry-gate-lock { --lock-c: #79a69b; }
+.entry-gate.is-ready .entry-gate-lock { --lock-c: #8cc49e; }
+.entry-gate-lock svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.entry-gate-door.is-left > .entry-gate-lock { left: auto; right: 0; translate: 50% -50%; }
+.entry-gate-door.is-right > .entry-gate-lock { left: 0; }
+.gate-latch-light { fill: var(--lock-c); filter: drop-shadow(0 0 2px var(--lock-c)); transition: fill .5s; }
+.entry-gate.is-host-waiting .gate-latch-light { animation: gate-latch-breathe 2.4s ease-in-out infinite; }
+.entry-gate:is(.is-unlocking, .is-opening) .gate-latch-slider { animation: gate-latch-release .44s cubic-bezier(.35, 0, .2, 1) forwards; }
+.entry-gate:is(.is-unlocking, .is-opening) .gate-latch-light { animation: gate-latch-confirm .62s ease-out forwards; }
+.entry-gate.is-opening :is(.gate-latch-bridge, .gate-latch-status) { animation: gate-latch-fade .18s ease-in forwards; }
+@keyframes gate-latch-breathe { 50% { opacity: .35; } }
+@keyframes gate-latch-release {
+  0%, 12% { transform: translateX(0); }
+  72% { transform: translateX(-46px); }
+  100% { transform: translateX(-44px); }
+}
+@keyframes gate-latch-confirm { 35% { filter: drop-shadow(0 0 5px #b4ffcf); fill: #d6ffe3; } 100% { fill: #8cc49e; } }
+@keyframes gate-latch-fade { to { opacity: 0; } }
 
 /* Barra de carga del HUD -------------------------------------------------------
    24 segmentos que van de cian a verde segun su sitio (--t), el siguiente
@@ -1953,12 +1939,13 @@
   .gate-door-hinges { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .entry-gate.is-host-waiting .gate-lock-led.is-next,
+  .entry-gate.is-host-waiting .gate-latch-light,
   .entry-gate-signal-meter b.is-next,
   .entry-gate-signal.is-streaming .entry-gate-signal-heading > span > i,
-  .entry-gate.is-opening .gate-lock-wheel,
+  .entry-gate:is(.is-unlocking, .is-opening) .gate-latch-slider,
+  .entry-gate:is(.is-unlocking, .is-opening) .gate-latch-light,
   .entry-gate-enter::before,
   .entry-gate.is-armed .entry-gate-enter:not(:disabled)::after { animation: none; }
-  .gate-lock-bolts,
-  .gate-lock-wheel { transition: none; }
+  .gate-latch-light { transition: none; }
+  .entry-gate.is-opening :is(.gate-latch-mount, .gate-latch-bridge, .gate-latch-status) { animation: none; opacity: 0; }
 }

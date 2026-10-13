@@ -57,11 +57,14 @@ test("saves merge like the game: collections are unioned, stats keep the maximum
   assert.deepEqual(mergeSaves(merged, phone), merged, "merging again changes nothing");
 });
 
-test("runs are checked with the original anti-cheat limits", () => {
+test("runs are checked for nonsense, not for level or defeated caps", () => {
   assert.ok(validateRun({ mode: "s", t: 600, lv: 40, kills: 3000, dex: 25 }));
-  assert.equal(validateRun({ mode: "s", t: 600, lv: 200, kills: 10, dex: 25 }), null, "level too high for the time");
-  assert.equal(validateRun({ mode: "s", t: 60, lv: 5, kills: 5000, dex: 25 }), null, "too many defeated for the time");
-  assert.equal(validateRun({ mode: "s", t: 30_000, lv: 5, kills: 5, dex: 25 }), null, "longer than 6 h");
+  // Like the original since 2026-10-12, long runs (extra time from minute 60) aren't
+  // capped by level or defeated counts; only nonsense is refused. Duration is the run token's job.
+  assert.ok(validateRun({ mode: "s", t: 5400, lv: 1500, kills: 90_000, dex: 25 }), "a 90-minute run with extra time");
+  assert.equal(validateRun({ mode: "s", t: 600, lv: 0, kills: 10, dex: 25 }), null, "level 0");
+  assert.equal(validateRun({ mode: "s", t: 60, lv: 5, kills: -1, dex: 25 }), null, "negative defeated");
+  assert.equal(validateRun({ mode: "s", t: 90_000, lv: 5, kills: 5, dex: 25 }), null, "longer than a run token lives");
   assert.equal(validateRun({ mode: "s", t: 60, lv: 5, kills: 5, dex: 0 }), null, "unknown Pokémon");
   assert.equal(validateRun({ mode: "g", t: 60, lv: 5, kills: 5, members: [{ uid: "1", dex: 25 }] }), null, "a group needs two players");
   assert.equal(validateRun({ mode: "g", t: 60, lv: 5, kills: 5, members: [{ uid: "1", dex: 25 }, { uid: "1", dex: 4 }] }), null, "no duplicate players");

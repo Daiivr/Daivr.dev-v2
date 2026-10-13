@@ -4,7 +4,7 @@ import { getLocalBuddyLevel } from "../hooks/useBuddyFriendship";
 import { currentBuild } from "../lib/buildUpdate";
 import { consumeGateReturn } from "../lib/gateReturn";
 import { getHostAvailability } from "../lib/gateHost";
-import { getHostAvatar, MIKU_HOST_AVATAR } from "../lib/hostAvatar";
+import { hostById } from "../lib/hostAvatar";
 import { AvatarScenePlaceholder } from "./AvatarScenePlaceholder";
 import { BuddySprite } from "./BuddySprite";
 import { GatePatina } from "./GatePatina";
@@ -35,6 +35,7 @@ const LINE_HOLD = 1800;
 const FAST_LINE_HOLD = 1300;
 // Shared with CSS so the overlay stays mounted through the entire reveal.
 const GATE_OPEN_MS = 1200;
+const GATE_UNLOCK_MS = 620;
 // A slow/offline host must not trap visitors outside. This timeout unlocks
 // the entrance only; speech still waits for a visible host.
 const HOST_PATIENCE_MS = 9000;
@@ -91,22 +92,40 @@ function buildReturnLines({ gateReturn, hostName, linked, visitorName }) {
   ];
 }
 
-function buildScript({ gateReturn, hostName, linked, mikuHost, seasonalEvent, visitorName }) {
-  const lines = gateReturn
-    ? buildReturnLines({ gateReturn, hostName, linked, visitorName })
-    : mikuHost
-      ? [linked ? `oh — ${visitorName}! miku here.` : "oh — hey! i'm miku."]
-      : linked
-        ? [`oh — ${visitorName}!`, "discord pass checks out. good to have you back."]
-        : ["oh — hey. didn't hear you walk up.", `i'm ${hostName}. i keep dai's cabinet running.`];
-
-  if (mikuHost) {
-    if (gateReturn) lines.push("miku here, by the way. a little change of host.");
-    lines.push(
-      "since you unlocked buddy's miku costume, i'll be your host whenever you equip it!",
-      "unequip it and your usual host will be back."
-    );
+// Lo propio de cada anfitriona: como saluda (con o sin pase de Discord), como
+// se presenta y que dice cuando llega desde el selector HOST de la barra.
+const HOST_LINES = {
+  original: {
+    swap: ["oh — you rang?", "neko, back on the door. the cabinet missed its usual host."]
+  },
+  miku: {
+    hello: (name) => name ? `oh — ${name}! miku here.` : "oh — hey! i'm miku.",
+    intro: [],
+    swap: ["miku, reporting for gate duty!", "i'll be the one waiting out here from now on."]
+  },
+  komoe: {
+    hello: (name) => name ? `oh — ${name}! komoe here.` : "oh — hi! i'm komoe.",
+    intro: ["you brought me home from the woodland market, so the gate's my job now."],
+    swap: ["oh! you picked me.", "five thousand coins at the woodland market. i'll make them count.", "i'll keep the door for you from now on."]
+  },
+  // En pantallas estrechas no hay escena 3D: la puerta la guarda Buddy.
+  buddy: {
+    swap: ["beep! new host on the roster.", "she says hi on bigger screens. i've got the door here."]
   }
+};
+const HOST_SWITCH_HINT = "want someone else at the door? there's a host switch up in the top bar.";
+
+function buildScript({ gateReturn, hostId, hostName, linked, seasonalEvent, visitorName }) {
+  const voice = HOST_LINES[hostId];
+  const lines = gateReturn?.variant === "host"
+    ? [...(voice?.swap ?? HOST_LINES.original.swap)]
+    : gateReturn
+      ? buildReturnLines({ gateReturn, hostName, linked, visitorName })
+      : voice?.hello
+        ? [voice.hello(linked ? visitorName : ""), ...voice.intro, HOST_SWITCH_HINT]
+        : linked
+          ? [`oh — ${visitorName}!`, "discord pass checks out. good to have you back."]
+          : ["oh — hey. didn't hear you walk up.", `i'm ${hostName}. i keep dai's cabinet running.`];
 
   if (!gateReturn) {
     lines.push(linked
@@ -125,14 +144,15 @@ function buildScript({ gateReturn, hostName, linked, mikuHost, seasonalEvent, vi
 // se pinta antes desde el chunk de entrada, pero no deja pasar hasta entonces, y
 // el buddy no sale hasta tener su equipo (lo sabe App) para no cambiarse de ropa
 // a la vista.
-export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [], returnContext = null, cabinetReady = true, hostLoadoutReady = cabinetReady }) {
+export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [], hostId = "original", returnContext = null, cabinetReady = true, hostLoadoutReady = cabinetReady }) {
   // Bajo 800px no se monta la escena 3D: ahi el anfitrion es Buddy, el mismo
   // sprite que luego vive en el footer.
   const [compact, setCompact] = useState(() => window.matchMedia("(max-width: 800px)").matches);
   const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const [discordUser, setDiscordUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const avatarUrl = getHostAvatar({ unlockedGear, hiddenGear });
+  const host = hostById(hostId);
+  const avatarUrl = host.url;
   const [avatarState, setAvatarState] = useState(() => ({ url: avatarUrl, stage: "loading", progress: 0 }));
   const hostStage = avatarState.url === avatarUrl ? avatarState.stage : "loading";
   const avatarProgress = avatarState.url === avatarUrl ? avatarState.progress : 0;
@@ -146,6 +166,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   const [lineIndex, setLineIndex] = useState(0);
   const [typed, setTyped] = useState(0);
   const [opening, setOpening] = useState(false);
+  const [unlocking, setUnlocking] = useState(false);
   const [lampOn, setLampOn] = useState(true);
   const [buddyLevel] = useState(() => getLocalBuddyLevel());
   const [fastBoot] = useState(() => {
@@ -162,6 +183,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   const perchRef = useRef(null);
   const typeTimerRef = useRef(0);
   const openTimerRef = useRef(0);
+  const enteringRef = useRef(false);
 
   // Reset before painting so the new host starts her own greeting, and the
   // previous model's readiness cannot reveal speech during the replacement.
@@ -172,11 +194,12 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   }
 
   const visitorName = discordUser?.username || "guest";
-  const mikuHost = !compact && avatarUrl === MIKU_HOST_AVATAR;
-  const hostName = compact ? "buddy" : mikuHost ? "miku" : "the host";
+  // En movil la anfitriona es Buddy y nunca se monta el VRM.
+  const speakerId = compact ? "buddy" : host.id;
+  const hostName = compact ? "buddy" : host.speaker;
   const script = useMemo(
-    () => buildScript({ gateReturn, hostName, linked: Boolean(discordUser), mikuHost, seasonalEvent, visitorName }),
-    [discordUser, gateReturn, hostName, mikuHost, seasonalEvent, visitorName]
+    () => buildScript({ gateReturn, hostId: speakerId, hostName, linked: Boolean(discordUser), seasonalEvent, visitorName }),
+    [discordUser, gateReturn, hostName, seasonalEvent, speakerId, visitorName]
   );
 
   const { present: hostPresent, canProceed: hostCanProceed } = getHostAvailability({ compact, buddyAwake, cabinetReady, hostStage, hostOverdue });
@@ -187,7 +210,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   const scriptDone = talking && lastLine && lineComplete;
   // Keep the timeout/error escape route separate from the speech readiness.
   const gateReady = authChecked && hostCanProceed && cabinetReady;
-  const canEnter = gateReady && !opening;
+  const canEnter = gateReady && !opening && !unlocking;
 
   useEffect(() => {
     if (returnReadRef.current) return;
@@ -324,31 +347,43 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   }, [lastLine, line.length, lineComplete, talking]);
 
   const requestEnter = useCallback(() => {
-    if (!canEnter) return;
-
-    window.dispatchEvent(new CustomEvent("daivr-splash-enter"));
-
-    const perchRect = perchRef.current?.getBoundingClientRect();
-    const hostRect = hostRef.current?.getBoundingClientRect();
-    const perchedBuddyIsVisible = perchRect && perchRect.width > 0 && perchRect.height > 0;
-    onBuddyLaunch?.({
-      x: perchedBuddyIsVisible
-        ? perchRect.left
-        : hostRect
-          ? hostRect.left + hostRect.width * 0.68
-          : window.innerWidth * 0.68,
-      y: perchedBuddyIsVisible
-        ? perchRect.top
-        : hostRect
-          ? Math.max(16, hostRect.top + 20)
-          : 20
-    });
-
-    setOpening(true);
+    if (!canEnter || enteringRef.current) return;
+    enteringRef.current = true;
     window.clearInterval(typeTimerRef.current);
     window.clearTimeout(openTimerRef.current);
-    openTimerRef.current = window.setTimeout(onEnter, reducedMotion ? 220 : GATE_OPEN_MS);
-  }, [canEnter, onBuddyLaunch, onEnter, reducedMotion]);
+
+    const openDoors = () => {
+      setUnlocking(false);
+      window.dispatchEvent(new CustomEvent("daivr-splash-enter"));
+
+      const perchRect = perchRef.current?.getBoundingClientRect();
+      const hostRect = hostRef.current?.getBoundingClientRect();
+      const perchedBuddyIsVisible = perchRect && perchRect.width > 0 && perchRect.height > 0;
+      onBuddyLaunch?.({
+        x: perchedBuddyIsVisible
+          ? perchRect.left
+          : hostRect
+            ? hostRect.left + hostRect.width * 0.68
+            : window.innerWidth * 0.68,
+        y: perchedBuddyIsVisible
+          ? perchRect.top
+          : hostRect
+            ? Math.max(16, hostRect.top + 20)
+            : 20
+      });
+
+      setOpening(true);
+      openTimerRef.current = window.setTimeout(onEnter, reducedMotion ? 220 : GATE_OPEN_MS);
+    };
+
+    // Let the bolt finish retracting before any of the splash clears away.
+    // Compact layouts have no latch; reduced motion keeps the short fade.
+    if (compact || reducedMotion) openDoors();
+    else {
+      setUnlocking(true);
+      openTimerRef.current = window.setTimeout(openDoors, GATE_UNLOCK_MS);
+    }
+  }, [canEnter, compact, onBuddyLaunch, onEnter, reducedMotion]);
 
   useEffect(() => {
     function enterOnKey(event) {
@@ -377,12 +412,12 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   const buttonLabel = gateReady ? "open the gate" : "warming up";
   const buttonHint = !gateReady
     ? (streaming ? "linking host" : cabinetReady ? "stand by" : "loading cabinet")
-    : opening ? "gate opening" : "press enter";
+    : unlocking ? "releasing latch" : opening ? "gate opening" : "press enter";
   const moreToSay = talking && (!lineComplete || !lastLine);
 
   return (
     <div
-      className={`entry-gate ${compact ? "is-compact" : "is-immersive"} ${opening ? "is-opening" : ""} ${gateReady ? "is-ready" : ""} ${scriptDone ? "is-armed" : ""} ${hostPresent ? "is-host-present" : "is-host-waiting"} ${lampOn ? "is-lamp-on" : "is-lamp-off"}`}
+      className={`entry-gate ${compact ? "is-compact" : "is-immersive"} ${unlocking ? "is-unlocking" : ""} ${opening ? "is-opening" : ""} ${gateReady ? "is-ready" : ""} ${scriptDone ? "is-armed" : ""} ${hostPresent ? "is-host-present" : "is-host-waiting"} ${lampOn ? "is-lamp-on" : "is-lamp-off"}`}
       style={{ "--gate-open-duration": `${GATE_OPEN_MS}ms` }}
       role="dialog"
       aria-modal="true"
@@ -399,13 +434,13 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
       </div>
 
       <div className="entry-gate-doors" aria-hidden="true">
-        {["left", "right"].map(side => <i key={side} className={`entry-gate-door is-${side}`}><i className="entry-gate-door-shade" /><i className="entry-gate-door-texture" /><span className="entry-gate-door-hardware"><i/><i/><i/><i/><span className="gate-door-vent"/><span className="gate-door-hazard"/><span className="gate-door-rivets"/></span><GateHinges /><GatePatina side={side} seasonalEvent={seasonalEvent} /></i>)}
+        {["left", "right"].map(side => <i key={side} className={`entry-gate-door is-${side}`}><i className="entry-gate-door-shade" /><i className="entry-gate-door-texture" /><span className="entry-gate-door-hardware"><i/><i/><i/><i/><span className="gate-door-vent"/><span className="gate-door-hazard"/><span className="gate-door-rivets"/></span><GateHinges /><GateLock side={side} /><GatePatina side={side} seasonalEvent={seasonalEvent} /></i>)}
         <i className="entry-gate-seam" />
-        <GateLock progress={signalProgress} />
+        <GateLock />
       </div>
 
       <div className="entry-gate-room-light" aria-hidden="true" />
-      <GateLamp on={lampOn} onToggle={() => setLampOn((value) => !value)} disabled={opening} reducedMotion={reducedMotion} />
+      <GateLamp on={lampOn} onToggle={() => setLampOn((value) => !value)} disabled={opening || unlocking} reducedMotion={reducedMotion} />
 
       {seasonalEvent ? (
         // Decorado estacional del splash: el evento se ve desde la puerta.
@@ -492,10 +527,10 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
               type="button"
               onClick={requestEnter}
               disabled={!canEnter}
-              aria-label={canEnter ? "Open the gate and enter the Dai.exe portfolio" : "The host is still arriving"}
+              aria-label={unlocking ? "Unlocking the gate" : opening ? "Opening the gate" : canEnter ? "Open the gate and enter the Dai.exe portfolio" : "The host is still arriving"}
             >
               <span>
-                <strong>{opening ? "opening..." : buttonLabel}</strong>
+                <strong>{unlocking ? "unlocking..." : opening ? "opening..." : buttonLabel}</strong>
                 <small>{gateReady && !opening ? <><kbd>Enter</kbd><span>to step inside</span></> : buttonHint}</small>
               </span>
               <ArrowRight aria-hidden="true" size={20} />
@@ -523,6 +558,8 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
             <Suspense fallback={<AvatarScenePlaceholder displayName={visitorName} />}>
               {hostLoadoutReady ? <AvatarGreeting
                 avatarUrl={avatarUrl}
+                scale={host.scale}
+                headroom={host.headroom}
                 active={!opening}
                 lampOn={lampOn}
                 displayName={visitorName}

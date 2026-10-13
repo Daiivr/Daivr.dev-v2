@@ -2,12 +2,12 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { VRMLoaderPlugin, VRMUtils } from "@pixiv/three-vrm";
 import { createVRMAnimationClip, VRMAnimationLoaderPlugin } from "@pixiv/three-vrm-animation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { warmAvatarResources, yieldAvatarWork } from "../lib/avatarWarmup";
 import { observeAvatarVisibility } from "../lib/gateHost";
-import { DEFAULT_HOST_AVATAR, MIKU_HOST_AVATAR } from "../lib/hostAvatar";
+import { DEFAULT_HOST_AVATAR } from "../lib/hostAvatar";
 import { advanceAvatarProgress, avatarDownloadProgress, AVATAR_DOWNLOAD_PROGRESS } from "../lib/avatarProgress";
 
 const GREETING_URL = "/motions/greeting.vrma";
@@ -35,7 +35,30 @@ const CAMERA_DISTANCE = 3.61;
 const CAMERA_HEIGHT = 1.24;
 const CAMERA_TARGET_Y = 1.1;
 
-function AvatarRig({ avatarUrl, active, onError, onPhaseChange, onProgress, onReady, onReveal, reducedMotion }) {
+// Lienzo extra por encima de la anfitriona (headroom, fraccion de su altura).
+// El canvas crece hacia arriba (--avatar-headroom en entry-gate.css) y la camara
+// amplia el encuadre solo por arriba: fov mayor + view offset que recorta la
+// parte de abajo sobrante. El tramo original sale identico, asi que ella no
+// cambia de tamano ni de sitio y la burbuja sigue en su cara.
+function CameraHeadroom({ headroom }) {
+  const camera = useThree((state) => state.camera);
+  const invalidate = useThree((state) => state.invalidate);
+  useLayoutEffect(() => {
+    if (!headroom) return undefined;
+    const halfSpan = Math.tan(THREE.MathUtils.degToRad(CAMERA_FOV / 2));
+    const kept = (1 + headroom) / (1 + 2 * headroom);
+    camera.fov = THREE.MathUtils.radToDeg(2 * Math.atan(halfSpan * (1 + 2 * headroom)));
+    camera.setViewOffset(1, 1, (1 - kept) / 2, 0, kept, kept);
+    invalidate();
+    return () => {
+      camera.fov = CAMERA_FOV;
+      camera.clearViewOffset();
+    };
+  }, [camera, headroom, invalidate]);
+  return null;
+}
+
+function AvatarRig({ avatarUrl, active, onError, onPhaseChange, onProgress, onReady, onReveal, reducedMotion, scale }) {
   const { camera, gl, scene } = useThree();
   const [vrm, setVrm] = useState(null);
   const idleGroupRef = useRef(null);
@@ -283,8 +306,8 @@ function AvatarRig({ avatarUrl, active, onError, onPhaseChange, onProgress, onRe
 
   if (!vrm) return null;
   return (
-    // Miku's rig is shorter; match the original host's framing and speech height.
-    <group ref={idleGroupRef} position={[0, -0.05, 0]} scale={avatarUrl === MIKU_HOST_AVATAR ? 1.18 : 1}>
+    // Each host is scaled to the original's height (lib/hostAvatar.js) to keep the framing and speech height.
+    <group ref={idleGroupRef} position={[0, -0.05, 0]} scale={scale}>
       <primitive object={vrm.scene} dispose={null} />
     </group>
   );
@@ -296,7 +319,7 @@ export function AvatarGreeting({ avatarUrl = DEFAULT_HOST_AVATAR, ...props }) {
   return <AvatarGreetingScene key={avatarUrl} avatarUrl={avatarUrl} {...props} />;
 }
 
-function AvatarGreetingScene({ avatarUrl, active, displayName, onLoadProgress, onStage, lampOn = true }) {
+function AvatarGreetingScene({ avatarUrl, active, displayName, onLoadProgress, onStage, lampOn = true, scale = 1, headroom = 0 }) {
   const [status, setStatus] = useState("loading");
   const [motionPhase, setMotionPhase] = useState("concealed");
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -350,7 +373,7 @@ function AvatarGreetingScene({ avatarUrl, active, displayName, onLoadProgress, o
   }, [stage]);
 
   return (
-    <div ref={sceneElementRef} className={`entry-avatar-scene is-${status} is-${motionPhase} ${revealed ? "is-revealed" : ""}`} aria-label={`3D avatar greeting ${displayName}`} role="img">
+    <div ref={sceneElementRef} className={`entry-avatar-scene is-${status} is-${motionPhase} ${revealed ? "is-revealed" : ""}`} style={headroom ? { "--avatar-headroom": headroom } : undefined} aria-label={`3D avatar greeting ${displayName}`} role="img">
       <Canvas
         camera={{ fov: CAMERA_FOV, near: 0.1, far: 20, position: [0, CAMERA_HEIGHT, CAMERA_DISTANCE] }}
         dpr={[1, 1.5]}
@@ -366,6 +389,7 @@ function AvatarGreetingScene({ avatarUrl, active, displayName, onLoadProgress, o
         <directionalLight color="#f4fff8" intensity={lampOn ? .45 : 0} position={[1.5, 3.6, 3]} />
         <directionalLight color="#45d8ff" intensity={lampOn ? 1.35 : 1.2} position={[-3, 2.2, 1]} />
         <pointLight color="#ff3d9d" intensity={lampOn ? 3.5 : 3} position={[2, 1.25, 0.3]} distance={4.5} />
+        <CameraHeadroom headroom={headroom} />
         <AvatarRig
           avatarUrl={avatarUrl}
           active={active}
@@ -375,6 +399,7 @@ function AvatarGreetingScene({ avatarUrl, active, displayName, onLoadProgress, o
           onReady={() => setStatus("ready")}
           onReveal={() => setRevealed(true)}
           reducedMotion={reducedMotion}
+          scale={scale}
         />
       </Canvas>
     </div>
