@@ -181,7 +181,7 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
   // Cualquier vista que no sea la biblioteca es un juego abierto en su tele.
   const playingGame = Boolean(konamiView) && konamiView !== "library";
   const shellClass = `${theme === "glitch" ? "theme-glitch" : ""} ${isLaunching ? "is-launching" : ""} ${powerOutage ? `has-power-outage outage-${powerOutage}` : ""} ${seasonalEvent ? `season-${seasonalEvent}` : ""}`;
-  const gateBridgeKey = JSON.stringify([seasonalEvent, friendship.level, adventure.inventoryIds, loadout.effectiveHiddenGear, loadout.unlockedGearIds]);
+  const gateBridgeKey = JSON.stringify([seasonalEvent, friendship.level, adventure.inventoryIds, loadout.effectiveHiddenGear, loadout.unlockedGearIds, loadout.ready]);
 
   useLayoutEffect(() => {
     onShellClass?.(shellClass);
@@ -196,6 +196,7 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
       inventory: adventure.inventoryIds,
       hiddenGear: loadout.effectiveHiddenGear,
       unlockedGear: loadout.unlockedGearIds,
+      hostLoadoutReady: loadout.ready,
       launchBuddy: setBuddyDrop
     });
   }, [gateBridgeKey, onGateBridge]); // eslint-disable-line react-hooks/exhaustive-deps

@@ -235,6 +235,7 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
   // inicializador, no en un efecto, para no re-renderizar el arbol entero
   // nada mas montar. readState ya cae a createInitialState si no hay nada.
   const [state, setState] = useState(readState);
+  const [ready, setReady] = useState(false);
   const stateRef = useRef(state);
   const onQuestCompleteRef = useRef(onQuestComplete);
   const storageKeyRef = useRef(STORAGE_KEY);
@@ -290,6 +291,8 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
         window.dispatchEvent(new Event("daivr-player-progress"));
       } catch {
         // Offline and guest sessions keep using their isolated local save.
+      } finally {
+        if (!cancelled) setReady(true);
       }
     }
 
@@ -447,6 +450,7 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
 
   return {
     quests,
+    ready,
     journalComplete: isBuddyJournalComplete(state),
     completeJournalForTesting: import.meta.env.DEV && ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname) ? () => {
       apply((current) => {

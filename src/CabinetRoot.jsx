@@ -74,6 +74,7 @@ function CabinetShell() {
         <EntrySplash
           key={gateRevision}
           cabinetReady={Boolean(bridge)}
+          hostLoadoutReady={bridge?.hostLoadoutReady ?? false}
           returnContext={gateReturn}
           onBuddyLaunch={launchBuddy}
           onEnter={enterCabinet}

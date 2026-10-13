@@ -126,6 +126,7 @@ export function slotForGear(id) {
 
 export function useBuddyLoadout({ friendship, adventure }) {
   const [hiddenGear, setHiddenGear] = useState(() => readHiddenGear());
+  const [ready, setReady] = useState(false);
   const [adminUnlock, setAdminUnlock] = useState(false);
   const hiddenGearRef = useRef(hiddenGear);
   const storageKeyRef = useRef(GEAR_STORAGE_KEY);
@@ -180,6 +181,8 @@ export function useBuddyLoadout({ friendship, adventure }) {
         });
       } catch {
         // The local loadout remains usable while offline.
+      } finally {
+        if (!cancelled) setReady(true);
       }
     }
 
@@ -337,6 +340,7 @@ export function useBuddyLoadout({ friendship, adventure }) {
 
   return {
     activeGearCount,
+    ready: ready && adventure.ready,
     effectiveHiddenGear,
     equipGear,
     gearItems,

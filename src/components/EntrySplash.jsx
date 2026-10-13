@@ -125,7 +125,7 @@ function buildScript({ gateReturn, hostName, linked, mikuHost, seasonalEvent, vi
 // se pinta antes desde el chunk de entrada, pero no deja pasar hasta entonces, y
 // el buddy no sale hasta tener su equipo (lo sabe App) para no cambiarse de ropa
 // a la vista.
-export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [], returnContext = null, cabinetReady = true }) {
+export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [], returnContext = null, cabinetReady = true, hostLoadoutReady = cabinetReady }) {
   // Bajo 800px no se monta la escena 3D: ahi el anfitrion es Buddy, el mismo
   // sprite que luego vive en el footer.
   const [compact, setCompact] = useState(() => window.matchMedia("(max-width: 800px)").matches);
@@ -521,14 +521,14 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
           ) : (
             <>
             <Suspense fallback={<AvatarScenePlaceholder displayName={visitorName} />}>
-              <AvatarGreeting
+              {hostLoadoutReady ? <AvatarGreeting
                 avatarUrl={avatarUrl}
                 active={!opening}
                 lampOn={lampOn}
                 displayName={visitorName}
-                onLoadProgress={(progress) => setAvatarState((current) => ({ ...current, progress }))}
-                onStage={(stage) => setAvatarState((current) => ({ ...current, stage }))}
-              />
+                onLoadProgress={(progress) => setAvatarState((current) => current.url === avatarUrl ? { ...current, progress } : current)}
+                onStage={(stage) => setAvatarState((current) => current.url === avatarUrl ? { ...current, stage } : current)}
+              /> : <AvatarScenePlaceholder displayName={visitorName} />}
             </Suspense>
             </>
           )}

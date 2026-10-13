@@ -8,6 +8,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { warmAvatarResources, yieldAvatarWork } from "../lib/avatarWarmup";
 import { observeAvatarVisibility } from "../lib/gateHost";
 import { DEFAULT_HOST_AVATAR, MIKU_HOST_AVATAR } from "../lib/hostAvatar";
+import { advanceAvatarProgress, avatarDownloadProgress, AVATAR_DOWNLOAD_PROGRESS } from "../lib/avatarProgress";
 
 const GREETING_URL = "/motions/greeting.vrma";
 const REVEAL_TIME = 1.82;
@@ -16,7 +17,7 @@ const REVEAL_TIME = 1.82;
 // escena y el arranque oculto de la animacion — asi que el contador llegaba al
 // final y el anfitrion tardaba segundos en aparecer. Ahora cada tramo tiene su
 // peso y el 100% cae exactamente cuando el avatar se ve.
-const PROGRESS_DOWNLOAD = 82;
+const PROGRESS_DOWNLOAD = AVATAR_DOWNLOAD_PROGRESS;
 const PROGRESS_READY = 98;
 const WAVE_LOOP_START = 5.33;
 const WAVE_LOOP_END = 6.53;
@@ -86,12 +87,12 @@ function AvatarRig({ avatarUrl, active, onError, onPhaseChange, onProgress, onRe
 
     async function loadAvatarAndGreeting() {
       try {
-        // El VRM es el 94% de la descarga: su progreso alimenta el medidor
-        // AVATAR LINK para que la espera deje de ser una barra inventada.
+        // Reserve the final portion for GPU preparation and the entrance.
         const [avatarGltf, animationGltf] = await Promise.all([
           avatarLoader.loadAsync(avatarUrl, (event) => {
-            if (disposed || !event.lengthComputable || !event.total) return;
-            onProgressRef.current?.((event.loaded / event.total) * PROGRESS_DOWNLOAD);
+            if (disposed) return;
+            const progress = avatarDownloadProgress(event);
+            if (progress !== null) onProgressRef.current?.(progress);
           }),
           animationLoader.loadAsync(GREETING_URL)
         ]);
@@ -312,7 +313,7 @@ function AvatarGreetingScene({ avatarUrl, active, displayName, onLoadProgress, o
   // El loader emite un evento por chunk; solo re-renderizamos cuando cambia el
   // entero que se pinta, para no repintar la escena decenas de veces por segundo.
   function reportProgress(value) {
-    const percent = Math.round(value);
+    const percent = advanceAvatarProgress(reportedPercentRef.current, value);
     if (percent === reportedPercentRef.current) return;
     reportedPercentRef.current = percent;
     onLoadProgressRef.current?.(percent);
