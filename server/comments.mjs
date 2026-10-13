@@ -6,6 +6,7 @@ import { canReply, resolveMentions } from "../shared/comment-mentions.mjs";
 import { readJsonStore, writeJsonStore } from "./json-store.mjs";
 import { assertSessionConfiguration, readJsonBody, sameOrigin } from "./http-guards.mjs";
 import { reserveCommentPost } from "./comment-posting.mjs";
+import { rememberReactionUser, resolveReactionUsers } from "./comment-reactions.mjs";
 import { buildInbox, markInboxRead } from "./community-inbox.mjs";
 import { canProxyGif, normalizeGifUrl, updateGifFavorites } from "../shared/comment-gifs.mjs";
 import { downloadCommentGif } from "./comment-gif-download.mjs";
@@ -409,8 +410,10 @@ async function publicComments(request) {
 }
 
 async function getCommentsPayload(request) {
+  const comments = await publicComments(request);
   return {
-    comments: await publicComments(request),
+    comments,
+    reactionUsers: await resolveReactionUsers(comments, getUser(request), hydrateAuthor),
     inbox: buildInbox(readComments(), getUser(request)),
     reactions: DEFAULT_REACTIONS,
     auth: getAuthStatus(request)
@@ -772,6 +775,7 @@ async function handleReaction(request, response, id) {
   if (current.length) reactions[reaction] = current;
   else delete reactions[reaction];
   comment.reactions = reactions;
+  rememberReactionUser(comment, user);
   writeComments(comments);
   await broadcastComments("comments:reaction");
   sendJson(response, 200, { comment, ...(await getCommentsPayload(request)) });
@@ -812,6 +816,7 @@ async function handleReplyReaction(request, response, commentId, replyId) {
   if (current.length) reactions[reaction] = current;
   else delete reactions[reaction];
   reply.reactions = reactions;
+  rememberReactionUser(reply, user);
   writeComments(comments);
   await broadcastComments("comments:reaction");
   sendJson(response, 200, { reply, ...(await getCommentsPayload(request)) });

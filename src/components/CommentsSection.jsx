@@ -1,8 +1,6 @@
 import {
   AtSign,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   ChevronUp,
   CornerDownRight,
   Heart,
@@ -28,6 +26,8 @@ import { CommentMentionInput } from "./CommentMentionInput";
 import { canReply, findMentionRanges, isMentioned, mentionCandidates, mentionPattern, mentionsInText, withMentionText } from "../../shared/comment-mentions.mjs";
 import { NotificationsBell } from "./NotificationsBell";
 import { CommentAdminBadge } from "./CommentAdminBadge";
+import { CommentReaction } from "./CommentReaction";
+import { CommentsPagination } from "./CommentsPagination";
 import { CommentGifDialog, CommentGifViewer } from "./CommentGifViewer";
 import { useCommentGifFavorites } from "../hooks/useCommentGifFavorites";
 import { useModalPresence } from "../hooks/useModalPresence";
@@ -481,6 +481,7 @@ export function CommentsSection() {
   const buddyTypingNotifiedRef = useRef(false);
   const [comments, setComments] = useState([]);
   const [reactions, setReactions] = useState(FALLBACK_REACTIONS);
+  const [reactionUsers, setReactionUsers] = useState({});
   const [auth, setAuth] = useState({ configured: false, user: null, loginUrl: "/api/comments/auth/discord", logoutUrl: "/api/comments/auth/logout" });
   const [draft, setDraft] = useState("");
   const [draftGif, setDraftGif] = useState("");
@@ -609,6 +610,7 @@ export function CommentsSection() {
     if (payload.inbox) { setInbox(payload.inbox); window.dispatchEvent(new CustomEvent("daivr-inbox", { detail: payload.inbox })); }
     if (payload.auth) setAuth((current) => ({ ...current, ...payload.auth }));
     if (Array.isArray(payload.reactions) && payload.reactions.length) setReactions(payload.reactions);
+    if (payload.reactionUsers) setReactionUsers(payload.reactionUsers);
   }
 
   async function loadComments() {
@@ -1177,13 +1179,13 @@ export function CommentsSection() {
         {reactionEntries.map(([reactionId, ids]) => {
           const reaction = getReactionAsset(reactionId);
           const mine = !!auth.user && ids.includes(auth.user.id);
-          const isHeart = reactionId === "sparkle-heart" || reactionId === "heart-eyes";
           const reactionKey = `${targetKey}:${reactionId}`;
+          const users = ids.map((id) => ({
+            ...(reactionUsers[id] || { id, username: "Unknown user", avatarUrl: "" }),
+            isYou: id === auth.user?.id
+          }));
           return (
-            <button className={`reaction-chip has-tooltip ${mine ? "is-mine" : ""} ${isHeart ? "is-heart" : ""}`} data-tooltip={mine ? `Remove ${reaction.label} reaction.` : `React with ${reaction.label}.`} type="button" key={reactionId} onClick={() => toggleReaction(commentId, reactionId, replyId)} disabled={!!reactionBusyId && reactionBusyId !== reactionKey}>
-              {reaction.src ? <img className="reaction-emoji" src={reaction.src} alt="" aria-hidden="true" width="96" height="96" decoding="async" /> : <span className="reaction-emoji">{reaction.label}</span>}
-              <b>{ids.length}</b>
-            </button>
+            <CommentReaction key={reactionId} reaction={{ ...reaction, id: reactionId }} users={users} mine={mine} onReact={() => toggleReaction(commentId, reactionId, replyId)} disabled={!!reactionBusyId && reactionBusyId !== reactionKey} />
           );
         })}
         <div className="reaction-picker-wrapper">
@@ -1590,36 +1592,7 @@ export function CommentsSection() {
           ) : null}
 
           {regularComments.length > COMMENTS_PER_PAGE ? (
-            <nav className="comments-pagination" aria-label="Comment pages">
-              <span>
-                page {currentPage} / {totalPages}
-                <b>{regularComments.length} regular comments</b>
-              </span>
-              <div>
-                <button
-                  className="has-tooltip"
-                  data-tooltip="Previous comment page."
-                  type="button"
-                  onClick={() => setPage((current) => Math.max(1, current - 1))}
-                  disabled={currentPage === 1}
-                  aria-label="Previous comments page"
-                >
-                  <ChevronLeft size={15} aria-hidden="true" />
-                  prev
-                </button>
-                <button
-                  className="has-tooltip"
-                  data-tooltip="Next comment page."
-                  type="button"
-                  onClick={() => setPage((current) => Math.min(totalPages, current + 1))}
-                  disabled={currentPage === totalPages}
-                  aria-label="Next comments page"
-                >
-                  next
-                  <ChevronRight size={15} aria-hidden="true" />
-                </button>
-              </div>
-            </nav>
+            <CommentsPagination currentPage={currentPage} totalPages={totalPages} totalComments={regularComments.length} pageSize={COMMENTS_PER_PAGE} pinnedCount={pinnedComments.length} onPageChange={setPage} />
           ) : null}
         </div>
         <footer className="comments-channel-footer"><span role={auth.user ? undefined : "status"}><i aria-hidden="true" />{auth.user ? `guestbook stream ${streamState}` : status}</span><span>{String(comments.length).padStart(2, "0")} SIGNALS STORED</span></footer>
