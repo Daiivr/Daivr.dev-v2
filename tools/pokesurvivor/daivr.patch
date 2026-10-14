@@ -1341,7 +1341,7 @@ index 23adbb8..6bf5951 100644
 +  'La partida ha terminado: el anfitrión ha dejado el grupo': 'The match ended: the host left the party'
  });
 diff --git a/js/entities/enemy.js b/js/entities/enemy.js
-index f0d2efc..326d8b9 100644
+index f0d2efc..97efda9 100644
 --- a/js/entities/enemy.js
 +++ b/js/entities/enemy.js
 @@ -677,11 +677,32 @@
@@ -1403,7 +1403,10 @@ index f0d2efc..326d8b9 100644
  
 -      // Escudo: burbuja azul.
 -      if (this.shield > 0 || (this.net && this.net.st & 4)) {
--        ctx.save();
++      // Motas que suben por el aura del escudo; brasas o burbujas si está
++      // quemado o envenenado (todo en la cuadrícula de píxeles de arte).
++      if (shielded || status) {
+         ctx.save();
 -        ctx.globalAlpha = 0.35 + Math.sin(this.bob) * 0.08;
 -        ctx.strokeStyle = '#9fd8ff'; ctx.lineWidth = 2;
 -        ctx.fillStyle = 'rgba(127,200,255,.14)';
@@ -1413,10 +1416,7 @@ index f0d2efc..326d8b9 100644
 -      }
 -
 -      if (this.burn > 0 || this.poison > 0 || (this.net && this.net.st & 3)) {
-+      // Motas que suben por el aura del escudo; brasas o burbujas si está
-+      // quemado o envenenado (todo en la cuadrícula de píxeles de arte).
-+      if (shielded || status) {
-         ctx.save();
+-        ctx.save();
 -        ctx.globalAlpha = 0.45;
 -        ctx.fillStyle = this.burn > 0 || (this.net && this.net.st & 1) ? '#ff8a3d' : '#c86bdc';
 -        ctx.beginPath(); ctx.ellipse(this.x, this.y, this.r * 1.2, this.r * 0.5, 0, 0, 6.2832); ctx.fill();
@@ -1461,7 +1461,26 @@ index f0d2efc..326d8b9 100644
        }
      }
    }
-@@ -956,7 +995,29 @@
+@@ -776,11 +815,15 @@
+       list = []; corpses = [];
+     }
+ 
+-    /** Al volver: quita los de la arena y devuelve los del mapa (avisando a los demás). */
+-    function restore() {
++    /**
++     * Al volver: quita los de la arena y devuelve los del mapa (avisando a los demás).
++     * @param place  daivr.dev: se llama con cada uno antes de devolverlo (para
++     *               apartarlo de donde vuelven los jugadores); false = no vuelve.
++     */
++    function restore(place) {
+       for (const e of list) { byId.delete(e.id); if (G.Coop.isHost) G.Coop.enemyGone(e, false); }
+       list = []; corpses = [];
+-      for (const e of stashed || []) add(e);
++      for (const e of stashed || []) if (!place || place(e) !== false) add(e);
+       stashed = null;
+     }
+ 
+@@ -956,7 +999,29 @@
      function bossAlive() { return list.some(e => e.boss && !e.dead); }
      function shinies() { return list.filter(e => e.shiny && !e.dead); }
  
@@ -1586,8 +1605,98 @@ index d9e4ae5..bcc3645 100644
 -  return { clear, all, dropXp, drop, update, draw, addRemote, removeId, pullAll, KIND, get count() { return list.length; } };
 +  return { clear, all, dropXp, drop, update, draw, addRemote, adoptRemote, removeId, pullAll, KIND, get count() { return list.length; } };
  })();
+diff --git a/js/entities/player.js b/js/entities/player.js
+index 0642d5f..b8f0047 100644
+--- a/js/entities/player.js
++++ b/js/entities/player.js
+@@ -77,6 +77,8 @@ G.Player = class Player {
+ 
+   /** Segundos que hay que estar junto a un compañero caído para levantarlo. */
+   static get REVIVE_TIME() { return 3; }
++  /** Hasta dónde tiene que acercarse un compañero para levantarte (game.js lo usa; aquí se dibuja). */
++  static get REVIVE_R() { return 56; }
+ 
+   // (×2 y luego ×4 el 2026-10-10: se subía de nivel demasiado rápido.)
+   static xpFor(level) {
+@@ -429,6 +431,48 @@ G.Player = class Player {
+     this.anim.loop(this.walking ? 'Walk' : 'Idle', this.walking ? this.baseSpd / 110 : 1);
+   }
+ 
++  /**
++   * daivr.dev: zona de "reviviendo" en pixel art. El borde de puntos que gira
++   * marca hasta dónde tiene que llegar un compañero (REVIVE_R) y un arco grueso,
++   * con contorno y la punta en blanco, se va llenando mientras te levantan.
++   */
++  drawRevive(ctx) {
++    const PX = G.Sprites.PX, snap = G.FX.snap, R = Player.REVIVE_R;
++    const f = Math.min(1, (this.reviveT || 0) / Player.REVIVE_TIME);
++    const t = performance.now() / 1000, rx = R, ry = R * 0.45;
++    const n = Math.round(6.2832 * Math.sqrt((rx * rx + ry * ry) / 2) / PX);
++    const pts = [];
++    for (let i = 0; i < n; i++) {
++      const a = -Math.PI / 2 + i / n * 6.2832;
++      pts.push([snap(this.x + Math.cos(a) * rx), snap(this.y + Math.sin(a) * ry)]);
++    }
++    const lit = Math.round(n * f), spin = Math.floor(t * 12);
++    ctx.save();
++    ctx.globalAlpha = 0.1 + f * 0.16;
++    G.FX.ellipse(ctx, this.x, this.y, rx, ry, '#5fe08a');
++    ctx.globalAlpha = 0.75;
++    ctx.fillStyle = '#bfffd2';
++    for (let i = lit; i < n; i++) if ((i + spin) % 4 < 2) ctx.fillRect(pts[i][0], pts[i][1], PX, PX);
++    if (lit > 0) {
++      ctx.globalAlpha = 1;
++      ctx.fillStyle = '#0e2a16';
++      for (let i = 0; i < lit; i++) ctx.fillRect(pts[i][0] - 2 * PX, pts[i][1] - 2 * PX, 4 * PX, 4 * PX);
++      for (let i = 0; i < lit; i++) {
++        ctx.fillStyle = i === lit - 1 ? '#ffffff' : i % 6 < 3 ? '#5fe08a' : '#7ff0a2';
++        ctx.fillRect(pts[i][0] - PX, pts[i][1] - PX, 2 * PX, 2 * PX);
++      }
++      // Cruces verdes que suben mientras te levantan.
++      ctx.fillStyle = '#c8ffd8';
++      for (let i = 0; i < 3; i++) {
++        const ph = (t * 0.9 + i / 3) % 1, k = PX;
++        const cx = snap(this.x + Math.sin(i * 2.3 + 1) * rx * 0.6), cy = snap(this.y - this.bodyH * (0.2 + ph));
++        ctx.globalAlpha = (1 - ph) * 0.9;
++        ctx.fillRect(cx - k, cy, 3 * k, k); ctx.fillRect(cx, cy - k, k, 3 * k);
++      }
++    }
++    ctx.restore();
++  }
++
+   draw(ctx) {
+     // Halo del tipo del movimiento activo, en el suelo.
+     const m = this.activeMove();
+@@ -450,6 +494,9 @@ G.Player = class Player {
+       ctx.restore();
+     }
+ 
++    // Cooperativo, caído: la zona donde te pueden levantar, en el suelo (debajo del sprite).
++    if (this.dead && G.Coop.active) this.drawRevive(ctx);
++
+     const alpha = this.invuln > 0 && !this.dead ? (Math.floor(this.invuln * 18) % 2 ? 0.45 : 1) : 1;
+     this.anim.draw(ctx, this.x, this.y, { flash: this.flash > 0, softFlash: true, alpha, color: '#ffcb3d' });
+ 
+@@ -470,16 +517,7 @@ G.Player = class Player {
+       i++;
+     }
+ 
+-    // Cooperativo: anillo de "reviviendo" y nombre encima.
+-    if (this.dead && this.reviveT > 0) {
+-      ctx.save();
+-      ctx.strokeStyle = '#5fe08a';
+-      ctx.lineWidth = 3;
+-      ctx.beginPath();
+-      ctx.ellipse(this.x, this.y, this.r * 2.4, this.r * 1.0, 0, -Math.PI / 2, -Math.PI / 2 + 6.2832 * Math.min(1, this.reviveT / G.Player.REVIVE_TIME));
+-      ctx.stroke();
+-      ctx.restore();
+-    }
++    // Cooperativo: nombre encima.
+     if (this.tag) {
+       ctx.save();
+       ctx.font = '700 7px Pixelify,"Segoe UI",sans-serif';
 diff --git a/js/game.js b/js/game.js
-index f788c9c..b05c430 100644
+index f788c9c..63bace0 100644
 --- a/js/game.js
 +++ b/js/game.js
 @@ -18,6 +18,7 @@ G.Game = (() => {
@@ -1718,6 +1827,16 @@ index f788c9c..b05c430 100644
  
      const b = Math.floor(time / 240);
      if (b !== biome && !G.Rift.inArena) {
+@@ -598,7 +644,8 @@ G.Game = (() => {
+ 
+   /** Caído en grupo: un compañero a tu lado te va levantando. */
+   function reviveTick(dt) {
+-    const helper = G.Coop.puppets().some(p => !p.dead && G.U.dist2(p.x, p.y, pl.x, pl.y) < 56 * 56);
++    const R = G.Player.REVIVE_R;
++    const helper = G.Coop.puppets().some(p => !p.dead && G.U.dist2(p.x, p.y, pl.x, pl.y) < R * R);
+     pl.reviveT = helper ? (pl.reviveT || 0) + dt : Math.max(0, (pl.reviveT || 0) - dt * 0.5);
+     if (pl.reviveT >= G.Player.REVIVE_TIME) pl.revive(0.5);
+   }
 diff --git a/js/main.js b/js/main.js
 index b47d54d..3fb8ee4 100644
 --- a/js/main.js
@@ -3466,10 +3585,69 @@ index 1ccdf15..894f04f 100644
        ctx.restore();
      }
 diff --git a/js/systems/rift.js b/js/systems/rift.js
-index 093bc67..0ddfc2c 100644
+index 093bc67..bed9475 100644
 --- a/js/systems/rift.js
 +++ b/js/systems/rift.js
-@@ -266,6 +266,12 @@ G.Rift = (() => {
+@@ -113,7 +113,9 @@ G.Rift = (() => {
+     const ts = TS();
+     arena = Object.assign({}, cfg, {
+       x: cfg.tx * ts + ts / 2, y: cfg.ty * ts + ts / 2,
+-      back: { x: pl.x, y: pl.y }, biome: G.World.biome, t: 0, phase: 'fight', endT: 0, bossId: 0
++      back: { x: pl.x, y: pl.y }, biome: G.World.biome, t: 0, phase: 'fight', endT: 0, bossId: 0,
++      // daivr.dev: dónde estaba cada uno (al volver se despeja alrededor).
++      backs: G.Game.everyone().map(p => ({ x: p.x, y: p.y }))
+     });
+     rift = null; asked = false; downT = 0;
+     if (authority()) G.EnemyMgr.stash(); else G.EnemyMgr.clearRemote();
+@@ -209,6 +211,27 @@ G.Rift = (() => {
+     G.Audio.sfx('back');
+   }
+ 
++  // daivr.dev: salida segura de la grieta.
++  const SAFE_INVULN = 2.5;
++  const safeR = () => Math.min(320, G.Camera.outerRadius() * 0.7);
++
++  /**
++   * Antes de devolver un enemigo al mapa: si está cerca de donde vuelve algún
++   * jugador, se va al borde de la vista (como los rezagados); los jefes sólo se
++   * apartan. → false si no hay sitio (entonces no vuelve).
++   */
++  function clearOf(e, spots) {
++    const R = safeR();
++    const near = spots.find(sp => G.U.dist2(e.x, e.y, sp.x, sp.y) < R * R);
++    if (!near) return true;
++    if (e.boss) {
++      const [nx, ny] = G.U.norm(e.x - near.x, e.y - near.y);
++      e.x = near.x + (nx || 1) * (R + 40); e.y = near.y + ny * (R + 40);
++      return true;
++    }
++    return G.Spawner.ahead(e, { x: near.x, y: near.y, _vx: 0, _vy: 0 });
++  }
++
+   /** En cada ordenador: vuelta al mapa. */
+   function finish() {
+     const pl = G.Game.player;
+@@ -216,13 +239,18 @@ G.Rift = (() => {
+     arena = null;
+     G.World.setBiome(a.biome, true);
+     G.Weather.clear();
+-    if (authority()) G.EnemyMgr.restore(); else G.EnemyMgr.clearRemote();
++    // daivr.dev: los que esperaban en el mapa no vuelven encima de los
++    // jugadores (antes salías en mitad de la horda que dejaste al entrar).
++    if (authority()) G.EnemyMgr.restore(e => clearOf(e, a.backs || [a.back])); else G.EnemyMgr.clearRemote();
+     G.Projectiles.clear();
+     G.Combat.clearFields();
+     G.Hazards.clear();
+     for (const p of G.Game.everyone()) { p.x = a.back.x; p.y = a.back.y; }
+     pl.x = a.back.x; pl.y = a.back.y;
+     if (pl.dead) pl.revive(0.3);
++    // Y unos segundos de protección, con una onda que lo enseña.
++    pl.invuln = Math.max(pl.invuln || 0, SAFE_INVULN);
++    G.FX.ring(pl.x, pl.y, 10, safeR(), '#c9a6ff', 0.6, 6);
+     G.Camera.x = pl.x; G.Camera.y = pl.y;
+     G.Game.flash('#c9a6ff', 0.8);
+     if (pl.bonds > 0) G.Game.offerBond();
+@@ -266,6 +294,12 @@ G.Rift = (() => {
  
    return {
      reset, update, drawable, onEvent, enterRequest() { if (!arena) start(); },
@@ -3501,7 +3679,7 @@ index e327b64..3cee962 100644
             debugForceShiny(n = 1) { forceShiny = n; } };
  })();
 diff --git a/js/ui/hud.js b/js/ui/hud.js
-index 440d2a5..d836a05 100644
+index 440d2a5..a298a43 100644
 --- a/js/ui/hud.js
 +++ b/js/ui/hud.js
 @@ -2,6 +2,15 @@
@@ -3520,7 +3698,7 @@ index 440d2a5..d836a05 100644
    const F = (w, s) => `${w} ${s}px Pixelify,"Segoe UI",system-ui,sans-serif`;
  
    function roundRect(ctx, x, y, w, h, r) {
-@@ -25,88 +34,292 @@ G.HUD = (() => {
+@@ -25,88 +34,310 @@ G.HUD = (() => {
      }
    }
  
@@ -3569,13 +3747,17 @@ index 440d2a5..d836a05 100644
 +  }
 +
 +  /** Caja de menú PMD en pixel art: sombra dura, contorno, borde blanco, filo azul y fondo en franjas. */
-+  function frame(ctx, x, y, w, h, edge = MENU.edge) {
++  // Otras paletas para la misma caja: la grieta (morada) y "has caído" (roja).
++  const RIFT = { top: '#4b2a8c', bottom: '#24104a', inner: '#9a72e8', outer: '#12081f', edge: '#efe4ff', text: '#efe4ff', soft: '#c9b0ff', fill: '#24104a', mark: '#b48aff' };
++  const DOWN = { top: '#6a1f33', bottom: '#320c18', inner: '#d0566c', outer: '#1a0610', edge: '#ffd0d5' };
++
++  function frame(ctx, x, y, w, h, edge = MENU.edge, pal = MENU) {
 +    x = Math.round(x); y = Math.round(y);
 +    pxRect(ctx, x, y + 2 * P, w, h, 2 * P, 'rgba(4,8,22,.4)');
-+    pxRect(ctx, x, y, w, h, 2 * P, MENU.outer);
++    pxRect(ctx, x, y, w, h, 2 * P, pal.outer);
 +    pxRect(ctx, x + P, y + P, w - 2 * P, h - 2 * P, P, edge);
-+    pxRect(ctx, x + 2 * P, y + 2 * P, w - 4 * P, h - 4 * P, P, MENU.inner);
-+    bands(ctx, x + 3 * P, y + 3 * P, w - 6 * P, h - 6 * P, MENU.top, MENU.bottom);
++    pxRect(ctx, x + 2 * P, y + 2 * P, w - 4 * P, h - 4 * P, P, pal.inner);
++    bands(ctx, x + 3 * P, y + 3 * P, w - 6 * P, h - 6 * P, pal.top, pal.bottom);
 +    ctx.fillStyle = 'rgba(255,255,255,.12)';
 +    ctx.fillRect(x + 3 * P, y + 3 * P, w - 6 * P, P);
 +  }
@@ -3623,12 +3805,12 @@ index 440d2a5..d836a05 100644
 +
 +  /** Placa pequeña (contorno de tinta, fondo oscuro, raya de color a la izquierda). Devuelve el ancho. */
 +  function chipW(ctx, text, icon) { ctx.font = F(800, 10); return Math.round(ctx.measureText(text).width) + 14 + (icon ? 17 : 0); }
-+  function chip(ctx, x, y, text, col, icon) {
++  function chip(ctx, x, y, text, col, icon, fill = WELL) {
 +    const cw = chipW(ctx, text, icon);
 +    x = Math.round(x); y = Math.round(y);
 +    pxRect(ctx, x, y + P, cw, 18, P, 'rgba(4,8,22,.4)');
 +    pxRect(ctx, x, y, cw, 18, P, INK);
-+    ctx.fillStyle = WELL; ctx.fillRect(x + P, y + P, cw - 2 * P, 18 - 2 * P);
++    ctx.fillStyle = fill; ctx.fillRect(x + P, y + P, cw - 2 * P, 18 - 2 * P);
 +    ctx.fillStyle = col; ctx.fillRect(x + P, y + P, P, 18 - 2 * P);
 +    if (icon) G.Icons.draw(ctx, icon, x + 6, y + 2, 14);
 +    ctx.textAlign = 'left';
@@ -3697,6 +3879,20 @@ index 440d2a5..d836a05 100644
 +      ctx.drawImage(G.Sprites.white(s.img), f * m.w, 0, m.w, m.h, dx, dy, m.w * k, m.h * k);
 +    }
 +    ctx.restore();
++  }
++
++  /** Flecha de píxeles hacia abajo con la punta en (x, y): contorno de tinta y brillo a la izquierda. */
++  const ARROW = [3, 3, 3, 9, 7, 5, 3, 1];
++  function pxArrowDown(ctx, x, y, col, light, q = 3) {
++    x = Math.round(x); y = Math.round(y);
++    const top = y - ARROW.length * q;
++    ctx.fillStyle = INK;
++    ARROW.forEach((wd, i) => ctx.fillRect(x - Math.round((wd + 2) * q / 2), top + (i - 1) * q, (wd + 2) * q, 3 * q));
++    ARROW.forEach((wd, i) => {
++      const x0 = x - Math.round(wd * q / 2);
++      ctx.fillStyle = col; ctx.fillRect(x0, top + i * q, wd * q, q);
++      ctx.fillStyle = light; ctx.fillRect(x0, top + i * q, q, q);
++    });
 +  }
 +
 +  /** Hueco de la barra de movimientos: contorno, filo y fondo hundido. */
@@ -3866,7 +4062,7 @@ index 440d2a5..d836a05 100644
      }
  
      // ---------- aviso ----------
-@@ -116,7 +329,7 @@ G.HUD = (() => {
+@@ -116,7 +347,7 @@ G.HUD = (() => {
        const sx = (e.x - cam.left()) * cam.scale, sy = (e.y - cam.top()) * cam.scale;
        if (sx > 0 && sx < w && sy > 0 && sy < h) continue;
        const M = 34;
@@ -3875,7 +4071,7 @@ index 440d2a5..d836a05 100644
        const a = Math.atan2(sy - ey, sx - ex);
        ctx.save();
        ctx.globalAlpha = pulse;
-@@ -134,18 +347,11 @@ G.HUD = (() => {
+@@ -134,18 +365,11 @@ G.HUD = (() => {
  
      // Poder de altar activo.
      if (pl.power) {
@@ -3897,25 +4093,120 @@ index 440d2a5..d836a05 100644
  
      // Grieta: flecha grande que late en el borde si no se ve, y si se ve, una
      // flecha que bota encima; en la arena, cuenta atrás.
-@@ -157,7 +363,7 @@ G.HUD = (() => {
+@@ -155,51 +379,49 @@ G.HUD = (() => {
+       const now = performance.now() / 1000, beat = 0.5 + Math.sin(now * 7) * 0.5;
+       const label = 'GRIETA · ' + Math.round(G.U.dist(pl.x, pl.y, rift.x, rift.y) / 32) + ' m · ' + Math.ceil(rift.ttl) + ' s';
        const off = sx < 0 || sx > w || sy < 0 || sy > h;
-       ctx.save();
+-      ctx.save();
++      const col = beat > 0.5 ? RIFT.text : RIFT.mark;
        if (off) {
 -        const M = 52, ex = G.U.clamp(sx, M, w - M), ey = G.U.clamp(sy, M + 70, h - M - 80);
-+        const M = 52, ex = G.U.clamp(sx, M, w - M), ey = G.U.clamp(sy, M + 70, h - M - 104);
++        const M = 52, ex = Math.round(G.U.clamp(sx, M, w - M)), ey = Math.round(G.U.clamp(sy, M + 70, h - M - 104));
          const a = Math.atan2(sy - ey, sx - ex), ca = Math.cos(a), sa = Math.sin(a);
++        ctx.save();
          ctx.translate(ex, ey);
-         // Halo que late.
-@@ -199,7 +405,7 @@ G.HUD = (() => {
-       ctx.textAlign = 'center';
-       ctx.font = F(800, 12);
-       ctx.fillStyle = '#d9c2ff';
+-        // Halo que late.
+-        ctx.globalAlpha = 0.18 + beat * 0.22;
+-        ctx.fillStyle = '#b48aff';
+-        ctx.beginPath(); ctx.arc(0, 0, 30 + beat * 8, 0, 6.2832); ctx.fill();
++        // Halo que late, a escalones, y la flecha (con contorno) hacia la grieta.
++        ctx.globalAlpha = 0.16 + beat * 0.18;
++        G.FX.ellipse(ctx, 0, 0, 30 + beat * 6, 30 + beat * 6, RIFT.mark);
+         ctx.globalAlpha = 1;
+-        const tri = (k) => {
++        const tri = (r, k) => {
+           ctx.beginPath();
+-          ctx.moveTo(ca * 40 * k, sa * 40 * k);
+-          ctx.lineTo(Math.cos(a + 2.45) * 20 * k, Math.sin(a + 2.45) * 20 * k);
+-          ctx.lineTo(Math.cos(a - 2.45) * 20 * k, Math.sin(a - 2.45) * 20 * k);
+-          ctx.closePath();
++          ctx.moveTo(ca * r, sa * r);
++          ctx.lineTo(Math.cos(a + 2.45) * k, Math.sin(a + 2.45) * k);
++          ctx.lineTo(Math.cos(a - 2.45) * k, Math.sin(a - 2.45) * k);
++          ctx.closePath(); ctx.fill();
+         };
+-        tri(1.12); ctx.fillStyle = '#1a0b33'; ctx.fill();
+-        tri(1); ctx.fillStyle = beat > 0.5 ? '#e2d0ff' : '#a06bff'; ctx.fill();
+-        ctx.font = F(800, 12);
+-        ctx.textAlign = ca > 0.3 ? 'right' : ca < -0.3 ? 'left' : 'center';
+-        const lx = -ca * 34, ly = -sa * 30 + 4;
+-        ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,.85)';
+-        ctx.strokeText(label, lx, ly);
+-        ctx.fillStyle = '#e2d0ff';
+-        ctx.fillText(label, lx, ly);
++        ctx.fillStyle = INK; tri(46, 23);
++        ctx.fillStyle = col; tri(41, 20);
++        // Placa con la grieta dibujada.
++        pxRect(ctx, -16, -16, 32, 32, 2 * P, INK);
++        pxRect(ctx, -14, -14, 28, 28, P, RIFT.mark);
++        ctx.fillStyle = RIFT.fill; ctx.fillRect(-12, -12, 24, 24);
++        G.Icons.draw(ctx, 'rift', -12, -12, 24);
++        ctx.restore();
++        // Nombre y distancia en una placa, al otro lado de la flecha.
++        const cw = chipW(ctx, label, 'clock');
++        const lx = ex - ca * 40 - (ca > 0.3 ? cw : ca < -0.3 ? 0 : cw / 2);
++        chip(ctx, G.U.clamp(lx, 6, w - cw - 6), ey - sa * 34 - 9, label, RIFT.text, 'clock', RIFT.fill);
+       } else {
+-        // Encima de la grieta: flecha hacia abajo que bota.
+-        const by = sy - 46 - Math.abs(Math.sin(now * 4)) * 10;
+-        ctx.translate(sx, by);
+-        ctx.beginPath(); ctx.moveTo(-15, -12); ctx.lineTo(15, -12); ctx.lineTo(0, 8); ctx.closePath();
+-        ctx.lineWidth = 4; ctx.strokeStyle = '#1a0b33'; ctx.stroke();
+-        ctx.fillStyle = beat > 0.5 ? '#e2d0ff' : '#a06bff'; ctx.fill();
+-        ctx.font = F(800, 11); ctx.textAlign = 'center';
+-        ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,.85)';
++        // Encima de la grieta (su sprite mide 46 píxeles de arte): flecha de
++        // píxeles que bota y la placa con los segundos.
++        const top = (rift.y - 46 * G.Sprites.PX - cam.top()) * cam.scale;
++        const by = top - 4 - Math.abs(Math.sin(now * 4)) * 10;
++        pxArrowDown(ctx, sx, by, col, '#ffffff');
+         const l2 = 'GRIETA · ' + Math.ceil(rift.ttl) + ' s';
+-        ctx.strokeText(l2, 0, -18); ctx.fillStyle = '#e2d0ff'; ctx.fillText(l2, 0, -18);
++        const cw = chipW(ctx, l2, 'rift');
++        chip(ctx, sx - cw / 2, by - ARROW.length * 3 - 26, l2, RIFT.text, 'rift', RIFT.fill);
+       }
+-      ctx.restore();
+     }
+     if (G.Rift.inArena) {
+-      ctx.textAlign = 'center';
+-      ctx.font = F(800, 12);
+-      ctx.fillStyle = '#d9c2ff';
 -      ctx.fillText('GRIETA · ' + G.U.mmss(G.Rift.timeLeft), w / 2, boss ? 98 : 76);
-+      ctx.fillText('GRIETA · ' + G.U.mmss(G.Rift.timeLeft), w / 2, boss ? 168 : 130);
++      const txt = 'GRIETA · ' + G.U.mmss(G.Rift.timeLeft), cw = chipW(ctx, txt, 'rift');
++      chip(ctx, (w - cw) / 2, 96, txt, RIFT.text, 'rift', RIFT.fill);
      }
  
      // Eventos: cuenta atrás, flecha al Pokémon perdido / a la marca y a los duendes.
-@@ -237,120 +443,148 @@ G.HUD = (() => {
+@@ -211,16 +433,20 @@ G.HUD = (() => {
+       const y0 = h * 0.2;
+       ctx.save();
+       ctx.globalAlpha = a;
+-      ctx.translate(w / 2, y0); ctx.scale(pop, pop);
+-      ctx.font = F(800, 20);
++      ctx.translate(Math.round(w / 2), Math.round(y0)); ctx.scale(pop, pop);
+       const t1 = '¡SE HA ABIERTO UNA GRIETA!', t2 = 'Sigue la flecha morada: dentro te espera un legendario';
+-      const bw = Math.min(w - 24, Math.max(ctx.measureText(t1).width, (ctx.font = F(700, 11), ctx.measureText(t2).width)) + 36);
+-      roundRect(ctx, -bw / 2, -26, bw, 52, 10);
+-      ctx.fillStyle = 'rgba(26,11,51,.88)'; ctx.fill();
+-      ctx.lineWidth = 2; ctx.strokeStyle = '#b48aff'; ctx.stroke();
++      ctx.font = F(800, 20);
++      const w1 = ctx.measureText(t1).width;
++      ctx.font = F(700, 11);
++      const bw = Math.round(Math.min(w - 24, Math.max(w1 + 96, ctx.measureText(t2).width + 40)) / 2) * 2;
++      frame(ctx, -bw / 2, -32, bw, 64, RIFT.edge, RIFT);
++      // Una grieta a cada lado del título, latiendo.
++      const k = 28 + Math.round(Math.sin(rift.t * 9)) * 2;
++      G.Icons.draw(ctx, 'rift', -bw / 2 + 12, -24, k);
++      G.Icons.draw(ctx, 'rift', bw / 2 - 12 - k, -24, k);
+       ctx.textAlign = 'center';
+-      ctx.font = F(800, 20); ctx.fillStyle = '#e2d0ff'; ctx.fillText(t1, 0, -2);
+-      ctx.font = F(700, 11); ctx.fillStyle = '#c9b0ff'; ctx.fillText(t2, 0, 16);
++      ctx.font = F(800, 20); shadowText(ctx, t1, 0, -2, RIFT.text);
++      ctx.font = F(700, 11); shadowText(ctx, t2, 0, 17, RIFT.soft, 0, 1);
+       ctx.restore();
+     }
+ 
+@@ -237,120 +463,148 @@ G.HUD = (() => {
        ctx.restore();
      }
  
@@ -4147,7 +4438,7 @@ index 440d2a5..d836a05 100644
      // ---------- botón de pausa (táctil) ----------
      if (touch) {
        const sa = G.Touch.safeArea();
-@@ -365,11 +599,12 @@ G.HUD = (() => {
+@@ -365,11 +619,12 @@ G.HUD = (() => {
  
      // pista de controles
      if (st.time < 14) {
@@ -4164,7 +4455,7 @@ index 440d2a5..d836a05 100644
      }
  
      ctx.restore();
-@@ -383,25 +618,31 @@ G.HUD = (() => {
+@@ -383,25 +638,31 @@ G.HUD = (() => {
     *   y a cuántos metros están (roja y parpadeando si está caído).
     * - Si has caído tú: aviso y barra de "te están levantando".
     */
@@ -4210,7 +4501,7 @@ index 440d2a5..d836a05 100644
      }
  
      // Flechas hacia los compañeros fuera de la vista.
-@@ -411,26 +652,28 @@ G.HUD = (() => {
+@@ -411,26 +672,28 @@ G.HUD = (() => {
        const sx = (o.x - cam.left()) * cam.scale, sy = (o.y - o.bodyH * 0.5 - cam.top()) * cam.scale;
        if (sx > 0 && sx < w && sy > 0 && sy < h) continue;
        const M = 42;
@@ -4253,23 +4544,48 @@ index 440d2a5..d836a05 100644
        // Nombre y distancia: al lado contrario de la flecha, para que no se salga
        const lx = -Math.cos(a) * 30, ly = -Math.sin(a) * 26 + 4;
        ctx.font = F(800, 12);
-@@ -454,7 +697,7 @@ G.HUD = (() => {
-       ctx.fillStyle = '#ffb0b8';
-       ctx.fillText(msg, w / 2, h * 0.62);
-       const f = (pl.reviveT || 0) / G.Player.REVIVE_TIME;
+@@ -443,18 +706,20 @@ G.HUD = (() => {
+       ctx.restore();
+     }
+ 
+-    // Tú, caído.
++    // Tú, caído: caja roja con la barra de "te están levantando".
+     if (pl.dead) {
+       ctx.save();
++      const all = G.Coop.players().every(p => p.dead);
++      const msg = all ? 'Habéis caído todos…' : 'Has caído: un compañero puede levantarte';
++      const f = G.U.clamp((pl.reviveT || 0) / G.Player.REVIVE_TIME, 0, 1);
++      ctx.font = F(800, 15);
++      const bw = Math.round(Math.max(300, ctx.measureText(msg).width + 76) / 2) * 2, bh = all ? 44 : 62;
++      const x0 = Math.round(w / 2 - bw / 2), y0 = Math.round(h * 0.62 - 24);
++      frame(ctx, x0, y0, bw, bh, DOWN.edge, DOWN);
++      G.Icons.draw(ctx, 'heart', x0 + 5 * P, y0 + 10, 22);
+       ctx.textAlign = 'center';
+-      ctx.font = F(800, 20);
+-      ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(0,0,0,.75)';
+-      const msg = G.Coop.players().every(p => p.dead) ? 'Habéis caído todos…' : 'Has caído: un compañero puede levantarte';
+-      ctx.strokeText(msg, w / 2, h * 0.62);
+-      ctx.fillStyle = '#ffb0b8';
+-      ctx.fillText(msg, w / 2, h * 0.62);
+-      const f = (pl.reviveT || 0) / G.Player.REVIVE_TIME;
 -      if (f > 0) bar(ctx, w / 2 - 110, h * 0.62 + 12, 220, 10, f, '#5fe08a');
-+      if (f > 0) pxBar(ctx, w / 2 - 110, h * 0.62 + 12, 220, 10, f, MENU.green);
++      shadowText(ctx, msg, w / 2 + 12, y0 + 27, '#ffe3e7');
++      if (!all) pxBar(ctx, x0 + 7 * P, y0 + 40, bw - 14 * P, 4 * P, f, MENU.green, { seg: (bw - 14 * P) / 6, bg: '#1a0610' });
        ctx.restore();
      }
    }
 diff --git a/js/ui/icons.js b/js/ui/icons.js
-index 9783f67..8bbe127 100644
+index 9783f67..6fdae4a 100644
 --- a/js/ui/icons.js
 +++ b/js/ui/icons.js
-@@ -48,6 +48,10 @@ G.Icons = (() => {
+@@ -48,6 +48,14 @@ G.Icons = (() => {
      clock: { pal: { w: '#f4f4ff', y: '#ffd23f', o: '#c9c9e0' }, rows: [
        '....kkkk....', '..kkyyyykk..', '.kyywwwwyyk.', '.kywwwkwwyk.', 'kywwwwkwwwyk', 'kywwwwkwwwyk',
        'kywwwwkkkwyk', 'kywwwwwwwwyk', '.kywwwwwwyk.', '.kyyowwwyyk.', '..kkyyyykk..', '....kkkk....'] },
++    // daivr.dev: grieta (avisos del HUD), como la del mapa en pequeño.
++    rift: { pal: { g: '#7b3cff', m: '#b48aff', c: '#140a26', w: '#f2e6ff' }, rows: [
++      '....kkk.....', '...kgggk....', '..kgmmmgk...', '..kgmcmgk...', '.kgmmccmgk..', '.kgmwccmgk..',
++      '..kgmccmgk..', '..kgmcwmgk..', '..kgmmcmgk..', '...kgmmgk...', '...kgggk....', '....kkk.....'] },
 +    // daivr.dev: candado de las partidas en grupo con contraseña.
 +    lock: { pal: { s: '#c9c9e0', y: '#ffd23f', o: '#c08a10' }, rows: [
 +      '....kkkk....', '...kssssk...', '..ksk..ksk..', '..ksk..ksk..', '..ksk..ksk..', '.kkkkkkkkkk.',
@@ -4277,7 +4593,7 @@ index 9783f67..8bbe127 100644
      shield: { pal: { s: '#9fb1c9', d: '#5d6f8c', w: '#e6eef8', r: '#4fb4ff' }, rows: [
        '............', '.kkkkkkkkkk.', '.kwwsssssdk.', '.kwssrrssdk.', '.kwssrrssdk.', '.kssrrrrsdk.',
        '.kssrrrrsdk.', '..kssrrsdk..', '..kssssddk..', '...ksssdk...', '....kddk....', '.....kk.....'] },
-@@ -222,6 +226,23 @@ G.Icons = (() => {
+@@ -222,6 +230,23 @@ G.Icons = (() => {
    const cache = new Map();      // clave -> canvas a 1×
    const urls = new Map();
  
@@ -4301,7 +4617,7 @@ index 9783f67..8bbe127 100644
    function shade(hex, k) {
      const n = parseInt(hex.slice(1), 16);
      const f = c => Math.max(0, Math.min(255, Math.round(c * k)));
-@@ -361,6 +382,7 @@ G.Icons = (() => {
+@@ -361,6 +386,7 @@ G.Icons = (() => {
     * icono de 16 px pintado a 24 duplicaría unos píxeles sí y otros no.
     */
    function snap(name, size) {
@@ -4309,7 +4625,7 @@ index 9783f67..8bbe127 100644
      const w = canvas(name).width;
      return w * Math.max(1, Math.round(size / w));
    }
-@@ -416,5 +438,5 @@ G.Icons = (() => {
+@@ -416,5 +442,5 @@ G.Icons = (() => {
      r.setProperty('--ico-cursor', `url("${url('cursor')}")`);
    }
  

@@ -5,6 +5,17 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.74.0",
+    codename: "SAFE LANDING",
+    date: "2026-10-13",
+    summary: "Coming back from a rift no longer drops you into the horde you left behind, and PokéSurvivor's revive circle and rift alerts got the pixel-art treatment.",
+    entries: [
+      ["fix", "Leaving a rift no longer puts you back in the middle of the crowd you left. The wild Pokémon around where each player comes back get scattered to the edge of the screen (bosses get pushed back), and everyone gets a couple of seconds of protection with a shockwave to show it."],
+      ["buff", "When you're down in co-op, the circle on the ground shows exactly how close a teammate has to stand. A thick green ring fills up while they revive you, and your \"You're down\" notice sits in a red box with its own bar."],
+      ["buff", "Rift alerts are pixel art now: a purple box when one opens, a rift icon on the edge arrow, a blocky arrow bouncing over the rift and the countdown in a plate, also inside the arena."]
+    ]
+  },
+  {
     version: "v2.73.0",
     codename: "PASS THE CROWN",
     date: "2026-10-13",
