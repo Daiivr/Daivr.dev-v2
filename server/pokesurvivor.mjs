@@ -148,16 +148,22 @@ function isoWeek(y, m, d) {
   return { year: t.getUTCFullYear(), week: Math.ceil(((t - y0) / 86400000 + 1) / 7) };
 }
 
+// El historico es "all2" desde la Sentencia de Arceus (13-10-2026), como en el
+// original: las partidas acaban hacia el minuto 30 y las marcas del "tiempo
+// extra" ya no se podrian alcanzar. Las tablas viejas (s_all, g_all, *_all_pN)
+// se quedan guardadas sin usarse (salvo para las medallas del pasaporte).
+const ALL = "all2";
+
 export function periodIds(date = new Date()) {
   const { y, m, d } = madridDate(date);
   const w = isoWeek(y, m, d);
   const p2 = (n) => String(n).padStart(2, "0");
-  return { d: `d${y}${p2(m)}${p2(d)}`, w: `w${w.year}-${p2(w.week)}`, m: `m${y}${p2(m)}`, a: "all" };
+  return { d: `d${y}${p2(m)}${p2(d)}`, w: `w${w.year}-${p2(w.week)}`, m: `m${y}${p2(m)}`, a: ALL };
 }
 
 const boardOf = (mode, period, dex, ids) => `${mode}_${ids[period]}${dex && period === "a" ? `_p${dex}` : ""}`;
 // Todo lo que no es el historico general guarda solo las mejores marcas.
-const capped = (board) => !/^[sg]_all$/.test(board);
+const capped = (board) => !/^[sg]_all2?$/.test(board);
 
 // ---------------- validacion ----------------
 
@@ -177,16 +183,17 @@ function profileFields(body) {
 }
 
 /**
- * El original quito sus cotas de nivel y derrotados (12-10-2026: las partidas
- * largas, con el "tiempo extra" desde el minuto 60, daban falsos positivos),
- * asi que aqui solo se comprueba que los numeros tengan sentido. Lo que sigue
- * vigilando la web es la duracion: la ficha de partida (run-tokens) impide que
- * una marca dure mas que el tiempo real, y no vive mas de 24 h.
+ * El original quito sus cotas de nivel y derrotados (12-10-2026: daban falsos
+ * positivos), asi que aqui solo se comprueba que los numeros tengan sentido.
+ * La duracion la vigila la ficha de partida (run-tokens: ninguna marca dura mas
+ * que el tiempo real) y, desde la Sentencia de Arceus (minuto 30, 13-10-2026),
+ * un tope de 35 min como el del original: nadie legal pasa de unos 32.
  */
+export const MAX_RUN_S = 35 * 60;
 export function validateRun(body) {
   const t = body?.t, lv = body?.lv, kills = body?.kills;
   if (!["s", "g"].includes(body?.mode)) return null;
-  if (!int(t, 5, 86_400) || !int(lv, 1, 9_999) || !int(kills, 0, 10_000_000)) return null;
+  if (!int(t, 5, MAX_RUN_S) || !int(lv, 1, 9_999) || !int(kills, 0, 10_000_000)) return null;
   if (body.mode === "s") return dexOk(body.dex) ? { mode: "s", t, lv, kills, dex: body.dex, shiny: Boolean(body.shiny) } : null;
   const members = body.members;
   if (!Array.isArray(members) || members.length < 2 || members.length > POKESURVIVOR_MAX_PLAYERS) return null;
@@ -638,7 +645,7 @@ export function createPokesurvivorService({ now = () => Date.now() } = {}) {
     }
     const ids = periodIds(new Date(now()));
     const targets = PERIODS.map((period) => [boardOf(run.mode, period, null, ids), period]);
-    for (const dex of new Set(entry.dex)) targets.push([`${run.mode}_all_p${dex}`, "p"]);
+    for (const dex of new Set(entry.dex)) targets.push([`${run.mode}_${ids.a}_p${dex}`, "p"]);
     const data = loadRanking();
     const at = new Date(now()).toISOString();
     const better = [];
@@ -777,8 +784,16 @@ export function createPokesurvivorService({ now = () => Date.now() } = {}) {
     const id = String(uid);
     const save = USER_ID.test(id) ? readSave(id) : null;
     const count = (collection) => Object.keys(collection || {}).filter((key) => dexOk(Number(key))).length;
-    const squads = Object.values(loadRanking().boards.g_all || {}).filter((row) => row.uids.includes(id));
-    return { dex: count(save?.owned), shinies: count(save?.shiny), legends: count(save?.legends), groupBest: Math.max(0, ...squads.map((row) => row.t)), squadRuns: squads.length };
+    // Los dos historicos de grupo (el de antes de la Sentencia y el de ahora):
+    // las medallas que ya tenias no se pierden.
+    const boards = loadRanking().boards;
+    const squads = new Map();
+    for (const board of [boards.g_all, boards[`g_${ALL}`]]) {
+      for (const [team, row] of Object.entries(board || {})) {
+        if (row.uids.includes(id)) squads.set(team, Math.max(squads.get(team) || 0, row.t));
+      }
+    }
+    return { dex: count(save?.owned), shinies: count(save?.shiny), legends: count(save?.legends), groupBest: Math.max(0, ...squads.values()), squadRuns: squads.size };
   }
 
   // ---------------- borrar la cuenta ----------------

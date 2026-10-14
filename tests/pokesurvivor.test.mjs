@@ -9,7 +9,7 @@ import { DAILY_CHALLENGES, dailyChallenge } from "../shared/player-catalog.mjs";
 import { availableKonamiGames } from "../src/data/konamiGames.js";
 import { readPlayers } from "../server/player-store.mjs";
 import { securityHeaders } from "../server/security-headers.mjs";
-import { createPokesurvivorService, handlePokesurvivorRequest, mergeSaves, periodIds, validateRun } from "../server/pokesurvivor.mjs";
+import { MAX_RUN_S, createPokesurvivorService, handlePokesurvivorRequest, mergeSaves, periodIds, validateRun } from "../server/pokesurvivor.mjs";
 import { issueRunToken } from "../server/run-tokens.mjs";
 import { extractTar, idleFrames } from "../tools/pokesurvivor/build.mjs";
 
@@ -59,9 +59,11 @@ test("saves merge like the game: collections are unioned, stats keep the maximum
 
 test("runs are checked for nonsense, not for level or defeated caps", () => {
   assert.ok(validateRun({ mode: "s", t: 600, lv: 40, kills: 3000, dex: 25 }));
-  // Like the original since 2026-10-12, long runs (extra time from minute 60) aren't
-  // capped by level or defeated counts; only nonsense is refused. Duration is the run token's job.
-  assert.ok(validateRun({ mode: "s", t: 5400, lv: 1500, kills: 90_000, dex: 25 }), "a 90-minute run with extra time");
+  // Like the original, level and defeated counts aren't capped; only nonsense is refused.
+  // Since Arceus's Judgment (minute 30) a run can't last past 35 minutes, also like the original.
+  assert.ok(validateRun({ mode: "s", t: 1980, lv: 1500, kills: 90_000, dex: 25 }), "a 33-minute run that faced Arceus");
+  assert.ok(validateRun({ mode: "s", t: MAX_RUN_S, lv: 90, kills: 5000, dex: 25 }), "right at the cap");
+  assert.equal(validateRun({ mode: "s", t: MAX_RUN_S + 1, lv: 90, kills: 5000, dex: 25 }), null, "past the Judgment's cap");
   assert.equal(validateRun({ mode: "s", t: 600, lv: 0, kills: 10, dex: 25 }), null, "level 0");
   assert.equal(validateRun({ mode: "s", t: 60, lv: 5, kills: -1, dex: 25 }), null, "negative defeated");
   assert.equal(validateRun({ mode: "s", t: 90_000, lv: 5, kills: 5, dex: 25 }), null, "longer than a run token lives");
@@ -69,6 +71,7 @@ test("runs are checked for nonsense, not for level or defeated caps", () => {
   assert.equal(validateRun({ mode: "g", t: 60, lv: 5, kills: 5, members: [{ uid: "1", dex: 25 }] }), null, "a group needs two players");
   assert.equal(validateRun({ mode: "g", t: 60, lv: 5, kills: 5, members: [{ uid: "1", dex: 25 }, { uid: "1", dex: 4 }] }), null, "no duplicate players");
   assert.equal(periodIds(new Date("2026-10-11T23:30:00Z")).d, "d20261012", "periods follow Madrid time, like the original");
+  assert.equal(periodIds().a, "all2", "the all-time board restarted with Arceus's Judgment, like the original");
 });
 
 test("nicknames are unique, saves merge on the server, and deleting the account removes everything", (t) => {
@@ -203,7 +206,7 @@ test("rankings: solo boards per period, group runs only for the team that starte
 
   assert.throws(() => service.submitRun(user("9"), { mode: "s", t: 60, lv: 5, kills: 5, dex: 25, runToken: token }), { code: "need-nick" });
   assert.throws(() => service.submitRun(user("1"), { mode: "s", t: 600, lv: 30, kills: 900, dex: 25 }), { code: "run-token" });
-  assert.throws(() => service.submitRun(user("1"), { mode: "s", t: 3000, lv: 30, kills: 900, dex: 25, runToken: token }), { code: "run-too-long" });
+  assert.throws(() => service.submitRun(user("1"), { mode: "s", t: 2000, lv: 30, kills: 900, dex: 25, runToken: token }), { code: "run-too-long" }, "33 min on a 30-min-old token");
 
   const first = service.submitRun(user("1", "Dai"), { mode: "s", t: 600, lv: 30, kills: 900, dex: 25, shiny: true, runToken: token });
   assert.deepEqual(first.better.sort(), ["a", "d", "m", "w"]);

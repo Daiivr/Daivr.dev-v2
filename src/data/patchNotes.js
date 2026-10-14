@@ -5,6 +5,18 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.76.0",
+    codename: "JUDGMENT DAY",
+    date: "2026-10-13",
+    summary: "PokéSurvivor catches up with its latest version: at minute 30 Arceus descends and passes judgment, and the all-time leaderboards start over.",
+    entries: [
+      ["new", "The Judgment of Arceus: at minute 30 Arceus descends and takes you to the Ruins of Judgment. It can't be beaten, it chases you faster and faster, and every 5 seconds a legendary joins with twice the HP and damage of the last one. How long can you last? It has its own music and three new achievements, and in co-op the whole team goes together."],
+      ["new", "Arceus's attacks come with gold warnings on the ground, and each legendary that answers the Judgment shows up with its own card."],
+      ["buff", "PokéSurvivor's all-time leaderboards start from zero, like in the original: now that every run ends against Arceus, the old overtime records could never be beaten. Runs longer than 35 minutes are no longer accepted. Daily, weekly and monthly boards stay as they were, and the old records are kept saved. Squad medals in your passport still count them."],
+      ["buff", "Overtime from minute 60 is gone (nobody gets that far now), and rifts stop opening from minute 28 so the Judgment doesn't catch you inside one."]
+    ]
+  },
+  {
     version: "v2.75.0",
     codename: "SPOTLIGHT",
     date: "2026-10-13",

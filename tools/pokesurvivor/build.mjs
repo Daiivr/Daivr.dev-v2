@@ -27,7 +27,7 @@ import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
 
 export const UPSTREAM_REPO = "JPTER78/pokesurvivor";
-export const UPSTREAM_COMMIT = "89ee17ad60f0c9ccb516fc026b93d3c5e3f9f1f0";
+export const UPSTREAM_COMMIT = "537440510dcdadf8ed711ec3dea7ae795533a662";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "../..");
