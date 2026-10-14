@@ -5,6 +5,17 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.75.0",
+    codename: "SPOTLIGHT",
+    date: "2026-10-13",
+    summary: "Special Pokémon in PokéSurvivor now announce themselves with their own pixel-art card, and the arrows to them show who you're chasing.",
+    entries: [
+      ["buff", "When a shiny, a boss, a rift legendary, a treasure thief or a lost Pokémon shows up, you get a card in its colour with its animated portrait, a tab saying what it is and its types. Shinies, legendaries and thieves sparkle. Catching a shiny, an enraged boss and a rescued Pokémon joining you get one too."],
+      ["buff", "The arrows on the edge of the screen to shinies, treasure thieves and lost Pokémon show the Pokémon itself in a pixel badge, with its name and distance in a label."],
+      ["fix", "In co-op, guests now see the horde, golden hour and lost Pokémon announcements too, not only the host."]
+    ]
+  },
+  {
     version: "v2.74.0",
     codename: "SAFE LANDING",
     date: "2026-10-13",
