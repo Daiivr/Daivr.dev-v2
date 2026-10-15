@@ -27,7 +27,9 @@ import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
 
 export const UPSTREAM_REPO = "JPTER78/pokesurvivor";
-export const UPSTREAM_COMMIT = "537440510dcdadf8ed711ec3dea7ae795533a662";
+// b297089 es la última versión MIT del original: desde 4de8495 el código es PolyForm
+// Noncommercial y la nube sólo funciona en su dominio, así que no se pasa de aquí.
+export const UPSTREAM_COMMIT = "b29708900da26b34e70d2dc07ad1659a719f4a78";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "../..");

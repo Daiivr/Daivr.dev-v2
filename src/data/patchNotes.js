@@ -5,6 +5,21 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.77.0",
+    codename: "TEAM HUDDLE",
+    date: "2026-10-15",
+    summary: "In PokéSurvivor co-op the whole team now sees Bond and item choices at the same time, on-screen notices are pixel boxes in the game's style, and the latest co-op fixes from the original are in.",
+    entries: [
+      ["new", "In co-op, when someone gets a Bond or an item, the whole team sees the choice at once, like the level-up cards. If you have something to pick, you get your own screen with a strip of your teammates underneath. If you don't (or you're done), you see a team screen with each player's Pokémon, what they're choosing and the moves they've already marked for fusing. The run resumes as soon as everyone is ready. No more \"Paused: someone is choosing\" text over a frozen game."],
+      ["buff", "On-screen notices are pixel boxes in the game's style now, each with its own tab, icon and colour: pause, group and host changes, rifts, Bonds, items, weather, powers and new areas. The small notices at the bottom got the same box."],
+      ["fix", "Co-op: the game no longer freezes with each player waiting for the other to choose. An item and the level-up cards no longer cover each other, and if the connection drops a message it fixes itself."],
+      ["fix", "Co-op: after coming back from a rift, players who aren't the host can see every enemy again. Some used to be invisible, with only their attacks showing."],
+      ["fix", "Friends no longer always show as offline, and their invitations reach you, when your device's clock or time zone is wrong."],
+      ["fix", "The line under the level-up cards is fully in English now: \"Still choosing: Ash and you\" instead of \"Ash y tú\"."],
+      ["buff", "PokéSurvivor's weekly and monthly leaderboards start from zero like the all-time one, so every board counts the same runs (the ones with the Judgment of Arceus). Runs shorter than 2 minutes no longer go on the leaderboards."]
+    ]
+  },
+  {
     version: "v2.76.0",
     codename: "JUDGMENT DAY",
     date: "2026-10-13",

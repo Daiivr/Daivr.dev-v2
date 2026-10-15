@@ -154,11 +154,15 @@ function isoWeek(y, m, d) {
 // se quedan guardadas sin usarse (salvo para las medallas del pasaporte).
 const ALL = "all2";
 
+// Semana y mes llevan una "j" desde el 14-10-2026, como en el original:
+// empezaron de cero porque tenian marcas de antes de la Sentencia. Las tablas
+// viejas de esta semana y este mes se borran solas con la siguiente marca
+// (submitRun quita las de periodos que no son los de ahora).
 export function periodIds(date = new Date()) {
   const { y, m, d } = madridDate(date);
   const w = isoWeek(y, m, d);
   const p2 = (n) => String(n).padStart(2, "0");
-  return { d: `d${y}${p2(m)}${p2(d)}`, w: `w${w.year}-${p2(w.week)}`, m: `m${y}${p2(m)}`, a: ALL };
+  return { d: `d${y}${p2(m)}${p2(d)}`, w: `w${w.year}-${p2(w.week)}j`, m: `m${y}${p2(m)}j`, a: ALL };
 }
 
 const boardOf = (mode, period, dex, ids) => `${mode}_${ids[period]}${dex && period === "a" ? `_p${dex}` : ""}`;

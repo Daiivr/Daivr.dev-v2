@@ -72,6 +72,8 @@ test("runs are checked for nonsense, not for level or defeated caps", () => {
   assert.equal(validateRun({ mode: "g", t: 60, lv: 5, kills: 5, members: [{ uid: "1", dex: 25 }, { uid: "1", dex: 4 }] }), null, "no duplicate players");
   assert.equal(periodIds(new Date("2026-10-11T23:30:00Z")).d, "d20261012", "periods follow Madrid time, like the original");
   assert.equal(periodIds().a, "all2", "the all-time board restarted with Arceus's Judgment, like the original");
+  assert.match(periodIds(new Date("2026-10-14T12:00:00Z")).w, /^w2026-42j$/, "week and month restarted too (14-10-2026)");
+  assert.match(periodIds(new Date("2026-10-14T12:00:00Z")).m, /^m202610j$/);
 });
 
 test("nicknames are unique, saves merge on the server, and deleting the account removes everything", (t) => {

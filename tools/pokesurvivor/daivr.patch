@@ -1,5 +1,5 @@
 diff --git a/css/style.css b/css/style.css
-index 56ff9db..d459ffd 100644
+index 56ff9db..9dfc64e 100644
 --- a/css/style.css
 +++ b/css/style.css
 @@ -113,26 +113,108 @@ input { font: inherit; }
@@ -21,14 +21,13 @@ index 56ff9db..d459ffd 100644
 +  font-size: 21px; font-weight: 700; letter-spacing: .5px; line-height: 1.15;
    text-shadow: 2px 2px 0 var(--shadow);
    position: relative;
--}
--.menu-item small { display: block; font-size: 13px; font-weight: 400; color: var(--muted); letter-spacing: 0; }
 +  /* raya fina entre opciones */
 +  background: linear-gradient(90deg, transparent, rgba(244,248,255,.13) 12%, rgba(244,248,255,.13) 88%, transparent) top / 100% 2px no-repeat;
 +  transition: background-color .12s;
 +  animation: mi-in .34s cubic-bezier(.2, .8, .3, 1.15) backwards;
 +  animation-delay: calc(var(--i, 0) * 35ms + 60ms);
-+}
+ }
+-.menu-item small { display: block; font-size: 13px; font-weight: 400; color: var(--muted); letter-spacing: 0; }
 +.menu-item.play + .menu-item { background-image: none; }
 +.menu-item small { grid-column: 2; display: block; margin-top: 2px; font-size: 13px; font-weight: 400; color: var(--muted); letter-spacing: 0; }
 +.menu-item small.gold { color: var(--gold); }
@@ -284,7 +283,56 @@ index 56ff9db..d459ffd 100644
    filter: drop-shadow(0 0 30px rgba(255,90,90,.35)); animation: pop .25s ease-out both; }
  
  /* ---------- misiones, logros, perfil y objetos ---------- */
-@@ -714,18 +892,27 @@ a.btn { text-decoration: none; display: inline-block; color: var(--ink); }
+@@ -629,6 +807,48 @@ a.plink:hover { color: var(--gold); }
+ .bond-title { color: #ff8ad8; }
+ .card.bond { border-color: #ff8ad8; background: linear-gradient(90deg, rgba(255,138,216,.18), rgba(255,138,216,.04)); }
+ .card.bond .nm { color: #ff8ad8; }
++/* daivr.dev: el grupo eligiendo a la vez (vínculo u objeto). Pantalla del equipo
++   para quien no elige y una franja bajo la pantalla de quien elige (run-ui.js). */
++.team-box { width: min(780px, 100%); }
++.team-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; width: 100%; margin-top: 8px; }
++.team-card {
++  --pc: var(--gold); position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px;
++  padding: 10px 8px 12px; background: rgba(0,0,0,.22); border: 2px solid rgba(244,248,255,.3);
++  border-top: 4px solid var(--pc); border-radius: 12px; text-align: center;
++}
++.team-card canvas { image-rendering: pixelated; }
++.team-card .tc-txt { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; width: 100%; }
++.team-card .tc-top { display: flex; align-items: center; gap: 6px; }
++.team-card .tc-name { color: var(--pc); font-size: 17px; }
++.team-card .tc-you { font-size: 11px; padding: 1px 6px; border-radius: 5px; background: var(--pc); color: #10131a; text-shadow: none; font-weight: 700; }
++.team-card .tc-state { font-size: 13px; color: var(--muted); }
++.team-card.bond { border-color: #ff8ad8; animation: tc-think 1.1s ease-in-out infinite alternate; }
++.team-card.bond .tc-state { color: #ff8ad8; }
++.team-card.item { border-color: var(--gold); animation: tc-think 1.1s ease-in-out infinite alternate; }
++.team-card.item .tc-state { color: var(--gold); }
++.team-card.done { border-color: var(--green); background: rgba(95,224,138,.1); }
++.team-card.done .tc-state { color: var(--green); }
++@keyframes tc-think { to { background: rgba(255,255,255,.09); } }
++.tc-what { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 3px; min-height: 30px; }
++.tc-ic { display: inline-grid; place-items: center; padding: 2px; border-radius: 6px; border: 2px solid rgba(244,248,255,.18); background: rgba(0,0,0,.25); opacity: .65; }
++.tc-ic.on { opacity: 1; border-color: #ff8ad8; background: rgba(255,138,216,.18); }
++.team-card.item .tc-ic.on { border-color: var(--gold); background: rgba(255,210,63,.16); }
++.team-card.done .tc-ic.on { border-color: var(--green); background: rgba(95,224,138,.16); }
++.tc-plus { font-style: normal; font-weight: 700; color: #ff8ad8; }
++.tc-pool { display: inline-flex; gap: 3px; margin-left: 4px; }
++.tc-nm { width: 100%; font-size: 13px; color: var(--edge); }
++.team-strip { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; margin-top: 12px; padding-top: 10px; border-top: 2px solid rgba(244,248,255,.15); }
++.team-card.slim { flex-direction: row; align-items: center; gap: 8px; padding: 6px 10px; border-top-width: 2px; border-left: 4px solid var(--pc); }
++.team-card.slim .tc-txt { align-items: flex-start; gap: 2px; width: auto; }
++.team-card.slim .tc-name { font-size: 14px; }
++.team-card.slim .tc-state { font-size: 12px; }
++.team-card.slim .tc-what { justify-content: flex-start; min-height: 0; }
++/* Los avisos de abajo (toasts), como las cajas PMD del juego. */
++.toast {
++  background: linear-gradient(180deg, var(--box1), var(--box2)); border: 3px solid var(--edge); border-radius: 10px;
++  box-shadow: 0 0 0 3px var(--edge-out), inset 0 0 0 2px var(--edge-in), 0 10px 30px rgba(0,0,0,.5);
++  padding: 10px 18px; font-weight: 700;
++}
+ @media (max-height: 520px) {
+   #scr-bond .bond-hint { display: none; }
+   #scr-bond .box { width: min(820px, 100%); }
+@@ -714,18 +934,27 @@ a.btn { text-decoration: none; display: inline-block; color: var(--ink); }
    #menu-partner { height: min(34vh, 130px); width: auto; }
    .partner-card { margin-top: 2px; }
    .partner-card .nm { font-size: 17px; }
@@ -319,7 +367,7 @@ index 56ff9db..d459ffd 100644
  }
  /* Móviles muy bajos (iPhone SE y similares): sin subtítulos en el menú, para que quepa entero. */
 diff --git a/dev.html b/dev.html
-index 597df44..e2b6a43 100644
+index d3bd44b..63dabd0 100644
 --- a/dev.html
 +++ b/dev.html
 @@ -29,7 +29,6 @@
@@ -488,7 +536,32 @@ index 597df44..e2b6a43 100644
        <div class="row"><button id="lobby-menu" class="btn small ghost">Menú</button><button id="lobby-leave" class="btn small ghost">Salir de la sala</button></div></div>
      <p class="sub" id="lobby-sub"></p>
      <div id="lobby-members" class="lobby-members"></div>
-@@ -565,7 +580,7 @@
+@@ -521,6 +536,16 @@
+     <p id="bond-sub" class="sub"></p>
+     <div id="bond-cards" class="cards"></div>
+     <div class="row" style="justify-content:center"><button id="bond-back" class="btn hidden">Atrás</button></div>
++    <div id="bond-team" class="team-strip hidden"></div>
++  </div>
++</section>
++
++<!-- ====== daivr.dev: el grupo eligiendo a la vez (vínculo u objeto), como las cartas de nivel ====== -->
++<section id="scr-team" class="scr dim hidden">
++  <div class="box center team-box">
++    <h2 id="team-title" class="bond-title">¡Vínculo!</h2>
++    <p id="team-sub" class="sub"></p>
++    <div id="team-cards" class="team-cards"></div>
+   </div>
+ </section>
+ 
+@@ -529,6 +554,7 @@
+     <h2>¡Un objeto!</h2>
+     <p class="sub">Sólo puedes llevar uno · <kbd>1</kbd> <kbd>2</kbd></p>
+     <div id="item-cards" class="cards"></div>
++    <div id="item-team" class="team-strip hidden"></div>
+   </div>
+ </section>
+ 
+@@ -565,7 +591,7 @@
  <script defer src="js/data/pokedex.js"></script>
  <script defer src="js/data/sprites-meta.js"></script>
  <!-- núcleo -->
@@ -497,7 +570,7 @@ index 597df44..e2b6a43 100644
  <script defer src="js/core/db.js"></script>
  <script defer src="js/core/audio.js"></script>
  <script defer src="js/core/input.js"></script>
-@@ -608,7 +623,6 @@
+@@ -608,7 +634,6 @@
  <script defer src="js/systems/hazards.js"></script>
  <!-- red: amigos, salas, cooperativo y ranking -->
  <script defer src="js/net/social.js"></script>
@@ -557,7 +630,7 @@ index e21844d..2c73dd0 100644
      canPlay() { return !!ctx && ctx.state === 'running'; },
      get settings() { return settings; },
 diff --git a/js/core/db.js b/js/core/db.js
-index 5402f86..ab32d8a 100644
+index b3f608a..ab32d8a 100644
 --- a/js/core/db.js
 +++ b/js/core/db.js
 @@ -1,22 +1,20 @@
@@ -638,7 +711,7 @@ index 5402f86..ab32d8a 100644
     */
    function merge(a, b) {
      if (!a) return b;
-@@ -295,212 +291,97 @@ G.DB = (() => {
+@@ -295,199 +291,97 @@ G.DB = (() => {
      return true;
    }
  
@@ -671,10 +744,11 @@ index 5402f86..ab32d8a 100644
 -  // guardaban unas 12 millones de veces); al cerrar la pestaña, siempre; al
 -  // cambiar de pestaña, si hace más de 30 min.
 -  // Lo que vale algo (tiradas, compras, Pokémon nuevos, shinies, premios,
--  // récords) se sube enseguida, y al acabar cada partida como mucho cada 20 min:
+-  // récords que entran en un top) se sube enseguida, y al acabar cada partida
+-  // como mucho cada 30 min:
 -  // con 2 h, quien abría el juego en otro aparato (o en el navegador de otra
 -  // app) veía la copia vieja de la nube y creía que lo había perdido.
--  const PUSH_GAP = 2 * 3600 * 1000, PUSH_GAP_URGENT = 15 * 1000, PUSH_GAP_RUN = 20 * 60 * 1000, HIDE_GAP = 30 * 60 * 1000;
+-  const PUSH_GAP = 2 * 3600 * 1000, PUSH_GAP_URGENT = 15 * 1000, PUSH_GAP_RUN = 30 * 60 * 1000, HIDE_GAP = 30 * 60 * 1000;
 +  // Firebase obligaba a subir como mucho cada 30 min; el servidor de la web
 +  // aguanta más: cada 2 min, y lo que cuesta algo (gacha, mejoras) a los 15 s.
 +  // La copia local se guarda siempre al momento (y se fusiona con la nube al
@@ -707,6 +781,9 @@ index 5402f86..ab32d8a 100644
 -    firebase.initializeApp(cfg);
 -    auth = firebase.auth();
 -    fs = firebase.firestore();
+-    // Algunas redes y antivirus cortan las actualizaciones en directo (amigos,
+-    // invitaciones): Firebase prueba otra forma de recibirlas si hace falta.
+-    try { fs.settings({ experimentalAutoDetectLongPolling: true }); } catch (e) { /* ya estaba */ }
 -    rtdb = cfg.databaseURL ? firebase.database() : null;
 -    // Sólo para pruebas: { ..., emulator: true } usa el emulador local de Firebase.
 -    if (cfg.emulator) {
@@ -803,21 +880,11 @@ index 5402f86..ab32d8a 100644
 -  function stopListening() { if (unlisten) { unlisten(); unlisten = null; } }
 -
 -  /*
--   * Anti-trampas (firestore.rules): el servidor nunca rechaza tu partida para
--   * siempre. Si trae más monedas, tickets o Pokémon de los que se pueden ganar
--   * en ese rato, la rechaza; el margen crece con el tiempo, así que se
--   * reintenta igual a los 2 y a los 6 min (un caso justo, como las monedas de
--   * una partida que acaba justo después de otro guardado, pasa solo). Si sigue
--   * sin cuadrar, se sube igual pero con la marca sus = true (la cuenta queda
--   * marcada y no puede subir marcas al ranking; nadie pierde nada). La marca
--   * la pone o la quita sólo la nube: si el admin la quita, el siguiente
--   * guardado ya va sin ella.
--   *
--   * Además, nunca se sube dos veces en menos de 65 s (el servidor da menos
--   * margen a los guardados muy seguidos); mientras, todo está en el navegador.
+-   * Si el admin ha baneado la cuenta del ranking (ban = true en la nube, ver
+-   * firestore.rules), cada guardado tiene que conservarlo: se copia de la nube.
+-   * Nunca se sube dos veces en menos de 65 s; mientras, todo está en el navegador.
 -   */
--  let markNext = false, denials = 0;
--  const K_OK = 'ps.cloudok.', MIN_GAP = 65000, DENY_WAIT = [120000, 360000];
+-  const K_OK = 'ps.cloudok.', MIN_GAP = 65000;
 -  const sinceOk = () => Date.now() - (+read(K_OK + uid) || 0);
 -
 -  /** Sube la partida fusionándola con lo que haya en la nube (transacción). */
@@ -848,22 +915,20 @@ index 5402f86..ab32d8a 100644
 -      const remote = snap.exists ? migrate(snap.data().save) : null;
 -      merged = remote ? merge(plain(save), remote) : plain(save);
 -      const doc = { save: merged, updatedAt: firebase.firestore.FieldValue.serverTimestamp(), v: VERSION };
--      if (markNext || (snap.exists && snap.data().sus === true)) doc.sus = true;
+-      if (snap.exists && snap.data().ban === true) doc.ban = true;
 -      tx.set(ref, doc);
 -    });
 -    // Si la red se cae a medias, Firestore puede quedarse esperando: tope de 12 s.
 -    const timeout = new Promise((_, rej) => setTimeout(() => rej({ code: 'unavailable' }), 12000));
--    let failed = false, again = false;
--    pushing = Promise.race([tr, timeout]).then(() => {
--      fails = 0; markNext = false; denials = 0;
--      write(K_OK + uid, Date.now());
 +    const body = { save: plain(save) };
 +    // keepalive sólo admite 64 KB: una partida más grande se queda en la copia
 +    // local y se fusiona al volver a entrar.
 +    const keepalive = final && JSON.stringify(body).length < 60000;
-+    let failed = false;
+     let failed = false;
+-    pushing = Promise.race([tr, timeout]).then(() => {
 +    pushing = G.Daivr.api('save', body, { keepalive, timeout: keepalive ? 0 : 15000 }).then(r => {
-+      fails = 0;
+       fails = 0;
+-      write(K_OK + uid, Date.now());
        // Se FUSIONA con lo de ahora (no se sobrescribe): si has cambiado algo
        // mientras se subía (elegir compañero, una compra...), no se pierde.
 -      if (merged && save) { applyInPlace(merge(plain(save), merged)); write(K_CLOUD + uid, save); }
@@ -872,12 +937,6 @@ index 5402f86..ab32d8a 100644
        if (G.UI && G.UI.refreshCoins) G.UI.refreshCoins();
      }).catch(e => {
        console.warn('[DB] no se pudo sincronizar:', e.code || e.message);
--      // El servidor la ve imposible: se espera (el margen crece) y, si sigue, se sube con la marca.
--      if (e.code === 'permission-denied' && !markNext) {
--        pending = true;
--        if (denials < DENY_WAIT.length) { setSync('pending'); schedulePush(DENY_WAIT[denials++]); failed = true; return; }
--        markNext = true; again = true; return;
--      }
        pending = true; failed = true;
 -      setSync(navigator.onLine === false || e.code === 'unavailable' ? 'offline' : 'pending');
 +      // Sesión de Discord caducada (dura 7 días): se sigue guardando en local.
@@ -889,12 +948,11 @@ index 5402f86..ab32d8a 100644
        scheduleRetry();
      }).finally(() => {
        pushing = null;
--      if (again) return pushNow();
 -      // (Si ha fallado, el reintento ya está programado con su espera creciente.)
        if (!failed && pending && syncState === 'pending') schedulePush(Math.max(1500, PUSH_GAP - (Date.now() - lastPush)));
      });
      return pushing;
-@@ -514,11 +395,7 @@ G.DB = (() => {
+@@ -501,11 +395,7 @@ G.DB = (() => {
      clearTimeout(pushT); pushDue = due;
      pushT = setTimeout(() => { pushT = 0; pushDue = 0; pushNow(); }, ms);
    }
@@ -907,7 +965,7 @@ index 5402f86..ab32d8a 100644
    let fails = 0;
    function scheduleRetry() {
      const ms = Math.min(10 * 60e3, 15e3 * Math.pow(2, fails)) * (0.8 + Math.random() * 0.4);
-@@ -527,33 +404,6 @@ G.DB = (() => {
+@@ -514,33 +404,6 @@ G.DB = (() => {
      retryT = setTimeout(() => { if (pending) pushNow(); }, ms);
    }
  
@@ -941,7 +999,7 @@ index 5402f86..ab32d8a 100644
    // =====================================================================
    //                           API PÚBLICA
    // =====================================================================
-@@ -567,56 +417,54 @@ G.DB = (() => {
+@@ -554,56 +417,54 @@ G.DB = (() => {
        try { if (await initCloud()) mode = 'cloud'; }
        catch (e) { console.warn('[DB] sin nube:', e.message); localReason = 'error'; mode = 'local'; }
        if (mode === 'local') { setSync('local'); return restoreLocal(); }
@@ -1031,7 +1089,7 @@ index 5402f86..ab32d8a 100644
    }
  
    /** Cambia el nombre que se ve en la partida (al elegir apodo). */
-@@ -627,18 +475,17 @@ G.DB = (() => {
+@@ -614,18 +475,17 @@ G.DB = (() => {
    }
  
    function playAsGuest() {
@@ -1046,7 +1104,7 @@ index 5402f86..ab32d8a 100644
 -   * Guarda la partida actual (no hace nada en modo invitado). En el navegador,
 -   * al momento; en la nube:
 -   * @param urgent  true: lo que vale algo (tiradas, compras, Pokémon, premios): enseguida
--   *                'run': al acabar una partida (como mucho cada 20 min) · false: cada 2 h
+-   *                'run': al acabar una partida (como mucho cada 30 min) · false: cada 2 h
 +   * Guarda la partida actual (no hace nada en modo invitado).
 +   * @param urgent  lo que ha costado algo (tiradas del gacha, mejoras): se sube antes
     */
@@ -1054,7 +1112,7 @@ index 5402f86..ab32d8a 100644
    function commit(urgent = false) {
      if (guest || !key || !save) return false;
      save.updated = Date.now();
-@@ -646,61 +493,37 @@ G.DB = (() => {
+@@ -633,61 +493,37 @@ G.DB = (() => {
      write(K_CLOUD + uid, save);
      pending = true;
      setSync('pending');
@@ -1127,7 +1185,7 @@ index 5402f86..ab32d8a 100644
      if (guest || !key) return { ok: false, error: 'No hay cuenta que borrar.' };
      if (mode === 'local') {
        const accs = read(K_ACC) || {};
-@@ -711,26 +534,14 @@ G.DB = (() => {
+@@ -698,26 +534,14 @@ G.DB = (() => {
        return { ok: true };
      }
      try {
@@ -1158,7 +1216,7 @@ index 5402f86..ab32d8a 100644
    }
  
    // ---------------- helpers de partida ----------------
-@@ -759,17 +570,21 @@ G.DB = (() => {
+@@ -746,17 +570,21 @@ G.DB = (() => {
    }
  
    return {
@@ -1358,7 +1416,7 @@ index 5c16cb4..30f499f 100644
    get url() { return this.kofi ? 'https://ko-fi.com/' + this.kofi : ''; }
  };
 diff --git a/js/data/lang-en.js b/js/data/lang-en.js
-index f9c0110..3756b3b 100644
+index f9c0110..6d9329d 100644
 --- a/js/data/lang-en.js
 +++ b/js/data/lang-en.js
 @@ -273,7 +273,7 @@ G.I18n.add({
@@ -1388,7 +1446,7 @@ index f9c0110..3756b3b 100644
    'Cuanta más gente juega, más cuestan los servidores. Lo que sobre se guarda para los gastos de los meses siguientes.': 'The more people play, the more the servers cost. Anything left over is saved for the following months\' costs.',
    'Juego de fans {x}: sin anuncios ni compras. Pokémon y sus personajes son propiedad de Nintendo, Creatures y GAME FREAK; este proyecto no está afiliado a ellos.': 'Fan game {x}: no ads or purchases. Pokémon and its characters are owned by Nintendo, Creatures and GAME FREAK; this project is not affiliated with them.',
    ': sin anuncios ni compras. Pokémon y sus personajes son propiedad de Nintendo, Creatures y GAME FREAK; este proyecto no está afiliado a ellos.': ': no ads or purchases. Pokémon and its characters are owned by Nintendo, Creatures and GAME FREAK; this project is not affiliated with them.',
-@@ -563,5 +563,43 @@ G.I18n.add({
+@@ -563,5 +563,47 @@ G.I18n.add({
    // ---------------- reportar marcas del ranking ----------------
    'Reportar marca sospechosa': 'Report suspicious record', 'Ya la has reportado': 'You already reported it',
    'Ya has reportado esta marca': 'You already reported this record',
@@ -1431,7 +1489,11 @@ index f9c0110..3756b3b 100644
 +  'La partida ha terminado: el anfitrión ha dejado el grupo': 'The match ended: the host left the party',
 +  // daivr.dev: tarjetas de aviso de los Pokémon especiales.
 +  '¡ATRAPADO!': 'CAUGHT!', 'JEFE': 'BOSS', '¡FURIA!': 'ENRAGED!', 'LEGENDARIO': 'LEGENDARY',
-+  '¡ATRÁPALO!': 'CATCH IT!', 'PERDIDO': 'LOST', '¡SE UNE!': 'JOINS YOU!'
++  '¡ATRÁPALO!': 'CATCH IT!', 'PERDIDO': 'LOST', '¡SE UNE!': 'JOINS YOU!',
++  // daivr.dev: el grupo eligiendo a la vez y las pestañas de los avisos
++  'Esperando': 'Waiting', '¡Listo!': 'Done!', 'Elige objeto…': 'Choosing an item…', 'Fusiona movimientos…': 'Fusing moves…',
++  'y': 'and', 'Todos listos': 'Everyone is ready', 'Tu equipo está eligiendo: la partida sigue cuando terminen todos': 'Your team is choosing: the run resumes when everyone is done',
++  'Grieta': 'Rift', 'Objeto': 'Item', 'Clima': 'Weather', 'Poder': 'Power', 'Zona': 'Area'
  });
 diff --git a/js/entities/enemy.js b/js/entities/enemy.js
 index 8d9663d..87df081 100644
@@ -1799,7 +1861,7 @@ index 3b0da67..4132477 100644
        ctx.save();
        ctx.font = '700 7px Pixelify,"Segoe UI",sans-serif';
 diff --git a/js/game.js b/js/game.js
-index 74d68a9..340a86b 100644
+index 8c6963d..6d761bd 100644
 --- a/js/game.js
 +++ b/js/game.js
 @@ -18,6 +18,7 @@ G.Game = (() => {
@@ -1810,7 +1872,24 @@ index 74d68a9..340a86b 100644
    let pl = null;
    let caught = [];          // shinies conseguidos en esta run
    let biome = -1;
-@@ -110,6 +111,7 @@ G.Game = (() => {
+@@ -69,6 +70,8 @@ G.Game = (() => {
+ 
+   /** Pausa/continúa (tecla Esc o P, o el botón de pausa del móvil). */
+   let holdBy = [];                   // grupo: quién está eligiendo fusión (todo parado)
++  // daivr.dev: lo que acabas de elegir en esta pausa del grupo (los demás lo ven como "¡Listo!").
++  let bondDone = null, itemDone = null;
+ 
+   function togglePause() {
+     // En grupo la pausa no para el juego (los demás siguen jugando).
+@@ -87,6 +90,7 @@ G.Game = (() => {
+   /** @param coop  { seed, host, members } para una partida en grupo */
+   function startRun(coop = null) {
+     holdBy = []; awayBy = null;
++    bondDone = itemDone = null; G.RunUI.teamPhase(false);
+     const save = G.DB.save;
+     const mon = G.DEX_BY[save.partner];
+     const perks = G.Upgrades.perks(G.DB.upgradesOf(mon.dex));
+@@ -110,6 +114,7 @@ G.Game = (() => {
      biome = 0;
      time = 0; pendingLevels = 0;
      runReal = performance.now(); tampered = false;
@@ -1818,7 +1897,7 @@ index 74d68a9..340a86b 100644
  
      pl = new G.Player(mon, perks, !!save.partnerShiny && G.DB.ownsShiny(mon.dex));
      banked = { t1: 0, t10: 0 };
-@@ -135,16 +137,21 @@ G.Game = (() => {
+@@ -135,16 +140,21 @@ G.Game = (() => {
      // Hojas de sprites locales: el compañero y los primeros enemigos.
      G.Sprites.preload([mon.dex], 8000, pl.shiny);
      G.Audio.music(G.BIOME_MUSIC[0]);
@@ -1843,7 +1922,7 @@ index 74d68a9..340a86b 100644
    }
  
    /** Todos los jugadores de la partida (tú primero). */
-@@ -214,9 +221,30 @@ G.Game = (() => {
+@@ -222,40 +232,90 @@ G.Game = (() => {
        if (d) Object.assign(pl, { kills: d.ki, bosses: d.bo, coins: d.co, level: Math.max(pl.level, d.lv || 1), t1: d.t1 || pl.t1, t10: d.t10 || pl.t10 });
        if (d && d.t) time = d.t;
        if (d && d.why === 'host') G.UI.toast('El anfitrión ha terminado la partida', 3200);
@@ -1857,6 +1936,7 @@ index 74d68a9..340a86b 100644
 +    /** Grupo: el anfitrión se ha ido y ahora lo eres tú (net/coop.js). */
 +    promoted() {
 +      holdBy = [];                                   // la pausa de fusión era del anfitrión que se fue
++      G.RunUI.teamPhase(false);
 +      if (state === 'held' && !awayBy) state = 'playing';
 +      const ids = G.EnemyMgr.adoptRemote(time);      // sus enemigos pasan a ser tuyos...
 +      G.Pickups.adoptRemote();                       // ...y lo que hay en el suelo
@@ -1864,23 +1944,60 @@ index 74d68a9..340a86b 100644
 +      G.Spawner.resume(time);                        // sin repetir los jefes que ya salieron
 +      // Si había cartas de nivel a medias, se reparten otra vez para todos.
 +      if (state === 'levelup') G.Coop.levelStart(pl.level);
-+      G.Spawner.say('El anfitrión se ha ido: ahora lo eres tú', 3.4, true);
++      G.Spawner.say('El anfitrión se ha ido: ahora lo eres tú', 3.4, true, { kind: 'group', icon: 'crown' });
 +    },
 +    /** Grupo: el anfitrión se ha ido y ahora lo es otro. */
 +    newHost(name) {
 +      holdBy = [];
++      G.RunUI.teamPhase(false);
 +      if (state === 'held' && !awayBy) state = 'playing';
-+      G.Spawner.say('El anfitrión se ha ido: ahora lo es ' + name, 3.4, true);
++      G.Spawner.say('El anfitrión se ha ido: ahora lo es ' + name, 3.4, true, { kind: 'group', icon: 'crown' });
 +    },
      item(id) { offerItem(id); },
      mateLeft() {},
-     /** Grupo: quién está eligiendo fusión. Mientras haya alguien, todo parado. */
-@@ -233,9 +261,13 @@ G.Game = (() => {
-         G.Spawner.say(awayBy ? awayText() : '', awayBy ? 999 : 0, true);
+-    /** Grupo: quién está eligiendo fusión. Mientras haya alguien, todo parado. */
++    /**
++     * Grupo: quién está eligiendo (vínculo u objeto). Mientras haya alguien, todo
++     * parado. daivr.dev: todos ven a la vez la pantalla del equipo, como con las
++     * cartas de nivel (run-ui.js teamPhase): quien elige, en su pantalla con una
++     * franja del equipo; quien no, lo que elige cada uno. Ya no hay aviso de pausa.
++     */
+     hold(names) {
+       holdBy = names || [];
+-      const mine = G.UI.isOpen('scr-bond');
+       if (holdBy.length) {
+         if (state === 'playing') state = 'held';
+         if (pl && pl.bonds > 0) offerBond(true);      // si tú también tienes vínculo, eliges a la vez
+-        const others = holdBy.filter(n => n !== (G.Social.me && G.Social.me.name) && n !== 'Tú');
+-        if (!mine && others.length) G.Spawner.say('Pausa: ' + others.join(', ') + ' ' + (others.length > 1 ? 'están eligiendo…' : 'está eligiendo…'), 999, true);
+-        else if (!others.length) G.Spawner.say(awayBy ? awayText() : '', awayBy ? 999 : 0, true);   // sólo tú: sin aviso viejo
++        G.RunUI.teamPhase(true);
+       } else {
++        bondDone = itemDone = null;
++        G.RunUI.teamPhase(false);
+         if (state === 'held' && !awayBy) state = 'playing';
+-        G.Spawner.say(awayBy ? awayText() : '', awayBy ? 999 : 0, true);
        }
++      // Un aviso de pausa viejo (los de 999 s) se quita; los demás (¡Vínculo!...) se quedan.
++      const b = G.Spawner.banner();
++      if (awayBy) G.Spawner.say(awayText(), 999, true, awayStyle());
++      else if (b && b.dur > 100) G.Spawner.say('', 0, true);
      },
 -    /** Grupo (invitado): el anfitrión se ha ido de la pestaña o no responde: todo parado. */
 -    away(name) {
++    /** daivr.dev: qué estás eligiendo, para la pantalla del equipo de los demás (net/coop.js). */
++    choiceView() {
++      if (!pl) return null;
++      const base = { dex: pl.dex, sh: !!pl.shiny };
++      const b = G.UI.isOpen('scr-bond') && G.RunUI.bondView();
++      if (b) return Object.assign(base, { k: 'bond' }, b);
++      if (openItem && G.UI.isOpen('scr-item')) return Object.assign(base, { k: 'item', cur: openItem.cur, next: openItem.next });
++      if (bondDone) return Object.assign(base, { k: 'bond', done: bondDone });
++      if (itemDone) return Object.assign(base, { k: 'item', done: itemDone });
++      return null;
++    },
++    /** daivr.dev: lo que elige cada uno del grupo ({ uid: choiceView }). */
++    teamChoices(views) { G.RunUI.setTeam(views); },
 +    /**
 +     * Grupo (invitado): el anfitrión se ha ido de la pestaña o no responde
 +     * (o se ha ido del todo y se busca otro: migrate): todo parado.
@@ -1890,8 +2007,11 @@ index 74d68a9..340a86b 100644
 +      awayMigrate = !!(awayBy && migrate);
        if (awayBy) {
          if (state === 'playing') state = 'held';
-         G.Spawner.say(awayText(), 999, true);
-@@ -245,8 +277,10 @@ G.Game = (() => {
+-        G.Spawner.say(awayText(), 999, true);
++        G.Spawner.say(awayText(), 999, true, awayStyle());
+       } else if (!holdBy.length) {
+         if (state === 'held') state = 'playing';
+         G.Spawner.say('', 0, true);
        }
      }
    };
@@ -1900,11 +2020,12 @@ index 74d68a9..340a86b 100644
 +  let awayBy = null, awayMigrate = false;
 +  const awayText = () => awayMigrate ? awayBy + ' (anfitrión) se ha ido: buscando un nuevo anfitrión…'
 +                                     : 'Pausa: esperando a ' + awayBy + ' (anfitrión)…';
++  const awayStyle = () => awayMigrate ? { kind: 'group', icon: 'crown' } : { kind: 'pause' };
 +  const HOST_LEFT = 'La partida ha terminado: el anfitrión ha dejado el grupo';
  
    /** Has llevado a casa a un Pokémon perdido y se une a ti (events.js). */
    G.onRescue = (dex, name) => {
-@@ -254,7 +288,7 @@ G.Game = (() => {
+@@ -263,7 +323,7 @@ G.Game = (() => {
      const isNew = !G.DB.owns(dex);
      if (isNew) { G.DB.grant(dex, 'rescue'); G.DB.commit(true); }
      else pl.coins += 150;
@@ -1913,7 +2034,7 @@ index 74d68a9..340a86b 100644
      G.Audio.sfx('shinyGet');
    };
  
-@@ -266,7 +300,7 @@ G.Game = (() => {
+@@ -275,7 +335,7 @@ G.Game = (() => {
      G.DB.save.stats.shinies++;
      G.DB.commit(true);
      caught.push({ dex: e.dex, isNew });
@@ -1922,22 +2043,64 @@ index 74d68a9..340a86b 100644
      if (!isNew) pl.coins += 300;
      G.Audio.sfx('shinyGet');
    };
-@@ -313,8 +347,12 @@ G.Game = (() => {
+@@ -323,9 +383,14 @@ G.Game = (() => {
      const mark = { t: Math.floor(time), lv: pl.level, kills: pl.kills };
      // Si la partida se ha tocado (ver clean()), no sube al ranking (sin avisar); lo demás, sí.
      const ok = clean();
--    if (ok && !coop) G.Ranking.submitSolo(Object.assign(mark, { dex: pl.dex, shiny: pl.shiny }));
--    else if (ok && wasHost) G.Ranking.submitGroup(Object.assign(mark, { members: team }));
+-    const sent = ok && !coop ? G.Ranking.submitSolo(Object.assign(mark, { dex: pl.dex, shiny: pl.shiny }))
+-               : ok && wasHost ? G.Ranking.submitGroup(Object.assign(mark, { members: team })) : null;
+-    if (sent) sent.then(b => { if (b && b.some(p => p !== 'a')) G.DB.commit(true); }).catch(() => {});
 +    let sent = null;
 +    if (ok && !coop) sent = G.Ranking.submitSolo(Object.assign(mark, { dex: pl.dex, shiny: pl.shiny }));
 +    else if (ok && wasHost) sent = G.Ranking.submitGroup(Object.assign(mark, { members: team }));
++    // Si la marca entra en un top (hoy, semana o mes), la partida se sube enseguida.
++    if (sent) sent.then(r => { if (r && r.better && r.better.some(p => p !== 'a')) G.DB.commit(true); }).catch(() => {});
 +    // daivr.dev: la tele de la web enseña cómo ha ido (y refresca su ranking).
 +    const told = { type: 'daivr:pokesurvivor-run', t: mark.t, mode: coop ? 'g' : 's', signedIn: G.DB.online };
 +    Promise.resolve(sent).then(r => G.Daivr.toParent(Object.assign(told, { score: (r && r.score) || null })));
  
      G.RunUI.showOver({
        dead, time, level: pl.level, kills: pl.kills, bosses: pl.bosses, coins, record, t1: pl.t1, t10: pl.t10, judge,
-@@ -598,6 +636,12 @@ G.Game = (() => {
+@@ -391,7 +456,7 @@ G.Game = (() => {
+     if (['scr-bond', 'scr-pause', 'scr-item', 'scr-levelup'].some(G.UI.isOpen)) return;
+     const opt = pl.bondOptions();
+     if (!opt) {
+-      if (!quiet) G.Spawner.say('Guardas el vínculo: aprende otro movimiento para usarlo', 3, true);
++      if (!quiet) G.Spawner.say('Guardas el vínculo: aprende otro movimiento para usarlo', 3, true, { kind: 'bond' });
+       return;
+     }
+     // Se para el juego; en grupo, para todos hasta que cada uno elige (G.Coop.holdStart).
+@@ -403,7 +468,8 @@ G.Game = (() => {
+       G.Audio.sfx('legend');
+       G.FX.ring(pl.x, pl.y, 8, 130, '#ff8ad8', 0.8, 6);
+       G.FX.burst(pl.x, pl.y - pl.bodyH * 0.5, '#ffb3e6', 40, 240);
+-      G.Spawner.say('¡Vínculo! ' + group.length + ' movimientos a la vez', 2.6, true);
++      G.Spawner.say('¡Vínculo! ' + group.length + ' movimientos a la vez', 2.6, true, { kind: 'bond' });
++      bondDone = group.map(m => m.id);
+       if (state === 'choice') state = holdBy.length ? 'held' : 'playing';
+       if (G.Coop.active) G.Coop.holdEnd();
+     });
+@@ -442,16 +508,17 @@ G.Game = (() => {
+       openItem = null;
+       if (got !== pl.item) {
+         pl.equip(got);
+-        G.Spawner.say('¡Llevas ' + G.Items.BY[got].name + '!', 2.6, true);
++        G.Spawner.say('¡Llevas ' + G.Items.BY[got].name + '!', 2.6, true, { kind: 'item', icon: got });
+         G.Progress.event('item', { id: got });
+       }
+       if (!mine) { afterLevelUp(); return; }
++      itemDone = got;
+       if (state === 'choice') state = holdBy.length ? 'held' : 'playing';
+       if (G.Coop.active) G.Coop.holdEnd();
+       afterLevelUp();
+     };
+     if (!pl.item) { take(id); return; }
+-    if (pl.item === id) { G.Spawner.say('Ya llevas ' + G.Items.BY[id].name, 2, true); return; }
++    if (pl.item === id) { G.Spawner.say('Ya llevas ' + G.Items.BY[id].name, 2, true, { kind: 'item', icon: id }); return; }
+     // Se para el juego mientras eliges; en grupo, para todos (como con las
+     // fusiones). Antes en grupo seguía y te pegaban mientras elegías.
+     if (state === 'playing' || state === 'held') {
+@@ -633,13 +700,19 @@ G.Game = (() => {
        return;
      }
      time += dt;
@@ -1950,7 +2113,15 @@ index 74d68a9..340a86b 100644
  
      const b = Math.floor(time / 240);
      if (b !== biome && !G.Rift.inArena && !G.Judgment.active) {
-@@ -643,7 +687,8 @@ G.Game = (() => {
+       biome = b;
+       G.World.setBiome(b);
+       G.Audio.sfx('biome');
+-      G.Spawner.say('— ' + G.World.biomeName() + ' —', 3);
++      G.Spawner.say('— ' + G.World.biomeName() + ' —', 3, false, { kind: 'area' });
+       G.FX.ring(pl.x, pl.y, 10, G.Camera.outerRadius(), '#ffffff', 0.7, 6);
+     }
+ 
+@@ -678,7 +751,8 @@ G.Game = (() => {
  
    /** Caído en grupo: un compañero a tu lado te va levantando. */
    function reviveTick(dt) {
@@ -2003,11 +2174,22 @@ index 8abfd8c..8991d78 100644
 +  // que guardaría en caché versiones viejas entre despliegues.)
  })();
 diff --git a/js/net/coop.js b/js/net/coop.js
-index 26f3b67..af6c43a 100644
+index 50c5375..f79edf2 100644
 --- a/js/net/coop.js
 +++ b/js/net/coop.js
-@@ -41,6 +41,11 @@ G.Coop = (() => {
-   let hostAway = false, stalled = false, lastHostAt = 0;
+@@ -14,6 +14,10 @@
+  * porque la conexión parpadea, el siguiente envío lo arregla y nadie se queda
+  * esperando a otro para siempre (pasaba en 2026-10).
+  *
++ * daivr.dev: mientras alguien elige, cada envío lleva también QUÉ está eligiendo
++ * cada uno (cv: vínculo u objeto, y lo que lleva marcado): todos ven a la vez la
++ * pantalla del equipo, como con las cartas de nivel (run-ui.js, teamPhase).
++ *
+  * Mensajes (por net.js, unas 15 veces por segundo; 5 si va por el relé):
+  *   invitado -> anfitrión  { k:'f', p:[estado], ev:[eventos] }
+  *   anfitrión -> invitado  { k:'f', t, lv, xp, xn, ki, bo, co, p:{uid:[estado]},
+@@ -49,6 +53,11 @@ G.Coop = (() => {
+   let levelSeq = 0, levelNow = 1, seenSeq = 0, doneSeq = 0, lastHo = '';
    const STALL_MS = 2500;
    let members = [];
 +  // daivr.dev: si el anfitrión se va con dos o más jugadores en la partida, el
@@ -2018,15 +2200,15 @@ index 26f3b67..af6c43a 100644
  
    // ---------------- escalado de dificultad ----------------
  
-@@ -64,6 +69,7 @@ G.Coop = (() => {
-     mates.clear();
+@@ -73,6 +82,7 @@ G.Coop = (() => {
      outEv = []; flushT = 0; waiting = new Set(); holds = new Set();
      hostAway = false; stalled = false; lastHostAt = performance.now();
+     levelSeq = 0; levelNow = 1; seenSeq = 0; doneSeq = 0; lastHo = '';
 +    migrating = null; clearTimeout(migrateTimer);
      cfg.members.forEach((m, i) => {
        const x = (i - (cfg.members.length - 1) / 2) * 34, y = 0;
        if (m.uid === me) { pl.x = x; pl.y = y; pl.uid = me; pl.coopHost = host; pl.tagColor = COLORS[i]; return; }
-@@ -80,20 +86,29 @@ G.Coop = (() => {
+@@ -89,20 +99,29 @@ G.Coop = (() => {
    function end() {
      active = false; host = false; local = null;
      mates.clear(); outEv = []; waiting = new Set(); holds = new Set();
@@ -2063,23 +2245,51 @@ index 26f3b67..af6c43a 100644
    }
  
    // ---------------- lista de jugadores ----------------
-@@ -178,11 +193,12 @@ G.Coop = (() => {
+@@ -186,15 +205,25 @@ G.Coop = (() => {
+     if (ja) f.ja = ja;
+     // Siempre: quién está eligiendo y, si hay cartas de nivel, cuáles (ver arriba).
+     f.ho = holdNames();
++    if (holds.size) f.cv = teamViews();
+     if (waiting.size) f.lu = [levelSeq, levelNow];
      return f;
    }
  
 -  function flushAll() { for (const m of mates.values()) if (m.connected) G.Net.send(m.uid, hostFrame(m)); }
 +  /** @param sure  también por el relé (lo último antes de irse) */
 +  function flushAll(sure) { for (const m of mates.values()) if (m.connected) G.Net.send(m.uid, hostFrame(m), sure); }
++
++  /** Invitado: tu estado, tus eventos y, si estás eligiendo, qué (cv). */
++  function clientFrame() {
++    const f = { k: 'f', p: myState(), ev: outEv };
++    const cv = api.choiceView && api.choiceView();
++    if (cv) f.cv = cv;
++    return f;
++  }
  
 -  function flushClient(force) {
 +  function flushClient(force, sure) {
      if (!force && !outEv.length && flushT > 0) return;
 -    G.Net.toHost({ k: 'f', p: myState(), ev: outEv });
-+    G.Net.toHost({ k: 'f', p: myState(), ev: outEv }, sure);
++    G.Net.toHost(clientFrame(), sure);
      outEv = [];
    }
  
-@@ -220,9 +236,64 @@ G.Coop = (() => {
+@@ -209,12 +238,13 @@ G.Coop = (() => {
+         m.flushT = rateFor(m.uid);
+         G.Net.send(m.uid, hostFrame(m));
+       }
++      if (holds.size && api.teamChoices) api.teamChoices(teamViews());
+     } else {
+       if (!stalled && performance.now() - lastHostAt > STALL_MS) { stalled = true; updateAway(); }
+       flushT -= dt;
+       if (flushT <= 0) {
+         flushT = rateFor(hostUid);
+-        G.Net.toHost({ k: 'f', p: myState(), ev: outEv });
++        G.Net.toHost(clientFrame());
+         outEv = [];
+       }
+     }
+@@ -232,15 +262,73 @@ G.Coop = (() => {
    G.Net.onPeer((u, mode) => {
      if (!active || (mode !== 'closed' && mode !== 'failed')) return;
      if (host) mateGone(u);
@@ -2090,16 +2300,16 @@ index 26f3b67..af6c43a 100644
 +      if (!G.Social.room) hostGone();
 +      else if (!migrating) { const cb = api.lost; end(); if (cb) cb('Se ha perdido la conexión con el anfitrión.'); }
 +    }
-   });
- 
++  });
++
 +  // ---------------- migración del anfitrión (daivr.dev) ----------------
 +
 +  G.Social.on((what, d) => {
 +    if (!active) return;
 +    if (what === 'room-migrated' && d) migrated(d.from, d.to);
 +    else if (what === 'room-closed' && !host) hostGone();
-+  });
-+
+   });
+ 
 +  /** Invitado: el anfitrión avisa de que se va ('hl'); se espera al nuevo. */
 +  function hostLeaving() {
 +    if (migrating) return;
@@ -2127,6 +2337,9 @@ index 26f3b67..af6c43a 100644
 +    hostUid = to;
 +    hostAway = false; stalled = false; lastHostAt = performance.now();
 +    waiting = new Set(); holds = new Set();
++    // Las rondas de cartas siguen la numeración del anfitrión que se fue: los
++    // demás ignoran una ronda con número menor que la última que vieron.
++    levelSeq = Math.max(levelSeq, seenSeq); lastHo = '';
 +    for (const m of mates.values()) { m.q = []; m.flushT = 0; }
 +    updateAway();                      // (antes del aviso del nuevo anfitrión: esto lo borraría)
 +    if (to === me) {
@@ -2145,7 +2358,22 @@ index 26f3b67..af6c43a 100644
    function mateGone(u) {
      const m = mates.get(u);
      if (!m || !m.connected) return;
-@@ -277,8 +348,13 @@ G.Coop = (() => {
+     m.connected = false;
+     G.Projectiles.clearOrbs(m.pl);
+-    G.Spawner.say(m.name + ' ha dejado la partida', 2.6);
++    G.Spawner.say(m.name + ' ha dejado la partida', 2.6, false, { kind: 'group' });
+     if (waiting.has(u)) picked(u);
+     if (holds.has(u)) holdOff(u);
+     if (api.mateLeft) api.mateLeft(m);
+@@ -252,6 +340,7 @@ G.Coop = (() => {
+     const m = mates.get(from);
+     if (!m || !m.connected) return;
+     if (msg.p) { m.state = msg.p; m.pl.net = readState(msg.p); m.xpMul = m.pl.net.xpMul || 1; reconcile(from, m.pl.net); }
++    m.cv = msg.cv || null;
+     for (const ev of msg.ev || []) {
+       switch (ev[0]) {
+         case 'h': {
+@@ -297,8 +386,13 @@ G.Coop = (() => {
  
    // --- en el invitado ---
  
@@ -2161,23 +2389,31 @@ index 26f3b67..af6c43a 100644
  
    // Anfitrión: al irse de la pestaña avisa a todos al momento (después ya no
    // podrá mandar nada) y al volver, que sigue.
-@@ -338,13 +414,14 @@ G.Coop = (() => {
+@@ -320,6 +414,7 @@ G.Coop = (() => {
+       if (msg.lu && msg.lu[0] > seenSeq) { seenSeq = msg.lu[0]; api.levelStart(msg.lu[1]); }
+       else if (!msg.lu && api.inLevelUp && api.inLevelUp()) api.resume();
+     }
++    if (msg.cv && api.teamChoices) api.teamChoices(msg.cv);
+     api.syncTeam({ time: msg.t, level: msg.lv, xp: msg.xp, xpNext: msg.xn, kills: msg.ki, bosses: msg.bo, coins: msg.co,
+                    t1: (msg.tk || [])[0], t10: (msg.tk || [])[1] });
+     for (const u in msg.p || {}) {
+@@ -365,13 +460,14 @@ G.Coop = (() => {
          G.Audio.sfx('break');
          break;
        case 'pb': G.World.breakAt(ev[1], ev[2]); break;
 -      case 'say': G.Spawner.say(ev[1], ev[2]); break;
 +      case 'say': G.Spawner.say(ev[1], ev[2], false, ev[3] || null); break;
        case 'heal': if (!local.dead) { local.heal(local.maxHp * ev[1]); G.FX.ring(local.x, local.y, 6, 60, '#5fe08a', 0.4, 3); } break;
-       case 'lu': api.levelStart(ev[1]); break;
+       case 'lu': if (!ev[2] || ev[2] > seenSeq) { seenSeq = ev[2] || seenSeq; api.levelStart(ev[1]); } break;
        case 'lw': api.waiting(ev[1]); break;
        case 'lr': api.resume(); break;
-       case 'hp': api.hold && api.hold(ev[1]); break;
+       case 'hp': lastHo = (ev[1] || []).join('|'); api.hold && api.hold(ev[1]); break;
        case 'ha': hostAway = !!ev[1]; updateAway(); break;
 +      case 'hl': hostLeaving(); break;
        case 'sh': api.shiny(ev[1]); break;
        case 'ov': { const cb = api.over; const d = ev[1]; end(); cb(d); break; }
        case 'rift': case 'riftx': case 'arena': case 'aw': case 'al': G.Rift.onEvent(ev); break;
-@@ -378,7 +455,7 @@ G.Coop = (() => {
+@@ -405,7 +501,7 @@ G.Coop = (() => {
    function enemyShot(p, type) { emit(['es', r1(p.x), r1(p.y), r1(p.vx), r1(p.vy), r2(p.dmg), p.r, p.life, type]); }
    function pickupAdded(o) { emit(['pk', o.id, o.kind, r1(o.x), r1(o.y), o.value]); }
    function pickupGone(id) { emit(['pc', id]); }
@@ -2186,6 +2422,32 @@ index 26f3b67..af6c43a 100644
  
    function propBroken(p) {
      if (host) emit(['pb', p.tx, p.ty]);
+@@ -460,6 +556,15 @@ G.Coop = (() => {
+ 
+   function holdNames() { return [...holds].map(nameOf); }
+ 
++  /** Anfitrión: qué está eligiendo cada uno (el tuyo y los de los invitados conectados). */
++  function teamViews() {
++    const out = {};
++    const mine = api.choiceView && api.choiceView();
++    if (mine) out[me] = mine;
++    for (const m of mates.values()) if (m.connected && m.cv) out[m.uid] = m.cv;
++    return out;
++  }
++
+   /** Anfitrión: `u` empieza a elegir. */
+   function holdOn(u) {
+     holds.add(u);
+@@ -501,6 +606,9 @@ G.Coop = (() => {
+     mate(u) { return mates.get(u); },
+     get mates() { return [...mates.values()]; },
+     get members() { return members; },
++    /** ¿Sigue en la partida? (tú siempre) */
++    connected(u) { return u === me || !!(mates.get(u) && mates.get(u).connected); },
++    get me() { return me; },
+     get active() { return active; },
+     get isHost() { return active && host; },
+     get local() { return local; }
 diff --git a/js/net/daivr.js b/js/net/daivr.js
 new file mode 100644
 index 0000000..885c272
@@ -2515,10 +2777,10 @@ index 0e67e3e..7f25e24 100644
  
    function deliver(from, msg) {
 diff --git a/js/net/ranking.js b/js/net/ranking.js
-index a08579c..52db0f3 100644
+index e39d47d..683f799 100644
 --- a/js/net/ranking.js
 +++ b/js/net/ranking.js
-@@ -1,50 +1,29 @@
+@@ -1,51 +1,29 @@
  /* ============ ranking.js — clasificación de tiempo aguantado ============
 - * Firestore (pensado para gastar lo mínimo del plan gratuito):
 - *
@@ -2569,10 +2831,11 @@ index a08579c..52db0f3 100644
 -  //  Pokémon y escribía; ahora también sólo el top 50.)
 -  const TOP_ONLY = new Set(['d', 'w', 'm', 'p']);
 -  const TOP = 50;
--  // Las runs de menos de 1 minuto no se suben (casi nunca entran en una tabla
--  // y eran muchas lecturas y escrituras para nada).
-+  // Las runs de menos de 1 minuto no se suben (como en el original desde el 12-10-2026).
-   const MIN_T = 60;
+-  // Las runs de menos de 2 minutos no se suben (nunca entran en un top que
+-  // importe y eran muchas lecturas y escrituras para nada: los que empiezan
+-  // mueren a menudo en el primer minuto; era 1 min hasta el 14-10-2026).
++  // Las runs de menos de 2 minutos no se suben (como en el original desde el 14-10-2026).
+   const MIN_T = 120;
 -  const TTL = 30 * 60 * 1000;            // caché de lo leído (30 min: menos lecturas de Firestore)
 +  const TTL = 60 * 1000;                 // lo leído vale 1 min (cambiar de pestaña y volver: 0)
  
@@ -2581,7 +2844,7 @@ index a08579c..52db0f3 100644
  
    // ---------------- periodos ----------------
  
-@@ -63,12 +42,11 @@ G.Ranking = (() => {
+@@ -64,475 +42,100 @@ G.Ranking = (() => {
      return { year: t.getUTCFullYear(), week: Math.ceil(((t - y0) / 86400000 + 1) / 7) };
    }
  
@@ -2591,24 +2854,39 @@ index a08579c..52db0f3 100644
      const w = isoWeek(y, m, d);
      const p2 = n => String(n).padStart(2, '0');
 -    return { d: 'd' + y + p2(m) + p2(d), w: 'w' + w.year + '-' + p2(w.week), m: 'm' + y + p2(m), y: 'y' + y, a: ALL };
+-  }
+-
+-  /*
+-   * Nombres de las tablas: los de periodIds() salvo semana y mes, que llevan
+-   * una "j" (desde la Sentencia de Arceus, 14-10-2026: empezaron de cero como el
+-   * histórico, que tenían marcas de antes del final del minuto 30). periodIds()
+-   * se queda igual porque también lo usan las misiones (progress.js).
+-   */
+-  function boardIds(date) {
+-    const p = periodIds(date);
+-    return Object.assign({}, p, { w: p.w + 'j', m: p.m + 'j' });
 +    return { d: 'd' + y + p2(m) + p2(d), w: 'w' + w.year + '-' + p2(w.week), m: 'm' + y + p2(m), y: 'y' + y, a: 'all' };
    }
  
    /** El filtro por Pokémon sólo existe en el histórico. */
-@@ -76,441 +54,88 @@ G.Ranking = (() => {
-     return mode + '_' + periodIds()[period] + (dex && period === 'a' ? '_p' + dex : '');
-   }
- 
+   function board(mode, period, dex) {
+-    return mode + '_' + boardIds()[period] + (dex && period === 'a' ? '_p' + dex : '');
+-  }
+-
 -  const col = b => fbx().fs.collection('lb').doc(b).collection('e');
 -  const sumRef = b => fbx().fs.collection('lbs').doc(b);
 -
 -  // ---------------- caché en el navegador ----------------
 -
 -  const mem = new Map();                 // clave -> { at, v }
+-  // Tu puesto exacto (fuera del top 50) cuesta 1 lectura por cada 1.000 marcas
+-  // que tienes por delante: se guarda 6 h, y se vuelve a mirar antes si mejoras.
+-  const RANK_TTL = 6 * 3600 * 1000;
+-  const ttlOf = k => (k.startsWith('r:') ? RANK_TTL : TTL);
 -  function cacheGet(k) {
 -    let c = mem.get(k);
 -    if (!c) { try { c = JSON.parse(localStorage.getItem('ps.rk.c.' + k) || 'null'); } catch (e) { c = null; } if (c) mem.set(k, c); }
--    return c && Date.now() - c.at < TTL ? c.v : undefined;
+-    return c && Date.now() - c.at < ttlOf(k) ? c.v : undefined;
 -  }
 -  function cacheSet(k, v) {
 -    const c = { at: Date.now(), v };
@@ -2622,12 +2900,13 @@ index a08579c..52db0f3 100644
 -        const k = localStorage.key(i);
 -        if (!k || !k.startsWith('ps.rk.c.')) continue;
 -        const c = JSON.parse(localStorage.getItem(k) || 'null');
--        if (!c || Date.now() - c.at > TTL) localStorage.removeItem(k);
+-        if (!c || Date.now() - c.at > ttlOf(k.slice(8))) localStorage.removeItem(k);
 -      }
 -    } catch (e) { /* nada */ }
--  }
++    return mode + '_' + periodIds()[period] + (dex && period === 'a' ? '_p' + dex : '');
+   }
 -  cachePrune();
--
+ 
 -  // Tus mejores marcas por tabla (para no leer antes de escribir).
 -  // (best2 desde 2026-10-12: se quitaron del ranking las marcas rotas; así quien
 -  //  tenía una vuelve a mirar su marca real y puede volver a entrar.)
@@ -2635,7 +2914,7 @@ index a08579c..52db0f3 100644
 -  function bests() { try { return JSON.parse(localStorage.getItem(bestKey()) || '{}'); } catch (e) { return {}; } }
 -  function saveBests(b) {
 -    // Sólo se conservan las tablas de los periodos actuales y las históricas.
--    const cur = Object.values(periodIds());
+-    const cur = Object.values(boardIds());
 -    for (const k of Object.keys(b)) if (!cur.some(p => k.split(':')[0].split('_')[1] === p)) delete b[k];
 -    try { localStorage.setItem(bestKey(), JSON.stringify(b)); } catch (e) { /* lleno */ }
 -  }
@@ -2658,7 +2937,7 @@ index a08579c..52db0f3 100644
 -    if ((t[b] || 0) >= low) return;
 -    t[b] = low;
 -    // Sólo las tablas de los periodos de ahora (y las históricas).
--    const cur = Object.values(periodIds());
+-    const cur = Object.values(boardIds());
 -    for (const k of Object.keys(t)) if (!cur.some(p => k.split('_')[1] === p)) delete t[k];
 -    try { localStorage.setItem(THR, JSON.stringify(t)); } catch (e) { /* lleno */ }
 +  let runToken = null;
@@ -2677,17 +2956,23 @@ index a08579c..52db0f3 100644
 -  // ---------------- anti-trampas ----------------
 -
 -  /**
--   * Al empezar cada partida (en grupo, el anfitrión) el servidor apunta la
--   * hora: ninguna marca puede durar más que el tiempo real desde entonces
--   * (firestore.rules, validEntry). Antes se espera a que acabe de subirse la
--   * marca de la partida anterior, para no cambiarle la hora a mitad.
+-   * Al empezar la PRIMERA partida de la sesión (en grupo, el anfitrión) el
+-   * servidor apunta la hora: ninguna marca puede durar más que el tiempo real
+-   * desde entonces (firestore.rules, validEntry). Una vez por sesión y no en
+-   * cada partida (14-10-2026: eran casi 150.000 escrituras al día de más; es
+-   * igual de seguro, porque la sesión siempre empieza antes que la partida).
+-   * Antes se espera a que acabe de subirse la marca de la partida anterior.
 -   */
--  let busy = Promise.resolve();
+-  let busy = Promise.resolve(), runMarked = '';
 -  function runStarted(mode) {
 -    const fb = fbx();
--    if (!fb) return;
+-    if (!fb || runMarked === fb.uid) return;
+-    runMarked = fb.uid;
 -    const go = n => fb.fs.collection('runs').doc(fb.uid).set({ startedAt: now(), mode })
--      .catch(e => { console.warn('[Ranking] inicio:', e.code || e.message); if (n < 2) setTimeout(() => go(n + 1), 15000); });
+-      .catch(e => {
+-        console.warn('[Ranking] inicio:', e.code || e.message);
+-        if (n < 2) setTimeout(() => go(n + 1), 15000); else runMarked = '';
+-      });
 -    busy.then(() => go(0));
 -  }
 -  /** La subida de una marca (para que la partida siguiente espere a que acabe). */
@@ -2773,7 +3058,7 @@ index a08579c..52db0f3 100644
 -  async function submitSoloNow(r) {
 -    const fb = fbx();
 -    if (!fb || !G.Social.me || r.t < MIN_T) return [];
--    const ids = periodIds();
+-    const ids = boardIds();
 -    const entry = { t: r.t, uids: [fb.uid], names: [G.Social.me.name], dex: [r.dex], shiny: [!!r.shiny], lv: r.lv, kills: r.kills };
 -    const boards = PERIODS.map(([p]) => ['s_' + ids[p], p]);
 -    boards.push(['s_' + ALL + '_p' + r.dex, 'p']);
@@ -2807,7 +3092,7 @@ index a08579c..52db0f3 100644
 -    const id = ms.map(m => m.uid).join('_');
 -    const entry = { t: r.t, uids: ms.map(m => m.uid), names: ms.map(m => m.name), dex: ms.map(m => m.dex),
 -                    shiny: ms.map(m => !!m.shiny), lv: r.lv, kills: r.kills };
--    const ids = periodIds();
+-    const ids = boardIds();
 -    const boards = PERIODS.map(([p]) => ['g_' + ids[p], p]);
 -    for (const d of new Set(entry.dex)) boards.push(['g_' + ALL + '_p' + d, 'p']);
 -    const better = await store(boards, id, entry);
@@ -2911,10 +3196,8 @@ index a08579c..52db0f3 100644
 -    if (mine) res = { pos: (await countAbove(b, mine.t)) + 1, t: mine.t, row: mine };
 -    cacheSet(ck, res);
 -    return res;
-+    if (!online()) return null;
-+    return (await load(mode, period, dex, false)).me || null;
-   }
- 
+-  }
+-
 -  /**
 -   * Cuántas entradas tienen más tiempo. La versión "compat" del SDK no trae
 -   * count(), así que se usa la API REST de agregación (1 lectura por cada
@@ -2945,7 +3228,7 @@ index a08579c..52db0f3 100644
 -  async function removeMine() {
 -    const fb = fbx();
 -    if (!fb) return;
--    const ids = periodIds();
+-    const ids = boardIds();
 -    const boards = new Set();
 -    for (const m of ['s', 'g']) for (const [p] of PERIODS) boards.add(m + '_' + ids[p]);
 -    for (const k of Object.keys(bests())) boards.add(k.split(':')[0]);
@@ -2999,9 +3282,7 @@ index a08579c..52db0f3 100644
 -    }
 -    return [...by.values()].sort((a, b) => b.n - a.n || b.at - a.at);
 -  }
-+  /** Al borrar la cuenta el servidor quita tus marcas (DELETE /account). */
-+  async function removeMine() { forget(); }
- 
+-
 -  /** Admin: la fila de una marca en el top 50 de su tabla (o null si ya no está). */
 -  async function entryInfo(b, e) {
 -    const top = await summary(b);
@@ -3024,13 +3305,15 @@ index a08579c..52db0f3 100644
 -
 -  /** Admin: quita la marca de un jugador o equipo de todas las tablas de ahora (y de `also`). */
 -  async function removeEverywhere(e, mode, dexes = [], also = null) {
--    const ids = periodIds();
+-    const ids = boardIds();
 -    const boards = new Set(PERIODS.map(([p]) => mode + '_' + ids[p]));
 -    for (const d of dexes) boards.add(mode + '_' + ALL + '_p' + d);
 -    if (also) boards.add(also);
 -    await Promise.all([...boards].map(b => removeEntry(b, e)));
--  }
--
++    if (!online()) return null;
++    return (await load(mode, period, dex, false)).me || null;
+   }
+ 
 -  /**
 -   * Admin: quita de TODAS las tablas las marcas de más de `maxT` segundos (las
 -   * filas de cada top 50 y las marcas sueltas del histórico). Con la Sentencia
@@ -3066,14 +3349,16 @@ index a08579c..52db0f3 100644
 -    }
 -    return { rows, boards };
 -  }
--
--  /** Admin: marca o desmarca una cuenta (marcada = no puede subir marcas). */
--  function setMarked(uid, on) { return fbx().fs.collection('saves').doc(uid).update({ sus: !!on }); }
++  /** Al borrar la cuenta el servidor quita tus marcas (DELETE /account). */
++  async function removeMine() { forget(); }
+ 
+-  /** Admin: banea o desbanea una cuenta del ranking (baneada = no puede subir marcas). */
+-  function setMarked(uid, on) { return fbx().fs.collection('saves').doc(uid).update({ ban: !!on }); }
 -  /** Admin: borra reportes ya vistos. */
 -  function dismiss(ids) { return Promise.all(ids.map(id => fbx().fs.collection('reports').doc(id).delete().catch(() => {}))); }
--  /** Admin: cuentas marcadas. */
+-  /** Admin: cuentas baneadas del ranking. */
 -  async function markedAccounts() {
--    const s = await fbx().fs.collection('saves').where('sus', '==', true).limit(100).get();
+-    const s = await fbx().fs.collection('saves').where('ban', '==', true).limit(100).get();
 -    return s.docs.map(d => { const v = d.data().save || {}; return { uid: d.id, name: v.name || '?', coins: v.coins || 0,
 -      t1: (v.tickets || {}).t1 || 0, t10: (v.tickets || {}).t10 || 0, owned: Object.keys(v.owned || {}).length }; });
 -  }
@@ -3089,7 +3374,7 @@ index a08579c..52db0f3 100644
 +  return { PERIODS, periodIds, board, runStarted, submitSolo, submitGroup, top, myRank, removeMine, report, reported, isAdmin };
  })();
 diff --git a/js/net/social.js b/js/net/social.js
-index 23c4fe7..1214e22 100644
+index 48e9660..50e29f6 100644
 --- a/js/net/social.js
 +++ b/js/net/social.js
 @@ -1,23 +1,17 @@
@@ -3127,10 +3412,32 @@ index 23c4fe7..1214e22 100644
   *
   * El resto del juego escucha los cambios con G.Social.on(fn).
   */
-@@ -25,368 +19,276 @@ G.Social = (() => {
-   const VALID = /^[A-Za-z0-9_ñÑáéíóúÁÉÍÓÚ]{3,16}$/;
+@@ -26,16 +20,16 @@ G.Social = (() => {
    const MAX_PLAYERS = 4;
    const INVITE_TTL = 3 * 60 * 1000;
+   /*
+-   * Hora real: la del servidor de la web (cabecera Date de version.json, gratis).
+-   * Si el reloj del aparato va adelantado (p. ej. la zona horaria mal puesta),
+-   * todas las invitaciones parecían caducadas y se borraban sin enseñarse, y
+-   * los amigos salían siempre desconectados (pasaba en 2026-10).
++   * Hora real: la del servidor de la web (cabecera Date de su API). Si el reloj
++   * del aparato va desfasado (p. ej. la zona horaria mal puesta), las
++   * invitaciones parecían caducadas y el "visto hace" de los amigos salía mal
++   * (arreglo del original del 14-10-2026; aquí se mide contra daivr.dev).
+    */
+   let skew = 0;
+   const now = () => Date.now() + skew;
+   function measureSkew() {
+     const t0 = Date.now();
+-    fetch('version.json?t=' + t0, { method: 'HEAD', cache: 'no-store' }).then(r => {
++    fetch('/api/pokesurvivor/rooms', { credentials: 'same-origin', cache: 'no-store' }).then(r => {
+       const d = Date.parse(r.headers.get('date') || '');
+       if (!d) return;
+       const s = d + 500 - (t0 + Date.now()) / 2;          // (la cabecera va en segundos)
+@@ -43,369 +37,277 @@ G.Social = (() => {
+       if (skew) console.warn('[Social] el reloj de este aparato va desfasado', Math.round(skew / 60000), 'min: se corrige');
+     }).catch(() => {});
+   }
 -  // Latido de presencia: cada 30 min (era 15; antes 10). 57.000 jugadores con
 -  // amigos lo escribían 4 veces por hora (13-10-2026, menos gasto de Firestore).
 -  const BEAT = 30 * 60 * 1000;
@@ -3170,8 +3477,8 @@ index 23c4fe7..1214e22 100644
 +    invites.clear();
 +    for (const v of list || []) {
 +      // Sólo de amigos confirmados y sin caducar (el servidor ya lo mira).
-+      if (Date.now() - (v.at || 0) > INVITE_TTL) continue;
-+      invites.set(v.from, { from: v.from, name: v.name, room: v.room, at: v.at || Date.now() });
++      if (now() - (v.at || 0) > INVITE_TTL) continue;
++      invites.set(v.from, { from: v.from, name: v.name, room: v.room, at: v.at || now() });
 +    }
 +    emit('invites');
 +  }
@@ -3254,6 +3561,7 @@ index 23c4fe7..1214e22 100644
 -    if (started) return me ? 'ok' : 'need-nick';
 -    fb = G.DB.fb; uid = fb.uid;
 -    started = true;
+-    measureSkew();
 -    // El apodo no cambia nunca: se recuerda en este navegador y así no se lee
 -    // el perfil en cada visita (una lectura menos por jugador y sesión).
 -    const NICK = 'ps.nick.' + uid;
@@ -3275,6 +3583,7 @@ index 23c4fe7..1214e22 100644
 +    startP = (async () => {
 +      uid = G.DB.uid;
 +      wire();
++      measureSkew();
 +      let st;
 +      try { st = await api('social'); }
 +      catch (e) { console.warn('[Social] arranque:', errCode(e)); return 'off'; }
@@ -3454,7 +3763,7 @@ index 23c4fe7..1214e22 100644
 -    presAt = Date.now();
 -    const ok = [...friends.values()].filter(f => f.status === 'ok');
 -    const docs = await Promise.all(ok.map(f => fb.fs.collection('pres').doc(f.uid).get().catch(() => null)));
--    const t = Date.now();
+-    const t = now();
 -    ok.forEach((f, i) => {
 -      const v = docs[i] && docs[i].exists ? docs[i].data() : null;
 -      const on = !!(v && v.on && t - msOf(v.at) < ONLINE);
@@ -3679,7 +3988,7 @@ index 23c4fe7..1214e22 100644
    }
  
    // ---------------- invitaciones ----------------
-@@ -394,46 +296,26 @@ G.Social = (() => {
+@@ -413,46 +315,26 @@ G.Social = (() => {
    async function invite(other) {
      const f = friends.get(other);
      if (!f || f.status !== 'ok') return { ok: false, error: 'Sólo puedes invitar a tus amigos.' };
@@ -3706,10 +4015,10 @@ index 23c4fe7..1214e22 100644
 -
 -  function onInvite(ref, v) {
 -    // Las caducadas se borran; sólo se aceptan de amigos confirmados.
--    if (!v || (v.at && Date.now() - msOf(v.at) > INVITE_TTL)) { ref.delete().catch(() => {}); return; }
+-    if (!v || (v.at && now() - msOf(v.at) > INVITE_TTL)) { ref.delete().catch(() => {}); return; }
 -    const f = friends.get(v.from);
 -    if (f && f.status !== 'ok') return;
--    invites.set(v.from, { from: v.from, name: v.name, room: v.room, at: msOf(v.at) || Date.now() });
+-    invites.set(v.from, { from: v.from, name: v.name, room: v.room, at: msOf(v.at) || now() });
 -    emit('invites');
 -  }
 -
@@ -3717,7 +4026,7 @@ index 23c4fe7..1214e22 100644
 -
    async function acceptInvite(from) {
      const inv = invites.get(from);
-     if (!inv || Date.now() - inv.at > INVITE_TTL) { invites.delete(from); emit('invites'); return { ok: false, error: 'La invitación ha caducado.' }; }
+     if (!inv || now() - inv.at > INVITE_TTL) { invites.delete(from); emit('invites'); return { ok: false, error: 'La invitación ha caducado.' }; }
      invites.delete(from);
 -    invDoc(from).delete().catch(() => {});
      emit('invites');
@@ -3731,7 +4040,7 @@ index 23c4fe7..1214e22 100644
      emit('invites');
    }
  
-@@ -457,52 +339,42 @@ G.Social = (() => {
+@@ -476,52 +358,42 @@ G.Social = (() => {
    let pubT = 0, pubAt = 0, pubLast = '';
    /**
     * Sube tu perfil (con un poco de espera, por si cambias varias cosas
@@ -3745,7 +4054,7 @@ index 23c4fe7..1214e22 100644
     */
    function publishProfile(force = false) {
 -    if (!me || !fb) return;
--    if (!force && Date.now() - pubAt < 30 * 60 * 1000) return;     // como mucho cada 30 min
+-    if (!force && Date.now() - pubAt < 2 * 3600 * 1000) return;    // como mucho cada 2 h (era 30 min)
 +    if (!me) return;
 +    if (!force && Date.now() - pubAt < 2 * 60 * 1000) return;
      clearTimeout(pubT);
@@ -3796,14 +4105,14 @@ index 23c4fe7..1214e22 100644
      invite, acceptInvite, declineInvite,
      on(fn) { listeners.add(fn); }, off(fn) { listeners.delete(fn); },
      get me() { return me; },
-@@ -510,6 +382,7 @@ G.Social = (() => {
+@@ -529,6 +401,7 @@ G.Social = (() => {
      get friends() { return [...friends.values()]; },
      get invites() { return [...invites.values()]; },
      get room() { return room; },
 +    get sessions() { return sessions.slice(); },
      get uid() { return uid; },
-     VALID, MAX_PLAYERS
-   };
+     /** La hora real (corrige el reloj del aparato si va desfasado). */
+     now,
 diff --git a/js/systems/events.js b/js/systems/events.js
 index 1aaf466..4612ef1 100644
 --- a/js/systems/events.js
@@ -3974,6 +4283,19 @@ index 1fd2d91..60cc9c4 100644
        }
        ctx.restore();
      }
+diff --git a/js/systems/interact.js b/js/systems/interact.js
+index 2298095..4bbf810 100644
+--- a/js/systems/interact.js
++++ b/js/systems/interact.js
+@@ -77,7 +77,7 @@ G.Interact = (() => {
+     G.FX.ring(p.x, p.y - 20, 8, 90, pw.color, 0.6, 5);
+     G.FX.burst(pl.x, pl.y - pl.bodyH * 0.5, pw.color, 24, 200);
+     G.Audio.sfx('legend');
+-    G.Spawner.say('¡Poder ' + pw.name + '! ' + pw.desc + ' durante ' + POWER_TIME + ' s', 3, true);
++    G.Spawner.say('¡Poder ' + pw.name + '! ' + pw.desc + ' durante ' + POWER_TIME + ' s', 3, true, { kind: 'power', col: pw.color });
+   }
+ 
+   /**
 diff --git a/js/systems/judgment.js b/js/systems/judgment.js
 index ea313c1..1174314 100644
 --- a/js/systems/judgment.js
@@ -3997,7 +4319,7 @@ index ea313c1..1174314 100644
    }
  
 diff --git a/js/systems/rift.js b/js/systems/rift.js
-index 4361627..ff4352f 100644
+index 35e17c6..597f988 100644
 --- a/js/systems/rift.js
 +++ b/js/systems/rift.js
 @@ -114,7 +114,9 @@ G.Rift = (() => {
@@ -4011,6 +4333,15 @@ index 4361627..ff4352f 100644
      });
      rift = null; asked = false; downT = 0;
      if (authority()) G.EnemyMgr.stash(); else G.EnemyMgr.clearRemote();
+@@ -132,7 +134,7 @@ G.Rift = (() => {
+     G.Camera.x = pl.x; G.Camera.y = pl.y;
+     G.Game.flash('#c9a6ff', 0.9);
+     G.Audio.sfx('rift');
+-    G.Spawner.say('Has entrado en la grieta…', 2.4, true);
++    G.Spawner.say('Has entrado en la grieta…', 2.4, true, { kind: 'rift' });
+   }
+ 
+   function spawnLegend() {
 @@ -156,7 +158,7 @@ G.Rift = (() => {
      if (arena.shiny) e.makeShiny();
      G.EnemyMgr.add(e);
@@ -4020,7 +4351,21 @@ index 4361627..ff4352f 100644
      G.Camera.kick(1.1);
      G.Audio.sfx('boss');
    }
-@@ -209,6 +211,27 @@ G.Rift = (() => {
+@@ -192,7 +194,7 @@ G.Rift = (() => {
+     arena.phase = 'won'; arena.endT = 5;
+     G.Progress.event('rift', { type: arena.type });
+     G.Pickups.pullAll();
+-    G.Spawner.say('¡Has vencido a ' + G.DEX_BY[arena.dex].name + '! Recoge el premio…', 3.4, true);
++    G.Spawner.say('¡Has vencido a ' + G.DEX_BY[arena.dex].name + '! Recoge el premio…', 3.4, true, { kind: 'rift' });
+     G.Audio.sfx('legend');
+     const pl = G.Game.player;
+     if (pl) {
+@@ -205,10 +207,31 @@ G.Rift = (() => {
+   function lost() {
+     if (!arena || arena.phase !== 'fight') return;
+     arena.phase = 'lost'; arena.endT = 1.2;
+-    G.Spawner.say('La grieta os ha expulsado…', 2.6, true);
++    G.Spawner.say('La grieta os ha expulsado…', 2.6, true, { kind: 'rift' });
      G.Audio.sfx('back');
    }
  
@@ -4048,14 +4393,14 @@ index 4361627..ff4352f 100644
    /** En cada ordenador: vuelta al mapa. */
    function finish() {
      const pl = G.Game.player;
-@@ -216,13 +239,18 @@ G.Rift = (() => {
-     arena = null;
-     G.World.setBiome(a.biome, true);
-     G.Weather.clear();
--    if (authority()) G.EnemyMgr.restore(); else G.EnemyMgr.clearRemote();
+@@ -220,13 +243,18 @@ G.Rift = (() => {
+     // van y de los del mapa que vuelven; si el invitado terminaba su cuenta
+     // atrás un poco más tarde (pasa casi siempre), borraba los que acababan de
+     // volver y no se veían hasta que caían (sólo sus ataques).
+-    if (authority()) G.EnemyMgr.restore();
 +    // daivr.dev: los que esperaban en el mapa no vuelven encima de los
 +    // jugadores (antes salías en mitad de la horda que dejaste al entrar).
-+    if (authority()) G.EnemyMgr.restore(e => clearOf(e, a.backs || [a.back])); else G.EnemyMgr.clearRemote();
++    if (authority()) G.EnemyMgr.restore(e => clearOf(e, a.backs || [a.back]));
      G.Projectiles.clear();
      G.Combat.clearFields();
      G.Hazards.clear();
@@ -4068,7 +4413,7 @@ index 4361627..ff4352f 100644
      G.Camera.x = pl.x; G.Camera.y = pl.y;
      G.Game.flash('#c9a6ff', 0.8);
      if (pl.bonds > 0) G.Game.offerBond();
-@@ -266,6 +294,12 @@ G.Rift = (() => {
+@@ -270,6 +298,12 @@ G.Rift = (() => {
  
    return {
      reset, update, drawable, onEvent, enterRequest() { if (!arena) start(); },
@@ -4082,23 +4427,24 @@ index 4361627..ff4352f 100644
      get inArena() { return !!arena; },
      get timeLeft() { return arena ? Math.max(0, ARENA_TIME - arena.t) : 0; },
 diff --git a/js/systems/spawner.js b/js/systems/spawner.js
-index 9475def..19dd165 100644
+index 9475def..876ad94 100644
 --- a/js/systems/spawner.js
 +++ b/js/systems/spawner.js
-@@ -23,10 +23,11 @@ G.Spawner = (() => {
+@@ -23,10 +23,12 @@ G.Spawner = (() => {
    const hpK = t => 3.3 + Math.min(1.7, t / 210);
    const SHINY_RATE = 1 / 4096;
    let acc = 0, bossIdx = 0, surgeT = 32, announce = null, announceT = 0, preloadT = 0;
-+  let announceMon = null, announceDur = 0;      // daivr.dev: el Pokémon del aviso (hud.js lo enseña en una tarjeta)
++  let announceMon = null, announceDur = 0;
++  let announceStyle = null;                      // daivr.dev: aviso sin Pokémon con estilo { kind, icon, col }      // daivr.dev: el Pokémon del aviso (hud.js lo enseña en una tarjeta)
    let forceShiny = 0;           // para pruebas: los N próximos salen shiny
  
    function reset() {
 -    acc = 0; bossIdx = 0; surgeT = 32; announce = null; announceT = 0; preloadT = 0;
-+    acc = 0; bossIdx = 0; surgeT = 32; announce = null; announceT = 0; preloadT = 0; announceMon = null;
++    acc = 0; bossIdx = 0; surgeT = 32; announce = null; announceT = 0; preloadT = 0; announceMon = null; announceStyle = null;
      G.Enemies.rollRun();
      G.Sprites.preload(G.Enemies.upcomingDex(0, 80));
    }
-@@ -88,7 +89,7 @@ G.Spawner = (() => {
+@@ -88,7 +90,7 @@ G.Spawner = (() => {
      if (G.Events.golden) e.makeGolden();
      G.EnemyMgr.add(e);
      if (shiny) {
@@ -4107,7 +4453,7 @@ index 9475def..19dd165 100644
        G.Audio.sfx('shiny');
      }
      return e;
-@@ -99,7 +100,7 @@ G.Spawner = (() => {
+@@ -99,7 +101,7 @@ G.Spawner = (() => {
      const e = new G.Enemy(b, x, y, scaled(G.Enemies.bossScale(t), G.Coop.scaleHp(players.length) * (players.length > 1 ? 1.4 : 1)), true);
      if (rollShiny(b.dex)) e.makeShiny();
      G.EnemyMgr.add(e);
@@ -4116,7 +4462,7 @@ index 9475def..19dd165 100644
      G.Camera.kick(1.1);
      G.Audio.sfx('boss');
      return e;
-@@ -168,17 +169,29 @@ G.Spawner = (() => {
+@@ -168,17 +170,31 @@ G.Spawner = (() => {
    }
  
    /** Aviso grande en pantalla (también lo usan el bioma y los shinies). */
@@ -4132,12 +4478,14 @@ index 9475def..19dd165 100644
 +  function say(text, secs = 2.6, local = false, mon = null) {
 +    announce = text; announceT = secs; announceDur = secs;
 +    announceMon = mon && mon.dex ? mon : null;
++    // daivr.dev: sin dex, `mon` es el estilo de la caja (pausa, grupo, grieta, objeto...; ver hud.js notice).
++    announceStyle = mon && !mon.dex && mon.kind ? mon : null;
 +    if (announceMon) G.Sprites.preload([mon.dex], 4000, !!mon.shiny);
-+    if (G.Coop.isHost && !local) G.Coop.say(text, secs, announceMon);
++    if (G.Coop.isHost && !local) G.Coop.say(text, secs, announceMon || announceStyle);
    }
  
 -  function banner() { return announceT > 0 ? { text: announce, t: announceT } : null; }
-+  function banner() { return announceT > 0 ? { text: announce, t: announceT, dur: announceDur, mon: announceMon } : null; }
++  function banner() { return announceT > 0 ? { text: announce, t: announceT, dur: announceDur, mon: announceMon, style: announceStyle } : null; }
  
    /** Invitado en cooperativo: sólo corre el reloj del aviso. */
    function tickBanner(dt) { if (announceT > 0) announceT -= dt; }
@@ -4152,8 +4500,21 @@ index 9475def..19dd165 100644
 +  return { reset, update, resume, ahead, burst, tickBanner, banner, say, rate, SHINY_RATE, CAP,
             debugForceShiny(n = 1) { forceShiny = n; } };
  })();
+diff --git a/js/systems/weather.js b/js/systems/weather.js
+index 25d686d..894b432 100644
+--- a/js/systems/weather.js
++++ b/js/systems/weather.js
+@@ -72,7 +72,7 @@ G.Weather = (() => {
+   function start(kind, dur) {
+     cur = { kind, t: 0, dur };
+     const d = KINDS[kind];
+-    G.Spawner.say(d.name + ': ' + d.hint, 3.4, true);
++    G.Spawner.say(d.name + ': ' + d.hint, 3.4, true, { kind: 'weather', icon: d.icon, col: d.color });
+     G.Audio.sfx('biome');
+   }
+ 
 diff --git a/js/ui/hud.js b/js/ui/hud.js
-index 440d2a5..8cf350f 100644
+index 440d2a5..4093012 100644
 --- a/js/ui/hud.js
 +++ b/js/ui/hud.js
 @@ -2,6 +2,15 @@
@@ -4172,7 +4533,7 @@ index 440d2a5..8cf350f 100644
    const F = (w, s) => `${w} ${s}px Pixelify,"Segoe UI",system-ui,sans-serif`;
  
    function roundRect(ctx, x, y, w, h, r) {
-@@ -25,127 +34,433 @@ G.HUD = (() => {
+@@ -25,127 +34,502 @@ G.HUD = (() => {
      }
    }
  
@@ -4238,6 +4599,21 @@ index 440d2a5..8cf350f 100644
 +    lost: { title: 'PERDIDO', acc: '#7dffb0', pal: GREEN_PAL, edge: '#e6ffef' },
 +    joined: { title: '¡SE UNE!', acc: '#7dffb0', pal: GREEN_PAL, edge: '#e6ffef', sparkle: true },
 +    arceus: { title: 'LA SENTENCIA', acc: '#ffd25e', pal: GOLD_PAL, edge: '#fff1b8', sparkle: true }
++  };
++
++  // daivr.dev: avisos sin Pokémon (pausa, grupo, grieta, objeto, clima, poder, zona): la
++  // misma caja PMD que las tarjetas de arriba, con la pestaña de su clase y su icono.
++  const BOND_PAL = { top: '#6a1f5c', bottom: '#32092a', inner: '#ff8ad8', outer: '#180414' };
++  const NOTE = {
++    info: { title: '', acc: MENU.gold, pal: MENU, edge: MENU.edge, icon: 'star' },
++    pause: { title: 'PAUSA', acc: '#9fd3ff', pal: MENU, edge: MENU.edge, icon: 'clock', pulse: true },
++    group: { title: 'GRUPO', acc: '#ffcb3d', pal: GOLD_PAL, edge: '#fff1b8', icon: 'friends' },
++    rift: { title: 'GRIETA', acc: RIFT.mark, pal: RIFT, edge: RIFT.edge, icon: 'rift' },
++    bond: { title: 'VÍNCULO', acc: '#ff8ad8', pal: BOND_PAL, edge: '#ffe0f4', icon: 'bond' },
++    item: { title: 'OBJETO', acc: '#ffd23f', pal: GOLD_PAL, edge: '#fff1b8', icon: 'star' },
++    weather: { title: 'CLIMA', acc: '#9ae6ff', pal: SHINY_PAL, edge: '#e9fbff', icon: 'wsun' },
++    power: { title: 'PODER', acc: '#7dffb0', pal: GREEN_PAL, edge: '#e6ffef', icon: 'up' },
++    area: { title: 'ZONA', acc: MENU.gold, pal: MENU, edge: MENU.edge, icon: null }
 +  };
 +
 +  function frame(ctx, x, y, w, h, edge = MENU.edge, pal = MENU) {
@@ -4427,6 +4803,60 @@ index 440d2a5..8cf350f 100644
 +        const sx = i % 2 ? x0 + bw - 10 - i * 7 : x0 + 14 + i * 9, sy = i < 2 ? y0 - 6 + i * 4 : y0 + bh - 2 - i * 3;
 +        G.Icons.twinkle(ctx, sx, sy, ph, P);
 +      }
++    }
++    ctx.restore();
++  }
++
++  /** Clase de un aviso: la que trae (Spawner.say(..., { kind })) o, en los que no la traen, por el texto. */
++  function noteKind(ban) {
++    if (ban.style && NOTE[ban.style.kind]) return ban.style.kind;
++    if (/^Pausa/i.test(ban.text)) return 'pause';
++    if (/^—/.test(ban.text)) return 'area';
++    return 'info';
++  }
++
++  /** Aviso sin Pokémon: caja PMD con la pestaña de su clase, su icono y el texto con sombra dura. */
++  function notice(ctx, w, h, ban) {
++    const kind = noteKind(ban), k = NOTE[kind], st = ban.style || {};
++    const icon = st.icon || k.icon, acc = st.col || k.acc;
++    const area = kind === 'area';
++    const text = area ? ban.text.replace(/^—\s*|\s*—$/g, '') : ban.text;
++    const age = (ban.dur || 3) - ban.t;
++    const alpha = Math.min(1, ban.t * 2.5, age * 6), pop = 1 + Math.max(0, 0.18 - age) * 1.2;
++    ctx.save();
++    ctx.globalAlpha = alpha;
++    ctx.translate(Math.round(w / 2), Math.round(h * 0.3)); ctx.scale(pop, pop);
++    const size = area ? 20 : 15, IS = icon ? 32 : 0, bh = area ? 50 : 54;
++    ctx.font = F(800, size);
++    const tw = ctx.measureText(text).width;
++    const bw = Math.round(Math.min(w - 24, Math.max(area ? 200 : 240, tw + IS + 18 * P)) / 2) * 2;
++    const x0 = -bw / 2, y0 = -bh / 2;
++    frame(ctx, x0, y0, bw, bh, k.edge, k.pal);
++    let tx = x0 + 7 * P;
++    if (icon) {
++      const ix = x0 + 5 * P, iy = -IS / 2 + P;
++      pxRect(ctx, ix - P, iy - P, IS + 2 * P, IS + 2 * P, 2 * P, INK);
++      bands(ctx, ix, iy, IS, IS, mix(acc, '#0b1838', 0.55), mix(acc, '#0b1838', 0.85));
++      const bob = k.pulse ? Math.round(Math.sin(performance.now() / 300)) * P : 0;
++      G.Icons.draw(ctx, icon, ix + 4, iy + 4 + bob, IS - 8);
++      tx = ix + IS + 5 * P;
++    }
++    // Pestaña con la clase, montada en el borde de arriba.
++    if (k.title) {
++      ctx.font = F(800, 10);
++      const tabW = Math.round(ctx.measureText(k.title).width) + 16;
++      pxRect(ctx, tx, y0 - 7, tabW, 16, P, INK);
++      ctx.fillStyle = k.pal.bottom; ctx.fillRect(tx + P, y0 - 7 + P, tabW - 2 * P, 16 - 2 * P);
++      ctx.textAlign = 'left';
++      shadowText(ctx, k.title, tx + 8, y0 + 5, acc, 0, 1);
++    }
++    ctx.font = F(800, size);
++    if (icon) {
++      ctx.textAlign = 'left';
++      shadowText(ctx, text, tx, Math.round(size / 3) + P, '#ffffff', bw / 2 - tx - 6 * P);
++    } else {
++      ctx.textAlign = 'center';
++      shadowText(ctx, text, 0, Math.round(size / 3) + P, area ? acc : '#ffffff', bw - 14 * P);
 +    }
 +    ctx.restore();
 +  }
@@ -4687,7 +5117,7 @@ index 440d2a5..8cf350f 100644
  
      // Grieta: flecha grande que late en el borde si no se ve, y si se ve, una
      // flecha que bota encima; en la arena, cuenta atrás.
-@@ -155,51 +470,49 @@ G.HUD = (() => {
+@@ -155,51 +539,49 @@ G.HUD = (() => {
        const now = performance.now() / 1000, beat = 0.5 + Math.sin(now * 7) * 0.5;
        const label = 'GRIETA · ' + Math.round(G.U.dist(pl.x, pl.y, rift.x, rift.y) / 32) + ' m · ' + Math.ceil(rift.ttl) + ' s';
        const off = sx < 0 || sx > w || sy < 0 || sy > h;
@@ -4771,7 +5201,7 @@ index 440d2a5..8cf350f 100644
      }
  
      // Eventos: cuenta atrás, flecha al Pokémon perdido / a la marca y a los duendes.
-@@ -211,21 +524,26 @@ G.HUD = (() => {
+@@ -211,146 +593,169 @@ G.HUD = (() => {
        const y0 = h * 0.2;
        ctx.save();
        ctx.globalAlpha = a;
@@ -4802,14 +5232,18 @@ index 440d2a5..8cf350f 100644
  
      const ban = G.Spawner.banner();
 -    if (ban) {
+-      const a = Math.min(1, ban.t * 1.6);
+-      ctx.save();
+-      ctx.globalAlpha = a;
+-      ctx.font = F(800, 22);
+-      ctx.fillStyle = '#ffcb3d';
+-      ctx.strokeStyle = 'rgba(0,0,0,.7)'; ctx.lineWidth = 4;
+-      ctx.strokeText(ban.text, w / 2, h * 0.3);
+-      ctx.fillText(ban.text, w / 2, h * 0.3);
+-      ctx.restore();
+-    }
 +    if (ban && ban.mon) appearCard(ctx, w, h, ban);
-+    else if (ban) {
-       const a = Math.min(1, ban.t * 1.6);
-       ctx.save();
-       ctx.globalAlpha = a;
-@@ -237,120 +555,148 @@ G.HUD = (() => {
-       ctx.restore();
-     }
++    else if (ban && ban.text) notice(ctx, w, h, ban);
  
 -    // ---------- ranura de movimientos ----------
 -    const S = 54, GAP = 9;
@@ -5039,7 +5473,7 @@ index 440d2a5..8cf350f 100644
      // ---------- botón de pausa (táctil) ----------
      if (touch) {
        const sa = G.Touch.safeArea();
-@@ -365,11 +711,12 @@ G.HUD = (() => {
+@@ -365,11 +770,12 @@ G.HUD = (() => {
  
      // pista de controles
      if (st.time < 14) {
@@ -5056,7 +5490,7 @@ index 440d2a5..8cf350f 100644
      }
  
      ctx.restore();
-@@ -383,25 +730,31 @@ G.HUD = (() => {
+@@ -383,25 +789,31 @@ G.HUD = (() => {
     *   y a cuántos metros están (roja y parpadeando si está caído).
     * - Si has caído tú: aviso y barra de "te están levantando".
     */
@@ -5102,7 +5536,7 @@ index 440d2a5..8cf350f 100644
      }
  
      // Flechas hacia los compañeros fuera de la vista.
-@@ -411,26 +764,28 @@ G.HUD = (() => {
+@@ -411,26 +823,28 @@ G.HUD = (() => {
        const sx = (o.x - cam.left()) * cam.scale, sy = (o.y - o.bodyH * 0.5 - cam.top()) * cam.scale;
        if (sx > 0 && sx < w && sy > 0 && sy < h) continue;
        const M = 42;
@@ -5145,7 +5579,7 @@ index 440d2a5..8cf350f 100644
        // Nombre y distancia: al lado contrario de la flecha, para que no se salga
        const lx = -Math.cos(a) * 30, ly = -Math.sin(a) * 26 + 4;
        ctx.font = F(800, 12);
-@@ -443,21 +798,23 @@ G.HUD = (() => {
+@@ -443,21 +857,23 @@ G.HUD = (() => {
        ctx.restore();
      }
  
@@ -5477,6 +5911,160 @@ index 164de3d..16aac02 100644
        `<div class="news-day" translate="no"><h3>${esc(v.title ? v.title[en] : '')}<small>${fmt(v.d)}</small></h3>` +
        PARTS.filter(([k]) => v[k] && v[k].length).map(([k, lbl]) =>
          `<div class="news-part"><span class="news-tag ${k}">${lbl[en]}</span><ul>${v[k].map(t => `<li>${esc(t[en])}</li>`).join('')}</ul></div>`).join('') +
+diff --git a/js/ui/run-ui.js b/js/ui/run-ui.js
+index d8d9972..fc74420 100644
+--- a/js/ui/run-ui.js
++++ b/js/ui/run-ui.js
+@@ -76,10 +76,11 @@ G.RunUI = (() => {
+   function setWaiting(names) {
+     const me = G.Social.me ? G.Social.me.name : '';
+     const others = names.filter(n => n !== me);
+-    const list = a => a.length > 1 ? a.slice(0, -1).join(', ') + ' y ' + a[a.length - 1] : a[0];
++    // daivr.dev: «y» y «tú» pasan por el traductor (dentro del hueco {x} no se traducían).
++    const list = a => a.length > 1 ? a.slice(0, -1).join(', ') + ' ' + G.T('y') + ' ' + a[a.length - 1] : a[0];
+     $('lvl-wait').textContent = !names.length ? ''
+       : !others.length ? 'Elige tu carta'
+-      : names.includes(me) ? 'Faltan por elegir: ' + list([...others, 'tú'])
++      : names.includes(me) ? 'Faltan por elegir: ' + list([...others, G.T('tú')])
+       : 'Esperando a ' + list(others) + '…';
+   }
+ 
+@@ -151,7 +152,7 @@ G.RunUI = (() => {
+       el.innerHTML = `<div class="ico">${G.Icons.html(id, 36)}</div>
+         <div class="txt"><div class="nm">${verb} ${it.name}</div><div class="ds">${it.desc}</div></div>
+         <div class="key">${i + 1}</div>`;
+-      el.onclick = () => { G.UI.hide('scr-item'); cb(id); };
++      el.onclick = () => { G.UI.hide('scr-item'); cb(id); syncTeam(); };
+       box.appendChild(el);
+     });
+     G.UI.show('scr-item');
+@@ -213,6 +214,7 @@ G.RunUI = (() => {
+     bond = null;
+     G.UI.hide('scr-bond');
+     cb(picked);
++    syncTeam();
+   }
+ 
+   function bondBack() {
+@@ -221,6 +223,110 @@ G.RunUI = (() => {
+     renderBond();
+   }
+ 
++  /** daivr.dev: lo que llevas marcado en la pantalla de vínculo (para que lo vea tu grupo). */
++  function bondView() {
++    if (!bond) return null;
++    const { opt, first } = bond;
++    return { mode: opt.mode, opts: opt.loose.map(m => m.id), grp: opt.mode === 'add' ? (opt.group || []).map(m => m.id) : [], first: first ? first.id : null };
++  }
++
++  // ---------------- daivr.dev: el grupo eligiendo a la vez ----------------
++  // Mientras alguien del grupo elige vínculo u objeto, la partida se para para
++  // todos y todos lo ven a la vez, como con las cartas de nivel: quien elige, en
++  // su pantalla con una franja del equipo debajo; quien no tiene nada que
++  // elegir (o ya ha elegido), en la pantalla del equipo con lo de cada uno.
++
++  const escT = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
++  const OWN = ['scr-bond', 'scr-item', 'scr-levelup', 'scr-pause', 'scr-over'];
++  let teamOn = false, team = {}, teamSig = '';
++
++  /** El grupo empieza (o termina) a elegir: net/coop.js vía game.js hold(). */
++  function teamPhase(on) {
++    teamOn = !!on;
++    if (!teamOn) team = {};
++    syncTeam();
++  }
++
++  /** Lo que elige cada uno: { uid: { k: 'bond'|'item', dex, sh, opts, grp, first, cur, next, done } }. */
++  function setTeam(views) {
++    team = views || {};
++    syncTeam();
++  }
++
++  function syncTeam() {
++    const show = teamOn && G.Coop.active && !OWN.some(G.UI.isOpen);
++    if (show && !G.UI.isOpen('scr-team')) G.UI.show('scr-team');
++    else if (!show && G.UI.isOpen('scr-team')) G.UI.hide('scr-team');
++    renderTeam();
++  }
++
++  /** Cada uno del grupo, en el orden de la sala (el anfitrión primero). */
++  function teamMembers() {
++    return (G.Coop.members || []).map((m, i) => Object.assign({ i }, m)).filter(m => G.Coop.connected(m.uid));
++  }
++
++  function renderTeam() {
++    const me = G.Coop.me;
++    const list = teamOn ? teamMembers() : [];
++    const sig = teamOn + '|' + list.map(m => m.uid).join(',') + '|' + JSON.stringify(team);
++    if (sig === teamSig) return;
++    teamSig = sig;
++    // Título: lo que se está eligiendo (si eligen cosas distintas, el vínculo manda).
++    const views = Object.values(team);
++    const bonding = views.some(v => v.k === 'bond' && !v.done) || !views.some(v => v.k === 'item' && !v.done);
++    $('team-title').textContent = bonding ? '¡Vínculo!' : '¡Un objeto!';
++    $('team-title').classList.toggle('bond-title', bonding);
++    const waiting = list.filter(m => team[m.uid] && !team[m.uid].done).length;
++    $('team-sub').textContent = waiting ? 'Tu equipo está eligiendo: la partida sigue cuando terminen todos' : 'Todos listos';
++    fillTeam($('team-cards'), list, me, false);
++    // La franja bajo tu propia pantalla: sólo los demás.
++    for (const id of ['bond-team', 'item-team']) {
++      const box = $(id);
++      const others = list.filter(m => m.uid !== me);
++      box.classList.toggle('hidden', !others.length);
++      fillTeam(box, others, me, true);
++    }
++  }
++
++  function fillTeam(box, list, me, strip) {
++    box.innerHTML = '';
++    for (const m of list) {
++      const v = team[m.uid] || null;
++      const el = document.createElement('div');
++      const st = !v ? ['wait', 'Esperando'] : v.done ? ['done', '¡Listo!'] : v.k === 'item' ? ['item', 'Elige objeto…'] : ['bond', 'Fusiona movimientos…'];
++      el.className = 'team-card ' + st[0] + (strip ? ' slim' : '');
++      el.style.setProperty('--pc', G.Coop.COLORS[m.i] || '#ffd23f');
++      el.appendChild(G.UI.spriteCanvas(v ? v.dex : m.dex, strip ? 56 : 96, strip ? 48 : 80,
++        { scale: strip ? 1 : 2, shiny: !!(v ? v.sh : m.shiny), lively: !!(v && !v.done) }));
++      el.insertAdjacentHTML('beforeend',
++        '<div class="tc-txt"><div class="tc-top"><b class="tc-name" translate="no">' + escT(m.name) + '</b>' +
++        (m.uid === me ? '<span class="tc-you">Tú</span>' : '') + '</div>' +
++        '<span class="tc-state">' + st[1] + '</span><div class="tc-what">' + teamWhat(v, strip) + '</div></div>');
++      box.appendChild(el);
++    }
++  }
++
++  /** Lo que tiene a la vista cada uno: sus movimientos (el marcado, unido) o los dos objetos. */
++  function teamWhat(v, strip) {
++    if (!v) return '';
++    const sz = strip ? 18 : 24;
++    const mv = id => G.Moves.BY_ID[id];
++    const ico = (id, cls) => mv(id) ? '<span class="tc-ic ' + (cls || '') + '">' + G.Icons.html('move:' + id, sz) + '</span>' : '';
++    const plus = '<i class="tc-plus">+</i>';
++    if (v.k === 'item') {
++      const it = id => G.Items.BY[id];
++      if (v.done) return it(v.done) ? '<span class="tc-ic on">' + G.Icons.html(v.done, sz) + '</span><span class="tc-nm">' + escT(it(v.done).name) + '</span>' : '';
++      return '<span class="tc-ic">' + G.Icons.html(v.cur, sz) + '</span><i class="tc-plus">/</i><span class="tc-ic on">' + G.Icons.html(v.next, sz) + '</span>';
++    }
++    if (v.done) {
++      const names = v.done.map(id => (mv(id) ? mv(id).name : '')).filter(Boolean).join(' + ');
++      return v.done.map(id => ico(id, 'on')).join(plus) + (strip ? '' : '<span class="tc-nm">' + escT(names) + '</span>');
++    }
++    const head = v.grp && v.grp.length ? v.grp : v.first ? [v.first] : [];
++    const pool = (v.opts || []).filter(id => !head.includes(id));
++    return (head.length ? head.map(id => ico(id, 'on')).join(plus) + plus : '') + '<span class="tc-pool">' + pool.map(id => ico(id)).join('') + '</span>';
++  }
++
+   function showPause(coop = false) {
+     G.UI.soundControls($('pause-sound'));
+     $('pause-coop').classList.toggle('hidden', !coop);
+@@ -233,5 +339,6 @@ G.RunUI = (() => {
+     $('btn-quit').onclick = onQuit;
+   }
+ 
+-  return { showLevelUp, reroll, showItemChoice, showBond, pickBond, bondBack, pick, setWaiting, closeLevelUp, showOver, wirePause, showPause };
++  return { showLevelUp, reroll, showItemChoice, showBond, pickBond, bondBack, pick, setWaiting, closeLevelUp, showOver, wirePause, showPause,
++           bondView, teamPhase, setTeam, syncTeam };
+ })();
 diff --git a/js/ui/settings-ui.js b/js/ui/settings-ui.js
 index 1b42e92..50004ed 100644
 --- a/js/ui/settings-ui.js
@@ -5598,7 +6186,7 @@ index 66e5571..a29fa91 100644
      // Sombra curva del rodillo (arriba y abajo más oscuro).
      ctx.globalAlpha = 0.28;
 diff --git a/js/ui/social-ui.js b/js/ui/social-ui.js
-index f22ab03..7e39c8e 100644
+index 9caca59..0acf193 100644
 --- a/js/ui/social-ui.js
 +++ b/js/ui/social-ui.js
 @@ -139,6 +139,119 @@
@@ -5820,7 +6408,7 @@ index f22ab03..7e39c8e 100644
    };
  })();
 diff --git a/js/ui/ui.js b/js/ui/ui.js
-index 7f9ff5b..82c0e051 100644
+index 7f9ff5b..b04c901 100644
 --- a/js/ui/ui.js
 +++ b/js/ui/ui.js
 @@ -9,7 +9,8 @@ G.UI = (() => {
@@ -5829,7 +6417,7 @@ index 7f9ff5b..82c0e051 100644
                     'scr-dex', 'scr-upgrades', 'scr-gacha', 'scr-levelup', 'scr-pause', 'scr-over',
 -                   'scr-nick', 'scr-friends', 'scr-lobby', 'scr-rank', 'scr-item', 'scr-goals', 'scr-bond', 'scr-mod'];
 +                   'scr-nick', 'scr-friends', 'scr-lobby', 'scr-rank', 'scr-item', 'scr-goals', 'scr-bond', 'scr-mod',
-+                   'scr-coop'];   // daivr.dev: partidas en grupo
++                   'scr-coop', 'scr-team'];   // daivr.dev: partidas en grupo y el grupo eligiendo
  
    function show(id, keepMenu = false) {
      for (const s of SCREENS) if (s !== id && !(keepMenu && s === 'scr-menu')) $(s).classList.add('hidden');
