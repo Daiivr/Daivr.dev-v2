@@ -7,7 +7,9 @@
   .attract-mode {
     position: fixed;
     inset: 0;
-    z-index: 70;
+    /* Va en un portal de body, por encima de los modales (hasta 1500) y de los
+       avisos de la cabina (2000); solo el cursor y los tooltips quedan encima. */
+    z-index: 2400;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto minmax(0, 1fr) auto auto;

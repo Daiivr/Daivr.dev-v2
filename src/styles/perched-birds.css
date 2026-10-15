@@ -15,9 +15,10 @@
     will-change: top, left, transform;
   }
 
+  /* Los de la puerta y el modo attract van en body, por encima del attract. */
   .page-perched-bird.is-overlay-perch {
     position: fixed;
-    z-index: 1310;
+    z-index: 2410;
   }
 
   .page-perched-bird .pixel-bird-svg { width: 34px; height: 26px; overflow: visible; }

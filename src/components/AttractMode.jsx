@@ -1,3 +1,4 @@
+import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useRef, useState } from "react";
 import { discord, profile } from "../data/site";
 import { getDiscordAvatarUrl, getLastPresence } from "../hooks/useLanyardPresence";
@@ -36,8 +37,13 @@ const HOUSE_HI_SCORE = 999990;
   INSERTAR UNA MONEDA (click o Enter — el boton recibe foco al abrir) para
   volver al sitio. La moneda cae, acredita CREDIT 01, todo se zambulle en el
   horizonte a velocidad warp con el cartel PLAYER 1 READY! y el CRT se apaga.
+
+  Es un dialogo de Radix en un portal de body: dentro de .app-shell (contexto de
+  apilamiento propio) quedaba por debajo de cualquier modal abierto. Como capa
+  de Radix encima de la del modal, este deja de atender Escape, clicks fuera y
+  foco mientras dura el attract, y al echar la moneda sigue abierto tal cual.
 */
-export function AttractMode({ enabled }) {
+export function AttractMode({ enabled, theme }) {
   // La fila YOU y el 1UP muestran la XP real del pasaporte; sin sesion, ceros.
   const player = useCabinetSignal("player");
   const playerXp = player?.progression?.totalXp ?? 0;
@@ -58,6 +64,7 @@ export function AttractMode({ enabled }) {
   const coinButtonRef = useRef(null);
   const buddySleepAtRef = useRef(0);
   const timersRef = useRef(new Set());
+  const returnFocusRef = useRef(null);
 
   function schedule(fn, ms) {
     const timer = window.setTimeout(() => {
@@ -91,6 +98,9 @@ export function AttractMode({ enabled }) {
   useEffect(() => {
     function activateAttractMode() {
       if (!enabledRef.current || activeRef.current || closingRef.current) return;
+      // Si habia un modal abierto, al echar la moneda el foco vuelve a el.
+      const focused = document.activeElement;
+      returnFocusRef.current = focused?.closest?.("[role=\"dialog\"]") ? focused : null;
       activeRef.current = true;
       setActive(true);
       setClosing(false);
@@ -138,7 +148,6 @@ export function AttractMode({ enabled }) {
 
   useEffect(() => {
     if (!active) return undefined;
-    coinButtonRef.current?.focus({ preventScroll: true });
     const cycleTimer = window.setInterval(() => {
       setScoreIndex((value) => (value + 1) % RANKS.length);
     }, SCORE_CYCLE_MS);
@@ -209,117 +218,138 @@ export function AttractMode({ enabled }) {
     }
   ];
 
+  // Solo la moneda lo cierra: ni Escape ni un click fuera (no hay fuera, cubre
+  // la pantalla, pero tampoco debe cerrar el modal que quede debajo).
+  const stay = (event) => event.preventDefault();
+
   return (
-    <div
-      className={`attract-mode ${credit ? "is-credited" : ""} ${launching ? "is-launching" : ""} ${closing ? "is-closing" : ""}`}
-      ref={rootRef}
-      role="dialog"
-      aria-label="Attract mode — insert a coin to return"
-    >
-      <div className="attract-sky" aria-hidden="true"><i /><i /></div>
-
-      <header className="attract-hud" aria-hidden="true">
-        <div className="attract-hud-cell is-player">
-          <small>1UP</small>
-          <b>{playerScore}</b>
-        </div>
-        <div className="attract-hud-cell is-hi">
-          <small>HI-SCORE</small>
-          <b>{hiScore}</b>
-        </div>
-        <div className="attract-hud-cell is-online">
-          <small>IN ARCADE</small>
-          <b>{online ? String(online).padStart(2, "0") : "--"}</b>
-        </div>
-      </header>
-
-      <div className="attract-title" aria-hidden="true">
-        <div className="attract-sun" />
-        <div className="attract-logo attract-dive">
-          <span className="attract-logo-kicker">DAIVR://ARCADE-CODING-STATION</span>
-          <strong data-text="DAI.EXE"><span>DAI.EXE</span></strong>
-          <span className="attract-logo-sub">ARCADE STATION // SELF-RUNNING DEMO</span>
-        </div>
-      </div>
-
-      <div className="attract-floor" ref={floorRef} aria-hidden="true"><i /></div>
-
-      <div className="attract-scores attract-dive" aria-hidden="true">
-        <p className="attract-scores-title">TOP PLAYERS</p>
-        <div className="attract-scores-board">
-          <div className="attract-scores-head">
-            <span>RANK</span>
-            <span>NAME</span>
-            <span>SCORE</span>
-          </div>
-          <ol>
-            {rows.map((row, index) => (
-              <li
-                className={index === scoreIndex ? "is-highlight" : ""}
-                key={row.name}
-                style={{
-                  "--row-accent": row.accent,
-                  "--row-index": index,
-                  ...(row.face ? { "--face-size": row.face[0], "--face-x": row.face[1], "--face-y": row.face[2] } : null)
-                }}
-              >
-                <span className="attract-score-rank">{RANKS[index]}</span>
-                <i
-                  className={`attract-score-face${row.face ? "" : " is-avatar"}${row.image ? "" : " is-empty"}`}
-                  style={row.image ? { backgroundImage: `url("${row.image}")` } : undefined}
-                />
-                <strong>
-                  {row.name}
-                  <small>{row.tag}</small>
-                </strong>
-                <em>{row.points}</em>
-              </li>
-            ))}
-          </ol>
-        </div>
-      </div>
-
-      <div className="attract-coin-dock attract-dive">
-        <button
-          className={`attract-coin-slot ${coinDropping ? "is-dropping" : ""} ${credit ? "is-credited" : ""}`}
-          onClick={insertCoin}
-          ref={coinButtonRef}
-          type="button"
-          aria-label="Insert coin to return to the site"
+    <Dialog.Root open>
+      <Dialog.Portal>
+        <Dialog.Content
+          className={`attract-mode ${theme === "glitch" ? "theme-glitch" : ""} ${credit ? "is-credited" : ""} ${launching ? "is-launching" : ""} ${closing ? "is-closing" : ""}`}
+          ref={rootRef}
+          aria-describedby={undefined}
+          onOpenAutoFocus={(event) => {
+            event.preventDefault();
+            coinButtonRef.current?.focus({ preventScroll: true });
+          }}
+          onCloseAutoFocus={(event) => {
+            event.preventDefault();
+            const target = returnFocusRef.current;
+            returnFocusRef.current = null;
+            if (target?.isConnected) target.focus({ preventScroll: true });
+          }}
+          onEscapeKeyDown={stay}
+          onPointerDownOutside={stay}
+          onInteractOutside={stay}
         >
-          <span className="attract-coin-slot-label">{credit ? "CREDIT ACCEPTED" : "INSERT COIN"}</span>
-          <span className="attract-coin-slot-plate" aria-hidden="true">
-            <i className="attract-coin-engrave">1 COIN · 1 PLAY</i>
-            <i className="attract-coin-arrow is-left" />
-            <i className="attract-coin-hole" />
-            <i className="attract-coin-arrow is-right" />
-            <i className="attract-coin-piece" />
-            <i className="attract-coin-light" />
+          <Dialog.Title className="sr-only">Attract mode — insert a coin to return</Dialog.Title>
+          <div className="attract-sky" aria-hidden="true"><i /><i /></div>
+
+          <header className="attract-hud" aria-hidden="true">
+            <div className="attract-hud-cell is-player">
+              <small>1UP</small>
+              <b>{playerScore}</b>
+            </div>
+            <div className="attract-hud-cell is-hi">
+              <small>HI-SCORE</small>
+              <b>{hiScore}</b>
+            </div>
+            <div className="attract-hud-cell is-online">
+              <small>IN ARCADE</small>
+              <b>{online ? String(online).padStart(2, "0") : "--"}</b>
+            </div>
+          </header>
+
+          <div className="attract-title" aria-hidden="true">
+            <div className="attract-sun" />
+            <div className="attract-logo attract-dive">
+              <span className="attract-logo-kicker">DAIVR://ARCADE-CODING-STATION</span>
+              <strong data-text="DAI.EXE"><span>DAI.EXE</span></strong>
+              <span className="attract-logo-sub">ARCADE STATION // SELF-RUNNING DEMO</span>
+            </div>
+          </div>
+
+          <div className="attract-floor" ref={floorRef} aria-hidden="true"><i /></div>
+
+          <div className="attract-scores attract-dive" aria-hidden="true">
+            <p className="attract-scores-title">TOP PLAYERS</p>
+            <div className="attract-scores-board">
+              <div className="attract-scores-head">
+                <span>RANK</span>
+                <span>NAME</span>
+                <span>SCORE</span>
+              </div>
+              <ol>
+                {rows.map((row, index) => (
+                  <li
+                    className={index === scoreIndex ? "is-highlight" : ""}
+                    key={row.name}
+                    style={{
+                      "--row-accent": row.accent,
+                      "--row-index": index,
+                      ...(row.face ? { "--face-size": row.face[0], "--face-x": row.face[1], "--face-y": row.face[2] } : null)
+                    }}
+                  >
+                    <span className="attract-score-rank">{RANKS[index]}</span>
+                    <i
+                      className={`attract-score-face${row.face ? "" : " is-avatar"}${row.image ? "" : " is-empty"}`}
+                      style={row.image ? { backgroundImage: `url("${row.image}")` } : undefined}
+                    />
+                    <strong>
+                      {row.name}
+                      <small>{row.tag}</small>
+                    </strong>
+                    <em>{row.points}</em>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </div>
+
+          <div className="attract-coin-dock attract-dive">
+            <button
+              className={`attract-coin-slot ${coinDropping ? "is-dropping" : ""} ${credit ? "is-credited" : ""}`}
+              onClick={insertCoin}
+              ref={coinButtonRef}
+              type="button"
+              aria-label="Insert coin to return to the site"
+            >
+              <span className="attract-coin-slot-label">{credit ? "CREDIT ACCEPTED" : "INSERT COIN"}</span>
+              <span className="attract-coin-slot-plate" aria-hidden="true">
+                <i className="attract-coin-engrave">1 COIN · 1 PLAY</i>
+                <i className="attract-coin-arrow is-left" />
+                <i className="attract-coin-hole" />
+                <i className="attract-coin-arrow is-right" />
+                <i className="attract-coin-piece" />
+                <i className="attract-coin-light" />
+              </span>
+              <span className="attract-coin-slot-sub">
+                {credit ? "resuming session..." : <><kbd>ENTER</kbd> 1 credit — return to cabinet</>}
+              </span>
+            </button>
+          </div>
+
+          <div className="attract-warp" aria-hidden="true" />
+
+          {launching && (
+            <div className="attract-ready" aria-hidden="true">
+              <small>PLAYER 1</small>
+              <strong>READY!</strong>
+              <span className="attract-ready-bar"><i /></span>
+              <em>loading cabinet...</em>
+            </div>
+          )}
+
+          <span className="attract-corner attract-corner-bl" aria-hidden="true">
+            <i />ATTRACT.MODE · © {new Date().getFullYear()} DAIVR.DEV
           </span>
-          <span className="attract-coin-slot-sub">
-            {credit ? "resuming session..." : <><kbd>ENTER</kbd> 1 credit — return to cabinet</>}
-          </span>
-        </button>
-      </div>
+          <span className="attract-corner attract-corner-br" aria-hidden="true">CREDIT {credit ? "01" : "00"}</span>
 
-      <div className="attract-warp" aria-hidden="true" />
-
-      {launching && (
-        <div className="attract-ready" aria-hidden="true">
-          <small>PLAYER 1</small>
-          <strong>READY!</strong>
-          <span className="attract-ready-bar"><i /></span>
-          <em>loading cabinet...</em>
-        </div>
-      )}
-
-      <span className="attract-corner attract-corner-bl" aria-hidden="true">
-        <i />ATTRACT.MODE · © {new Date().getFullYear()} DAIVR.DEV
-      </span>
-      <span className="attract-corner attract-corner-br" aria-hidden="true">CREDIT {credit ? "01" : "00"}</span>
-
-      <div className="attract-crt" aria-hidden="true" />
-      <div className="attract-flash" aria-hidden="true" />
-    </div>
+          <div className="attract-crt" aria-hidden="true" />
+          <div className="attract-flash" aria-hidden="true" />
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }

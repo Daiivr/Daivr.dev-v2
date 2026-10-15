@@ -53,7 +53,7 @@ import { Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } f
 import { bootNodes, discord, games, navItems, profile, projects } from "./data/site";
 import { availableKonamiGames, KONAMI_GAMES } from "./data/konamiGames";
 import { preloadImages } from "./lib/preloadImages";
-import { ChunkBoundary, lazyChunk } from "./lib/chunkRecovery";
+import { ChunkBoundary, lazyChunk, preloadChunksWhenIdle } from "./lib/chunkRecovery";
 import { getSeasonalEvent } from "./lib/seasons";
 import { getCabinetSignal, setActiveSection } from "./lib/cabinetSignals";
 import { runTerminalCommand } from "./lib/terminalCommands";
@@ -243,6 +243,15 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
 
     const idle = window.requestIdleCallback(warm, { timeout: 2500 });
     return () => window.cancelIdleCallback(idle);
+  }, [entrySplashOpen]);
+
+  // Los modales mas usados se traen en ratos libres despues de entrar. Abiertos
+  // en frio, el click tenia que bajar y evaluar el chunk y meter su hoja de
+  // estilos (recalculo de toda la pagina) a la vez que montaba el modal, y su
+  // animacion de apertura se perdia entera.
+  useEffect(() => {
+    if (entrySplashOpen) return undefined;
+    return preloadChunksWhenIdle([TerminalDialog, BuddyModal, KonamiGameLibrary, ArcadeEmbedModal, MadraceModal, TowerBlockModal]);
   }, [entrySplashOpen]);
 
   useEffect(() => {
@@ -641,7 +650,7 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
         </div>
       ) : null}
 
-      <AttractMode enabled={!entrySplashOpen && !konamiView} />
+      <AttractMode enabled={!entrySplashOpen && !konamiView} theme={theme} />
       <MusicPlayer entrySplashOpen={entrySplashOpen} ducked={playingGame} hidden={entrySplashOpen || Boolean(konamiView) || Boolean(buddyModal) || terminalOpen || isLaunching} />
 
       <UpdateNotice hidden={entrySplashOpen} shellRef={shellRef} playingGame={playingGame} />

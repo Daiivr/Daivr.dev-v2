@@ -8,9 +8,11 @@ export const patchNotes = [
     version: "v2.78.0",
     codename: "BUTTER",
     date: "2026-10-15",
-    summary: "The cabinet moves smoother: windows open and close without the stutter, the mouse wheel scrolls without waiting, and the music player stopped weighing on every frame.",
+    summary: "The cabinet moves smoother: windows open and close without the stutter and always play their opening animation, the mouse wheel scrolls without waiting, the music player stopped weighing on every frame, and attract mode now shows up over open windows.",
     entries: [
       ["fix", "Opening and closing windows (the terminal, Buddy's menus, the notebook, the iPod and the rest) no longer freezes the page for a moment as the animation starts. The worst hitch went from about 0.2 seconds to about 0.05."],
+      ["fix", "Windows always rise and fade in now. The first time you opened one it often popped up at once, because its animation ran out while the page was still busy loading it. The most used ones now load quietly in the background after you enter, and the animation waits until the window is on screen."],
+      ["fix", "Attract mode starts on top of any open window instead of hiding behind it. Inserting the coin takes you back to that window just as you left it, so you can keep typing where you were."],
       ["fix", "The mouse wheel scrolls the page right away again. The game shelf had been making every wheel step wait for the rest of the page, even far away from the shelf. Scrolling a game review still stays inside the review."],
       ["fix", "Scrolling from one section to the next no longer makes the whole cabinet redraw itself. Only the side and top bars that show where you are update."],
       ["fix", "DAI FM no longer slows the page down while a song plays: the bass glow only touches the parts that light up, the docked drop breathes on the graphics card, and the deck comes back instantly when you close a window or a game."],

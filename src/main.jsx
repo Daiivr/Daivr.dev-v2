@@ -8,9 +8,11 @@ import "./styles/seasonal-splash.css";
 import "./styles/entry-avatar.css";
 import "./styles/entry-gate.css";
 import { installChunkRecovery } from "./lib/chunkRecovery";
+import { installModalMotionHold } from "./lib/modalMotion";
 import { CabinetRoot } from "./CabinetRoot";
 
 installChunkRecovery();
+installModalMotionHold();
 
 // El bloqueo de scroll de los modales de Radix pone en body una variable
 // (--removed-body-scroll-bar-size) al abrir y la quita al cerrar. Las variables
