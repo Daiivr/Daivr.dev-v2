@@ -213,6 +213,14 @@
     scroll-behavior: smooth;
     scrollbar-gutter: stable;
     scrollbar-width: thin;
+    /* Los modales de Radix ponen pointer-events: none en body mientras estan
+       abiertos. Heredado, obligaba a recalcular los ~2000 nodos de la pagina al
+       abrir y otra vez al cerrar (50-60 ms cada vez). Fijado aqui, el cambio se
+       queda en body. No cambia que se pueda tocar: todos los modales tapan la
+       pagina con un fondo a pantalla completa (los que van en un portal de body
+       quedan por encima de este contexto aislado; el del escritorio de Discord
+       vive dentro y su fondo tambien cubre todo). */
+    pointer-events: auto;
   }
 
   .brand-lockup {

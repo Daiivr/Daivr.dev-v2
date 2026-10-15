@@ -55,7 +55,7 @@ import { availableKonamiGames, KONAMI_GAMES } from "./data/konamiGames";
 import { preloadImages } from "./lib/preloadImages";
 import { ChunkBoundary, lazyChunk } from "./lib/chunkRecovery";
 import { getSeasonalEvent } from "./lib/seasons";
-import { getCabinetSignal } from "./lib/cabinetSignals";
+import { getCabinetSignal, setActiveSection } from "./lib/cabinetSignals";
 import { runTerminalCommand } from "./lib/terminalCommands";
 import { useBuddyAdventure } from "./hooks/useBuddyAdventure";
 import { useMobileView } from "./hooks/useMobileView";
@@ -140,7 +140,6 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
   const [terminalOpen, setTerminalOpen] = useState(false);
   const [buildLog, setBuildLog] = useState("$ dai.exe --status\nDai.exe offline // 0/6 up\nwaiting for RUN...");
   const [terminalLog, setTerminalLog] = useState("┌─ DAI.EXE COMMAND CONSOLE // v2.6\n│ cabinet shell mounted at ~/daivr\n│ history + completion modules online\n└─ Tip: type help, use Tab completion, or press ↑ for history.\n\n$ status\nshell ready // awaiting operator input");
-  const [activeSection, setActiveSection] = useState("home");
   const [isLaunching, setIsLaunching] = useState(false);
   const [launchPhase, setLaunchPhase] = useState(0);
   const [launchComplete, setLaunchComplete] = useState(false);
@@ -422,7 +421,7 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
         }
       }
 
-      setActiveSection((value) => (value === current ? value : current));
+      setActiveSection(current);
     }
 
     function requestUpdate() {
@@ -526,7 +525,7 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
         isLaunching,
         theme,
         fps: getLatestFps(),
-        activeSection,
+        activeSection: getCabinetSignal("activeSection"),
         buddyLevel: friendship.level,
         powerOutage,
         player: getCabinetSignal("player"),
@@ -601,7 +600,6 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
           scrollear dentro de si mismo. */}
       <div className="cabinet-layout relative grid min-h-screen grid-cols-1 lg:grid-cols-[292px_minmax(0,1fr)]" inert={entrySplashOpen ? true : undefined} aria-hidden={entrySplashOpen ? "true" : undefined}>
         <Sidebar
-          activeSection={activeSection}
           buddy={buddy}
           onOpenBuddyModal={setBuddyModal}
           theme={theme}
@@ -610,7 +608,6 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
 
         <div className="min-w-0">
           <CabinetTopbar
-            activeSection={activeSection}
             cartPhase={cartPhase}
             onOpenTerminal={openTerminal}
             onPlay={selectKonamiGame}

@@ -263,9 +263,12 @@ export function FooterScenery() {
 
     function trackBuddySteps() {
       const buddy = document.querySelector(".screen-buddy-root:not(.is-off)");
-      const sceneryRect = scenery.getBoundingClientRect();
-      const buddyRect = buddy?.getBoundingClientRect();
       const isMoving = buddy?.classList.contains("is-walk") || buddy?.classList.contains("is-sleepy");
+      // Solo se mide si el buddy camina: cada getBoundingClientRect forzaba
+      // estilo y layout de la pagina en todos los frames (~3 ms), aunque el buddy
+      // estuviera quieto y no pisara nada, y el footer se quedaba a 60 fps.
+      const sceneryRect = isMoving ? scenery.getBoundingClientRect() : null;
+      const buddyRect = isMoving ? buddy.getBoundingClientRect() : null;
       let active = "";
 
       if (buddyRect && sceneryRect.width && isMoving) {

@@ -63,6 +63,11 @@ function isEligibleTextParent(parent) {
     return false;
   }
 
+  // Con un modal abierto Radix pone pointer-events: none en body. .app-shell
+  // fija el suyo (para no recalcular toda la pagina), asi que ya no llega
+  // heredado a las palabras: se mira en body directamente.
+  if (window.getComputedStyle(document.body).pointerEvents === "none") return false;
+
   for (let element = parent; element && element !== document.body; element = element.parentElement) {
     const style = window.getComputedStyle(element);
     if (

@@ -16,6 +16,7 @@ import {
 import { navItems, profile } from "../data/site";
 import { friendshipProgress } from "../hooks/useBuddyFriendship";
 import { cn } from "../lib/cn";
+import { useCabinetSignal } from "../lib/cabinetSignals";
 import { DiscordPlayerCard } from "./DiscordPlayerCard";
 import { BuddySprite } from "./BuddySprite";
 import { useRef, useState } from "react";
@@ -35,7 +36,8 @@ const NAV_ICONS = {
 
 const THEME_MODES = ["crt", "glitch"];
 
-export function Sidebar({ activeSection, buddy, onOpenBuddyModal, theme, onThemeChange }) {
+export function Sidebar({ buddy, onOpenBuddyModal, theme, onThemeChange }) {
+  const activeSection = useCabinetSignal("activeSection");
   const [mobileOpen, setMobileOpen] = useState(false);
   const menuRef = useRef(null);
   const displayNavItems = navItems

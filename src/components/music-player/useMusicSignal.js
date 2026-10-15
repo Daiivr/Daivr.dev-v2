@@ -13,6 +13,7 @@ const VU_RANGE_DB = 14;
 const VU_REF_FLOOR_DB = -46;
 const VU_SEGMENTS = 10;
 const GRAPH_KEY = Symbol.for("daivr.musicGraph");
+const ENERGY_TARGETS = { aura: ".music-record-aura", label: ".music-record-label", glow: ".music-ink-glow", play: ".music-play" };
 
 const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
 // Frame-rate independent approach toward a target.
@@ -101,7 +102,8 @@ function createMusicSignal({ audio, root, canvas, vuRef }) {
   const peaks = new Float32Array(BARS);
   const holds = new Float32Array(BARS);
   const meters = [0, 1].map(() => ({ target: 0, level: 0, peak: 0, hold: 0 }));
-  const written = new Map();
+  const written = new WeakMap();
+  let energyNodes = null;
   let graph = audio[GRAPH_KEY] || null;
   let bands = null;
   let refDb = REF_FLOOR_DB;
@@ -126,9 +128,24 @@ function createMusicSignal({ audio, root, canvas, vuRef }) {
   function writeVar(element, name, value) {
     if (!element) return;
     const text = value.toFixed(2);
-    if (written.get(name) === text) return;
-    written.set(name, text);
+    let vars = written.get(element);
+    if (!vars) written.set(element, vars = new Map());
+    if (vars.get(name) === text) return;
+    vars.set(name, text);
     element.style.setProperty(name, text);
+  }
+
+  // The bass energy goes straight to the few elements that paint with it. On
+  // the island root every node of the player inherited it, so the whole deck
+  // restyled on every frame of a playing song. The panel's glow and play halo
+  // only show while it is open.
+  function energyTargets() {
+    // A node that is missing or was replaced sends the lookup round again.
+    if (!energyNodes || Object.values(energyNodes).some((node) => !node?.isConnected)) {
+      energyNodes = {};
+      for (const [key, selector] of Object.entries(ENERGY_TARGETS)) energyNodes[key] = root?.querySelector(selector) || null;
+    }
+    return energyNodes;
   }
 
   function measure() {
@@ -260,8 +277,12 @@ function createMusicSignal({ audio, root, canvas, vuRef }) {
   }
 
   function render() {
-    writeVar(root, "--music-energy", energy);
+    const { aura, label, glow, play } = energyTargets();
+    writeVar(aura, "--music-energy", energy);
+    writeVar(label, "--music-energy", energy);
     if (!open) return;
+    writeVar(glow, "--music-energy", energy);
+    writeVar(play, "--music-energy", energy);
     const quantise = (value) => Math.round(value * VU_SEGMENTS) / VU_SEGMENTS;
     const vu = vuRef.current;
     writeVar(vu,"--vu-l", quantise(meters[0].level));

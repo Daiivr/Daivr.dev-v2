@@ -1,5 +1,5 @@
 import { ArrowUpRight, BookOpen, Clock3, Gamepad2, RadioTower, RotateCcw, Trophy } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { games } from "../data/site";
 import { DecodeText } from "./DecodeText";
 import { GameCardFlip } from "./GameCardFlip";
@@ -24,6 +24,7 @@ function parseHoursLabel(value) {
 
 export function GameShelf() {
   const [flippedCards, setFlippedCards] = useState(() => new Set());
+  const shelfRef = useRef(null);
   const [steamPlaytime, setSteamPlaytime] = useState(initialSteamPlaytime);
 
   useEffect(() => {
@@ -65,7 +66,16 @@ export function GameShelf() {
     });
   }, []);
 
+  const anyFlipped = flippedCards.size > 0;
+
+  // Un wheel sin passive obliga al navegador a esperar al hilo principal antes
+  // de cada paso de scroll. Puesto en window, frenaba la rueda en toda la pagina
+  // y todo el rato; ahora solo escucha sobre la estanteria y mientras haya una
+  // resena dada la vuelta, que es cuando hace falta.
   useEffect(() => {
+    const shelf = shelfRef.current;
+    if (!anyFlipped || !shelf) return undefined;
+
     function keepReviewWheelInside(event) {
       const copy = event.target.closest?.(".game-card-review-copy");
       if (!copy || !copy.closest(".game-card.is-flipped")) return;
@@ -77,9 +87,9 @@ export function GameShelf() {
       copy.scrollTop += Math.sign(event.deltaY) * lineHeight;
     }
 
-    window.addEventListener("wheel", keepReviewWheelInside, { capture: true, passive: false });
-    return () => window.removeEventListener("wheel", keepReviewWheelInside, { capture: true });
-  }, []);
+    shelf.addEventListener("wheel", keepReviewWheelInside, { capture: true, passive: false });
+    return () => shelf.removeEventListener("wheel", keepReviewWheelInside, { capture: true });
+  }, [anyFlipped]);
 
   function activateCard(event) {
     event.currentTarget.classList.add("is-active");
@@ -199,7 +209,7 @@ export function GameShelf() {
         />
       </div>
 
-      <div className="game-shelf game-collection panel-strong overflow-visible p-4 md:p-6">
+      <div ref={shelfRef} className="game-shelf game-collection panel-strong overflow-visible p-4 md:p-6">
         <div className="game-shelf-titlebar">
           <span className="game-shelf-lights" aria-hidden="true"><i /><i /><i /></span>
           <code>DAI'S ARCADE / FAVORITES 01</code>

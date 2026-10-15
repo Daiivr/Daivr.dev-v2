@@ -5,6 +5,19 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.78.0",
+    codename: "BUTTER",
+    date: "2026-10-15",
+    summary: "The cabinet moves smoother: windows open and close without the stutter, the mouse wheel scrolls without waiting, and the music player stopped weighing on every frame.",
+    entries: [
+      ["fix", "Opening and closing windows (the terminal, Buddy's menus, the notebook, the iPod and the rest) no longer freezes the page for a moment as the animation starts. The worst hitch went from about 0.2 seconds to about 0.05."],
+      ["fix", "The mouse wheel scrolls the page right away again. The game shelf had been making every wheel step wait for the rest of the page, even far away from the shelf. Scrolling a game review still stays inside the review."],
+      ["fix", "Scrolling from one section to the next no longer makes the whole cabinet redraw itself. Only the side and top bars that show where you are update."],
+      ["fix", "DAI FM no longer slows the page down while a song plays: the bass glow only touches the parts that light up, the docked drop breathes on the graphics card, and the deck comes back instantly when you close a window or a game."],
+      ["fix", "The footer runs smoother when you're down there. The grass only tracks Buddy's feet while it's walking."]
+    ]
+  },
+  {
     version: "v2.77.0",
     codename: "TEAM HUDDLE",
     date: "2026-10-15",

@@ -44,7 +44,8 @@ function PresenceCell() {
   );
 }
 
-export function CabinetTopbar({ activeSection, cartPhase, onOpenTerminal, onPlay, theme, hostId, unlockedHostIds, onChooseHost, hostProgress, onOpenBuddyModal }) {
+export function CabinetTopbar({ cartPhase, onOpenTerminal, onPlay, theme, hostId, unlockedHostIds, onChooseHost, hostProgress, onOpenBuddyModal }) {
+  const activeSection = useCabinetSignal("activeSection");
   const index = Math.max(0, navItems.findIndex(([, href]) => href === `#${activeSection}`));
   const [label, href] = navItems[index];
 

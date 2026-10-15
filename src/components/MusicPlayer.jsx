@@ -298,7 +298,12 @@ export function MusicPlayer({ hidden = false, ducked = false, entrySplashOpen = 
       className={`music-island ${open ? "is-expanded" : ""} ${docked && !open ? "is-docked" : ""} ${playing ? "is-playing" : ""} ${!track ? "is-empty" : ""} ${queueOpen ? "is-queue" : ""} ${morphing ? `is-morphing is-${morphing}` : ""} ${landing ? "is-landing" : ""}`}
       style={{ "--music-track": track?.color }}
       aria-label="Cabinet music player"
-      hidden={hidden}
+      // Not the hidden attribute: display: none threw the deck's layout away, so
+      // every modal close or game exit rebuilt ~180 nodes in one frame (~25 ms).
+      // content-visibility (music-player.css) keeps it cached while hidden.
+      data-hidden={hidden ? "" : undefined}
+      aria-hidden={hidden || undefined}
+      inert={hidden ? true : undefined}
       onPointerEnter={(event) => {
         window.clearTimeout(hoverTimerRef.current);
         if (event.pointerType === "mouse") hoverTimerRef.current = window.setTimeout(() => setExpanded(true), 120);

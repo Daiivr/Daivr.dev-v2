@@ -5,7 +5,7 @@ import { useSyncExternalStore } from "react";
 // siempre (`daivr-player-card` desde PlayerHub, `daivr-presence` desde el
 // stream del libro de visitas); aqui solo se guarda el ultimo para que quien
 // monte tarde no se quede sin dato y para no re-renderizar App entero.
-const values = { player: null, online: null, visitHello: null, visitRoster: [], weather: null, nzpUnlocked: false };
+const values = { player: null, online: null, visitHello: null, visitRoster: [], weather: null, nzpUnlocked: false, activeSection: "home" };
 const listeners = new Set();
 
 function update(key, value) {
@@ -28,6 +28,13 @@ if (typeof window !== "undefined") {
   // NZ:P desbloqueado (diario de Buddy completo), que anuncia App: decide si el
   // reto diario del dia de NZ:P es el de NZ:P o el de repuesto.
   window.addEventListener("daivr-nzp-unlocked", (event) => update("nzpUnlocked", Boolean(event.detail)));
+}
+
+// La seccion visible (scroll spy de App). Antes era estado de App y cada cambio
+// de seccion re-renderizaba el arbol entero en mitad del scroll; ahora solo se
+// re-renderizan la barra lateral y la superior, que son las que la pintan.
+export function setActiveSection(id) {
+  update("activeSection", id);
 }
 
 function subscribe(listener) {
