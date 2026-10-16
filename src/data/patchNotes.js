@@ -5,6 +5,19 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.79.0",
+    codename: "SHINY SPARKLE",
+    date: "2026-10-15",
+    summary: "PokéSurvivor shinies sparkle like in the main games, locked chests open in pixel art, Upgrades opens on your new partner, and there's a field of view slider.",
+    entries: [
+      ["new", "Shiny Pokémon get the sparkle burst from the main games, in pixel art: a flash and two rings of stars that spin outward, with a chime. Wild shinies do it the first time you see them and every few seconds after. Your own shiny does it when the run starts and when you're revived. The partner card, Pokédex and Upgrades do it too."],
+      ["buff", "Locked chests open in pixel art. While you stand by one, a notch bar with a padlock fills up with a click per notch, the chest shakes harder and light leaks from under the lid. When it opens, the padlock pops off, the lid flies open with a beam of light and stars, gold sprays out, and the chest blinks away."],
+      ["new", "Field of view slider in Settings → Graphics: see up to 25% more of the world around you. In co-op, enemies still appear outside the view of whoever sees the most."],
+      ["fix", "After picking a new partner, Upgrades opens on that Pokémon instead of the last one you looked at."],
+      ["fix", "A few English texts that came out half in Spanish: \"Choose as partner\" in the Pokédex, the shiny badge, and the coins breakdown, shinies and move levels at the end of a run."]
+    ]
+  },
+  {
     version: "v2.78.0",
     codename: "BUTTER",
     date: "2026-10-15",

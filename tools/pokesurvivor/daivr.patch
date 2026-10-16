@@ -1,5 +1,5 @@
 diff --git a/css/style.css b/css/style.css
-index 56ff9db..9dfc64e 100644
+index 56ff9db..4d50d46 100644
 --- a/css/style.css
 +++ b/css/style.css
 @@ -113,26 +113,108 @@ input { font: inherit; }
@@ -332,7 +332,17 @@ index 56ff9db..9dfc64e 100644
  @media (max-height: 520px) {
    #scr-bond .bond-hint { display: none; }
    #scr-bond .box { width: min(820px, 100%); }
-@@ -714,18 +934,27 @@ a.btn { text-decoration: none; display: inline-block; color: var(--ink); }
+@@ -668,6 +888,9 @@ body.touch kbd, body.touch .card .key, body.touch .kbd-hint { display: none !imp
+ .set-row b { display: block; }
+ .set-row small { display: block; color: var(--muted); font-size: 12px; }
+ .set-row .switch { min-width: 58px; }
++/* daivr.dev: campo de visión (settings-ui.js fovRow). */
++.set-row .set-range { display: block; margin: 10px 0 2px; max-width: 320px; }
++.set-row .set-val { min-width: 48px; text-align: right; font-weight: 700; }
+ .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+ .set-chips { margin: 6px 0 10px; }
+ .keys { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; align-items: center; font-size: 14px; }
+@@ -714,18 +937,27 @@ a.btn { text-decoration: none; display: inline-block; color: var(--ink); }
    #menu-partner { height: min(34vh, 130px); width: auto; }
    .partner-card { margin-top: 2px; }
    .partner-card .nm { font-size: 17px; }
@@ -579,7 +589,7 @@ index d3bd44b..63dabd0 100644
  <script defer src="js/net/coop.js"></script>
  <script defer src="js/net/ranking.js"></script>
 diff --git a/js/core/audio.js b/js/core/audio.js
-index e21844d..2c73dd0 100644
+index e21844d..46ef6de 100644
 --- a/js/core/audio.js
 +++ b/js/core/audio.js
 @@ -15,9 +15,24 @@ G.Audio = (() => {
@@ -616,7 +626,23 @@ index e21844d..2c73dd0 100644
      master.connect(out).connect(ctx.destination);
  
      musicBus = ctx.createGain(); sfxBus = ctx.createGain();
-@@ -500,8 +515,11 @@ G.Audio = (() => {
+@@ -414,6 +429,15 @@ G.Audio = (() => {
+     shinyGet() { SFX.shiny(); arp('square', [784, 988, 1175, 1568], 0.1, 0.35, 0.05); },
+     break:   () => { hiss(0.16, 0.12, 'lowpass', 1100, 200); tone('triangle', 140, 60, 0.12, 0.08); },
+     chest:   () => { SFX.break(); arp('square', [1047, 1319, 1568, 2093], 0.06, 0.12, 0.04); },
++    // daivr.dev: el "tilín" del destello shiny, más corto y suave que el aviso de shiny.
++    sparkle: () => [3136, 3951, 4699, 3951, 5274].forEach((f, i) => INST.bell(ctx.currentTime + i * 0.055, f, 0.18, 0.5, sfxBus)),
++    // daivr.dev: cofre con candado: un clic por muesca y, al abrirse, el candado que salta y una fanfarria.
++    lockTick: () => tone('square', 1500, 1300, 0.025, 0.035),
++    bigchest() {
++      tone('square', 2200, 1400, 0.04, 0.05); tone('triangle', 330, 160, 0.14, 0.09, 0.03);
++      arp('square', [784, 988, 1175, 1568], 0.07, 0.16, 0.045);
++      [2637, 3136, 3951].forEach((f, i) => INST.bell(ctx.currentTime + 0.3 + i * 0.06, f, 0.25, 0.6, sfxBus));
++    },
+     grass:   () => hiss(0.06, 0.03, 'highpass', 2600),
+     ball:    () => { tone('triangle', 220, 70, 0.12, 0.12); hiss(0.08, 0.06, 'lowpass', 800); },
+     shake:   () => tone('square', 420, 380, 0.04, 0.05),
+@@ -500,8 +524,11 @@ G.Audio = (() => {
      return d.stream;
    }
  
@@ -629,6 +655,49 @@ index e21844d..2c73dd0 100644
      /** ¿Ya puede sonar? (el navegador sólo deja tras tocar algo, salvo excepciones) */
      canPlay() { return !!ctx && ctx.state === 'running'; },
      get settings() { return settings; },
+diff --git a/js/core/camera.js b/js/core/camera.js
+index 2775f13..c03cd53 100644
+--- a/js/core/camera.js
++++ b/js/core/camera.js
+@@ -16,13 +16,23 @@ G.Camera = {
+   // también un alto mínimo de mundo, para no ver una franja estrecha.
+   MIN_VIEW_H: 420,
+ 
++  // daivr.dev: campo de visión (Ajustes → Gráficos): ves hasta un 25% más de
++  // mundo alrededor. 1 = el de siempre; más allá, los Pokémon se ven muy pequeños.
++  FOV_MAX: 1.25,
++  fov: 1,
++
+   resize(cssW, cssH, dpr = 1) {
+     this.dpr = dpr;
+-    this.scale = Math.min(cssW / this.VIEW_W, cssH / this.MIN_VIEW_H);
++    this._cw = cssW; this._ch = cssH;
++    this.fov = G.U.clamp(+G.Settings.get('fov') || 1, 1, this.FOV_MAX);
++    this.scale = Math.min(cssW / (this.VIEW_W * this.fov), cssH / (this.MIN_VIEW_H * this.fov));
+     this.w = cssW / this.scale;
+     this.h = cssH / this.scale;
+   },
+ 
++  /** daivr.dev: vuelve a medir con el tamaño de antes (al cambiar el campo de visión). */
++  refresh() { if (this._cw) this.resize(this._cw, this._ch, this.dpr); },
++
+   follow(tx, ty, dt) {
+     this.x = G.U.damp(this.x, tx, 9, dt);
+     this.y = G.U.damp(this.y, ty, 9, dt);
+@@ -57,6 +67,11 @@ G.Camera = {
+            y > this.top() - pad && y < this.top() + this.h + pad;
+   },
+ 
+-  /** Radio del círculo que envuelve la vista: usado para spawnear fuera. */
+-  outerRadius() { return Math.hypot(this.w, this.h) / 2 + 40; }
++  /**
++   * Radio del círculo que envuelve la vista: usado para spawnear fuera.
++   * daivr.dev: con `fov`, el de quien más ve del grupo (G.Coop.viewFov), para
++   * que a nadie le aparezcan enemigos delante.
++   */
++  outerRadius(fov) { return Math.hypot(this.w, this.h) / 2 * Math.max(1, (fov || this.fov) / this.fov) + 40; }
+ };
++G.Settings.on(k => { if (k === 'fov') G.Camera.refresh(); });
 diff --git a/js/core/db.js b/js/core/db.js
 index b3f608a..ab32d8a 100644
 --- a/js/core/db.js
@@ -1244,6 +1313,26 @@ index b3f608a..ab32d8a 100644
      get mode() { return mode; },
      get localReason() { return localReason; },
      get syncState() { return syncState; },
+diff --git a/js/core/settings.js b/js/core/settings.js
+index 2740964..b931871 100644
+--- a/js/core/settings.js
++++ b/js/core/settings.js
+@@ -7,13 +7,14 @@
+  *   calm        true/false                        menos sacudidas y destellos
+  *   fps         true/false                        contador de FPS
+  *   stick       0.8 | 1 | 1.25                    tamaño del joystick táctil
++ *   fov         1 .. 1.25                         daivr.dev: campo de visión (camera.js)
+  *
+  *   G.Settings.get('quality')  ·  G.Settings.set('fps', true)  ·  G.Settings.on(fn)
+  *   G.Settings.fx   nivel efectivo 0 (bajo) .. 2 (alto), ya resuelto el 'auto'
+  */
+ G.Settings = (() => {
+   const KEY = 'ps.settings';
+-  const DEF = { quality: 'auto', dmgNumbers: true, calm: false, fps: false, stick: 1 };
++  const DEF = { quality: 'auto', dmgNumbers: true, calm: false, fps: false, stick: 1, fov: 1 };
+   let s = Object.assign({}, DEF);
+   try { Object.assign(s, JSON.parse(localStorage.getItem(KEY) || '{}')); } catch (e) { /* nada */ }
+   const fns = new Set();
 diff --git a/js/core/sprites.js b/js/core/sprites.js
 index 74cc9d9..c2643bc 100644
 --- a/js/core/sprites.js
@@ -1416,7 +1505,7 @@ index 5c16cb4..30f499f 100644
    get url() { return this.kofi ? 'https://ko-fi.com/' + this.kofi : ''; }
  };
 diff --git a/js/data/lang-en.js b/js/data/lang-en.js
-index f9c0110..6d9329d 100644
+index f9c0110..9a66422 100644
 --- a/js/data/lang-en.js
 +++ b/js/data/lang-en.js
 @@ -273,7 +273,7 @@ G.I18n.add({
@@ -1446,7 +1535,7 @@ index f9c0110..6d9329d 100644
    'Cuanta más gente juega, más cuestan los servidores. Lo que sobre se guarda para los gastos de los meses siguientes.': 'The more people play, the more the servers cost. Anything left over is saved for the following months\' costs.',
    'Juego de fans {x}: sin anuncios ni compras. Pokémon y sus personajes son propiedad de Nintendo, Creatures y GAME FREAK; este proyecto no está afiliado a ellos.': 'Fan game {x}: no ads or purchases. Pokémon and its characters are owned by Nintendo, Creatures and GAME FREAK; this project is not affiliated with them.',
    ': sin anuncios ni compras. Pokémon y sus personajes son propiedad de Nintendo, Creatures y GAME FREAK; este proyecto no está afiliado a ellos.': ': no ads or purchases. Pokémon and its characters are owned by Nintendo, Creatures and GAME FREAK; this project is not affiliated with them.',
-@@ -563,5 +563,47 @@ G.I18n.add({
+@@ -563,5 +563,53 @@ G.I18n.add({
    // ---------------- reportar marcas del ranking ----------------
    'Reportar marca sospechosa': 'Report suspicious record', 'Ya la has reportado': 'You already reported it',
    'Ya has reportado esta marca': 'You already reported this record',
@@ -1492,14 +1581,73 @@ index f9c0110..6d9329d 100644
 +  '¡ATRÁPALO!': 'CATCH IT!', 'PERDIDO': 'LOST', '¡SE UNE!': 'JOINS YOU!',
 +  // daivr.dev: el grupo eligiendo a la vez y las pestañas de los avisos
 +  'Esperando': 'Waiting', '¡Listo!': 'Done!', 'Elige objeto…': 'Choosing an item…', 'Fusiona movimientos…': 'Fusing moves…',
++  'Campo de visión': 'Field of view',
++  // (el patrón 'Elegir de compañero{x}' necesita algo en el hueco: sin shiny no casaba)
++  'Elegir de compañero': 'Choose as partner', 'Tienes su shiny': 'You have its shiny',
++  // fin de run: el desglose de monedas, los shinies y el nivel de cada movimiento
++  'recogidas': 'picked up', 'Shinies conseguidos': 'Shinies caught', 'Nv.{x}': 'Lv.{x}',
++  'Cuánto mundo ves a tu alrededor. Con más, los Pokémon se ven más pequeños.': 'How much of the world you see around you. With more, Pokémon look smaller.',
 +  'y': 'and', 'Todos listos': 'Everyone is ready', 'Tu equipo está eligiendo: la partida sigue cuando terminen todos': 'Your team is choosing: the run resumes when everyone is done',
 +  'Grieta': 'Rift', 'Objeto': 'Item', 'Clima': 'Weather', 'Poder': 'Power', 'Zona': 'Area'
  });
 diff --git a/js/entities/enemy.js b/js/entities/enemy.js
-index 8d9663d..87df081 100644
+index 8d9663d..789ca43 100644
 --- a/js/entities/enemy.js
 +++ b/js/entities/enemy.js
-@@ -456,7 +456,7 @@
+@@ -89,6 +89,25 @@
+       G.Sprites.preload([this.dex], 4000, true);
+     }
+ 
++    /**
++     * daivr.dev: un shiny brilla como en los juegos: el destello (G.FX.shine) la
++     * primera vez que lo ves, con su sonido, y luego cada pocos segundos mientras
++     * siga a la vista. Entre medias, los centelleos de siempre.
++     */
++    shinyFx(dt) {
++      this.sparkT -= dt;
++      if (this.sparkT <= 0) {
++        this.sparkT = 0.22;
++        G.FX.twinkle(this.x + G.U.rand(-this.r, this.r) * 1.2, this.y - G.U.rand(4, this.bodyH * 1.1));
++      }
++      if (this.shineT == null) {
++        if (!G.Camera.sees(this.x, this.y, -24)) return;
++        this.shineT = 0;
++        G.Audio.sfx('sparkle');
++      }
++      if ((this.shineT -= dt) <= 0) { this.shineT = G.U.rand(5, 7); G.FX.shine(this); }
++    }
++
+     /** Hora dorada (events.js): doble de experiencia y a veces monedas. */
+     makeGolden() {
+       if (this.golden || this.boss || this.behavior === 'thief') return;
+@@ -209,10 +228,7 @@
+       if (this.dead) { this.fade -= dt; return; }
+       if (this.touchCd > 0) this.touchCd -= dt;
+       this.bob += dt * 6;
+-      if (this.shiny) {
+-        this.sparkT -= dt;
+-        if (this.sparkT <= 0) { this.sparkT = 0.22; G.FX.twinkle(this.x + G.U.rand(-this.r, this.r) * 1.2, this.y - G.U.rand(4, this.bodyH * 1.1)); }
+-      }
++      if (this.shiny && G.Camera.sees(this.x, this.y, 120)) this.shinyFx(dt);
+       const n = this.net;
+       if (!n) return;
+       // Se adelanta hasta 0,3 s (por TURN llegan 4 posiciones por segundo).
+@@ -240,13 +256,7 @@
+       if (seen || this.dead) this.anim.update(dt);
+       if (this.flash > 0) this.flash -= dt;
+       if (this.dead) { this.fade -= dt; return; }
+-      if (this.shiny && seen) {
+-        this.sparkT -= dt;
+-        if (this.sparkT <= 0) {
+-          this.sparkT = 0.22;
+-          G.FX.twinkle(this.x + G.U.rand(-this.r, this.r) * 1.2, this.y - G.U.rand(4, this.bodyH * 1.1));
+-        }
+-      }
++      if (this.shiny && seen) this.shinyFx(dt);
+       if (this.touchCd > 0) this.touchCd -= dt;
+       this.bob += dt * 6;
+ 
+@@ -456,7 +466,7 @@
      enrage() {
        this.ai.fury = true;
        this.spd *= 1.15;
@@ -1508,7 +1656,7 @@ index 8d9663d..87df081 100644
        G.FX.ring(this.x, this.y, this.r, this.r * 5, '#ff4a4a', 0.6, 5);
        G.Camera.kick(0.5);
        G.Audio.sfx('boss');
-@@ -679,11 +679,32 @@
+@@ -679,11 +689,32 @@
        if (alpha <= 0) return;
  
        const gold = this.golden || this.behavior === 'thief' || (this.remote && !this.boss && G.Events.golden);
@@ -1544,7 +1692,7 @@ index 8d9663d..87df081 100644
          ctx.restore();
        }
  
-@@ -693,27 +714,43 @@
+@@ -693,27 +724,43 @@
        // Los que flotan ya van en el aire en su sprite: sólo se mecen un poco.
        // (Y los que saltan, en arco.)
        const lift = (this.flying && !this.boss ? 1 + Math.sin(this.bob) * 1.5 : 0) + (this.jumpLift || 0);
@@ -1603,7 +1751,7 @@ index 8d9663d..87df081 100644
          ctx.restore();
        }
  
-@@ -721,13 +758,15 @@
+@@ -721,13 +768,15 @@
        const SUP = { healer: 'heart', shielder: 'shield', summoner: 'friends' };
        if (SUP[this.behavior]) G.Icons.draw(ctx, SUP[this.behavior], Math.round(this.x - 6), Math.round(this.y - this.bodyH - (this.hp < this.maxHp ? 26 : 18)), 12);
  
@@ -1625,7 +1773,7 @@ index 8d9663d..87df081 100644
        }
      }
    }
-@@ -778,11 +817,15 @@
+@@ -778,11 +827,15 @@
        list = []; corpses = [];
      }
  
@@ -1644,7 +1792,16 @@ index 8d9663d..87df081 100644
        stashed = null;
      }
  
-@@ -958,7 +1001,30 @@
+@@ -929,7 +982,7 @@
+         // FUERA DE LA VISTA (de todos) vuelven a salir por delante de ti. Así
+         // no se puede huir sin más, y nunca desaparece uno que estés viendo.
+         const d2 = G.U.dist2(e.x, e.y, near.x, near.y);
+-        const R = G.Camera.outerRadius() + 40;
++        const R = G.Camera.outerRadius(G.Coop.viewFov()) + 40;   // daivr.dev: con el campo de visión del grupo
+         const unseen = d2 > R * R && !G.Camera.sees(e.x, e.y, 60);
+         const sp = Math.hypot(near._vx || 0, near._vy || 0);
+         const behind = sp > 40 && ((e.x - near.x) * near._vx + (e.y - near.y) * near._vy) < -0.2 * Math.sqrt(d2) * sp;
+@@ -958,7 +1011,30 @@
      function bossAlive() { return list.some(e => e.boss && !e.dead); }
      function shinies() { return list.filter(e => e.shiny && !e.dead); }
  
@@ -1677,10 +1834,38 @@ index 8d9663d..87df081 100644
    })();
  })();
 diff --git a/js/entities/fx.js b/js/entities/fx.js
-index 8326745..fd2bd09 100644
+index 8326745..a73cdd3 100644
 --- a/js/entities/fx.js
 +++ b/js/entities/fx.js
-@@ -87,6 +87,33 @@ G.FX = (() => {
+@@ -11,9 +11,9 @@ G.FX = (() => {
+   // Topes según la calidad (Ajustes → Gráficos): bajo, medio, alto.
+   const CAP_PARTS = [350, 800, 1400], CAP_SPRITES = [110, 210, 320], CAP_TEXTS = [25, 45, 70], DENS = [0.35, 0.65, 1];
+   const q = () => G.Settings.fx;
+-  let parts = [], sprites = [], texts = [], rings = [], slashes = [], beams = [];
++  let parts = [], sprites = [], texts = [], rings = [], slashes = [], beams = [], shines = [];
+ 
+-  function clear() { parts = []; sprites = []; texts = []; rings = []; slashes = []; beams = []; }
++  function clear() { parts = []; sprites = []; texts = []; rings = []; slashes = []; beams = []; shines = []; }
+ 
+   const snap = v => Math.round(v / PX) * PX;
+ 
+@@ -51,6 +51,15 @@ G.FX = (() => {
+                    fr: o.frameRate || 10, fade: o.fade !== false });
+   }
+ 
++  /**
++   * daivr.dev: el destello de shiny de los juegos (G.Icons.shine) alrededor de
++   * un Pokémon; va con él mientras se mueve. delay = segundos hasta que empieza.
++   */
++  function shine(ent, delay = 0) {
++    if (shines.length >= 16) return;
++    shines.push({ ent, x: ent.x, y: ent.y, t: -delay, seed: Math.random() * 6.2832 });
++  }
++
+   /** Centelleo de shiny (cruz de píxeles que nace y se apaga). */
+   function twinkle(x, y) {
+     if (sprites.length >= CAP_SPRITES[q()]) return;
+@@ -87,6 +96,33 @@ G.FX = (() => {
      rings.push({ x, y, r0, r1, color, life, t: 0, width });
    }
  
@@ -1714,12 +1899,37 @@ index 8326745..fd2bd09 100644
    /** Golpe cuerpo a cuerpo. fx: { pal, melee } (ver G.VFX.forMove). */
    function slash(x, y, angle, radius, arc, color, fx = {}) {
      const pal = fx.pal || 'normal';
-@@ -265,6 +292,6 @@ G.FX = (() => {
+@@ -140,6 +176,11 @@ G.FX = (() => {
+       if (t.t >= t.life) { texts.splice(i, 1); continue; }
+       t.y += t.vy * dt; t.vy *= 0.94;
+     }
++    for (let i = shines.length - 1; i >= 0; i--) {
++      const s = shines[i];
++      if ((s.t += dt) >= G.Icons.SHINE_T) { shines.splice(i, 1); continue; }
++      if (!s.ent.dead) { s.x = s.ent.x; s.y = s.ent.y; }
++    }
+     for (const arr of [rings, slashes, beams]) {
+       for (let i = arr.length - 1; i >= 0; i--) {
+         arr[i].t += dt;
+@@ -249,6 +290,12 @@ G.FX = (() => {
+       });
+     }
+ 
++    ctx.globalAlpha = 1;
++    for (const s of shines) {
++      const h = s.ent.bodyH || 24;
++      G.Icons.shine(ctx, s.x, s.y - h * 0.55, Math.max(18, h * 0.8, (s.ent.r || 10) * 1.7), s.t, PX, s.seed);
++    }
++
+     // Números de daño.
+     for (const t of texts) {
+       const k = 1 - t.t / t.life;
+@@ -265,6 +312,6 @@ G.FX = (() => {
      }
    }
  
 -  return { clear, px, burst, spark, sp, twinkle, trail, dmgText, ring, slash, beam, update, draw,
-+  return { clear, px, burst, spark, sp, twinkle, trail, dmgText, ring, slash, beam, update, draw, ellipse, ellipseRing, snap,
++  return { clear, px, burst, spark, sp, twinkle, shine, trail, dmgText, ring, slash, beam, update, draw, ellipse, ellipseRing, snap,
             get count() { return parts.length + sprites.length + texts.length; } };
  })();
 diff --git a/js/entities/pickup.js b/js/entities/pickup.js
@@ -1771,7 +1981,7 @@ index 7e85eff..fbca081 100644
 +  return { clear, all, dropXp, drop, update, draw, addRemote, adoptRemote, removeId, pullAll, KIND, get count() { return list.length; } };
  })();
 diff --git a/js/entities/player.js b/js/entities/player.js
-index 3b0da67..4132477 100644
+index 3b0da67..8011792 100644
 --- a/js/entities/player.js
 +++ b/js/entities/player.js
 @@ -77,6 +77,8 @@ G.Player = class Player {
@@ -1783,7 +1993,49 @@ index 3b0da67..4132477 100644
  
    // (×2 y luego ×4 el 2026-10-10: se subía de nivel demasiado rápido.)
    static xpFor(level) {
-@@ -432,6 +434,48 @@ G.Player = class Player {
+@@ -315,6 +317,7 @@ G.Player = class Player {
+   update(dt) {
+     this.anim.update(dt);
+     if (this.dead) return;
++    if (this.shiny) this.shinyFx(dt);
+     if (this.invuln > 0) this.invuln -= dt;
+     if (this.flash > 0) this.flash -= dt;
+     if (this.attackFace > 0) this.attackFace -= dt;
+@@ -393,6 +396,25 @@ G.Player = class Player {
+     G.FX.ring(this.x, this.y, 6, 70, '#5fe08a', 0.5, 4);
+     G.FX.burst(this.x, this.y - this.bodyH * 0.5, '#9dffb8', 18, 150);
+     G.Audio.sfx('heal');
++    if (this.shiny) this.shineT = 0.3;            // daivr.dev: vuelve a salir brillando
++  }
++
++  /**
++   * daivr.dev: tu shiny (y el de tus compañeros) brilla como en los juegos: el
++   * destello de G.FX.shine al salir a la partida y al levantarte, y algún
++   * centelleo suelto mientras juegas.
++   */
++  shinyFx(dt) {
++    if (this.shineT == null) this.shineT = 0.4;
++    if (this.shineT > 0 && (this.shineT -= dt) <= 0) {
++      G.FX.shine(this);
++      if (!this.remote) G.Audio.sfx('sparkle');
++    }
++    this.sparkT = (this.sparkT || 0) - dt;
++    if (this.sparkT <= 0) {
++      this.sparkT = G.U.rand(0.5, 0.9);
++      G.FX.twinkle(this.x + G.U.rand(-this.r, this.r) * 1.1, this.y - G.U.rand(4, this.bodyH * 1.05));
++    }
+   }
+ 
+   // ---------------- compañero (cooperativo) ----------------
+@@ -424,6 +446,7 @@ G.Player = class Player {
+       G.Projectiles.clearOrbs(this);
+     }
+     if (this.dead) return;
++    if (this.shiny) this.shinyFx(dt);
+     this.walking = !!n.walk;
+     this.moveAngle = n.ang;
+     this.aim = n.aim;
+@@ -432,6 +455,48 @@ G.Player = class Player {
      this.anim.loop(this.walking ? 'Walk' : 'Idle', this.walking ? this.baseSpd / 110 : 1);
    }
  
@@ -1832,7 +2084,7 @@ index 3b0da67..4132477 100644
    draw(ctx) {
      // Halo del tipo del movimiento activo, en el suelo.
      const m = this.activeMove();
-@@ -453,6 +497,9 @@ G.Player = class Player {
+@@ -453,6 +518,9 @@ G.Player = class Player {
        ctx.restore();
      }
  
@@ -1842,7 +2094,7 @@ index 3b0da67..4132477 100644
      const alpha = this.invuln > 0 && !this.dead ? (Math.floor(this.invuln * 18) % 2 ? 0.45 : 1) : 1;
      this.anim.draw(ctx, this.x, this.y, { flash: this.flash > 0, softFlash: true, alpha, color: '#ffcb3d' });
  
-@@ -473,16 +520,7 @@ G.Player = class Player {
+@@ -473,16 +541,7 @@ G.Player = class Player {
        i++;
      }
  
@@ -2174,7 +2426,7 @@ index 8abfd8c..8991d78 100644
 +  // que guardaría en caché versiones viejas entre despliegues.)
  })();
 diff --git a/js/net/coop.js b/js/net/coop.js
-index 50c5375..f79edf2 100644
+index 50c5375..6d52ac2 100644
 --- a/js/net/coop.js
 +++ b/js/net/coop.js
 @@ -14,6 +14,10 @@
@@ -2245,7 +2497,7 @@ index 50c5375..f79edf2 100644
    }
  
    // ---------------- lista de jugadores ----------------
-@@ -186,15 +205,25 @@ G.Coop = (() => {
+@@ -186,15 +205,26 @@ G.Coop = (() => {
      if (ja) f.ja = ja;
      // Siempre: quién está eligiendo y, si hay cartas de nivel, cuáles (ver arriba).
      f.ho = holdNames();
@@ -2257,16 +2509,17 @@ index 50c5375..f79edf2 100644
 -  function flushAll() { for (const m of mates.values()) if (m.connected) G.Net.send(m.uid, hostFrame(m)); }
 +  /** @param sure  también por el relé (lo último antes de irse) */
 +  function flushAll(sure) { for (const m of mates.values()) if (m.connected) G.Net.send(m.uid, hostFrame(m), sure); }
-+
+ 
+-  function flushClient(force) {
 +  /** Invitado: tu estado, tus eventos y, si estás eligiendo, qué (cv). */
 +  function clientFrame() {
 +    const f = { k: 'f', p: myState(), ev: outEv };
 +    const cv = api.choiceView && api.choiceView();
 +    if (cv) f.cv = cv;
++    if (G.Camera.fov > 1) f.fv = G.Camera.fov;       // daivr.dev: tu campo de visión (viewFov)
 +    return f;
 +  }
- 
--  function flushClient(force) {
++
 +  function flushClient(force, sure) {
      if (!force && !outEv.length && flushT > 0) return;
 -    G.Net.toHost({ k: 'f', p: myState(), ev: outEv });
@@ -2274,7 +2527,7 @@ index 50c5375..f79edf2 100644
      outEv = [];
    }
  
-@@ -209,12 +238,13 @@ G.Coop = (() => {
+@@ -209,12 +239,13 @@ G.Coop = (() => {
          m.flushT = rateFor(m.uid);
          G.Net.send(m.uid, hostFrame(m));
        }
@@ -2289,7 +2542,7 @@ index 50c5375..f79edf2 100644
          outEv = [];
        }
      }
-@@ -232,15 +262,73 @@ G.Coop = (() => {
+@@ -232,15 +263,73 @@ G.Coop = (() => {
    G.Net.onPeer((u, mode) => {
      if (!active || (mode !== 'closed' && mode !== 'failed')) return;
      if (host) mateGone(u);
@@ -2300,16 +2553,16 @@ index 50c5375..f79edf2 100644
 +      if (!G.Social.room) hostGone();
 +      else if (!migrating) { const cb = api.lost; end(); if (cb) cb('Se ha perdido la conexión con el anfitrión.'); }
 +    }
-+  });
-+
+   });
+ 
 +  // ---------------- migración del anfitrión (daivr.dev) ----------------
 +
 +  G.Social.on((what, d) => {
 +    if (!active) return;
 +    if (what === 'room-migrated' && d) migrated(d.from, d.to);
 +    else if (what === 'room-closed' && !host) hostGone();
-   });
- 
++  });
++
 +  /** Invitado: el anfitrión avisa de que se va ('hl'); se espera al nuevo. */
 +  function hostLeaving() {
 +    if (migrating) return;
@@ -2365,15 +2618,16 @@ index 50c5375..f79edf2 100644
      if (waiting.has(u)) picked(u);
      if (holds.has(u)) holdOff(u);
      if (api.mateLeft) api.mateLeft(m);
-@@ -252,6 +340,7 @@ G.Coop = (() => {
+@@ -252,6 +341,8 @@ G.Coop = (() => {
      const m = mates.get(from);
      if (!m || !m.connected) return;
      if (msg.p) { m.state = msg.p; m.pl.net = readState(msg.p); m.xpMul = m.pl.net.xpMul || 1; reconcile(from, m.pl.net); }
 +    m.cv = msg.cv || null;
++    m.fv = G.U.clamp(+msg.fv || 1, 1, G.Camera.FOV_MAX);
      for (const ev of msg.ev || []) {
        switch (ev[0]) {
          case 'h': {
-@@ -297,8 +386,13 @@ G.Coop = (() => {
+@@ -297,8 +388,13 @@ G.Coop = (() => {
  
    // --- en el invitado ---
  
@@ -2389,7 +2643,7 @@ index 50c5375..f79edf2 100644
  
    // Anfitrión: al irse de la pestaña avisa a todos al momento (después ya no
    // podrá mandar nada) y al volver, que sigue.
-@@ -320,6 +414,7 @@ G.Coop = (() => {
+@@ -320,6 +416,7 @@ G.Coop = (() => {
        if (msg.lu && msg.lu[0] > seenSeq) { seenSeq = msg.lu[0]; api.levelStart(msg.lu[1]); }
        else if (!msg.lu && api.inLevelUp && api.inLevelUp()) api.resume();
      }
@@ -2397,7 +2651,7 @@ index 50c5375..f79edf2 100644
      api.syncTeam({ time: msg.t, level: msg.lv, xp: msg.xp, xpNext: msg.xn, kills: msg.ki, bosses: msg.bo, coins: msg.co,
                     t1: (msg.tk || [])[0], t10: (msg.tk || [])[1] });
      for (const u in msg.p || {}) {
-@@ -365,13 +460,14 @@ G.Coop = (() => {
+@@ -365,13 +462,14 @@ G.Coop = (() => {
          G.Audio.sfx('break');
          break;
        case 'pb': G.World.breakAt(ev[1], ev[2]); break;
@@ -2413,7 +2667,7 @@ index 50c5375..f79edf2 100644
        case 'sh': api.shiny(ev[1]); break;
        case 'ov': { const cb = api.over; const d = ev[1]; end(); cb(d); break; }
        case 'rift': case 'riftx': case 'arena': case 'aw': case 'al': G.Rift.onEvent(ev); break;
-@@ -405,7 +501,7 @@ G.Coop = (() => {
+@@ -405,7 +503,7 @@ G.Coop = (() => {
    function enemyShot(p, type) { emit(['es', r1(p.x), r1(p.y), r1(p.vx), r1(p.vy), r2(p.dmg), p.r, p.life, type]); }
    function pickupAdded(o) { emit(['pk', o.id, o.kind, r1(o.x), r1(o.y), o.value]); }
    function pickupGone(id) { emit(['pc', id]); }
@@ -2422,7 +2676,7 @@ index 50c5375..f79edf2 100644
  
    function propBroken(p) {
      if (host) emit(['pb', p.tx, p.ty]);
-@@ -460,6 +556,15 @@ G.Coop = (() => {
+@@ -460,6 +558,26 @@ G.Coop = (() => {
  
    function holdNames() { return [...holds].map(nameOf); }
  
@@ -2435,10 +2689,29 @@ index 50c5375..f79edf2 100644
 +    return out;
 +  }
 +
++  /**
++   * daivr.dev: el campo de visión más grande del grupo (Ajustes → Gráficos). El
++   * anfitrión saca los enemigos fuera de esa vista (spawner.js) para que a nadie
++   * le aparezcan delante. Sin grupo, el tuyo.
++   */
++  function viewFov() {
++    let f = G.Camera.fov;
++    if (active && host) for (const m of mates.values()) if (m.connected && m.fv > f) f = m.fv;
++    return f;
++  }
++
    /** Anfitrión: `u` empieza a elegir. */
    function holdOn(u) {
      holds.add(u);
-@@ -501,6 +606,9 @@ G.Coop = (() => {
+@@ -494,13 +612,16 @@ G.Coop = (() => {
+   return {
+     ANIMS, COLORS, begin, end, leave, tick, players, puppets, xpFactor, scaleRate, scaleHp,
+     cast, hit, status, hurtShown, enemyAdded, enemyGone, enemyShot, pickupAdded, pickupGone, say,
+-    propBroken, collected, shinyCaught, levelStart, localPicked, over, holdStart, holdEnd,
++    propBroken, collected, shinyCaught, levelStart, localPicked, over, holdStart, holdEnd, viewFov,
+     /** Anfitrión: evento para todos. Invitado: evento para el anfitrión. */
+     broadcast(ev) { emit(ev); },
+     toHost(ev) { if (active && !host) { outEv.push(ev); flushClient(true); } },
      mate(u) { return mates.get(u); },
      get mates() { return [...mates.values()]; },
      get members() { return members; },
@@ -4284,10 +4557,33 @@ index 1fd2d91..60cc9c4 100644
        ctx.restore();
      }
 diff --git a/js/systems/interact.js b/js/systems/interact.js
-index 2298095..4bbf810 100644
+index 2298095..49ec9fb 100644
 --- a/js/systems/interact.js
 +++ b/js/systems/interact.js
-@@ -77,7 +77,7 @@ G.Interact = (() => {
+@@ -15,6 +15,7 @@
+  */
+ G.Interact = (() => {
+   const CHEST_TIME = 3.5;
++  const CHEST_NOTCHES = 8;      // daivr.dev: muescas de la barra del candado
+   const POWER_TIME = 25;
+   const POWERS = [
+     { id: 'dmg', name: 'Furia', desc: 'daño ×2', color: '#ff5f6d', on: p => { p.atkMul *= 2; }, off: p => { p.atkMul /= 2; } },
+@@ -40,7 +41,14 @@ G.Interact = (() => {
+         case 'bigchest':
+           if (!pl.dead && d2 < Math.max(46, p.r + pl.r + 24) ** 2) {
+             if (p.open === 0) G.Audio.sfx('select');
++            const notch = Math.floor(p.open / CHEST_TIME * CHEST_NOTCHES);
+             p.open += dt;
++            // daivr.dev: un clic por muesca de la barra del candado (world.js) y, en
++            // la segunda mitad, chispas doradas escapándose por la rendija de la tapa.
++            if (p.open < CHEST_TIME && Math.floor(p.open / CHEST_TIME * CHEST_NOTCHES) > notch) G.Audio.sfx('lockTick');
++            if (p.open > CHEST_TIME * 0.45 && Math.random() < dt * 16) {
++              G.FX.px(p.x + G.U.rand(-20, 20), p.y - 22, Math.random() < 0.5 ? '#ffd23f' : '#fff3a8', { vy: G.U.rand(-60, -30), life: 0.45 });
++            }
+             if (p.open >= CHEST_TIME) { p.open = 0; G.World.breakProp(p); }
+           } else if (p.open > 0) p.open = Math.max(0, p.open - dt * 1.5);
+           break;
+@@ -77,7 +85,7 @@ G.Interact = (() => {
      G.FX.ring(p.x, p.y - 20, 8, 90, pw.color, 0.6, 5);
      G.FX.burst(pl.x, pl.y - pl.bodyH * 0.5, pw.color, 24, 200);
      G.Audio.sfx('legend');
@@ -4296,6 +4592,13 @@ index 2298095..4bbf810 100644
    }
  
    /**
+@@ -116,5 +124,5 @@ G.Interact = (() => {
+     }
+   }
+ 
+-  return { update, trapEffect, POWERS, CHEST_TIME };
++  return { update, trapEffect, POWERS, CHEST_TIME, CHEST_NOTCHES };
+ })();
 diff --git a/js/systems/judgment.js b/js/systems/judgment.js
 index ea313c1..1174314 100644
 --- a/js/systems/judgment.js
@@ -4427,7 +4730,7 @@ index 35e17c6..597f988 100644
      get inArena() { return !!arena; },
      get timeLeft() { return arena ? Math.max(0, ARENA_TIME - arena.t) : 0; },
 diff --git a/js/systems/spawner.js b/js/systems/spawner.js
-index 9475def..876ad94 100644
+index 9475def..bc2d600 100644
 --- a/js/systems/spawner.js
 +++ b/js/systems/spawner.js
 @@ -23,10 +23,12 @@ G.Spawner = (() => {
@@ -4444,6 +4747,24 @@ index 9475def..876ad94 100644
      G.Enemies.rollRun();
      G.Sprites.preload(G.Enemies.upcomingDex(0, 80));
    }
+@@ -37,7 +39,7 @@ G.Spawner = (() => {
+   }
+ 
+   function ringPoint(pl, angle) {
+-    const d = G.Camera.outerRadius() + G.U.rand(10, 70);
++    const d = G.Camera.outerRadius(G.Coop.viewFov()) + G.U.rand(10, 70);   // daivr.dev: con el campo de visión del grupo
+     return [pl.x + Math.cos(angle) * d, pl.y + Math.sin(angle) * d * 0.9];
+   }
+ 
+@@ -45,7 +47,7 @@ G.Spawner = (() => {
+ 
+   /** ¿Lo vería algún jugador? (para no aparecer delante de nadie) */
+   function seenByAnyone(x, y) {
+-    const r = G.Camera.outerRadius() - 30;
++    const r = G.Camera.outerRadius(G.Coop.viewFov()) - 30;
+     return players.some(o => G.U.dist2(o.x, o.y, x, y) < r * r);
+   }
+ 
 @@ -88,7 +90,7 @@ G.Spawner = (() => {
      if (G.Events.golden) e.makeGolden();
      G.EnemyMgr.add(e);
@@ -5614,7 +5935,7 @@ index 440d2a5..4093012 100644
 +  return { draw, roundRect, bar, pointer };
  })();
 diff --git a/js/ui/icons.js b/js/ui/icons.js
-index 9a5f569..3ec69ae 100644
+index 9a5f569..20b347f 100644
 --- a/js/ui/icons.js
 +++ b/js/ui/icons.js
 @@ -52,6 +52,14 @@ G.Icons = (() => {
@@ -5664,12 +5985,75 @@ index 9a5f569..3ec69ae 100644
      const w = canvas(name).width;
      return w * Math.max(1, Math.round(size / w));
    }
-@@ -420,5 +446,5 @@ G.Icons = (() => {
+@@ -404,6 +430,62 @@ G.Icons = (() => {
+     }
+   }
+ 
++  /**
++   * daivr.dev: estrella de brillo de 4 puntas, píxel a píxel. L = largo de cada
++   * brazo en píxeles de arte (0 = sólo el centro): blanca por dentro, amarilla
++   * después y con la punta celeste; las de L >= 3 echan puntas en diagonal.
++   */
++  function star(ctx, x, y, L, px = 2) {
++    if (L < 0) return;
++    const X = Math.round(x / px) * px, Y = Math.round(y / px) * px;
++    const dot = (dx, dy, c) => { ctx.fillStyle = c; ctx.fillRect(X + dx * px, Y + dy * px, px, px); };
++    dot(0, 0, '#ffffff');
++    for (let d = 1; d <= L; d++) {
++      const c = d === L ? '#9ae6ff' : d <= Math.ceil(L / 2) ? '#ffffff' : '#fff3a8';
++      dot(d, 0, c); dot(-d, 0, c); dot(0, d, c); dot(0, -d, c);
++    }
++    const D = Math.floor((L - 1) / 2);
++    for (let d = 1; d <= D; d++) {
++      const c = d === D ? '#9ae6ff' : '#fff3a8';
++      dot(d, d, c); dot(-d, d, c); dot(d, -d, c); dot(-d, -d, c);
++    }
++  }
++
++  /**
++   * daivr.dev: el destello de los shiny de los juegos, en píxeles. t = segundos
++   * desde que empieza (dura SHINE_T) · r = radio de la corona · seed = giro.
++   * Un fogonazo en el centro, una corona de 8 estrellas que se abre girando,
++   * otra más pequeña que gira al revés y, al final, centelleos sobre el Pokémon.
++   */
++  const SHINE_T = 1.2;
++  function shine(ctx, cx, cy, r, t, px = 2, seed = 0) {
++    if (t < 0 || t >= SHINE_T) return;
++    const out = u => 1 - (1 - u) ** 3;
++    if (t < 0.3) star(ctx, cx, cy, Math.round(Math.sin(Math.PI * t / 0.3) * 5), px);
++    const u1 = t / 0.75;
++    if (u1 < 1) {
++      const L = Math.round(Math.sin(Math.PI * u1) * 4), rr = r * (0.3 + 0.9 * out(u1));
++      for (let i = 0; i < 8; i++) {
++        const a = seed + i * Math.PI / 4 + u1 * 1.7;
++        star(ctx, cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.9, L, px);
++      }
++    }
++    const u2 = (t - 0.25) / 0.7;
++    if (u2 > 0 && u2 < 1) {
++      const L = Math.round(Math.sin(Math.PI * u2) * 2), rr = r * (0.2 + 0.75 * out(u2));
++      for (let i = 0; i < 8; i++) {
++        const a = seed + Math.PI / 8 + i * Math.PI / 4 - u2 * 1.3;
++        star(ctx, cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.9, L, px);
++      }
++    }
++    for (let i = 0; i < 4; i++) {
++      const ph = (t - 0.55 - i * 0.12) / 0.4;
++      if (ph <= 0 || ph >= 1) continue;
++      const a = seed * 3 + i * 2.4, rr = r * (0.25 + 0.15 * i);
++      twinkle(ctx, cx + Math.cos(a) * rr, cy + Math.sin(a) * rr * 0.8, ph, px);
++    }
++  }
++
+   /**
+    * Rareza como Poké Ball: Poké (Común), Super (Poco común), Ultra (Rara),
+    * Lujo (Épica) y Master (Legendaria).
+@@ -420,5 +502,5 @@ G.Icons = (() => {
      r.setProperty('--ico-cursor', `url("${url('cursor')}")`);
    }
  
 -  return { canvas, url, html, draw, twinkle, rarity, RARITY_BALL, installCss, UI, TYPE_GLYPH };
-+  return { ready, canvas, url, html, draw, twinkle, rarity, RARITY_BALL, installCss, UI, TYPE_GLYPH };
++  return { ready, canvas, url, html, draw, twinkle, star, shine, SHINE_T, rarity, RARITY_BALL, installCss, UI, TYPE_GLYPH };
  })();
 diff --git a/js/ui/login.js b/js/ui/login.js
 index 6890d65..38743c2 100644
@@ -5794,7 +6178,7 @@ index 6890d65..38743c2 100644
    return { init, open, offerRecovery };
  })();
 diff --git a/js/ui/menu.js b/js/ui/menu.js
-index b541f40..1e5e9c0 100644
+index b541f40..d30e068 100644
 --- a/js/ui/menu.js
 +++ b/js/ui/menu.js
 @@ -6,8 +6,9 @@ G.MenuUI = (() => {
@@ -5879,6 +6263,24 @@ index b541f40..1e5e9c0 100644
      $('menu-friends-sub').classList.toggle('gold', req > 0);
    }
  
+@@ -230,12 +240,15 @@ G.MenuUI = (() => {
+ 
+   // ---------------- mejoras ----------------
+ 
+-  let upgDex = null;
++  let upgDex = null, upgPartner = null;
+ 
+   function openUpgrades() {
+     G.UI.show('scr-upgrades', true);
+     const s = G.DB.save;
+-    if (!upgDex || !s.owned[upgDex]) upgDex = s.partner;
++    // daivr.dev: si has cambiado de compañero, se abre en el nuevo (antes seguía
++    // en el último que miraste y había que buscarlo en la lista).
++    if (!upgDex || !s.owned[upgDex] || s.partner !== upgPartner) upgDex = s.partner;
++    upgPartner = s.partner;
+     // Selector con tus Pokémon: el compañero primero, luego los que ya tienen mejoras.
+     const sel = $('upg-mon');
+     const lv = d => Object.values(s.pupg[d] || {}).reduce((a, b) => a + b, 0);
 diff --git a/js/ui/news-ui.js b/js/ui/news-ui.js
 index 164de3d..16aac02 100644
 --- a/js/ui/news-ui.js
@@ -5912,7 +6314,7 @@ index 164de3d..16aac02 100644
        PARTS.filter(([k]) => v[k] && v[k].length).map(([k, lbl]) =>
          `<div class="news-part"><span class="news-tag ${k}">${lbl[en]}</span><ul>${v[k].map(t => `<li>${esc(t[en])}</li>`).join('')}</ul></div>`).join('') +
 diff --git a/js/ui/run-ui.js b/js/ui/run-ui.js
-index d8d9972..fc74420 100644
+index d8d9972..85c603e 100644
 --- a/js/ui/run-ui.js
 +++ b/js/ui/run-ui.js
 @@ -76,10 +76,11 @@ G.RunUI = (() => {
@@ -5929,6 +6331,15 @@ index d8d9972..fc74420 100644
        : 'Esperando a ' + list(others) + '…';
    }
  
+@@ -116,7 +117,7 @@ G.RunUI = (() => {
+       ${r.t1 || r.t10 ? `<div style="grid-column:1/-1"><span>Tickets del gacha</span><b>
+         ${r.t1 ? G.Icons.html('ticket', 22) + ' +' + r.t1 + ' ' : ''}${r.t10 ? G.Icons.html('ticket10', 22) + ' +' + r.t10 + ' ×10' : ''}</b></div>` : ''}
+       <div style="grid-column:1/-1"><span>Movimientos</span><b style="font-size:15px">
+-        ${r.moves.map(m => `${G.Icons.html('move:' + m.id, 16)} ${m.name} Nv.${m.lvl}`).join(' · ') || '—'}</b></div>
++        ${r.moves.map(m => `${G.Icons.html('move:' + m.id, 16)} ${m.name} <span>Nv.${m.lvl}</span>`).join(' · ') || '—'}</b></div>
+       ${r.caught && r.caught.length ? `<div style="grid-column:1/-1" class="caught"><span>${G.Icons.html('shiny', 12)} Shinies conseguidos</span>
+         <div class="caught-row" id="over-caught"></div></div>` : ''}
+       ${r.record ? '<div style="grid-column:1/-1;text-align:center" class="gold">¡Nuevo récord de tiempo!</div>' : ''}
 @@ -151,7 +152,7 @@ G.RunUI = (() => {
        el.innerHTML = `<div class="ico">${G.Icons.html(id, 36)}</div>
          <div class="txt"><div class="nm">${verb} ${it.name}</div><div class="ds">${it.desc}</div></div>
@@ -6066,7 +6477,7 @@ index d8d9972..fc74420 100644
 +           bondView, teamPhase, setTeam, syncTeam };
  })();
 diff --git a/js/ui/settings-ui.js b/js/ui/settings-ui.js
-index 1b42e92..50004ed 100644
+index 1b42e92..fe47a4e 100644
 --- a/js/ui/settings-ui.js
 +++ b/js/ui/settings-ui.js
 @@ -7,7 +7,6 @@ G.SettingsUI = (() => {
@@ -6077,7 +6488,29 @@ index 1b42e92..50004ed 100644
    let tab = 'sound';
  
    function init() {
-@@ -115,8 +114,6 @@ G.SettingsUI = (() => {
+@@ -60,6 +59,13 @@ G.SettingsUI = (() => {
+     return `<div class="set-row"><div class="grow"><b>${esc(label)}</b><small>${esc(desc)}</small></div>
+       <button class="btn small switch ${on ? 'gold' : ''}" data-k="${key}">${on ? 'Sí' : 'No'}</button></div>`;
+   }
++  // daivr.dev: campo de visión (camera.js), del 100% al 125% y en vivo.
++  function fovRow() {
++    const v = Math.round((G.Settings.get('fov') || 1) * 100);
++    return `<div class="set-row"><div class="grow"><b>Campo de visión</b><small>Cuánto mundo ves a tu alrededor. Con más, los Pokémon se ven más pequeños.</small>
++      <input type="range" id="set-fov" class="set-range" min="100" max="${Math.round(G.Camera.FOV_MAX * 100)}" step="5" value="${v}"></div>
++      <span class="gold set-val" id="set-fov-v">${v}%</span></div>`;
++  }
+   function choice(key, opts) {
+     const cur = G.Settings.get(key);
+     return `<div class="chips set-chips">${opts.map(([v, l]) => `<button class="chip ${v === cur ? 'on' : ''}" data-k="${key}" data-v="${v}">${esc(l)}</button>`).join('')}</div>`;
+@@ -83,6 +89,7 @@ G.SettingsUI = (() => {
+         + toggle('dmgNumbers', 'Números de daño', 'Los números que salen al golpear y al recibir daño.')
+         + toggle('calm', 'Menos sacudidas y destellos', 'La cámara tiembla menos y los fogonazos son suaves.')
+         + toggle('fps', 'Mostrar FPS', 'Fotogramas por segundo, en la esquina de abajo.')
++        + fovRow()
+         + (canFull() ? `<div class="set-row"><div class="grow"><b>Pantalla completa</b><small>Sin barras del navegador.</small></div>
+              <button class="btn small" id="set-full">${isFull() ? 'Salir' : 'Activar'}</button></div>`
+            : iosTip() ? `<div class="set-row"><div class="grow"><b>Pantalla completa</b><small>${esc(IOS_TIP)}</small></div></div>` : '');
+@@ -115,8 +122,6 @@ G.SettingsUI = (() => {
               ${window.PS_PAGES ? `<a class="btn small" href="${G.I18n.lang === 'en' ? 'en/guide/' : 'guia/'}" target="_blank">Guía y preguntas</a>
               <a class="btn small" href="${G.I18n.lang === 'en' ? 'en/pokedex/' : 'pokedex/'}" target="_blank">Pokédex</a>` : ''}
               <button class="btn small" data-legal>Aviso legal y privacidad</button>
@@ -6086,7 +6519,7 @@ index 1b42e92..50004ed 100644
             </div>`;
      }
      wire(box);
-@@ -132,10 +129,12 @@ G.SettingsUI = (() => {
+@@ -132,10 +137,12 @@ G.SettingsUI = (() => {
        return;
      }
      const nick = G.Social.me ? G.Social.me.name : (G.DB.user || '');
@@ -6101,6 +6534,18 @@ index 1b42e92..50004ed 100644
        + `<div class="set-row"><div class="grow"><b>Partida</b></div><span>${esc(SYNC[st] || st)}</span></div>`
        + `<div class="row wrap" style="gap:8px;margin-top:12px">
             <button class="btn" id="set-logout">Cerrar sesión</button>
+@@ -149,6 +156,11 @@ G.SettingsUI = (() => {
+       b.onclick = () => { const v = b.dataset.v; G.Settings.set(b.dataset.k, isNaN(+v) ? v : +v); render(); };
+     });
+     const full = $('set-full'); if (full) full.onclick = toggleFull;
++    const fov = $('set-fov');
++    if (fov) {
++      fov.oninput = () => { G.Settings.set('fov', fov.value / 100); $('set-fov-v').textContent = fov.value + '%'; };
++      fov.onchange = () => G.Audio.sfx('click');
++    }
+     box.querySelectorAll('[data-lang]').forEach(b => { b.onclick = () => { if (b.dataset.lang !== G.I18n.lang) G.I18n.set(b.dataset.lang); }; });
+     const lo = $('set-login'); if (lo) lo.onclick = () => { close(); leave(); };
+     const out = $('set-logout'); if (out) out.onclick = () => { close(); leave(); };
 diff --git a/js/ui/slots.js b/js/ui/slots.js
 index 66e5571..a29fa91 100644
 --- a/js/ui/slots.js
@@ -6408,7 +6853,7 @@ index 9caca59..0acf193 100644
    };
  })();
 diff --git a/js/ui/ui.js b/js/ui/ui.js
-index 7f9ff5b..b04c901 100644
+index 7f9ff5b..fcbf592 100644
 --- a/js/ui/ui.js
 +++ b/js/ui/ui.js
 @@ -9,7 +9,8 @@ G.UI = (() => {
@@ -6450,3 +6895,269 @@ index 7f9ff5b..b04c901 100644
     * Devuelve { pass } o null si se cancela.
     */
    function confirmDelete() {
+@@ -269,6 +263,14 @@ G.UI = (() => {
+           if (w.t >= w.life) { s.tw.splice(i, 1); continue; }
+           G.Icons.twinkle(ctx, w.x, w.y, w.t / w.life, Math.max(2, k));
+         }
++        // daivr.dev: y en las vistas de un solo Pokémon, el destello de los juegos
++        // al aparecer y cada pocos segundos.
++        if (s.opts.hero) {
++          if (s.shT == null) { s.shT = -0.3; s.shSeed = Math.random() * 6.2832; }
++          if ((s.shT += dt) > 6.5) s.shT = 0;
++          const cy = big ? cv.height / 2 : fy - ay * k * 0.5;
++          G.Icons.shine(ctx, fx, cy, Math.min(cv.width, cv.height) * 0.36, s.shT, Math.max(2, k), s.shSeed);
++        }
+         ctx.globalAlpha = 1;
+       }
+     }
+diff --git a/js/world/tiles.js b/js/world/tiles.js
+index ae87b40..8be3958 100644
+--- a/js/world/tiles.js
++++ b/js/world/tiles.js
+@@ -540,8 +540,9 @@ G.Tiles = (() => {
+       return P.canvas();
+     },
+ 
+-    /** Cofre grande con candado. */
+-    bigchest() {
++    /** Cofre grande con candado. daivr.dev: variante 1 = abierto (al abrirse, world.js). */
++    bigchest(B, variant) {
++      if (variant === 1) return PAINT.bigchestOpen();
+       const P = Pix(24, 20);
+       const wood = pack('#6b3a1e'), woodL = pack('#8e5329'), woodD = pack('#432210');
+       const iron = pack('#9aa6b5'), ironD = pack('#5d6773'), gold = pack('#f2c443'), goldD = pack('#b5832a');
+@@ -562,6 +563,45 @@ G.Tiles = (() => {
+       return P.canvas();
+     },
+ 
++    /**
++     * daivr.dev: el mismo cofre abierto, sin candado: la tapa levantada hacia
++     * atrás (se ve por dentro) y el tesoro brillando en el hueco. Es 4 píxeles
++     * más alto y el frente queda donde el del cerrado.
++     */
++    bigchestOpen() {
++      const P = Pix(24, 24);
++      const wood = pack('#6b3a1e'), woodD = pack('#432210'), inside = pack('#2a1408');
++      const iron = pack('#9aa6b5'), ironD = pack('#5d6773'), gold = pack('#f2c443'), goldD = pack('#b5832a');
++      const glow = pack('#fff3a8'), glowM = pack('#ffd23f');
++      const strap = x => x === 5 || x === 6 || x === 17 || x === 18;
++      // Tapa levantada: por dentro, más oscura; arriba el canto de hierro y abajo la bisagra.
++      for (let y = 1; y < 8; y++) for (let x = 2; x < 22; x++) {
++        let c = y === 1 ? iron : y === 7 ? ironD : y < 4 ? wood : woodD;
++        if (x === 2 || x === 21) c = woodD;
++        if (strap(x) && y > 1) c = (x === 5 || x === 17) ? iron : ironD;
++        P.set(x, y, c);
++      }
++      // El hueco, con el tesoro.
++      for (let y = 8; y < 12; y++) for (let x = 1; x < 23; x++) {
++        let c = inside;
++        if (x === 1 || x === 22 || y === 8) c = woodD;
++        else if (y >= 10 && x > 3 && x < 20) c = (x * 3 + y) % 5 ? glowM : glow;
++        else if (y === 9 && x > 6 && x < 17) c = (x % 3) ? goldD : gold;
++        P.set(x, y, c);
++      }
++      // El frente, de la franja de hierro para abajo (como el cerrado).
++      for (let y = 12; y < 23; y++) for (let x = 1; x < 23; x++) {
++        let c = y === 12 ? iron : y === 13 ? ironD : wood;
++        if (x === 1 || x === 22 || y === 22) c = woodD;
++        if (strap(x)) c = (x === 5 || x === 17) ? iron : ironD;
++        P.set(x, y, c);
++      }
++      // La argolla donde iba el candado.
++      for (let y = 12; y <= 15; y++) for (let x = 11; x <= 12; x++) P.set(x, y, y === 15 ? woodD : x === 11 ? iron : ironD);
++      outline(P, pack('#1e0f06'));
++      return P.canvas();
++    },
++
+     /** Trampa de Mundo Misterioso. variante: 0 veneno · 1 pegajosa · 2 explosiva. */
+     trap(B, variant) {
+       const P = Pix(14, 14);
+diff --git a/js/world/world.js b/js/world/world.js
+index 90be338..1134f5e 100644
+--- a/js/world/world.js
++++ b/js/world/world.js
+@@ -44,6 +44,9 @@ G.World = (() => {
+   const MAX_IMAGES = 48, MAX_DATA = 400;
+   const broken = new Set();                // props destruidos: "tx,ty"
+   let nextPropId = 1;
++  // daivr.dev: cofres con candado abriéndose (drawOpened), OPEN_T segundos cada uno.
++  const OPEN_T = 1.6;
++  let opened = [];
+ 
+   // ---------------- ruido ----------------
+ 
+@@ -369,7 +372,7 @@ G.World = (() => {
+       c.propAt.delete(p.tx + ',' + p.ty);
+     }
+     const B = G.Tiles.BIOMES[biome];
+-    G.Audio.sfx(p.type === 'grass' ? 'grass' : p.type === 'chest' ? 'chest' : 'break');
++    G.Audio.sfx(p.type === 'grass' ? 'grass' : p.type === 'chest' ? 'chest' : p.type === 'bigchest' ? 'bigchest' : 'break');
+     if (p.type === 'grass') {
+       G.FX.burst(p.x, p.y - 6, B.grass[1], 6, 70);
+       const r = Math.random();
+@@ -399,7 +402,13 @@ G.World = (() => {
+     }
+     if (p.type === 'bigchest') {
+       // Botín grande: monedas, tickets y experiencia para subir un nivel.
+-      G.FX.burst(p.x, p.y - 12, '#f2c443', 34, 220);
++      // daivr.dev: se abre en pixel art (drawOpened) y el oro sale hacia arriba
++      // desde dentro, en vez del estallido redondo de antes.
++      opened.push({ type: 'bigchest', ghost: 0, x: p.x, y: p.y, r: p.r, flip: Math.random() < 0.5 ? -1 : 1 });
++      for (let i = 0; i < 26; i++) {
++        G.FX.px(p.x + G.U.rand(-12, 12), p.y - 24, Math.random() < 0.5 ? '#ffd23f' : '#fff3a8',
++                { vx: G.U.rand(-80, 80), vy: G.U.rand(-280, -130), grav: 560, drag: 0.99, life: G.U.rand(0.5, 0.9), size: Math.random() < 0.4 ? 2 : 1 });
++      }
+       G.FX.ring(p.x, p.y - 8, 6, 80, '#f2c443', 0.6, 5);
+       G.Camera.kick(0.4);
+       for (let i = 0; i < 9; i++) G.Pickups.drop('coin', p.x + G.U.rand(-22, 22), p.y + G.U.rand(-14, 14), 4);
+@@ -486,10 +495,12 @@ G.World = (() => {
+     for (const [cx, cy] of visibleChunks(cam, 60)) {
+       for (const p of chunkData(cx, cy).props) if (cam.sees(p.x, p.y, 70)) out.push(p);
+     }
++    for (const o of opened) if (cam.sees(o.x, o.y, 70)) out.push(o);
+     return out;
+   }
+ 
+   function drawProp(ctx, p, t) {
++    if (p.ghost != null) { drawOpened(ctx, p); return; }
+     const P = G.Sprites.PX;
+     const variant = p.type === 'grass' ? (Math.sin(t * 2.4 + p.wiggle) > 0.55 ? 1 : 0)
+                   : p.type === 'rock' ? (p.hp < p.maxHp * 0.5 ? 1 : 0)
+@@ -515,20 +526,16 @@ G.World = (() => {
+       ctx.beginPath(); ctx.arc(p.x, p.y - h + 11 * P, 13, 0, 6.2832); ctx.fill();
+       ctx.restore();
+     }
+-    if (p.type === 'bigchest' && p.open > 0) {
+-      ctx.save();
+-      ctx.strokeStyle = '#ffd23f'; ctx.lineWidth = 3;
+-      ctx.beginPath();
+-      ctx.arc(p.x, p.y - h / 2, 26, -Math.PI / 2, -Math.PI / 2 + 6.2832 * Math.min(1, p.open / G.Interact.CHEST_TIME));
+-      ctx.stroke();
+-      ctx.restore();
+-    }
+     if (p.type !== 'grass') {
+       ctx.fillStyle = 'rgba(0,0,0,.3)';
+       ctx.beginPath(); ctx.ellipse(p.x, p.y, p.r * 1.1, p.r * 0.38, 0, 0, 6.2832); ctx.fill();
+     }
+     ctx.save();
+-    const x = Math.round(p.x - w / 2), y = Math.round(p.y - h + (p.type === 'grass' ? 4 : 2));
++    // daivr.dev: el cofre con candado tiembla mientras lo abres, cada vez más
++    // (y encima va la barra del candado, drawLockBar, en vez del círculo).
++    const opening = p.type === 'bigchest' && p.open > 0 ? Math.min(1, p.open / G.Interact.CHEST_TIME) : 0;
++    const jx = !opening ? 0 : Math.floor(t * (8 + 18 * opening)) % 2 ? P : opening > 0.7 ? -P : 0;
++    const x = Math.round(p.x - w / 2) + jx, y = Math.round(p.y - h + (p.type === 'grass' ? 4 : 2));
+     const k = fadeK();
+     if (k != null) {
+       // El objeto viejo se desvanece mientras aparece el nuevo.
+@@ -540,10 +547,102 @@ G.World = (() => {
+     ctx.drawImage(img, x, y, w, h);
+     if (p.flash > 0) { ctx.globalAlpha = 0.6; ctx.drawImage(G.Sprites.white(img), x, y, w, h); }
+     ctx.restore();
++    if (opening) drawLockBar(ctx, p, x, y, opening, t);
++  }
++
++  // Rectángulo con las esquinas recortadas un píxel de arte.
++  function cutRect(ctx, x, y, w, h, P) { ctx.fillRect(x + P, y, w - 2 * P, h); ctx.fillRect(x, y + P, w, h - 2 * P); }
++
++  /**
++   * daivr.dev: abriendo un cofre con candado. La rendija de la tapa deja salir
++   * luz, el candado destella cada vez más deprisa y encima sale una barra de
++   * muescas (como las del HUD) con el candado al lado, que se llena mientras
++   * sigues a su lado (interact.js hace un clic por muesca).
++   * x, y = esquina del sprite (24×20 píxeles de arte) · k = 0..1
++   */
++  function drawLockBar(ctx, p, x, y, k, t) {
++    const P = G.Sprites.PX, N = G.Interact.CHEST_NOTCHES;
++    const blink = Math.floor(t * (3 + 9 * k)) % 2 === 0;
++    if (k > 0.3) {
++      ctx.fillStyle = '#fff3a8';
++      ctx.globalAlpha = blink ? 1 : 0.66;
++      ctx.fillRect(x + 2 * P, y + 8 * P, 6 * P, P);
++      ctx.fillRect(x + 16 * P, y + 8 * P, 6 * P, P);
++    }
++    if (k > 0.15 && blink) {
++      ctx.fillStyle = '#fff3a8';
++      ctx.globalAlpha = 0.5;
++      ctx.fillRect(x + 8 * P, y + 8 * P, 8 * P, 6 * P);
++    }
++    ctx.globalAlpha = 1;
++    const iw = N * 3 - 1, W = (iw + 4) * P, H = 7 * P;
++    const bx = Math.round(p.x / P) * P - Math.floor((iw + 4) / 2) * P + 4 * P, by = Math.round(y - H - 5 * P);
++    ctx.fillStyle = 'rgba(4,8,22,.4)'; cutRect(ctx, bx, by + P, W, H, P);
++    ctx.fillStyle = '#14161c'; cutRect(ctx, bx, by, W, H, P);
++    ctx.fillStyle = '#f2c443'; ctx.fillRect(bx + P, by + P, W - 2 * P, H - 2 * P);
++    ctx.fillStyle = '#2a1408'; ctx.fillRect(bx + 2 * P, by + 2 * P, W - 4 * P, H - 4 * P);
++    const n = Math.floor(k * N);
++    for (let i = 0; i < N; i++) {
++      const nx = bx + (2 + i * 3) * P, ny = by + 2 * P;
++      if (i > n || (i === n && !blink)) { ctx.fillStyle = '#4a3220'; ctx.fillRect(nx, ny, 2 * P, 3 * P); continue; }
++      ctx.fillStyle = '#fff3a8'; ctx.fillRect(nx, ny, 2 * P, P);
++      ctx.fillStyle = '#ffd23f'; ctx.fillRect(nx, ny + P, 2 * P, P);
++      ctx.fillStyle = '#c08a10'; ctx.fillRect(nx, ny + 2 * P, 2 * P, P);
++    }
++    // El candado, a la izquierda de la barra; da un saltito con cada destello al final.
++    G.Icons.draw(ctx, 'lock', bx - 9 * P, by - 3 * P - (k > 0.6 && blink ? P : 0), 12 * P);
++  }
++
++  /**
++   * daivr.dev: el cofre con candado abriéndose (destroyProp lo deja aquí OPEN_T s).
++   * Destello blanco, salta el candado, la tapa se abre con un botecito y sale un
++   * haz de luz con estrellas; al final el cofre parpadea y se va, como los
++   * objetos de Mundo Misterioso.
++   */
++  function drawOpened(ctx, o) {
++    const P = G.Sprites.PX, t = o.ghost, snap = v => Math.round(v / P) * P;
++    const shut = t < 0.08;
++    const img = G.Tiles.propSprite(biome, 'bigchest', shut ? 0 : 1);
++    const w = img.width * P, h = img.height * P;
++    const x = Math.round(o.x - w / 2), y = Math.round(o.y - h + 2) - (t > 0.08 && t < 0.18 ? P : 0);
++    if (!(t > OPEN_T - 0.45 && Math.floor(t / 0.07) % 2 === 0)) {
++      ctx.fillStyle = 'rgba(0,0,0,.3)';
++      ctx.beginPath(); ctx.ellipse(o.x, o.y, o.r * 1.1, o.r * 0.38, 0, 0, 6.2832); ctx.fill();
++      ctx.drawImage(img, x, y, w, h);
++      if (shut) { ctx.globalAlpha = 0.7; ctx.drawImage(G.Sprites.white(img), x, y, w, h); ctx.globalAlpha = 1; }
++    }
++    // Haz de luz desde el tesoro: crece deprisa, parpadea un poco y se estrecha.
++    const u = (t - 0.08) / 1.05;
++    if (u > 0 && u < 1) {
++      const base = snap(o.y + 2 - 13 * P), tall = snap(90 * Math.min(1, u / 0.18));
++      const thin = u < 0.55 ? 1 : 1 - (u - 0.55) / 0.45;
++      const wob = Math.floor(t * 20) % 2;
++      const cx = snap(o.x);
++      [[14 + wob, '#ffd23f', 0.33], [9, '#fff3a8', 0.66], [4, '#ffffff', 1]].forEach(([wa, col, a]) => {
++        const half = Math.max(1, Math.round(wa * thin / 2)) * P;
++        ctx.globalAlpha = a;
++        ctx.fillStyle = col;
++        ctx.fillRect(cx - half, base - tall + 2 * P, half * 2, tall - 2 * P);
++        if (half > P) ctx.fillRect(cx - half + P, base - tall, half * 2 - 2 * P, 2 * P);
++      });
++      ctx.globalAlpha = 1;
++    }
++    for (let i = 0; i < 6; i++) {
++      const ph = (t - 0.15 - i * 0.12) / 0.4;
++      if (ph <= 0 || ph >= 1) continue;
++      const sx = o.x + (G.U.hash(i, 7, 3) - 0.5) * 48, sy = o.y - 13 * P - 12 - G.U.hash(i, 9, 5) * 64;
++      G.Icons.star(ctx, sx, sy, Math.round(Math.sin(Math.PI * ph) * 3), P);
++    }
++    // El candado sale volando hacia un lado y cae, parpadeando antes de irse.
++    if (t < 0.85 && !(t > 0.6 && Math.floor(t / 0.05) % 2)) {
++      const lx = o.x + o.flip * 70 * t, ly = o.y - 9 * P - (230 * t - 330 * t * t);
++      G.Icons.draw(ctx, 'lock', snap(lx) - 6 * P, snap(ly) - 6 * P, 12 * P);
++    }
+   }
+ 
+   function update(dt, cam) {
+     if (fade && (fade.t += dt) >= FADE) fade = null;
++    for (let i = opened.length - 1; i >= 0; i--) if ((opened[i].ghost += dt) >= OPEN_T) opened.splice(i, 1);
+     for (const [cx, cy] of visibleChunks(cam, 60)) {
+       for (const p of chunkData(cx, cy).props) if (p.flash > 0) p.flash -= dt;
+     }
+@@ -554,7 +653,7 @@ G.World = (() => {
+   function reset(s) {
+     seed = (s | 0) || 1;
+     data.clear(); images.clear(); broken.clear();
+-    fade = null; arena = null;
++    fade = null; arena = null; opened = [];
+   }
+ 
+   /**

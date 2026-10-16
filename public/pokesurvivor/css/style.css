@@ -888,6 +888,9 @@ body.touch kbd, body.touch .card .key, body.touch .kbd-hint { display: none !imp
 .set-row b { display: block; }
 .set-row small { display: block; color: var(--muted); font-size: 12px; }
 .set-row .switch { min-width: 58px; }
+/* daivr.dev: campo de visión (settings-ui.js fovRow). */
+.set-row .set-range { display: block; margin: 10px 0 2px; max-width: 320px; }
+.set-row .set-val { min-width: 48px; text-align: right; font-weight: 700; }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
 .set-chips { margin: 6px 0 10px; }
 .keys { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; align-items: center; font-size: 14px; }
