@@ -8,10 +8,11 @@ import { PACK, drawStash, stashSparkles } from "./stash.js";
 // tiempos los marca el hook; aqui se dibujan.
 export const FINDS = lazy(() => ({
   "arcade-coin": outlinedSprite(["..YYYYY..", ".YhhhhhY.", "YhhhyhhdY", "YhhyyydhY", "YhyyyyydY", "YhhyyyddY", "YhydhdydY", ".YdddddY.", "..YYYYY.."], { Y: "#c8902a", h: "#ffe28a", y: "#fff6cf", d: "#e0a830" }, "#6a4410"),
-  "floppy-disk": outlinedSprite(["DDDDDDDDD", "DSSSSSkSD", "DSSSSSkSD", "DDDDDDDDD", "DwwwwwwwD", "DwkkkkkwD", "DwwwwwwwD", "DwkkkwwwD", "DDDDDDDDD"], { D: "#2a8ab0", S: "#c8d4dc", k: "#5a6a7a", w: "#f4fff8" }, "#123a4a"),
-  battery: outlinedSprite([".tt..", "GGGGG", "GhGGG", "GhGkG", "GhkkG", "GkkkG", "GGkGG", "GGGGG", "ddddd"], { G: "#3fff97", h: "#b8ffd8", k: "#ffffff", d: "#1f8a4a", t: "#c0c8c4" }, "#0f3a24"),
-  "lost-bug": outlinedSprite([".a.....a.", "..a...a..", "..PPPPP..", ".PwePweP.", "PPPPPPPPP", "PPPmmmPPP", "PpPPPPPpP", ".l.l.l.l."], { a: "#5a1a3a", P: "#ff5fae", p: "#ffb8dc", w: "#ffffff", e: "#1a1a2a", m: "#5a1a3a", l: "#5a1a3a" }, "#4a0a2a"),
-  "mini-cartridge": outlinedSprite(["PPPPPPPP", "PLLLLLLP", "PLsssLLP", "PLsssLLP", "PLLLLLLP", "PPPPPPPP", "PPhPPPPP", ".YY.YY..", ".YY.YY.."], { P: "#a78bfa", L: "#e8dcff", s: "#6a4ac8", h: "#c8b8ff", Y: "#ffd166" }, "#2a1a4a")
+  // (los mismos que en el diario, finds.js, en pequeño)
+  "floppy-disk": outlinedSprite(["bbbbbbbb.", "bSSSSkSBb", "bSSSSkSBD", "bBBBBBBBD", "bRRRRRRBD", "bWWWWWWBD", "bWlllWWBD", "bWWWWWWBD", "DDDDDDDDD"], { b: "#5ab4d8", B: "#2a86b0", D: "#1a5a7a", S: "#c8d4dc", k: "#2a3a4a", R: "#ff6a9e", W: "#f4fff8", l: "#9aaab8" }, "#0f3448"),
+  battery: outlinedSprite(["..tt..", "CCCCCC", "hGGGGd", "hGGYGd", "hGYYGd", "hYYYYd", "hGYYGd", "hGYGGd", "kkkkkk"], { t: "#d8e0dc", C: "#c8d0cc", h: "#9af0b8", G: "#3fcf7a", d: "#1f8a4a", Y: "#ffd166", k: "#1a4a2a" }, "#0f3a24"),
+  "lost-bug": outlinedSprite([".A.....A.", "..a...a..", "..GGGGG..", ".GweGweG.", ".PPPkPPP.", "lpPPkPsPl", ".PsPkPPQ.", "l.QQkQQ.l"], { A: "#8fe0a0", a: "#2a4a3a", G: "#4a9a5a", w: "#ffffff", e: "#1a1a2a", p: "#ffb8dc", P: "#ff6fb0", Q: "#c8407a", k: "#7a2a4a", s: "#7a2a4a", l: "#5a2a3a" }, "#3a0f28"),
+  "mini-cartridge": outlinedSprite(["lllllllld", "lPrPrPrPd", "lKKKKKKPd", "lKbbybKPd", "lKggggKPd", "lKKKKKKPd", "ldPPPPPdd", ".YdYdYdY.", ".Y.Y.Y.Y."], { l: "#c8b8ff", P: "#8b6fe0", d: "#5a3fa8", r: "#6a50c0", K: "#2a1a4a", b: "#7ad0f0", y: "#ffd166", g: "#5ac87a", Y: "#ffd166" }, "#24123f")
 }));
 // El hallazgo queda a 76 px del centro de Buddy (como el boton para recogerlo).
 export const FIND_OFFSET = 38;

@@ -45,7 +45,7 @@ export function PipSprite({
       // (al saludar, la mano va mas deprisa; volando, patalea)
       const frame = hover ? Math.floor(tick / 2) % 2 : Math.floor(tick / (rigPose === "wave" ? 2 : 6)) % 2;
       const lookY = hover && Math.floor(tick / 14) % 2 ? 1 : 0;
-      const rig = rigImg({ pose: rigPose, frame, expr: blink ? "blink" : expression, lookX: 0, lookY, ghost: false, glow: false, outfit, handUp: false });
+      const rig = rigImg({ pose: rigPose, frame, expr: blink ? "blink" : expression, lookX: 0, lookY, ghost: false, glow: false, outfit, handUp: false, spark: outfit.antenna === "gold-antenna" ? tick % 6 : undefined });
       const bob = hover ? HOVER_BOB[tick % HOVER_BOB.length] : 0;
       g.clearRect(0, 0, RIG_W, rows);
       g.save();

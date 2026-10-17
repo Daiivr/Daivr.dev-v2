@@ -4,6 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "hosts:encrypt": "node scripts/encrypt-hosts.mjs",
+    "test:hosts": "node --test tests/hosts.test.mjs tests/host-avatar.test.mjs tests/host-outfit.test.mjs tests/gate-host.test.mjs tests/kiyosa-wave.test.mjs tests/nh02-staff.test.mjs tests/market-host-rotation.test.mjs",
     "music:encrypt": "node scripts/encrypt-music.mjs",
     "test:music": "node --test tests/music.test.mjs",
     "test": "node --test scripts/test-*.mjs tests/*.test.mjs",

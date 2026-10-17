@@ -110,12 +110,16 @@ export function FooterWorld({ sky, season, marketOpen, marketHover }) {
       const body = readBody();
       let direction = Math.random() < 0.5 ? -1 : 1;
       if (forceCollision && body) direction = (body.left + body.right) / 2 > width / 2 ? 1 : -1;
-      const drift = direction * randomBetween(115, 185);
-      const margin = 25;
-      const startMin = direction > 0 ? margin : margin + Math.abs(drift);
+      // Ni el agujero de salida ni el de llegada en el mercado o la hoguera:
+      // los dos quedan a la derecha de dryEnd (en pantallas estrechas, el salto
+      // se acorta para que quepa).
+      const margin = 25, dryEnd = dryZoneEnd(), room = width - margin - dryEnd;
+      if (room < 80) return;
+      const drift = direction * Math.min(randomBetween(115, 185), room - 10);
+      const startMin = direction > 0 ? dryEnd : dryEnd + Math.abs(drift);
       const startMax = direction > 0 ? width - margin - Math.abs(drift) : width - margin;
       const startX = forceCollision && body
-        ? Math.max(margin, Math.min(width - margin, (body.left + body.right) / 2 - drift * 0.55))
+        ? Math.max(startMin, Math.min(startMax, (body.left + body.right) / 2 - drift * 0.55))
         : randomBetween(Math.min(startMin, startMax), Math.max(startMin, startMax));
       const item = {
         startX, drift, waterY: WATER_PX, height: randomBetween(61, 85),
@@ -127,6 +131,10 @@ export function FooterWorld({ sky, season, marketOpen, marketHover }) {
       world.waterSpot(startX / ART, (SPOT_LEAD_MS + 500) / 1000);
       window.dispatchEvent(new CustomEvent("daivr-footer-wildlife-event", { detail: { active: true, name: "flying-fish" } }));
       window.dispatchEvent(new CustomEvent("daivr-footer-fish-seen", { detail: { x: startX / width * 100, direction } }));
+    }
+    function dryZoneEnd() {
+      const zone = world.layout?.noWater;
+      return zone ? zone[1] * ART + 24 : 0;
     }
     function endFish() {
       fish = null;
@@ -146,6 +154,9 @@ export function FooterWorld({ sky, season, marketOpen, marketHover }) {
       const contact = !fish.bounce && time > 0.08 ? fishContact(fish.previous, point, fish.previousBody, liveBody) : null;
       if (contact) {
         fish.bounce = fishRebound(contact, point, item.waterY);
+        // Rebotado hacia el mercado: que caiga justo pasada la hoguera.
+        const dryEnd = dryZoneEnd();
+        if (contact.x + fish.bounce.vx * fish.bounce.duration < dryEnd) fish.bounce.vx = (dryEnd + 6 - contact.x) / fish.bounce.duration;
         fish.hitTime = time;
         fish.landing = reboundPoint(fish.bounce, fish.bounce.duration).x;
         world.waterSpot(fish.landing / ART, fish.bounce.duration + 0.5);
@@ -296,6 +307,7 @@ export function FooterWorld({ sky, season, marketOpen, marketHover }) {
         resetCost: () => { cost.frames = 0; cost.total = 0; cost.max = 0; },
         step: (ms = FRAME_MS) => { sync(); trackActors(performance.now()); stepFish(performance.now()); world.update(ms / 1000); world.draw(); },
         fish: (forceCollision = false) => spawnFish({ forceCollision }),
+        birds: (kind, dir) => world.flock(kind, dir),
         // actores de prueba (eventos que solo se lanzan con sesion de admin)
         bus: { publishActor, dropActor }
       };

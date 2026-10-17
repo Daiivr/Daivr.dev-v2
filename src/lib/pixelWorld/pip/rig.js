@@ -43,7 +43,9 @@ export const HATS = {
 export const HAND_ITEMS = {
   "market-lantern": { rows: ["..k..", ".kkk.", "kgGgk", "kGWGk", "kgGgk", ".kkk."], pal: { k: "#2a2622", g: "#ffb347", G: "#ffd873", W: "#fffbe0" }, em: new Set(["g", "G", "W"]), at: [-1, 2], out: null, front: true },
   coffee: { rows: [".wwwww", "hwcccw", "hwwwwW", ".wwwwW", ".wwwwW"], pal: { w: "#f4fff8", W: "#c9dcd4", c: "#6b3f24", h: "#45d8ff" }, at: [1, -2], out: "#1f3a3a", front: true, steam: [[[3, -2], [4, -3], [3, -4]], [[4, -2], [3, -3], [4, -4]]] },
-  wrench: { rows: ["L...L", "LL.LL", ".LLL.", "..S..", "..S..", "..S..", "..S..", ".PPP.", ".PPP.", ".PPP."], pal: { L: "#d8f4f8", S: "#8eeaf1", P: "#ff5c9e" }, at: [-1, -8], out: "#112b38", front: false },
+  // (id "wrench": es el pixel blaster, como su icono del inventario; la mano
+  // agarra la culata y el cañon apunta hacia delante, con la boca encendida)
+  wrench: { rows: ["bLLLLLL.", "bPPPPbbW", "bbbbbbbW", "..gG....", "..gG...."], pal: { b: "#388fa8", L: "#8eeaf1", P: "#ff5c9e", W: "#ecfff6", g: "#8eeaf1", G: "#275365" }, em: new Set(["W"]), at: [-1, -3], out: "#112b38", front: false },
   cartridge: { rows: ["GGGGGG", "GllllG", "GlddlG", "GllllG", "GGGGGG", "Y.YY.Y"], pal: { G: "#23764e", l: "#3fff97", d: "#102b21", Y: "#ffd166" }, em: new Set(["l"]), at: [1, -5], out: "#0f2a1c", front: true },
   "pumpkin-pail": { rows: ["k...k", ".k.k.", "ppppp", "pFpFp", "ppppp", ".ppp."], pal: { k: "#2a2622", p: "#e8822a", F: "#ffd36b" }, em: new Set(["F"]), at: [-1, 1], out: "#6a2a0e", front: true },
   sparkler: { rows: ["Y", "s", "s", "s", "s"], pal: { Y: "#fff6cf", s: "#9aa0a8" }, em: new Set(["Y"]), at: [1, -6], out: "#3a3a44", front: true }
@@ -159,7 +161,18 @@ export function rigImg(o) {
   return r;
 }
 
-const HAIR = { out: "#12353e", main: "#2abbb6", light: "#70e9d6", shade: "#19858f", deep: "#127078" };
+// Miku: el pelo turquesa (con su anillo de brillo), el traje (top gris con
+// cuello y corbata turquesa, mangas sueltas oscuras con puño turquesa, falda
+// tableada con el bajo turquesa) y la piel de la cara y las manos.
+const HAIR = { out: "#0c3540", main: "#2cc2bd", light: "#78ecdf", shine: "#c6fff4", shade: "#1a8e98", deep: "#147482", deeper: "#0e5866" };
+const MIKU = {
+  top: "#cfd8de", topL: "#eef3f5", topD: "#9ba8b1", topDD: "#6f7c86",
+  teal: "#3fd0c8", tealD: "#1f8f94", tealL: "#a6f3ea",
+  skirt: "#2c3442", skirtL: "#465265", skirtD: "#1b212b", out: "#0a0d12",
+  tie: "#1f2536", tieL: "#3a4560", pink: "#f163a5", pinkL: "#ff9ac8",
+  cup: "#2b3444", cupL: "#46546a", ring: "#40e8dc"
+};
+const SKIN = { out: "#4a2e2a", skinD: "#efbd9c", skin: "#ffe1ca", skinL: "#fff1e4" };
 
 function buildRig(o) {
   const glow = !!o.glow, ghost = !!o.ghost, fit = o.outfit || {};
@@ -207,8 +220,17 @@ function buildRig(o) {
   }
   function arm(sh, h, back) {
     const sx = sh[0] + U.x, sy = sh[1] + U.y, hx = sx + h.dx, hy = sy + Math.round(h.dy * D.reach), pts = [];
-    for (const [x, y] of linePts(sx, sy, hx, hy)) pts.push([x, y, back ? P.limbD : P.limbL], [x + 1, y, back ? P.limbD : P.limb]);
-    for (const [dx, dy] of [[0, -1], [1, -1], [-1, 0], [0, 0], [1, 0], [2, 0], [0, 1], [1, 1]]) pts.push([hx + dx, hy + dy, back ? P.limbD : (dy < 0 || dx < 0 ? P.limbL : P.limb)]);
+    const line = linePts(sx, sy, hx, hy);
+    line.forEach(([x, y], i) => {
+      // Con el traje de Miku, la manga acaba en un puño turquesa.
+      const cuff = miku && i >= line.length - 3 && i < line.length - 1;
+      pts.push([x, y, cuff ? (back ? MIKU.tealD : MIKU.tealL) : back ? P.limbD : P.limbL], [x + 1, y, cuff ? (back ? MIKU.tealD : MIKU.teal) : back ? P.limbD : P.limb]);
+    });
+    const skin = miku ? (back ? [SKIN.skinD, SKIN.skinD] : [SKIN.skinL, SKIN.skin]) : null;
+    for (const [dx, dy] of [[0, -1], [1, -1], [-1, 0], [0, 0], [1, 0], [2, 0], [0, 1], [1, 1]]) {
+      const lit = dy < 0 || dx < 0;
+      pts.push([hx + dx, hy + dy, skin ? skin[lit ? 0 : 1] : back ? P.limbD : (lit ? P.limbL : P.limb)]);
+    }
     blob(put, pts, P.out);
     return [hx, hy];
   }
@@ -222,6 +244,23 @@ function buildRig(o) {
     if (boots && f.lift > 0) { put(ax, ay + 2, "#ffd36b", true); put(ax + 1, ay + 2, "#ff8a2a", true); put(ax, ay + 3, "#ff8a2a", true); }
     return [ax, ay + 2];
   }
+  // La antena de chispas chisporrotea: seis fases (`o.spark`, la pone quien
+  // anima a Pip) con estrellitas que se encienden alrededor de la bola, arcos
+  // electricos en zigzag y la bola que parpadea. Todo brilla solo de noche.
+  function sparks(tx, ty, ph) {
+    const S = (x, y, col) => put(HX(tx + x), HY(ty + y), col, true);
+    const W = "#fffbe6", Y = "#ffd166", D = "#c8902a", A = "#9fe8ff";
+    const star = (x, y, big) => { S(x, y, W); for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) S(x + dx, y + dy, Y); if (big) for (const [dx, dy] of [[2, 0], [-2, 0], [0, 2], [0, -2]]) S(x + dx, y + dy, D); };
+    const arc = (pts) => pts.forEach(([x, y], i) => S(x, y, i % 2 ? A : W));
+    switch (ph % 6) {
+      case 0: star(3, -3, false); break;
+      case 1: arc([[3, 0], [4, -1], [5, 0], [6, -1]]); S(3, -3, Y); S(0, 0, W); break;
+      case 2: star(-4, -2, true); break;
+      case 3: arc([[-3, 1], [-4, 2], [-3, 3], [-4, 4]]); S(-4, -2, Y); break;
+      case 4: S(2, -4, W); S(-2, -4, Y); S(0, 0, W); S(-1, 0, W); break;
+      default: arc([[0, -3], [1, -4], [0, -5], [1, -6]]); star(4, 1, false); break;
+    }
+  }
   // Donde se posa un pajaro: lo mas alto de la bola de la antena.
   let perch = null;
   function antenna() {
@@ -233,7 +272,7 @@ function buildRig(o) {
     for (const [x, y] of [[-1, -2], [0, -2], [1, -2], [-2, -1], [2, -1], [-2, 0], [2, 0], [-2, 1], [2, 1], [-1, 2], [0, 2], [1, 2]]) put(HX(tx + x), HY(ty + y), gold ? "#7a5a14" : P.ledOut);
     for (let y = -1; y <= 1; y++) for (let x = -1; x <= 1; x++) put(HX(tx + x), HY(ty + y), gold ? "#ffd166" : P.led, true);
     put(HX(tx - 1), HY(ty - 1), gold ? "#fff6cf" : P.ledHl, true);
-    if (gold) { const sp = (o.frame | 0) % 2; put(HX(tx + 3), HY(ty - 2 - sp), "#fff6cf", true); put(HX(tx - 3), HY(ty + 1 + sp), "#ffd166", true); }
+    if (gold) sparks(tx, ty, o.spark ?? ((o.frame | 0) % 2) * 3);
   }
   function face() {
     const e = D.eyes, lx = Math.max(-1, Math.min(1, o.lookX | 0)), ly = o.lookY | 0;
@@ -292,75 +331,132 @@ function buildRig(o) {
     put(X(15), Y(29), "#5a3f1a"); put(X(16), Y(29), "#5a3f1a"); put(X(15), Y(28), "#7a5a2a");
   }
   // Miku: el traje convierte a Pip en una Miku chibi (cara, pelo, top, falda,
-  // mangas, botas); la peluca sola pone las coletas y el flequillo a Pip.
+  // mangas, botas); la peluca sola pone las coletas, el flequillo y los lazos a Pip.
   function mikuTop() {
-    let maxX = -99;
-    for (const k of c.bodyMask.keys()) maxX = Math.max(maxX, +k.split(",")[0]);
+    let maxX = -99, minY = 99;
+    for (const k of c.bodyMask.keys()) { const [x, y] = k.split(",").map(Number); maxX = Math.max(maxX, x); minY = Math.min(minY, y); }
     for (const [k, v] of c.bodyMask) {
       const [x, y] = k.split(",").map(Number);
       if (v[2]) continue;
-      put(x, y, v[1] < -0.55 ? "#40c9c1" : v[1] > 0.45 ? "#7d8a94" : v[0] < -0.4 ? "#d4dde2" : "#aab6be");
+      const lit = -0.55 * v[0] - 0.83 * v[1] + (bayer(x, y) - 0.5) * 0.12;
+      put(x, y, y <= minY + 1 ? MIKU.teal : lit > 0.55 ? MIKU.topL : lit > -0.05 ? MIKU.top : lit > -0.45 ? MIKU.topD : MIKU.topDD);
     }
-    for (let y = 25; y <= 30; y++) { put(maxX - 2, Y(y), "#40c9c1"); put(maxX - 3, Y(y), y < 27 ? "#2a9a94" : "#40c9c1"); }
+    c.tieAt = [maxX - 1, minY + 1];
+  }
+  // La corbata turquesa por delante del pecho: nudo y pala. Va despues del
+  // brazo de delante cuando este cuelga a un lado (si va hacia delante, la tapa).
+  function mikuNecktie() {
+    const [tx, ty] = c.tieAt;
+    const pts = [[tx - 1, ty, MIKU.tealD], [tx, ty, MIKU.teal], [tx - 1, ty + 1, MIKU.tealL], [tx, ty + 1, MIKU.teal]];
+    for (let y = ty + 2; y <= ty + 4; y++) pts.push([tx - 1, y, MIKU.teal], [tx, y, MIKU.tealD]);
+    pts.push([tx - 1, ty + 5, MIKU.tealD]);
+    for (const [x, y, col] of pts) put(x, y, col);
+    put(tx - 2, ty, MIKU.topL); put(tx + 1, ty, MIKU.topL);
   }
   function mikuSkirt() {
-    const pts = [];
-    for (let r = 0; r < 3; r++) {
-      const y = 30 + r, x0 = 13 - r, x1 = 21 + r;
-      for (let x = x0; x <= x1; x++) pts.push([X(x), Y(y), r === 2 ? "#40c9c1" : (x - x0) % 3 === 0 ? "#4a5566" : "#2e3644"]);
+    const pts = [], sway = o.pose === "walk" ? wave : 0;
+    for (let r = 0; r < 4; r++) {
+      const y = 29 + r, x0 = 13 - Math.floor(r * 0.8) - (r === 3 ? 1 : 0), x1 = 21 + Math.ceil(r * 0.8);
+      for (let x = x0; x <= x1; x++) {
+        const pleat = (((x + (r > 1 ? sway : 0)) % 3) + 3) % 3;
+        const col = r === 3 ? (pleat === 0 ? MIKU.tealD : MIKU.teal) : r === 0 ? (x === x0 ? MIKU.skirtL : MIKU.skirtD) : pleat === 0 ? MIKU.skirtD : pleat === 1 ? MIKU.skirtL : MIKU.skirt;
+        pts.push([X(x + (r === 3 ? sway : 0)), Y(y), col]);
+      }
     }
-    blob(put, pts, "#0a0d12");
+    blob(put, pts, MIKU.out);
   }
+  // Una coleta: gruesa arriba, se afina hasta la punta y se mece al andar (o
+  // vuela hacia arriba al saltar o colgar). La de lejos, mas oscura y adelantada.
   function mikuTails(layer) {
     const f = o.frame | 0, walk = o.pose === "walk";
-    const phase = walk ? f / 6 * Math.PI * 2 : (f % 2) * 0.5;
-    const lag = walk ? 2 : ["hang", "hover", "jump"].includes(o.pose) ? -2 : 0;
-    const far = layer === "far", tail = [];
-    for (let i = 0; i < 22; i++) {
-      const t = i / 21, y = 13 + i, w = i < 2 ? 3 : Math.max(1, Math.round(4 - t * 3.4));
-      const cx = 9.5 - t * 4 - lag * t * t + Math.sin(phase - i * 0.4) * 1.3 * t + (far ? 3 : 0), x0 = Math.round(cx - w / 2);
-      for (let k = 0; k < w; k++) tail.push([HX(x0 + k), HY(y), far ? (k === 0 ? HAIR.shade : HAIR.deep) : k === 0 ? HAIR.light : k === w - 1 ? HAIR.shade : HAIR.main]);
+    const phase = walk ? f / 6 * Math.PI * 2 : (f % 2) * 0.6;
+    const lag = walk ? 2.4 : ["hang", "hover", "jump"].includes(o.pose) ? -2.2 : 0;
+    const far = layer === "far", len = 25, pts = [];
+    for (let i = 0; i < len; i++) {
+      const t = i / (len - 1), y = 12 + i;
+      const w = t < 0.14 ? 3 + Math.round(t / 0.14 * 2) : Math.max(1, Math.round(5 - (t - 0.14) / 0.86 * 4.4));
+      const cx = 9.4 - t * 3.8 - lag * t * t + Math.sin(phase - i * 0.35) * 1.4 * t + (far ? 3.5 : 0), x0 = Math.round(cx - w / 2);
+      for (let k = 0; k < w; k++) {
+        let col = far ? (k === 0 ? HAIR.shade : k === w - 1 ? HAIR.deeper : HAIR.deep) : k === 0 ? HAIR.light : k === w - 1 && w > 2 ? HAIR.shade : HAIR.main;
+        // un mechon mas oscuro por dentro y el brillo cerca del lazo
+        if (!far && w >= 4 && k === 2 && i % 7 > 2) col = HAIR.shade;
+        if (!far && i >= 2 && i <= 4 && k === 1) col = HAIR.shine;
+        pts.push([HX(x0 + k), HY(y), col]);
+      }
     }
-    blob(put, tail, HAIR.out);
-  }
-  function hairLock(x, y0, len) {
-    const pts = [];
-    for (let i = 0; i < len; i++) { pts.push([HX(x), HY(y0 + i), HAIR.main]); if (i < len - 1) pts.push([HX(x + 1), HY(y0 + i), i < 1 ? HAIR.light : HAIR.main]); }
     blob(put, pts, HAIR.out);
+    // El lazo de la coleta de lejos asoma por encima de la cabeza.
+    if (far) mikuTie(12, 9, true);
   }
-  function mikuTies() {
-    for (const [x, y, col] of [[9, 12, "#242b40"], [10, 12, "#f163a5"], [11, 12, "#f163a5"], [9, 13, "#242b40"], [10, 13, "#ff9ac8"], [11, 13, "#242b40"]]) put(HX(x), HY(y), col);
+  // Los lazos: un cuadrado oscuro con una franja rosa.
+  function mikuTie(x0, y0, far) {
+    const rows = far ? ["kp", "kk"] : ["kpk", "KPk", "kpk"];
+    const pal = { k: MIKU.tie, K: MIKU.tieL, p: far ? "#b8487e" : MIKU.pink, P: MIKU.pinkL };
+    const pts = [];
+    rows.forEach((r, y) => { for (let x = 0; x < r.length; x++) pts.push([HX(x0 + x), HY(y0 + y), pal[r[x]]]); });
+    blob(put, pts, "#0b0e18");
+  }
+  // El anillo de brillo del pelo: una franja clara sobre la coronilla.
+  function hairShine(mask) {
+    for (const [k, v] of mask) {
+      if (v[2] || v[0] < -0.8 || v[0] > 0.45) continue;
+      // un arco de un pixel de grueso que sigue la curva de la cabeza
+      const [x, y] = k.split(",").map(Number), arc = -0.5 - 0.22 * v[0] * v[0];
+      if (Math.abs(v[1] - arc) > 0.09) continue;
+      put(x, y, v[0] < -0.45 || v[0] > 0.2 ? HAIR.light : HAIR.shine);
+    }
   }
   function wigOnPip() {
-    c.round(16.8, 14.6, 9.2, 6, [HAIR.out, HAIR.shade, HAIR.main, HAIR.light, HAIR.light], { n: 3, head: true, maxY: 12 });
-    for (let y = 12; y <= 15; y++) for (let x = 9; x <= 13; x++) if (c.headMask.has(HX(x) + "," + HY(y))) put(HX(x), HY(y), (x + y) % 4 ? HAIR.main : HAIR.shade);
+    const cap = c.round(16.8, 14.4, 9.3, 6.2, [HAIR.out, HAIR.shade, HAIR.main, HAIR.light, HAIR.light], { n: 3, head: true, maxY: 12 });
+    hairShine(cap);
+    // Pelo por detras, hasta el dial de la oreja.
+    for (let y = 12; y <= 15; y++) for (let x = 9; x <= 13; x++) if (c.headMask.has(HX(x) + "," + HY(y))) put(HX(x), HY(y), x === 9 ? HAIR.light : (x + y) % 3 ? HAIR.main : HAIR.shade);
   }
   function mikuHead() {
-    const S = { out: "#4a2e2a", skinD: "#efbd9c", skin: "#ffe1ca", skinL: "#fff1e4" };
-    c.headMask = c.round(18.4, 18.6, 6.4, 6, [S.out, S.skinD, S.skin, S.skin, S.skinL], { n: 2.2, head: true });
-    c.round(16.4, 15, 8.6, 6.6, [HAIR.out, HAIR.shade, HAIR.main, HAIR.light, HAIR.light], { n: 2.6, head: true, maxY: 14 });
+    c.headMask = c.round(18.4, 18.6, 6.4, 6, [SKIN.out, SKIN.skinD, SKIN.skin, SKIN.skin, SKIN.skinL], { n: 2.2, head: true });
+    // Pelo por detras de la oreja (cae hasta la nuca) y la coronilla.
     const back = [];
-    for (let y = 14; y <= 21; y++) for (let x = 9; x <= 14 - Math.max(0, y - 18); x++) back.push([HX(x), HY(y), (x + y) % 4 ? HAIR.main : HAIR.shade]);
+    for (let y = 14; y <= 23; y++) for (let x = 9; x <= 14 - Math.max(0, y - 19); x++) back.push([HX(x), HY(y), x === 9 ? HAIR.light : y > 20 || (x + y) % 4 === 0 ? HAIR.shade : HAIR.main]);
     blob(put, back, HAIR.out);
-    for (const [x, y, col] of [[14, 18, "#3a4250"], [15, 18, "#3a4250"], [14, 19, "#40c9c1"], [15, 19, "#3a4250"], [14, 20, "#3a4250"], [15, 20, "#3a4250"]]) put(HX(x), HY(y), col);
+    const crown = c.round(16.6, 15, 8.8, 6.8, [HAIR.out, HAIR.shade, HAIR.main, HAIR.light, HAIR.light], { n: 2.6, head: true, maxY: 14 });
+    hairShine(crown);
+    // Los cascos: oscuros, con el aro de luz turquesa.
+    for (const [x, y, col, em] of [[13, 18, MIKU.cupL], [14, 18, MIKU.cup], [15, 18, MIKU.cup], [13, 19, MIKU.cup], [14, 19, MIKU.ring, true], [15, 19, MIKU.cup], [13, 20, MIKU.cup], [14, 20, MIKU.cup], [15, 20, MIKU.cup]]) put(HX(x), HY(y), col, em);
     const lx = Math.max(-1, Math.min(1, o.lookX | 0)), ex = o.expr || "idle", E = (x, y, col) => put(HX(x + lx), HY(y), col);
-    const eye = "#2abbb6", eyeD = "#127078", lash = "#1b2430", lip = "#c0506a";
-    if (ex === "blink" || ex === "sleep") { E(20, 18, lash); E(21, 18, lash); E(22, 18, lash); E(23, 18, lash); }
-    else if (ex === "happy") { E(20, 18, lash); E(21, 17, lash); E(22, 18, lash); E(23, 18, lash); }
+    const eye = "#2abbb6", eyeD = "#0f6f78", eyeL = "#8ff0e4", lash = "#1b2430", lip = "#c0506a";
+    if (ex === "blink" || ex === "sleep") { for (const x of [19, 20, 21, 23]) E(x, 18, lash); }
+    else if (ex === "happy") { E(19, 18, lash); E(20, 17, lash); E(21, 18, lash); E(23, 17, lash); E(23, 18, lash); }
     else {
-      E(20, 16, lash); E(21, 16, lash); E(22, 16, lash); E(23, 16, lash);
-      for (let y = 17; y <= 19; y++) { E(20, y, eyeD); E(21, y, eye); E(23, y, y === 17 ? eyeD : eye); }
-      E(21, 17, "#ffffff"); E(21, 19, "#9ff0e8");
+      for (const x of [19, 20, 21, 23]) E(x, 16, lash);
+      // ojo de cerca: 3x3 con brillo; el de lejos, una columna
+      E(19, 17, eyeD); E(20, 17, "#ffffff"); E(21, 17, eyeD);
+      E(19, 18, eye); E(20, 18, eyeD); E(21, 18, eye);
+      E(19, 19, eyeL); E(20, 19, eye); E(21, 19, eye);
+      E(23, 17, eyeD); E(23, 18, eye); E(23, 19, eyeL);
     }
     if (ex === "surprised" || ex === "talk") { E(22, 21, lip); E(22, 22, lip); }
     else if (ex === "happy") { E(21, 21, lip); E(22, 22, lip); E(23, 21, lip); }
     else E(22, 21, lip);
-    put(HX(19), HY(20), "#ffb8c0"); put(HX(24), HY(20), "#ffb8c0");
+    put(HX(19), HY(20), "#ffb0bc"); put(HX(20), HY(20), "#ffc6cc");
+  }
+  // Flequillo en picos sobre la frente (o sobre el visor de Pip) y, con el
+  // traje, el mechon largo que cae por delante de la oreja.
+  function mikuBangs(costume) {
+    const pts = [];
+    const cols = costume ? [[17, 3], [18, 2], [19, 1], [20, 2], [21, 1], [22, 2], [23, 1], [24, 1]] : [[18, 2], [19, 1], [20, 1], [21, 2], [22, 1], [23, 1], [24, 2], [25, 1]];
+    const y0 = costume ? 14 : 12;
+    for (const [x, len] of cols) for (let i = 0; i < len; i++) pts.push([HX(x), HY(y0 + i), i === len - 1 && len > 1 ? HAIR.shade : x % 2 ? HAIR.main : HAIR.light]);
+    blob(put, pts, HAIR.out);
+    if (!costume) return;
+    // (sin contorno: con el, el mechon partiria la cara en dos)
+    for (let y = 15; y <= 22; y++) {
+      put(HX(16), HY(y), y > 20 ? HAIR.shade : y < 17 ? HAIR.light : HAIR.main);
+      if (y < 21) put(HX(17), HY(y), y > 18 ? HAIR.deep : HAIR.shade);
+    }
   }
   function mikuFront(costume) {
-    mikuTies();
-    if (costume) { hairLock(18, 13, 3); hairLock(20, 13, 4); hairLock(23, 13, 3); hairLock(16, 14, 9); }
-    else { hairLock(21, 12, 3); hairLock(24, 12, 2); }
+    mikuBangs(costume);
+    mikuTie(8, 11, false);
   }
   function drawItem(item, hx, hy) {
     stampRows(put, item.rows, item.pal, hx + item.at[0], hy + item.at[1], item.out, item.em);
@@ -397,7 +493,9 @@ function buildRig(o) {
   if (fit.neck === "scarf") scarf();
   const hx = D.shoulder.f[0] + U.x + p.fh.dx, hy = D.shoulder.f[1] + U.y + Math.round(p.fh.dy * D.reach), item = HAND_ITEMS[fit.hand];
   if (item && !item.front) drawItem(item, hx, hy);
+  if (miku && p.fh.dx > 1) mikuNecktie();
   a.hand = arm(D.shoulder.f, p.fh, false);
+  if (miku && p.fh.dx <= 1) mikuNecktie();
   if (item && item.front) drawItem(item, hx, hy);
   a.head = [D.hat[0] + U.x + p.lead, D.top + U.y];
   a.skull = [17 + U.x + p.lead, D.skull + U.y];

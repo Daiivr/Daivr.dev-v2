@@ -1,5 +1,6 @@
 import { Buf, bayer, discRows, ellipseRows, gridSprite, lazy, line, makeCanvas, mix, outlinedSprite, px, rect, rng } from "./core.js";
 import { catchSprite, sideFishFrames } from "./catches.js";
+import { findSprite } from "./finds.js";
 import { FINDS } from "./events/creatures.js";
 import { RIG_FOOT_X, RIG_TALL, rigImg } from "./pip/rig.js";
 
@@ -55,7 +56,7 @@ function displaySprite(key) {
   if (!key) return null;
   const [origin, id] = key.split(":");
   if (origin === "shop") return DECOR()[id] || null;
-  if (origin === "find") return FINDS()[id] || null;
+  if (origin === "find") return findSprite(id) || FINDS()[id] || null;
   return catchSprite(id);
 }
 

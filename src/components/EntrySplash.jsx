@@ -4,7 +4,7 @@ import { getLocalBuddyLevel } from "../hooks/useBuddyFriendship";
 import { currentBuild } from "../lib/buildUpdate";
 import { consumeGateReturn } from "../lib/gateReturn";
 import { getHostAvailability } from "../lib/gateHost";
-import { hostById } from "../lib/hostAvatar";
+import { hostById, hostOutfit } from "../lib/hostAvatar";
 import { AvatarScenePlaceholder } from "./AvatarScenePlaceholder";
 import { PipSprite } from "./PipSprite";
 import { GatePatina } from "./GatePatina";
@@ -126,6 +126,14 @@ const HOST_LINES = {
   komoe: {
     hello: (name) => name ? `oh — ${name}! komoe here.` : "oh — hi! i'm komoe.",
     intro: ["you brought me home from the woodland market, so the gate's my job now."]
+  },
+  nh02: {
+    hello: (name) => name ? `welcome back, ${name}! nh-02 here.` : "hello! i'm nh-02. happy to see you.",
+    intro: ["from the woodland market to the front gate. i think i'll like it here."]
+  },
+  kiyosa: {
+    hello: (name) => name ? `welcome back, ${name}! kiyosa here.` : "hello! i'm kiyosa. lovely to see you.",
+    intro: ["a little visit to the woodland market, and now i get to welcome you home."]
   }
 };
 const HOST_SWITCH_HINT = "want someone else at the door? there's a host switch up in the top bar.";
@@ -160,16 +168,19 @@ function buildScript({ gateReturn, hostId, hostName, linked, seasonalEvent, visi
 export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [], hostId = "original", returnContext = null, cabinetReady = true, hostLoadoutReady = cabinetReady }) {
   // Bajo 800px no se monta la escena 3D: ahi el anfitrion es Buddy, el mismo
   // sprite que luego vive en el footer.
-  const [compact, setCompact] = useState(() => window.matchMedia("(max-width: 800px)").matches);
+  const [narrowViewport, setCompact] = useState(() => window.matchMedia("(max-width: 800px)").matches);
+  const compact = narrowViewport;
   const arrival = useSplashArrival(cabinetReady);
   const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const [discordUser, setDiscordUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
   const host = hostById(hostId);
   const avatarUrl = host.url;
-  const [avatarState, setAvatarState] = useState(() => ({ url: avatarUrl, stage: "loading", progress: 0 }));
-  const hostStage = avatarState.url === avatarUrl ? avatarState.stage : "loading";
-  const avatarProgress = avatarState.url === avatarUrl ? avatarState.progress : 0;
+  const outfit = hostOutfit(host.id);
+  const avatarKey = `${avatarUrl}:${outfit}`;
+  const [avatarState, setAvatarState] = useState(() => ({ url: avatarKey, stage: "loading", progress: 0 }));
+  const hostStage = avatarState.url === avatarKey ? avatarState.stage : "loading";
+  const avatarProgress = avatarState.url === avatarKey ? avatarState.progress : 0;
   const [hostOverdue, setHostOverdue] = useState(false);
   const [pageVisible, setPageVisible] = useState(() => document.visibilityState !== "hidden");
   const [buddyAwake, setBuddyAwake] = useState(false);
@@ -201,8 +212,8 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
 
   // Reset before painting so the new host starts her own greeting, and the
   // previous model's readiness cannot reveal speech during the replacement.
-  if (avatarState.url !== avatarUrl) {
-    setAvatarState({ url: avatarUrl, stage: "loading", progress: 0 });
+  if (avatarState.url !== avatarKey) {
+    setAvatarState({ url: avatarKey, stage: "loading", progress: 0 });
     setLineIndex(0);
     setTyped(0);
   }
@@ -572,13 +583,14 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
             <Suspense fallback={<AvatarScenePlaceholder displayName={visitorName} />}>
               {hostLoadoutReady ? <AvatarGreeting
                 avatarUrl={avatarUrl}
+                outfit={outfit}
                 scale={host.scale}
                 headroom={host.headroom}
                 active={!opening}
                 lampOn={lampOn}
                 displayName={visitorName}
-                onLoadProgress={(progress) => setAvatarState((current) => current.url === avatarUrl ? { ...current, progress } : current)}
-                onStage={(stage) => setAvatarState((current) => current.url === avatarUrl ? { ...current, stage } : current)}
+                onLoadProgress={(progress) => setAvatarState((current) => current.url === avatarKey ? { ...current, progress } : current)}
+                onStage={(stage) => setAvatarState((current) => current.url === avatarKey ? { ...current, stage } : current)}
               /> : <AvatarScenePlaceholder displayName={visitorName} />}
             </Suspense>
             </>

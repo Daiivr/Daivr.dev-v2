@@ -7,10 +7,12 @@ import * as THREE from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { warmAvatarResources, yieldAvatarWork } from "../lib/avatarWarmup";
 import { observeAvatarVisibility } from "../lib/gateHost";
-import { DEFAULT_HOST_AVATAR } from "../lib/hostAvatar";
+import { DEFAULT_HOST_AVATAR, KIYOSA_HOST_AVATAR, KOMOE_HOST_AVATAR, MIKU_HOST_AVATAR, NH02_HOST_AVATAR } from "../lib/hostAvatar";
 import { advanceAvatarProgress, avatarDownloadProgress, AVATAR_DOWNLOAD_PROGRESS } from "../lib/avatarProgress";
+import { attachNh02Staff } from "../lib/nh02Staff";
+import { giveKiyosaWaveClearance } from "../lib/kiyosaWave";
 
-const GREETING_URL = "/motions/greeting.vrma";
+const GREETING_URL = "/api/hosts/greeting";
 const REVEAL_TIME = 1.82;
 // Reparto del medidor AVATAR LINK. Antes marcaba 100% al terminar la descarga,
 // pero despues quedaban tres fases invisibles — compilar shaders, montar la
@@ -23,6 +25,16 @@ const WAVE_LOOP_START = 5.33;
 const WAVE_LOOP_END = 6.53;
 const SOURCE_FPS = 60;
 const WAVE_BLEND_DURATION = 0.28;
+
+function applyGreetingExpression(vrm, avatarUrl, outfit) {
+  // VRM 0's Fun and Joy presets are exposed as "relaxed" and "happy".
+  if (avatarUrl === DEFAULT_HOST_AVATAR || avatarUrl === MIKU_HOST_AVATAR) {
+    vrm.expressionManager?.setValue("relaxed", 1);
+  } else if (avatarUrl === KOMOE_HOST_AVATAR || avatarUrl === NH02_HOST_AVATAR || avatarUrl === KIYOSA_HOST_AVATAR) {
+    vrm.expressionManager?.setValue("happy", 1);
+  }
+  if (avatarUrl === KIYOSA_HOST_AVATAR) vrm.expressionManager?.setValue("Swimsuit&Ring", outfit === "summer" ? 1 : 0);
+}
 
 // Encuadre de la camara. El fov es vertical y fijo, asi que la altura de cuerpo
 // visible la fija la distancia (span = 2 * dist * tan(fov/2)), no el tamano del
@@ -58,11 +70,12 @@ function CameraHeadroom({ headroom }) {
   return null;
 }
 
-function AvatarRig({ avatarUrl, active, onError, onPhaseChange, onProgress, onReady, onReveal, reducedMotion, scale }) {
+function AvatarRig({ avatarUrl, outfit, active, onError, onPhaseChange, onProgress, onReady, onReveal, reducedMotion, scale }) {
   const { camera, gl, scene } = useThree();
   const [vrm, setVrm] = useState(null);
   const idleGroupRef = useRef(null);
   const mixerRef = useRef(null);
+  const staffRef = useRef(null);
   const actionRef = useRef(null);
   const waveActionsRef = useRef([]);
   const waveDurationRef = useRef(0);
@@ -87,9 +100,14 @@ function AvatarRig({ avatarUrl, active, onError, onPhaseChange, onProgress, onRe
     let disposed = false;
     let loadedVrm = null;
     let animationScene = null;
+    let staffScene = null;
     let mixer = null;
     let loadingFinished = false;
     const releaseAssets = () => {
+      if (staffScene) {
+        VRMUtils.deepDispose(staffScene);
+        staffScene = null;
+      }
       mixer?.stopAllAction();
       if (loadedVrm) {
         mixer?.uncacheRoot(loadedVrm.scene);
@@ -111,22 +129,25 @@ function AvatarRig({ avatarUrl, active, onError, onPhaseChange, onProgress, onRe
     async function loadAvatarAndGreeting() {
       try {
         // Reserve the final portion for GPU preparation and the entrance.
-        const [avatarGltf, animationGltf] = await Promise.all([
+        const [avatarGltf, animationGltf, staffGltf] = await Promise.all([
           avatarLoader.loadAsync(avatarUrl, (event) => {
             if (disposed) return;
             const progress = avatarDownloadProgress(event);
             if (progress !== null) onProgressRef.current?.(progress);
           }),
-          animationLoader.loadAsync(GREETING_URL)
+          animationLoader.loadAsync(GREETING_URL),
+          avatarUrl === NH02_HOST_AVATAR ? new GLTFLoader().loadAsync("/api/hosts/nh02-staff") : null
         ]);
 
         if (disposed) {
           VRMUtils.deepDispose(avatarGltf.scene);
           VRMUtils.deepDispose(animationGltf.scene);
+          if (staffGltf) VRMUtils.deepDispose(staffGltf.scene);
           return;
         }
         loadedVrm = avatarGltf.userData.vrm;
         animationScene = animationGltf.scene;
+        staffScene = staffGltf?.scene || null;
         await yieldAvatarWork();
         if (disposed) return;
 
@@ -137,11 +158,17 @@ function AvatarRig({ avatarUrl, active, onError, onPhaseChange, onProgress, onRe
         if (!nextVrm || !vrmAnimation) throw new Error("Avatar greeting assets are incomplete");
 
         VRMUtils.rotateVRM0(nextVrm);
+        if (staffScene) {
+          staffRef.current = attachNh02Staff(nextVrm, staffScene);
+          // The VRM owns the attached staff and disposes its resources too.
+          staffScene = null;
+        }
         nextVrm.scene.traverse((object) => {
           object.frustumCulled = false;
         });
 
         const clip = createVRMAnimationClip(vrmAnimation, nextVrm);
+        if (avatarUrl === KIYOSA_HOST_AVATAR) giveKiyosaWaveClearance(nextVrm, clip, outfit);
         mixer = new THREE.AnimationMixer(nextVrm.scene);
         const firstWaveClip = THREE.AnimationUtils.subclip(
           clip,
@@ -163,7 +190,10 @@ function AvatarRig({ avatarUrl, active, onError, onPhaseChange, onProgress, onRe
           waveAction.clampWhenFinished = true;
         });
         mixer.setTime(REVEAL_TIME);
+        applyGreetingExpression(nextVrm, avatarUrl, outfit);
+        staffRef.current?.poseGrip();
         nextVrm.update(0);
+        staffRef.current?.update();
 
         const warmed = await warmAvatarResources({ renderer: gl, root: nextVrm.scene, scene, camera,
           cancelled: () => disposed, onProgress: (value) => onProgressRef.current?.(value) });
@@ -200,10 +230,11 @@ function AvatarRig({ avatarUrl, active, onError, onPhaseChange, onProgress, onRe
       mixer?.stopAllAction();
       if (loadingFinished) releaseAssets();
       mixerRef.current = null;
+      staffRef.current = null;
       actionRef.current = null;
       waveActionsRef.current = [];
     };
-  }, [avatarUrl, camera, gl, scene]);
+  }, [avatarUrl, outfit, camera, gl, scene]);
 
   useFrame((_, delta) => {
     const mixer = mixerRef.current;
@@ -300,7 +331,10 @@ function AvatarRig({ avatarUrl, active, onError, onPhaseChange, onProgress, onRe
       idleGroupRef.current.rotation.z = 0;
     }
 
+    applyGreetingExpression(vrm, avatarUrl, outfit);
+    staffRef.current?.poseGrip();
     vrm.update(reducedMotion ? 0 : Math.min(delta, 0.05));
+    staffRef.current?.update();
     wasActiveRef.current = active;
   });
 
@@ -315,11 +349,11 @@ function AvatarRig({ avatarUrl, active, onError, onPhaseChange, onProgress, onRe
 
 // Remount the scene on outfit changes to dispose the previous model and reset
 // its animation, loading progress, and visibility before allowing speech.
-export function AvatarGreeting({ avatarUrl = DEFAULT_HOST_AVATAR, ...props }) {
-  return <AvatarGreetingScene key={avatarUrl} avatarUrl={avatarUrl} {...props} />;
+export function AvatarGreeting({ avatarUrl = DEFAULT_HOST_AVATAR, outfit = "default", ...props }) {
+  return <AvatarGreetingScene key={`${avatarUrl}:${outfit}`} avatarUrl={avatarUrl} outfit={outfit} {...props} />;
 }
 
-function AvatarGreetingScene({ avatarUrl, active, displayName, onLoadProgress, onStage, lampOn = true, scale = 1, headroom = 0 }) {
+function AvatarGreetingScene({ avatarUrl, outfit, active, displayName, onLoadProgress, onStage, lampOn = true, scale = 1, headroom = 0 }) {
   const [status, setStatus] = useState("loading");
   const [motionPhase, setMotionPhase] = useState("concealed");
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -392,6 +426,7 @@ function AvatarGreetingScene({ avatarUrl, active, displayName, onLoadProgress, o
         <CameraHeadroom headroom={headroom} />
         <AvatarRig
           avatarUrl={avatarUrl}
+          outfit={outfit}
           active={active}
           onError={() => setStatus("error")}
           onPhaseChange={setMotionPhase}

@@ -3,6 +3,7 @@ import { FISH_CATALOG } from "../data/buddyWorld";
 import { useScrollEdges } from "../hooks/useScrollEdges";
 import { bayer, line, px, rect } from "../lib/pixelWorld/core";
 import { catchSprite, isCatchArt } from "../lib/pixelWorld/catches";
+import { findSprite } from "../lib/pixelWorld/finds";
 import { FINDS } from "../lib/pixelWorld/events/creatures";
 import { BuddyCollectibleIcon } from "./BuddyCollectibleIcon";
 import { PixelIcon } from "./BuddyMenuDecor";
@@ -12,7 +13,7 @@ import { PixelIcon } from "./BuddyMenuDecor";
 const TANK_W = 80, TANK_H = 56;
 function specimenSprite(id) {
   if (isCatchArt(id)) return catchSprite(id);
-  return FINDS()[id] || null;
+  return findSprite(id) || FINDS()[id] || null;
 }
 function drawSpecimen(g, t, img, found) {
   for (let y = 0; y < TANK_H; y++) for (let x = 0; x < TANK_W; x++) {
