@@ -58,6 +58,7 @@ export const LINES = {
   fishBump: ["OW! flying fish!", "ouch. fish collision.", "hey! watch the fins!", "bonked by a bytefish...", "fish: 1. buddy: 0."],
   leviathan: ["TOO BIG. TOO BIG!", "the footer has a boss fight?!", "I NEED A BIGGER ROD."],
   find: ["wait... loot detected.", "something shiny!", "patrol discovery!"],
+  findSelf: ["fine, i'll grab it myself.", "finders keepers!", "ooh, mine now."],
   bugHunt: ["unauthorized bug!", "debugging. literally.", "hold still, tiny error."],
   bugWin: ["bug deleted.", "footer secure again.", "zero bugs remaining. probably."],
   birdHello: ["oh. hello, tiny bird.", "a passenger? on my antenna?", "bird.exe has landed."],
@@ -79,6 +80,10 @@ export const LINES = {
   marshmallowGood: ["perfectly golden.", "10/10 toast.", "crispy outside, gooey inside."],
   marshmallowBurnt: ["it's on fire. it's ON FIRE.", "charcoal edition. still eating it.", "oops. extra crispy."],
   campfireLeave: ["that hit the spot.", "fire's still going. back to patrol.", "warm pixels. good night."],
+  // La lluvia apaga la hoguera y Buddy la vuelve a encender cuando escampa.
+  campfireOut: ["noo, the rain got the fire.", "fire.exe has stopped responding.", "hiss... there goes the campfire.", "rain 1, campfire 0."],
+  campfireRelight: ["rain's gone. fire time again.", "let me get that fire back.", "one match should do it.", "relighting the campfire..."],
+  campfireRelit: ["and... we have fire.", "there. cozy again.", "fire's back online.", "third strike's the charm."],
   // Pistas de verdad sobre el armario: ayudan a descubrir cosas.
   tips: [
     "tip: press / to open the terminal.",

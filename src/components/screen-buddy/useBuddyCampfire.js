@@ -4,12 +4,17 @@ import { nightKey, SPRITE_WIDTH, WALK_SPEED_PX_S } from "./useBuddyCore";
 
 /*
   Noches de hoguera: al anochecer Buddy va a la hoguera del mercado
-  (FooterScenery), se sienta mirando al fuego y pone algo en un palo:
+  (FooterWorld), se sienta mirando al fuego y pone algo en un palo:
   - un pez que ya ha pescado (del diario): se asa y da monedas, como mucho
     unas pocas por noche (`campfire-meal` en useBuddyAdventure);
   - si no, una nube que se tuesta... o se prende.
   Luego se la come, se levanta y sigue la patrulla. `daivr-buddy-campfire`
   (comando `campfire`) lo fuerza a cualquier hora.
+
+  La lluvia apaga la hoguera (FooterWorld avisa con `daivr-campfire-state`)
+  y ya no se enciende sola: cuando escampa, Buddy va, se agacha a su lado y la
+  prende con una cerilla (`daivr-campfire-relight`). Si estaba asando algo
+  cuando se apago, lo deja.
 */
 
 const CAMPFIRE_COOLDOWN_MS = 200_000;
@@ -24,6 +29,17 @@ const BURNT_CHANCE = 0.3;
 // a la izquierda (palo a la izquierda) o, espejado, a la derecha.
 const TIP_LEFT = 20;
 const TIP_RIGHT = 92;
+// Encender: agachado a esta distancia del centro del fuego (la cerilla llega a
+// los troncos), cuanto espera tras escampar, cada cuanto lo reintenta si esta
+// ocupado, cuando prende (tras la tercera rascada) y cuando se levanta.
+const LIGHT_GAP = 22;
+const RELIGHT_DELAY_MS = 2600;
+const RELIGHT_RETRY_MS = 5000;
+const STRIKE_MS = 2300;
+const RELIT_MS = 3600;
+const HOP_BACK_PX = 16;
+const HOP_BACK_MS = 320;
+const RELIGHT_MOODS = ["idle", "talk", "walk", "sleepy"];
 
 function mealsTonight() {
   try {
@@ -47,12 +63,14 @@ export function useBuddyCampfire(core) {
   const [api] = useState(() => createCampfire(core, { setCampfire }));
 
   useEffect(() => {
-    core.eventEndHandlers.set("campfire", () => setCampfire(null));
+    core.eventEndHandlers.set("campfire", api.onEventEnd);
     api.cooldownRef.current = Date.now() - CAMPFIRE_COOLDOWN_MS + 40_000;
     window.addEventListener("daivr-buddy-campfire", api.onCampfireSignal);
+    window.addEventListener("daivr-campfire-state", api.onFireState);
     return () => {
       core.eventEndHandlers.delete("campfire");
       window.removeEventListener("daivr-buddy-campfire", api.onCampfireSignal);
+      window.removeEventListener("daivr-campfire-state", api.onFireState);
     };
   }, [api, core]);
 
@@ -66,6 +84,8 @@ function createCampfire(core, { setCampfire }) {
     moveTo, schedule, say, pickLine, spawnParticles, stageWidth, setWalkMs, announceAction
   } = core;
   const cooldownRef = { current: 0 };
+  // Lo que cuenta el mundo de la hoguera, y el reintento de encenderla.
+  const fire = { out: false, raining: false, retry: 0, lighting: false };
 
   // Centro de la hoguera en el escenario de Buddy, o null si no se ve.
   function campfireX() {
@@ -167,9 +187,131 @@ function createCampfire(core, { setCampfire }) {
     return true;
   }
 
-  // De noche (o al anochecer), con la hoguera a la vista y sin prisa.
+  // Escampo y la hoguera sigue apagada: Buddy va a encenderla.
+  function startRelight() {
+    const fireX = campfireX();
+    if (fireX == null) return false;
+    if (!beginBuddyEvent("campfire")) return false;
+    if (!["idle", "talk"].includes(moodRef.current)) updateMood("idle");
+    freezeAtCurrentPosition();
+    fire.lighting = true;
+
+    // Del lado en el que ya esta; si no cabe, del otro.
+    const maxX = Math.max(4, stageWidth() - SPRITE_WIDTH - 4);
+    const half = SPRITE_WIDTH / 2;
+    let side = xRef.current + half >= fireX ? 1 : -1;
+    let target = fireX + side * LIGHT_GAP - half;
+    if (target > maxX || target < 4) {
+      side = -side;
+      target = Math.min(maxX, Math.max(4, fireX + side * LIGHT_GAP - half));
+    }
+    const distance = Math.abs(target - xRef.current);
+    const walkMs = distance < 4 ? 0 : Math.min(9000, (distance / WALK_SPEED_PX_S) * 1000);
+
+    // (misma clave: si aun no ha salido cuando prende, la de "ya esta" la quita de la cola)
+    say(pickLine(LINES.campfireRelight), 2400, { topic: "campfire", key: "campfire-relight" });
+    announceAction("campfire", { targetX: target });
+    if (walkMs) {
+      faceTravelDirection(target > xRef.current ? 1 : -1);
+      updateMood("walk");
+      setWalkMs(walkMs);
+      moveTo(target);
+    }
+    const walkGeneration = moodGenRef.current;
+
+    schedule(() => {
+      if (activeEventRef.current !== "campfire" || moodGenRef.current !== walkGeneration) return;
+      setWalkMs(0);
+      // Si ha vuelto a llover por el camino, lo deja para luego.
+      if (fire.raining) {
+        updateMood("idle");
+        endBuddyEvent("campfire");
+        return;
+      }
+      updateTravelDirection(side > 0 ? -1 : 1);
+      updateFacing(side > 0 ? 1 : -1);
+      updateMood("campfire");
+      const generation = moodGenRef.current;
+      const stillHere = () => activeEventRef.current === "campfire" && moodGenRef.current === generation;
+      setCampfire({ phase: "light" });
+
+      // A la tercera rascada prende la cerilla y la acerca a los troncos.
+      schedule(() => {
+        if (!stillHere()) return;
+        fire.out = false;
+        window.dispatchEvent(new CustomEvent("daivr-campfire-relight"));
+      }, STRIKE_MS);
+
+      // Al prender, un saltito hacia atras para no quedarse pegado a las llamas.
+      schedule(() => {
+        if (!stillHere()) return;
+        setWalkMs(HOP_BACK_MS);
+        moveTo(Math.min(maxX, Math.max(4, target + side * HOP_BACK_PX)));
+      }, STRIKE_MS + 300);
+
+      schedule(() => {
+        if (!stillHere()) return;
+        setCampfire(null);
+        updateMood("idle");
+        endBuddyEvent("campfire");
+        spawnParticles("heart", 2);
+        say(pickLine(LINES.campfireRelit), 2400, { topic: "campfire", key: "campfire-relight" });
+      }, RELIT_MS);
+    }, walkMs + 80);
+    return true;
+  }
+
+  function queueRelight(ms) {
+    if (fire.retry) return;
+    fire.retry = schedule(() => {
+      fire.retry = 0;
+      tryRelight();
+    }, ms);
+  }
+
+  // Si esta ocupado (otro evento, durmiendo, pescando...), lo vuelve a
+  // intentar mas tarde. Sin movimiento, la hoguera se enciende sola.
+  function tryRelight() {
+    if (!fire.out || fire.raining) return;
+    if (reduceMotion) {
+      fire.out = false;
+      window.dispatchEvent(new CustomEvent("daivr-campfire-relight"));
+      return;
+    }
+    if (activeEventRef.current || !RELIGHT_MOODS.includes(moodRef.current) || !startRelight()) queueRelight(RELIGHT_RETRY_MS);
+  }
+
+  // `daivr-campfire-state` (FooterWorld): { out, raining }.
+  function onFireState(event) {
+    const wasOut = fire.out;
+    fire.out = Boolean(event.detail?.out);
+    fire.raining = Boolean(event.detail?.raining);
+    if (fire.out && !wasOut) {
+      // Se apago mientras asaba algo: se levanta y lo deja.
+      if (activeEventRef.current === "campfire" && !fire.lighting) {
+        setCampfire(null);
+        updateMood("idle");
+        endBuddyEvent("campfire");
+        say(pickLine(LINES.campfireOut), 2400, { topic: "rain" });
+      } else if (Math.random() < 0.7) {
+        say(pickLine(LINES.campfireOut), 2200, { priority: "ambient", key: "ambient", topic: "rain" });
+      }
+    }
+    if (fire.out && !fire.raining) queueRelight(RELIGHT_DELAY_MS);
+  }
+
+  // Al acabar el evento (o si lo corta el modo arcade): si la hoguera sigue
+  // apagada, ya lo intentara luego.
+  function onEventEnd() {
+    setCampfire(null);
+    fire.lighting = false;
+    if (fire.out && !fire.raining) queueRelight(RELIGHT_RETRY_MS);
+  }
+
+  // De noche (o al anochecer), con la hoguera encendida y a la vista, y sin prisa.
   function canStart(now = Date.now()) {
     return !reduceMotion
+      && !fire.out
       && ["night", "dusk"].includes(skyPhaseRef.current)
       && now - cooldownRef.current > CAMPFIRE_COOLDOWN_MS
       && campfireX() != null;
@@ -179,12 +321,18 @@ function createCampfire(core, { setCampfire }) {
   function onCampfireSignal() {
     if (activeEventRef.current || reduceMotion) return;
     if (["outage", "hunt", "held", "chute"].includes(moodRef.current)) return;
+    // Con la hoguera apagada: si llueve no hay nada que hacer; si no, la enciende.
+    if (fire.out && fire.raining) {
+      say("too wet for a fire right now.", 2200, { topic: "rain" });
+      return;
+    }
     if (!["idle", "talk"].includes(moodRef.current)) {
       freezeAtCurrentPosition();
       updateMood("idle");
     }
-    startCampfire();
+    if (fire.out) startRelight();
+    else startCampfire();
   }
 
-  return { cooldownRef, start: startCampfire, canStart, onCampfireSignal };
+  return { cooldownRef, start: startCampfire, canStart, onCampfireSignal, onFireState, onEventEnd };
 }

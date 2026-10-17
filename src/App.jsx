@@ -19,7 +19,7 @@ import "./styles/patch-log.css";
 import "./styles/perched-birds.css";
 import "./styles/site-footer.css";
 import "./styles/system-pages.css";
-import "./styles/footer-wildlife.css";
+import "./styles/footer-world.css";
 import "./styles/buddy-shared.css";
 import "./styles/buddy-world-polish.css";
 import "./styles/buddy-animation-gear.css";
@@ -640,7 +640,7 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
             <ProgramSections theme={theme} interactive={!entrySplashOpen} />
             <CommentsSection />
           </main>
-          <SiteFooter onOpenMarket={() => setBuddyModal("market")} buddy={buddy} onBuddyPet={handleBuddyPet} onPowerOutage={setPowerOutage} />
+          <SiteFooter onOpenMarket={() => setBuddyModal("market")} buddy={buddy} season={seasonalEvent} onBuddyPet={handleBuddyPet} onPowerOutage={setPowerOutage} />
         </div>
       </div>
 

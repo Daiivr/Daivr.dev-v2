@@ -1,8 +1,59 @@
-import { useState } from "react";
-import { Bug, Fish, PackageSearch, Radar, Search } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { FISH_CATALOG } from "../data/buddyWorld";
 import { useScrollEdges } from "../hooks/useScrollEdges";
+import { bayer, line, px, rect } from "../lib/pixelWorld/core";
+import { catchSprite, isCatchArt } from "../lib/pixelWorld/catches";
+import { FINDS } from "../lib/pixelWorld/events/creatures";
 import { BuddyCollectibleIcon } from "./BuddyCollectibleIcon";
+import { PixelIcon } from "./BuddyMenuDecor";
+
+// La pecera del diario en pixel: agua, arena, algas, burbujas y la pieza a
+// doble tamaño meciendose (en silueta mientras no se ha encontrado).
+const TANK_W = 80, TANK_H = 56;
+function specimenSprite(id) {
+  if (isCatchArt(id)) return catchSprite(id);
+  return FINDS()[id] || null;
+}
+function drawSpecimen(g, t, img, found) {
+  for (let y = 0; y < TANK_H; y++) for (let x = 0; x < TANK_W; x++) {
+    const f = y < 3 ? 0 : 1 + (y - 3) / (TANK_H - 3) * 3, i = Math.floor(f);
+    px(g, x, y, ["#7ad8e8", "#2a8aa2", "#227690", "#1a6280", "#14506c"][Math.min(4, i + (y >= 3 && bayer(x, y) < f - i ? 1 : 0))]);
+  }
+  rect(g, 0, 49, TANK_W, 7, "#d0b67e"); rect(g, 0, 49, TANK_W, 1, "#e8d4a0");
+  for (let x = 1; x < TANK_W; x += 3) px(g, x, 51 + (x % 3), x % 2 ? "#b89a62" : "#f472d0");
+  for (const [x0, len] of [[6, 16], [12, 10], [66, 18], [72, 11]]) for (let k = 0; k < len; k++) px(g, x0 + Math.round(Math.sin(t * 1.6 + k * 0.5 + x0) * 1.2), 48 - k, k % 3 ? "#2f8a3a" : "#7ac84a");
+  for (let k = 0; k < 5; k++) { const e = (t * 0.45 + k * 0.2) % 1; px(g, 56 + (k % 3), Math.round(47 - e * 42), "#dff8ff"); }
+  if (img) {
+    const bob = Math.round(Math.sin(t * 1.8) * 1.5), w = img.width * 2, h = img.height * 2;
+    if (!found) { g.globalAlpha = 0.35; g.filter = "brightness(0)"; }
+    g.drawImage(img, Math.round(TANK_W / 2 - w / 2), Math.round(26 - h / 2) + bob, w, h);
+    g.filter = "none"; g.globalAlpha = 1;
+  }
+  g.globalAlpha = 0.3; line(g, 4, 2, 14, 22, "#ffffff"); g.globalAlpha = 1;
+}
+function SpecimenTank({ id, found }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const canvas = ref.current, g = canvas?.getContext("2d");
+    if (!g) return undefined;
+    g.imageSmoothingEnabled = false;
+    const img = specimenSprite(id);
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const t0 = performance.now();
+    let frame = 0, last = -Infinity;
+    drawSpecimen(g, 0, img, found);
+    if (reduce) return undefined;
+    const tick = (now) => {
+      frame = requestAnimationFrame(tick);
+      if (now - last < 50) return;
+      last = now;
+      drawSpecimen(g, Math.max(0, (now - t0) / 1000), img, found);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [id, found]);
+  return <canvas ref={ref} className="buddy-specimen-canvas" width={TANK_W} height={TANK_H} aria-hidden="true" />;
+}
 
 // Los dos catalogos se hojean igual, asi que comparten reja y ficha en vez de
 // vivir en dos secciones con maquetas distintas.
@@ -45,15 +96,7 @@ function SpecimenFile({ entry, set }) {
         {entry.discovered ? <span className="buddy-specimen-count">×{entry.count}</span> : null}
       </div>
       <div className={`buddy-preview-screen buddy-specimen-tank ${entry.discovered ? "is-discovered" : ""}`} style={{ "--journal-color": entry.discovered ? entry.color : "#517366" }}>
-        <span className="buddy-tank-label" aria-hidden="true">{entry.discovered ? "SPECIMEN VIEW" : "AWAITING DISCOVERY"}</span>
-        <span className="buddy-tank-bubbles" aria-hidden="true"><i /><i /><i /></span>
-        <BuddyCollectibleIcon
-          className="buddy-specimen-art"
-          id={entry.id}
-          color={entry.color}
-          unknown={!entry.discovered}
-        />
-        <span className="buddy-tank-floor" aria-hidden="true" />
+        {specimenSprite(entry.id) ? <SpecimenTank id={entry.id} found={entry.discovered} /> : <BuddyCollectibleIcon className="buddy-specimen-art" id={entry.id} color={entry.color} unknown={!entry.discovered} />}
       </div>
       <div className="buddy-specimen-file">
         <span className={`buddy-specimen-tag rarity-${tag}`}>{tag}</span>
@@ -113,22 +156,22 @@ export function BuddyJournal({ buddy }) {
           <p className="buddy-journal-reward" role="status">{buddy.adventure.journalComplete ? "NZ:P unlocked — find your new cartridge in the secret game library." : "Complete every catch and patrol find to unlock NZ:P in the secret game library."}</p>
           <div className="buddy-journal-meters">
             <div>
-              <Fish size={15} aria-hidden="true" />
+              <PixelIcon name="fish" />
               <span>species scanned</span>
               <b>{discovered}<small> / {total}</small></b>
               <i className="buddy-journal-meter" aria-hidden="true"><b style={{ width: `${pct(discovered, total)}%` }} /></i>
             </div>
             <div>
-              <PackageSearch size={15} aria-hidden="true" />
+              <PixelIcon name="search" />
               <span>patrol finds</span>
               <b>{foundCount}<small> / {finds}</small></b>
               <i className="buddy-journal-meter" aria-hidden="true"><b style={{ width: `${pct(foundCount, finds)}%` }} /></i>
             </div>
           </div>
           <div className="buddy-journal-tallies">
-            <span><Radar size={14} aria-hidden="true" />leviathan sightings<b>{buddy.adventure.leviathanSightings}</b></span>
-            {buddy.adventure.krakenSightings > 0 ? <span><Radar size={14} aria-hidden="true" />kraken sightings<b>{buddy.adventure.krakenSightings}</b></span> : null}
-            <span><Bug size={14} aria-hidden="true" />bugs deleted<b>{buddy.adventure.bugsDefeated}</b></span>
+            <span><PixelIcon name="radar" />leviathan sightings<b>{buddy.adventure.leviathanSightings}</b></span>
+            {buddy.adventure.krakenSightings > 0 ? <span><PixelIcon name="radar" />kraken sightings<b>{buddy.adventure.krakenSightings}</b></span> : null}
+            <span><PixelIcon name="bug" />bugs deleted<b>{buddy.adventure.bugsDefeated}</b></span>
           </div>
         </div>
       </div>
@@ -172,7 +215,7 @@ export function BuddyJournal({ buddy }) {
             ))}
           </div>
           <label className="buddy-journal-search">
-            <Search size={16} aria-hidden="true" />
+            <PixelIcon name="search" />
             <input
               type="search"
               aria-label="Search journal"
@@ -206,7 +249,7 @@ export function BuddyJournal({ buddy }) {
               );
             }) : (
               <div className="buddy-loot-empty">
-                <Search size={28} aria-hidden="true" />
+                <PixelIcon name="search" />
                 <strong>{query ? "No matching discoveries" : "Nothing here yet"}</strong>
                 <p>{query ? "Try another name or rarity, or choose a different filter." : set.unknownNote}</p>
               </div>

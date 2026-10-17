@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { BuddySprite } from "./BuddySprite";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { dropActor, publishActor } from "../lib/pixelWorld/worldBus";
+import { outfitFor } from "../lib/pixelWorld/pip/outfit";
 import { useCabinetSignal } from "../lib/cabinetSignals";
 import { sendBuddyWave } from "../lib/buddyWaves";
 import {
@@ -878,6 +879,14 @@ function VisitingBuddy({ visitor, stageWidth, onPoke }) {
   const worn = sprite.unlockedGear;
   const anchor = visitor.x > stageWidth - 180 ? "anchor-right" : visitor.x < 116 ? "anchor-left" : "anchor-center";
   const expression = visitor.mood === "sleep" ? "sleep" : ["party", "dance", "pet"].includes(visitor.mood) ? "happy" : "idle";
+  const lookKey = JSON.stringify(visitor.look || null);
+  const outfit = useMemo(() => outfitFor(sprite), [lookKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  // La visita se dibuja como un holograma de Pip en el lienzo del footer.
+  const actorId = `visitor-${visitor.id}`;
+  useLayoutEffect(() => {
+    publishActor(actorId, { x: visitor.x, y: 0, walkMs: visitor.walkMs, facing: visitor.facing, mood: visitor.mood, expression, outfit, ghost: true, fade: visitor.fade || "" });
+  });
+  useEffect(() => () => dropActor(actorId), [actorId]);
   return (
     <div
       className={`screen-buddy-root is-visitor is-${visitor.mood} ${visitor.fx ? `fx-${visitor.fx}` : ""} ${visitor.fade ? `is-fade-${visitor.fade}` : ""} ${visitor.bubble ? "is-speaking" : ""} ${worn.includes("rocket-boots") ? "has-rocket-boots" : ""} ${worn.includes("miku-costume") ? "has-miku-costume" : ""}`}
@@ -904,12 +913,7 @@ function VisitingBuddy({ visitor, stageWidth, onPoke }) {
       >
         <span className="buddy-visitor-holo">
           <span className="screen-buddy-body">
-            <BuddySprite
-              className="screen-buddy-sprite"
-              expression={expression}
-              facing={visitor.facing}
-              {...sprite}
-            />
+            <span className="screen-buddy-sprite screen-buddy-hitbox" aria-hidden="true" />
           </span>
         </span>
         <span className="screen-buddy-shadow" aria-hidden="true" />

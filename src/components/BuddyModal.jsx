@@ -3,12 +3,16 @@ import "../styles/buddy-workshop.css";
 import { BuddyMarket } from "./BuddyMarket";
 import { memo, useEffect, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { Backpack, BookOpen, Check, Home, Lock, ScrollText, Search, Trophy, X } from "lucide-react";
+import { X } from "lucide-react";
 import { BODY_GEAR_IDS, COSTUME_IDS, FACE_GEAR_IDS, HEADWEAR_IDS, LURE_IDS, MOBILITY_IDS, ROD_IDS } from "../hooks/useBuddyLoadout";
 import { useScrollEdges } from "../hooks/useScrollEdges";
-import { BuddyChuteCanopy, BuddyRodIcon, BuddySprite } from "./BuddySprite";
+import { BuddyRodIcon } from "./BuddySprite";
+import { PipChute } from "./PipChute";
+import { PipSprite } from "./PipSprite";
 import { BuddyGearIcon } from "./BuddyGearIcon";
 import { BuddyJournal } from "./BuddyJournal";
+import { MenuFrameDecor, MenuSky, PixelIcon } from "./BuddyMenuDecor";
+import { menuSkinVars } from "../lib/pixelWorld/menuSkin";
 
 // Keep the small room renderer with the cabinet: an already-open tab must not
 // request a deleted, hash-named room chunk after a new build is published.
@@ -17,6 +21,8 @@ import { BuddyRoomBoundary } from "./BuddyRoomBoundary";
 import { friendshipProgress } from "../hooks/useBuddyFriendship";
 // Last, after buddy-room.css (imported by BuddyRoom): the shared polish layer.
 import "../styles/buddy-modal-polish.css";
+// La piel de pixel (marcos, papel, huecos y botones a juego con el footer), lo ultimo.
+import "../styles/buddy-modal-pixel.css";
 
 const BUDDY_SLOTS = [
   { id: "costume", label: "costume", accepts: COSTUME_IDS },
@@ -134,8 +140,8 @@ const BuddyPreviewCard = memo(function BuddyPreviewCard({ buddy }) {
       <div className="buddy-section-heading"><span className="buddy-modal-kicker">your companion</span><span className="buddy-status-dot">online</span></div>
       <div className="buddy-preview-screen">
         <div className={`buddy-preview-pose pose-${pose}`} key={buddy.effectiveHiddenGear.join(",")}>
-          {previewChute ? <BuddyChuteCanopy className="buddy-preview-chute" upgraded /> : null}
-          <BuddySprite
+          {previewChute ? <PipChute className="buddy-preview-chute" upgraded scale={3} lines={8} /> : null}
+          <PipSprite
             className="buddy-preview-sprite"
             expression={pose}
             facing={-1}
@@ -143,8 +149,8 @@ const BuddyPreviewCard = memo(function BuddyPreviewCard({ buddy }) {
             inventory={buddy.adventure.inventoryIds}
             hiddenGear={buddy.effectiveHiddenGear}
             unlockedGear={buddy.unlockedGearIds}
-            width={112}
-            height={108}
+            width={108}
+            height={120}
           />
           {previewRod ? <BuddyRodIcon className="buddy-preview-rod" rodId={previewRod} lureId={previewLure} /> : null}
         </div>
@@ -254,11 +260,11 @@ function BuddyInventoryView({ buddy }) {
 
       <div className="buddy-loot-panel" aria-label="Buddy inventory items">
         <div className="buddy-section-heading"><div><span className="buddy-modal-kicker">equipment locker</span><h3>Your collection <b>{buddy.gearItems.length} / {catalog.length}</b></h3></div><span>Click to equip or stash · drag onto a slot</span></div>
-        <div className="buddy-locker-toolbar"><label className="buddy-journal-search"><Search size={15} aria-hidden="true" /><input type="search" aria-label="Search gear" placeholder="Find gear or a perk…" value={query} onChange={(event) => setQuery(event.target.value)} /></label><select aria-label="Gear ownership" value={ownership} onChange={(event) => setOwnership(event.target.value)}><option value="owned">Owned gear</option><option value="equipped">Equipped</option><option value="locked">Next unlocks</option><option value="all">All gear</option></select></div>
+        <div className="buddy-locker-toolbar"><label className="buddy-journal-search"><PixelIcon name="search" /><input type="search" aria-label="Search gear" placeholder="Find gear or a perk…" value={query} onChange={(event) => setQuery(event.target.value)} /></label><select aria-label="Gear ownership" value={ownership} onChange={(event) => setOwnership(event.target.value)}><option value="owned">Owned gear</option><option value="equipped">Equipped</option><option value="locked">Next unlocks</option><option value="all">All gear</option></select></div>
         <p className="buddy-locker-feedback" role="status">{feedback || `${buddy.activeGearCount} equipped · ${catalog.length - buddy.gearItems.length} still to discover`}</p>
         {mikuCostumeActive ? (
           <div className="buddy-miku-lock-notice" role="status">
-            <Lock size={13} aria-hidden="true" />
+            <PixelIcon name="lock" />
             <span>costume lock</span>
             Clothing and accessories stay locked while the Miku Costume is on. Rods and lures are still editable.
           </div>
@@ -305,13 +311,13 @@ function BuddyInventoryView({ buddy }) {
                   <em className="buddy-item-category">{item.slot} · {equipped ? "equipped" : item.unlocked ? "owned" : "locked"}</em>
                   {!item.unlocked ? <span className="buddy-item-unlock"><progress value={item.progress} max={item.goal} aria-label={`${item.label} unlock progress`} /><small>{item.progress} / {item.goal}</small></span> : null}
                   <b className={`buddy-loot-state ${equipped ? "is-on" : ""}`} aria-hidden="true">
-                    {itemLocked ? <Lock size={11} /> : equipped ? <Check size={13} /> : null}
+                    {itemLocked ? <PixelIcon name="lock" /> : equipped ? <PixelIcon name="tick" /> : null}
                   </b>
                 </button>
               );
             }) : (
               <div className="buddy-loot-empty">
-                <Backpack size={28} aria-hidden="true" />
+                <PixelIcon name="inventory" />
                 <strong>{query ? "No matching gear" : "Nothing in this view yet"}</strong>
                 <p>Try another filter, or choose Next unlocks to see how to grow your collection.</p>
               </div>
@@ -333,7 +339,7 @@ function BuddyQuestView({ buddy }) {
   return (
     <div className="buddy-modal-quests" ref={scrollRef}>
       <div className="buddy-quest-summary">
-        <Trophy size={32} aria-hidden="true" />
+        <PixelIcon name="trophy" className="buddy-quest-trophy" />
         <div className="buddy-quest-summary-copy">
           <span className="buddy-modal-kicker">adventure progress</span>
           <h3>{active.length ? "A little curiosity goes a long way." : "Every quest, conquered."}</h3>
@@ -354,7 +360,7 @@ function BuddyQuestView({ buddy }) {
               return (
                 <article className={`buddy-modal-quest ${quest.complete ? "is-complete" : "is-open"}`} key={quest.id}>
                   <div className="buddy-quest-info">
-                    <span className="buddy-quest-icon">{quest.complete ? <Check size={18} aria-hidden="true" /> : <ScrollText size={18} aria-hidden="true" />}</span>
+                    <span className="buddy-quest-icon">{quest.complete ? <PixelIcon name="tick" /> : <PixelIcon name="scroll" />}</span>
                     <div><strong>{quest.title}</strong><p>{quest.detail}</p>{quest.complete ? <span className="buddy-quest-reward"><BuddyGearIcon id={quest.reward} />Unlocked: {rewardName}</span> : null}</div>
                   </div>
                   {!quest.complete ? <div className="buddy-quest-reward-tile"><span>Reward</span><BuddyGearIcon id={quest.reward} /><strong>{rewardName}</strong></div> : null}
@@ -373,10 +379,10 @@ function BuddyQuestView({ buddy }) {
 }
 
 const BUDDY_VIEWS = [
-  { id: "room", label: "Room", icon: Home, title: "Buddy’s Room", description: "A home for your companion. A little space for everything you find." },
-  { id: "inventory", label: "Inventory", icon: Backpack, title: "Buddy Inventory", description: "A little gear. A lot of personality. Make Buddy your own." },
-  { id: "quests", label: "Quests", icon: ScrollText, title: "Buddy Quests", description: "Follow your curiosity. Explore the station. Find something new." },
-  { id: "journal", label: "Journal", icon: BookOpen, title: "Catch Journal", description: "Every catch has a story. Keep a record of the things you find." }
+  { id: "room", label: "Room", icon: "room", title: "Buddy’s Room", description: "A home for your companion. A little space for everything you find." },
+  { id: "inventory", label: "Inventory", icon: "inventory", title: "Buddy Inventory", description: "A little gear. A lot of personality. Make Buddy your own." },
+  { id: "quests", label: "Quests", icon: "quests", title: "Buddy Quests", description: "Follow your curiosity. Explore the station. Find something new." },
+  { id: "journal", label: "Journal", icon: "journal", title: "Catch Journal", description: "Every catch has a story. Keep a record of the things you find." }
 ];
 
 const MARKET_VIEW = { id: "market", label: "Market", title: "The Woodland Stand", description: "Little treasures for a life beside the void." };
@@ -397,31 +403,32 @@ export function BuddyModal({ buddy, mode, onClose, onModeChange, theme, seasonal
     <Dialog.Root open={Boolean(mode)} onOpenChange={(open) => { if (!open) onClose(); }}>
       <Dialog.Portal>
         <Dialog.Overlay className={`buddy-modal-backdrop motion-backdrop ${theme === "glitch" ? "theme-glitch" : ""}`}>
-          <Dialog.Content className={`buddy-modal motion-panel is-${view.id}`}
+          <Dialog.Content className={`buddy-modal motion-panel is-${view.id}`} style={menuSkinVars()}
             onOpenAutoFocus={() => { opener.current = document.activeElement; }}
             onCloseAutoFocus={(event) => { event.preventDefault(); opener.current?.focus(); }}>
             <header className="buddy-modal-header">
               <div className="buddy-modal-title-row">
-                <div>
-                  <span className="buddy-modal-kicker">
-                    <span className="buddy-window-dots" aria-hidden="true"><i /><i /><i /></span>
-                    buddy companion / {view.label}
-                  </span>
+                <MenuSky />
+                <div className="buddy-modal-sign">
+                  <span className="buddy-modal-kicker">buddy companion · {view.label}</span>
                   <Dialog.Title asChild><h2>{view.title}</h2></Dialog.Title>
                   <Dialog.Description className="buddy-modal-description">{view.description}</Dialog.Description>
                 </div>
                 <Dialog.Close className="buddy-modal-close" aria-label="Close buddy modal"><X size={20} aria-hidden="true" /></Dialog.Close>
               </div>
               {view.id !== "market" ? <nav className="buddy-modal-actions" aria-label="Buddy views">
-                {BUDDY_VIEWS.map(({ id, label, icon: Icon }) => (
+                {BUDDY_VIEWS.map(({ id, label, icon }) => (
                   <button className={view.id === id ? "is-active" : ""} type="button" key={id} onClick={() => onModeChange(id)} aria-current={view.id === id ? "page" : undefined}>
-                    <Icon size={16} aria-hidden="true" />{label}
+                    <PixelIcon name={icon} />{label}
                     {id !== "room" ? <span>{id === "inventory" ? buddy.gearItems.length : id === "quests" ? `${buddy.adventure.quests.filter((quest) => quest.complete).length}/${buddy.adventure.quests.length}` : buddy.adventure.discoveredFishCount}</span> : null}
                   </button>
                 ))}
               </nav> : null}
             </header>
-            {view.id === "market" ? <BuddyMarket buddy={buddy} onNavigate={onModeChange} /> : view.id === "room" ? <BuddyRoomBoundary onClose={onClose}><BuddyRoom buddy={buddy} seasonalEvent={seasonalEvent} /></BuddyRoomBoundary> : view.id === "inventory" ? <BuddyInventoryView buddy={buddy} /> : view.id === "journal" ? <BuddyJournal buddy={buddy} /> : <BuddyQuestView buddy={buddy} />}
+            <div className={`buddy-modal-page is-${view.id}`}>
+              {view.id === "market" ? <BuddyMarket buddy={buddy} onNavigate={onModeChange} /> : view.id === "room" ? <BuddyRoomBoundary onClose={onClose}><BuddyRoom buddy={buddy} seasonalEvent={seasonalEvent} /></BuddyRoomBoundary> : view.id === "inventory" ? <BuddyInventoryView buddy={buddy} /> : view.id === "journal" ? <BuddyJournal buddy={buddy} /> : <BuddyQuestView buddy={buddy} />}
+            </div>
+            <MenuFrameDecor />
           </Dialog.Content>
         </Dialog.Overlay>
       </Dialog.Portal>

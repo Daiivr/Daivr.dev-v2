@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { getLocalBuddyLevel } from "../hooks/useBuddyFriendship";
-import { BuddyChuteCanopy, BuddySprite } from "./BuddySprite";
+import { PipChute } from "./PipChute";
+import { PipSprite } from "./PipSprite";
 
 // Ritmo pensado para seguirlo con la rueda del mouse mientras baja la pagina.
 const DROP_SPEED_PX_S = 260;
@@ -349,9 +350,12 @@ export function BuddyDrop({ start, aboveSplash = false, onDone, friendshipLevel,
         onPointerUp={handlePointerRelease}
         onPointerCancel={handlePointerRelease}
       >
-        {hasRocketBoots ? null : <BuddyChuteCanopy className="buddy-drop-canopy" />}
-        <BuddySprite
+        {hasRocketBoots ? null : <PipChute className="buddy-drop-canopy" upgraded={inventory.includes("parachute-upgrade") && !hiddenGear.includes("parachute-upgrade")} />}
+        {/* Mira a la izquierda, como en la puerta de la que salta. */}
+        <PipSprite
           expression="happy"
+          facing={1}
+          pose={hasRocketBoots ? "hover" : "hang"}
           friendshipLevel={buddyLevel}
           inventory={inventory}
           hiddenGear={hiddenGear}

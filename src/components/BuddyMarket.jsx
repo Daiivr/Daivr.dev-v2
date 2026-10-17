@@ -8,7 +8,7 @@ import { MarketItemIcon, MarketStandArt } from "./BuddyMarketArt";
 import { useHangingSign } from "../hooks/useHangingSign";
 import "../styles/buddy-market.css";
 
-function useMarketOpen(refreshMs = 15000) {
+export function useMarketOpen(refreshMs = 15000) {
   const [now, setNow] = useState(() => new Date());
   useEffect(() => {
     const refresh = () => setNow(new Date());
@@ -62,10 +62,12 @@ function MarketSpecialOrder({ item, wallet, open, onBuy }) {
   </section>;
 }
 
-export function BuddyMarketStand({ onClick }) {
-  const { open, stock } = useMarketOpen();
-  return <button type="button" className={`buddy-market-stand ${open ? "is-open" : "is-closed"}`} onClick={onClick} aria-label={`Woodland market: ${open ? "open today" : "closed"}. ${MARKET_SCHEDULE}. Browse the stand.`}>
-    <MarketStandArt open={open} items={stock} />
+// Puesto del footer: un boton invisible encima del puesto que dibuja
+// FooterWorld (abierto o con las contraventanas bajadas); al pasar por encima
+// se ilumina el contorno y sale el cartel.
+export function BuddyMarketStand({ open, onClick, onHoverChange }) {
+  const hover = (value) => () => onHoverChange?.(value);
+  return <button type="button" className={`buddy-market-stand ${open ? "is-open" : "is-closed"}`} onClick={onClick} onPointerEnter={hover(true)} onPointerLeave={hover(false)} onFocus={hover(true)} onBlur={hover(false)} aria-label={`Woodland market: ${open ? "open today" : "closed"}. ${MARKET_SCHEDULE}. Browse the stand.`}>
     <span className="market-stand-sign" aria-hidden="true">Woodland Market</span>
   </button>;
 }

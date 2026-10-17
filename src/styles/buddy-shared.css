@@ -79,9 +79,42 @@
 
 @layer components {
   .buddy-collectible-icon.is-unknown { filter: grayscale(1) brightness(.6); }
-  .buddy-fishing-svg .buddy-caught-specimen { width: 30px; height: 23px; overflow: visible; }
-  .pixel-leap-fish-svg.buddy-collectible-icon { width: 42px; height: 28px; }
   @media (prefers-reduced-motion: reduce) {
     .buddy-species-art, .buddy-fish-tail { animation: none !important; }
   }
+}
+
+@layer components {
+  /* Pip fuera del footer (PipSprite): lienzo pequeño escalado sin suavizar. */
+  .pip-sprite { display: block; object-fit: contain; image-rendering: pixelated; }
+  /* En el footer Pip se dibuja en el lienzo del mundo (FooterWorld): Buddy y
+     las visitas solo conservan una caja invisible para acariciar, arrastrar y
+     que choquen los peces, del tamaño de Pip. La sombra tambien la pinta el lienzo. */
+  .screen-buddy-hitbox { width: 64px; height: 68px; filter: none; }
+  :is(.screen-buddy-root, .buddy-visitor) .screen-buddy-shadow { display: none; }
+}
+
+@layer components {
+  /* El bocadillo sube por encima de lo que Pip lleva en alto (gorro, captura,
+     hallazgo, pajaro, paraguas): FooterWorld calcula --buddy-bubble-lift. */
+  .screen-buddy-root .screen-buddy-bubble { bottom: calc(100% + 8px + var(--buddy-bubble-lift, 0px)); }
+}
+
+@layer components {
+  /* Hallazgo: el dibujo lo pone FooterWorld a 76 px del centro de Buddy; el
+     boton es una caja invisible centrada en ese sitio (el nombre sale al pasar). */
+  .screen-buddy-root .buddy-field-find { min-width: 0; min-height: 0; padding: 0; animation: none; transform: translateX(calc(var(--find-x, 76px) - 50%)); }
+  .buddy-field-find::after { display: none; }
+  .buddy-field-find > i.buddy-find-hitbox { display: block; width: 26px; height: 26px; border-radius: 0; background: none; filter: none; animation: none; box-shadow: none; clip-path: none; }
+  .buddy-field-find > i.buddy-find-hitbox::before, .buddy-field-find > i.buddy-find-hitbox::after { display: none; }
+}
+
+@layer components {
+  /* El paracaidas de Pip fuera del footer (PipChute): las cuerdas bajan hasta
+     las manos del PipSprite colgado debajo (72 x 80 en la caida). */
+  .pip-chute { display: block; image-rendering: pixelated; }
+  /* La tela va detras de Pip (z-index -1 dentro de la pila de .buddy-drop-body):
+     las cuerdas bajan por detras de el, como en el boceto. */
+  .buddy-drop-body > .buddy-drop-canopy { z-index: -1; bottom: calc(100% - 50px); width: auto; filter: drop-shadow(0 0 6px rgba(69, 216, 255, 0.25)); }
+  .buddy-preview-pose > .buddy-preview-chute { width: auto; margin-bottom: -6px; }
 }

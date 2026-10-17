@@ -1,99 +1,32 @@
 @layer components {
-  .buddy-footer-portal { top: 0; left: clamp(68px,var(--portal-x),calc(100% - 68px)); width: var(--pool-width); height: var(--pool-height); margin-left: calc(var(--pool-width) / -2); overflow: hidden; }
-  /* Redistribute the ticker's existing padding; never grow the footer for fishing. */
-  .app-footer-zone:has(.buddy-footer-portal) .footer-ticker-content { padding-top: .84rem; padding-bottom: 0; }
-  .buddy-footer-portal .buddy-portal-aperture { transform-origin: 64px 18px; }
-  .buddy-footer-portal > svg { width: 100%; height: 100%; overflow: hidden; filter: none; }
-  .buddy-footer-portal.is-opening .buddy-portal-aperture { animation: footer-floor-break var(--portal-open-ms) steps(6,end) both; }
-  .buddy-footer-portal.is-closing .buddy-portal-aperture { animation: footer-floor-break var(--portal-close-ms) steps(6,end) reverse both; }
-  .footer-pool-fish.fish-one { animation: pool-school-one 12s ease-in-out infinite; }
-  .footer-pool-fish.fish-two { animation: pool-school-two 15s ease-in-out -4s infinite; opacity: .85; }
-  .footer-pool-fish.fish-three { animation: pool-school-three 18s ease-in-out -7s infinite; opacity: .5; }
-  .footer-pool-fish-facing { animation: pool-fish-turn 12s steps(1,end) infinite; }
-  .fish-two .footer-pool-fish-facing { animation-duration: 15s; animation-delay: -4s; }
-  .fish-three .footer-pool-fish-facing { animation-duration: 18s; animation-delay: -7s; }
-  .pool-fish-tail { transform-box: fill-box; transform-origin: right center; animation: pool-tail .7s ease-in-out infinite alternate; }
-  .pool-bubbles { animation: pool-bubbles 4s linear infinite; }
-  .footer-pool-caustics { animation: pool-light 5s ease-in-out infinite alternate; }
-  .footer-pool-ripples { animation: footer-pool-water 3s ease-in-out infinite; }
-  .buddy-footer-portal.is-opening .footer-pool-rubble { animation: footer-floor-rubble .85s ease-out both; }
-  .leviathan-stage { height: 280px; background: radial-gradient(ellipse at 68% 100%,#174e5a99,transparent 70%); }
-  .leviathan-stage.faces-buddy-right .leviathan-depth-label, .leviathan-stage.faces-buddy-right .leviathan-interaction { left: auto; right: 16px; }
-  .leviathan-stage.faces-buddy-right .leviathan-depth-label { width: min(300px,32%); }
-  .leviathan-far-fin { transform-box: fill-box; transform-origin: right bottom; animation: abyss-fin 5s ease-in-out infinite reverse; }
-  .creature-kraken { background: radial-gradient(ellipse at 50% 100%,#66476b80,transparent 70%); overflow: visible; clip-path: inset(0 0 -8px); }
-  .creature-kraken .leviathan-art { filter: drop-shadow(0 5px 0 #14121e80) drop-shadow(0 0 16px #dba0ef22); }
-  .leviathan-stage.creature-kraken:is(.is-omen,.is-monster) .leviathan-art { animation: none; transform: none; opacity: 1; }
-  .kraken-grip-sparks { opacity: 0; }
-  .creature-kraken.is-monster .kraken-grip-sparks { animation: kraken-grip-spray 3.6s linear both; }
-  /* The articulated rig bends along its centerlines and holds its contact points. */
-  .leviathan-stage.creature-kraken.is-retreat .leviathan-art { animation: none; transform: none; }
-  .creature-kraken .kraken-articulated .kraken-mantle-rise { animation: none; }
-  .kraken-articulated .kraken-mantle { animation: none; }
-  .kraken-articulated .kraken-contact-ledges { pointer-events: none; }
-  .kraken-runes { animation: leviathan-glimmer 3s ease-in-out infinite; }
-  .response-signal .kraken-runes { filter: drop-shadow(0 0 4px #baf4dc); }
-  .kraken-ink { position: absolute; bottom: 0; left: 10%; right: 10%; height: 70px; opacity: 0; background: radial-gradient(ellipse at 50% 100%,#30223be6,transparent 70%); }
-  .is-retreat .kraken-ink { animation: kraken-ink 3.5s ease-out both; }
-  .leviathan-art { width: min(680px,65%); right: 3%; bottom: -12px; filter: drop-shadow(0 8px 0 #020f1780) drop-shadow(0 0 22px #63c5ce25); animation: leviathan-rise 3.4s cubic-bezier(.2,.6,.3,1) both,leviathan-breathe 6s ease-in-out 3.4s infinite; }
-  .leviathan-stage.is-omen .leviathan-art { animation: leviathan-shadow 5.5s ease-out both; }
-  .leviathan-stage.is-retreat .leviathan-art { animation: leviathan-dive 3.5s ease-in both; }
-  .leviathan-tail { transform-origin: right bottom; animation: leviathan-tail 4.6s ease-in-out infinite; }
-  .leviathan-fin { animation: abyss-fin 4s ease-in-out infinite; }
-  .leviathan-markings, .leviathan-gills { animation: leviathan-glimmer 4s ease-in-out infinite; }
-  .leviathan-eye { transform-box: fill-box; transform-origin: center; animation: leviathan-blink 7s linear infinite; }
-  .leviathan-whiskers { transform-box: fill-box; transform-origin: top center; animation: leviathan-tail 3s ease-in-out infinite reverse; }
-  .leviathan-interaction { position: absolute; z-index: 3; left: 16px; top: 52px; width: min(300px,32%); font: 10px/1.6 var(--font-mono); color: #bfdad6; }
-  .leviathan-interaction p { margin: 0 0 12px; max-width: 30ch; text-shadow: 0 2px 3px #000; }
-  .leviathan-interaction > div { display: flex; flex-wrap: wrap; gap: 6px; pointer-events: auto; }
-  .leviathan-interaction button { display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 8px 10px; background: url('/textures/arcade-grain.svg'),linear-gradient(135deg,#244a48,#0c232a); color: #e1f9e3; border: 1px solid #7baba2; box-shadow: inset 0 1px #f1f9ca25,0 3px 8px #0006; cursor: pointer; }
-  .leviathan-interaction button:hover:not(:disabled) { border-color: #ffe0a0; color: #ffe0a0; }
-  .leviathan-interaction button:focus-visible { outline: 2px solid #ffe0a0; outline-offset: 3px; }
-  .leviathan-interaction button:disabled { opacity: .5; cursor: default; }
-  .leviathan-stage.response-signal .leviathan-markings, .leviathan-stage.response-signal .leviathan-gills, .leviathan-stage.response-signal .leviathan-spines { filter: drop-shadow(0 0 3px #98ffe1); animation: leviathan-answer 1.8s ease-in-out 3; }
-  .leviathan-stage.response-signal .leviathan-eye { filter: drop-shadow(0 0 5px #ffe59d); }
-  .leviathan-stage.response-steady .leviathan-tail { animation-duration: 8s; }
-  .screen-buddy-root.is-fishing[data-leviathan-response=steady]:has(.is-monster) .screen-buddy-sprite { animation: none; }
-  .screen-buddy-root.is-fishing[data-leviathan-response=signal]:has(.is-monster) .screen-buddy-sprite { animation-duration: 2s; }
-  @media (max-width: 760px) {
-    .leviathan-stage { height: 295px; }
-    .leviathan-art { width: min(460px,94%); right: 1%; }
-    .leviathan-depth-label { font-size: 8px; }
-    .leviathan-depth-label b { font-size: 9px; }
-    .leviathan-interaction { top: 45px; width: calc(100% - 32px); }
-    .leviathan-interaction p { max-width: none; margin-bottom: 8px; }
-    .leviathan-interaction button { min-height: 40px; }
-    .leviathan-stage.faces-buddy-right .leviathan-depth-label { left: 16px; right: auto; width: auto; }
-    .leviathan-stage.faces-buddy-right .leviathan-interaction { left: 16px; right: auto; }
+  /* El leviatan y el kraken los dibuja el lienzo del footer (pixelWorld/events/deep.js).
+     Aqui, el panel del encuentro dentro del valle: arriba del todo, en el lado
+     donde no esta Buddy, con lo que pasa y los dos gestos (Steady y Signal). */
+  .app-footer-zone:has(.leviathan-stage) { z-index: 81; }
+  .leviathan-stage { position: absolute; z-index: 4; left: 12px; bottom: calc(100% + 34px); width: min(330px, calc(100% - 24px)); pointer-events: none; }
+  .leviathan-stage.is-right { left: auto; right: 12px; }
+  .leviathan-stage:focus { outline: none; }
+  .leviathan-stage:focus-visible .deep-hud { outline: 2px solid #ffd166; outline-offset: 2px; }
+  .deep-hud { display: grid; gap: 3px; padding: 7px 10px 9px; border: 2px solid #3f8f96; background: #041016e0; box-shadow: 0 0 0 2px #000000b0, 0 0 14px #7ff0d840; color: #f2f6f0; font-family: "Jersey 10", var(--font-mono); font-size-adjust: ex-height .52; font-synthesis: none; pointer-events: auto; }
+  .creature-kraken .deep-hud { border-color: #c04a86; box-shadow: 0 0 0 2px #000000b0, 0 0 14px #e47ab040; }
+  .deep-kicker { color: #7ff0d8; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; }
+  .creature-kraken .deep-kicker { color: #f6c6d8; }
+  .is-omen .deep-kicker::after { content: " \25CF"; animation: deep-ping 1s steps(2, end) infinite; }
+  .deep-title { color: #f2f6f0; font-size: 17px; font-weight: 400; line-height: 1.1; letter-spacing: .02em; }
+  .deep-line { margin: 0; color: #b9d8d2; font-size: 14px; line-height: 1.25; }
+  .deep-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .deep-actions button { display: inline-flex; align-items: center; gap: 6px; min-height: 34px; padding: 3px 10px 5px; border: 2px solid #7fd0c8; background: #12343b; color: #e3fff3; font: inherit; font-size: 15px; box-shadow: inset 0 -3px 0 #0a2026, inset 0 2px 0 #2f6a70; cursor: pointer; }
+  .creature-kraken .deep-actions button { border-color: #e48ab8; background: #3a1430; box-shadow: inset 0 -3px 0 #22081c, inset 0 2px 0 #6a2a58; }
+  .deep-actions button:hover:not(:disabled) { border-color: #ffe0a0; color: #ffe0a0; }
+  .deep-actions button:active:not(:disabled) { translate: 0 2px; }
+  .deep-actions button:focus-visible { outline: 2px solid #ffe0a0; outline-offset: 2px; }
+  .deep-actions button:disabled { opacity: .45; cursor: default; }
+  @media (max-width: 700px) {
+    .leviathan-stage, .leviathan-stage.is-right { left: 8px; right: 8px; width: auto; bottom: calc(100% + 22px); }
+    .deep-actions button { min-height: 40px; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .buddy-footer-portal *, .leviathan-stage *, .screen-buddy-root[data-leviathan-response] .screen-buddy-sprite { animation: none !important; }
-    .leviathan-stage.is-omen .leviathan-art { transform: translateY(70%); opacity: .4; }
-    .leviathan-stage.is-retreat .leviathan-art { opacity: .4; }
-    .buddy-footer-portal.is-closing { opacity: 0; }
-    .footer-pool-fish.fish-one { transform: translate(40px,17px); }
-    .footer-pool-fish.fish-two { transform: translate(86px,21px) scale(.7); }
-    .footer-pool-fish.fish-three { transform: translate(60px,12px) scale(.5); }
+    .is-omen .deep-kicker::after { animation: none; }
   }
 }
-@keyframes kraken-grip-spray { 0%,25%,53%,75%,100% { opacity: 0; } 28%,58% { opacity: .9; } }
-@keyframes pool-school-one { 0%,100% { transform: translate(34px,16px); } 50% { transform: translate(90px,18px); } }
-@keyframes pool-school-two { 0%,100% { transform: translate(30px,21px) scale(.7); } 50% { transform: translate(98px,20px) scale(.7); } }
-@keyframes pool-school-three { 0%,100% { transform: translate(42px,12px) scale(.5); } 50% { transform: translate(78px,13px) scale(.5); } }
-@keyframes pool-fish-turn { 0%,100% { transform: scaleX(1); } 50% { transform: scaleX(-1); } }
-@keyframes pool-tail { to { transform: scaleX(.65); } }
-@keyframes pool-bubbles { from { transform: translateY(8px); opacity: 0; } 30% { opacity: .65; } to { transform: translateY(-12px); opacity: 0; } }
-@keyframes pool-light { to { transform: translateX(8px); opacity: .18; } }
-@keyframes kraken-ink { 10% { opacity: .8; transform: scaleX(.6); } 100% { opacity: 0; transform: scaleX(1.3); } }
-@keyframes footer-floor-break { from { clip-path: inset(0 48% 80%); opacity: .3; } 45% { clip-path: inset(0 22% 40%); opacity: 1; } to { clip-path: inset(-10%); opacity: 1; } }
-@keyframes footer-floor-rubble { from { transform: translateY(-4px); } 50% { transform: translateY(-7px); } to { transform: translateY(0); } }
-@keyframes footer-pool-swim { 0%,100% { transform: translateX(-8px); } 50% { transform: translateX(14px); } }
-@keyframes footer-pool-water { 50% { transform: translateX(3px); opacity: .3; } }
-@keyframes leviathan-rise { from { transform: translate(5%,85%) rotate(5deg); } 65% { transform: translate(0,-3%) rotate(-1deg); } to { transform: translate(0,0); } }
-@keyframes leviathan-breathe { 0%,100% { transform: translate(0,0) rotate(0); } 50% { transform: translate(-8px,5px) rotate(-1deg); } }
-@keyframes leviathan-shadow { from { transform: translate(12%,110%); opacity: 0; } to { transform: translate(0,70%); opacity: .5; } }
-@keyframes leviathan-dive { 0% { transform: translate(0,0); opacity: 1; } 25% { transform: translate(-2%,-2%) rotate(-2deg); } 100% { transform: translate(-15%,115%) rotate(-8deg); opacity: 0; } }
-@keyframes leviathan-tail { 50% { transform: rotate(7deg) translateY(2px); } }
-@keyframes leviathan-glimmer { 50% { opacity: .45; } }
-@keyframes leviathan-blink { 0%,44%,48%,100% { transform: scaleY(1); } 46% { transform: scaleY(.12); } }
-@keyframes leviathan-answer { 50% { opacity: .5; filter: drop-shadow(0 0 6px #98ffe1); } }
+@keyframes deep-ping { 50% { opacity: 0; } }

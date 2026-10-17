@@ -5,11 +5,13 @@ import { clamp, randomBetween, SPRITE_WIDTH, WALK_MARGIN, WALK_SPEED_PX_S } from
 
 /*
   Encuentros por el footer:
-  - Hallazgos: Buddy encuentra algo brillante y el jugador lo recoge con un clic.
+  - Hallazgos: Buddy encuentra algo brillante y el jugador lo recoge con un clic;
+    si nadie lo recoge en unos segundos, Buddy va y lo coge el mismo.
   - Bichos de visita: un pajaro que se le posa en la antena, una polilla de
-    fosforo, la rana (que trae lluvia) y el pez que salta (FooterWildlife).
-  - Caza de bugs: aparece un bug y Buddy lo borra con red, laser, matamoscas
-    o la llave inglesa si la tiene.
+    fosforo, la rana (que trae lluvia) y el pez que salta (FooterWorld).
+  - Caza de bugs: aparece un bug y Buddy lo borra con el martillo, la red o
+    la pistola (la pesada si tiene la llave inglesa). El dibujo y la
+    coreografia viven en src/lib/pixelWorld/events/hunt.js.
 */
 
 export const BIRD_ARRIVAL_MS = 1600;
@@ -17,6 +19,11 @@ export const BIRD_LANDING_MS = 420;
 const BIRD_PERCH_MS = 4300;
 export const BIRD_DEPARTURE_MS = 1500;
 const FIND_COOLDOWN_MS = 70000;
+// Sin clic en este tiempo, Buddy recoge el hallazgo el mismo.
+const FIND_AUTO_PICK_MS = 6000;
+// Se para a un paso del hallazgo (que queda a 76 px de su centro) y se agacha.
+const FIND_REACH_PX = 22;
+const FIND_CROUCH_MS = 650;
 const ENEMY_COOLDOWN_MS = 95000;
 const CREATURE_COOLDOWN_MS = 45000;
 
@@ -94,6 +101,11 @@ function createEncounters(core, { setFieldFind, setCreature, setEnemy, startRain
       say(pickLine(LINES.find), 2400);
       const findGeneration = moodGenRef.current;
       schedule(() => {
+        if (moodGenRef.current === findGeneration && moodRef.current === "find" && fieldFindRef.current?.id === item.id) pickUpFind(findSide);
+      }, FIND_AUTO_PICK_MS);
+      // Si algo le interrumpe (le cogen, le asustan) el hallazgo caduca.
+      schedule(() => {
+        if (fieldFindRef.current?.id !== item.id || fieldFindRef.current.picking) return;
         updateFieldFind(null);
         if (moodGenRef.current === findGeneration && moodRef.current === "find") {
           updateMood("idle");
@@ -104,10 +116,40 @@ function createEncounters(core, { setFieldFind, setCreature, setEnemy, startRain
     }, ms + 80);
   }
 
-  function collectFieldFind() {
+  // Nadie lo ha recogido: se acerca, se agacha y lo coge. El boton se quita
+  // (`picking`) para que no se mueva con el; el mundo deja el hallazgo donde
+  // estaba y lo hace saltar a sus manos.
+  function pickUpFind(side) {
+    const find = fieldFindRef.current;
+    if (!find) return;
+    updateFieldFind({ ...find, picking: "walk" });
+    const maxX = Math.max(WALK_MARGIN, stageWidth() - SPRITE_WIDTH - WALK_MARGIN);
+    const target = clamp(xRef.current + side * (76 - FIND_REACH_PX), WALK_MARGIN, maxX);
+    const ms = Math.max(120, (Math.abs(target - xRef.current) / WALK_SPEED_PX_S) * 1000);
+    faceTravelDirection(side);
+    updateMood("walk");
+    const generation = moodGenRef.current;
+    setWalkMs(ms);
+    moveTo(target);
+    schedule(() => {
+      if (moodGenRef.current !== generation || fieldFindRef.current?.id !== find.id) return;
+      setWalkMs(0);
+      updateMood("find");
+      updateFacing(facingForDirection(side));
+      updateFieldFind({ ...find, picking: "crouch" });
+      say(pickLine(LINES.findSelf), 1600, { topic: "find" });
+      schedule(() => {
+        if (fieldFindRef.current?.id === find.id) collectFieldFind({ self: true });
+      }, FIND_CROUCH_MS);
+    }, ms + 60);
+  }
+
+  function collectFieldFind({ self = false } = {}) {
     const fieldFind = fieldFindRef.current;
     if (moodRef.current === "hunt") return;
     if (!fieldFind) return;
+    // Un clic mientras va a por el no lo recoge dos veces.
+    if (fieldFind.picking && !self) return;
     window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
       detail: { type: "field-find", id: fieldFind.id }
     }));
@@ -178,9 +220,13 @@ function createEncounters(core, { setFieldFind, setCreature, setEnemy, startRain
     const encounterId = enemyEncounterRef.current + 1;
     enemyEncounterRef.current = encounterId;
     const bug = ENEMY_BUGS[Math.floor(Math.random() * ENEMY_BUGS.length)];
-    const tools = inventoryRef.current.includes("wrench") ? ["wrench"] : ["net", "laser", "flyswatter"];
-    const weapon = ["wrench", "net", "laser", "flyswatter"].includes(forcedWeapon)
-      ? forcedWeapon
+    // Martillo, red o pistola; con la llave inglesa, la pistola pesada. Los
+    // nombres viejos (consola) siguen valiendo.
+    const tools = inventoryRef.current.includes("wrench") ? ["heavy"] : ["hammer", "net", "gun"];
+    const legacy = { wrench: "heavy", laser: "gun", flyswatter: "hammer" };
+    const forced = legacy[forcedWeapon] || forcedWeapon;
+    const weapon = ["hammer", "net", "gun", "heavy"].includes(forced)
+      ? forced
       : tools[Math.floor(Math.random() * tools.length)];
     const side = inwardEventDirection(Math.random() < 0.5 ? -1 : 1);
     setEnemy({ ...bug, weapon, side, phase: "stalk" });

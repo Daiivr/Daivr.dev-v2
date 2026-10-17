@@ -226,10 +226,6 @@
 
   /* Ojos: el grupo sigue al cursor; --buddy-facing compensa el espejo del
      sprite para que la mirada apunte al lado visualmente correcto. */
-  .buddy-eye-track {
-    transform: translate(calc(var(--buddy-eye-x, 0px) * var(--buddy-facing, 1)), var(--buddy-eye-y, 0px));
-    transition: transform 140ms ease-out;
-  }
 
   .buddy-eye {
     transform-box: fill-box;
@@ -237,53 +233,11 @@
     animation: buddy-blink 4.4s infinite;
   }
 
-  .buddy-green-visor {
-    filter: drop-shadow(0 0 3px rgba(63, 255, 151, 0.75));
-    animation: buddy-visor-glint 2.1s steps(2, end) infinite;
-  }
-
   /* Los LEDs laten con fill-opacity: opacity en un elemento SVG cambia sus
      propiedades de pintado y obliga a recomponer las capas de toda la pagina en
      cada frame; fill-opacity solo repinta el rect. */
-  .buddy-led {
-    animation: buddy-led-fill 1.8s ease-in-out infinite;
-  }
-
-  .buddy-antenna-spark {
-    opacity: 0;
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-
-  .screen-buddy-root.is-walk .buddy-antenna-spark,
-  .screen-buddy-root.is-sleepy .buddy-antenna-spark,
-  .screen-buddy-root.is-chute .buddy-antenna-spark,
-  .screen-buddy-root.is-dance .buddy-antenna-spark {
-    animation: buddy-antenna-spark-trail 0.62s steps(3, end) infinite;
-  }
-
-  .screen-buddy-root.is-walk .buddy-antenna-spark-b,
-  .screen-buddy-root.is-sleepy .buddy-antenna-spark-b,
-  .screen-buddy-root.is-chute .buddy-antenna-spark-b,
-  .screen-buddy-root.is-dance .buddy-antenna-spark-b {
-    animation-delay: 120ms;
-  }
-
-  .screen-buddy-root.is-walk .buddy-antenna-spark-c,
-  .screen-buddy-root.is-sleepy .buddy-antenna-spark-c,
-  .screen-buddy-root.is-chute .buddy-antenna-spark-c,
-  .screen-buddy-root.is-dance .buddy-antenna-spark-c {
-    animation-delay: 240ms;
-  }
-
-  .buddy-power {
-    animation: buddy-led-fill 2.6s ease-in-out infinite;
-  }
 
   /* Hablando: la antena "transmite" */
-  .screen-buddy-root.is-talk .buddy-led {
-    animation: buddy-led-fill 0.32s steps(2, end) infinite;
-  }
 
   /* Escenario del splash de entrada: ancla al buddy perchado sobre la puerta
      (la puerta recorta con clip-path, por eso el buddy vive en el wrapper). */
@@ -384,14 +338,6 @@
     display: none;
   }
 
-  .buddy-drop.is-held .buddy-leg-l {
-    animation: buddy-dangle 1.15s ease-in-out infinite;
-  }
-
-  .buddy-drop.is-held .buddy-leg-r {
-    animation: buddy-dangle 1.15s ease-in-out 0.35s infinite;
-  }
-
   /* Burbuja del que cae: por encima de la cupula (o cerca si esta plegada) */
   .buddy-drop-bubble {
     bottom: calc(100% + 70px);
@@ -424,24 +370,6 @@
     animation: buddy-walk-sprite 0.46s ease-in-out infinite;
   }
 
-  .buddy-leg {
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-
-  .buddy-leg-foot {
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-
-  .screen-buddy-root.is-walk:not(.has-rocket-boots) .buddy-leg-foot-l {
-    animation: buddy-foot-stride 0.46s ease-in-out infinite;
-  }
-
-  .screen-buddy-root.is-walk:not(.has-rocket-boots) .buddy-leg-foot-r {
-    animation: buddy-foot-stride 0.46s ease-in-out infinite reverse;
-  }
-
   .screen-buddy-root.is-walk .screen-buddy-shadow {
     animation: buddy-walk-shadow 0.46s ease-in-out infinite;
   }
@@ -467,14 +395,6 @@
     animation: buddy-dance 0.62s ease-in-out infinite;
   }
 
-  .screen-buddy-root.is-dance .buddy-leg-foot-l {
-    animation: buddy-foot-stride 0.31s linear infinite;
-  }
-
-  .screen-buddy-root.is-dance .buddy-leg-foot-r {
-    animation: buddy-foot-stride 0.31s linear infinite reverse;
-  }
-
   /* FX transitorios */
   .screen-buddy-root.fx-dizzy .screen-buddy-sprite {
     animation: buddy-dizzy 0.5s ease-in-out 3;
@@ -493,137 +413,21 @@
     animation: buddy-glitchy 0.9s steps(6, end);
   }
 
-  .screen-buddy-root.fx-static .buddy-screen {
-    animation: buddy-static 0.7s steps(5, end);
-  }
-
-  .screen-buddy-root.fx-scan .buddy-eye-track {
-    animation: buddy-look-around 1.6s ease-in-out;
-  }
-
   /* Paracaidas: solo visible en modo chute; el cuerpo entero pendulea.
      Las cuerdas se solapan 4px con la cabeza para verse "atadas". */
-  .screen-buddy-chute-canopy {
-    position: absolute;
-    bottom: calc(100% - 4px);
-    left: 50%;
-    display: none;
-    width: 80px;
-    height: auto;
-    overflow: visible;
-    transform: translateX(-50%);
-    filter: drop-shadow(0 0 8px rgba(255, 61, 157, 0.3));
-  }
-
-  .screen-buddy-root.is-chute .screen-buddy-chute-canopy {
-    display: block;
-  }
 
   .screen-buddy-root.is-chute .screen-buddy-body {
     animation: buddy-chute-sway 1.15s ease-in-out infinite;
     transform-origin: 50% -38px;
   }
 
-  .buddy-chute-wind,
-  .buddy-chute-canopy-shell,
-  .buddy-chute-panel,
-  .buddy-chute-skirt,
-  .buddy-chute-cell,
-  .buddy-chute-lines,
-  .buddy-chute-harness {
+  .buddy-chute-cell {
     transform-box: fill-box;
-  }
-
-  .buddy-chute-wind {
-    transform-origin: 50% 100%;
-    animation: buddy-chute-wind-drift 2.2s ease-in-out infinite;
-  }
-
-  .buddy-chute-canopy-shell {
-    transform-origin: 50% 100%;
-    transform: translateY(3px);
-    animation: buddy-chute-canopy-breathe 1.8s cubic-bezier(0.42, 0, 0.28, 1) infinite;
-  }
-
-  .buddy-chute-skirt {
-    transform-origin: 50% 0;
-    transform: translateY(10px) scale(0.92, 0.9);
-    animation: buddy-chute-rear-breathe 1.8s ease-in-out infinite;
-  }
-
-  .buddy-chute-lines {
-    transform-origin: 50% 100%;
-    animation: buddy-chute-line-tension 1.8s ease-in-out infinite;
-  }
-
-  .buddy-chute-line-outline {
-    stroke: #020604;
-    stroke-width: 3.5px;
-  }
-
-  .buddy-chute-line-core {
-    stroke: rgba(224, 246, 250, 0.96);
-    stroke-width: 1.35px;
-    filter: drop-shadow(0 0 1px rgba(69, 216, 255, 0.72));
-  }
-
-  .buddy-chute-harness {
-    transform-origin: 50% 0;
-    animation: buddy-chute-harness-pull 1.8s ease-in-out infinite;
-  }
-
-  .buddy-chute-art.is-upgraded {
-    filter:
-      drop-shadow(0 0 4px rgba(69, 216, 255, 0.28))
-      drop-shadow(0 0 8px rgba(63, 255, 151, 0.16));
   }
 
   .screen-buddy-root.has-rocket-boots.is-chute .screen-buddy-body {
     animation: buddy-rocket-cushion 0.48s ease-in-out infinite;
     transform-origin: 50% 90%;
-  }
-
-  .buddy-drop.has-rocket-boots:not(.is-held) .buddy-drop-body::before,
-  .buddy-drop.has-rocket-boots:not(.is-held) .buddy-drop-body::after,
-  .screen-buddy-root.has-rocket-boots.is-chute .screen-buddy-body::before,
-  .screen-buddy-root.has-rocket-boots.is-chute .screen-buddy-body::after,
-  .screen-buddy-root.has-rocket-boots.is-walk .screen-buddy-body::before,
-  .screen-buddy-root.has-rocket-boots.is-walk .screen-buddy-body::after,
-  .screen-buddy-root.has-rocket-boots.is-sleepy .screen-buddy-body::before,
-  .screen-buddy-root.has-rocket-boots.is-sleepy .screen-buddy-body::after {
-    position: absolute;
-    top: calc(100% - 4px);
-    z-index: 0;
-    width: 12px;
-    height: 28px;
-    pointer-events: none;
-    content: "";
-    background:
-      linear-gradient(180deg, #f4fff8 0 14%, #ffd166 14% 34%, #ff3d9d 34% 62%, transparent 62%),
-      repeating-linear-gradient(180deg, transparent 0 5px, rgba(255, 255, 255, 0.32) 5px 7px);
-    clip-path: polygon(28% 0, 72% 0, 100% 54%, 58% 100%, 50% 82%, 42% 100%, 0 54%);
-    filter:
-      drop-shadow(0 0 5px rgba(255, 209, 102, 0.78))
-      drop-shadow(0 0 12px rgba(255, 61, 157, 0.45));
-    mix-blend-mode: screen;
-    opacity: 0.92;
-    transform-origin: 50% 0;
-    animation: buddy-rocket-plume 0.18s steps(2, end) infinite;
-  }
-
-  .buddy-drop.has-rocket-boots:not(.is-held) .buddy-drop-body::before,
-  .screen-buddy-root.has-rocket-boots.is-chute .screen-buddy-body::before,
-  .screen-buddy-root.has-rocket-boots.is-walk .screen-buddy-body::before,
-  .screen-buddy-root.has-rocket-boots.is-sleepy .screen-buddy-body::before {
-    left: 15px;
-  }
-
-  .buddy-drop.has-rocket-boots:not(.is-held) .buddy-drop-body::after,
-  .screen-buddy-root.has-rocket-boots.is-chute .screen-buddy-body::after,
-  .screen-buddy-root.has-rocket-boots.is-walk .screen-buddy-body::after,
-  .screen-buddy-root.has-rocket-boots.is-sleepy .screen-buddy-body::after {
-    right: 15px;
-    animation-delay: 90ms;
   }
 
   .screen-buddy-root.has-rocket-boots.is-walk .screen-buddy-body,
@@ -637,44 +441,15 @@
     animation: buddy-rocket-hover-screen 0.92s ease-in-out infinite;
   }
 
-  .screen-buddy-root.has-rocket-boots.is-walk .buddy-leg-l,
-  .screen-buddy-root.has-rocket-boots.is-walk .buddy-leg-r,
-  .screen-buddy-root.has-rocket-boots.is-sleepy .buddy-leg-l,
-  .screen-buddy-root.has-rocket-boots.is-sleepy .buddy-leg-r {
-    animation: buddy-rocket-leg-float 0.92s ease-in-out infinite;
-  }
-
-  .screen-buddy-root.has-rocket-boots.is-walk .buddy-leg-r,
-  .screen-buddy-root.has-rocket-boots.is-sleepy .buddy-leg-r {
-    animation-delay: 140ms;
-  }
-
   .screen-buddy-root.has-rocket-boots.is-walk .screen-buddy-shadow,
   .screen-buddy-root.has-rocket-boots.is-sleepy .screen-buddy-shadow {
     animation: buddy-rocket-shadow 0.92s ease-in-out infinite;
-  }
-
-  .screen-buddy-root.has-rocket-boots.is-walk .screen-buddy-body::before,
-  .screen-buddy-root.has-rocket-boots.is-walk .screen-buddy-body::after,
-  .screen-buddy-root.has-rocket-boots.is-sleepy .screen-buddy-body::before,
-  .screen-buddy-root.has-rocket-boots.is-sleepy .screen-buddy-body::after {
-    height: 18px;
-    opacity: 0.74;
-    animation-duration: 0.24s;
   }
 
   /* Agarrado: patas colgando y meneo pendular */
   .screen-buddy-root.is-held .screen-buddy-body {
     animation: buddy-held-wiggle 0.9s ease-in-out infinite;
     transform-origin: 50% -6px;
-  }
-
-  .screen-buddy-root.is-held .buddy-leg-l {
-    animation: buddy-dangle 1.15s ease-in-out infinite;
-  }
-
-  .screen-buddy-root.is-held .buddy-leg-r {
-    animation: buddy-dangle 1.15s ease-in-out 0.35s infinite;
   }
 
   /* En el aire no hay sombra en el piso */
@@ -691,501 +466,61 @@
     animation: buddy-bob 0.74s steps(2, end) infinite;
   }
 
-  .screen-buddy-root.is-sleepy:not(.has-rocket-boots) .buddy-leg-foot-l {
-    animation: buddy-foot-stride 0.74s linear infinite;
-  }
-
-  .screen-buddy-root.is-sleepy:not(.has-rocket-boots) .buddy-leg-foot-r {
-    animation: buddy-foot-stride 0.74s linear infinite reverse;
-  }
-
-  .screen-buddy-root.is-sleepy .buddy-screen {
-    opacity: 0.8;
-  }
-
   /* Flecos de la bufanda (amistad lv4+) */
-  .buddy-scarf-tail {
-    transform-box: fill-box;
-    transform-origin: top center;
-    animation: buddy-scarf-flutter 2.3s ease-in-out infinite;
-  }
 
   /* Coletas Miku: pendulo compuesto. La coleta se mece desde donde nace y la
      punta anidada arrastra con desfase (secondary motion). El vaiven base va
      siempre — hasta en el preview del modal — y sube de intensidad/velocidad
      cuando el buddy se mueve. Las dos coletas van en contrafase. */
-  .buddy-hair-tail {
-    transform-box: fill-box;
-    transform-origin: top center;
-    animation: buddy-hair-idle 3.2s ease-in-out infinite;
-  }
-
-  .buddy-hair-tail-r {
-    animation-delay: -1.6s;
-  }
-
-  .buddy-hair-tip {
-    transform-box: fill-box;
-    transform-origin: top center;
-    animation: buddy-hair-tip-idle 3.2s ease-in-out infinite;
-    animation-delay: -0.5s;
-  }
-
-  .buddy-hair-tail-r .buddy-hair-tip {
-    animation-delay: -2.1s;
-  }
 
   /* Caminar: agita las coletas al ritmo del cuerpo (0.46s como las patas) */
-  .screen-buddy-root.is-walk .buddy-hair-tail {
-    animation: buddy-hair-swing 0.46s ease-in-out infinite;
-  }
-
-  .screen-buddy-root.is-walk .buddy-hair-tail-r {
-    animation-delay: -0.23s;
-  }
-
-  .screen-buddy-root.is-walk .buddy-hair-tip {
-    animation: buddy-hair-tip-swing 0.46s ease-in-out infinite;
-    animation-delay: -0.12s;
-  }
-
-  .screen-buddy-root.is-walk .buddy-hair-tail-r .buddy-hair-tip {
-    animation-delay: -0.35s;
-  }
 
   /* Baile: swing mas amplio y lento (0.62s como el sprite) */
-  .screen-buddy-root.is-dance .buddy-hair-tail {
-    animation: buddy-hair-swing 0.62s ease-in-out infinite;
-  }
-
-  .screen-buddy-root.is-dance .buddy-hair-tail-r {
-    animation-delay: -0.31s;
-  }
-
-  .screen-buddy-root.is-dance .buddy-hair-tip {
-    animation: buddy-hair-tip-swing 0.62s ease-in-out infinite;
-    animation-delay: -0.16s;
-  }
 
   /* Fiesta / caricia (salto): rebote rapido de las coletas */
-  .screen-buddy-root.is-party .buddy-hair-tail,
-  .screen-buddy-root.is-pet .buddy-hair-tail {
-    animation: buddy-hair-swing 0.42s ease-in-out infinite alternate;
-  }
-
-  .screen-buddy-root.is-party .buddy-hair-tip,
-  .screen-buddy-root.is-pet .buddy-hair-tip {
-    animation: buddy-hair-tip-swing 0.42s ease-in-out infinite alternate;
-    animation-delay: -0.1s;
-  }
 
   /* Paracaidas: la caida mece el pelo lento */
-  .screen-buddy-root.is-chute .buddy-hair-tail,
-  .buddy-drop:not(.is-held) .buddy-hair-tail {
-    animation: buddy-hair-swing 1.15s ease-in-out infinite;
-  }
-
-  .screen-buddy-root.is-chute .buddy-hair-tip,
-  .buddy-drop:not(.is-held) .buddy-hair-tip {
-    animation: buddy-hair-tip-swing 1.15s ease-in-out infinite;
-    animation-delay: -0.3s;
-  }
-
-  .buddy-tool-wrench,
-  .buddy-loot-cartridge,
-  .buddy-coffee,
-  .buddy-rocket-boots {
-    filter: drop-shadow(0 0 4px currentColor);
-  }
-
-  .buddy-miku-costume-sprite {
-    filter: drop-shadow(0 0 4px rgba(72, 222, 208, 0.2));
-  }
-
-  .buddy-miku-arm,
-  .buddy-miku-leg,
-  .buddy-miku-head,
-  .buddy-miku-torso {
-    transform-box: fill-box;
-  }
-
-  .buddy-miku-arm,
-  .buddy-miku-leg {
-    transform-origin: top center;
-  }
 
   /* Four distinct gait phases: each boot lifts, passes the planted foot,
      lands, then pushes back. The left/right keyframes are explicitly offset
      rather than reversing one two-frame wobble. */
-  .screen-buddy-root.is-walk.has-miku-costume .buddy-miku-leg.buddy-miku-leg-l {
-    animation: buddy-miku-walk-leg-l 0.56s steps(4, end) infinite;
-  }
-
-  .screen-buddy-root.is-walk.has-miku-costume .buddy-miku-leg.buddy-miku-leg-r {
-    animation: buddy-miku-walk-leg-r 0.56s steps(4, end) infinite;
-  }
-
-  .screen-buddy-root.is-walk .buddy-miku-arm-l {
-    animation: buddy-miku-walk-arm 0.56s ease-in-out infinite;
-  }
-
-  .screen-buddy-root.is-walk .buddy-miku-arm-r {
-    animation: buddy-miku-walk-arm 0.56s ease-in-out -.28s infinite;
-  }
-
-  .screen-buddy-root.is-walk .buddy-miku-head {
-    transform: translateX(-.8px) rotate(-1.5deg);
-    transform-origin: bottom center;
-  }
-
-  .screen-buddy-root.is-walk .buddy-miku-torso {
-    transform: translateX(-.45px) rotate(-1deg);
-    transform-origin: bottom center;
-  }
 
   .screen-buddy-root.is-walk.has-miku-costume .screen-buddy-body,
   .screen-buddy-root.is-walk.has-miku-costume .screen-buddy-sprite,
-  .screen-buddy-root.is-walk.has-miku-costume .screen-buddy-shadow,
-  .screen-buddy-root.is-walk.has-miku-costume .buddy-hair-tail,
-  .screen-buddy-root.is-walk.has-miku-costume .buddy-hair-tip {
+  .screen-buddy-root.is-walk.has-miku-costume .screen-buddy-shadow {
     animation-duration: .56s;
   }
 
   /* While fishing she leans toward the rod and grips it with both hands.
      Cast, wait, fight and catch each get a readable little pose change. */
-  .screen-buddy-root.is-fishing .buddy-miku-head {
-    transform: translate(-1px, 1px) rotate(-3deg);
-    transform-origin: bottom center;
-  }
-
-  .screen-buddy-root.is-fishing .buddy-miku-torso {
-    transform: translate(-1px, 2px) rotate(-4deg);
-    transform-origin: bottom center;
-  }
-
-  .screen-buddy-root.is-fishing .buddy-miku-arm-l {
-    transform: translate(-6px, -3px) rotate(-58deg);
-  }
-
-  .screen-buddy-root.is-fishing .buddy-miku-arm-r {
-    transform: translate(-12px, -1px) rotate(-72deg);
-  }
-
-  .screen-buddy-root.is-fishing .buddy-miku-leg.buddy-leg-foot-l {
-    transform: translate(-2px, -2px) rotate(24deg) scaleY(.8);
-  }
-
-  .screen-buddy-root.is-fishing .buddy-miku-leg.buddy-leg-foot-r {
-    transform: translate(2px, -3px) rotate(-18deg) scaleY(.78);
-  }
-
-  .screen-buddy-root.is-fishing.has-miku-costume .buddy-hair-tail-l {
-    animation: buddy-miku-fish-hair-l 1.4s ease-in-out infinite;
-  }
-
-  .screen-buddy-root.is-fishing.has-miku-costume .buddy-hair-tail-r {
-    animation: buddy-miku-fish-hair-r 1.4s ease-in-out infinite;
-  }
-
-  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-cast) .buddy-miku-arm-l {
-    animation: buddy-miku-fish-cast-front .52s cubic-bezier(.3, 1.4, .4, 1) both;
-  }
-
-  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-cast) .buddy-miku-arm-r {
-    animation: buddy-miku-fish-cast-back .52s cubic-bezier(.3, 1.4, .4, 1) both;
-  }
-
-  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-cast) .buddy-miku-head {
-    animation: buddy-miku-fish-cast-head .52s steps(3, end) both;
-  }
-
-  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-wait) .buddy-miku-arm-l,
-  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-bite) .buddy-miku-arm-l {
-    animation: buddy-miku-fish-hold .72s steps(2, end) infinite;
-  }
-
-  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-wait) .buddy-miku-arm-r,
-  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-bite) .buddy-miku-arm-r {
-    animation: buddy-miku-reel .72s steps(2, end) infinite;
-  }
-
-  .screen-buddy-root.is-fishing.is-fish-fight.has-miku-costume .buddy-miku-arm-l,
-  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-monster) .buddy-miku-arm-l {
-    animation: buddy-miku-fish-pull-front .28s steps(2, end) infinite;
-  }
-
-  .screen-buddy-root.is-fishing.is-fish-fight.has-miku-costume .buddy-miku-arm-r,
-  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-monster) .buddy-miku-arm-r {
-    animation: buddy-miku-fish-pull-back .28s steps(2, end) infinite reverse;
-  }
-
-  .screen-buddy-root.is-fishing.is-fish-fight.has-miku-costume .buddy-miku-torso,
-  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-monster) .buddy-miku-torso {
-    animation: buddy-miku-fish-brace .28s steps(2, end) infinite;
-  }
-
-  .screen-buddy-root.is-fishing.is-fish-fight.has-miku-costume .buddy-miku-leg-l,
-  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-monster) .buddy-miku-leg-l {
-    transform: translate(-4px, -1px) rotate(28deg) scaleY(.82);
-  }
-
-  .screen-buddy-root.is-fishing.is-fish-fight.has-miku-costume .buddy-miku-leg-r,
-  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-monster) .buddy-miku-leg-r {
-    transform: translate(4px, 0) rotate(-24deg) scaleY(.86);
-  }
-
-  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-catch) .buddy-miku-arm-l {
-    animation: buddy-miku-catch-cheer-l .68s steps(4, end) both;
-  }
-
-  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-catch) .buddy-miku-arm-r {
-    animation: buddy-miku-catch-cheer-r .68s steps(4, end) both;
-  }
-
-  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-catch) .buddy-miku-head,
-  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-catch) .buddy-miku-torso {
-    animation: buddy-miku-catch-hop .68s steps(4, end) both;
-  }
-
-  .screen-buddy-root.is-fishing.has-miku-costume:has(.buddy-fishing-rig.is-catch) .buddy-hair-tail {
-    animation: buddy-miku-catch-hair .68s steps(4, end) both;
-  }
 
   /* Collectibles get a small kneel-and-reach pose instead of the robot's
      upright scan. Mirroring the whole sprite keeps the hand on the find side. */
-  .screen-buddy-root.is-find.has-miku-costume .buddy-miku-head {
-    transform: translate(-2px, 3px) rotate(-8deg);
-    transform-origin: bottom center;
-  }
-
-  .screen-buddy-root.is-find.has-miku-costume .buddy-miku-torso {
-    transform: translate(-2px, 4px) rotate(-7deg);
-    transform-origin: bottom center;
-  }
-
-  .screen-buddy-root.is-find.has-miku-costume .buddy-miku-arm-l {
-    animation: buddy-miku-find-reach .9s steps(3, end) infinite;
-  }
-
-  .screen-buddy-root.is-find.has-miku-costume .buddy-miku-arm-r {
-    transform: translate(-4px, 1px) rotate(-24deg);
-  }
-
-  .screen-buddy-root.is-find.has-miku-costume .buddy-miku-leg-l {
-    transform: translate(-2px, -1px) rotate(22deg) scaleY(.72);
-  }
-
-  .screen-buddy-root.is-find.has-miku-costume .buddy-miku-leg-r {
-    transform: translate(2px, 1px) rotate(-12deg) scaleY(.82);
-  }
-
-  .screen-buddy-root.is-find.has-miku-costume .buddy-hair-tail {
-    animation: buddy-miku-find-hair 1.2s ease-in-out infinite;
-  }
 
   /* Bug encounters use Miku's actual shoulders, stance and twin-tails.
      Each weapon gets a distinct attack so netting and laser fire no longer
      look like a prop floating beside an unrelated idle sprite. */
-  .screen-buddy-root.is-hunt.has-miku-costume .buddy-miku-head {
-    transform: translate(-2px, 1px) rotate(-5deg);
-    transform-origin: bottom center;
-  }
-
-  .screen-buddy-root.is-hunt.has-miku-costume .buddy-miku-torso {
-    transform: translate(-2px, 2px) rotate(-5deg);
-    transform-origin: bottom center;
-  }
-
-  .screen-buddy-root.is-hunt.has-miku-costume .buddy-miku-arm-l {
-    transform: translate(-5px, -2px) rotate(-48deg);
-  }
-
-  .screen-buddy-root.is-hunt.has-miku-costume .buddy-miku-arm-r {
-    transform: translate(-8px, -1px) rotate(-62deg);
-  }
-
-  .screen-buddy-root.is-hunt.has-miku-costume .buddy-miku-leg-l {
-    transform: translate(-3px, 0) rotate(18deg) scaleY(.9);
-  }
-
-  .screen-buddy-root.is-hunt.has-miku-costume .buddy-miku-leg-r {
-    transform: translate(3px, 0) rotate(-15deg) scaleY(.92);
-  }
-
-  .screen-buddy-root.is-hunt.has-miku-costume .buddy-hair-tail-l {
-    animation: buddy-miku-hunt-hair-l .48s steps(2, end) infinite;
-  }
-
-  .screen-buddy-root.is-hunt.has-miku-costume .buddy-hair-tail-r {
-    animation: buddy-miku-hunt-hair-r .48s steps(2, end) infinite;
-  }
 
   .screen-buddy-root.is-hunt.has-miku-costume .screen-buddy-sprite {
     animation: buddy-miku-hunt-ready .48s steps(3, end) infinite;
-  }
-
-  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-attack.weapon-wrench) .buddy-miku-arm,
-  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-attack.weapon-flyswatter) .buddy-miku-arm {
-    animation: buddy-miku-bug-smash .72s steps(5, end) both;
-  }
-
-  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-attack.weapon-net) .buddy-miku-arm-l {
-    animation: buddy-miku-bug-net-l .72s steps(5, end) both;
-  }
-
-  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-attack.weapon-net) .buddy-miku-arm-r {
-    animation: buddy-miku-bug-net-r .72s steps(5, end) both;
-  }
-
-  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-attack.weapon-laser) .buddy-miku-arm-l {
-    animation: buddy-miku-bug-laser-l .32s steps(3, end) 2;
-  }
-
-  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-attack.weapon-laser) .buddy-miku-arm-r {
-    animation: buddy-miku-bug-laser-r .32s steps(3, end) 2;
   }
 
   .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-attack) .screen-buddy-sprite {
     animation: buddy-miku-hunt-lunge .72s steps(6, end) both;
   }
 
-  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-hit) .buddy-miku-arm-l {
-    animation: buddy-miku-bug-win-l .62s steps(4, end) both;
-  }
-
-  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-hit) .buddy-miku-arm-r {
-    animation: buddy-miku-bug-win-r .62s steps(4, end) both;
-  }
-
-  .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-hit) .buddy-hair-tail {
-    animation: buddy-miku-catch-hair .62s steps(4, end) both;
-  }
-
   .screen-buddy-root.is-hunt.has-miku-costume:has(.phase-hit) .screen-buddy-sprite {
     animation: buddy-miku-hunt-win .62s steps(4, end) both;
   }
 
-  .theme-glitch .buddy-miku-costume-sprite {
-    filter: drop-shadow(-1px 0 #3fff97) drop-shadow(1px 0 #ff3d9d) drop-shadow(0 0 9px rgba(72, 222, 208, 0.36));
-  }
-
-  .buddy-carry-item {
-    transform-box: fill-box;
-    transform-origin: 22% 18%;
-  }
-
-  .screen-buddy-root.is-walk .buddy-carry-item,
-  .screen-buddy-root.is-sleepy .buddy-carry-item {
-    animation: buddy-cartridge-carry 0.46s ease-in-out infinite;
-  }
-
-  .screen-buddy-root.has-rocket-boots.is-walk .buddy-carry-item,
-  .screen-buddy-root.has-rocket-boots.is-sleepy .buddy-carry-item {
-    animation: buddy-cartridge-hover-carry 0.92s ease-in-out infinite;
-  }
-
-  .screen-buddy-root.is-chute .buddy-carry-item,
-  .buddy-drop:not(.is-held) .buddy-carry-item {
-    animation: buddy-cartridge-swing 1.15s ease-in-out infinite;
-  }
-
-  .screen-buddy-root.is-held .buddy-carry-item,
-  .buddy-drop.is-held .buddy-carry-item {
-    animation: buddy-cartridge-held-swing 0.9s ease-in-out infinite;
-  }
-
-  .screen-buddy-root.is-dance .buddy-tool-wrench,
-  .screen-buddy-root.is-dance .buddy-loot-cartridge,
-  .screen-buddy-root.is-dance .buddy-coffee {
-    animation: buddy-inventory-jiggle 0.62s ease-in-out infinite;
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-
-  .screen-buddy-root.is-walk .buddy-rocket-boots,
-  .screen-buddy-root.is-sleepy .buddy-rocket-boots,
-  .screen-buddy-root.is-dance .buddy-rocket-boots {
-    animation: buddy-rocket-flicker 0.32s steps(2, end) infinite;
-  }
-
-  .buddy-rocket-flame {
-    transform-box: fill-box;
-    transform-origin: top center;
-  }
-
-  .buddy-miku-thruster {
-    transform-box: fill-box;
-    transform-origin: center top;
-    filter: drop-shadow(0 1px 1px rgba(255, 61, 157, 0.9));
-    animation: buddy-rocket-flicker 0.24s steps(2, end) infinite;
-  }
-
   /* Miku's boost is part of each SVG boot, so it follows that boot's gait,
      facing mirror and hover pose instead of using the robot's fixed nozzles. */
-  .buddy-miku-rocket-flame {
-    opacity: 0;
-    transform-box: fill-box;
-    transform-origin: center top;
-    filter:
-      drop-shadow(0 0 2px rgba(255, 209, 102, 0.95))
-      drop-shadow(0 0 5px rgba(255, 61, 157, 0.68));
-  }
-
-  .buddy-drop.has-miku-costume.has-rocket-boots:not(.is-held) .buddy-miku-rocket-flame,
-  .screen-buddy-root.has-miku-costume.has-rocket-boots.is-chute .buddy-miku-rocket-flame,
-  .screen-buddy-root.has-miku-costume.has-rocket-boots.is-walk .buddy-miku-rocket-flame,
-  .screen-buddy-root.has-miku-costume.has-rocket-boots.is-sleepy .buddy-miku-rocket-flame {
-    opacity: 1;
-    animation: buddy-miku-rocket-boost 0.18s steps(2, end) infinite;
-  }
-
-  .buddy-drop.has-miku-costume.has-rocket-boots:not(.is-held) .buddy-miku-rocket-flame-r,
-  .screen-buddy-root.has-miku-costume.has-rocket-boots.is-chute .buddy-miku-rocket-flame-r,
-  .screen-buddy-root.has-miku-costume.has-rocket-boots.is-walk .buddy-miku-rocket-flame-r,
-  .screen-buddy-root.has-miku-costume.has-rocket-boots.is-sleepy .buddy-miku-rocket-flame-r {
-    animation-delay: 90ms;
-  }
-
-  .buddy-drop.has-miku-costume.has-rocket-boots .buddy-drop-body::before,
-  .buddy-drop.has-miku-costume.has-rocket-boots .buddy-drop-body::after,
-  .screen-buddy-root.has-miku-costume.has-rocket-boots .screen-buddy-body::before,
-  .screen-buddy-root.has-miku-costume.has-rocket-boots .screen-buddy-body::after {
-    content: none;
-  }
-
-  .buddy-drop.has-rocket-boots:not(.is-held) .buddy-rocket-boots,
-  .screen-buddy-root.has-rocket-boots.is-chute .buddy-rocket-boots {
-    animation: buddy-rocket-flicker 0.18s steps(2, end) infinite;
-  }
-
-  .buddy-drop.has-rocket-boots:not(.is-held) .buddy-rocket-flame,
-  .screen-buddy-root.has-rocket-boots.is-chute .buddy-rocket-flame {
-    animation: buddy-rocket-flame-cushion 0.18s steps(2, end) infinite;
-  }
-
-  .buddy-drop.has-rocket-boots:not(.is-held) .buddy-rocket-flame-r,
-  .screen-buddy-root.has-rocket-boots.is-chute .buddy-rocket-flame-r {
-    animation-delay: 90ms;
-  }
 
   /* Dormido: pantalla atenuada, ojos en linea, sin parpadeo */
-  .screen-buddy-root.is-sleep .buddy-screen {
-    opacity: 0.6;
-  }
 
   .screen-buddy-root.is-sleep .buddy-eye {
     animation: none;
     transform: scaleY(0.22);
-  }
-
-  .screen-buddy-root.is-sleep .buddy-eye-track {
-    transform: none;
-  }
-
-  .screen-buddy-root.is-sleep .buddy-led,
-  .screen-buddy-root.is-sleep .buddy-power {
-    animation: none;
-    opacity: 0.3;
   }
 
   .screen-buddy-root.is-sleep .screen-buddy-sprite {
@@ -1193,228 +528,19 @@
     filter: drop-shadow(0 0 6px rgba(63, 255, 151, 0.14));
   }
 
-  /* Pesca: sentado en la esquina con la caña hacia el vacio; la linea cuelga
-     por delante del riel. El aparejo esta dibujado mirando a la izquierda y
-     se espeja con --buddy-facing, igual que el sprite. */
-
-  /* Skins de caña (cosmeticas, desbloqueadas pescando): pisan los fills
-     por atributo de los rects buddy-rod-*. Aplican tanto al aparejo de la
-     sesion (.buddy-fishing-rig) como a la caña de exhibicion del inventario
-     (.buddy-rod-icon). */
-  :is(.buddy-fishing-rig, .buddy-fishing-rod-overlay, .buddy-rod-icon).rod-bamboo .buddy-rod-seg {
-    fill: #3fff97;
+  /* Caña de exhibicion del inventario (BuddyRodIcon): pixel art con los
+     colores de cada skin ya pintados; las especiales brillan. */
+  .buddy-rod-icon {
+    object-fit: contain;
+    image-rendering: pixelated;
   }
 
-  :is(.buddy-fishing-rig, .buddy-fishing-rod-overlay, .buddy-rod-icon).rod-bamboo .buddy-rod-tip {
-    fill: #b4ffcf;
-  }
-
-  :is(.buddy-fishing-rig, .buddy-fishing-rod-overlay, .buddy-rod-icon).rod-neon .buddy-rod-seg {
-    fill: #ff3d9d;
-  }
-
-  :is(.buddy-fishing-rig, .buddy-fishing-rod-overlay, .buddy-rod-icon).rod-neon .buddy-rod-tip {
-    fill: #ffd166;
-  }
-
-  .buddy-fishing-rig.rod-neon .buddy-fishing-rod-art,
-  .buddy-fishing-rod-overlay.rod-neon .buddy-fishing-rod-overlay-svg,
   .buddy-rod-icon.rod-neon {
     filter: drop-shadow(0 0 6px rgba(255, 61, 157, 0.55));
   }
 
-  :is(.buddy-fishing-rig, .buddy-fishing-rod-overlay, .buddy-rod-icon).rod-golden .buddy-rod-seg {
-    fill: #ffd166;
-  }
-
-  :is(.buddy-fishing-rig, .buddy-fishing-rod-overlay, .buddy-rod-icon).rod-golden .buddy-rod-tip {
-    fill: #f4fff8;
-    animation: buddy-led-fill 1.4s ease-in-out infinite;
-  }
-
-  .buddy-fishing-rig.rod-golden .buddy-fishing-rod-art,
-  .buddy-fishing-rod-overlay.rod-golden .buddy-fishing-rod-overlay-svg,
   .buddy-rod-icon.rod-golden {
     filter: drop-shadow(0 0 7px rgba(255, 209, 102, 0.6));
-  }
-
-  /* Boya segun el señuelo puesto (mismos colores que el dije del sprite) */
-  :is(.buddy-fishing-rig, .buddy-rod-icon).lure-swift .buddy-lure-top,
-  .buddy-lucky-lure.is-lure-swift .buddy-lure-top {
-    fill: #45d8ff;
-  }
-
-  :is(.buddy-fishing-rig, .buddy-rod-icon).lure-swift .buddy-lure-bottom,
-  .buddy-lucky-lure.is-lure-swift .buddy-lure-bottom {
-    fill: #f4fff8;
-  }
-
-  :is(.buddy-fishing-rig, .buddy-rod-icon).lure-anchor .buddy-lure-top,
-  .buddy-lucky-lure.is-lure-anchor .buddy-lure-top {
-    fill: #b4ffcf;
-  }
-
-  :is(.buddy-fishing-rig, .buddy-rod-icon).lure-anchor .buddy-lure-bottom,
-  .buddy-lucky-lure.is-lure-anchor .buddy-lure-bottom {
-    fill: #45d8ff;
-  }
-
-  :is(.buddy-fishing-rig, .buddy-rod-icon).lure-magnet .buddy-lure-top,
-  .buddy-lucky-lure.is-lure-magnet .buddy-lure-top {
-    fill: #ff3d9d;
-  }
-
-  :is(.buddy-fishing-rig, .buddy-rod-icon).lure-magnet .buddy-lure-bottom,
-  .buddy-lucky-lure.is-lure-magnet .buddy-lure-bottom {
-    fill: #f4fff8;
-  }
-
-  /* The quest lucky lure uses its own gold/white bobber in the inventory
-     preview instead of falling back to the generic pink starter colors. */
-  .buddy-rod-icon.lure .buddy-lure-top {
-    fill: #ffd166;
-  }
-
-  .buddy-rod-icon.lure .buddy-lure-bottom {
-    fill: #f4fff8;
-  }
-  .buddy-fishing-rig {
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    transform: scaleX(var(--buddy-facing, 1));
-  }
-
-  .screen-buddy-root.is-fishing.has-miku-costume .buddy-fishing-svg {
-    bottom: -10px;
-    left: -12px;
-  }
-
-  .screen-buddy-root.is-fishing.has-miku-costume .buddy-fishing-rig .buddy-fishing-rod-art {
-    visibility: hidden;
-  }
-
-  .buddy-fishing-rod-overlay {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    pointer-events: none;
-    transform: scaleX(var(--buddy-facing, 1));
-  }
-
-  .buddy-fishing-rod-overlay-svg {
-    position: absolute;
-    bottom: -10px;
-    left: -12px;
-    overflow: visible;
-    filter: drop-shadow(0 0 5px rgba(69, 216, 255, 0.35));
-  }
-
-  .buddy-fishing-rod-overlay.is-cast .buddy-fishing-rod-overlay-svg {
-    animation: buddy-rod-cast 0.52s cubic-bezier(0.3, 1.4, 0.4, 1) both;
-    transform-origin: 32px 44px;
-  }
-
-  .buddy-fishing-rod-overlay.is-fight .buddy-fishing-rod-overlay-svg,
-  .buddy-fishing-rod-overlay.is-monster .buddy-fishing-rod-overlay-svg {
-    animation: buddy-rod-strain 0.5s ease-in-out infinite;
-    transform-origin: 32px 44px;
-  }
-
-  .buddy-miku-rod-grip {
-    filter: drop-shadow(0 0 2px rgba(255, 216, 200, 0.42));
-  }
-
-  .buddy-fishing-svg {
-    position: absolute;
-    bottom: -12px;
-    left: -26px;
-    overflow: visible;
-    filter: drop-shadow(0 0 5px rgba(69, 216, 255, 0.35));
-  }
-
-  /* Lanzamiento: la caña gira desde atras y queda plantada */
-  .buddy-fishing-rig.is-cast .buddy-fishing-svg {
-    animation: buddy-rod-cast 0.52s cubic-bezier(0.3, 1.4, 0.4, 1) both;
-    transform-origin: 32px 44px;
-  }
-
-  .buddy-fishing-rig.is-cast .buddy-fishing-line-group {
-    opacity: 0;
-  }
-
-  .buddy-fishing-line-group {
-    opacity: 1;
-    transform-origin: 5.5px 14px;
-    transition: opacity 240ms ease;
-    animation: buddy-line-sway 3.2s ease-in-out infinite;
-  }
-
-  .buddy-fishing-bobber {
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: buddy-bobber-bob 2.4s ease-in-out infinite;
-  }
-
-  .buddy-fishing-rig.is-bite .buddy-fishing-bobber {
-    animation: buddy-bobber-bite 0.4s ease-in-out 2;
-  }
-
-  /* Captura: recoge la linea y sube el botin */
-  .buddy-fishing-rig.is-catch .buddy-fishing-line-group {
-    animation: buddy-line-reel 0.32s ease-out both;
-  }
-
-  .buddy-fishing-loot {
-    opacity: 0;
-    transform-box: fill-box;
-  }
-
-  .buddy-fishing-rig.is-catch .buddy-fishing-loot {
-    animation: buddy-loot-up 0.55s cubic-bezier(0.25, 1.35, 0.45, 1) 0.14s both;
-  }
-
-  .buddy-fishing-rig.tier-junk .buddy-fishing-loot-core {
-    fill: #2e8f5b;
-  }
-
-  .buddy-fishing-rig.tier-common .buddy-fishing-loot-core {
-    fill: #45d8ff;
-  }
-
-  .buddy-fishing-rig.tier-rare .buddy-fishing-loot-core {
-    fill: #ffd166;
-  }
-
-  .buddy-fishing-rig.tier-rare .buddy-fishing-loot {
-    filter: drop-shadow(0 0 6px rgba(255, 209, 102, 0.9));
-  }
-
-  .buddy-fishing-rig.tier-rare .buddy-fishing-loot-glint {
-    animation: buddy-led-pulse 0.5s steps(2, end) infinite;
-  }
-
-  /* El agua tiene una linea de superficie estable y tres ondas completas que
-     nacen justo bajo la boya. */
-  .buddy-water-surface {
-    opacity: 0.72;
-    animation: buddy-water-shimmer 2.8s steps(3, end) infinite;
-  }
-
-  .buddy-ripple {
-    opacity: 0;
-    transform-box: fill-box;
-    transform-origin: center;
-    animation: buddy-ripple-out 2.4s ease-out infinite;
-  }
-
-  .buddy-ripple-b {
-    animation-delay: 0.8s;
-  }
-
-  .buddy-ripple-c {
-    animation-delay: 1.6s;
   }
 
   .buddy-fish-school {
@@ -1435,64 +561,11 @@
     animation: buddy-fish-lurk 4.1s ease-in-out infinite;
   }
 
-  .buddy-fishing-rig.is-bite .buddy-fish-biter,
-  .buddy-fishing-rig.is-fight .buddy-fish-biter {
-    animation: buddy-fish-bite 0.42s ease-in-out infinite;
-  }
-
-  .buddy-fishing-rig.is-bite .buddy-fish-mouth,
-  .buddy-fishing-rig.is-fight .buddy-fish-mouth {
-    fill: #ff3d9d;
-  }
-
-  .buddy-hook-line {
-    opacity: 0.9;
-  }
-
-  .buddy-fishing-rig.is-cast .buddy-fish-school,
-  .buddy-fishing-rig.is-catch .buddy-fish-school,
-  .buddy-fishing-rig.is-escape .buddy-fish-school {
-    opacity: 0;
-  }
-
   /* Con pique o pelea el agua se agita */
-  .buddy-fishing-rig.is-bite .buddy-ripple,
-  .buddy-fishing-rig.is-fight .buddy-ripple {
-    animation-duration: 0.55s;
-  }
-
-  .buddy-fishing-ripples {
-    transition: opacity 200ms ease;
-  }
-
-  .buddy-fishing-rig.is-cast .buddy-fishing-ripples,
-  .buddy-fishing-rig.is-catch .buddy-fishing-ripples,
-  .buddy-fishing-rig.is-escape .buddy-fishing-ripples {
-    opacity: 0;
-  }
 
   /* Pelea con un raro: caña tensada, linea latigueando, boya hundiendose */
-  .buddy-fishing-rig.is-fight .buddy-fishing-svg {
-    animation: buddy-rod-strain 0.5s ease-in-out infinite;
-    transform-origin: 32px 44px;
-  }
-
-  .buddy-fishing-rig.is-fight .buddy-fishing-line-group {
-    animation: buddy-line-fight 0.25s linear infinite;
-  }
-
-  .buddy-fishing-rig.is-fight .buddy-fishing-bobber {
-    animation: buddy-bobber-bite 0.3s ease-in-out infinite;
-  }
 
   /* Se escapo: la linea rebota recogida y la boya se pierde en el vacio */
-  .buddy-fishing-rig.is-escape .buddy-fishing-line-group {
-    animation: buddy-line-snap 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
-  }
-
-  .buddy-fishing-rig.is-escape .buddy-fishing-bobber {
-    opacity: 0;
-  }
 
   /* El buddy forcejea: tirones hacia el agua y palancas hacia atras.
      Valores planos: el espejo del sprite ya orienta el tira y afloja.
@@ -1505,19 +578,6 @@
      (el espejo del sprite ya orienta el desplazamiento hacia el vacio) */
   .screen-buddy-root.is-fishing .screen-buddy-sprite {
     animation: buddy-breathe 3.4s ease-in-out infinite;
-  }
-
-  .buddy-leg-upper {
-    transform-box: fill-box;
-    transform-origin: center;
-  }
-
-  .screen-buddy-root.is-fishing .buddy-leg-upper {
-    transform: scaleY(0.55) translateY(1.6px);
-  }
-
-  .screen-buddy-root.is-fishing .buddy-leg-foot {
-    transform: translate(-2.4px, -1.4px);
   }
 
   .screen-buddy-root.is-fishing .screen-buddy-shadow {
@@ -1535,28 +595,8 @@
   /* Paraguas pixel sobre la cabeza: se abre de golpe y luego se mece con una
      leve inclinacion hacia la lluvia (que cae de arriba a la derecha). El
      mastil queda detras del cuerpo (el sprite tiene z-index 1). */
-  .buddy-umbrella {
-    position: absolute;
-    top: 3px;
-    /* .buddy-weather extends 24px beyond the body on each side. These values
-       recenter the 40px-wide SVG canopy and scale it to cover all 64px of Buddy. */
-    left: 18px;
-    width: 76px;
-    height: 78px;
-    overflow: visible;
-    transform-origin: 50% 26%;
-    filter: drop-shadow(0 0 8px rgba(255, 61, 157, 0.3));
-    animation: buddy-umbrella-open 0.35s steps(4, end) both, buddy-umbrella-bob 2s ease-in-out 0.35s infinite;
-  }
 
   /* Gotas reventando contra la cupula: cada punto hace plink a su ritmo */
-  .buddy-umbrella-splash {
-    opacity: 0;
-    transform-box: fill-box;
-    transform-origin: center bottom;
-    animation: buddy-umbrella-plink 0.62s linear infinite;
-    animation-delay: calc(var(--splash-i) * 0.13s);
-  }
 
   /* La lluvia sale de la base de la nube que FooterSky forma encima de Buddy
      (106px sobre el riel; .buddy-weather empieza a 95px), no de mas arriba. */
@@ -1602,20 +642,6 @@
   }
 
   /* Plinks contra el riel: gotitas que rebotan en el piso alrededor */
-  .buddy-rain-plink {
-    position: absolute;
-    bottom: 0;
-    left: calc(10% + var(--plink-i) * 80%);
-    width: 2px;
-    height: 2px;
-    background: #b8f7ff;
-    opacity: 0;
-    box-shadow:
-      3px -2px 0 rgba(184, 247, 255, 0.75),
-      -3px -3px 0 rgba(244, 255, 248, 0.6);
-    animation: buddy-rain-plink-pop 0.74s linear infinite;
-    animation-delay: calc(var(--plink-i) * 0.19s);
-  }
 
   /* Bajo la lluvia respira tranquilo, no se congela */
   .screen-buddy-root.is-rain .screen-buddy-sprite {
@@ -1659,45 +685,6 @@
 
     50% {
       fill-opacity: 0.35;
-    }
-  }
-
-  @keyframes buddy-led-pulse {
-    0%,
-    100% {
-      opacity: 1;
-    }
-
-    50% {
-      opacity: 0.35;
-    }
-  }
-
-  @keyframes buddy-visor-glint {
-    0%,
-    100% {
-      opacity: 0.86;
-    }
-
-    50% {
-      opacity: 1;
-    }
-  }
-
-  @keyframes buddy-antenna-spark-trail {
-    0% {
-      opacity: 0;
-      transform: translate(0, 0) scale(0.8);
-    }
-
-    35% {
-      opacity: 1;
-      transform: translate(2px, -1px) scale(1);
-    }
-
-    100% {
-      opacity: 0;
-      transform: translate(6px, 2px) scale(0.55);
     }
   }
 
@@ -1786,21 +773,6 @@
 
     50% {
       transform: scaleX(var(--buddy-facing, 1)) rotate(1.6deg) translateY(0.8px);
-    }
-  }
-
-  @keyframes buddy-foot-stride {
-    0%,
-    100% {
-      transform: translateX(calc(var(--buddy-facing, 1) * -1.4px)) translateY(0);
-    }
-
-    35% {
-      transform: translateX(calc(var(--buddy-facing, 1) * 2.2px)) translateY(0.4px);
-    }
-
-    65% {
-      transform: translateX(calc(var(--buddy-facing, 1) * 1px)) translateY(-0.3px);
     }
   }
 
@@ -1912,46 +884,6 @@
     }
   }
 
-  @keyframes buddy-static {
-    0%,
-    100% {
-      opacity: 1;
-    }
-
-    20% {
-      opacity: 0.35;
-    }
-
-    40% {
-      opacity: 0.85;
-    }
-
-    60% {
-      opacity: 0.25;
-    }
-
-    80% {
-      opacity: 0.7;
-    }
-  }
-
-  @keyframes buddy-look-around {
-    0%,
-    100% {
-      transform: translate(0, 0);
-    }
-
-    22%,
-    38% {
-      transform: translate(-1.7px, 0);
-    }
-
-    62%,
-    82% {
-      transform: translate(1.7px, 0);
-    }
-  }
-
   @keyframes buddy-chute-sway {
     0%,
     100% {
@@ -1963,38 +895,6 @@
     }
   }
 
-  @keyframes buddy-chute-canopy-breathe {
-    0%, 100% { transform: translateY(3px) scale(1); }
-    22% { transform: translateY(3.45px) scaleX(1.022) scaleY(0.985); }
-    48% { transform: translateY(2.35px) scaleX(0.992) scaleY(1.018); }
-    72% { transform: translateY(3.25px) scaleX(1.015) scaleY(0.99); }
-  }
-
-  @keyframes buddy-chute-wind-drift {
-    0%, 100% { transform: translate(0, 0) rotate(-0.7deg); }
-    24% { transform: translate(-0.7px, 0.25px) rotate(-1.8deg); }
-    52% { transform: translate(0.35px, -0.35px) rotate(0.65deg); }
-    76% { transform: translate(0.8px, 0.15px) rotate(1.55deg); }
-  }
-
-  @keyframes buddy-chute-rear-breathe {
-    0%, 100% { transform: translateY(10px) scale(0.92, 0.9); }
-    30% { transform: translateY(10.7px) scale(0.93, 0.88); }
-    62% { transform: translateY(9.6px) scale(0.91, 0.92); }
-  }
-
-  @keyframes buddy-chute-line-tension {
-    0%, 100% { transform: skewX(0deg) scaleY(1); }
-    28% { transform: skewX(-0.65deg) scaleY(0.985); }
-    62% { transform: skewX(0.5deg) scaleY(1.012); }
-  }
-
-  @keyframes buddy-chute-harness-pull {
-    0%, 100% { transform: translate(0, 0); }
-    28% { transform: translate(-0.2px, -0.35px); }
-    62% { transform: translate(0.25px, 0.55px); }
-  }
-
   @keyframes buddy-held-wiggle {
     0%,
     100% {
@@ -2003,17 +903,6 @@
 
     50% {
       transform: rotate(3deg);
-    }
-  }
-
-  @keyframes buddy-dangle {
-    0%,
-    100% {
-      transform: translateY(0.6px);
-    }
-
-    50% {
-      transform: translateY(2px);
     }
   }
 
@@ -2028,166 +917,6 @@
     }
   }
 
-  @keyframes buddy-hair-idle {
-    0%,
-    100% {
-      transform: rotate(-3deg);
-    }
-
-    50% {
-      transform: rotate(3deg);
-    }
-  }
-
-  @keyframes buddy-hair-tip-idle {
-    0%,
-    100% {
-      transform: rotate(2.5deg);
-    }
-
-    50% {
-      transform: rotate(-5deg);
-    }
-  }
-
-  @keyframes buddy-hair-swing {
-    0%,
-    100% {
-      transform: rotate(-9deg) translateY(0);
-    }
-
-    50% {
-      transform: rotate(8deg) translateY(0.6px);
-    }
-  }
-
-  @keyframes buddy-hair-tip-swing {
-    0%,
-    100% {
-      transform: rotate(7deg);
-    }
-
-    50% {
-      transform: rotate(-8deg);
-    }
-  }
-
-  @keyframes buddy-miku-walk-leg-l {
-    0%, 100% { transform: translateY(0) scaleY(1); }
-    25% { transform: translateY(-3px) scaleY(.9); }
-    50% { transform: translateY(-1px) scaleY(.96); }
-    75% { transform: translateY(0) scaleY(1.04); }
-  }
-
-  @keyframes buddy-miku-walk-leg-r {
-    0%, 100% { transform: translateY(-1px) scaleY(.96); }
-    25% { transform: translateY(0) scaleY(1.04); }
-    50% { transform: translateY(0) scaleY(1); }
-    75% { transform: translateY(-3px) scaleY(.9); }
-  }
-
-  @keyframes buddy-miku-walk-arm {
-    0%, 100% { transform: rotate(-9deg) translateY(0); }
-    50% { transform: rotate(10deg) translateY(-1px); }
-  }
-
-  @keyframes buddy-miku-fish-hair-l {
-    0%, 100% { transform: rotate(1deg) translateY(0); }
-    50% { transform: rotate(5deg) translateY(1px); }
-  }
-
-  @keyframes buddy-miku-fish-hair-r {
-    0%, 100% { transform: rotate(-1deg) translateY(1px); }
-    50% { transform: rotate(-5deg) translateY(0); }
-  }
-
-  @keyframes buddy-miku-fish-cast-front {
-    0% { transform: translate(2px, -3px) rotate(38deg); }
-    48% { transform: translate(-9px, -7px) rotate(-94deg); }
-    100% { transform: translate(-7px, -2px) rotate(-64deg); }
-  }
-
-  @keyframes buddy-miku-fish-cast-back {
-    0% { transform: translate(1px, -2px) rotate(28deg); }
-    48% { transform: translate(-12px, -5px) rotate(-82deg); }
-    100% { transform: translate(-11px, -1px) rotate(-70deg); }
-  }
-
-  @keyframes buddy-miku-fish-cast-head {
-    0% { transform: translate(1px, 0) rotate(4deg); }
-    48% { transform: translate(-2px, -1px) rotate(-7deg); }
-    100% { transform: translate(-1px, 1px) rotate(-3deg); }
-  }
-
-  @keyframes buddy-miku-fish-hold {
-    0%, 100% { transform: translate(-6px, -3px) rotate(-58deg); }
-    50% { transform: translate(-7px, -2px) rotate(-61deg); }
-  }
-
-  @keyframes buddy-miku-reel {
-    0%, 100% { transform: translate(-12px, -1px) rotate(-72deg); }
-    50% { transform: translate(-10px, -3px) rotate(-62deg); }
-  }
-
-  @keyframes buddy-miku-fish-pull-front {
-    0% { transform: translate(-10px, -1px) rotate(-78deg); }
-    100% { transform: translate(-5px, -6px) rotate(-48deg); }
-  }
-
-  @keyframes buddy-miku-fish-pull-back {
-    0% { transform: translate(-13px, 0) rotate(-82deg); }
-    100% { transform: translate(-8px, -5px) rotate(-58deg); }
-  }
-
-  @keyframes buddy-miku-fish-brace {
-    0% { transform: translate(-3px, 3px) rotate(-8deg); }
-    100% { transform: translate(0, 1px) rotate(1deg); }
-  }
-
-  @keyframes buddy-miku-catch-cheer-l {
-    0% { transform: translate(-8px, -2px) rotate(-66deg); }
-    45% { transform: translate(-1px, -10px) rotate(-154deg); }
-    72%, 100% { transform: translate(1px, -7px) rotate(-126deg); }
-  }
-
-  @keyframes buddy-miku-catch-cheer-r {
-    0% { transform: translate(-11px, -1px) rotate(-70deg); }
-    45% { transform: translate(2px, -10px) rotate(142deg); }
-    72%, 100% { transform: translate(0, -7px) rotate(116deg); }
-  }
-
-  @keyframes buddy-miku-catch-hop {
-    0%, 100% { transform: translateY(0); }
-    45% { transform: translateY(-4px); }
-    72% { transform: translateY(-1px); }
-  }
-
-  @keyframes buddy-miku-catch-hair {
-    0%, 100% { transform: translateY(0) rotate(0); }
-    45% { transform: translateY(-5px) rotate(-7deg); }
-    72% { transform: translateY(-1px) rotate(4deg); }
-  }
-
-  @keyframes buddy-miku-find-reach {
-    0%, 100% { transform: translate(-5px, -2px) rotate(-62deg); }
-    50% { transform: translate(-9px, 1px) rotate(-84deg); }
-  }
-
-  @keyframes buddy-miku-find-hair {
-    0%, 100% { transform: translateY(2px) rotate(2deg); }
-    50% { transform: translateY(0) rotate(-3deg); }
-  }
-
-  @keyframes buddy-miku-hunt-hair-l {
-    0%, 100% { transform: translateX(0) rotate(2deg); }
-    50% { transform: translateX(2px) rotate(7deg); }
-  }
-
-  @keyframes buddy-miku-hunt-hair-r {
-    0%, 100% { transform: translateX(0) rotate(-2deg); }
-    50% { transform: translateX(2px) rotate(-7deg); }
-  }
-
   @keyframes buddy-miku-hunt-ready {
     0%, 100% { transform: scaleX(var(--buddy-facing)) translateY(0) rotate(-1deg); }
     50% { transform: scaleX(var(--buddy-facing)) translateY(-1px) rotate(1deg); }
@@ -2197,44 +926,6 @@
     0% { transform: scaleX(var(--buddy-facing)) translateX(0) translateY(0); }
     48% { transform: scaleX(var(--buddy-facing)) translateX(7px) translateY(-3px) rotate(5deg); }
     72%, 100% { transform: scaleX(var(--buddy-facing)) translateX(9px) translateY(0) rotate(3deg); }
-  }
-
-  @keyframes buddy-miku-bug-smash {
-    0% { transform: translate(-4px, -3px) rotate(-72deg); }
-    38% { transform: translate(0, -10px) rotate(-152deg); }
-    70%, 100% { transform: translate(-12px, 2px) rotate(-28deg); }
-  }
-
-  @keyframes buddy-miku-bug-net-l {
-    0% { transform: translate(-4px, -2px) rotate(-52deg); }
-    45% { transform: translate(-11px, -8px) rotate(-112deg); }
-    100% { transform: translate(-14px, 3px) rotate(-36deg); }
-  }
-
-  @keyframes buddy-miku-bug-net-r {
-    0% { transform: translate(-7px, -1px) rotate(-62deg); }
-    45% { transform: translate(-13px, -6px) rotate(-98deg); }
-    100% { transform: translate(-11px, 4px) rotate(-27deg); }
-  }
-
-  @keyframes buddy-miku-bug-laser-l {
-    0%, 100% { transform: translate(-7px, -2px) rotate(-66deg); }
-    50% { transform: translate(-9px, -1px) rotate(-72deg); }
-  }
-
-  @keyframes buddy-miku-bug-laser-r {
-    0%, 100% { transform: translate(-11px, -1px) rotate(-76deg); }
-    50% { transform: translate(-13px, 0) rotate(-82deg); }
-  }
-
-  @keyframes buddy-miku-bug-win-l {
-    0% { transform: translate(-8px, -1px) rotate(-52deg); }
-    55%, 100% { transform: translate(1px, -8px) rotate(-138deg); }
-  }
-
-  @keyframes buddy-miku-bug-win-r {
-    0% { transform: translate(-8px, -1px) rotate(-62deg); }
-    55%, 100% { transform: translate(1px, -8px) rotate(128deg); }
   }
 
   @keyframes buddy-miku-hunt-win {
@@ -2259,75 +950,6 @@
     }
   }
 
-  @keyframes buddy-rod-cast {
-    0% {
-      transform: rotate(-58deg);
-    }
-
-    62% {
-      transform: rotate(9deg);
-    }
-
-    100% {
-      transform: rotate(0deg);
-    }
-  }
-
-  @keyframes buddy-line-sway {
-    0%,
-    100% {
-      transform: rotate(-2.4deg);
-    }
-
-    50% {
-      transform: rotate(2.4deg);
-    }
-  }
-
-  @keyframes buddy-bobber-bob {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-
-    50% {
-      transform: translateY(2px);
-    }
-  }
-
-  @keyframes buddy-bobber-bite {
-    0%,
-    100% {
-      transform: translateY(0);
-    }
-
-    50% {
-      transform: translateY(6px);
-    }
-  }
-
-  @keyframes buddy-line-reel {
-    to {
-      transform: scaleY(0.3);
-    }
-  }
-
-  @keyframes buddy-loot-up {
-    0% {
-      opacity: 0;
-      transform: translateY(36px);
-    }
-
-    45% {
-      opacity: 1;
-    }
-
-    100% {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
   @keyframes buddy-splash-pop {
     0% {
       opacity: 0;
@@ -2344,27 +966,6 @@
     }
   }
 
-  @keyframes buddy-ripple-out {
-    0% {
-      opacity: 0;
-      transform: scale(0.45, 0.7);
-    }
-
-    18% {
-      opacity: 0.85;
-    }
-
-    100% {
-      opacity: 0;
-      transform: scale(1.65, 1.05);
-    }
-  }
-
-  @keyframes buddy-water-shimmer {
-    0%, 100% { transform: translateX(0); opacity: 0.65; }
-    50% { transform: translateX(2px); opacity: 0.9; }
-  }
-
   @keyframes buddy-fish-cruise {
     0%, 100% { transform: translate(0, 1px) scaleX(1); opacity: 0.45; }
     48% { transform: translate(-22px, -1px) scaleX(1); opacity: 0.9; }
@@ -2377,73 +978,7 @@
     50% { transform: translate(4px, 0); opacity: 1; }
   }
 
-  @keyframes buddy-fish-bite {
-    0%, 100% { transform: translate(8px, 0) rotate(0deg); }
-    50% { transform: translate(11px, -4px) rotate(-9deg); }
-  }
-
-  @keyframes buddy-umbrella-open {
-    from {
-      opacity: 0;
-      transform: translateY(16px) scaleX(0.12);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0) scaleX(1);
-    }
-  }
-
   /* Mecida con inclinacion constante hacia el lado del que llega la lluvia */
-  @keyframes buddy-umbrella-bob {
-    0%,
-    100% {
-      transform: translateY(0) rotate(2.5deg);
-    }
-
-    50% {
-      transform: translateY(1px) rotate(4.5deg);
-    }
-  }
-
-  @keyframes buddy-umbrella-plink {
-    0% {
-      opacity: 0;
-      transform: translateY(2.5px) scale(0.4);
-    }
-
-    14% {
-      opacity: 1;
-    }
-
-    55% {
-      opacity: 0.9;
-      transform: translateY(-2px) scale(1);
-    }
-
-    100% {
-      opacity: 0;
-      transform: translateY(-4.5px) scale(1.2);
-    }
-  }
-
-  @keyframes buddy-rain-plink-pop {
-    0%,
-    55% {
-      opacity: 0;
-      transform: translateY(2px) scale(0.5);
-    }
-
-    64% {
-      opacity: 0.95;
-      transform: translateY(0) scale(1);
-    }
-
-    100% {
-      opacity: 0;
-      transform: translateY(-3.5px) scale(1.25);
-    }
-  }
 
   @keyframes buddy-rain-fall {
     from {
@@ -2470,38 +1005,6 @@
     100% {
       opacity: 0;
       transform: translate(-5px, 29px) rotate(7deg);
-    }
-  }
-
-  @keyframes buddy-rod-strain {
-    0%,
-    100% {
-      transform: rotate(-9deg);
-    }
-
-    50% {
-      transform: rotate(4deg);
-    }
-  }
-
-  @keyframes buddy-line-fight {
-    0%,
-    100% {
-      transform: rotate(-4.5deg);
-    }
-
-    50% {
-      transform: rotate(4.5deg);
-    }
-  }
-
-  @keyframes buddy-line-snap {
-    0% {
-      transform: rotate(0deg) scaleY(1);
-    }
-
-    100% {
-      transform: rotate(14deg) scaleY(0.18);
     }
   }
 
@@ -2621,180 +1124,26 @@
   .buddy-field-find.is-lost-bug > i { width: 16px; height: 12px; border-radius: 50% 50% 38% 38%; box-shadow: -7px -3px 0 -5px currentColor, 7px -3px 0 -5px currentColor; }
   .buddy-field-find.is-mini-cartridge { color: #a78bfa; }
   .buddy-field-find.is-mini-cartridge > i { clip-path: polygon(0 0, 100% 0, 100% 78%, 78% 78%, 78% 100%, 22% 100%, 22% 78%, 0 78%); box-shadow: inset 0 -5px 0 #ffd166; }
-
-  .buddy-ambient-creature {
-    position: absolute;
-    z-index: 7;
-    pointer-events: none;
-  }
-
-  .buddy-ambient-creature i { position: absolute; display: block; }
-  .buddy-ambient-creature.is-moth { bottom: 58px; left: 12px; width: 12px; height: 10px; animation: buddy-moth-flight 4.2s ease-in-out infinite; }
-  .buddy-ambient-creature.is-moth i { top: 3px; width: 7px; height: 6px; background: #f4fff8; box-shadow: 0 0 9px #b8f7ff; }
-  .buddy-ambient-creature.is-moth i:first-child { right: 6px; transform-origin: right; animation: buddy-moth-wing 0.18s steps(2, end) infinite; }
-  .buddy-ambient-creature.is-moth i:nth-child(2) { left: 6px; transform-origin: left; animation: buddy-moth-wing 0.18s steps(2, end) infinite reverse; }
-  .buddy-ambient-creature.is-moth i:last-child { top: 4px; left: 5px; width: 2px; height: 7px; background: #ffd166; }
-
-  .buddy-ambient-creature.is-bird { left: 18px; bottom: 53px; width: 34px; height: 26px; filter: drop-shadow(0 0 7px rgba(69,216,255,.48)); }
-  .buddy-ambient-creature.is-bird .pixel-bird-svg { width: 34px; height: 26px; overflow: visible; }
-  .buddy-ambient-creature.is-bird .pixel-bird-wing { transform-box: fill-box; transform-origin: center bottom; }
-  .buddy-ambient-creature.is-bird.phase-fly-in { animation: buddy-bird-fly-in 1.45s linear both; }
-  .buddy-ambient-creature.is-bird.phase-perched { animation: buddy-bird-perch 1.8s steps(3,end) infinite; }
-  .buddy-ambient-creature.is-bird.phase-fly-out { animation: buddy-bird-fly-out 1.4s linear both; }
-  .buddy-ambient-creature.is-bird.phase-fly-in .pixel-bird-wing,
-  .buddy-ambient-creature.is-bird.phase-fly-out .pixel-bird-wing { animation: buddy-bird-wing .16s steps(2,end) infinite; }
-  .buddy-ambient-creature.is-bird.phase-fly-in .pixel-bird-svg { transform: scaleX(var(--creature-bird-in-facing, -1)); }
-  .buddy-ambient-creature.is-bird.phase-fly-out .pixel-bird-svg { transform: scaleX(var(--creature-bird-out-facing, -1)); }
   .screen-buddy-root.is-shoo .screen-buddy-sprite { animation: buddy-shoo-bird .42s steps(3,end) 4; }
-
-  .buddy-enemy-encounter { position: absolute; inset: 0; z-index: 6; pointer-events: none; transform: scaleX(var(--enemy-side, 1)); }
-  .buddy-enemy-bug { position: absolute; left: 82px; bottom: -1px; width: 30px; height: 23px; overflow: visible; filter: drop-shadow(0 0 6px rgba(255,95,104,.52)); }
-  .phase-stalk .buddy-enemy-bug { animation: buddy-enemy-approach .8s steps(6,end) both; }
-  .phase-ready .buddy-enemy-bug { animation: buddy-enemy-taunt .25s steps(2,end) infinite; }
-  .phase-attack .buddy-enemy-bug { animation: buddy-enemy-dodge .35s steps(3,end) 2; }
-  .phase-hit .buddy-enemy-bug { animation: buddy-enemy-squash .72s steps(5,end) both; }
-
-  .buddy-hunt-weapon { position: absolute; left: 42px; bottom: 15px; width: 52px; height: 40px; overflow: visible; filter: drop-shadow(0 0 5px rgba(69,216,255,.36)); transform: rotate(-18deg); transform-origin: 5px 21px; }
-  .phase-stalk .buddy-hunt-weapon { opacity: 0; transform: translateX(-8px) rotate(-28deg); }
-  .phase-ready .buddy-hunt-weapon { opacity: 1; animation: buddy-weapon-aim .75s steps(4,end) both; }
-  .phase-attack.weapon-wrench .buddy-hunt-weapon,
-  .phase-attack.weapon-flyswatter .buddy-hunt-weapon { animation: buddy-weapon-smash .72s steps(6,end) both; }
-  .phase-attack.weapon-net .buddy-hunt-weapon { animation: buddy-net-scoop .72s steps(6,end) both; }
-  .phase-attack.weapon-laser .buddy-hunt-weapon { animation: buddy-laser-recoil .32s steps(3,end) 2; }
-  .phase-hit .buddy-hunt-weapon { transform: rotate(18deg) translateX(8px); }
-  .buddy-laser-charge { animation: buddy-laser-charge .4s steps(2,end) infinite; }
-
-  .buddy-laser-beam { position: absolute; left: 87px; bottom: 29px; width: 38px; height: 3px; background: #f4fff8; box-shadow: 0 0 3px #fff, 0 0 9px #ff3d9d; opacity: 0; transform-origin: left; }
-  .phase-attack.weapon-laser .buddy-laser-beam { animation: buddy-laser-fire .32s steps(2,end) 2; }
-
-  .buddy-hit-burst { position: absolute; left: 91px; bottom: 10px; width: 22px; height: 22px; opacity: 0; }
-  .buddy-hit-burst b { position: absolute; top: 9px; left: 9px; width: 4px; height: 4px; background: #ffd166; box-shadow: 0 0 5px #ffd166; }
-  .buddy-hit-burst b:nth-child(1) { --hit-x: 16px; --hit-y: -13px; }
-  .buddy-hit-burst b:nth-child(2) { --hit-x: -14px; --hit-y: -11px; background: #45d8ff; }
-  .buddy-hit-burst b:nth-child(3) { --hit-x: 17px; --hit-y: 11px; background: #ff3d9d; }
-  .buddy-hit-burst b:nth-child(4) { --hit-x: -15px; --hit-y: 13px; background: #f4fff8; }
-  .phase-hit .buddy-hit-burst { opacity: 1; }
-  .phase-hit .buddy-hit-burst b { animation: buddy-hit-pixel .72s steps(4,end) both; }
 
   .screen-buddy-root.is-hunt .screen-buddy-sprite { animation: buddy-hunt-ready .48s steps(3,end) infinite; }
   .screen-buddy-root.is-hunt:has(.phase-attack) .screen-buddy-sprite { animation: buddy-hunt-lunge .72s steps(6,end) both; }
   .screen-buddy-root.is-hunt:has(.phase-hit) .screen-buddy-sprite { animation: buddy-hunt-recover .45s steps(3,end) both; }
 
   .buddy-leviathan { opacity: 0; transform-origin: 0 80px; }
-  .buddy-fishing-rig.is-monster .buddy-leviathan { opacity: 1; animation: buddy-leviathan-rise 3.4s ease-in-out both; }
-  .buddy-fishing-rig.is-monster .buddy-fish-school { opacity: 0; }
-  .buddy-fishing-rig.is-monster .buddy-fishing-svg { animation: buddy-rod-strain .22s steps(2,end) infinite; }
   .screen-buddy-root.is-fishing:has(.is-monster) .screen-buddy-sprite { animation: buddy-leviathan-pull .32s steps(2,end) infinite; }
   .buddy-catch-fish { filter: drop-shadow(0 0 4px var(--catch-color)); }
-  .buddy-fishing-rig.tier-legendary .buddy-fishing-loot,
-  .buddy-fishing-rig.tier-treasure .buddy-fishing-loot { filter: drop-shadow(0 0 8px #ffd166); }
-  .buddy-fishing-rig.tier-mythic .buddy-fishing-loot { filter: drop-shadow(0 0 10px #c084fc) drop-shadow(0 0 5px #45d8ff); }
-
-  .buddy-outage-kit { position: absolute; inset: 0; z-index: 8; pointer-events: none; transform: scaleX(var(--buddy-event-side, 1)); }
-
-  .buddy-flashlight {
-    position: absolute;
-    right: -8px;
-    bottom: 14px;
-    z-index: 4;
-    width: 30px;
-    max-width: none;
-    height: 16px;
-    overflow: visible;
-    filter: drop-shadow(0 0 5px rgba(255,209,102,.55));
-    transform: rotate(-8deg);
-    transform-origin: 4px 8px;
-  }
 
   /* SVG layers replace the former clipped CSS polygon. Both layers fade to
      transparent inside the artwork, so the sweep has no hard black seams. */
-  .buddy-flashlight-beam {
-    position: absolute;
-    right: -158px;
-    bottom: -36px;
-    z-index: 1;
-    width: 168px;
-    max-width: none;
-    height: 112px;
-    overflow: visible;
-    opacity: 0;
-    filter: blur(.35px) drop-shadow(0 0 10px rgba(255,209,102,.24));
-    transform: rotate(-7deg);
-    transform-origin: 1px 56px;
-  }
-
-  .buddy-outage-kit.is-search .buddy-flashlight { animation: buddy-flashlight-hand-search 1.9s ease-in-out infinite alternate; }
-  .buddy-outage-kit.is-search .buddy-flashlight-beam { opacity: .86; animation: buddy-flashlight-search 1.9s ease-in-out infinite alternate; }
-  .buddy-outage-kit.is-fix .buddy-flashlight { animation: buddy-flashlight-stow .38s steps(3,end) both; }
-  .buddy-outage-kit.is-fix .buddy-flashlight-beam { opacity: .16; transform: rotate(8deg) scaleX(.72); transition: opacity .28s ease, transform .28s ease; }
-  .buddy-outage-kit.is-restore .buddy-flashlight,
-  .buddy-outage-kit.is-restore .buddy-flashlight-beam { opacity: 0; transition: opacity .22s ease; }
-
-  .buddy-breaker-box {
-    position: absolute;
-    right: -64px;
-    bottom: -4px;
-    z-index: 3;
-    width: 48px;
-    max-width: none;
-    height: 64px;
-    overflow: visible;
-    opacity: 0;
-    filter: brightness(.5) drop-shadow(0 0 5px rgba(69,216,255,.22));
-    transform: translateY(5px) scale(.92);
-    transform-origin: center bottom;
-  }
-
-  .buddy-outage-kit.is-search .buddy-breaker-box { animation: buddy-breaker-discover 1.2s steps(4,end) 1.45s both; }
-  .buddy-outage-kit.is-fix .buddy-breaker-box { opacity: 1; filter: brightness(.78) drop-shadow(0 0 7px rgba(255,209,102,.32)); animation: buddy-breaker-rattle 1.15s steps(7,end) 2; }
-  .buddy-outage-kit.is-restore .buddy-breaker-box { opacity: 1; filter: brightness(1.08) drop-shadow(0 0 9px rgba(63,255,151,.5)); animation: buddy-breaker-online .46s steps(4,end) both; }
-
-  .buddy-breaker-led { filter: drop-shadow(0 0 3px #ff5f68); }
-  .buddy-outage-kit.is-search .buddy-breaker-led,
-  .buddy-outage-kit.is-fix .buddy-breaker-led { animation: buddy-breaker-led-fail .7s steps(1,end) infinite; }
-  .buddy-outage-kit.is-search .buddy-breaker-led-b,
-  .buddy-outage-kit.is-fix .buddy-breaker-led-b { animation-delay: .32s; }
-  .buddy-outage-kit.is-restore .buddy-breaker-led { fill: #3fff97; filter: drop-shadow(0 0 4px #3fff97); animation: buddy-breaker-led-wake .4s steps(2,end) both; }
-  .buddy-outage-kit.is-restore .buddy-breaker-led-b { animation-delay: .18s; }
 
   /* Aguja del medidor: muerta a la izquierda; revive con rebote al volver */
-  .buddy-breaker-needle {
-    transform-box: fill-box;
-    transform-origin: 50% 100%;
-    transform: rotate(-44deg);
-  }
-
-  .buddy-outage-kit.is-fix .buddy-breaker-needle { animation: buddy-breaker-needle-twitch 1.15s steps(3,end) 2; }
-  .buddy-outage-kit.is-restore .buddy-breaker-needle { fill: #3fff97; animation: buddy-breaker-needle-wake .6s cubic-bezier(.3,1.6,.5,1) both; }
 
   /* Palanca principal: caida (OFF); cede en cada tiron y clava arriba al final */
-  .buddy-breaker-lever {
-    transform-box: fill-box;
-    transform-origin: 50% 92%;
-    transform: rotate(26deg);
-  }
-
-  .buddy-outage-kit.is-fix .buddy-breaker-lever { animation: buddy-breaker-lever-yank 1.15s steps(5,end) 2; }
-  .buddy-outage-kit.is-restore .buddy-breaker-lever { animation: buddy-breaker-lever-slam .5s steps(4,end) both; }
 
   /* Despedida: con la luz de vuelta, la caja se apaga como un tubo CRT
      (colapsa a una linea brillante y luego a un punto). Las piezas conservan
      su estado "encendido" para que no salten atras durante el colapso. */
-  .buddy-outage-kit.is-stow .buddy-flashlight,
-  .buddy-outage-kit.is-stow .buddy-flashlight-beam { opacity: 0; }
-  .buddy-outage-kit.is-stow .buddy-breaker-box { opacity: 1; animation: buddy-breaker-derez .62s steps(6,end) both; }
-  .buddy-outage-kit.is-stow .buddy-breaker-lever { transform: rotate(-30deg); }
-  .buddy-outage-kit.is-stow .buddy-breaker-needle { fill: #3fff97; transform: rotate(34deg); }
-  .buddy-outage-kit.is-stow .buddy-breaker-led { fill: #3fff97; filter: drop-shadow(0 0 4px #3fff97); }
-
-  .buddy-breaker-sparks { position: absolute; right: -43px; bottom: 21px; z-index: 5; width: 8px; height: 8px; opacity: 0; }
-  .buddy-breaker-sparks i { position: absolute; top: 3px; left: 3px; width: 3px; height: 3px; background: #f4fff8; box-shadow: 0 0 4px #ffd166; }
-  .buddy-breaker-sparks i:nth-child(1) { --spark-x: 15px; --spark-y: -14px; background: #ffd166; }
-  .buddy-breaker-sparks i:nth-child(2) { --spark-x: -12px; --spark-y: -17px; background: #45d8ff; }
-  .buddy-breaker-sparks i:nth-child(3) { --spark-x: 13px; --spark-y: 12px; background: #ff5f68; }
-  .buddy-breaker-sparks i:nth-child(4) { --spark-x: -10px; --spark-y: 10px; }
-  .buddy-outage-kit.is-fix .buddy-breaker-sparks { opacity: 1; }
-  .buddy-outage-kit.is-fix .buddy-breaker-sparks i { animation: buddy-breaker-spark-burst 1.15s steps(5,end) 2; }
 
   .screen-buddy-root.is-outage .screen-buddy-sprite { filter: brightness(.55) drop-shadow(0 0 8px #ffd166); }
   .screen-buddy-root.outage-search .screen-buddy-sprite { animation: buddy-outage-investigate 1.9s steps(4,end) infinite alternate; }
@@ -2810,31 +1159,15 @@
 
   /* Buddy events share the same glitch-biome language as the footer: split
      RGB shadows, violet water and magenta/green corrupted highlights. */
-  .theme-glitch .buddy-fishing-svg {
-    filter: hue-rotate(96deg) saturate(1.45) contrast(1.06) drop-shadow(-2px 0 rgba(63,255,151,.34)) drop-shadow(2px 0 rgba(255,61,157,.4)) drop-shadow(0 0 6px rgba(185,134,255,.48));
-  }
-
-  .theme-glitch .buddy-water-surface { fill: #712b86; }
-  .theme-glitch .buddy-fishing-ripples { filter: hue-rotate(100deg) saturate(1.6); }
   .theme-glitch .buddy-fish-school { filter: hue-rotate(110deg) saturate(1.55) contrast(1.08); }
   .theme-glitch .buddy-catch-fish { filter: hue-rotate(105deg) saturate(1.6) drop-shadow(0 0 5px #ff3d9d); }
   .theme-glitch .buddy-leviathan { filter: hue-rotate(115deg) saturate(1.55) drop-shadow(-2px 0 #3fff97) drop-shadow(2px 0 #ff3d9d); }
-
-  .theme-glitch .buddy-umbrella {
-    filter: hue-rotate(82deg) saturate(1.45) drop-shadow(-2px 0 rgba(63,255,151,.42)) drop-shadow(2px 0 rgba(255,61,157,.52)) drop-shadow(0 0 8px rgba(185,134,255,.5));
-  }
 
   .theme-glitch .buddy-rain-field i {
     background: linear-gradient(180deg, transparent, #b986ff 48%, #ff9ddb 72%, #3fff97);
     box-shadow: 1px 0 rgba(69,216,255,.28);
   }
 
-  .theme-glitch .buddy-rain-plink {
-    background: #ff9ddb;
-    box-shadow: 3px -2px 0 rgba(63,255,151,.78), -3px -3px 0 rgba(185,134,255,.8);
-  }
-
-  .theme-glitch .buddy-umbrella-splash,
   .theme-glitch .buddy-particle-splash,
   .theme-glitch .buddy-particles {
     filter: hue-rotate(105deg) saturate(1.6) drop-shadow(1px 0 rgba(255,61,157,.5));
@@ -2849,85 +1182,16 @@
   .theme-glitch .buddy-field-find.is-battery { color: #3fff97; }
   .theme-glitch .buddy-field-find.is-lost-bug { color: #45d8ff; }
   .theme-glitch .buddy-field-find.is-mini-cartridge { color: #ff79c6; }
-
-  .theme-glitch .buddy-ambient-creature.is-moth i {
-    background: #ff9ddb;
-    box-shadow: -2px 0 #3fff97, 2px 0 #45d8ff, 0 0 9px #ff3d9d;
-  }
-
-  .theme-glitch .buddy-ambient-creature.is-moth i:last-child { background: #b986ff; }
-  .theme-glitch .buddy-ambient-creature.is-bird { filter: drop-shadow(-2px 0 rgba(63,255,151,.4)) drop-shadow(2px 0 rgba(255,61,157,.5)) drop-shadow(0 0 7px rgba(185,134,255,.58)); }
-  .theme-glitch .buddy-ambient-creature.is-bird .pixel-bird-svg { filter: hue-rotate(105deg) saturate(1.6) contrast(1.08); }
-
-  .theme-glitch .buddy-enemy-bug {
-    filter: hue-rotate(72deg) saturate(1.5) drop-shadow(-2px 0 rgba(63,255,151,.4)) drop-shadow(2px 0 rgba(255,61,157,.5)) drop-shadow(0 0 7px rgba(185,134,255,.6));
-  }
-
-  .theme-glitch .buddy-hunt-weapon {
-    filter: hue-rotate(95deg) saturate(1.4) drop-shadow(-2px 0 rgba(63,255,151,.32)) drop-shadow(2px 0 rgba(255,61,157,.4));
-  }
-
-  .theme-glitch .buddy-laser-beam {
-    background: #f4fff8;
-    box-shadow: -2px 0 #3fff97, 2px 0 #ff3d9d, 0 0 11px #b986ff;
-  }
-
-  .theme-glitch .buddy-hit-burst { filter: hue-rotate(92deg) saturate(1.6); }
-  .theme-glitch .buddy-flashlight { filter: hue-rotate(82deg) saturate(1.5) drop-shadow(-1px 0 #3fff97) drop-shadow(1px 0 #ff3d9d) drop-shadow(0 0 7px #b986ff); }
-  .theme-glitch .buddy-flashlight-beam { filter: hue-rotate(285deg) saturate(1.35) blur(.35px) drop-shadow(0 0 13px rgba(255,61,157,.4)); }
-  .theme-glitch .buddy-breaker-box { filter: hue-rotate(62deg) saturate(1.45) drop-shadow(-1px 0 #3fff97) drop-shadow(1px 0 #ff3d9d) drop-shadow(0 0 7px #b986ff); }
-  .theme-glitch .buddy-breaker-sparks { filter: hue-rotate(92deg) saturate(1.65); }
   .theme-glitch .screen-buddy-root.is-outage .screen-buddy-sprite { filter: brightness(.55) drop-shadow(-2px 0 #3fff97) drop-shadow(2px 0 #ff3d9d) drop-shadow(0 0 8px #b986ff); }
 
   @keyframes buddy-find-arrive { from { opacity: 0; transform: translateX(var(--find-x)) translateY(-22px) scale(.5); } to { opacity: 1; transform: translateX(var(--find-x)) translateY(0) scale(1); } }
   @keyframes buddy-find-hover { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-  @keyframes buddy-moth-flight { 0%,100% { transform: translate(var(--creature-moth-start-x,8px),-8px) rotate(-8deg); } 35% { transform: translate(var(--creature-moth-mid-x,36px),-31px) rotate(12deg); } 70% { transform: translate(var(--creature-moth-end-x,58px),5px) rotate(-4deg); } }
-  @keyframes buddy-moth-wing { 0% { transform: scaleX(.3); } 100% { transform: scaleX(1); } }
-  @keyframes buddy-bird-fly-in { 0% { opacity: 0; transform: translate(var(--creature-bird-in-start-x,145px),-82px) rotate(-18deg) scale(.72); } 45% { opacity: 1; transform: translate(var(--creature-bird-in-mid-x,65px),-34px) rotate(-6deg) scale(1); } 82% { transform: translate(var(--creature-bird-in-near-x,12px),-10px) rotate(4deg); } 100% { opacity: 1; transform: translate(0,0) rotate(0); } }
-  @keyframes buddy-bird-perch { 0%,100% { transform: translateY(0) rotate(-1deg); } 50% { transform: translateY(-1px) rotate(1deg); } }
-  @keyframes buddy-bird-fly-out { 0% { opacity: 1; transform: translate(0,0) rotate(0); } 30% { transform: translate(var(--creature-bird-out-mid-x,-28px),-24px) rotate(-12deg) scale(1.08); } 100% { opacity: 0; transform: translate(var(--creature-bird-out-end-x,-140px),-88px) rotate(-24deg) scale(.7); } }
-  @keyframes buddy-bird-wing { from { transform: rotate(-22deg) scaleY(.55); } to { transform: rotate(25deg) scaleY(1.15); } }
   @keyframes buddy-shoo-bird { 0%,100% { transform: scaleX(var(--buddy-facing)) translateX(0) rotate(0); } 50% { transform: scaleX(var(--buddy-facing)) translateX(-4px) rotate(-5deg); } }
-  @keyframes buddy-enemy-approach { from { opacity: 0; transform: translateX(52px); } to { opacity: 1; transform: translateX(0); } }
-  @keyframes buddy-enemy-taunt { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-2px) rotate(3deg); } }
-  @keyframes buddy-enemy-dodge { 0%,100% { transform: translateX(0); } 50% { transform: translateX(7px) translateY(-3px); } }
-  @keyframes buddy-enemy-squash { 0% { opacity: 1; transform: scale(1); } 45% { opacity: 1; transform: translateY(7px) scale(1.25,.32); } 100% { opacity: 0; transform: translate(18px,-18px) scale(.25) rotate(30deg); } }
-  @keyframes buddy-weapon-aim { from { transform: translateX(-10px) rotate(-36deg); } to { transform: translateX(0) rotate(-18deg); } }
-  @keyframes buddy-weapon-smash { 0% { transform: rotate(-42deg) translateY(-5px); } 45% { transform: rotate(-50deg) translateY(-8px); } 70%,100% { transform: rotate(26deg) translate(8px,5px); } }
-  @keyframes buddy-net-scoop { 0% { transform: translate(-6px,4px) rotate(-12deg); } 55% { transform: translate(20px,-2px) rotate(4deg); } 100% { transform: translate(13px,-10px) rotate(-22deg); } }
-  @keyframes buddy-laser-recoil { 0%,100% { transform: translateX(0) rotate(-4deg); } 50% { transform: translateX(-6px) rotate(-1deg); } }
-  @keyframes buddy-laser-charge { 0%,100% { fill: #ffd166; } 50% { fill: #f4fff8; } }
-  @keyframes buddy-laser-fire { 0%,34% { opacity: 0; transform: scaleX(.1); } 35%,70% { opacity: 1; transform: scaleX(1); } 100% { opacity: 0; transform: scaleX(.65); } }
-  @keyframes buddy-hit-pixel { from { opacity: 1; transform: translate(0,0) scale(1); } to { opacity: 0; transform: translate(var(--hit-x),var(--hit-y)) scale(.5); } }
   @keyframes buddy-hunt-ready { 0%,100% { transform: scaleX(var(--buddy-facing)) translateY(0) rotate(-2deg); } 50% { transform: scaleX(var(--buddy-facing)) translateY(-2px) rotate(2deg); } }
   @keyframes buddy-hunt-lunge { 0% { transform: scaleX(var(--buddy-facing)) translateX(0); } 55%,100% { transform: scaleX(var(--buddy-facing)) translateX(8px) rotate(5deg); } }
   @keyframes buddy-hunt-recover { from { transform: scaleX(var(--buddy-facing)) translateX(8px) rotate(5deg); } to { transform: scaleX(var(--buddy-facing)) translateX(0) rotate(-2deg); } }
-  @keyframes buddy-leviathan-rise { 0% { transform: translate(-38px,30px) scale(.65); opacity: 0; } 25%,75% { opacity: 1; transform: translate(0,0) scale(1); } 100% { opacity: 0; transform: translate(25px,18px) scale(1.1); } }
   @keyframes buddy-leviathan-pull { 0%,100% { transform: scaleX(var(--buddy-facing)) translate(-2px,3px) rotate(-8deg); } 50% { transform: scaleX(var(--buddy-facing)) translate(3px,8px) rotate(8deg); } }
-  @keyframes buddy-flashlight-search {
-    from { transform: translateY(-2px) rotate(-10deg) scaleX(.94); opacity: .72; }
-    to { transform: translateY(2px) rotate(13deg) scaleX(1.03); opacity: .9; }
-  }
-  @keyframes buddy-flashlight-hand-search { from { transform: translateY(-1px) rotate(-15deg); } to { transform: translateY(2px) rotate(10deg); } }
-  @keyframes buddy-flashlight-stow { from { opacity: 1; transform: rotate(8deg); } to { opacity: .22; transform: translate(-5px,8px) rotate(34deg) scale(.75); } }
-  @keyframes buddy-breaker-discover { from { opacity: 0; filter: brightness(.25); transform: translateY(8px) scale(.86); } to { opacity: .72; filter: brightness(.56) drop-shadow(0 0 5px rgba(69,216,255,.25)); transform: translateY(0) scale(1); } }
-  @keyframes buddy-breaker-led-fail { 0%,48% { opacity: .18; } 49%,100% { opacity: 1; } }
   /* La caja se sacude EN el tiron (52%): tirada hacia el buddy y rebote */
-  @keyframes buddy-breaker-rattle { 0%,40%,100% { transform: translate(0,0) rotate(0); } 50% { transform: translate(-2.5px,1px) rotate(-3deg); } 58% { transform: translate(1.5px,-1px) rotate(1.5deg); } 68% { transform: translate(-1px,0) rotate(-1deg); } 78% { transform: translate(0,0) rotate(0); } }
-  @keyframes buddy-breaker-lever-yank { 0%,42% { transform: rotate(26deg); } 52% { transform: rotate(4deg); } 62% { transform: rotate(32deg); } 74%,100% { transform: rotate(26deg); } }
-  @keyframes buddy-breaker-lever-slam { 0% { transform: rotate(26deg); } 55% { transform: rotate(-38deg); } 75% { transform: rotate(-24deg); } 100% { transform: rotate(-30deg); } }
-  @keyframes buddy-breaker-needle-twitch { 0%,48% { transform: rotate(-44deg); } 54% { transform: rotate(-30deg); } 64% { transform: rotate(-42deg); } 100% { transform: rotate(-44deg); } }
-  @keyframes buddy-breaker-needle-wake { from { transform: rotate(-44deg); } to { transform: rotate(34deg); } }
-  @keyframes buddy-breaker-led-wake { from { opacity: .2; } to { opacity: 1; } }
-  @keyframes buddy-breaker-spark-burst { 0%,48% { opacity: 0; transform: translate(0,0) scale(.35); } 56% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--spark-x),var(--spark-y)) scale(.8); } }
-  @keyframes buddy-breaker-online { 0% { transform: translateY(0) scale(1); } 45% { transform: translateY(-2px) scale(1.04); } 100% { transform: translateY(0) scale(1); } }
-  @keyframes buddy-breaker-derez {
-    0% { opacity: 1; transform: scaleY(1) scaleX(1); filter: brightness(1.15) drop-shadow(0 0 9px rgba(63,255,151,.5)); }
-    35% { opacity: 1; transform: scaleY(.06) scaleX(1.08); filter: brightness(2.3) drop-shadow(0 0 12px rgba(63,255,151,.8)); }
-    60% { opacity: 1; transform: scaleY(.045) scaleX(.42); filter: brightness(2.4) drop-shadow(0 0 10px rgba(184,247,255,.85)); }
-    82% { opacity: .95; transform: scaleY(.04) scaleX(.07); filter: brightness(2.8) drop-shadow(0 0 8px #f4fff8); }
-    100% { opacity: 0; transform: scaleY(.03) scaleX(.02); filter: brightness(3) drop-shadow(0 0 4px #f4fff8); }
-  }
   @keyframes buddy-outage-investigate { 0% { transform: scaleX(var(--buddy-facing)) translateX(-1px) rotate(-2deg); } 50% { transform: scaleX(var(--buddy-facing)) translateX(1px) rotate(2deg); } 100% { transform: scaleX(var(--buddy-facing)) translateX(2px) rotate(0); } }
   /* Tira de la palanca de verdad: paso, agarre estirado, tiron con todo el
      cuerpo y resbalon. En este espacio, translateX NEGATIVO acerca al buddy
@@ -2958,63 +1222,17 @@
 
     .screen-buddy-root .screen-buddy-sprite,
     .screen-buddy-root .screen-buddy-body,
-    .screen-buddy-root .buddy-leg,
-    .screen-buddy-root .buddy-leg-foot,
-    .screen-buddy-root .buddy-screen,
-    .screen-buddy-root .buddy-eye-track,
     .splash-buddy,
     .splash-buddy-sprite,
     .buddy-drop-body,
-    .buddy-chute-wind,
-    .buddy-chute-canopy-shell,
-    .buddy-chute-panel,
-    .buddy-chute-skirt,
     .buddy-chute-cell,
-    .buddy-chute-lines,
-    .buddy-chute-harness,
     .buddy-eye,
-    .buddy-green-visor,
-    .buddy-led,
-    .buddy-antenna-spark,
-    .buddy-power,
     .buddy-particle,
-    .buddy-loot-cartridge,
-    .buddy-scarf-tail,
-    .buddy-hair-tail,
-    .buddy-hair-tip,
-    .buddy-miku-arm,
-    .buddy-miku-leg,
-    .buddy-miku-thruster,
-    .buddy-miku-rocket-flame,
-    .buddy-fishing-svg,
-    .buddy-fishing-rod-overlay-svg,
-    .buddy-fishing-line-group,
-    .buddy-fishing-bobber,
-    .buddy-fishing-loot,
-    .buddy-ripple,
-    .buddy-water-surface,
     .buddy-fish,
-    .buddy-umbrella,
-    .buddy-umbrella-splash,
     .buddy-rain-field i,
-    .buddy-rain-plink,
     .buddy-field-find,
     .buddy-field-find > i,
-    .buddy-ambient-creature,
-    .buddy-ambient-creature i,
-    .buddy-ambient-creature .pixel-bird-wing,
-    .buddy-enemy-bug,
-    .buddy-hunt-weapon,
-    .buddy-laser-beam,
-    .buddy-hit-burst b,
     .buddy-leviathan,
-    .buddy-flashlight,
-    .buddy-flashlight-beam,
-    .buddy-breaker-box,
-    .buddy-breaker-lever,
-    .buddy-breaker-needle,
-    .buddy-breaker-led,
-    .buddy-breaker-sparks i,
     .buddy-lucky-lure,
     .screen-buddy-zzz i {
       animation: none;
@@ -3035,80 +1253,6 @@
   }
 }
 
-@keyframes buddy-inventory-jiggle {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-1.4px);
-  }
-}
-
-@keyframes buddy-cartridge-carry {
-  0%,
-  100% {
-    transform: translate(0, 0) rotate(-4deg);
-  }
-
-  25% {
-    transform: translate(calc(var(--buddy-facing, 1) * -0.8px), -1px) rotate(5deg);
-  }
-
-  50% {
-    transform: translate(calc(var(--buddy-facing, 1) * -1.4px), 0.6px) rotate(8deg);
-  }
-
-  75% {
-    transform: translate(calc(var(--buddy-facing, 1) * 0.6px), -0.6px) rotate(-6deg);
-  }
-}
-
-@keyframes buddy-cartridge-hover-carry {
-  0%,
-  100% {
-    transform: translate(calc(var(--buddy-facing, 1) * -0.5px), 0.4px) rotate(-5deg);
-  }
-
-  50% {
-    transform: translate(calc(var(--buddy-facing, 1) * 1px), -2px) rotate(7deg);
-  }
-}
-
-@keyframes buddy-cartridge-swing {
-  0%,
-  100% {
-    transform: translate(calc(var(--buddy-facing, 1) * -1px), 0) rotate(-11deg);
-  }
-
-  50% {
-    transform: translate(calc(var(--buddy-facing, 1) * 1.2px), 1px) rotate(10deg);
-  }
-}
-
-@keyframes buddy-cartridge-held-swing {
-  0%,
-  100% {
-    transform: translate(0, 0.6px) rotate(-8deg);
-  }
-
-  50% {
-    transform: translate(calc(var(--buddy-facing, 1) * 1.4px), -0.8px) rotate(9deg);
-  }
-}
-
-@keyframes buddy-rocket-flicker {
-  0%,
-  100% {
-    opacity: 0.72;
-  }
-
-  50% {
-    opacity: 1;
-  }
-}
-
 @keyframes buddy-rocket-cushion {
   0%,
   100% {
@@ -3117,53 +1261,6 @@
 
   50% {
     transform: translateY(-2.5px) rotate(2deg);
-  }
-}
-
-@keyframes buddy-rocket-flame-cushion {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scaleY(1.4);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scaleY(3.4) translateY(1.5px);
-  }
-}
-
-@keyframes buddy-rocket-plume {
-  0% {
-    opacity: 0.78;
-    transform: translateY(0) scaleX(0.82) scaleY(0.86);
-  }
-
-  50% {
-    opacity: 1;
-    transform: translateY(2px) scaleX(1.18) scaleY(1.25);
-  }
-
-  100% {
-    opacity: 0.86;
-    transform: translateY(1px) scaleX(0.96) scaleY(1.05);
-  }
-}
-
-@keyframes buddy-miku-rocket-boost {
-  0% {
-    opacity: 0.82;
-    transform: translateY(0) scaleX(0.88) scaleY(0.82);
-  }
-
-  50% {
-    opacity: 1;
-    transform: translateY(1px) scaleX(1.12) scaleY(1.24);
-  }
-
-  100% {
-    opacity: 0.9;
-    transform: translateY(0.5px) scaleX(0.96) scaleY(1.04);
   }
 }
 
@@ -3186,17 +1283,6 @@
 
   50% {
     transform: scaleX(var(--buddy-facing, 1)) translateY(-1px);
-  }
-}
-
-@keyframes buddy-rocket-leg-float {
-  0%,
-  100% {
-    transform: translateY(0.8px);
-  }
-
-  50% {
-    transform: translateY(2.4px);
   }
 }
 
