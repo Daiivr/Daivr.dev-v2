@@ -1,6 +1,7 @@
-import { Buf, bayer, discRows, gridSprite, lazy, makeCanvas, mix, px, rect, rgb, rng } from "./core.js";
+import { Buf, bayer, discRows, makeCanvas, mix, px, rect, rgb, rng } from "./core.js";
 import { FEET, H } from "./layout.js";
 import { currentSeason } from "./palette.js";
+import { BIRD_ANCHOR, birdSprites } from "./birds.js";
 
 // El cielo del footer en pixel art, como en el boceto: un degradado tramado
 // que va con la altura del sol de verdad (dia, atardecer o amanecer, noche) y
@@ -169,19 +170,44 @@ function moonSprite(phase, full) {
   return c;
 }
 
-// Pajaros lejanos: siluetas en uve como antes, algo mas anchas, con la
-// punta de las alas mas clara y cuatro poses (arriba, plana, abajo, plana)
-// para que aleteen suave. Al atardecer, en morado oscuro.
-const BIRD_FRAMES = [
-  ["o.....o", ".O...O.", "..OOO..", "...O..."],
-  [".......", "oOO.OOo", "...O...", "......."],
-  [".......", "...O...", ".OOOOO.", "o.....o"]
-];
-const BIRD_PALS = { day: { O: "#2b2a38", o: "#4b4a62" }, dusk: { O: "#3a2440", o: "#5a3a5c" } };
-const birdSprites = lazy(() => Object.fromEntries(Object.entries(BIRD_PALS).map(([key, pal]) => {
-  const [up, flat, down] = BIRD_FRAMES.map((rows) => gridSprite(rows, pal));
-  return [key, [up, flat, down, flat]];
-})));
+// Pajaros (los dibujos, en birds.js), con el vuelo de los de Stardew: los
+// pequeños aletean rapido y van a saltitos (suben en cada aletazo y caen un
+// poco entre uno y otro); el cuervo, mas pausado; la gaviota aletea despacio y
+// planea. speed en px de arte por segundo, flap en aletazos por segundo, flaps
+// cuantos da antes de planear y glide cuanto planea; bounce, el saltito de cada
+// aletazo, y swoop/swoopHz, la curva larga del vuelo.
+const SMALL = { speed: [28, 38], flap: 3.6, flaps: [3, 6], glide: [0.25, 0.55], bounce: 2.2, swoop: 2.5, swoopHz: 0.3, y: [12, 30], group: [2, 3], gap: 10 };
+const FLIGHT = {
+  sparrow: SMALL, bluebird: SMALL, cardinal: SMALL,
+  crow: { speed: [19, 25], flap: 2.4, flaps: [3, 6], glide: [0.6, 1.3], bounce: 1.2, swoop: 1.6, swoopHz: 0.2, y: [8, 26], group: [1, 2], gap: 20 },
+  gull: { speed: [12, 16], flap: 1.7, flaps: [2, 3], glide: [1.8, 3.4], bounce: 0.8, swoop: 1.6, swoopHz: 0.15, y: [6, 22], group: [1, 1], gap: 28 }
+};
+// Quien vuela segun la estacion del año (y el cuervo que vuelve a casa al atardecer).
+const BIRD_MIX = {
+  spring: [["sparrow", 0.4], ["bluebird", 0.3], ["crow", 0.15], ["gull", 0.15]],
+  summer: [["sparrow", 0.3], ["bluebird", 0.3], ["gull", 0.3], ["crow", 0.1]],
+  autumn: [["sparrow", 0.35], ["crow", 0.45], ["gull", 0.2]],
+  winter: [["cardinal", 0.45], ["sparrow", 0.25], ["crow", 0.3]],
+  golden: [["crow", 0.6], ["sparrow", 0.4]]
+};
+// Ritmo: una sola bandada en el cielo a la vez, una pausa (BIRD_PAUSE, en
+// segundos) despues de que salga, y cada especie no vuelve hasta pasado su
+// rato (BIRD_RETURN); si ninguna puede, el cielo se queda tranquilo.
+const BIRD_PAUSE = [40, 75];
+const BIRD_RETURN = { sparrow: 90, bluebird: 120, cardinal: 90, crow: 150, gull: 200 };
+const WING = ["up", "mid", "down", "mid"];
+const between = ([a, b]) => a + Math.random() * (b - a);
+function natureSeason(event) {
+  if (event === "winter") return "winter";
+  const m = new Date().getMonth();
+  return m === 11 || m < 2 ? "winter" : m < 5 ? "spring" : m < 8 ? "summer" : "autumn";
+}
+function pickBird(mix, ready) {
+  const open = mix.filter(([kind]) => ready(kind)), total = open.reduce((sum, [, w]) => sum + w, 0);
+  let r = Math.random() * total;
+  for (const [kind, w] of open) { r -= w; if (r <= 0) return kind; }
+  return open[0]?.[0] || null;
+}
 
 function rainbowSprite() {
   const r = 44, b = new Buf(r * 2, r);
@@ -247,7 +273,8 @@ function stormCloud(R, w, h, tones) {
 
 export function createSky() {
   let W = 0, skyKey = "", skyImg = null, cloudKey = "", cover = "", season = "";
-  let clouds = [], stars = [], birds = [], nextBird = 3, bolt = null;
+  let clouds = [], stars = [], birds = [], nextBird = 8, bolt = null;
+  const lastFlock = {};
   const sprites = { sun: sunSprite(false), low: sunSprite(true), moon: null, moonKey: "", rainbow: rainbowSprite() };
   // Color del cielo: el que se ve (shown) va hacia el que toca (target).
   let shownStops = null, fromStops = null, targetStops = null, targetKey = "", mixK = 1;
@@ -316,19 +343,56 @@ export function createSky() {
     }
     clouds = clouds.filter((c) => !c.out || c.alpha > 0);
     const dark = darkness(sky.altitude);
-    if (dark < 0.55 && ["clear", "fair", "cloudy"].includes(cover)) {
-      if (t > nextBird) {
-        const golden = sky.altitude < 0.3;
-        nextBird = t + (golden ? 8 : 12) + Math.random() * 5;
-        const y = 8 + Math.random() * 16, n = golden ? 5 : 3;
-        // En uve, con el primero delante; cada uno aletea a su ritmo y a ratos planea.
-        for (let i = 0; i < n; i++) { const k = Math.abs(i - (n - 1) / 2); birds.push({ x: W + 8 + k * 9, y: y + k * 4 + (i % 2), p: Math.random() * 4, glide: Math.random() * 6 }); }
-      }
+    if (!birds.length && t > nextBird && dark < 0.55 && ["clear", "fair", "cloudy"].includes(cover)) {
+      if (!spawnFlock(sky.altitude < 0.3, {}, t)) nextBird = t + 10;
     }
-    for (const b of birds) b.x -= 22 * dt;
-    birds = birds.filter((b) => b.x > -10);
+    for (const b of birds) flyBird(b, dt, t);
+    const flying = birds.length;
+    birds = birds.filter((b) => b.dir < 0 ? b.x > -30 : b.x < W + 30);
+    // La bandada ha salido: pausa antes de la siguiente.
+    if (flying && !birds.length) nextBird = t + between(BIRD_PAUSE);
     const moonKey = (scene.fullMoon ? 0.5 : Math.round((scene.moonPhase ?? 0.5) * 60) / 60) + (scene.fullMoon ? "f" : "");
     if (moonKey !== sprites.moonKey) { sprites.moonKey = moonKey; sprites.moon = moonSprite(scene.fullMoon ? 0.5 : scene.moonPhase ?? 0.5, scene.fullMoon); }
+  }
+
+  // Una bandada nueva: unos pajaritos juntos, un par de cuervos o alguna
+  // gaviota, segun la estacion; al amanecer y al atardecer, cuervos volviendo.
+  // (forced: { kind, dir } para probar una especie desde __daivrWorld)
+  function spawnFlock(golden, forced = {}, t = 0) {
+    const dir = forced.dir || (Math.random() < 0.72 ? -1 : 1);
+    const kind = forced.kind || pickBird(BIRD_MIX[golden ? "golden" : natureSeason(season)], (k) => lastFlock[k] == null || t - lastFlock[k] > BIRD_RETURN[k]);
+    if (!kind) return false;
+    lastFlock[kind] = t;
+    const F = FLIGHT[kind], y0 = between(F.y), speed = between(F.speed), start = dir < 0 ? W + 12 : -28;
+    const n = Math.round(between(F.group)) + (golden && kind === "crow" ? 1 : 0);
+    for (let i = 0; i < n; i++) {
+      // sueltos: cada uno a su distancia y uno arriba, otro abajo, sin taparse
+      const dx = i * F.gap + Math.random() * F.gap * 0.5, dy = (i % 2 ? -1 : 1) * (i ? 2 + Math.random() * 3 : 0);
+      birds.push({
+        kind, dir, x: start - dir * dx, base: y0 + dy, y: y0 + dy, v: speed * (0.92 + Math.random() * 0.16),
+        p: Math.random(), sw: Math.random() * 6, gliding: false, left: between(F.flaps), lift: 0, bob: 0
+      });
+    }
+    return true;
+  }
+  function flyBird(b, dt, t) {
+    const F = FLIGHT[b.kind];
+    b.x += b.dir * b.v * dt;
+    // Aletea unas veces y planea un rato (cayendo un poco); al volver a
+    // aletear recupera altura. Cada aletazo es un saltito hacia arriba.
+    if (b.gliding) { b.left -= dt; b.lift = Math.min(3, b.lift + dt * 1.4); if (b.left <= 0) { b.gliding = false; b.left = between(F.flaps); } }
+    else { b.left -= dt * F.flap; b.lift = Math.max(0, b.lift - dt * 2.6); if (b.left <= 0) { b.gliding = true; b.left = between(F.glide); } }
+    const phase = (t * F.flap + b.p) % 1;
+    b.bob = b.gliding ? 0 : -Math.sin((phase - 0.25) * Math.PI * 2) * F.bounce;
+    b.y = b.base + Math.sin(t * F.swoopHz * Math.PI * 2 + b.sw) * F.swoop + b.lift + b.bob;
+  }
+  function drawBirds(g, t, dusk) {
+    const sets = birdSprites();
+    for (const b of birds) {
+      const F = FLIGHT[b.kind], pose = b.gliding ? "glide" : WING[Math.floor(((t * F.flap + b.p) % 1) * 4)];
+      const img = sets[b.kind][dusk ? "dusk" : "day"][b.dir < 0 ? "left" : "right"][pose];
+      g.drawImage(img, Math.round(b.x), Math.round(b.y) - BIRD_ANCHOR[b.kind]);
+    }
   }
 
   // Rayo de tormenta: un zigzag nuevo en cada relampago.
@@ -406,11 +470,7 @@ export function createSky() {
       g.drawImage(c.img, Math.round(c.x), c.y);
     }
     g.globalAlpha = 1;
-    const set = sky.altitude < 0.3 ? birdSprites().dusk : birdSprites().day;
-    for (const b of birds) {
-      const gliding = Math.sin(t * 0.7 + b.glide) > 0.55, f = gliding ? 1 : Math.floor(t * 8 + b.p) % 4;
-      g.drawImage(set[f], Math.round(b.x), Math.round(b.y + (f === 2 ? 1 : f === 0 ? -1 : 0)));
-    }
+    drawBirds(g, t, sky.altitude < 0.3);
   }
 
   // Niebla por encima del bosque (despues de la luz del mundo).
@@ -422,5 +482,5 @@ export function createSky() {
     g.globalAlpha = 1;
   }
 
-  return { build, update, draw, drawFog };
+  return { build, update, draw, drawFog, flock: (kind, dir) => spawnFlock(false, { kind, dir }) };
 }

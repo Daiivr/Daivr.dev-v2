@@ -5,7 +5,9 @@ import { HOST_CHOICE_KEY, readHostChoice, resolveHostId, unlockedHostIds, writeH
 // sigue desbloqueada. Miku sale del traje Miku de Buddy y Komoe de su compra
 // en el Woodland Market, asi que hace falta el equipo y la cartera de Buddy.
 export function useHostChoice({ loadout, adventure }) {
-  const [choice, setChoice] = useState(readHostChoice);
+  const [visitChoice] = useState(readHostChoice);
+  const [choice, setChoice] = useState(visitChoice);
+  const [greetingHostId, setGreetingHostId] = useState(null);
 
   // Otra pestana cambio de anfitriona.
   useEffect(() => {
@@ -20,6 +22,11 @@ export function useHostChoice({ loadout, adventure }) {
     [loadout.adminUnlock, loadout.unlockedGearIds, ownedItems]
   );
   const hostId = resolveHostId({ choice, unlockedGear: loadout.unlockedGearIds, ownedItems, adminUnlock: loadout.adminUnlock });
+  // Wait for ownership to hydrate, then freeze this visit's model. Selector
+  // changes (including other tabs) only affect the next full page load.
+  if (greetingHostId === null && loadout.ready) {
+    setGreetingHostId(resolveHostId({ choice: visitChoice, unlockedGear: loadout.unlockedGearIds, ownedItems, adminUnlock: loadout.adminUnlock }));
+  }
 
   const chooseHost = useCallback((id) => {
     if (!unlockedIds.includes(id)) return false;
@@ -28,5 +35,5 @@ export function useHostChoice({ loadout, adventure }) {
     return true;
   }, [unlockedIds]);
 
-  return { hostId, unlockedIds, chooseHost };
+  return { hostId, greetingHostId, unlockedIds, chooseHost };
 }

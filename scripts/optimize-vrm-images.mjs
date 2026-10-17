@@ -7,8 +7,10 @@ const JSON_CHUNK = 0x4e4f534a;
 const BIN_CHUNK = 0x004e4942;
 const inputPath = process.argv[2];
 const outputPath = process.argv[3] || inputPath;
+const textureLimit = Number(process.argv[4] || 1024);
 
 if (!inputPath) throw new Error("Usage: node scripts/optimize-vrm-images.mjs input.vrm [output.vrm]");
+if (![256, 512, 1024, 2048].includes(textureLimit)) throw new Error("Texture limit must be 256, 512, 1024, or 2048");
 
 function pad(buffer, fill = 0) {
   const paddedLength = Math.ceil(buffer.length / 4) * 4;
@@ -46,7 +48,7 @@ try {
     const imageBytes = binary.subarray(view.byteOffset || 0, (view.byteOffset || 0) + view.byteLength);
     const width = imageBytes.readUInt32BE(16);
     const height = imageBytes.readUInt32BE(20);
-    const maximumDimension = image.name === "Thumbnail" ? 256 : 1024;
+    const maximumDimension = image.name === "Thumbnail" ? 256 : textureLimit;
     if (Math.max(width, height) <= maximumDimension) continue;
 
     const sourceImage = join(temporaryDirectory, `${imageIndex}-source.png`);

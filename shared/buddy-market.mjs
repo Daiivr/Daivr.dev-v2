@@ -14,13 +14,16 @@ export const MARKET_ITEMS = [
   { id: "market-moon", label: "Moon nightlight", category: "decor", price: 75, description: "A crescent of warm light for your shelf." },
   { id: "market-arcade", label: "Pocket arcade", category: "decor", price: 100, description: "A miniature cabinet. The high score is yours." }
 ];
-// Pedidos especiales: fuera de la rotacion, a la venta todos los dias de
-// mercado. Van al final de MARKET_ITEMS para que normalizeMarket cobre antes
-// las piezas pequenas si el saldo no da para todo.
-export const MARKET_SPECIALS = [
-  { id: "host-komoe", label: "Komoe", category: "host", price: 5000, description: "A new host for the entry gate. Once she's yours, pick her from the HOST switch in the top bar." }
+// All hosts now take turns; none remain permanently displayed as a special order.
+export const MARKET_SPECIALS = [];
+// One visiting host per opening alongside the three regular goods.
+// Keep them after existing items so old purchase receipts retain their priority.
+export const MARKET_ROTATING_HOSTS = [
+  { id: "host-komoe", label: "Komoe", category: "host", price: 5000, description: "A new host for the entry gate. Once she's yours, pick her from the HOST switch in the top bar.", availability: "HOST ROTATION" },
+  { id: "host-nh02", label: "NH-02", category: "host", price: 5000, description: "A cheerful new face for your gate. Once unlocked, choose her from the HOST switch.", availability: "HOST ROTATION" },
+  { id: "host-kiyosa", label: "Kiyosa", category: "host", price: 5000, description: "A warm welcome from Kiyosa. Once unlocked, choose her from the HOST switch.", availability: "HOST ROTATION" }
 ];
-MARKET_ITEMS.push(...MARKET_SPECIALS);
+MARKET_ITEMS.push(...MARKET_ROTATING_HOSTS);
 export const MARKET_GEAR = MARKET_ITEMS.filter((item) => item.category === "wear" || item.category === "gear").map((item) => ({ ...item, source: "Footer market" }));
 const count = (value) => Number.isFinite(Number(value)) ? Math.max(0, Math.min(999999, Math.floor(Number(value)))) : 0;
 const dayFormat = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: MARKET_TIME_ZONE });
@@ -46,17 +49,40 @@ export function nextMarketOpening(date = new Date()) {
 
 // Closed days preview the next opening's stock. Calendar math uses a New York
 // date rather than elapsed hours, so daylight-saving changes do not shift it.
-export function marketStock(date = new Date()) {
+function marketStockDay(date) {
   const day = marketCalendarDay(date);
   while (![3, 6].includes(day.getUTCDay())) day.setUTCDate(day.getUTCDate() + 1);
+  return day;
+}
+export function marketStock(date = new Date()) {
+  const day = marketStockDay(date);
   const second = day.getUTCDay() === 6;
   const ids = second ? ["market-vest", "market-moon", "market-arcade"] : ["market-beanie", "market-lantern", "market-terrarium"];
   return MARKET_ITEMS.filter((item) => ids.includes(item.id));
 }
 
+export function marketHostStock(date = new Date()) {
+  const day = marketStockDay(date);
+  // Count openings, not days: Wed -> Sat -> Wed advances exactly one slot.
+  // Oct 14: Komoe, Oct 17: NH-02, Oct 21: Kiyosa, then repeat.
+  const weeks = Math.floor((day.getTime() - Date.UTC(2026, 9, 14)) / (7 * 86400000));
+  const opening = weeks * 2 + (day.getUTCDay() === 6 ? 1 : 0);
+  const index = ((opening % MARKET_ROTATING_HOSTS.length) + MARKET_ROTATING_HOSTS.length) % MARKET_ROTATING_HOSTS.length;
+  return [MARKET_ROTATING_HOSTS[index]];
+}
+
+// Keep paid receipts from before the shared rotation. New purchases always
+// use current stock, while old ownership keeps its original eligibility.
+const HOST_ROTATION_CUTOVER = Date.parse("2026-10-17T21:58:24Z");
+const LEGACY_HOST_DAYS = { "host-komoe": [3, 6], "host-nh02": [6], "host-kiyosa": [3] };
+function receiptWasInStock(id, date) {
+  if (date.getTime() < HOST_ROTATION_CUTOVER && LEGACY_HOST_DAYS[id]?.includes(marketCalendarDay(date).getUTCDay())) return true;
+  return marketCarries(id, date);
+}
+
 // La rotacion del dia o un pedido especial.
 export function marketCarries(id, date = new Date()) {
-  return MARKET_SPECIALS.some((item) => item.id === id) || marketStock(date).some((item) => item.id === id);
+  return MARKET_SPECIALS.some((item) => item.id === id) || marketStock(date).some((item) => item.id === id) || marketHostStock(date).some((item) => item.id === id);
 }
 
 // Lo ganado en la hoguera y con las estrellas. Nunca se asan mas peces de los
@@ -77,7 +103,7 @@ export function normalizeMarket(value, fishCollection = {}, bonus = 0) {
   const receipts = value?.purchases && typeof value.purchases === "object" ? value.purchases : {};
   for (const item of MARKET_ITEMS) {
     const timestamp = receipts[item.id];
-    if (typeof timestamp !== "string" || timestamp.length > 32 || !marketIsOpen(new Date(timestamp)) || !marketCarries(item.id, new Date(timestamp)) || budget < item.price) continue;
+    if (typeof timestamp !== "string" || timestamp.length > 32 || !marketIsOpen(new Date(timestamp)) || !receiptWasInStock(item.id, new Date(timestamp)) || budget < item.price) continue;
     purchases[item.id] = timestamp;
     budget -= item.price;
   }

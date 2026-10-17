@@ -1,87 +1,87 @@
-@import "./woodland-theme.css";
-
+/* El cofre al abrirse, con la piel de pixel de los menus de Buddy: marco de
+   tablones con escuadras de laton, el cartel colgado de cadenas, la pagina de
+   pergamino, la escena en un marco de cuadro y botones de madera. Las imagenes
+   llegan como --sk-* (src/lib/pixelWorld/menuSkin.js) y la escena es un lienzo
+   (src/lib/pixelWorld/chest.js). Este modal va al body, fuera de .buddy-modal,
+   asi que lleva sus propios tokens. Hoja perezosa (BuddyChestReveal): solo
+   reglas de .chest-reveal*. */
 @layer components {
-  .chest-reveal-backdrop { position: fixed; inset: 0; z-index: 280; background: #020b09c9; backdrop-filter: blur(7px); }
-  .chest-reveal { position: fixed; z-index: 281; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(440px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 28px 24px 22px; border: 8px solid var(--woodland-dark); background: radial-gradient(ellipse at 50% 45%, #6c754326, transparent 65%), linear-gradient(#0b201bf2, #0b201bf2), url("../assets/market-sign-wood.svg") center / 328px 88px repeat; color: var(--woodland-text); box-shadow: 0 25px 100px #000a, inset 0 0 0 1px #cfb77b66, inset 0 0 40px #0006, 0 0 65px #c8a55215; text-align: center; font-family: var(--font-mono, monospace); animation: chest-panel-in .22s ease-out; }
-  .chest-reveal-close { position: absolute; top: 10px; right: 10px; display: grid; place-items: center; width: 30px; height: 30px; color: #b2c2a3; background: transparent; border: 1px solid #b5a36a35; cursor: pointer; }
-  .chest-reveal-kicker { display: block; margin-top: 8px; color: var(--stand-lettering); font-size: 9px; font-weight: 700; letter-spacing: 2.3px; }
-  .chest-reveal-title { margin: 13px 0 9px; color: var(--woodland-text); font-size: clamp(18px, 4.5vw, 23px); font-weight: 800; line-height: 1.25; letter-spacing: -.7px; }
-  .chest-reveal-description { margin: 0; color: var(--woodland-muted); font-size: 11px; line-height: 1.6; }
-  .chest-reveal-stage { position: relative; height: 300px; overflow: hidden; isolation: isolate; }
-  .chest-reveal-box { position: absolute; z-index: 3; width: 190px; left: calc(50% - 95px); bottom: 46px; transform-origin: 50% 85%; }
-  .chest-reveal-chest { display: block; width: 100%; overflow: visible; image-rendering: pixelated; }
-  .chest-reveal-lid { transform-origin: 48px 37px; }
-  .chest-reveal-seam { opacity: 0; }
-  .chest-reveal-table { position: absolute; z-index: 2; bottom: 12px; left: 50%; translate: -50% 0; width: 260px; max-width: 94%; height: 52px; filter: drop-shadow(0 7px 5px #0006); }
-  .chest-table-top { position: absolute; inset: 0 0 auto; height: 20px; background: linear-gradient(#e9c38340, #52341b33), url("../assets/market-sign-wood.svg") center / cover; clip-path: polygon(5% 0, 95% 0, 100% 64%, 100% 100%, 0 100%, 0 64%); box-shadow: inset 0 2px #e1bd7b, inset 0 -5px #4a301e; }
-  .chest-table-apron { position: absolute; left: 6px; right: 6px; top: 19px; height: 12px; border: 1px solid #412c1d; background: linear-gradient(#36201555, #36201555), url("../assets/market-sign-wood.svg") center / cover; box-shadow: inset 0 1px #cda36799, 0 2px #1c1c1466; }
-  .chest-table-apron::before, .chest-table-apron::after { content: ""; position: absolute; top: 3px; width: 3px; height: 3px; background: #cfaf6b; box-shadow: 1px 1px #32251a; }
-  .chest-table-apron::before { left: 15px; } .chest-table-apron::after { right: 15px; }
-  .chest-table-leg { position: absolute; top: 20px; bottom: 0; width: 17px; background: url("../assets/market-post-wood.svg") center / 20px 180px; border: 2px solid #3d2b1d; box-shadow: inset 2px 0 #cc9c5c77, 2px 2px #0004; }
-  .chest-table-leg.is-left { left: 18px; } .chest-table-leg.is-right { right: 18px; }
-  .chest-table-stretcher { position: absolute; bottom: 8px; left: 34px; right: 34px; height: 7px; background: url("../assets/market-sign-wood.svg") center / 240px 44px; border-block: 1px solid #422c1e; }
-
-  .chest-reveal-halo { position: absolute; inset: 20px 0 0; opacity: 0; background: radial-gradient(ellipse, #ffe3a445, #e6c37310 45%, transparent 70%); }
-  .chest-reveal-rays { position: absolute; z-index: -1; width: 260px; height: 260px; left: calc(50% - 130px); top: 0; opacity: 0; background: repeating-conic-gradient(from 10deg, transparent 0deg 23deg, #ffe4a61a 23deg 30deg); mask-image: radial-gradient(circle, #000, transparent 69%); }
-  .chest-reveal-sparks, .chest-reveal-flying-coins { position: absolute; z-index: 4; left: 50%; top: 66%; }
-  .chest-reveal-sparks i { position: absolute; width: 4px; height: 4px; background: #ffe8ac; box-shadow: 0 0 8px #ffe8ac70; opacity: 0; }
-  .chest-reveal-sparks i:nth-child(3n) { width: 3px; height: 8px; background: #bbd6a1; }
-  .chest-reveal-flying-coins span { position: absolute; width: 21px; height: 24px; left: -10px; top: -12px; opacity: 0; }
-  .chest-reveal-flying-coins svg { width: 100%; height: 100%; }
-  .chest-reveal-prize { position: absolute; z-index: 5; top: 4px; left: 0; width: 100%; display: grid; justify-items: center; opacity: 0; transform: translateY(12px) scale(.85); }
-  .chest-reveal-prize > svg { width: 32px; height: 35px; filter: drop-shadow(0 0 14px #ffd98155); }
-  .chest-reveal-prize strong { margin-top: 5px; color: #ffe6a1; font-size: 38px; line-height: 1; font-weight: 900; text-shadow: 0 0 25px #ffd68540; }
-  .chest-reveal-prize > span { margin-top: 7px; color: #ccb983; font-size: 9px; letter-spacing: 2px; }
-  .chest-reveal-result { min-height: 18px; color: #efdcaa; font-size: 12px; font-weight: 700; }
-  .chest-reveal-balance { display: flex; justify-content: center; align-items: center; gap: 7px; margin: 12px 0 20px; color: #a9b798; font-size: 11px; }
-  .chest-reveal-balance svg, .chest-reveal-balance b { color: #e4c889; }
-  .chest-reveal-actions { display: grid; gap: 12px; min-height: 100px; align-content: center; }
-  .chest-reveal-actions button { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 44px; padding: 11px 16px; border: 2px solid var(--woodland-edge); color: var(--stand-lettering); background: linear-gradient(#2c211872, #2c211872), url("../assets/market-sign-wood.svg") center / cover; box-shadow: inset 0 1px #eac58a55, inset 0 -2px #251b1477, 0 3px #21190f; text-shadow: 0 1px 1px #20170f; font-size: 11px; cursor: pointer; transition: filter .15s ease, translate .15s ease, box-shadow .15s ease; }
-  .chest-reveal-actions .chest-reveal-primary { background: linear-gradient(#e8b86d19, #51311922), url("../assets/market-sign-wood.svg") center / cover; color: var(--woodland-text); border-color: var(--stand-wood-light); box-shadow: inset 0 0 0 1px #f4dba357, inset 0 2px #ffe4ae55, inset 0 -3px #4c321d88, 0 4px #352417, 0 5px #b5925155; font-weight: 800; }
-  .chest-reveal-actions button:hover { filter: brightness(1.13); translate: 0 -1px; }
-  .chest-reveal-actions button:active { translate: 0 2px; box-shadow: inset 0 2px 3px #27180f66, 0 1px #352417; }
-  .chest-reveal button:focus-visible { outline: 2px solid #fff0c1; outline-offset: 3px; }
-  .chest-reveal-actions button span { font-size: 10px; }
-  .chest-reveal-primary > span { display: grid; place-items: center; width: 24px; height: 24px; margin: -3px 0; background: #33251e66; border: 1px solid #e6c38166; box-shadow: inset 0 1px 2px #0006; color: #ffdfa0; font-size: 14px; }
-  .chest-reveal-actions p { margin: 6px 0; color: #92a58a; font-size: 10px; }
-  .chest-reveal-note { display: block; margin-top: 12px; color: #809479; font-size: 9px; line-height: 1.5; }
-  /* Keep the reward scene in the shop's cool forest light. */
+  .chest-reveal-backdrop { position: fixed; inset: 0; z-index: 280; background: radial-gradient(circle at 50% 55%, #3a2410b0, transparent 60%), linear-gradient(135deg, #0d0804d9, #050302f0); backdrop-filter: blur(6px) saturate(.8); }
   .chest-reveal {
-    background: radial-gradient(ellipse at 50% 45%, #619b891a, transparent 65%), var(--woodland-surface);
-    box-shadow: var(--woodland-shadow), var(--woodland-inset);
+    --m-edge: #2a1206; --m-ink: #2c1606; --m-ink-soft: #46280e; --m-cream: #fff1cf;
+    --font-menu: "Jersey 10", "JetBrains Mono", monospace;
+    position: fixed; z-index: 281; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    display: flex; flex-direction: column; align-items: center;
+    width: min(440px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); overflow-y: auto; overscroll-behavior: contain;
+    padding: 34px 6px 6px;
+    border: 20px solid transparent; border-image: var(--sk-frame) 10 / 20px round;
+    background: var(--sk-wood) 0 0 / 64px 32px; background-clip: padding-box;
+    box-shadow: 0 8px 0 #0d0804, 0 30px 90px #000c;
+    color: var(--m-ink); text-align: center;
+    font-family: var(--font-menu); font-size-adjust: ex-height .52; font-synthesis: none;
+    image-rendering: pixelated; scrollbar-width: thin; scrollbar-color: #8e5a2e transparent;
   }
-  .chest-reveal-chest { filter: saturate(.6) brightness(.83) drop-shadow(0 3px 2px #03151280); }
-  .chest-reveal-table { filter: drop-shadow(0 4px 4px #03151280); }
-  .chest-table-top, .chest-table-apron, .chest-table-leg, .chest-table-stretcher,
-  .chest-reveal-actions button, .chest-reveal-actions .chest-reveal-primary {
-    background: var(--woodland-timber); background-blend-mode: soft-light;
-    border-color: var(--woodland-edge);
-    box-shadow: inset 0 1px var(--stand-wood-light), inset 0 -2px #152b2680, 0 4px 10px #03151266;
-    text-shadow: 0 1px #071a16;
+  .chest-reveal * { text-shadow: none; }
+  .chest-reveal :is(button):focus-visible { outline: 3px solid #ffd166; outline-offset: 2px; }
+
+  /* La X roja, arriba a la derecha. */
+  .chest-reveal-close { position: absolute; top: 2px; right: 4px; z-index: 2; display: grid; place-items: center; padding: 2px 6px 0; border: 6px solid transparent; border-width: 6px 6px 10px; border-image: var(--sk-btn-x) 3 3 5 3 fill / 6px 6px 10px; background: none; color: var(--m-cream); cursor: pointer; }
+  .chest-reveal-close:hover { color: #ffffff; }
+  .chest-reveal-close:active { translate: 0 2px; }
+
+  /* El cartel de tablon, colgado de dos cadenas del marco; entra columpiandose. */
+  .chest-reveal-sign { position: relative; max-width: calc(100% - 64px); padding: 2px 12px 4px; border: 12px solid transparent; border-width: 12px 16px 14px; border-image: var(--sk-plank) 4 fill / 12px 16px 14px round; transform-origin: 50% -34px; animation: chest-sign-swing 1.4s cubic-bezier(.3, .7, .35, 1) both; }
+  .chest-reveal-sign::before, .chest-reveal-sign::after { position: absolute; top: -36px; width: 6px; height: 26px; background: var(--sk-chain) 0 0 / 6px 12px repeat-y; image-rendering: pixelated; content: ""; }
+  .chest-reveal-sign::before { left: 6px; }
+  .chest-reveal-sign::after { right: 6px; }
+  .chest-reveal-kicker { display: block; color: #ffe6b0; font: 600 14px/1 var(--font-menu); letter-spacing: .16em; text-shadow: 1px 1px 0 var(--m-edge); }
+  .chest-reveal-title { margin: 4px 0 0; color: #fff6dc; font: 700 clamp(24px, 6vw, 30px)/1.05 var(--font-menu); text-shadow: 2px 2px 0 var(--m-edge), 0 3px 0 var(--m-edge); text-wrap: balance; }
+  .chest-reveal.is-opening .chest-reveal-title { animation: chest-title-rattle .5s steps(2, end) infinite; }
+
+  /* La pagina de pergamino con todo lo demas. */
+  .chest-reveal-page { display: flex; flex-direction: column; align-items: center; gap: 10px; align-self: stretch; margin-top: 12px; padding: 4px 6px 8px; border: 12px solid transparent; border-image: var(--sk-page) 6 / 12px round; background: var(--sk-paper) 0 0 / 64px; background-clip: padding-box; }
+  .chest-reveal-description { display: grid; place-items: center; min-height: 2.5em; margin: 0; color: var(--m-ink-soft); font-size: 17px; line-height: 1.25; text-wrap: balance; }
+
+  /* La escena del muelle, en un marco de cuadro. */
+  .chest-reveal-stage { position: relative; width: 100%; max-width: 368px; border: 8px solid transparent; border-image: var(--sk-pframe) 4 / 8px; background: #0a1628; background-clip: padding-box; }
+  .chest-reveal-scene { display: block; width: 100%; height: auto; aspect-ratio: 176 / 104; image-rendering: pixelated; }
+  .chest-reveal-prize { position: absolute; top: 2px; left: 0; right: 0; display: grid; grid-template-columns: auto auto; justify-content: center; align-items: center; column-gap: 8px; pointer-events: none; opacity: 0; }
+  .chest-reveal-prize > svg { grid-row: 1; width: 22px; height: 24px; filter: drop-shadow(2px 2px 0 #2a1206); }
+  .chest-reveal-prize > span { grid-column: 1 / -1; justify-self: center; }
+  .chest-reveal-prize strong { grid-row: 1; color: #ffe6a1; font: 700 40px/.9 var(--font-menu); text-shadow: 2px 0 0 #2a1206, -2px 0 0 #2a1206, 0 2px 0 #2a1206, 0 -2px 0 #2a1206, 2px 2px 0 #2a1206, -2px 2px 0 #2a1206, 0 5px 0 #2a1206; }
+  .chest-reveal-prize > span { margin-top: 1px; color: #fff1cf; font: 600 12px/1 var(--font-menu); letter-spacing: .22em; text-shadow: 1px 1px 0 #2a1206, -1px 1px 0 #2a1206, 0 2px 0 #2a1206; }
+  .chest-reveal.is-revealed .chest-reveal-prize { opacity: 1; animation: chest-prize-pop .55s steps(6, end) both; }
+
+  .chest-reveal-result { min-height: 20px; color: var(--m-ink); font: 700 20px/1.2 var(--font-menu); }
+  .chest-reveal-balance { display: inline-flex; align-items: center; gap: 8px; padding: 1px 10px 0; border: 6px solid transparent; border-image: var(--sk-slot) 4 fill / 6px; color: var(--m-ink-soft); font-size: 17px; }
+  .chest-reveal-balance svg { width: 18px; height: 20px; }
+  .chest-reveal-balance b { color: var(--m-ink); font-weight: 700; }
+  .chest-reveal.is-revealed .chest-reveal-balance b { display: inline-block; animation: chest-count-bump .45s .1s steps(4, end) both; }
+
+  /* Botones de madera; el de quedarselo, verde. */
+  /* (alto fijo para dos botones: el modal no salta al revelar) */
+  .chest-reveal-actions { display: grid; gap: 8px; width: 100%; min-height: 100px; align-content: center; }
+  .chest-reveal-actions button { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 0; padding: 4px 10px 2px; border: 6px solid transparent; border-width: 6px 6px 10px; border-image: var(--sk-btn) 3 3 5 3 fill / 6px 6px 10px; background: none; color: var(--m-ink); font: 600 19px/1.2 var(--font-menu); cursor: pointer; }
+  .chest-reveal-actions .chest-reveal-primary { border-image-source: var(--sk-btn-go); color: #12300c; }
+  .chest-reveal-actions button:hover { filter: brightness(1.08); }
+  .chest-reveal-actions button:active { translate: 0 2px; }
+  .chest-reveal-actions button span { padding: 1px 6px 0; background: #6a3a18; color: #ffe6b0; font-size: 15px; box-shadow: 0 0 0 2px var(--m-edge); }
+  .chest-reveal-actions .chest-reveal-primary > span { display: grid; place-items: center; width: 22px; height: 22px; padding: 0; background: #2f6a22; color: #e8ffd0; font-size: 15px; }
+  .chest-reveal-actions p { margin: 2px 0; color: var(--m-ink-soft); font-size: 16px; }
+  .chest-reveal-note { color: #6a4a2a; font-size: 14px; line-height: 1.3; }
+
+  @media (max-width: 480px) {
+    .chest-reveal { padding-inline: 2px; }
+    .chest-reveal-page { padding-inline: 2px; }
+    .chest-reveal-prize strong { font-size: 38px; }
   }
-  .chest-reveal-actions .chest-reveal-primary { border-color: var(--stand-wood-light); }
-  .chest-reveal-halo { background: radial-gradient(ellipse, #a7c49730, #619b8910 45%, transparent 70%); }
-  .chest-reveal-rays { background: repeating-conic-gradient(from 10deg, transparent 0deg 23deg, #c1c9a212 23deg 30deg); }
-  .chest-reveal-prize > svg { filter: drop-shadow(0 0 10px #c1c9a230); }
-  .chest-reveal-prize strong { text-shadow: 0 0 16px #c1c9a220; }
-  .chest-reveal.is-opening .chest-reveal-box { animation: chest-rattle 1.15s ease-in-out both; }
-  .chest-reveal.is-opening .chest-reveal-lid { animation: chest-lid-pop 1.8s cubic-bezier(.2,.8,.3,1) both; }
-  .chest-reveal.is-opening .chest-reveal-seam { animation: chest-seam-light 1.8s ease both; }
-  .chest-reveal.is-opening .chest-reveal-halo, .chest-reveal.is-opening .chest-reveal-rays { animation: chest-gold-bloom 1.8s ease both; }
-  .chest-reveal.is-opening .chest-reveal-sparks i { animation: chest-spark .85s var(--spark-delay) ease-out both; }
-  .chest-reveal.is-opening .chest-reveal-flying-coins span { animation: chest-coin-hop .8s 1s cubic-bezier(.15,.65,.35,1) both; }
-  .chest-reveal.is-revealed .chest-reveal-lid { transform: translateY(-10px) rotate(-9deg) scaleY(.65); }
-  .chest-reveal.is-revealed .chest-reveal-halo, .chest-reveal.is-revealed .chest-reveal-rays, .chest-reveal.is-revealed .chest-reveal-seam { opacity: 1; }
-  .chest-reveal.is-revealed .chest-reveal-prize { opacity: 1; transform: none; animation: chest-prize-arrive .35s ease-out; }
-  @media (max-width: 480px) { .chest-reveal { padding: 28px 20px 18px; } .chest-reveal-stage { height: 275px; } .chest-reveal-box { width: 164px; left: calc(50% - 82px); } }
-  @media (max-height: 680px) { .chest-reveal-stage { height: 250px; } .chest-reveal { padding-top: 22px; } .chest-reveal-box { width: 150px; left: calc(50% - 75px); } .chest-reveal-prize strong { font-size: 34px; } .chest-reveal-prize > svg { width: 28px; height: 31px; } }
+  @media (max-height: 680px) {
+    .chest-reveal { padding-top: 30px; }
+    .chest-reveal-description { display: none; }
+  }
   @media (prefers-reduced-motion: reduce) { .chest-reveal, .chest-reveal * { animation: none !important; transition: none !important; } }
 }
-@keyframes chest-panel-in { from { opacity: 0; translate: 0 6px; } to { opacity: 1; translate: 0 0; } }
-@keyframes chest-rattle { 0%, 22%, 45% { transform: translate(0, 0) rotate(0); } 12%, 35%, 58%, 72%, 86% { transform: translate(-3px, -2px) rotate(-3deg); } 18%, 40%, 65%, 79%, 92% { transform: translate(3px, -2px) rotate(3deg); } 100% { transform: none; } }
-@keyframes chest-lid-pop { 0%, 52% { transform: none; } 64% { transform: translateY(-24px) rotate(-17deg) scaleY(.6); } 78%, 100% { transform: translateY(-10px) rotate(-9deg) scaleY(.65); } }
-@keyframes chest-seam-light { 0%, 30% { opacity: 0; } 48% { opacity: .4; } 58%, 100% { opacity: 1; } }
-@keyframes chest-gold-bloom { 0%, 45% { opacity: 0; transform: scale(.5); } 65% { opacity: 1; transform: scale(1.15); } 100% { opacity: 1; transform: scale(1); } }
-@keyframes chest-spark { 0% { opacity: 0; transform: translate(0, 0) scale(.5); } 15% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--spark-x), var(--spark-y)) scale(.25) rotate(90deg); } }
-@keyframes chest-coin-hop { 0% { opacity: 0; transform: translate(0, 0) rotate(0deg); } 25% { opacity: 1; } 70% { opacity: 1; transform: translate(var(--coin-x), -125px) rotate(var(--coin-rotation)); } 100% { opacity: 0; transform: translate(var(--coin-x), -110px) rotate(var(--coin-rotation)); } }
-@keyframes chest-prize-arrive { from { opacity: 0; transform: translateY(8px) scale(.9); } to { opacity: 1; transform: none; } }
+@keyframes chest-sign-swing { 0% { rotate: -9deg; } 30% { rotate: 6deg; } 55% { rotate: -3deg; } 78% { rotate: 1.5deg; } 100% { rotate: 0deg; } }
+@keyframes chest-title-rattle { 0% { translate: -1px 0; } 100% { translate: 1px 0; } }
+@keyframes chest-prize-pop { 0% { opacity: 0; transform: translateY(14px) scale(.6); } 50% { opacity: 1; transform: translateY(-4px) scale(1.12); } 75% { transform: translateY(1px) scale(.97); } 100% { opacity: 1; transform: none; } }
+@keyframes chest-count-bump { 0% { transform: translateY(0); } 40% { transform: translateY(-4px); color: #8a5a14; } 100% { transform: none; } }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ShoppingBag } from "lucide-react";
 import { BuddyCoinIcon } from "./BuddyCoinIcon";
-import { MARKET_SCHEDULE, MARKET_SPECIALS, MARKET_TIME_ZONE, marketIsOpen, marketStock, nextMarketOpening } from "../../shared/buddy-market.mjs";
+import { MARKET_SCHEDULE, MARKET_SPECIALS, MARKET_TIME_ZONE, marketHostStock, marketIsOpen, marketStock, nextMarketOpening } from "../../shared/buddy-market.mjs";
 import { HOSTS } from "../lib/hostAvatar";
 import { BuddyMarketWallet } from "./BuddyChestOpening";
 import { MarketItemIcon, MarketStandArt } from "./BuddyMarketArt";
@@ -17,7 +17,7 @@ export function useMarketOpen(refreshMs = 15000) {
     return () => { clearInterval(timer); window.removeEventListener("focus", refresh); };
   }, [refreshMs]);
   const day = now.toLocaleDateString("en-US", { timeZone: MARKET_TIME_ZONE });
-  const schedule = useMemo(() => ({ stock: marketStock(now), nextOpening: nextMarketOpening(now) }), [day]);
+  const schedule = useMemo(() => ({ stock: marketStock(now), hostStock: marketHostStock(now), nextOpening: nextMarketOpening(now) }), [day]);
   return { now, open: marketIsOpen(now), ...schedule };
 }
 
@@ -35,8 +35,8 @@ function MarketCountdown({ now, nextOpening }) {
   </div>;
 }
 
-// Pedido especial: fuera de la rotacion y a la venta cada dia de mercado. Una
-// anfitriona para la puerta (lib/hostAvatar.js), asi que se ve su retrato.
+// Host cards share the portrait and savings meter; the label distinguishes
+// permanent special orders from hosts visiting in the current rotation.
 function MarketSpecialOrder({ item, wallet, open, onBuy }) {
   const host = HOSTS.find((entry) => entry.unlockItem === item.id);
   const owned = wallet.owned.includes(item.id);
@@ -44,10 +44,10 @@ function MarketSpecialOrder({ item, wallet, open, onBuy }) {
   return <section className={`market-special ${owned ? "is-owned" : ""}`} aria-labelledby={`market-special-${item.id}`}>
     <div className="market-special-art">
       {host ? <img src={host.portrait} alt="" width="320" height="400" loading="lazy" decoding="async" /> : null}
-      <span className="market-special-tag" aria-hidden="true">SPECIAL ORDER</span>
+      <span className="market-special-tag" aria-hidden="true">{item.availability ? "VISITING HOST" : "SPECIAL ORDER"}</span>
     </div>
     <div className="market-special-copy">
-      <small>FOR YOUR GATE · EVERY MARKET DAY</small>
+      <small>FOR YOUR GATE · {item.availability || "EVERY MARKET DAY"}</small>
       <h4 id={`market-special-${item.id}`}>{item.label}<span>new host</span></h4>
       <p>{item.description}</p>
       {owned ? null : <div className="market-special-savings">
@@ -73,7 +73,7 @@ export function BuddyMarketStand({ open, onClick, onHoverChange }) {
 }
 
 export function BuddyMarket({ buddy, onNavigate }) {
-  const { now, open, stock, nextOpening } = useMarketOpen(1000);
+  const { now, open, stock, hostStock, nextOpening } = useMarketOpen(1000);
   const [message, setMessage] = useState("");
   const wallet = buddy.adventure.market;
   return <div className="buddy-market">
@@ -96,7 +96,7 @@ export function BuddyMarket({ buddy, onNavigate }) {
     })}</div>
     <div className="market-stall-base" aria-hidden="true"><span>SMALL WONDERS · FAIR TRADES</span></div>
     </section>
-    {MARKET_SPECIALS.map((item) => <MarketSpecialOrder key={item.id} item={item} wallet={wallet} open={open} onBuy={(id) => setMessage(buddy.adventure.buyItem(id))} />)}
+    {[...MARKET_SPECIALS, ...hostStock].map((item) => <MarketSpecialOrder key={item.id} item={item} wallet={wallet} open={open} onBuy={(id) => setMessage(buddy.adventure.buyItem(id))} />)}
     <div className="market-footer"><span>Already found your favorite?</span><button type="button" onClick={() => onNavigate("inventory")}>Dress Buddy ↗</button><button type="button" onClick={() => onNavigate("room")}>Decorate the room ↗</button></div>
   </div>;
 }

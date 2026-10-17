@@ -15,6 +15,8 @@ data/cross-road-leaderboard.json
 /private/music-source/
 /public/assets/music/
 /private/music-encrypted/*.tmp
+/private/hosts-source/
+/private/hosts-encrypted/*.tmp
 .codex-*.log
 .codex-*.log
 data/space-cadet-pinball-leaderboard.json

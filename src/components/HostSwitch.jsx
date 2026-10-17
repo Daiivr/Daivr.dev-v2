@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { BookOpen, Check, ChevronDown, LockKeyhole, ShoppingBag } from "lucide-react";
-import { MARKET_SPECIALS } from "../../shared/buddy-market.mjs";
+import { MARKET_ITEMS } from "../../shared/buddy-market.mjs";
 import { useModalPresence } from "../hooks/useModalPresence";
 import { HOSTS, hostById } from "../lib/hostAvatar";
 
@@ -10,9 +10,10 @@ const gold = (value) => value.toLocaleString("en-US");
 // Que falta para cada anfitriona bloqueada y donde se consigue.
 function lockFor(host, { coins = 0, species = 0, totalSpecies = 0 }) {
   if (host.unlockItem) {
-    const price = MARKET_SPECIALS.find((item) => item.id === host.unlockItem)?.price ?? 0;
+    const item = MARKET_ITEMS.find((item) => item.id === host.unlockItem);
+    const price = item?.price ?? 0;
     return {
-      need: `Woodland Market · ${gold(price)} gold`,
+      need: `Woodland Market · ${gold(price)} gold${item?.availability ? ` · ${item.availability.toLowerCase()}` : ""}`,
       meter: price ? Math.min(1, coins / price) : 0,
       detail: `${gold(Math.min(coins, price))} / ${gold(price)} gold`,
       view: "market",
@@ -130,7 +131,7 @@ export function HostSwitch({ hostId, unlockedIds = ["original"], onChoose, progr
               );
             })}
           </ul>
-          <p className="host-switch-note">Your choice is saved for your next visit. Switching hosts won't reopen the splash.</p>
+          <p className="host-switch-note">Saved for your next reload. Only that host's 3D model loads then; choosing here doesn't download it.</p>
           </div>
         </div>
       ) : null}

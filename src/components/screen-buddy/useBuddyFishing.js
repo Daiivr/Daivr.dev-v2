@@ -81,8 +81,16 @@ function createFishing(core, set) {
   const leviathanInteractionRef = { current: null };
 
   // The opening belongs to the footer. Buddy notices it, approaches, then casts.
+  // El mercado y la hoguera (del borde hasta pasada la hoguera): ahi no se abre la poza.
+  function marketZone() {
+    const fire = document.querySelector(".footer-campfire"), stage = core.rootRef.current?.parentElement;
+    const rect = fire?.getBoundingClientRect();
+    if (!stage || !rect?.width) return [];
+    return [[-Infinity, rect.right - stage.getBoundingClientRect().left + 12]];
+  }
+
   function startFishing({ forceCreature = "" } = {}) {
-    const spot = fishingSpot(stageWidth(), { miku: mikuCostumeRef.current });
+    const spot = fishingSpot(stageWidth(), { miku: mikuCostumeRef.current, avoid: marketZone() });
     if (!spot) return;
     if (!beginBuddyEvent("fishing")) return;
     cooldownRef.current = Date.now();

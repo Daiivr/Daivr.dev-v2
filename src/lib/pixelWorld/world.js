@@ -283,6 +283,8 @@ export function createFooterWorld(canvas) {
       lookX: pose.lookX ?? actor.lookX ?? 0, lookY: pose.lookY ?? actor.lookY ?? 0, ghost: Boolean(actor.ghost), glow: Boolean(glow),
       outfit: wornSlots(actorFit(actor), { handsBusy: pose.handsBusy }), handUp: pose.handUp, ...(hovering ? { moving: true } : {})
     };
+    // La antena de chispas chisporrotea (fase de la chispa, solo si la lleva).
+    if (opts.outfit.antenna === "gold-antenna") opts.spark = Math.floor(t * 9) % 6;
     const flip = (actor.dir < 0) !== pose.flip;
     const lift = Math.round(pose.hop + a.hoverH + (a.hoverH > 2 ? Math.round(Math.sin(t * 9)) : 0));
     const left = Math.round(actor.x) - (flip ? RIG_W - 1 - RIG_FOOT_X : RIG_FOOT_X);
@@ -613,6 +615,7 @@ export function createFooterWorld(canvas) {
 
   return {
     state, build, setSeason, update, draw, splash, impact, wish, waterSpot, splashSpot, rainFrogs, bubbleLifts, relightFire, raining,
+    flock: (kind, dir) => skyArt.flock(kind, dir),
     get fireOut() { return fire.out; },
     get layout() { return L; },
     get width() { return W; }

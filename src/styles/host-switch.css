@@ -5,6 +5,10 @@
   .host-switch { --host-c: var(--color-phosphor); position: relative; flex: none; }
   .host-switch.is-miku, .host-card.is-miku, .host-switch-pips .is-miku { --host-c: var(--color-cyan-arcade); }
   .host-switch.is-komoe, .host-card.is-komoe, .host-switch-pips .is-komoe { --host-c: var(--color-cabinet); }
+  .host-switch.is-nh02, .host-card.is-nh02, .host-switch-pips .is-nh02 { --host-c: #c4a5ed; }
+  .host-switch.is-kiyosa, .host-card.is-kiyosa, .host-switch-pips .is-kiyosa { --host-c: #c8df87; }
+  .host-switch.is-nh02 .host-switch-face img { transform: none; }
+  .host-switch.is-kiyosa .host-switch-face img { transform: none; }
   .host-card.is-original, .host-switch-pips .is-original { --host-c: var(--color-phosphor); }
 
   .host-switch-trigger {
@@ -68,7 +72,7 @@
     z-index: 5;
     top: calc(100% + 12px);
     left: 50%;
-    width: min(612px, calc(100vw - 32px));
+    width: min(940px, calc(100vw - 32px));
     transform: translateX(-50%);
     filter: drop-shadow(0 18px 26px #000c);
   }
@@ -93,7 +97,7 @@
 
   /* Subgrid: la ficha y el medidor de cada tarjeta comparten fila, asi que los
      medidores quedan alineados aunque un requisito ocupe dos lineas. */
-  .host-switch-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: auto auto; gap: 0.5rem 0.65rem; margin: 0; padding: 0; list-style: none; }
+  .host-switch-cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); grid-template-rows: auto auto; gap: 0.5rem 0.65rem; margin: 0; padding: 0; list-style: none; }
   .host-card { display: grid; grid-row: span 2; grid-template-rows: subgrid; align-content: start; min-width: 0; }
   .host-card-unlock { grid-row: 2; }
 

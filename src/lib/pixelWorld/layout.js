@@ -45,7 +45,10 @@ export function layoutFor(W, { cssWidth = W * 2 } = {}) {
     W, X, phone, standX, fireX, lamps, trees, bushes,
     stones: [X(8), X(39), X(74)],
     // Donde no crece hierba ni flores: el puesto y la hoguera.
-    clear: [[standX - 6, standX + STAND_W + 4], [fireX - 16, fireX + 16]]
+    clear: [[standX - 6, standX + STAND_W + 4], [fireX - 16, fireX + 16]],
+    // Donde no se abre agua (ni la poza de pescar ni los agujeros de los peces
+    // saltarines): desde el borde, con la farola y el puesto, hasta la hoguera.
+    noWater: [0, fireX + 20]
   };
 }
 
