@@ -1,26 +1,30 @@
-import { BuddyMarketStand } from "./BuddyMarket";
+import { BuddyMarketStand, useMarketOpen } from "./BuddyMarket";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { discord, profile } from "../data/site";
 import { useLanyardPresence } from "../hooks/useLanyardPresence";
 import { ScreenBuddy } from "./ScreenBuddy";
 import { BuddyVisitors } from "./BuddyVisitors";
-import { FooterScenery } from "./FooterScenery";
 import { FooterSky } from "./FooterSky";
 import { FooterSoundscape } from "./FooterSoundscape";
-import { FooterWildlife } from "./FooterWildlife";
+import { FooterWorld } from "./FooterWorld";
 
 const VISIT_COUNTED_KEY = "daivr.visitCounted.v1";
 
-export function SiteFooter({ buddy, onBuddyPet, onPowerOutage, onOpenMarket }) {
+export function SiteFooter({ buddy, season, onBuddyPet, onPowerOutage, onOpenMarket }) {
   const [visitCount, setVisitCount] = useState(null);
   const [visitError, setVisitError] = useState(false);
   const [discordUser, setDiscordUser] = useState(null);
-  // Fase del dia, cielo y viento (FooterSky), para que el bosque se ponga a juego.
-  // Tambien la luna llena y la lluvia de estrellas de esta noche (para Buddy).
-  const [sky, setSky] = useState({ phase: "night", cover: "fair", wind: 1, fullMoon: false, shower: "" });
+  // Fase del dia, altura del sol, cielo y viento (FooterSky), para que el mundo
+  // del footer se ponga a juego. Tambien la luna llena y la lluvia de estrellas
+  // de esta noche (para Buddy).
+  const [sky, setSky] = useState({ phase: "night", cover: "fair", wind: 1, altitude: -1, fullMoon: false, shower: "" });
   const onSkyPhase = useCallback((next) => {
-    setSky((current) => (["phase", "cover", "wind", "fullMoon", "shower"].every((key) => current[key] === next[key]) ? current : next));
+    setSky((current) => (["phase", "cover", "wind", "altitude", "fullMoon", "shower"].every((key) => current[key] === next[key]) ? current : next));
   }, []);
+  // El puesto del mercado: abierto o cerrado (lo dibuja FooterWorld) y si el
+  // puntero esta encima (se ilumina su contorno).
+  const market = useMarketOpen();
+  const [marketHover, setMarketHover] = useState(false);
   // Peces ya pescados: los que Buddy puede asar en la hoguera.
   const fishJournal = buddy.adventure.fishJournal;
   const caughtFish = useMemo(
@@ -98,9 +102,8 @@ export function SiteFooter({ buddy, onBuddyPet, onPowerOutage, onOpenMarket }) {
   return (
     <div className={`app-footer-zone sky-${sky.phase} sky-cover-${sky.cover} ${windClass} ${spotify ? "is-spotify-live" : ""}`} style={{ "--wind-strength": sky.wind }}>
       <FooterSky onPhase={onSkyPhase} />
-      <FooterScenery />
-      <FooterWildlife />
-      <BuddyMarketStand onClick={onOpenMarket} />
+      <FooterWorld sky={sky} season={season} marketOpen={market.open} marketHover={marketHover} />
+      <BuddyMarketStand open={market.open} onClick={onOpenMarket} onHoverChange={setMarketHover} />
       <ScreenBuddy
         onPet={onBuddyPet}
         onPowerOutage={onPowerOutage}
@@ -116,8 +119,8 @@ export function SiteFooter({ buddy, onBuddyPet, onPowerOutage, onOpenMarket }) {
         meteorShower={sky.shower}
         caughtFish={caughtFish}
       />
-      {/* Despues de ScreenBuddy: FooterScenery/FooterWildlife buscan al buddy
-          de casa con el primer .screen-buddy-root del footer. */}
+      {/* Despues de ScreenBuddy: FooterWorld busca al buddy de casa con el
+          primer .screen-buddy-root del footer. */}
       <BuddyVisitors
         friendshipLevel={buddy.friendship.level}
         inventory={buddy.adventure.inventoryIds}

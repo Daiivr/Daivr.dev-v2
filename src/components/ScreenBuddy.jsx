@@ -1,27 +1,21 @@
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect, useMemo } from "react";
 import { BuddyFishingPortal } from "./BuddyFishingPortal";
 import { LURE_IDS, ROD_IDS } from "../hooks/useBuddyLoadout";
-import { BuddyChuteCanopy, BuddySprite } from "./BuddySprite";
-import { BuddyBugWeapon } from "./BuddyBugWeapon";
-import { BuddyOutageKit } from "./BuddyOutageKit";
-import { BuddyUmbrella } from "./BuddyUmbrella";
-import { PixelPhosphorMoth } from "./PixelPhosphorMoth";
-import { BuddyEnemyBug } from "./BuddyEnemyBug";
-import { PixelBird } from "./PixelBird";
-import { BuddyCollectibleIcon } from "./BuddyCollectibleIcon";
 import { LeviathanEncounter } from "./LeviathanEncounter";
+import { PipChute } from "./PipChute";
+import { PipSprite } from "./PipSprite";
 import { LINES } from "./screen-buddy/buddyLines";
-import { BuddyFishingRig, BuddyMikuRodOverlay } from "./screen-buddy/BuddyFishingRig";
 import { clamp, desktopQuery, reduceMotionQuery, SPRITE_WIDTH, useBuddyCore, WALK_MARGIN, FALL_SPEED_PX_S } from "./screen-buddy/useBuddyCore";
 import { useBuddyCampfire } from "./screen-buddy/useBuddyCampfire";
-import { BuddyCampfireStick } from "./screen-buddy/BuddyCampfireStick";
 import { useBuddyChat } from "./screen-buddy/useBuddyChat";
 import { useBuddySky } from "./screen-buddy/useBuddySky";
 import { useBuddyDrag } from "./screen-buddy/useBuddyDrag";
-import { BIRD_ARRIVAL_MS, BIRD_DEPARTURE_MS, BIRD_LANDING_MS, useBuddyEncounters } from "./screen-buddy/useBuddyEncounters";
+import { useBuddyEncounters } from "./screen-buddy/useBuddyEncounters";
 import { useBuddyFishing } from "./screen-buddy/useBuddyFishing";
 import { useBuddyOutage } from "./screen-buddy/useBuddyOutage";
-import { RAIN_DURATION_MS, useBuddyWeather } from "./screen-buddy/useBuddyWeather";
+import { useBuddyWeather } from "./screen-buddy/useBuddyWeather";
+import { dropActor, publishActor } from "../lib/pixelWorld/worldBus";
+import { outfitFor } from "../lib/pixelWorld/pip/outfit";
 
 const SLEEP_AFTER_MS = 5 * 60 * 1000;
 const ATTRACT_WAKE_DELAY_MS = 1000;
@@ -70,6 +64,9 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
   const equippedRod = ROD_IDS.find((id) => unlockedGear.includes(id) && !hiddenGear.includes(id)) || "";
   const hasMikuCostume = unlockedGear.includes("miku-costume") && !hiddenGear.includes("miku-costume");
   const hasRocketBoots = unlockedGear.includes("rocket-boots") && !hiddenGear.includes("rocket-boots");
+  // Lo que lleva Pip (el sprite lo dibuja FooterWorld): mismas reglas que antes.
+  const outfitKey = JSON.stringify([friendshipLevel, inventory, hiddenGear, unlockedGear]);
+  const outfit = useMemo(() => outfitFor({ friendshipLevel, inventory, hiddenGear, unlockedGear }), [outfitKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Lo que llega por props, a los refs que leen timers y listeners.
   useEffect(() => {
@@ -472,12 +469,29 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
   const currentStageWidth = core.stageWidth();
   const bubbleAnchor = x > currentStageWidth - 180 ? "anchor-right" : x < 116 ? "anchor-left" : "anchor-center";
   const eventSide = x < 132 ? 1 : x + SPRITE_WIDTH > currentStageWidth - 132 ? -1 : (facing > 0 ? -1 : 1);
-  const creatureSide = creature?.side || eventSide;
   const expression = isHappy || (mood === "fishing" && leviathanResponse === "signal") ? "happy"
     : isAsleep ? "sleep"
       : ["bite", "omen", "monster"].includes(fishingPhase) && !leviathanResponse ? "surprised"
-        : mood === "hunt" || outagePhase === "fix" || fishingPhase === "fight" || (fishingPhase === "monster" && leviathanResponse === "steady") ? "focus"
+        : mood === "hunt" || outagePhase === "fix" || fishingPhase === "fight" || fishingPhase === "charge" || (fishingPhase === "monster" && leviathanResponse === "steady") ? "focus"
           : "idle";
+
+  // Pip vive en el lienzo del footer (FooterWorld): se publica aqui donde esta,
+  // que hace y que lleva, sin medir el DOM. El lienzo repite la misma
+  // transicion lineal que el CSS de --buddy-x.
+  useLayoutEffect(() => {
+    publishActor("host", {
+      x, y, walkMs, facing, mood, expression, outfit, visible: mood !== "off",
+      fishing: mood === "fishing" ? fishingPhase : "", catchId: fishingView.catchId || "", catchTier: fishingView.catchTier || "", fightEscape: Boolean(fishingView.fightEscape),
+      sea: fishingView.seaCreature || "", seaResponse: fishingView.leviathanResponse || "",
+      hunt: enemy?.phase || "", enemy: enemy ? { id: enemy.id, weapon: enemy.weapon, side: enemy.side, phase: enemy.phase } : null,
+      creature: creature ? { id: creature.id, phase: creature.phase || "active", side: creature.side || 0 } : null,
+      find: fieldFind ? { id: fieldFind.id, side: fieldFind.side, picking: fieldFind.picking || "" } : null,
+      outage: outagePhase || "", campfire: campfire.view.campfire?.phase || "", snack: campfire.view.campfire?.item || "", snackFish: campfire.view.campfire?.fish?.id || "",
+      weather: weather.view.weather || "", rod: equippedRod, lure: equippedLure,
+      portal: fishingView.portal ? { x: fishingView.portal.x, phase: fishingView.portal.phase } : null
+    });
+  });
+  useEffect(() => () => dropActor("host"), []);
 
   return (
     <>
@@ -547,7 +561,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         )}
       </span>
 
-      {fieldFind ? (
+      {fieldFind && !fieldFind.picking ? (
         <button
           className={`buddy-field-find is-${fieldFind.id}`}
           type="button"
@@ -555,38 +569,24 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
           onClick={encounters.api.collectFieldFind}
           aria-label={`Collect ${fieldFind.name}`}
         >
-          <BuddyCollectibleIcon id={fieldFind.id} color={fieldFind.color} className="buddy-find-art" />
-          <svg className="buddy-find-glints" viewBox="0 0 48 40" aria-hidden="true"><path d="M7 5v6M4 8h6m29 15v6m-3-3h6" stroke="currentColor" strokeWidth="1" fill="none" /></svg>
+          {/* El hallazgo lo dibuja el mundo del footer; esto es lo que se pulsa. */}
+          <i className="buddy-find-hitbox" aria-hidden="true" />
           <span>{fieldFind.name}</span>
         </button>
       ) : null}
 
-      {creature && creature.id !== "bird" ? (
-        <span
-          className={`buddy-ambient-creature is-${creature.id} phase-${creature.phase || "active"}`}
-          style={{
-            "--creature-moth-start-x": `${creatureSide * 8}px`,
-            "--creature-moth-mid-x": `${creatureSide * 36}px`,
-            "--creature-moth-end-x": `${creatureSide * 58}px`
-          }}
-          aria-label={creature.name}
-          role="img"
-        >
-          <PixelPhosphorMoth />
+      {/* Agarrado o en paracaidas por encima de lo que alcanza el lienzo del
+          footer (FooterWorld pone data-aloft): aqui se pinta Pip, con la tela
+          detras de el. */}
+      {mood === "held" || mood === "chute" ? (
+        <span className={`screen-buddy-aloft ${mood === "chute" && !hasRocketBoots ? "has-chute" : ""}`} aria-hidden="true">
+          {mood === "chute" && !hasRocketBoots ? <PipChute className="screen-buddy-aloft-chute" upgraded={outfit.chute === "parachute-upgrade"} lines={14} /> : null}
+          <PipSprite pose={mood === "chute" && hasRocketBoots ? "hover" : "hang"} expression={mood === "held" ? "surprised" : "happy"} facing={facing} friendshipLevel={friendshipLevel} inventory={inventory} hiddenGear={hiddenGear} unlockedGear={unlockedGear} width={72} height={80} />
         </span>
       ) : null}
 
-      {enemy ? (
-        <span className={`buddy-enemy-encounter is-${enemy.id} weapon-${enemy.weapon} phase-${enemy.phase}`} style={{ "--enemy-side": enemy.side }} aria-hidden="true">
-          <BuddyEnemyBug bugId={enemy.id} />
-          <BuddyBugWeapon weapon={enemy.weapon} />
-          <i className="buddy-laser-beam" />
-          <i className="buddy-muzzle-flash" />
-          <i className="buddy-bug-target" />
-          <span className="buddy-bug-cleared">BUG DELETED</span>
-          <i className="buddy-hit-burst"><b /><b /><b /><b /></i>
-        </span>
-      ) : null}
+      {/* Pajaro, polilla y bugs los dibuja el mundo del footer (src/lib/pixelWorld/events). */}
+      {creature ? <span className="sr-only" role="img" aria-label={creature.name} /> : null}
 
       <button
         className="screen-buddy arcade-focus"
@@ -599,65 +599,10 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         onPointerUp={drag.handlePointerRelease}
         onPointerCancel={drag.handlePointerRelease}
       >
-        {creature?.id === "bird" ? (
-          <span
-            className={`buddy-ambient-creature is-bird phase-${creature.phase || "active"}`}
-            style={{
-              "--bird-arrival-ms": `${BIRD_ARRIVAL_MS}ms`,
-              "--bird-landing-ms": `${BIRD_LANDING_MS}ms`,
-              "--bird-departure-ms": `${BIRD_DEPARTURE_MS}ms`,
-              "--bird-perch-inset": hasMikuCostume ? "10%" : "3%",
-              "--creature-bird-in-start-x": `${creatureSide * 145}px`,
-              "--creature-bird-in-mid-x": `${creatureSide * 65}px`,
-              "--creature-bird-in-near-x": `${creatureSide * 12}px`,
-              "--creature-bird-out-mid-x": `${creatureSide * 28}px`,
-              "--creature-bird-out-end-x": `${creatureSide * 140}px`,
-              "--creature-bird-in-facing": creatureSide > 0 ? -1 : 1,
-              "--creature-bird-out-facing": creatureSide
-            }}
-            aria-label={creature.name}
-            role="img"
-          >
-            <PixelBird />
-          </span>
-        ) : null}
         <span className="screen-buddy-body">
-          {hasRocketBoots ? null : (
-            <BuddyChuteCanopy className="screen-buddy-chute-canopy" upgraded={inventory.includes("parachute-upgrade") && !hiddenGear.includes("parachute-upgrade")} />
-          )}
-
-          {mood === "fishing" ? (
-            <BuddyFishingRig phase={fishingPhase} catchTier={fishingView.catchTier} catchId={fishingView.catchId} rod={equippedRod} lure={equippedLure} />
-          ) : null}
-
-          {weather.view.weather === "rain" ? (
-            <span className="buddy-weather" style={{ "--rain-duration": `${RAIN_DURATION_MS}ms` }} aria-hidden="true">
-              <span className="buddy-rain-field">
-                {Array.from({ length: 18 }, (_, index) => <i key={index} style={{ "--rain-i": index }} />)}
-                {Array.from({ length: 2 }, (_, index) => (
-                  <b className="buddy-rain-plink" key={index} style={{ "--plink-i": index }} />
-                ))}
-              </span>
-
-              <BuddyUmbrella />
-            </span>
-          ) : null}
-
-          {mood === "outage" ? <BuddyOutageKit phase={outagePhase} /> : null}
-
-          {mood === "campfire" && campfire.view.campfire ? <BuddyCampfireStick {...campfire.view.campfire} /> : null}
-
-          <BuddySprite
-            className="screen-buddy-sprite"
-            expression={expression}
-            facing={facing}
-            friendshipLevel={friendshipLevel}
-            inventory={inventory}
-            hiddenGear={hiddenGear}
-            unlockedGear={unlockedGear}
-          />
-
-          {mood === "fishing" && hasMikuCostume ? <BuddyMikuRodOverlay phase={fishingPhase} rod={equippedRod} /> : null}
+          {/* Pip se dibuja en el lienzo del footer; esto solo da la caja para
+              acariciarlo, arrastrarlo y que choquen los peces. */}
+          <span className="screen-buddy-sprite screen-buddy-hitbox" aria-hidden="true" />
         </span>
         <span className="screen-buddy-shadow" aria-hidden="true" />
       </button>

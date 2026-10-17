@@ -6,7 +6,7 @@ import { consumeGateReturn } from "../lib/gateReturn";
 import { getHostAvailability } from "../lib/gateHost";
 import { hostById } from "../lib/hostAvatar";
 import { AvatarScenePlaceholder } from "./AvatarScenePlaceholder";
-import { BuddySprite } from "./BuddySprite";
+import { PipSprite } from "./PipSprite";
 import { GatePatina } from "./GatePatina";
 import { GateLamp } from "./GateLamp";
 import { GateHinges } from "./GateHinges";
@@ -20,6 +20,31 @@ import { SeasonalScenery } from "./SeasonalScenery";
 const AvatarGreeting = lazy(() => import("./AvatarGreeting").then((module) => ({ default: module.AvatarGreeting })));
 
 const SPLASH_SEEN_KEY = "daivr.splashSeen.v1";
+
+// Pip al llegar a la puerta, al ritmo de splash-buddy-arrive (entry-gate.css,
+// 1250ms): asoma sorprendido, mira a un lado y a otro, se agacha, salta,
+// aterriza y saluda, y se queda mirando a la izquierda (hacia la pagina).
+// [ms, pose del rig]; null = vuelve a estar quieto.
+const SPLASH_ARRIVAL = [
+  [0, { pose: "idle", expression: "surprised" }],
+  [320, { pose: "idle", expression: "surprised", facing: -1 }],
+  [440, { pose: "idle", expression: "idle", facing: 1 }],
+  [560, { pose: "crouch", expression: "idle" }],
+  [650, { pose: "jump", expression: "happy" }],
+  [950, { pose: "land", expression: "happy" }],
+  [1120, { pose: "wave", expression: "happy" }],
+  [2800, null]
+];
+
+function useSplashArrival(active) {
+  const [look, setLook] = useState(null);
+  useEffect(() => {
+    if (!active || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return undefined;
+    const timers = SPLASH_ARRIVAL.map(([at, next]) => window.setTimeout(() => setLook(next), at));
+    return () => timers.forEach((timer) => window.clearTimeout(timer));
+  }, [active]);
+  return look;
+}
 
 // Ritmo de la conversacion. Al volver dentro de la misma pestana el visitante
 // ya vio la ceremonia entera, asi que el guion se acelera en vez de repetirse
@@ -136,6 +161,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   // Bajo 800px no se monta la escena 3D: ahi el anfitrion es Buddy, el mismo
   // sprite que luego vive en el footer.
   const [compact, setCompact] = useState(() => window.matchMedia("(max-width: 800px)").matches);
+  const arrival = useSplashArrival(cabinetReady);
   const [reducedMotion, setReducedMotion] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   const [discordUser, setDiscordUser] = useState(null);
   const [authChecked, setAuthChecked] = useState(false);
@@ -529,7 +555,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
         <div className={`entry-gate-host ${hostPresent ? "is-present" : ""}`} ref={hostRef}>
           {compact ? (
             <div className={`entry-gate-buddy ${hostPresent ? "is-awake" : ""}`}>
-              <BuddySprite
+              <PipSprite
                 className="entry-gate-buddy-sprite"
                 expression={hostPresent ? "happy" : "idle"}
                 friendshipLevel={Math.max(friendshipLevel, buddyLevel)}
@@ -616,9 +642,11 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
           {cabinetReady ? (
             <>
               <span className="splash-buddy-arrive">
-                <BuddySprite
+                <PipSprite
                   className="splash-buddy-sprite"
-                  expression={hostPresent ? "happy" : "idle"}
+                  pose={opening ? "jump" : arrival?.pose}
+                  facing={arrival?.facing ?? 1}
+                  expression={arrival?.expression ?? (hostPresent ? "happy" : "idle")}
                   friendshipLevel={Math.max(friendshipLevel, buddyLevel)}
                   inventory={inventory}
                   hiddenGear={hiddenGear}

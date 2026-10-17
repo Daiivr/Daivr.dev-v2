@@ -18,7 +18,7 @@ import { friendshipProgress } from "../hooks/useBuddyFriendship";
 import { cn } from "../lib/cn";
 import { useCabinetSignal } from "../lib/cabinetSignals";
 import { DiscordPlayerCard } from "./DiscordPlayerCard";
-import { BuddySprite } from "./BuddySprite";
+import { PipSprite } from "./PipSprite";
 import { useRef, useState } from "react";
 
 // Un icono por destino, indexado por ancla: ocho filas de solo texto se leian
@@ -112,14 +112,14 @@ export function Sidebar({ buddy, onOpenBuddyModal, theme, onThemeChange }) {
 
         <div className="buddy-nav-profile">
           <button className="buddy-nav-portrait arcade-focus" type="button" onClick={() => onOpenBuddyModal("inventory")} aria-label="Open Buddy inventory">
-            <BuddySprite
+            <PipSprite
               className="buddy-nav-sprite"
               friendshipLevel={buddy.friendship.level}
               inventory={buddy.adventure.inventoryIds}
               hiddenGear={buddy.effectiveHiddenGear}
               unlockedGear={buddy.unlockedGearIds}
-              width={52}
-              height={50}
+              width={54}
+              height={60}
             />
           </button>
 

@@ -2,6 +2,17 @@ import { BuddyMarketArt } from "./BuddyMarketArt";
 import { BuddyFishArt, hasFishArt } from "./BuddyFishArt";
 import { BuddyRelicDetails } from "./BuddyRelicDetails";
 import { FISH_CATALOG } from "../../shared/buddy-catches.mjs";
+import { catchSprite, isCatchArt } from "../lib/pixelWorld/catches";
+
+// Las capturas (peces y trastos) son los mismos iconos de pixel art que Buddy
+// saca del agua en el footer (pixelWorld/catches.js), guardados como imagen.
+// (Los peces del acuario del cuarto los dibuja room.js, de perfil.)
+const pixelUrls = new Map();
+function catchUrl(id) {
+  let url = pixelUrls.get(id);
+  if (!url) { url = catchSprite(id).toDataURL(); pixelUrls.set(id, url); }
+  return url;
+}
 
 const speciesColors = Object.fromEntries(FISH_CATALOG.map(({ id, color }) => [id, color]));
 function FishBody({ color, accent = "#f4fff8", tail = "normal", long = false }) {
@@ -32,6 +43,10 @@ export function BuddyCollectibleIcon({ id, color = speciesColors[id] || "#45d8ff
         <text x="25" y="25" fill="#3b7459" fontFamily="monospace" fontSize="14" fontWeight="900">?</text>
       </svg>
     );
+  }
+
+  if (isCatchArt(id)) {
+    return <svg className={`buddy-collectible-icon is-pixel ${className}`} viewBox="0 0 56 42" aria-hidden="true" {...svgProps}><g className="buddy-species-art"><image href={catchUrl(id)} x="7" y="0" width="42" height="42" /></g></svg>;
   }
 
   let artwork;

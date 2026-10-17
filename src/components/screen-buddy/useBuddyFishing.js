@@ -6,16 +6,21 @@ import { PORTAL_OPEN_MS } from "../BuddyFishingPortal";
 import { clamp, SPRITE_WIDTH, WALK_SPEED_PX_S } from "./useBuddyCore";
 
 /*
-  Pesca de Buddy: el suelo del footer se abre, se acerca, lanza, espera,
-  pica, pelea con los raros (que pueden escaparse) y muy de vez en cuando
-  asoma el leviatan o el kraken. Tambien sus reacciones a los peces voladores
+  Pesca de Buddy: el suelo del footer se abre, se acerca, carga el lanzamiento
+  (la barra de fuerza), lanza, espera, pica, pelea con el pez en la barra de
+  captura (los comunes un momento; los raros mas, y pueden escaparse), guarda
+  la captura en la mochila y muy de vez en cuando asoma el leviatan o el kraken. Tambien sus reacciones a los peces voladores
   del footer (los ve saltar, o le dan un golpe).
   El señuelo puesto cambia las reglas: espera, escapes y cada cuanto vuelve.
 */
 
 const FISHING_COOLDOWN_MS = 100000;
 const FISHING_SWIFT_COOLDOWN_MS = 55000;
+const FISHING_CHARGE_MS = 1400;
 const FISHING_CAST_MS = 560;
+// Con la captura en alto, y despues guardandola en la mochila.
+const FISHING_SHOW_MS = 3300;
+const FISHING_CHEST_MS = 2400;
 
 export function useBuddyFishing(core) {
   const [phase, setFishingPhase] = useState("");
@@ -24,10 +29,12 @@ export function useBuddyFishing(core) {
   const [catchId, setFishingCatchId] = useState("");
   const [leviathanResponse, setLeviathanResponse] = useState("");
   const [seaCreature, setSeaCreature] = useState("leviathan");
+  // La pelea ya sabe como acaba: la barra de captura lo va contando.
+  const [fightEscape, setFightEscape] = useState(false);
   const closePortal = useCallback((id) => {
     setFishingPortal((current) => current?.id === id ? null : current);
   }, []);
-  const [api] = useState(() => createFishing(core, { setFishingPhase, setFishingPortal, setFishingCatch, setFishingCatchId, setLeviathanResponse, setSeaCreature }));
+  const [api] = useState(() => createFishing(core, { setFishingPhase, setFishingPortal, setFishingCatch, setFishingCatchId, setLeviathanResponse, setSeaCreature, setFightEscape }));
 
   useEffect(() => {
     // Al terminar la pesca (o cortarla) se cierra el agujero del suelo.
@@ -56,7 +63,7 @@ export function useBuddyFishing(core) {
     };
   }, [api, core]);
 
-  return { api, view: { phase, portal, catchTier, catchId, leviathanResponse, seaCreature, closePortal } };
+  return { api, view: { phase, portal, catchTier, catchId, leviathanResponse, seaCreature, fightEscape, closePortal } };
 }
 
 function createFishing(core, set) {
@@ -67,7 +74,7 @@ function createFishing(core, set) {
     beginBuddyEvent, endBuddyEvent, freezeAtCurrentPosition, updateMood, updateFacing, updateTravelDirection, faceTravelDirection,
     facingForDirection, moveTo, liftTo, schedule, say, clearDialogue, buddyLine, spawnParticles, playFx, settleDown, stageWidth, setWalkMs
   } = core;
-  const { setFishingPhase, setFishingPortal, setFishingCatch, setFishingCatchId, setLeviathanResponse, setSeaCreature } = set;
+  const { setFishingPhase, setFishingPortal, setFishingCatch, setFishingCatchId, setLeviathanResponse, setSeaCreature, setFightEscape } = set;
   const cooldownRef = { current: 0 };
   const fishSightCommentRef = { current: 0 };
   // Lo que hace el jugador durante el leviatan (mantenerse firme, saludar).
@@ -101,16 +108,24 @@ function createFishing(core, set) {
       const generation = moodGenRef.current;
       const stillFishing = () => moodGenRef.current === generation && moodRef.current === "fishing";
 
-      setFishingPhase("cast");
+      // Carga la caña (la barra de fuerza se llena) y lanza.
+      setFishingPhase("charge");
       setFishingCatch("");
       setFishingCatchId("");
+      setFightEscape(false);
       // Con luna llena los raros pican mas, y Buddy lo sabe.
       const fullMoon = fullMoonRef.current;
       say(fullMoon && Math.random() < 0.5 ? "full moon. the rare ones are biting tonight." : buddyLine("fishCast"), 2000, fullMoon ? { topic: "fullMoon" } : {});
 
       schedule(() => {
+        if (stillFishing()) setFishingPhase("cast");
+      }, FISHING_CHARGE_MS);
+      // Desde aqui, todo cuenta desde que suelta el lanzamiento.
+      const castAt = FISHING_CHARGE_MS;
+
+      schedule(() => {
         if (stillFishing()) setFishingPhase("wait");
-      }, FISHING_CAST_MS);
+      }, castAt + FISHING_CAST_MS);
 
       // El señuelo puesto define las reglas de la sesion.
       const lure = equippedGearRef.current.lure;
@@ -118,19 +133,19 @@ function createFishing(core, set) {
 
       schedule(() => {
         if (stillFishing() && !forceCreature) say(buddyLine("fishWait"), 2200);
-      }, 2600 + Math.random() * 2400);
+      }, castAt + 2600 + Math.random() * 2400);
 
       if (waitMs > 9500) {
         schedule(() => {
           if (stillFishing()) say(buddyLine("fishWait"), 2200);
-        }, 7800);
+        }, castAt + 7800);
       }
 
       schedule(() => {
         if (!stillFishing()) return;
         setFishingPhase("bite");
         say("!", 900, { topic: "fishFight" });
-      }, FISHING_CAST_MS + waitMs);
+      }, castAt + FISHING_CAST_MS + waitMs);
 
       function landCatch(catchItem) {
         const tier = catchItem.rarity;
@@ -157,6 +172,7 @@ function createFishing(core, set) {
           setFishingPhase("");
           setFishingCatch("");
           setFishingCatchId("");
+          setFightEscape(false);
           updateMood("idle");
           endBuddyEvent("fishing");
         }, ms);
@@ -211,27 +227,33 @@ function createFishing(core, set) {
         }
 
         const catchItem = weightedCatch(lure, { fullMoon });
-        const fightsBack = ["rare", "legendary", "mythic"].includes(catchItem.rarity);
+        const showMs = catchItem.kind === "treasure" ? FISHING_CHEST_MS : FISHING_SHOW_MS;
+        const rare = ["rare", "legendary", "mythic"].includes(catchItem.rarity);
 
-        if (!fightsBack) {
+        // Trastos y cofres salen sin pelea.
+        if (catchItem.kind !== "fish") {
           landCatch(catchItem);
-          endSessionAfter(2400);
+          endSessionAfter(showMs);
           return;
         }
 
-        // Los raros pelean: tira de la linea un rato y puede escaparse
-        // (el lucky lure tambien ayuda a no perderlos).
+        // Todo pez pelea en la barra de captura: los comunes un momento; los
+        // raros mas rato, y pueden escaparse (el lucky lure tambien ayuda a no
+        // perderlos). Se decide al empezar para que la barra lo cuente.
+        const escaped = rare && Math.random() < (lure === "lure" ? 0.15 : lure === "lure-anchor" ? 0.05 : 0.35);
+        setFightEscape(escaped);
+        setFishingCatch(catchItem.rarity);
+        setFishingCatchId(catchItem.id);
         setFishingPhase("fight");
         say(buddyLine("fishFight"), 2000);
-        const fightMs = 2600 + Math.random() * 1400;
+        const fightMs = rare ? 2600 + Math.random() * 1400 : 1500 + Math.random() * 700;
 
-        schedule(() => {
+        if (rare) schedule(() => {
           if (stillFishing()) say(buddyLine("fishFight"), 1700);
         }, fightMs * 0.55);
 
         schedule(() => {
           if (!stillFishing()) return;
-          const escaped = Math.random() < (lure === "lure" ? 0.15 : lure === "lure-anchor" ? 0.05 : 0.35);
 
           if (escaped) {
             setFishingPhase("escape");
@@ -243,9 +265,9 @@ function createFishing(core, set) {
           }
 
           landCatch(catchItem);
-          endSessionAfter(2400);
+          endSessionAfter(showMs);
         }, fightMs);
-      }, FISHING_CAST_MS + waitMs + 880);
+      }, castAt + FISHING_CAST_MS + waitMs + 880);
     }
 
     schedule(() => {

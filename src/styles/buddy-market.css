@@ -1,29 +1,10 @@
 @import "./woodland-theme.css";
 
 @layer components {
-  /* Above the forest (3), behind walking Buddy (5). */
-  .buddy-market-stand { position: absolute; z-index: 4; left: clamp(14px, 5vw, 88px); bottom: calc(100% - 3px); width: 144px; height: 102px; padding: 0; border: 0; background: transparent; cursor: pointer; transform-origin: bottom center; }
+  /* Boton invisible encima del puesto que dibuja FooterWorld (misma caja que
+     el sprite). Encima del bosque (3), detras de Buddy (5). */
+  .buddy-market-stand { position: absolute; z-index: 4; left: var(--world-stand-left, 14px); bottom: calc(100% + 2px); width: var(--world-stand-width, 132px); height: var(--world-stand-height, 116px); padding: 0; border: 0; background: transparent; cursor: pointer; }
   .market-stand-art { display: block; width: 100%; height: 100%; overflow: visible; image-rendering: pixelated; }
-  /* Cool reflected forest light, with a little warmth left in the timber. */
-  .buddy-market-stand .market-stand-art {
-    position: relative; z-index: 1;
-    filter: saturate(.78) brightness(.83) drop-shadow(0 3px 2px #03151280);
-    transition: filter .2s ease;
-  }
-  .buddy-market-stand::before, .buddy-market-stand::after { content: ""; position: absolute; pointer-events: none; }
-  .buddy-market-stand::before {
-    left: -8%; right: -8%; bottom: 0; height: 13px;
-    background: radial-gradient(ellipse, #020e0dd9 12%, #061c1866 48%, transparent 72%);
-  }
-  .buddy-market-stand::after {
-    z-index: 2; left: -10%; right: -10%; bottom: 1px; height: 19px;
-    background: radial-gradient(ellipse at 50% 80%, color-mix(in srgb, var(--stand-mist) 16%, transparent), transparent 70%);
-  }
-  .buddy-market-stand:hover .market-stand-art, .buddy-market-stand:focus-visible .market-stand-art {
-    filter: saturate(.85) brightness(.98) drop-shadow(0 3px 2px #03151280);
-  }
-  .footer-scenery.is-raining ~ .buddy-market-stand { opacity: .8; }
-  .app-footer-zone:has(.leviathan-stage) .buddy-market-stand { opacity: .25; }
   .buddy-market-stand:focus-visible { outline: 2px dashed #ffe1a3; outline-offset: 4px; }
   .market-lantern-lit { filter: drop-shadow(0 0 5px #ffcd78); }
   .market-stand-sign {
@@ -256,7 +237,6 @@
   }
   @media (prefers-reduced-motion: reduce) { .market-special-art img { transition: none; } }
   @media (max-width: 680px) {
-    .buddy-market-stand { left: 12px; width: 116px; height: 82px; }
     .buddy-market { padding: 16px; }
     .market-welcome { grid-template-columns: 1fr 130px; gap: 14px; }
     .market-welcome:has(.market-hanging-sign) { grid-template-columns: 1fr; gap: 8px; }
@@ -296,7 +276,7 @@
     .market-footer > span { width: 100%; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .market-product-art > svg, .market-stand-sign, .buddy-market-stand .market-stand-art { transition: none; }
+    .market-product-art > svg, .market-stand-sign { transition: none; }
     .market-hanging-sign { cursor: default; }
   }
 }

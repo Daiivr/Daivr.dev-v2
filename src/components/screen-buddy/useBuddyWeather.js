@@ -1,19 +1,22 @@
 import { useEffect, useState } from "react";
 import { contextLines, EVENT_LINES, isRainingOutside } from "../../lib/buddyContext";
 import { LINES } from "./buddyLines";
-import { SPRITE_WIDTH } from "./useBuddyCore";
+import { clamp, randomBetween, SPRITE_WIDTH, WALK_MARGIN, WALK_SPEED_PX_S } from "./useBuddyCore";
 
 /*
   El tiempo de Buddy:
-  - Su chubasco: abre el paraguas y el cielo del footer (FooterSky) forma la
-    nube justo encima (`daivr-footer-rain`).
+  - Su chubasco: abre el paraguas, llueve en todo el valle (FooterSky,
+    `daivr-footer-rain`) y pasea un rato bajo la lluvia, parandose a mirar.
   - El tiempo de verdad donde esta el jugador (/api/weather): lo carga cada
     media hora, lo pasa al cielo (`daivr-outside-weather`) y lo usa en su
     charla. El comando `weather` lo fija o pide que lo comente.
 */
 
-export const RAIN_DURATION_MS = 9000;
-const RAIN_COOLDOWN_MS = 85000;
+export const RAIN_DURATION_MS = 26000;
+const RAIN_COOLDOWN_MS = 120000;
+// Paseo bajo la lluvia: tramos cortos con pausas para mirar.
+const RAIN_STROLL_PX = [50, 150];
+const RAIN_PAUSE_MS = [1400, 3200];
 const WEATHER_REFRESH_MS = 30 * 60_000;
 
 export function useBuddyWeather(core) {
@@ -59,6 +62,7 @@ export function useBuddyWeather(core) {
 function createWeather(core, { setWeather }) {
   const { moodRef, moodGenRef, xRef, activeEventRef, weatherRef, skyPhaseRef, reduceMotion } = core;
   const { beginBuddyEvent, endBuddyEvent, freezeAtCurrentPosition, updateMood, schedule, say, pickLine, chat } = core;
+  const { moveTo, setWalkMs, faceTravelDirection, stageWidth } = core;
   const cooldownRef = { current: 0 };
 
   function startRain() {
@@ -70,8 +74,32 @@ function createWeather(core, { setWeather }) {
     const generation = moodGenRef.current;
     // Si tambien llueve de verdad donde esta el jugador, Buddy lo nota.
     say(isRainingOutside(weatherRef.current) ? pickLine(EVENT_LINES.rainBoth) : pickLine(LINES.rain), 2600, { topic: "rain" });
-    // El cielo (FooterSky) forma la nube justo encima de Buddy.
+    // Llueve en todo el valle (FooterSky) mientras dure.
     window.dispatchEvent(new CustomEvent("daivr-footer-rain", { detail: { active: true, x: xRef.current + SPRITE_WIDTH / 2, duration: RAIN_DURATION_MS } }));
+    const startedAt = Date.now();
+
+    // Pasea con el paraguas: un tramo, una pausa, otro tramo... hasta que
+    // queda poco de lluvia (sigue con el humor "rain": el paraguas no se cierra).
+    function stroll() {
+      if (moodGenRef.current !== generation || moodRef.current !== "rain") return;
+      if (Date.now() - startedAt > RAIN_DURATION_MS - 3500) return;
+      const maxX = Math.max(WALK_MARGIN, stageWidth() - SPRITE_WIDTH - WALK_MARGIN);
+      let direction = Math.random() < 0.5 ? -1 : 1;
+      if (xRef.current < WALK_MARGIN + 80) direction = 1;
+      if (xRef.current > maxX - 80) direction = -1;
+      const target = clamp(xRef.current + direction * randomBetween(...RAIN_STROLL_PX), WALK_MARGIN, maxX);
+      const ms = Math.max(200, (Math.abs(target - xRef.current) / (WALK_SPEED_PX_S * 0.8)) * 1000);
+      faceTravelDirection(target > xRef.current ? 1 : -1);
+      setWalkMs(ms);
+      moveTo(target);
+      schedule(() => {
+        if (moodGenRef.current !== generation || moodRef.current !== "rain") return;
+        setWalkMs(0);
+        if (Math.random() < 0.35) say(pickLine(LINES.rain), 2200, { topic: "rain" });
+        schedule(stroll, randomBetween(...RAIN_PAUSE_MS));
+      }, ms + 60);
+    }
+    schedule(stroll, 2200);
 
     schedule(() => {
       setWeather("");
