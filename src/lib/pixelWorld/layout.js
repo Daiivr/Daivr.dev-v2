@@ -17,11 +17,13 @@ export const STAND_W = 66;
 export const STAND_H = 58;
 export const STAND_TOP = 75 - 57;
 export const LAMP_ROWS_H = 27;
-// El huerto: GARDEN_PLOTS parcelas (shared/buddy-market.mjs) en el centro del
-// prado, con su cartel a la izquierda. Solo en escritorio (en el movil no hay).
+// El huerto: GARDEN_PLOTS bancales (shared/buddy-market.mjs) en el centro del
+// prado, con su cartel a la izquierda y la regadera a la derecha, y una valla
+// detras. Solo en escritorio (en el movil no hay).
 const PLOTS = 3;
-const PLOT = { w: 13, gap: 3, sign: 6 };
-const GARDEN_W = PLOT.sign + PLOTS * PLOT.w + (PLOTS - 1) * PLOT.gap;
+const PLOT = { w: 13, gap: 3, sign: 6, can: 13 };
+const BEDS_W = PLOTS * PLOT.w + (PLOTS - 1) * PLOT.gap;
+const GARDEN_W = PLOT.sign + BEDS_W + PLOT.can;
 
 // Ancho en CSS a partir del cual cabe la farola a la izquierda del puesto
 // (como antes: por debajo de 1100 px desaparecia).
@@ -40,7 +42,10 @@ export function layoutFor(W, { cssWidth = W * 2 } = {}) {
   let garden = null;
   if (!phone) {
     const gardenX = Math.round(W / 2 - GARDEN_W / 2), plotsX = gardenX + PLOT.sign;
-    garden = { x: gardenX, end: gardenX + GARDEN_W, w: PLOT.w, plots: Array.from({ length: PLOTS }, (_, i) => plotsX + i * (PLOT.w + PLOT.gap) + Math.floor(PLOT.w / 2)) };
+    garden = {
+      x: gardenX, end: gardenX + GARDEN_W, w: PLOT.w, can: plotsX + BEDS_W + 1, fenceEnd: gardenX + GARDEN_W - 2,
+      plots: Array.from({ length: PLOTS }, (_, i) => plotsX + i * (PLOT.w + PLOT.gap) + Math.floor(PLOT.w / 2))
+    };
   }
   const clearOfGarden = (x, pad) => !garden || x < garden.x - pad || x > garden.end + pad;
   const lamps = [X(37), X(76)];
@@ -56,11 +61,15 @@ export function layoutFor(W, { cssWidth = W * 2 } = {}) {
     { k: "shrub", x: X(26), seed: 41 }, { k: "berry", x: X(37) + 12, seed: 42, phone: false }, { k: "bush", x: X(58), seed: 43 },
     { k: "shrub", x: X(78) + 8, seed: 44, phone: false }, { k: "berry", x: X(95), seed: 45 }
   ].filter((bush) => (!phone || bush.phone !== false) && clearOfGarden(bush.x, 14));
+  // El sitio del pescador ambulante (con su carretilla a la espalda): entre el
+  // huerto y la farola siguiente. Como el huerto, solo fuera del movil.
+  const fisherX = garden ? Math.round((garden.end + (lamps.find((lx) => lx > garden.end) ?? X(76))) / 2) - 18 : null;
+  const fisher = fisherX == null ? null : { x: fisherX, left: fisherX - 12, right: fisherX + 48 };
   return {
-    W, X, phone, standX, fireX, lamps, trees, bushes, mailX, tentX, garden,
+    W, X, phone, standX, fireX, lamps, trees, bushes, mailX, tentX, garden, fisher,
     stones: [X(8), X(39), X(74)],
     // Donde no crece hierba ni flores: el puesto y la hoguera.
-    clear: [[standX - 6, standX + STAND_W + 4], [fireX - 16, fireX + 16], ...(garden ? [[garden.x - 2, garden.end + 2]] : [])],
+    clear: [[standX - 6, standX + STAND_W + 4], [fireX - 16, fireX + 16], ...(garden ? [[garden.x - 2, garden.end + 2]] : []), ...(fisher ? [[fisher.left - 2, fisher.right + 2]] : [])],
     // Donde no se abre agua (ni la poza de pescar ni los agujeros de los peces
     // saltarines): desde el borde, con la farola y el puesto, hasta la hoguera;
     // y delante del huerto.
@@ -80,6 +89,8 @@ export function layoutCssVars(L) {
     "--world-mail-left": `${(L.mailX - 7) * 2}px`,
     "--world-tent-left": `${(L.tentX - 15) * 2}px`,
     "--world-garden-left": `${(L.garden?.x ?? -40) * 2}px`,
-    "--world-garden-width": `${L.garden ? (L.garden.end - L.garden.x) * 2 : 0}px`
+    "--world-garden-width": `${L.garden ? (L.garden.end - L.garden.x) * 2 : 0}px`,
+    "--world-fisher-left": `${(L.fisher?.left ?? -80) * 2}px`,
+    "--world-fisher-width": `${L.fisher ? (L.fisher.right - L.fisher.left) * 2 : 0}px`
   };
 }

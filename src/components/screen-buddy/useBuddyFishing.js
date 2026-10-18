@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { fishingSpot } from "../../../shared/buddy-fishing-spot.mjs";
 import { rareFishingEncounter } from "../../../shared/buddy-encounters.mjs";
 import { KRAKEN, LEVIATHAN, weightedCatch } from "../../data/buddyWorld";
+import { natureSeason } from "../../lib/pixelWorld/life/util";
 import { PORTAL_OPEN_MS } from "../BuddyFishingPortal";
 import { clamp, SPRITE_WIDTH, WALK_SPEED_PX_S } from "./useBuddyCore";
 
@@ -69,7 +70,7 @@ export function useBuddyFishing(core) {
 
 function createFishing(core, set) {
   const {
-    moodRef, moodGenRef, xRef, activeEventRef, equippedGearRef, mikuCostumeRef, visibleRef, rootRef, fullMoonRef, reduceMotion
+    moodRef, moodGenRef, xRef, activeEventRef, equippedGearRef, mikuCostumeRef, visibleRef, rootRef, fullMoonRef, skyCoverRef, caughtFishRef, reduceMotion
   } = core;
   const {
     beginBuddyEvent, endBuddyEvent, freezeAtCurrentPosition, updateMood, updateFacing, updateTravelDirection, faceTravelDirection,
@@ -92,6 +93,9 @@ function createFishing(core, set) {
     const zones = [[-Infinity, rect.right - left + 12]];
     const garden = document.querySelector(".footer-garden[data-dry]")?.getBoundingClientRect();
     if (garden?.width) zones.push([garden.left - left - 12, garden.right - left + 12]);
+    // (y la carretilla del pescador, mientras esta)
+    const fisher = document.querySelector(".footer-fisherman-button")?.getBoundingClientRect();
+    if (fisher?.width) zones.push([fisher.left - left - 12, fisher.right - left + 12]);
     return zones;
   }
 
@@ -242,7 +246,13 @@ function createFishing(core, set) {
           return;
         }
 
-        const catchItem = weightedCatch(lure, { fullMoon });
+        // (los del valle: la estacion, la hora y el tiempo de ahora, y lo que ya tiene)
+        const cover = skyCoverRef.current, season = natureSeason();
+        const catchItem = weightedCatch(lure, {
+          fullMoon, season: season === "autumn" ? "fall" : season, hour: new Date().getHours(),
+          raining: cover === "rain" || cover === "storm", known: new Set((caughtFishRef.current || []).map((fish) => fish.id)),
+          rod: equippedGearRef.current.rod || ""
+        });
         const showMs = catchItem.kind === "treasure" ? FISHING_CHEST_MS : FISHING_SHOW_MS;
         const rare = ["rare", "legendary", "mythic"].includes(catchItem.rarity);
 

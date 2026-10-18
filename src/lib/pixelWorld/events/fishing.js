@@ -1,4 +1,4 @@
-import { FISH_CATALOG } from "../../../../shared/buddy-catches.mjs";
+import { catchById } from "../../../../shared/buddy-catches.mjs";
 import { N4, blit, ellipseRows, lazy, makeCanvas, outlinedSprite, px, rect } from "../core.js";
 import { catchSprite, chestOpenSprite } from "../catches.js";
 import { P, currentSeason } from "../palette.js";
@@ -16,14 +16,14 @@ import { PACK, drawStash, stashSparkles } from "./stash.js";
 const HOLE_RX = 15, HOLE_Y = 75;
 const OPEN_S = 0.85, CLOSE_S = 1;
 const ROD_ANGLE = { charge: 60, cast: 16, wait: 36, bite: 24, fight: 26, catch: 86, escape: 60, omen: 40, monster: 26, retreat: 50 };
-const RODS = { "rod-driftwood": ["#9a6338", "#45d8ff"], "rod-bamboo": ["#3fff97", "#45d8ff"], "rod-neon": ["#ff3d9d", "#ffd166"], "rod-golden": ["#ffd166", "#f4fff8"] };
+const RODS = { "rod-driftwood": ["#9a6338", "#45d8ff"], "rod-bamboo": ["#3fff97", "#45d8ff"], "rod-neon": ["#ff3d9d", "#ffd166"], "rod-golden": ["#ffd166", "#f4fff8"], "rod-fiberglass": ["#f0e2b0", "#ff5a4a"], "rod-iridium": ["#b88af0", "#ffe0ff"] };
 const FIGHT_BARS = { common: { zone: 12, speed: 0.7 }, uncommon: { zone: 10, speed: 0.9 }, rare: { zone: 8, speed: 1.2 }, legendary: { zone: 6, speed: 1.5 }, mythic: { zone: 5, speed: 1.8 } };
 // Carga: primero se prepara, luego la barra de fuerza se llena.
 const READY_S = 0.4, CHARGE_S = 0.9;
 // Captura: en alto hasta STASH_S (lo que dura el anuncio en el bocadillo),
 // vuela a la mochila y entra en STORED_S.
 const SHOW_S = 0.95, STASH_S = 3.5, STORED_S = 4.05;
-const catchInfo = (id) => FISH_CATALOG.find((item) => item.id === id) || null;
+const catchInfo = (id) => catchById(id);
 
 // La vida de la poza: un pato que la cruza remando de vez en cuando.
 const DUCK = lazy(() => outlinedSprite(["...gg.", "..gGgo", "bbbwb.", "bBbbb.", ".bbb.."], { g: "#2a7a4a", G: "#4aa86a", o: "#f0a030", b: "#8a6a4a", B: "#b08a62", w: "#f4f0e0" }, "#2a1e14"));
@@ -33,7 +33,11 @@ const bobbers = lazy(() => ({
   lure: outlinedSprite(["yy", "ww"], { y: "#ffd166", w: "#f4fff8" }, "#4a3a10"),
   "lure-swift": outlinedSprite([".cc", "cw.", "c.."], { c: "#45d8ff", w: "#f4fff8" }, "#123a4a"),
   "lure-anchor": outlinedSprite([".c.", "ccc", ".c.", "g.g"], { c: "#45d8ff", g: "#3fff97" }, "#123a4a"),
-  "lure-magnet": outlinedSprite(["w.w", "p.p", "ppp"], { w: "#f4fff8", p: "#ff3d9d" }, "#4a1030")
+  "lure-magnet": outlinedSprite(["w.w", "p.p", "ppp"], { w: "#f4fff8", p: "#ff3d9d" }, "#4a1030"),
+  // (los del mercado: la bolita de cebo magico, el pececillo curioso y la nasa)
+  "lure-magic-bait": outlinedSprite([".w.", "pPp", "ppp"], { w: "#fff6ff", p: "#b04ad8", P: "#ff7ad8" }, "#2a1036"),
+  "lure-curiosity": outlinedSprite(["r.mm.", "rmmmk", "r.mm."], { r: "#ff5a4a", m: "#a8e0e8", k: "#0a1418" }, "#142630"),
+  "lure-crab-pot": outlinedSprite(["wwww", "weew", "wcew", "wwww"], { w: "#a8743e", e: "#d8c898", c: "#e8503a" }, "#24160a")
 }));
 
 // Estado de la pesca de un actor: cuando empezo cada fase, el agujero, ondas,

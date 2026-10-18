@@ -91,14 +91,14 @@
   .buddy-modal.is-market .market-wallet-total > strong { color: #fff6dc; font: 700 36px/1 var(--font-menu); }
   .buddy-modal.is-market .market-wallet strong small { margin-top: 2px; font-size: 13px; letter-spacing: .14em; }
   .buddy-modal.is-market .market-wallet.market-hanging-sign > small { color: var(--m-cream); font: 500 14px/1.25 var(--font-menu); }
-  .buddy-modal.is-market .market-wallet.market-hanging-sign button, .buddy-modal.is-market :is(.market-product-copy, .market-special-buy) button, .buddy-modal.is-market .market-footer button {
+  .buddy-modal.is-market .market-wallet.market-hanging-sign button, .buddy-modal.is-market :is(.market-product-copy, .market-special-buy, .market-tackle-buy) button, .buddy-modal.is-market .market-footer button {
     min-height: 0; padding: 2px 8px 0; border: 6px solid transparent; border-width: 6px 6px 10px; border-image: var(--sk-btn) 3 3 5 3 fill / 6px 6px 10px;
     background: none; box-shadow: none; color: var(--m-ink); font: 600 15px/1.2 var(--font-menu); text-shadow: none;
   }
-  .buddy-modal.is-market :is(.market-product-copy, .market-special-buy) button:not(:disabled) { border-image-source: var(--sk-btn-go); }
+  .buddy-modal.is-market :is(.market-product-copy, .market-special-buy, .market-tackle-buy) button:not(:disabled) { border-image-source: var(--sk-btn-go); }
   .buddy-modal.is-market .market-wallet.market-hanging-sign button:not(:disabled):hover { background: none; border-color: transparent; color: #000; }
-  .buddy-modal.is-market :is(.market-wallet, .market-product-copy, .market-special-buy, .market-footer) button:active:not(:disabled) { translate: 0 2px; }
-  .buddy-modal.is-market :is(.market-product-copy, .market-special-buy, .market-wallet) button:disabled { color: #6a4c2e; opacity: .75; }
+  .buddy-modal.is-market :is(.market-wallet, .market-product-copy, .market-special-buy, .market-tackle-buy, .market-footer) button:active:not(:disabled) { translate: 0 2px; }
+  .buddy-modal.is-market :is(.market-product-copy, .market-special-buy, .market-tackle-buy, .market-wallet) button:disabled { color: #6a4c2e; opacity: .75; }
   .buddy-modal.is-market .market-countdown.market-hanging-sign { margin: 44px auto 22px; padding: 4px 10px 6px; }
   .buddy-modal.is-market .market-countdown.market-hanging-sign > span { font: 600 15px/1 var(--font-menu); letter-spacing: .14em; }
   .buddy-modal.is-market .market-countdown.market-hanging-sign > strong { font: 700 26px/1 var(--font-menu); }
@@ -124,7 +124,7 @@
   .buddy-modal.is-market .market-product-art::before { bottom: -8px; height: 2px; background: #d27f36; box-shadow: none; }
   .buddy-modal.is-market .market-product-art::after { background: #12060280; }
   .buddy-modal.is-market .market-product-art > span { top: 12px; left: 12px; color: #f0d49a; font: 500 13px/1 var(--font-menu); letter-spacing: .1em; text-shadow: 1px 1px 0 #2a1206; }
-  .buddy-modal.is-market .market-product-art > svg { filter: drop-shadow(3px 3px 0 #12060299); }
+  .buddy-modal.is-market .market-product-art > img { filter: drop-shadow(3px 3px 0 #12060299); }
   .buddy-modal.is-market .market-display-plinth, .buddy-modal.is-market .market-display-plinth.is-wear { border: 0; background: linear-gradient(#d27f36 0 4px, #a8622c 4px calc(100% - 3px), #5c2e10 calc(100% - 3px)); box-shadow: 0 0 0 2px #2a1206, 0 4px 0 #12060299; }
   .buddy-modal.is-market .market-price-sign { min-width: 100px; height: auto; padding: 0 6px; border: 8px solid transparent; border-width: 8px 10px; border-image: var(--sk-plank) 4 fill / 8px 10px; background: none; box-shadow: 0 3px 0 #12060299; color: var(--m-cream); text-shadow: 1px 1px 0 var(--m-edge); }
   .buddy-modal.is-market .market-price-sign::before, .buddy-modal.is-market .market-price-sign::after { top: -18px; width: 2px; height: 12px; background: #cdb48a; box-shadow: 1px 0 #2a1206; }
@@ -251,6 +251,70 @@
   .buddy-modal.is-market .seed-basket-sell > span:not(.seed-basket-sign) { color: var(--m-ink-soft); font-size: 14px; }
   .buddy-modal.is-market .seed-basket-sell button { flex: none; width: 100%; }
   @media (max-width: 900px) { .buddy-modal.is-market .seed-packets { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  /* La estanteria de aparejos: un tablero de madera con su cartel y una fila
+     de papel por caña o señuelo (el sprite sobre madera oscura, lo que hace,
+     el precio y el boton). */
+  .buddy-modal.is-market .market-tackle { position: relative; margin-top: 34px; padding: 30px 12px 12px; background: var(--sk-wood) 0 0 / 64px 32px; box-shadow: inset 0 0 0 3px #2a1206, 0 6px 0 #2a120666; }
+  .buddy-modal.is-market .market-tackle-head { display: grid; justify-items: center; gap: 8px; margin-bottom: 12px; text-align: center; }
+  .buddy-modal.is-market .market-tackle-sign { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); padding: 2px 10px 0; border: 8px solid transparent; border-width: 8px 12px; border-image: var(--sk-plank) 4 fill / 8px 12px; color: var(--m-cream); font: 600 15px/1.1 var(--font-menu); letter-spacing: .14em; text-shadow: 1px 1px 0 var(--m-edge); white-space: nowrap; }
+  .buddy-modal.is-market .market-tackle-head p { max-width: 60ch; margin: 0; color: var(--m-cream); font-size: 15px; line-height: 1.3; text-shadow: 1px 1px 0 var(--m-edge); text-wrap: balance; }
+  .buddy-modal.is-market .market-tackle-list { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+  .buddy-modal.is-market .market-tackle-item { display: grid; grid-template-columns: 84px minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 10px; background: var(--sk-paper) 0 0 / 64px; box-shadow: 0 0 0 3px #2a1206, 0 3px 0 #12060299; }
+  .buddy-modal.is-market .market-tackle-art { display: grid; place-items: center; height: 76px; background: repeating-linear-gradient(0deg, #4a2a14 0 22px, #2a1206 22px 24px, #6a3a18 24px 25px); box-shadow: 0 0 0 2px #2a1206, inset 0 6px 10px #1a0a0480; }
+  .buddy-modal.is-market .market-tackle-art img { max-width: none; image-rendering: pixelated; filter: drop-shadow(2px 2px 0 #12060299); transition: transform .18s; }
+  .buddy-modal.is-market .market-tackle-item:hover .market-tackle-art img { transform: translateY(-3px); }
+  .buddy-modal.is-market .market-tackle-copy { min-width: 0; }
+  .buddy-modal.is-market .market-tackle-copy small { display: block; color: var(--m-good); font: 600 13px/1.1 var(--font-menu); letter-spacing: .08em; }
+  .buddy-modal.is-market .market-tackle-copy h4 { margin: 3px 0 2px; color: var(--m-ink); font: 700 20px/1.1 var(--font-menu); }
+  .buddy-modal.is-market .market-tackle-copy p { margin: 0; color: var(--m-ink-soft); font-size: 15px; line-height: 1.3; }
+  .buddy-modal.is-market .market-tackle-buy { display: grid; justify-items: end; gap: 6px; }
+  .buddy-modal.is-market .market-tackle-price { display: flex; align-items: center; gap: 5px; color: var(--m-ink); }
+  .buddy-modal.is-market .market-tackle-price .buddy-gold-coin { width: 20px; height: 22px; }
+  .buddy-modal.is-market .market-tackle-price strong { font: 700 22px/1 var(--font-menu); font-variant-numeric: tabular-nums; }
+  .buddy-modal.is-market .market-tackle-buy button { display: flex; align-items: center; gap: 5px; cursor: pointer; }
+  .buddy-modal.is-market .market-tackle-item.is-owned .market-tackle-buy button:disabled { color: var(--m-good); opacity: 1; }
+  @media (max-width: 680px) {
+    .buddy-modal.is-market .market-tackle { padding-inline: 8px; }
+    .buddy-modal.is-market .market-tackle-item { grid-template-columns: 70px minmax(0, 1fr); align-items: start; }
+    .buddy-modal.is-market .market-tackle-art { height: 68px; }
+    .buddy-modal.is-market .market-tackle-art img { max-width: 62px; max-height: 62px; width: auto; height: auto; }
+    .buddy-modal.is-market .market-tackle-buy { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; }
+  }
+  @media (prefers-reduced-motion: reduce) { .buddy-modal.is-market .market-tackle-art img { transition: none; } }
+  /* El cartel del pescador en el mercado: si esta, un boton para ir a verle. */
+  .buddy-modal.is-market .market-fisher-notice { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px; margin-top: 22px; padding: 10px 12px; background: var(--sk-paper) 0 0 / 64px; box-shadow: 0 0 0 3px #2a1206, 0 3px 0 #12060299; }
+  .buddy-modal.is-market .market-fisher-notice > img { max-width: none; image-rendering: pixelated; padding: 4px; background: repeating-linear-gradient(0deg, #4a2a14 0 22px, #2a1206 22px 24px); box-shadow: 0 0 0 2px #2a1206; }
+  .buddy-modal.is-market .market-fisher-notice small { display: block; color: var(--m-good); font: 600 13px/1.1 var(--font-menu); letter-spacing: .08em; }
+  .buddy-modal.is-market .market-fisher-notice h4 { margin: 3px 0 2px; color: var(--m-ink); font: 700 20px/1.1 var(--font-menu); }
+  .buddy-modal.is-market .market-fisher-notice p { margin: 0; color: var(--m-ink-soft); font-size: 15px; line-height: 1.3; }
+  .buddy-modal.is-market .market-fisher-notice p b { color: var(--m-ink); font-weight: 700; }
+  .buddy-modal.is-market .market-fisher-notice button { min-height: 0; padding: 2px 8px 0; border: 6px solid transparent; border-width: 6px 6px 10px; border-image: var(--sk-btn-go) 3 3 5 3 fill / 6px 6px 10px; background: none; color: var(--m-ink); font: 600 15px/1.2 var(--font-menu); cursor: pointer; white-space: nowrap; }
+  .buddy-modal.is-market .market-fisher-notice button:active { translate: 0 2px; }
+  /* La tienda del pescador: su retrato junto a la carretilla, los aparejos y
+     la lista de lo que se le puede vender. */
+  .buddy-modal.is-market .fisher-diorama { display: grid; place-items: center; overflow: hidden; }
+  .buddy-modal.is-market .fisher-diorama::after { content: "ROAMS THE VALLEY"; }
+  .buddy-modal.is-market .fisher-portrait { width: 100%; max-width: 228px; height: auto; aspect-ratio: 76 / 42; image-rendering: pixelated; }
+  .buddy-modal.is-market .fisher-sell { margin-top: 26px; }
+  .buddy-modal.is-market .fisher-sell-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; margin: 10px 0; }
+  .buddy-modal.is-market .fisher-sell-all, .buddy-modal.is-market .fisher-catch-buttons button {
+    display: inline-flex; align-items: center; gap: 5px; min-height: 0; padding: 2px 8px 0; border: 6px solid transparent; border-width: 6px 6px 10px; border-image: var(--sk-btn-go) 3 3 5 3 fill / 6px 6px 10px;
+    background: none; color: var(--m-ink); font: 600 15px/1.2 var(--font-menu); cursor: pointer;
+  }
+  .buddy-modal.is-market :is(.fisher-sell-all, .fisher-catch-buttons button):disabled { border-image-source: var(--sk-btn); color: #6a4c2e; opacity: .75; cursor: default; }
+  .buddy-modal.is-market :is(.fisher-sell-all, .fisher-catch-buttons button):active:not(:disabled) { translate: 0 2px; }
+  .buddy-modal.is-market .fisher-catches { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .buddy-modal.is-market .fisher-catch { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 6px 8px; background: var(--sk-paper) 0 0 / 64px; box-shadow: 0 0 0 3px #2a1206; }
+  .buddy-modal.is-market .fisher-catch .buddy-collectible-icon { width: 56px; height: 42px; padding: 2px; background: repeating-linear-gradient(0deg, #2a6a80 0 10px, #24607a 10px 11px); box-shadow: 0 0 0 2px #2a1206; }
+  .buddy-modal.is-market .fisher-catch strong { display: block; color: var(--m-ink); font: 700 17px/1.1 var(--font-menu); }
+  .buddy-modal.is-market .fisher-catch small { color: var(--m-ink-soft); font-size: 14px; }
+  .buddy-modal.is-market .fisher-catch-buttons { display: grid; gap: 4px; justify-items: end; }
+  .buddy-modal.is-market .fisher-empty { margin: 8px 0; color: var(--m-ink-soft); font-size: 16px; }
+  @media (max-width: 680px) {
+    .buddy-modal.is-market .market-fisher-notice { grid-template-columns: auto minmax(0, 1fr); }
+    .buddy-modal.is-market .market-fisher-notice button { grid-column: 1 / -1; justify-self: start; }
+    .buddy-modal.is-market .fisher-catches { grid-template-columns: minmax(0, 1fr); }
+  }
   @media (max-width: 680px) {
     .buddy-modal.is-market .seed-basket { grid-template-columns: 1fr; }
     .buddy-modal.is-market .seed-shed .market-catalog-heading { align-items: start; }

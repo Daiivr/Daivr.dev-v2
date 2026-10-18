@@ -628,7 +628,7 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
             hostId={host.hostId}
             unlockedHostIds={host.unlockedIds}
             onChooseHost={chooseHost}
-            hostProgress={{ coins: adventure.market.coins, species: adventure.discoveredFishCount || 0, totalSpecies: adventure.fishJournal?.length || 0 }}
+            hostProgress={{ coins: adventure.market.coins, species: adventure.discoveredFishCount || 0, totalSpecies: adventure.stationFishTotal || 0 }}
             onOpenBuddyModal={setBuddyModal}
           />
 
@@ -644,7 +644,7 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
             <ProgramSections theme={theme} interactive={!entrySplashOpen} />
             <CommentsSection />
           </main>
-          <SiteFooter onOpenMarket={() => setBuddyModal("market")} onOpenGarden={() => setBuddyModal("garden")} buddy={buddy} season={seasonalEvent} onBuddyPet={handleBuddyPet} onPowerOutage={setPowerOutage} />
+          <SiteFooter onOpenMarket={() => setBuddyModal("market")} onOpenGarden={() => setBuddyModal("garden")} onOpenFisherman={() => setBuddyModal("fisherman")} modalOpen={Boolean(buddyModal)} buddy={buddy} season={seasonalEvent} onBuddyPet={handleBuddyPet} onPowerOutage={setPowerOutage} />
         </div>
       </div>
 

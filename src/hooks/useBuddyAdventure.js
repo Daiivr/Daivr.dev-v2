@@ -1,7 +1,7 @@
-import { bonusCoins, normalizeMarket, mergeMarket, marketWallet, openMarketChest, purchaseMarketItem, purchaseSeed, plantSeed, harvestCrop, sellCrops, MARKET_GEAR } from "../../shared/buddy-market.mjs";
+import { bonusCoins, normalizeMarket, mergeMarket, marketWallet, openMarketChest, purchaseMarketItem, purchaseSeed, plantSeed, harvestCrop, sellCatch, sellCrops, MARKET_GEAR } from "../../shared/buddy-market.mjs";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { FIELD_FINDS, FISH_CATALOG, KRAKEN, LEVIATHAN } from "../data/buddyWorld";
-import { isBuddyJournalComplete } from "../../shared/buddy-journal.mjs";
+import { ALL_CATCHES, FIELD_FINDS, FISH_CATALOG, KRAKEN, LEVIATHAN, VALLEY_CATALOG } from "../data/buddyWorld";
+import { isBuddyJournalComplete, isValleyJournalComplete } from "../../shared/buddy-journal.mjs";
 
 const STORAGE_KEY = "daivr.buddyAdventure.v1";
 const GUEST_STORAGE_KEY = "daivr.buddyAdventure.guest.v1";
@@ -462,11 +462,25 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
     [state.inventory, state.market]
   );
 
-  const fishJournal = useMemo(() => FISH_CATALOG.map((item) => ({
+  // Las dos colecciones juntas (cada entrada dice su juego: "station" o
+  // "valley"); los contadores de siempre son solo del diario original.
+  const fishJournal = useMemo(() => ALL_CATCHES.map((item) => ({
     ...item,
     count: state.fishCollection[item.id] || 0,
     discovered: Boolean(state.fishCollection[item.id])
   })), [state.fishCollection]);
+  const valleyFound = fishJournal.filter((item) => item.set === "valley" && item.discovered).length;
+
+  // Completar el diario del valle (al pescar el ultimo, aqui y ahora) se anuncia:
+  // trae el traje de pescador.
+  const valleySeenRef = useRef(valleyFound);
+  useEffect(() => {
+    const before = valleySeenRef.current;
+    valleySeenRef.current = valleyFound;
+    if (before === VALLEY_CATALOG.length - 1 && valleyFound === VALLEY_CATALOG.length) {
+      window.dispatchEvent(new CustomEvent("daivr-buddy-secret-unlock", { detail: { id: "fisher-outfit" } }));
+    }
+  }, [valleyFound]);
 
   const finds = useMemo(() => FIELD_FINDS.map((item) => ({
     ...item,
@@ -494,6 +508,16 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
         return { ...current, fishCollection, foundObjects, totalCatches: current.totalCatches + added, voidCatches: current.voidCatches + rareAdded };
       });
     } : undefined,
+    // (pruebas, en local) el diario del valle completo de golpe
+    completeValleyForTesting: import.meta.env.DEV && ["localhost", "127.0.0.1", "[::1]"].includes(window.location.hostname) ? () => {
+      apply((current) => {
+        const fishCollection = { ...current.fishCollection };
+        let added = 0;
+        for (const item of VALLEY_CATALOG) if (!(fishCollection[item.id] > 0)) { fishCollection[item.id] = 1; added += 1; }
+        return { ...current, fishCollection, totalCatches: current.totalCatches + added };
+      });
+    } : undefined,
+    valleyComplete: isValleyJournalComplete(state),
     inventory,
     inventoryIds: inventory.map((item) => item.id),
     market: marketWallet(state),
@@ -512,6 +536,12 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
       if (result.adventure !== stateRef.current) { apply(result.adventure); window.dispatchEvent(new CustomEvent("daivr-garden-planted", { detail: { seed: result.seed } })); }
       return result.message;
     },
+    // Al pescador ambulante: vender capturas (una o "all") por monedas.
+    sellCatch(id, amount = 1) {
+      const result = sellCatch(stateRef.current, id, amount);
+      if (result.adventure !== stateRef.current) apply(result.adventure);
+      return result.message;
+    },
     sellCrops(cropId = null) {
       const result = sellCrops(stateRef.current, cropId);
       if (result.adventure !== stateRef.current) { apply(result.adventure); window.dispatchEvent(new CustomEvent("daivr-garden-sold", { detail: { value: result.value } })); }
@@ -527,7 +557,10 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
     totalCatches: state.totalCatches,
     rareCatches: state.voidCatches,
     fishJournal,
-    discoveredFishCount: fishJournal.filter((item) => item.discovered).length,
+    discoveredFishCount: fishJournal.filter((item) => item.set === "station" && item.discovered).length,
+    stationFishTotal: FISH_CATALOG.length,
+    discoveredValleyCount: valleyFound,
+    valleyFishTotal: VALLEY_CATALOG.length,
     finds,
     discoveredFindCount: finds.filter((item) => item.discovered).length,
     leviathanSightings: state.leviathanSightings,

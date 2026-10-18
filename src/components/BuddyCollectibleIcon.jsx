@@ -1,7 +1,8 @@
-import { BuddyMarketArt } from "./BuddyMarketArt";
+import { MarketItemImage } from "./BuddyMarketArt";
+import { isGoodsArt } from "../lib/pixelWorld/marketGoods";
 import { BuddyFishArt, hasFishArt } from "./BuddyFishArt";
 import { BuddyRelicDetails } from "./BuddyRelicDetails";
-import { FISH_CATALOG } from "../../shared/buddy-catches.mjs";
+import { ALL_CATCHES } from "../../shared/buddy-catches.mjs";
 import { catchSprite, isCatchArt } from "../lib/pixelWorld/catches";
 import { findSprite, isFindArt } from "../lib/pixelWorld/finds";
 
@@ -16,7 +17,7 @@ function catchUrl(id) {
   return url;
 }
 
-const speciesColors = Object.fromEntries(FISH_CATALOG.map(({ id, color }) => [id, color]));
+const speciesColors = Object.fromEntries(ALL_CATCHES.map(({ id, color }) => [id, color]));
 function FishBody({ color, accent = "#f4fff8", tail = "normal", long = false }) {
   return (
     <g shapeRendering="crispEdges">
@@ -47,6 +48,11 @@ export function BuddyCollectibleIcon({ id, color = speciesColors[id] || "#45d8ff
     );
   }
 
+  // (la decoracion del mercado: el mismo sprite que en la tienda y la balda)
+  if (isGoodsArt(id)) {
+    return <svg className={`buddy-collectible-icon is-pixel ${className}`} viewBox="0 0 56 42" aria-hidden="true" {...svgProps}><g className="buddy-species-art"><MarketItemImage id={id} x={8} y={1} size={40} /></g></svg>;
+  }
+
   if (isCatchArt(id) || isFindArt(id)) {
     return <svg className={`buddy-collectible-icon is-pixel ${className}`} viewBox="0 0 56 42" aria-hidden="true" {...svgProps}><g className="buddy-species-art"><image href={catchUrl(id)} x="7" y="0" width="42" height="42" /></g></svg>;
   }
@@ -54,9 +60,6 @@ export function BuddyCollectibleIcon({ id, color = speciesColors[id] || "#45d8ff
   let artwork;
   if (hasFishArt(id)) artwork = <BuddyFishArt id={id} color={color} />;
   else switch (id) {
-    case "market-terrarium":
-    case "market-moon":
-    case "market-arcade": artwork = <g transform="translate(9 1) scale(1.6)"><BuddyMarketArt id={id} /></g>; break;
     case "chrono-manta": artwork = <g shapeRendering="crispEdges">
       {/* A whip tail and swept wings give the timekeeper a true ray silhouette. */}
       <g className="buddy-fish-tail">

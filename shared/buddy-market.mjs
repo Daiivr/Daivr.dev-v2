@@ -1,3 +1,6 @@
+import { ALL_CATCHES } from "./buddy-catches.mjs";
+import { catchPrice, fishermanVisit } from "./buddy-fisherman.mjs";
+
 export const CHEST_MIN_COINS = 1;
 export const CHEST_MAX_COINS = 10;
 // Monedas que se ganan fuera de los cofres: cada pez asado en la hoguera y
@@ -26,6 +29,37 @@ export const MARKET_ROTATING_HOSTS = [
   { id: "host-kiyosa", label: "Kiyosa", category: "host", price: 5000, description: "A warm welcome from Kiyosa. Once unlocked, choose her from the HOST switch.", availability: "HOST ROTATION" }
 ];
 MARKET_ITEMS.push(...MARKET_ROTATING_HOSTS);
+// Los aparejos para los peces del valle: los vende el pescador ambulante
+// cuando pasa por el footer (shared/buddy-fisherman.mjs), no el puesto. (Van
+// despues de los anfitriones, como todo lo nuevo, para que los recibos viejos
+// conserven su prioridad de pago.)
+export const MARKET_TACKLE = [
+  { id: "rod-fiberglass", label: "Fiberglass rod", category: "tackle", slot: "rod", price: 120, perk: "more of your bites are valley fish", description: "Light and springy, made for valley water. More of Buddy's bites come from the valley." },
+  { id: "rod-iridium", label: "Iridium rod", category: "tackle", slot: "rod", price: 260, perk: "rare and legendary fish bite more", description: "A shimmering purple rod for the big ones. Rare and legendary fish bite more often." },
+  { id: "lure-magic-bait", label: "Magic bait", category: "tackle", slot: "lure", price: 90, perk: "any season, any hour, any weather", description: "Glittery bait that ignores the calendar. Every valley fish bites as if it were its season, its hour and its weather." },
+  { id: "lure-curiosity", label: "Curiosity lure", category: "tackle", slot: "lure", price: 140, perk: "fish you haven't caught bite much more", description: "A shiny little fish that shy species can't resist. Fish missing from your journals bite much more often." },
+  { id: "lure-crab-pot", label: "Crab pot", category: "tackle", slot: "lure", price: 110, perk: "crab-pot catches turn up far more", description: "A little slatted trap that sinks beside the line. Lobsters, crabs, shells and other sea critters turn up far more often." }
+];
+// Lo nuevo del puesto: se turna con lo de siempre (STALL_ROTATION).
+export const MARKET_GOODS = [
+  { id: "market-straw-hat", label: "Straw sun hat", category: "wear", price: 60, description: "Woven straw with a red ribbon and a daisy. Shade for long days by the water." },
+  { id: "market-overalls", label: "Denim overalls", category: "wear", price: 90, description: "Sturdy blue denim with brass buttons and a bib pocket for bait." },
+  { id: "market-specs", label: "Round specs", category: "wear", price: 45, description: "Little round wire glasses, for reading the catch journal up close." },
+  { id: "market-leaf-umbrella", label: "Leaf umbrella", category: "gear", price: 70, description: "One very big leaf. When it rains, Buddy holds it up instead of his striped umbrella." },
+  { id: "market-trophy-fish", label: "Trophy bass", category: "decor", price: 80, description: "A prize largemouth bass, mounted on a carved wooden plaque." },
+  { id: "market-ship-bottle", label: "Ship in a bottle", category: "decor", price: 70, description: "A tiny ship on a tiny sea. Nobody knows how it got in there." },
+  { id: "market-bonsai", label: "Pocket bonsai", category: "decor", price: 60, description: "A twisted little tree in a blue glazed pot. Very patient." },
+  { id: "market-lava-lamp", label: "Lava lamp", category: "decor", price: 90, description: "Warm wax blobs drift up and down all night, glowing on the shelf." }
+];
+MARKET_ITEMS.push(...MARKET_TACKLE, ...MARKET_GOODS);
+// El puesto saca STALL_SIZE piezas por apertura, por turnos, en un orden que
+// alterna lo de vestir con lo del cuarto.
+export const STALL_SIZE = 3;
+const TACKLE_IDS = new Set(MARKET_TACKLE.map((item) => item.id));
+const CATCHES = new Map(ALL_CATCHES.map((item) => [item.id, item]));
+export const STALL_ROTATION = ["market-beanie", "market-terrarium", "market-straw-hat", "market-trophy-fish", "market-lantern", "market-moon", "market-overalls", "market-ship-bottle", "market-specs", "market-arcade", "market-vest", "market-bonsai", "market-leaf-umbrella", "market-lava-lamp"];
+// Antes cada dia tenia sus tres de siempre: los recibos de entonces valen.
+const LEGACY_STALL = { 3: ["market-beanie", "market-lantern", "market-terrarium"], 6: ["market-vest", "market-moon", "market-arcade"] };
 // El huerto del prado. Las semillas se compran cuando sea y van a la bolsa
 // (como mucho SEED_BAG_MAX de cada una a la vez); se plantan en una de las
 // GARDEN_PLOTS parcelas libres, crecen unos dias de verdad (cada "dia" son
@@ -95,7 +129,7 @@ function cleanSeeds(value, now) {
   return kept;
 }
 
-export const MARKET_GEAR = MARKET_ITEMS.filter((item) => item.category === "wear" || item.category === "gear").map((item) => ({ ...item, source: "Footer market" }));
+export const MARKET_GEAR = MARKET_ITEMS.filter((item) => item.category === "wear" || item.category === "gear" || item.category === "tackle").map((item) => ({ ...item, source: "Footer market" }));
 const count = (value) => Number.isFinite(Number(value)) ? Math.max(0, Math.min(999999, Math.floor(Number(value)))) : 0;
 const dayFormat = new Intl.DateTimeFormat("en-US", { weekday: "short", timeZone: MARKET_TIME_ZONE });
 const calendarFormat = new Intl.DateTimeFormat("en-US", { year: "numeric", month: "numeric", day: "numeric", timeZone: MARKET_TIME_ZONE });
@@ -135,21 +169,21 @@ function marketStockDay(date) {
   while (![3, 6].includes(day.getUTCDay())) day.setUTCDate(day.getUTCDate() + 1);
   return day;
 }
+// Count openings, not days: Wed -> Sat -> Wed advances exactly one slot.
+function openingIndex(day) {
+  const weeks = Math.floor((day.getTime() - Date.UTC(2026, 9, 14)) / (7 * 86400000));
+  return weeks * 2 + (day.getUTCDay() === 6 ? 1 : 0);
+}
+const wrap = (index, length) => ((index % length) + length) % length;
 export function marketStock(date = new Date()) {
-  const day = marketStockDay(date);
-  const second = day.getUTCDay() === 6;
-  const ids = second ? ["market-vest", "market-moon", "market-arcade"] : ["market-beanie", "market-lantern", "market-terrarium"];
-  return MARKET_ITEMS.filter((item) => ids.includes(item.id));
+  const opening = openingIndex(marketStockDay(date));
+  return Array.from({ length: STALL_SIZE }, (_, slot) => STALL_ROTATION[wrap(opening * STALL_SIZE + slot, STALL_ROTATION.length)])
+    .map((id) => MARKET_ITEMS.find((item) => item.id === id));
 }
 
 export function marketHostStock(date = new Date()) {
-  const day = marketStockDay(date);
-  // Count openings, not days: Wed -> Sat -> Wed advances exactly one slot.
   // Oct 14: Komoe, Oct 17: NH-02, Oct 21: Kiyosa, then repeat.
-  const weeks = Math.floor((day.getTime() - Date.UTC(2026, 9, 14)) / (7 * 86400000));
-  const opening = weeks * 2 + (day.getUTCDay() === 6 ? 1 : 0);
-  const index = ((opening % MARKET_ROTATING_HOSTS.length) + MARKET_ROTATING_HOSTS.length) % MARKET_ROTATING_HOSTS.length;
-  return [MARKET_ROTATING_HOSTS[index]];
+  return [MARKET_ROTATING_HOSTS[wrap(openingIndex(marketStockDay(date)), MARKET_ROTATING_HOSTS.length)]];
 }
 
 // Keep paid receipts from before the shared rotation. New purchases always
@@ -158,6 +192,7 @@ const HOST_ROTATION_CUTOVER = Date.parse("2026-10-17T21:58:24Z");
 const LEGACY_HOST_DAYS = { "host-komoe": [3, 6], "host-nh02": [6], "host-kiyosa": [3] };
 function receiptWasInStock(id, date) {
   if (date.getTime() < HOST_ROTATION_CUTOVER && LEGACY_HOST_DAYS[id]?.includes(marketCalendarDay(date).getUTCDay())) return true;
+  if (LEGACY_STALL[marketCalendarDay(date).getUTCDay()]?.includes(id)) return true;
   return marketCarries(id, date);
 }
 
@@ -181,19 +216,42 @@ export function bonusCoins(adventure = {}) {
 // el principio: con lo de un viernes se puede comprar otra cosa. Se repite
 // hasta que el resultado no cambia: solo cuentan las ventas de semillas que si
 // se pagaron.
+// Lo vendido al pescador: cuantas de cada captura (nunca mas de las pescadas;
+// el diario no cambia: una captura vendida sigue descubierta).
+function cleanSold(value, fishCollection = {}) {
+  const sold = {};
+  if (!value || typeof value !== "object" || Array.isArray(value)) return sold;
+  for (const [id, raw] of Object.entries(value)) {
+    if (!CATCHES.has(id) || !catchPrice(CATCHES.get(id))) continue;
+    const amount = Math.min(count(raw), count(fishCollection[id]));
+    if (amount) sold[id] = amount;
+  }
+  return sold;
+}
+const saleCoins = (sold) => Object.entries(sold).reduce((sum, [id, amount]) => sum + amount * catchPrice(CATCHES.get(id)), 0);
+// Un recibo vale si se compro cuando tocaba: lo del puesto, un dia de mercado
+// con la pieza en el puesto; los aparejos, mientras estaba el pescador.
+function receiptValid(id, timestamp) {
+  if (typeof timestamp !== "string" || timestamp.length > 32) return false;
+  const date = new Date(timestamp);
+  if (TACKLE_IDS.has(id)) return Boolean(fishermanVisit(date, CLOCK_GRACE_MS));
+  return marketIsOpen(date) && receiptWasInStock(id, date);
+}
+
 export function normalizeMarket(value, fishCollection = {}, bonus = 0, now = Date.now()) {
   const rewards = (Array.isArray(value?.rewards) ? value.rewards : []).slice(0, Math.min(999, count(fishCollection["token-chest"]))).map((reward) => Math.max(CHEST_MIN_COINS, Math.min(CHEST_MAX_COINS, count(reward))));
   const opened = rewards.length;
   const receipts = value?.purchases && typeof value.purchases === "object" ? value.purchases : {};
   const candidates = cleanSeeds(value?.seeds, now);
+  const sold = cleanSold(value?.sold, fishCollection);
   let paidSeeds = candidates, result = null;
   for (let pass = 0; pass < 6; pass++) {
     const harvest = paidSeeds.filter((seed) => seed.sold).reduce((sum, seed) => sum + cropById(seed.crop).value, 0);
     const purchases = {};
-    let budget = rewards.reduce((sum, reward) => sum + reward, 0) + count(bonus) + harvest;
+    let budget = rewards.reduce((sum, reward) => sum + reward, 0) + count(bonus) + harvest + saleCoins(sold);
     for (const item of MARKET_ITEMS) {
       const timestamp = receipts[item.id];
-      if (typeof timestamp !== "string" || timestamp.length > 32 || !marketIsOpen(new Date(timestamp)) || !receiptWasInStock(item.id, new Date(timestamp)) || budget < item.price) continue;
+      if (!receiptValid(item.id, timestamp) || budget < item.price) continue;
       purchases[item.id] = timestamp;
       budget -= item.price;
     }
@@ -204,7 +262,7 @@ export function normalizeMarket(value, fishCollection = {}, bonus = 0, now = Dat
       seeds.push(seed);
       budget -= price;
     }
-    result = { opened, rewards, purchases, seeds };
+    result = { opened, rewards, purchases, seeds, sold };
     if (seeds.length === paidSeeds.length && seeds.every((seed, index) => seed === paidSeeds[index])) break;
     paidSeeds = seeds;
   }
@@ -221,11 +279,14 @@ export function mergeMarket(left, right, fishCollection, bonus = 0) {
     if (!other || seedStage(seed) > seedStage(other)) byId.set(seed.id, seed);
   }
   const seeds = [...byId.values()];
+  // Lo vendido solo sube: de cada captura, lo de quien haya vendido mas.
+  const sold = { ...a.sold };
+  for (const [id, amount] of Object.entries(b.sold)) sold[id] = Math.max(sold[id] || 0, amount);
   const purchases = { ...a.purchases };
   // Lo de `a` tambien cuenta: una compra del otro equipo no puede dejar sin
   // pagar (y hacer desaparecer) una semilla de este.
   const garden = a.seeds.reduce((sum, seed) => sum + (seed.sold ? cropById(seed.crop).value : 0) - cropById(seed.crop).price, 0);
-  let balance = rewards.reduce((sum, reward) => sum + reward, 0) + count(bonus) + garden - MARKET_ITEMS.filter((item) => Object.hasOwn(purchases, item.id)).reduce((sum, item) => sum + item.price, 0);
+  let balance = rewards.reduce((sum, reward) => sum + reward, 0) + count(bonus) + garden + saleCoins(a.sold) - MARKET_ITEMS.filter((item) => Object.hasOwn(purchases, item.id)).reduce((sum, item) => sum + item.price, 0);
   // Preserve confirmed purchases when two devices spend the same balance.
   // Accept only affordable additions; never replace an already-owned piece.
   for (const item of MARKET_ITEMS) {
@@ -233,7 +294,7 @@ export function mergeMarket(left, right, fishCollection, bonus = 0) {
     purchases[item.id] = b.purchases[item.id];
     balance -= item.price;
   }
-  return normalizeMarket({ rewards, purchases, seeds }, fishCollection, bonus);
+  return normalizeMarket({ rewards, purchases, seeds, sold }, fishCollection, bonus);
 }
 export function marketWallet(adventure) {
   const bonus = bonusCoins(adventure);
@@ -247,9 +308,10 @@ export function marketWallet(adventure) {
   const tally = (pick) => Object.fromEntries(CROPS.map((crop) => [crop.id, market.seeds.filter((seed) => seed.crop === crop.id && pick(seed)).length]));
   const bag = tally((seed) => !seed.planted), basket = tally((seed) => seed.harvested && !seed.sold);
   const harvestedCount = market.seeds.filter((seed) => seed.harvested).length;
-  return { ...market, owned, bonus, soldCoins, garden, bag, basket, harvestedCount, coins: market.rewards.reduce((sum, reward) => sum + reward, 0) + bonus + soldCoins - seedSpend - MARKET_ITEMS.filter((item) => owned.includes(item.id)).reduce((sum, item) => sum + item.price, 0), unopened: Math.min(999, count(adventure.fishCollection?.["token-chest"])) - market.opened };
+  const fishCoins = saleCoins(market.sold);
+  return { ...market, owned, bonus, soldCoins, fishCoins, garden, bag, basket, harvestedCount, coins: market.rewards.reduce((sum, reward) => sum + reward, 0) + bonus + soldCoins + fishCoins - seedSpend - MARKET_ITEMS.filter((item) => owned.includes(item.id)).reduce((sum, item) => sum + item.price, 0), unopened: Math.min(999, count(adventure.fishCollection?.["token-chest"])) - market.opened };
 }
-const marketRecord = (wallet, changes = {}) => ({ opened: wallet.opened, rewards: wallet.rewards, purchases: wallet.purchases, seeds: wallet.seeds, ...changes });
+const marketRecord = (wallet, changes = {}) => ({ opened: wallet.opened, rewards: wallet.rewards, purchases: wallet.purchases, seeds: wallet.seeds, sold: wallet.sold, ...changes });
 export function openMarketChest(adventure, random = Math.random) {
   const wallet = marketWallet(adventure);
   if (!wallet.unopened) return { adventure, message: "No unopened chests. Let Buddy fish for more." };
@@ -261,10 +323,35 @@ export function purchaseMarketItem(adventure, id, date = new Date()) {
   const wallet = marketWallet(adventure);
   if (!item) return { adventure, message: "That item is not in stock." };
   if (wallet.owned.includes(id)) return { adventure, message: "You already own this item." };
-  if (!marketIsOpen(date)) return { adventure, message: "The stand opens on Wednesdays and Saturdays." };
-  if (!marketCarries(id, date)) return { adventure, message: "That item is not in today's stock. Check the next market day." };
+  if (TACKLE_IDS.has(id)) {
+    if (!fishermanVisit(date)) return { adventure, message: "The fisherman has moved on. He comes by the footer a few days a week." };
+  } else {
+    if (!marketIsOpen(date)) return { adventure, message: "The stand opens on Wednesdays and Saturdays." };
+    if (!marketCarries(id, date)) return { adventure, message: "That item is not in today's stock. Check the next market day." };
+  }
   if (wallet.coins < item.price) return { adventure, message: `You need ${item.price - wallet.coins} more coins. Open a chest here in the shop.` };
-  return { adventure: { ...adventure, market: marketRecord(wallet, { purchases: { ...wallet.purchases, [id]: date.toISOString() } }) }, message: item.category === "host" ? `${item.label} is yours! Pick her from the HOST switch in the top bar.` : `${item.label} is yours! Find it in ${item.category === "decor" ? "Room → Collection, on either shelf" : "Inventory"}.` };
+  return { adventure: { ...adventure, market: marketRecord(wallet, { purchases: { ...wallet.purchases, [id]: date.toISOString() } }) }, message: item.category === "host" ? `${item.label} is yours! Pick her from the HOST switch in the top bar.` : `${item.label} is yours! Find it in ${item.category === "decor" ? "Room → Collection, on either shelf" : item.slot ? `Inventory, in the ${item.slot} slot` : "Inventory"}.` };
+}
+
+// Lo que Buddy le puede vender al pescador: cada captura con lo pescado, lo
+// ya vendido, lo que queda y lo que paga por cada una.
+export function sellableCatches(adventure) {
+  const sold = marketWallet(adventure).sold;
+  return ALL_CATCHES.filter((item) => catchPrice(item) && count(adventure.fishCollection?.[item.id]) > 0).map((item) => {
+    const caught = count(adventure.fishCollection[item.id]), gone = sold[item.id] || 0;
+    return { item, caught, sold: gone, left: Math.max(0, caught - gone), price: catchPrice(item) };
+  });
+}
+// Vender `amount` de una captura (o "all") mientras esta el pescador.
+export function sellCatch(adventure, id, amount = 1, date = new Date()) {
+  const item = CATCHES.get(id), price = catchPrice(item);
+  if (!price) return { adventure, value: 0, message: "The fisherman doesn't buy that." };
+  if (!fishermanVisit(date)) return { adventure, value: 0, message: "The fisherman has moved on. Sell your catch next time he stops by." };
+  const wallet = marketWallet(adventure), caught = count(adventure.fishCollection?.[id]), gone = wallet.sold[id] || 0;
+  const n = Math.min(amount === "all" ? Infinity : Math.max(1, count(amount)), caught - gone);
+  if (n <= 0) return { adventure, value: 0, message: `No ${item.name} left to sell.` };
+  const value = n * price;
+  return { adventure: { ...adventure, market: marketRecord(wallet, { sold: { ...wallet.sold, [id]: gone + n } }) }, value, message: `Sold ${n} ${item.name} for ${value} ${value === 1 ? "coin" : "coins"}.` };
 }
 
 // Que hay en cada parcela ahora. Si dos equipos plantaron a la vez en la misma,

@@ -28,3 +28,92 @@ export const FISH_CATALOG = [
   { id: "wet-keyboard", name: "Wet Keyboard", rarity: "junk", kind: "junk", color: "#70877b", lore: "Only the F and the 7 still work." },
   { id: "token-chest", name: "Token Chest", rarity: "treasure", kind: "treasure", color: "#ffd166", lore: "Still jingling with arcade credits." }
 ];
+
+// La coleccion del valle: los peces de Stardew Valley (y lo que sale en las
+// nasas), como un segundo juego del diario. Completar el original sigue
+// desbloqueando lo de siempre (Miku, NZ:P); completar este, el traje de
+// pescador. Cada uno tiene su habitat y cuando pica mejor (estacion, horas
+// y tiempo, como en el juego): fuera de eso tambien pica, pero menos.
+// `hours`: [desde, hasta) en horas del dia (pasada la medianoche, > 24).
+const S = { spring: "spring", summer: "summer", fall: "fall", winter: "winter" };
+const ALL_SEASONS = [S.spring, S.summer, S.fall, S.winter];
+const DAY = [6, 19], NIGHT = [18, 26];
+const v = (id, name, rarity, color, habitat, lore, { kind = "fish", seasons = ALL_SEASONS, hours = null, weather = null } = {}) => ({ id, name, rarity, kind, color, lore, set: "valley", habitat, seasons, hours, weather });
+export const VALLEY_CATALOG = [
+  v("pufferfish", "Pufferfish", "rare", "#ffd166", "Ocean", "Puffs up into a spiky ball when it feels watched.", { seasons: [S.summer], hours: [12, 16], weather: "sun" }),
+  v("anchovy", "Anchovy", "common", "#9ab8d0", "Ocean", "A tiny silver flash that never swims alone.", { seasons: [S.spring, S.fall] }),
+  v("tuna", "Tuna", "rare", "#3a5aa8", "Ocean", "Built like a torpedo and twice as stubborn.", { seasons: [S.summer, S.winter], hours: DAY }),
+  v("sardine", "Sardine", "common", "#8ab0c8", "Ocean", "Comes in schools so thick they look like one big fish.", { seasons: [S.spring, S.fall, S.winter], hours: DAY }),
+  v("bream", "Bream", "common", "#a8844a", "River", "Wakes up when the river goes dark.", { hours: NIGHT }),
+  v("largemouth-bass", "Largemouth Bass", "uncommon", "#5a8a3a", "Lake", "Its mouth is mostly appetite.", { hours: DAY }),
+  v("smallmouth-bass", "Smallmouth Bass", "common", "#8a9a4a", "River", "Polite about its bites, never about its fights.", { seasons: [S.spring, S.fall] }),
+  v("rainbow-trout", "Rainbow Trout", "uncommon", "#ff8ab8", "River", "Wears a pink stripe like it paints sunsets.", { seasons: [S.summer], hours: DAY, weather: "sun" }),
+  v("salmon", "Salmon", "uncommon", "#ff8c69", "River", "Swims home upstream every autumn, no map needed.", { seasons: [S.fall], hours: DAY }),
+  v("walleye", "Walleye", "uncommon", "#c8b048", "River", "Big glassy eyes made for gloomy rainy evenings.", { seasons: [S.fall], hours: [12, 26], weather: "rain" }),
+  v("perch", "Perch", "common", "#c8a830", "River", "Striped like a winter scarf.", { seasons: [S.winter] }),
+  v("carp", "Carp", "common", "#a89a5a", "Lake", "Not picky. Will eat almost anything, including your patience.", {}),
+  v("catfish", "Catfish", "uncommon", "#6a6a5a", "River", "Waits for rain, then whisker-hunts along the bottom.", { seasons: [S.spring, S.fall], hours: [6, 24], weather: "rain" }),
+  v("pike", "Pike", "uncommon", "#6a8a4a", "River", "A long green ambush with teeth.", { seasons: [S.summer, S.winter] }),
+  v("sunfish", "Sunfish", "common", "#ffb84a", "River", "Basks in the shallows like it's on vacation.", { seasons: [S.spring, S.summer], hours: DAY, weather: "sun" }),
+  v("red-mullet", "Red Mullet", "uncommon", "#e8604a", "Ocean", "Has a tiny beard for tasting the sand.", { seasons: [S.summer, S.winter], hours: DAY }),
+  v("herring", "Herring", "common", "#b8c8d8", "Ocean", "Sparkles like loose change in the surf.", { seasons: [S.spring, S.winter] }),
+  v("eel", "Eel", "uncommon", "#4a5a3a", "Ocean", "Slips out of the hand and into the rainy night.", { seasons: [S.spring, S.fall], hours: [16, 26], weather: "rain" }),
+  v("octopus", "Octopus", "rare", "#e8705a", "Ocean", "Eight arms, three hearts and zero interest in being caught.", { kind: "critter", seasons: [S.summer], hours: [6, 13] }),
+  v("red-snapper", "Red Snapper", "uncommon", "#e8504a", "Ocean", "Bright red and proud of it, especially in the rain.", { seasons: [S.summer, S.fall], hours: DAY, weather: "rain" }),
+  v("squid", "Squid", "rare", "#e8d8e8", "Ocean", "Rises to the surface on cold nights to look at the moon.", { kind: "critter", seasons: [S.winter], hours: NIGHT }),
+  v("sea-cucumber", "Sea Cucumber", "uncommon", "#8a4a3a", "Ocean", "Not a vegetable. Very offended that you asked.", { kind: "critter", seasons: [S.fall, S.winter], hours: DAY }),
+  v("super-cucumber", "Super Cucumber", "rare", "#8a4ab8", "Ocean", "A sea cucumber that found purple and never looked back.", { kind: "critter", seasons: [S.summer, S.fall], hours: NIGHT }),
+  v("ghostfish", "Ghostfish", "uncommon", "#e8eef4", "Mines", "So pale you can almost see what it ate for lunch."),
+  v("stonefish", "Stonefish", "rare", "#8a8a7a", "Mines", "Looks exactly like a rock. That's the whole plan."),
+  v("ice-pip", "Ice Pip", "rare", "#8ae8f8", "Mines", "Tiny, chilly and always in a hurry."),
+  v("lava-eel", "Lava Eel", "rare", "#ff5a2a", "Mines", "Swims through lava like it's a warm bath."),
+  v("sandfish", "Sandfish", "rare", "#e8c890", "Desert", "Prefers dunes to water, somehow.", { hours: [6, 20] }),
+  v("scorpion-carp", "Scorpion Carp", "rare", "#8ab84a", "Desert", "A carp with a stinger and a bad attitude.", { hours: [6, 20] }),
+  v("flounder", "Flounder", "uncommon", "#a8946a", "Ocean", "Both of its eyes ended up on the same side.", { seasons: [S.spring, S.summer], hours: [6, 20] }),
+  v("midnight-carp", "Midnight Carp", "rare", "#3a3a6a", "Lake", "Only comes up when the stars are out.", { seasons: [S.fall, S.winter], hours: [22, 26] }),
+  v("sturgeon", "Sturgeon", "rare", "#7a8a8a", "Lake", "An armored old-timer from way before your time.", { seasons: [S.summer, S.winter], hours: DAY }),
+  v("tiger-trout", "Tiger Trout", "uncommon", "#c89a3a", "River", "Wavy stripes, wild temper.", { seasons: [S.fall, S.winter], hours: DAY }),
+  v("bullhead", "Bullhead", "uncommon", "#5a4a3a", "Lake", "A tiny catfish with a big opinion of itself."),
+  v("tilapia", "Tilapia", "uncommon", "#a8a8b8", "Ocean", "Easygoing and always a little bit hungry.", { seasons: [S.summer, S.fall], hours: [6, 14] }),
+  v("chub", "Chub", "common", "#9aa8a0", "River", "Plain, round and happy about it."),
+  v("dorado", "Dorado", "rare", "#ffc84a", "River", "Gleams like a gold coin in the current.", { seasons: [S.summer], hours: DAY }),
+  v("albacore", "Albacore", "uncommon", "#6a8ab8", "Ocean", "A sleek tuna cousin that likes the cold mornings.", { seasons: [S.fall, S.winter], hours: [6, 11] }),
+  v("shad", "Shad", "common", "#b8c0c8", "River", "Shows up whenever it's drizzling.", { seasons: [S.spring, S.summer, S.fall], hours: [9, 26], weather: "rain" }),
+  v("lingcod", "Lingcod", "rare", "#6a8a5a", "River", "Long, speckled and grumpy in the cold.", { seasons: [S.winter] }),
+  v("halibut", "Halibut", "uncommon", "#b0a080", "Ocean", "A flat fish with a very wide smile.", { seasons: [S.spring, S.summer, S.winter], hours: [6, 11] }),
+  v("woodskip", "Woodskip", "uncommon", "#9a6a3a", "Secret Woods", "Grain on its scales like an old wooden plank."),
+  v("void-salmon", "Void Salmon", "rare", "#5a2a7a", "Swamp", "A salmon that swam somewhere it shouldn't have."),
+  v("slimejack", "Slimejack", "rare", "#6ad84a", "Swamp", "Slippery, green and faintly bubbling."),
+  v("stingray", "Stingray", "rare", "#8a7a6a", "Island", "Glides along the sand like a flying carpet."),
+  v("lionfish", "Lionfish", "rare", "#e86a4a", "Island", "All stripes and spines. Admire from a distance."),
+  v("blue-discus", "Blue Discus", "rare", "#3a8ae8", "Island", "Round as a coin and twice as shiny."),
+  v("midnight-squid", "Midnight Squid", "rare", "#4a3a8a", "Night Market", "Glows faintly in the deepest part of the bay.", { kind: "critter", seasons: [S.winter], hours: [17, 26] }),
+  v("spook-fish", "Spook Fish", "rare", "#3a4a5a", "Night Market", "Has eyes on top of its head for looking straight up.", { seasons: [S.winter], hours: [17, 26] }),
+  v("blobfish", "Blobfish", "rare", "#f0a0b0", "Night Market", "Looks sad. Is actually having a lovely time.", { kind: "critter", seasons: [S.winter], hours: [17, 26] }),
+  v("goby", "Goby", "common", "#a8946a", "Waterfall", "Holds on to rocks with a suction-cup belly."),
+  v("crimsonfish", "Crimsonfish", "legendary", "#e8303a", "East Pier", "A legend of summer: a red streak at the end of the pier.", { seasons: [S.summer] }),
+  v("angler", "Angler", "legendary", "#c8a858", "Waterfall", "Brings its own little lantern to the autumn waterfall.", { seasons: [S.fall] }),
+  v("legend", "Legend", "legendary", "#58b868", "Mountain Lake", "The one everyone talks about. It only bites in spring rain.", { seasons: [S.spring], weather: "rain" }),
+  v("glacierfish", "Glacierfish", "legendary", "#a8e8f8", "Arrowhead Island", "Swims in water so cold it should be a glacier.", { seasons: [S.winter] }),
+  v("mutant-carp", "Mutant Carp", "legendary", "#7ae84a", "Sewers", "Something in the sewer water made it… extra."),
+  v("son-of-crimsonfish", "Son of Crimsonfish", "legendary", "#ff5a6a", "East Pier", "Takes after its parent: red, fast and hard to land."),
+  v("ms-angler", "Ms. Angler", "legendary", "#e8a8c8", "Waterfall", "Her lantern has a little bow on it."),
+  v("legend-ii", "Legend II", "legendary", "#3a9a58", "Mountain Lake", "The sequel nobody saw coming."),
+  v("glacierfish-jr", "Glacierfish Jr.", "legendary", "#d8f4ff", "Arrowhead Island", "Small, frosty and very proud of its fins."),
+  v("radioactive-carp", "Radioactive Carp", "legendary", "#c8ff4a", "Sewers", "Glows in the dark. Please wash your hands."),
+  v("lobster", "Lobster", "uncommon", "#d8402a", "Crab pot · Ocean", "Walks backwards and pinches forwards.", { kind: "critter" }),
+  v("crayfish", "Crayfish", "common", "#c8503a", "Crab pot · Freshwater", "A tiny freshwater lobster with big claw energy.", { kind: "critter" }),
+  v("crab", "Crab", "uncommon", "#e8603a", "Crab pot · Ocean", "Only knows how to walk sideways, and is fine with that.", { kind: "critter" }),
+  v("cockle", "Cockle", "common", "#e8c8a0", "Crab pot · Ocean", "A ridged little shell that warms the heart.", { kind: "critter" }),
+  v("mussel", "Mussel", "common", "#3a3a5a", "Crab pot · Ocean", "Clings to anything, especially the dock posts.", { kind: "critter" }),
+  v("shrimp", "Shrimp", "common", "#ff9a8a", "Crab pot · Ocean", "Tiny, curly and always a little nervous.", { kind: "critter" }),
+  v("snail", "Snail", "common", "#a87a4a", "Crab pot · Freshwater", "Carries its house and is never late, eventually.", { kind: "critter" }),
+  v("periwinkle", "Periwinkle", "common", "#7a8ab8", "Crab pot · Freshwater", "A spiral shell in the colour of dusk.", { kind: "critter" }),
+  v("oyster", "Oyster", "uncommon", "#b8b0a0", "Crab pot · Ocean", "Lumpy outside, pearly inside.", { kind: "critter" }),
+  v("clam", "Clam", "common", "#d8c8a8", "Crab pot · Ocean", "Keeps its mouth shut about everything.", { kind: "critter" })
+];
+// Todo lo que se puede pescar, con su juego: "station" (el diario original) o "valley".
+export const ALL_CATCHES = [...FISH_CATALOG.map((item) => ({ ...item, set: "station" })), ...VALLEY_CATALOG];
+const CATCH_BY_ID = new Map(ALL_CATCHES.map((item) => [item.id, item]));
+export const catchById = (id) => CATCH_BY_ID.get(id) || null;
+export const VALLEY_SEASONS = ALL_SEASONS;

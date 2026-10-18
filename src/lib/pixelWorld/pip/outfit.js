@@ -5,7 +5,7 @@
 // Premios de amistad: el nivel desde el que se ven.
 export const FRIENDSHIP_GEAR = { "party-hat": 2, sunglasses: 3, scarf: 4, "gold-antenna": 5 };
 // Con varias cosas para el mismo hueco gana la primera.
-const HEAD_ORDER = ["pixel-crown", "star-cap", "market-beanie", "party-hat"];
+const HEAD_ORDER = ["pixel-crown", "star-cap", "market-straw-hat", "market-beanie", "party-hat"];
 const FRONT_HAND_ORDER = ["pixel-blaster", "wrench", "cartridge", "coffee", "market-lantern"];
 const BACK_HAND_ORDER = ["market-lantern", "coffee"];
 
@@ -28,19 +28,30 @@ export function outfitFor({ friendshipLevel = 1, inventory = [], hiddenGear = []
   const head = HEAD_ORDER.find(owns);
   if (head) fit.head = head;
   if (hasGear("miku-wig")) fit.hair = "miku-wig";
-  if (hasGear("green-visor")) fit.face = "green-visor";
+  if (hasGear("market-specs")) fit.face = "market-specs";
+  else if (hasGear("green-visor")) fit.face = "green-visor";
   else if (earned("sunglasses")) fit.face = "sunglasses";
   if (hasItem("headset")) fit.ears = "headset";
   if (earned("gold-antenna")) fit.antenna = "gold-antenna";
   if (earned("scarf")) fit.neck = "scarf";
   if (hasGear("miku-costume")) fit.body = "miku-costume";
   else if (hasItem("market-vest")) fit.body = "market-vest";
+  else if (hasGear("market-overalls")) fit.body = "market-overalls";
+  // (el paraguas de hoja solo sale cuando llueve: lo pinta events/rain.js)
+  if (hasGear("market-leaf-umbrella")) fit.umbrella = "leaf";
   const hand = FRONT_HAND_ORDER.find(owns);
   if (hand) fit.hand = hand;
   const handB = BACK_HAND_ORDER.find((id) => id !== hand && owns(id));
   if (handB) fit.handB = handB;
   if (hasGear("rocket-boots")) fit.feet = "rocket-boots";
   if (hasItem("parachute-upgrade")) fit.chute = "parachute-upgrade";
+  // El traje de pescador (diario del valle): sombrero, chaleco y botas de agua
+  // (las botas cohete, si las lleva, se quedan: con ellas vuela).
+  if (hasGear("fisher-outfit") && fit.body !== "miku-costume") {
+    fit.head = "fisher-hat"; fit.body = "fisher-vest";
+    if (fit.feet !== "rocket-boots") fit.feet = "fisher-boots";
+    delete fit.hair;
+  }
   const seasonal = SEASON_FITS[season] || {};
   for (const [slot, id] of Object.entries(seasonal)) if (!fit[slot]) fit[slot] = id;
   return fit;

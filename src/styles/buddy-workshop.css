@@ -68,6 +68,8 @@
     .buddy-specimen-tank { min-height: 78px; }
     .buddy-specimen-tank .buddy-specimen-art { width: 76px; height: 57px; }
     .buddy-tank-label, .buddy-specimen-facts { display: none; }
+    /* (las pistas del valle se quedan: dicen donde y cuando pica lo que falta) */
+    .buddy-specimen-facts.is-valley { display: grid; gap: 6px; margin-top: 8px; padding-top: 8px; }
     .buddy-journal-summary { order: 3; flex: none; padding: 16px; }
     .buddy-archive-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
     .buddy-loot-cell { grid-template-columns: 38px minmax(0,1fr) 18px; }

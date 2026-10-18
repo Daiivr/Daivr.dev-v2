@@ -1,4 +1,4 @@
-import { MARKET_GEAR } from "../../shared/buddy-market.mjs";
+import { MARKET_GEAR, MARKET_TACKLE } from "../../shared/buddy-market.mjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BUDDY_INVENTORY } from "./useBuddyAdventure";
 
@@ -47,6 +47,11 @@ export const JOURNAL_GEAR = [
   { id: "miku-wig", label: "miku wig" },
   { id: "miku-costume", label: "miku costume" }
 ];
+// El diario del valle (los peces de Stardew) trae el traje de pescador:
+// sombrero de pesca con señuelo, chaleco con bolsillos y botas de agua.
+export const VALLEY_GEAR = [
+  { id: "fisher-outfit", label: "fisherman outfit", perk: "valley journal complete" }
+];
 
 // Secretos: no se dice que existen hasta que caen (en el inventario son un
 // hueco "???"). El pixel blaster, al borrar 100 bichos en las cacerias.
@@ -55,18 +60,21 @@ export const SECRET_GEAR = [
 ];
 export const SECRET_UNLOCK_EVENT = "daivr-buddy-secret-unlock";
 
-export const HEADWEAR_IDS = ["market-beanie", "party-hat", "star-cap", "pixel-crown", "miku-wig"];
-export const FACE_GEAR_IDS = ["sunglasses", "green-visor"];
-export const BODY_GEAR_IDS = ["scarf", "market-vest"];
+export const HEADWEAR_IDS = ["market-beanie", "market-straw-hat", "party-hat", "star-cap", "pixel-crown", "miku-wig"];
+export const FACE_GEAR_IDS = ["sunglasses", "green-visor", "market-specs"];
+export const BODY_GEAR_IDS = ["scarf", "market-vest", "market-overalls"];
+// Para la lluvia: el paraguas de hoja sustituye al de rayas.
+export const RAIN_GEAR_IDS = ["market-leaf-umbrella"];
 export const MOBILITY_IDS = ["rocket-boots", "parachute-upgrade"];
-export const COSTUME_IDS = ["miku-costume"];
+export const COSTUME_IDS = ["miku-costume", "fisher-outfit"];
 
 function isEditableWithMikuCostume(id) {
   return id === "miku-costume" || ROD_IDS.includes(id) || LURE_IDS.includes(id);
 }
-export const ROD_IDS = ROD_GEAR.map((item) => item.id);
+// (las del mercado, detras: las que se ganan pescando siguen primero)
+export const ROD_IDS = [...ROD_GEAR.map((item) => item.id), ...MARKET_TACKLE.filter((item) => item.slot === "rod").map((item) => item.id)];
 // El lucky lure (recompensa de quest) comparte slot con los señuelos pescados.
-export const LURE_IDS = ["lure", ...LURE_GEAR.map((item) => item.id)];
+export const LURE_IDS = ["lure", ...LURE_GEAR.map((item) => item.id), ...MARKET_TACKLE.filter((item) => item.slot === "lure").map((item) => item.id)];
 const CARRY_ITEM_IDS = ["cartridge", "wrench", "pixel-blaster"];
 
 // Vestuario completo: todo lo equipable, sin importar como se gana. Lo usa el
@@ -75,6 +83,7 @@ const ALL_COSMETICS = [
   ...FRIENDSHIP_GEAR,
   ...PET_GEAR,
   ...JOURNAL_GEAR,
+  ...VALLEY_GEAR,
   ...SECRET_GEAR,
   ...ROD_GEAR,
   ...LURE_GEAR,
@@ -129,6 +138,7 @@ export function slotForGear(id) {
   if (LURE_IDS.includes(id)) return "lure";
   if (["wrench", "pixel-blaster", "cartridge", "coffee", "headset"].includes(id)) return "utility";
   if (MOBILITY_IDS.includes(id)) return "mobility";
+  if (RAIN_GEAR_IDS.includes(id)) return "rain";
   return "utility";
 }
 
@@ -214,15 +224,18 @@ export function useBuddyLoadout({ friendship, adventure }) {
       item.unlockRares ? rareCatches >= item.unlockRares : totalCatches >= item.unlockCatches
     );
     // El peluco cae al completar el diario: todas las especies escaneadas.
-    const totalSpecies = adventure.fishJournal?.length || 0;
+    // (solo el diario original: el del valle trae su propio traje)
+    const totalSpecies = adventure.stationFishTotal || 0;
     const journalComplete = totalSpecies > 0 && (adventure.discoveredFishCount || 0) >= totalSpecies;
     const unlockedJournalGear = journalComplete ? JOURNAL_GEAR : [];
     const unlockedSecretGear = SECRET_GEAR.filter((item) => (adventure.bugsDefeated || 0) >= item.unlockBugs);
+    const unlockedValleyGear = adventure.valleyComplete ? VALLEY_GEAR : [];
 
     return [
       ...unlockedFriendshipGear.map((item) => ({ ...item, source: `friendship lv ${item.unlockLevel}` })),
       ...unlockedPetGear.map((item) => ({ ...item, source: `${item.unlockPets} pets` })),
       ...unlockedJournalGear.map((item) => ({ ...item, source: "journal 100%" })),
+      ...unlockedValleyGear.map((item) => ({ ...item, source: "valley journal 100%" })),
       ...unlockedSecretGear.map((item) => ({ ...item, source: `${item.unlockBugs} bugs deleted` })),
       ...unlockedTackle.map((item) => ({
         ...item,
@@ -234,7 +247,7 @@ export function useBuddyLoadout({ friendship, adventure }) {
       })),
       ...adventure.inventory
     ].map((item) => ({ ...item, slot: slotForGear(item.id) }));
-  }, [adminUnlock, adventure.bugsDefeated, adventure.discoveredFishCount, adventure.fishJournal, adventure.inventory, adventure.rareCatches, adventure.totalCatches, friendship.level, friendship.pets]);
+  }, [adminUnlock, adventure.bugsDefeated, adventure.valleyComplete, adventure.discoveredFishCount, adventure.fishJournal, adventure.inventory, adventure.rareCatches, adventure.totalCatches, friendship.level, friendship.pets]);
 
   const unlockedGearIds = useMemo(() => gearItems.map((item) => item.id), [gearItems]);
   const availableHeadwearIds = unlockedGearIds.filter((id) => HEADWEAR_IDS.includes(id));
@@ -360,9 +373,10 @@ export function useBuddyLoadout({ friendship, adventure }) {
       // (un secreto sin ganar: ni nombre, ni pista, ni barra de progreso)
       if (item.secret && !owned) return { id: item.id, label: "???", slot: slotForGear(item.id), unlocked: false, secretLocked: true, requirement: "A secret. Keep exploring.", progress: 0, goal: 1 };
       const quest = adventure.quests.find((entry) => entry.reward === item.id);
-      const goal = item.unlockLevel || item.unlockPets || item.unlockRares || item.unlockCatches || (JOURNAL_GEAR.some((gear) => gear.id === item.id) ? adventure.fishJournal.length : quest?.goal) || 1;
-      const progress = item.unlockLevel ? friendship.level : item.unlockPets ? friendship.pets : item.unlockRares ? adventure.rareCatches : item.unlockCatches ? adventure.totalCatches : JOURNAL_GEAR.some((gear) => gear.id === item.id) ? adventure.discoveredFishCount : quest?.progress || 0;
-      const requirement = item.unlockLevel ? `Reach friendship level ${goal}` : item.unlockPets ? `Pet Buddy ${goal} times` : item.unlockRares ? `Land ${goal} rare catches` : item.unlockCatches ? `Land ${goal} catches` : JOURNAL_GEAR.some((gear) => gear.id === item.id) ? "Complete the catch journal" : quest ? `Quest: ${quest.title}` : item.source;
+      const valley = VALLEY_GEAR.some((gear) => gear.id === item.id);
+      const goal = item.unlockLevel || item.unlockPets || item.unlockRares || item.unlockCatches || (JOURNAL_GEAR.some((gear) => gear.id === item.id) ? adventure.stationFishTotal : valley ? adventure.valleyFishTotal : quest?.goal) || 1;
+      const progress = item.unlockLevel ? friendship.level : item.unlockPets ? friendship.pets : item.unlockRares ? adventure.rareCatches : item.unlockCatches ? adventure.totalCatches : JOURNAL_GEAR.some((gear) => gear.id === item.id) ? adventure.discoveredFishCount : valley ? adventure.discoveredValleyCount : quest?.progress || 0;
+      const requirement = item.unlockLevel ? `Reach friendship level ${goal}` : item.unlockPets ? `Pet Buddy ${goal} times` : item.unlockRares ? `Land ${goal} rare catches` : item.unlockCatches ? `Land ${goal} catches` : JOURNAL_GEAR.some((gear) => gear.id === item.id) ? "Complete the catch journal" : valley ? "Complete the valley journal" : quest ? `Quest: ${quest.title}` : item.source;
       return { ...item, ...owned, slot: slotForGear(item.id), unlocked: !!owned, requirement, progress: Math.min(goal, progress || 0), goal };
     }),
     hiddenGear,
