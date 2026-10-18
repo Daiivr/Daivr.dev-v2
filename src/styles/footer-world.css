@@ -18,6 +18,13 @@
   .footer-mailbox { position: absolute; z-index: 4; left: var(--world-mail-left, 200px); bottom: calc(100% + 10px); width: 30px; height: 34px; padding: 0; border: 0; background: transparent; cursor: pointer; }
   .footer-mailbox:focus-visible { outline: 2px solid #ffd166; outline-offset: 2px; }
   .footer-world .footer-tent { position: absolute; bottom: 0; left: var(--world-tent-left, 0); width: 60px; height: 40px; pointer-events: none; }
+  /* El huerto (life/garden.js): ancla para no pescar delante y un boton
+     invisible que abre el cobertizo de semillas del mercado. */
+  .footer-world .footer-garden { position: absolute; bottom: 0; left: var(--world-garden-left, -80px); width: var(--world-garden-width, 0); height: 24px; pointer-events: none; }
+  .footer-garden-button { position: absolute; z-index: 4; left: var(--world-garden-left, -80px); bottom: calc(100% + 10px); width: var(--world-garden-width, 0); height: 30px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+  .footer-garden-button:focus-visible { outline: 2px solid #ffd166; outline-offset: 2px; }
+  /* (en el movil no hay huerto en el prado) */
+  @media (max-width: 767px) { .footer-garden-button { display: none; } }
 
   /* Pip agarrado o en paracaidas por encima de lo que alcanza el lienzo:
      se pinta aqui, en el DOM, con la tela detras de el. */

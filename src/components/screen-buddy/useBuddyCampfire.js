@@ -8,7 +8,9 @@ import { nightKey, SPRITE_WIDTH, WALK_SPEED_PX_S } from "./useBuddyCore";
   - un pez que ya ha pescado (del diario): se asa y da monedas, como mucho
     unas pocas por noche (`campfire-meal` en useBuddyAdventure);
   - si no, una nube que se tuesta... o se prende.
-  Luego se la come, se levanta y sigue la patrulla. `daivr-buddy-campfire`
+  Antes la saca de la mochila, la enseña en alto y la ensarta en la rama
+  ("prep"); al final la enseña, se la acerca y se la come a bocados ("eat"),
+  tira la rama al fuego ("eaten"), se levanta y sigue la patrulla. `daivr-buddy-campfire`
   (comando `campfire`) lo fuerza a cualquier hora.
 
   La lluvia apaga la hoguera (FooterWorld avisa con `daivr-campfire-state`)
@@ -20,10 +22,12 @@ import { nightKey, SPRITE_WIDTH, WALK_SPEED_PX_S } from "./useBuddyCore";
 const CAMPFIRE_COOLDOWN_MS = 200_000;
 const MEALS_PER_NIGHT = 3;
 const MEALS_KEY = "daivr.campfireMeals.v1";
-const SIT_MS = 900;
+const SIT_MS = 500;
+const PREP_MS = 1900;
 const TOAST_MS = 6500;
+const SHOW_MS = 1500;
 const EAT_MS = 2400;
-const STAND_MS = 1800;
+const STAND_MS = 1500;
 const BURNT_CHANCE = 0.3;
 // Donde queda la punta del palo respecto al borde izquierdo de Buddy: mirando
 // a la izquierda (palo a la izquierda) o, espejado, a la derecha.
@@ -144,16 +148,19 @@ function createCampfire(core, { setCampfire }) {
       const generation = moodGenRef.current;
       const stillHere = () => activeEventRef.current === "campfire" && moodGenRef.current === generation;
       setCampfire({ phase: "sit", ...snack });
+      // la saca de la mochila, la enseña y la ensarta
+      schedule(() => { if (stillHere()) setCampfire({ phase: "prep", ...snack }); }, SIT_MS);
+      const TOAST_AT = SIT_MS + PREP_MS;
 
       schedule(() => {
         if (!stillHere()) return;
         setCampfire({ phase: "toast", ...snack });
         say(snack.item === "fish" ? `roasting a ${snack.fish.name.toLowerCase()}...` : pickLine(LINES.marshmallow), 2400, { topic: snack.item === "fish" ? "campfireCook" : "marshmallow" });
-      }, SIT_MS);
+      }, TOAST_AT);
 
       schedule(() => {
         if (stillHere() && Math.random() < 0.6) say(pickLine(LINES.campfireWait), 2000, { topic: "end" });
-      }, SIT_MS + TOAST_MS * 0.5);
+      }, TOAST_AT + TOAST_MS * 0.5);
 
       schedule(() => {
         if (!stillHere()) return;
@@ -168,13 +175,18 @@ function createCampfire(core, { setCampfire }) {
         const burnt = Math.random() < BURNT_CHANCE;
         setCampfire({ phase: burnt ? "burnt" : "golden", ...snack });
         say(pickLine(burnt ? LINES.marshmallowBurnt : LINES.marshmallowGood), 2600, { topic: burnt ? "marshmallowBurnt" : "marshmallow" });
-      }, SIT_MS + TOAST_MS);
+      }, TOAST_AT + TOAST_MS);
 
-      // Se lo come.
+      // Se lo come a bocados y luego tira la rama al fuego.
+      schedule(() => {
+        if (!stillHere()) return;
+        setCampfire((current) => current ? { ...current, phase: "eat" } : current);
+      }, TOAST_AT + TOAST_MS + SHOW_MS);
       schedule(() => {
         if (!stillHere()) return;
         setCampfire((current) => current ? { ...current, phase: "eaten" } : current);
-      }, SIT_MS + TOAST_MS + EAT_MS);
+        spawnParticles("heart", 2);
+      }, TOAST_AT + TOAST_MS + SHOW_MS + EAT_MS);
 
       schedule(() => {
         if (!stillHere()) return;
@@ -182,7 +194,7 @@ function createCampfire(core, { setCampfire }) {
         updateMood("idle");
         endBuddyEvent("campfire");
         if (Math.random() < 0.5) say(pickLine(LINES.campfireLeave), 2200, { priority: "ambient", key: "ambient", topic: "end" });
-      }, SIT_MS + TOAST_MS + EAT_MS + STAND_MS);
+      }, TOAST_AT + TOAST_MS + SHOW_MS + EAT_MS + STAND_MS);
     }, walkMs + 80);
     return true;
   }

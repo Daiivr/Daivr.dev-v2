@@ -29,7 +29,7 @@ const EMPTY_ADVENTURE = Object.freeze({
   starWishes: 0,
   forageFound: 0,
   completed: [],
-  market: { opened: 0, rewards: [], purchases: {} },
+  market: { opened: 0, rewards: [], purchases: {}, seeds: [] },
     inventory: []
 });
 

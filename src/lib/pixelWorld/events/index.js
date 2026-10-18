@@ -7,6 +7,10 @@ import { outageDrawFront, outageDrawGround, outageDrawOverlay, outageLight, outa
 import { chuteDrawBehind, chutePose, chuteTop, chuteUpdate } from "./chute.js";
 import { deepDrawBackdrop, deepDrawFront, deepDrawGround, deepDrawOverlay, deepLight, deepPose, deepTop, deepUpdate } from "./deep.js";
 import { lampsDrawFront, lampsDrawOverlay, lampsPose, lampsUpdate } from "./lamplighter.js";
+import { gardenDrawFront, gardenDrawOverlay, gardenPose, gardenTop, gardenUpdate } from "./garden.js";
+import { tentPose, tentUpdate } from "./tent.js";
+import { flashlightDrawOverlay } from "./flashlight.js";
+import { jelliesDrawGround, jelliesDrawOverlay, jelliesLight, jelliesPose, jelliesUpdate } from "./jellies.js";
 
 // Los eventos de Buddy que el lienzo del footer dibuja. Cada uno puede:
 // update (avanzar su estado), pose (afinar la pose de Pip), ground (en el
@@ -19,6 +23,8 @@ import { lampsDrawFront, lampsDrawOverlay, lampsPose, lampsUpdate } from "./lamp
 // para dibujarse encima del agujero.
 export const EVENTS = [
   { name: "deep-pose", pose: deepPose },
+  // (entrar y salir de la tienda manda sobre cualquier otra pose)
+  { name: "tent", update: tentUpdate, pose: tentPose },
   { name: "fishing", update: fishingUpdate, pose: fishingPose, ground: fishingDrawGround, front: fishingDrawFront, overlay: fishingDrawOverlay, top: fishingTop },
   { name: "deep", update: deepUpdate, ground: deepDrawGround, backdrop: deepDrawBackdrop, front: deepDrawFront, overlay: deepDrawOverlay, light: deepLight, top: deepTop },
   { name: "rain", update: rainUpdate, behind: rainDrawBehind, front: rainDrawFront, top: rainTop },
@@ -27,5 +33,8 @@ export const EVENTS = [
   { name: "campfire", update: campfireUpdate, pose: campfirePose, ground: campfireDrawGround, front: campfireDrawFront, overlay: campfireDrawOverlay },
   { name: "chute", update: chuteUpdate, pose: chutePose, behind: chuteDrawBehind, top: chuteTop },
   { name: "outage", update: outageUpdate, pose: outagePose, light: outageLight, ground: outageDrawGround, front: outageDrawFront, overlay: outageDrawOverlay },
-  { name: "lamps", update: lampsUpdate, pose: lampsPose, front: lampsDrawFront, overlay: lampsDrawOverlay }
+  { name: "lamps", update: lampsUpdate, pose: lampsPose, front: lampsDrawFront, overlay: lampsDrawOverlay },
+  { name: "garden", update: gardenUpdate, pose: gardenPose, front: gardenDrawFront, overlay: gardenDrawOverlay, top: gardenTop },
+  { name: "flashlight", overlay: flashlightDrawOverlay },
+  { name: "jellies", update: jelliesUpdate, pose: jelliesPose, ground: jelliesDrawGround, overlay: jelliesDrawOverlay, light: jelliesLight }
 ];

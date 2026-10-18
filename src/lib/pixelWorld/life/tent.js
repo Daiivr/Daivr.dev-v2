@@ -1,12 +1,15 @@
 import { halo, lazy, outlinedSprite, px, rect } from "../core.js";
+import { behindTent } from "../events/tent.js";
 
 // La tienda de Pip: lona naranja con la puerta abierta y las solapas
 // recogidas, un remiendo azul, el ribete rojo abajo, cuerdas y estacas y un
-// banderin que ondea en el palo. De noche Pip duerme dentro (ScreenBuddy lo
-// lleva hasta la puerta): la entrada se ilumina calida, asoman sus botas y
-// salen las Zzz por arriba.
+// banderin que ondea en el palo. Pip duerme dentro (ScreenBuddy lo lleva
+// hasta la puerta, tambien antes del modo attract): al entrar y salir la
+// puerta se abre de par en par y las solapas aletean (events/tent.js anima a
+// Pip); dentro, la entrada se ilumina calida, asoman sus botas y salen las
+// Zzz por arriba.
 const TW = 28, TH = 18;
-function tentRows() {
+function tentRows(doorW = 5.5) {
   const rows = [];
   for (let y = 0; y < TH; y++) {
     let r = "";
@@ -14,7 +17,7 @@ function tentRows() {
     for (let x = 0; x < TW; x++) {
       const dx = x + 0.5 - TW / 2;
       if (Math.abs(dx) > hw) { r += "."; continue; }
-      const door = y >= 6 ? (y - 6) / (TH - 6) * 5.5 : -1;
+      const door = y >= 6 ? (y - 6) / (TH - 6) * doorW : -1;
       let c = dx < 0 ? "c" : "d";
       if (Math.abs(dx) < door) c = "k";
       else if (Math.abs(dx) < door + 1.2 && y >= 6) c = "f";
@@ -29,17 +32,42 @@ function tentRows() {
   return rows;
 }
 const PAL = { c: "#d8a25a", C: "#f0c27a", d: "#a8743e", r: "#7a4a22", k: "#2a1a10", f: "#e8b878", T: "#a83a2a", p: "#5a8ac8", s: "#f4e8d0" };
-const SPRITES = lazy(() => ({ tent: outlinedSprite(tentRows(), PAL, "#3a2210"), inside: outlinedSprite(tentRows().map((r) => r.replace(/[^k]/g, ".")), { k: "#ffcf7a" }, null) }));
+// (la lona sin la entrada: va por delante de Pip mientras cruza la puerta)
+const lona = (door) => outlinedSprite(tentRows(door).map((r) => r.replace(/k/g, ".")), PAL, "#3a2210");
+const SPRITES = lazy(() => ({
+  tent: outlinedSprite(tentRows(), PAL, "#3a2210"),
+  open: outlinedSprite(tentRows(7.8), PAL, "#3a2210"),
+  ajar: outlinedSprite(tentRows(6.6), PAL, "#3a2210"),
+  front: { tent: lona(5.5), open: lona(7.8), ajar: lona(6.6) },
+  inside: outlinedSprite(tentRows().map((r) => r.replace(/[^k]/g, ".")), { k: "#ffcf7a" }, null)
+}));
 
 export function createTent() {
   let x = 0, base = 71, occupied = false, k = 0, nextZ = 0;
+  // la puerta: "enter"/"exit" de quien entra o sale, y desde cuando
+  const door = { phase: "", since: 0 };
   const left = () => x - (TW + 2) / 2;
   const top = () => base - TH - 1;
 
+  // (al entrar, abierta y al final aleteando; al salir, abierta y luego entornada)
+  function doorState(t) {
+    const e = t - door.since;
+    if (door.phase === "enter") return e < 0.9 ? "open" : e < 1.3 ? (Math.floor(e * 14) % 2 ? "ajar" : "tent") : "tent";
+    if (door.phase === "exit") return e < 0.65 ? "open" : e < 0.95 ? "ajar" : "tent";
+    return "tent";
+  }
+
   return {
     setup(ctx) { x = ctx.L.tentX; },
+    // Por delante de Pip mientras cruza la puerta: la lona le tapa, la entrada no.
+    front(g, ctx) {
+      if (!door.phase || !behindTent(door.phase, ctx.t - door.since)) return;
+      g.drawImage(SPRITES().front[doorState(ctx.t)], Math.round(left()), top());
+    },
     update(ctx) {
-      occupied = ctx.actors.some((a) => !a.ghost && a.tent && a.mood === "sleep");
+      occupied = ctx.actors.some((a) => !a.ghost && a.tent === "in" && a.mood === "sleep");
+      const moving = ctx.actors.find((a) => !a.ghost && (a.tent === "enter" || a.tent === "exit"))?.tent || "";
+      if (moving !== door.phase) { door.phase = moving; door.since = ctx.t; }
       k = Math.max(0, Math.min(1, k + (occupied ? 1 : -1) * ctx.dt / 1.2));
       if (occupied && ctx.t > nextZ) { nextZ = ctx.t + 1.4; ctx.spawn({ k: "z", x: x + 2, y: top() - 2, vx: -2.5, vy: -4, life: 2.6, max: 2.6, wob: Math.random() * 6 }); }
     },
@@ -51,7 +79,7 @@ export function createTent() {
         for (let s = 0; s <= 8; s++) px(g, Math.round(sx + (ex - sx) * s / 8), Math.round(sy + (ey - sy) * s / 8), "#d8c8a0");
         rect(g, ex, ey - 1, 1, 2, "#5c3a1e");
       }
-      g.drawImage(S.tent, lx, ty);
+      g.drawImage(S[doorState(ctx.t)], lx, ty);
       const cap = ctx.snowCap?.(S.tent);
       if (cap) g.drawImage(cap, lx, ty);
       // palo con banderin

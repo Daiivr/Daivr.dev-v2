@@ -97,6 +97,6 @@ export function BuddyMarket({ buddy, onNavigate }) {
     <div className="market-stall-base" aria-hidden="true"><span>SMALL WONDERS · FAIR TRADES</span></div>
     </section>
     {[...MARKET_SPECIALS, ...hostStock].map((item) => <MarketSpecialOrder key={item.id} item={item} wallet={wallet} open={open} onBuy={(id) => setMessage(buddy.adventure.buyItem(id))} />)}
-    <div className="market-footer"><span>Already found your favorite?</span><button type="button" onClick={() => onNavigate("inventory")}>Dress Buddy ↗</button><button type="button" onClick={() => onNavigate("room")}>Decorate the room ↗</button></div>
+    <div className="market-footer"><span>Already found your favorite?</span><button type="button" onClick={() => onNavigate("inventory")}>Dress Buddy ↗</button><button type="button" onClick={() => onNavigate("room")}>Decorate the room ↗</button><button type="button" onClick={() => onNavigate("garden")}>Garden shed ↗</button></div>
   </div>;
 }

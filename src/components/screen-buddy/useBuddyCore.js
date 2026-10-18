@@ -108,6 +108,8 @@ function createBuddyCore({ setMood, setFx, setBubble, setX, setY, setFacing, set
     weatherRef: ref(null),
     // Fase del cielo del footer (night/dawn/day/dusk) y peces ya pescados ({id, name}).
     skyPhaseRef: ref("day"),
+    // (despejado, nublado, lluvia...: el cielo de FooterSky)
+    skyCoverRef: ref("fair"),
     caughtFishRef: ref([]),
     // Luna llena esta noche y nombre de la lluvia de estrellas, si la hay.
     fullMoonRef: ref(false),

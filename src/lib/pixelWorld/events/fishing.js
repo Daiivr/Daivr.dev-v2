@@ -20,8 +20,9 @@ const RODS = { "rod-driftwood": ["#9a6338", "#45d8ff"], "rod-bamboo": ["#3fff97"
 const FIGHT_BARS = { common: { zone: 12, speed: 0.7 }, uncommon: { zone: 10, speed: 0.9 }, rare: { zone: 8, speed: 1.2 }, legendary: { zone: 6, speed: 1.5 }, mythic: { zone: 5, speed: 1.8 } };
 // Carga: primero se prepara, luego la barra de fuerza se llena.
 const READY_S = 0.4, CHARGE_S = 0.9;
-// Captura: en alto hasta STASH_S, vuela a la mochila y entra en STORED_S.
-const SHOW_S = 0.95, STASH_S = 1.9, STORED_S = 2.45;
+// Captura: en alto hasta STASH_S (lo que dura el anuncio en el bocadillo),
+// vuela a la mochila y entra en STORED_S.
+const SHOW_S = 0.95, STASH_S = 3.5, STORED_S = 4.05;
 const catchInfo = (id) => FISH_CATALOG.find((item) => item.id === id) || null;
 
 // La vida de la poza: un pato que la cruza remando de vez en cuando.

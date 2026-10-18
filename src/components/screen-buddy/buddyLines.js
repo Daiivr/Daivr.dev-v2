@@ -88,6 +88,16 @@ export const LINES = {
   // Forraje del dia en el borde del prado ({item} = lo que ha encontrado).
   forage: ["picked a {item}! +1 coin.", "fresh {item}. into the pack. +1 coin.", "ooh, a {item}. +1 coin."],
   forageSpot: ["something's growing over there.", "ooh, forage spotted.", "wild snack detected."],
+  // Medusas de luna (noche de verano): al verlas, mirandolas y al irse.
+  jelliesSpot: ["wait. the pond is glowing.", "something's rising out of the water...", "do you see that light?"],
+  jelliesWatch: ["moonlight jellies. they only come on summer nights.", "they're so pretty...", "shh. don't scare them.", "quick, make a wish on one.", "they're going to visit the stars."],
+  jelliesBye: ["bye, little jellies. see you next summer.", "safe travels up there.", "best night of the summer."],
+  // El huerto: regar y cosechar a la cesta ({crop}; se vende los viernes).
+  gardenWater: ["garden's thirsty. watering can, go.", "time to water the garden.", "a little water for the sprouts."],
+  gardenWatered: ["all watered. grow, little guys.", "there. hydrated and happy.", "garden.water() complete."],
+  gardenRain: ["the rain is watering the garden for me.", "free watering from the sky.", "rain day: garden's covered."],
+  gardenRipe: ["ooh, something's ripe!", "harvest time!", "the garden says: ready."],
+  gardenHarvest: ["a fresh {crop}! into the basket.", "look at this {crop}! saving it for friday.", "homegrown {crop}. friday market, here we come."],
   // La lluvia apaga la hoguera y Buddy la vuelve a encender cuando escampa.
   campfireOut: ["noo, the rain got the fire.", "fire.exe has stopped responding.", "hiss... there goes the campfire.", "rain 1, campfire 0."],
   campfireRelight: ["rain's gone. fire time again.", "let me get that fire back.", "one match should do it.", "relighting the campfire..."],

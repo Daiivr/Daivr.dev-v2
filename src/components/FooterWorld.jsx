@@ -1,11 +1,13 @@
 import { useEffect, useRef } from "react";
 import { fishArc, fishContact, fishRebound, reboundPoint } from "../../shared/footer-fish-motion.mjs";
+import { growth } from "../../shared/buddy-market.mjs";
 import { ART } from "../lib/pixelWorld/core";
 import { H, WATER_Y, WORLD_TOP, layoutCssVars } from "../lib/pixelWorld/layout";
 import { skyScene } from "../lib/pixelWorld/skyBus";
 import { createFooterWorld } from "../lib/pixelWorld/world";
-import { actorPosition, dropActor, listActors, publishActor } from "../lib/pixelWorld/worldBus";
+import { actorPosition, dropActor, listActors, publishActor, publishLayout } from "../lib/pixelWorld/worldBus";
 import { forageFor } from "../lib/pixelWorld/life/forage";
+import { readWatered, saveWatered } from "../lib/pixelWorld/life/garden";
 import { dayNumber } from "../lib/pixelWorld/life/util";
 
 // El mundo del footer en pixel art (src/lib/pixelWorld): un solo lienzo con
@@ -48,14 +50,16 @@ function savePicked(day, picked) {
   }
 }
 
-export function FooterWorld({ sky, season, marketOpen, marketHover, mailFlag }) {
+export function FooterWorld({ sky, season, marketOpen, marketHover, mailFlag, garden }) {
   const rootRef = useRef(null);
   const canvasRef = useRef(null);
   const propsRef = useRef(null);
   const repaintRef = useRef(() => {});
-  propsRef.current = { sky, season: season || "", marketOpen, marketHover, mailFlag };
+  const gardenDirtyRef = useRef(true);
+  propsRef.current = { sky, season: season || "", marketOpen, marketHover, mailFlag, garden: garden || [] };
 
   useEffect(() => { repaintRef.current(); }, [sky, season, marketOpen, marketHover, mailFlag]);
+  useEffect(() => { gardenDirtyRef.current = true; repaintRef.current(); }, [garden]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -77,10 +81,13 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, mailFlag }) 
     function rebuild() {
       if (!width) return;
       const layout = world.build(width);
+      publishLayout(layout);
       canvas.style.width = `${world.width * ART}px`;
       canvas.style.height = `${WORLD_PX}px`;
       Object.entries(layoutCssVars(layout)).forEach(([key, value]) => zone?.style.setProperty(key, value));
+      root.querySelector(".footer-garden")?.toggleAttribute("data-dry", Boolean(layout.garden));
       refreshForage();
+      gardenDirtyRef.current = true;
     }
     // El forraje de hoy (lo que queda por recoger) para el mundo y para Buddy.
     let forageDay = -1, picked = new Set();
@@ -117,6 +124,41 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, mailFlag }) 
       lampsKey = key;
       window.dispatchEvent(new CustomEvent("daivr-lamps-state", { detail: { want: world.lampsWant, lamps: pending.map((lamp) => ({ i: lamp.i, x: lamp.x * ART })) } }));
     }
+    // El huerto: lo plantado (con lo que lleva crecido) y lo regado hoy, para
+    // el mundo y para Buddy (`daivr-garden-state`), que va a regar lo que tiene
+    // sed y a cosechar lo maduro. La lluvia riega todas las parcelas.
+    let gardenDay = -1, watered = new Set(), gardenNext = 0, gardenKey = "", planted = [];
+    function refreshGarden(now = Date.now()) {
+      const day = dayNumber();
+      if (day !== gardenDay) { gardenDay = day; watered = readWatered(day); }
+      planted = propsRef.current.garden.map((seed, plot) => (seed ? { plot, seedId: seed.id, crop: seed.crop, growth: growth(seed, now) } : null)).filter(Boolean);
+      if (world.raining() && planted.some((entry) => !watered.has(entry.plot))) {
+        planted.forEach((entry) => watered.add(entry.plot));
+        saveWatered(gardenDay, watered);
+      }
+      world.setGarden(planted, [...watered]);
+    }
+    function announceGarden(now) {
+      if (gardenDirtyRef.current || now > gardenNext) { gardenDirtyRef.current = false; gardenNext = now + 20_000; refreshGarden(); }
+      const plots = world.layout?.garden?.plots;
+      const list = plots ? planted.map((entry) => ({ plot: entry.plot, seedId: entry.seedId, crop: entry.crop, x: plots[entry.plot] * ART, ripe: entry.growth >= 1, thirsty: entry.growth < 1 && !watered.has(entry.plot) })) : [];
+      const key = list.map((entry) => `${entry.plot}:${entry.seedId}:${entry.ripe}:${entry.thirsty}`).join(",") + "|" + world.raining();
+      if (key === gardenKey) return;
+      gardenKey = key;
+      window.dispatchEvent(new CustomEvent("daivr-garden-state", { detail: { plots: list, raining: world.raining() } }));
+    }
+    const onGardenWater = (event) => {
+      const plot = event.detail?.plot;
+      if (!Number.isInteger(plot) || watered.has(plot)) return;
+      watered.add(plot);
+      saveWatered(gardenDay, watered);
+      world.setGarden(planted, [...watered]);
+    };
+    const onGardenPick = (event) => {
+      const entry = planted.find((item) => item.plot === event.detail?.plot);
+      if (!entry || entry.growth < 1 || !world.pullPlot(entry.plot)) return;
+      window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", { detail: { type: "harvest", seedId: entry.seedId } }));
+    };
     const onLampSwitch = (event) => { const { i, on } = event.detail || {}; if (Number.isInteger(i)) world.switchLamp(i, Boolean(on)); };
     // El cursor sobre el footer: los pajaritos posados se asustan.
     const onPointer = (event) => {
@@ -186,6 +228,9 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, mailFlag }) 
       const startX = forceCollision && body
         ? Math.max(startMin, Math.min(startMax, (body.left + body.right) / 2 - drift * 0.55))
         : randomBetween(Math.min(startMin, startMax), Math.max(startMin, startMax));
+      // (ni delante del huerto: ese salto se deja para otra vez)
+      const dryGarden = world.layout?.dryGarden;
+      if (dryGarden && [startX, startX + drift].some((x) => x / ART > dryGarden[0] - 8 && x / ART < dryGarden[1] + 8)) return;
       const item = {
         startX, drift, waterY: WATER_PX, height: randomBetween(61, 85),
         species: FISH_SPECIES[Math.floor(Math.random() * FISH_SPECIES.length)],
@@ -301,6 +346,7 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, mailFlag }) 
       announceFire();
       announceLamps();
       announceForage(now);
+      announceGarden(now);
       if (import.meta.env.DEV) {
         const spent = performance.now() - startedAt;
         cost.frames += 1; cost.total += spent; cost.max = Math.max(cost.max, spent);
@@ -320,6 +366,7 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, mailFlag }) 
     repaintRef.current = () => {
       if (frame || !width) return;
       sync();
+      announceGarden(performance.now());
       trackActors(performance.now());
       world.update(0);
       world.draw();
@@ -362,6 +409,8 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, mailFlag }) 
     window.addEventListener("daivr-campfire-relight", onRelight);
     window.addEventListener("daivr-lamp-switch", onLampSwitch);
     window.addEventListener("daivr-forage-pick", onForagePick);
+    window.addEventListener("daivr-garden-water", onGardenWater);
+    window.addEventListener("daivr-garden-pick", onGardenPick);
     window.addEventListener("pointermove", onPointer, { passive: true });
     document.addEventListener("visibilitychange", onVisibility);
     if (!reduceMotion) {
@@ -381,6 +430,8 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, mailFlag }) 
         // la vida del valle (life/): pajaros que bajan, nieve, farolas...
         life: world.life,
         forageReset: () => { picked = new Set(); savePicked(forageDay, picked); refreshForage(); },
+        // (pruebas) olvidar lo regado hoy
+        gardenDry: () => { watered = new Set(); saveWatered(gardenDay, watered); gardenDirtyRef.current = true; },
         // actores de prueba (eventos que solo se lanzan con sesion de admin)
         bus: { publishActor, dropActor }
       };
@@ -397,6 +448,8 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, mailFlag }) 
       window.removeEventListener("daivr-campfire-relight", onRelight);
       window.removeEventListener("daivr-lamp-switch", onLampSwitch);
       window.removeEventListener("daivr-forage-pick", onForagePick);
+      window.removeEventListener("daivr-garden-water", onGardenWater);
+      window.removeEventListener("daivr-garden-pick", onGardenPick);
       window.removeEventListener("pointermove", onPointer);
       document.removeEventListener("visibilitychange", onVisibility);
       timers.forEach((timer) => window.clearTimeout(timer));
@@ -414,6 +467,8 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, mailFlag }) 
           su tienda (para dormir dentro) por estas clases. */}
       <span className="footer-campfire" />
       <span className="footer-tent" />
+      {/* El huerto (solo en escritorio): Buddy no pesca delante. */}
+      <span className="footer-garden" />
     </div>
   );
 }
