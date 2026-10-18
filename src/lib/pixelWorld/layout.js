@@ -41,8 +41,11 @@ export function layoutFor(W, { cssWidth = W * 2 } = {}) {
     { k: "shrub", x: X(26), seed: 41 }, { k: "berry", x: X(37) + 12, seed: 42, phone: false }, { k: "bush", x: X(58), seed: 43 },
     { k: "shrub", x: X(78) + 8, seed: 44, phone: false }, { k: "berry", x: X(95), seed: 45 }
   ].filter((bush) => !phone || bush.phone !== false);
+  // El buzon, a la derecha de la hoguera; la tienda de Pip, hacia la derecha.
+  const mailX = fireX + 22;
+  const tentX = phone ? W - 24 : X(85);
   return {
-    W, X, phone, standX, fireX, lamps, trees, bushes,
+    W, X, phone, standX, fireX, lamps, trees, bushes, mailX, tentX,
     stones: [X(8), X(39), X(74)],
     // Donde no crece hierba ni flores: el puesto y la hoguera.
     clear: [[standX - 6, standX + STAND_W + 4], [fireX - 16, fireX + 16]],
@@ -59,6 +62,8 @@ export function layoutCssVars(L) {
     "--world-stand-left": `${L.standX * 2}px`,
     "--world-stand-width": `${STAND_W * 2}px`,
     "--world-stand-height": `${STAND_H * 2}px`,
-    "--world-fire-left": `${(L.fireX - 12) * 2}px`
+    "--world-fire-left": `${(L.fireX - 12) * 2}px`,
+    "--world-mail-left": `${(L.mailX - 7) * 2}px`,
+    "--world-tent-left": `${(L.tentX - 15) * 2}px`
   };
 }

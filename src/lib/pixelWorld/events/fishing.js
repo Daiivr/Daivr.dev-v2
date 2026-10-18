@@ -24,6 +24,9 @@ const READY_S = 0.4, CHARGE_S = 0.9;
 const SHOW_S = 0.95, STASH_S = 1.9, STORED_S = 2.45;
 const catchInfo = (id) => FISH_CATALOG.find((item) => item.id === id) || null;
 
+// La vida de la poza: un pato que la cruza remando de vez en cuando.
+const DUCK = lazy(() => outlinedSprite(["...gg.", "..gGgo", "bbbwb.", "bBbbb.", ".bbb.."], { g: "#2a7a4a", G: "#4aa86a", o: "#f0a030", b: "#8a6a4a", B: "#b08a62", w: "#f4f0e0" }, "#2a1e14"));
+
 const bobbers = lazy(() => ({
   "": outlinedSprite(["rr", "ww"], { r: "#e84a4a", w: "#ffffff" }, "#3a1a1a"),
   lure: outlinedSprite(["yy", "ww"], { y: "#ffd166", w: "#f4fff8" }, "#4a3a10"),
@@ -95,6 +98,12 @@ export function fishingUpdate(actor, a, env) {
     const cx = actor.x + 14 * actor.dir;
     for (let i = 0; i < 12; i++) env.spawn({ k: "coin", x: cx, y: 70, vx: (Math.random() - 0.5) * 50, vy: -40 - Math.random() * 30, g: 120, life: 1.1 + Math.random() * 0.4 });
   }
+  // Un pato cruza la poza remando (no mientras se pelea con un pez).
+  if (H && F.holeOpen >= 1 && F.phase !== "fight" && F.phase !== "monster") {
+    F.nextDuck ??= t + 6 + Math.random() * 8;
+    if (!F.duck && t > F.nextDuck) F.duck = { t0: t, dir: Math.random() < 0.5 ? -1 : 1, dur: 6 + Math.random() * 2 };
+  }
+  if (F.duck && (t - F.duck.t0 > F.duck.dur || !H || F.holeOpen < 1)) { F.duck = null; F.nextDuck = t + 12 + Math.random() * 10; }
   for (const rp of F.ripples) rp.t += dt;
   F.ripples = F.ripples.filter((rp) => rp.t < 0.9);
   if (!F.phase && !F.hole) a.fishing = null;
@@ -144,11 +153,33 @@ export function fishingDrawGround(g, actor, a, env) {
   rect(g, hx - rx + 2, HOLE_Y - ry, Math.max(1, rx * 2 - 3), 1, "#0b2a33");
   if (o < 0.6) return;
   for (let i = 0; i < 3; i++) { const sx = hx - rx + 3 + ((Math.floor(t * 6) + i * 9) % Math.max(1, rx * 2 - 6)); rect(g, sx, HOLE_Y + (i % 2), 2, 1, "#7fd3e0"); }
+  // Nenufares: dos hojas flotando (una con su flor rosa).
+  if (rx >= 10) {
+    for (const [dx, w, flower] of [[-rx + 3, 4, true], [rx - 6, 3, false]]) {
+      const lx = hx + dx, ly = HOLE_Y + (flower ? 0 : 1) + (Math.sin(t * 0.8 + dx) > 0.85 ? 1 : 0);
+      rect(g, lx, ly, w, 1, "#3a8a3a"); px(g, lx, ly, "#5ac85a"); px(g, lx + w - 2, ly, "#1f5a2a");
+      if (flower) { px(g, lx + 1, ly - 1, "#f08ab8"); px(g, lx + 2, ly - 1, "#ffd0e8"); px(g, lx + 1, ly - 2, "#f8b0d0"); }
+    }
+  }
   if (F.phase === "wait" || (F.phase === "bite" && t - F.since < 0.45)) {
     const sx = Math.round(F.shadow || hx), dir = (F.shadow || hx) < hx ? 1 : -1;
     rect(g, sx - 2, HOLE_Y + 1, 5, 1, "#0d3440"); px(g, sx - 3 * dir, HOLE_Y + 1 + (Math.sin(t * 9) > 0 ? 0 : 1), "#0d3440");
   } else if (F.phase !== "fight") {
-    for (let i = 0; i < 2; i++) { const fx = hx + Math.round(Math.sin(t * 0.9 + i * 2.4) * (rx - 4)); rect(g, fx - 1, HOLE_Y + 1 - i, 3, 1, "#0f3a45"); }
+    // sombras de peces: cuerpo y cola, hacia donde nadan
+    for (let i = 0; i < 2; i++) {
+      const u = t * 0.9 + i * 2.4, fx = hx + Math.round(Math.sin(u) * (rx - 4)), dir = Math.cos(u) >= 0 ? 1 : -1, fy = HOLE_Y + 1 - i;
+      rect(g, fx - 1, fy, 3, 1, "#0f3a45"); px(g, fx - 2 * dir, fy + (Math.sin(t * 7 + i) > 0 ? 0 : -1), "#0f3a45");
+    }
+  }
+  // El pato, con su estela.
+  if (F.duck && rx >= 12) {
+    const p = (t - F.duck.t0) / F.duck.dur, d = F.duck.dir, x = Math.round(hx + d * (-rx + 4 + (2 * rx - 8) * p)), img = DUCK();
+    g.globalAlpha = Math.min(1, p * 6, (1 - p) * 6);
+    for (let k = 1; k <= 2; k++) { const wx = x - d * (3 + k * 2), on = Math.floor(t * 4 + k) % 2; px(g, wx, HOLE_Y + (on ? 0 : 1) - k + 1, "#bff2f8"); px(g, wx, HOLE_Y + k, "#9fdde8"); }
+    if (d < 0) { g.save(); g.translate(x * 2, 0); g.scale(-1, 1); }
+    g.drawImage(img, x - 3, HOLE_Y - 5 + (Math.floor(t * 2) % 2));
+    if (d < 0) g.restore();
+    g.globalAlpha = 1;
   }
   for (const rp of F.ripples) {
     if (rp.t < 0) continue;

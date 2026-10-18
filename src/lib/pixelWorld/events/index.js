@@ -6,6 +6,7 @@ import { campfireDrawFront, campfireDrawGround, campfireDrawOverlay, campfirePos
 import { outageDrawFront, outageDrawGround, outageDrawOverlay, outageLight, outagePose, outageUpdate } from "./outage.js";
 import { chuteDrawBehind, chutePose, chuteTop, chuteUpdate } from "./chute.js";
 import { deepDrawBackdrop, deepDrawFront, deepDrawGround, deepDrawOverlay, deepLight, deepPose, deepTop, deepUpdate } from "./deep.js";
+import { lampsDrawFront, lampsDrawOverlay, lampsPose, lampsUpdate } from "./lamplighter.js";
 
 // Los eventos de Buddy que el lienzo del footer dibuja. Cada uno puede:
 // update (avanzar su estado), pose (afinar la pose de Pip), ground (en el
@@ -25,5 +26,6 @@ export const EVENTS = [
   { name: "hunt", update: huntUpdate, pose: huntPose, behind: huntDrawBehind, front: huntDrawFront, overlay: huntDrawOverlay, top: huntTop },
   { name: "campfire", update: campfireUpdate, pose: campfirePose, ground: campfireDrawGround, front: campfireDrawFront, overlay: campfireDrawOverlay },
   { name: "chute", update: chuteUpdate, pose: chutePose, behind: chuteDrawBehind, top: chuteTop },
-  { name: "outage", update: outageUpdate, pose: outagePose, light: outageLight, ground: outageDrawGround, front: outageDrawFront, overlay: outageDrawOverlay }
+  { name: "outage", update: outageUpdate, pose: outagePose, light: outageLight, ground: outageDrawGround, front: outageDrawFront, overlay: outageDrawOverlay },
+  { name: "lamps", update: lampsUpdate, pose: lampsPose, front: lampsDrawFront, overlay: lampsDrawOverlay }
 ];

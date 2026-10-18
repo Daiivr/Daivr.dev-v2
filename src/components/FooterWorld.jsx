@@ -5,6 +5,8 @@ import { H, WATER_Y, WORLD_TOP, layoutCssVars } from "../lib/pixelWorld/layout";
 import { skyScene } from "../lib/pixelWorld/skyBus";
 import { createFooterWorld } from "../lib/pixelWorld/world";
 import { actorPosition, dropActor, listActors, publishActor } from "../lib/pixelWorld/worldBus";
+import { forageFor } from "../lib/pixelWorld/life/forage";
+import { dayNumber } from "../lib/pixelWorld/life/util";
 
 // El mundo del footer en pixel art (src/lib/pixelWorld): un solo lienzo con
 // el cielo, el bosque, el sendero, las farolas, la hoguera y el puesto del
@@ -28,14 +30,32 @@ const SPOT_LEAD_MS = 320;
 
 const randomBetween = (min, max) => min + Math.random() * (max - min);
 
-export function FooterWorld({ sky, season, marketOpen, marketHover }) {
+// Lo que Pip ya ha recogido hoy del forraje (se vacia al cambiar de dia).
+const FORAGE_KEY = "daivr.forage.v1";
+function readPicked(day) {
+  try {
+    const saved = JSON.parse(window.localStorage.getItem(FORAGE_KEY) || "null");
+    return new Set(saved?.day === day && Array.isArray(saved.picked) ? saved.picked : []);
+  } catch {
+    return new Set();
+  }
+}
+function savePicked(day, picked) {
+  try {
+    window.localStorage.setItem(FORAGE_KEY, JSON.stringify({ day, picked: [...picked] }));
+  } catch {
+    // Sin almacenamiento: lo recogido vale para esta visita.
+  }
+}
+
+export function FooterWorld({ sky, season, marketOpen, marketHover, mailFlag }) {
   const rootRef = useRef(null);
   const canvasRef = useRef(null);
   const propsRef = useRef(null);
   const repaintRef = useRef(() => {});
-  propsRef.current = { sky, season: season || "", marketOpen, marketHover };
+  propsRef.current = { sky, season: season || "", marketOpen, marketHover, mailFlag };
 
-  useEffect(() => { repaintRef.current(); }, [sky, season, marketOpen, marketHover]);
+  useEffect(() => { repaintRef.current(); }, [sky, season, marketOpen, marketHover, mailFlag]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -60,7 +80,50 @@ export function FooterWorld({ sky, season, marketOpen, marketHover }) {
       canvas.style.width = `${world.width * ART}px`;
       canvas.style.height = `${WORLD_PX}px`;
       Object.entries(layoutCssVars(layout)).forEach(([key, value]) => zone?.style.setProperty(key, value));
+      refreshForage();
     }
+    // El forraje de hoy (lo que queda por recoger) para el mundo y para Buddy.
+    let forageDay = -1, picked = new Set();
+    function refreshForage() {
+      if (!world.layout) return;
+      forageDay = dayNumber();
+      picked = readPicked(forageDay);
+      world.setForage(forageFor(world.layout, world.width, propsRef.current.season, forageDay).filter((item) => !picked.has(item.slot)));
+      forageKey = "";
+    }
+    let forageKey = "", forageCheck = 0;
+    function announceForage(now) {
+      if (now > forageCheck) { forageCheck = now + 60_000; if (forageDay !== -1 && dayNumber() !== forageDay) refreshForage(); }
+      const items = world.life.forage.items, key = forageDay + ":" + items.map((item) => item.slot).join(",");
+      if (key === forageKey) return;
+      forageKey = key;
+      window.dispatchEvent(new CustomEvent("daivr-forage-state", { detail: { items: items.map((item) => ({ slot: item.slot, x: item.x * ART, name: item.name, kind: item.kind })) } }));
+    }
+    const onForagePick = (event) => {
+      const slot = event.detail?.slot;
+      const item = world.pickForage(slot);
+      if (!item) return;
+      picked.add(slot);
+      savePicked(forageDay, picked);
+      window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", { detail: { type: "forage", id: item.kind } }));
+      window.dispatchEvent(new CustomEvent("daivr-forage-picked", { detail: { slot, name: item.name, kind: item.kind } }));
+    };
+    // Las farolas que faltan por encender (o apagar): Buddy va con su pertiga
+    // (useBuddyLamps) y avisa al cambiar cada una (`daivr-lamp-switch`).
+    let lampsKey = "";
+    function announceLamps() {
+      const pending = world.lampsPending(), key = world.lampsWant + "|" + pending.map((lamp) => lamp.i).join(",");
+      if (key === lampsKey) return;
+      lampsKey = key;
+      window.dispatchEvent(new CustomEvent("daivr-lamps-state", { detail: { want: world.lampsWant, lamps: pending.map((lamp) => ({ i: lamp.i, x: lamp.x * ART })) } }));
+    }
+    const onLampSwitch = (event) => { const { i, on } = event.detail || {}; if (Number.isInteger(i)) world.switchLamp(i, Boolean(on)); };
+    // El cursor sobre el footer: los pajaritos posados se asustan.
+    const onPointer = (event) => {
+      if (!inView || event.pointerType === "touch") return;
+      const box = canvas.getBoundingClientRect(), x = (event.clientX - box.left) / ART, y = (event.clientY - box.top) / ART - WORLD_TOP;
+      world.pointer(x >= 0 && x <= world.width && y >= -10 && y <= H ? x : null, y);
+    };
     function sync() {
       const props = propsRef.current;
       world.state.sky = {
@@ -70,6 +133,8 @@ export function FooterWorld({ sky, season, marketOpen, marketHover }) {
         wind: props.sky?.wind ?? 1
       };
       world.state.market = { open: props.marketOpen !== false, hover: Boolean(props.marketHover) };
+      world.state.mail = { flag: Boolean(props.mailFlag) };
+      world.state.reduceMotion = Boolean(reduceMotion);
       world.state.scene = skyScene();
       if (world.setSeason(props.season) || !world.layout) rebuild();
     }
@@ -234,6 +299,8 @@ export function FooterWorld({ sky, season, marketOpen, marketHover }) {
       world.draw();
       liftBubbles();
       announceFire();
+      announceLamps();
+      announceForage(now);
       if (import.meta.env.DEV) {
         const spent = performance.now() - startedAt;
         cost.frames += 1; cost.total += spent; cost.max = Math.max(cost.max, spent);
@@ -293,6 +360,9 @@ export function FooterWorld({ sky, season, marketOpen, marketHover }) {
     window.addEventListener("daivr-shooting-star", onShootingStar);
     window.addEventListener("daivr-buddy-event-state", onBuddyEventState);
     window.addEventListener("daivr-campfire-relight", onRelight);
+    window.addEventListener("daivr-lamp-switch", onLampSwitch);
+    window.addEventListener("daivr-forage-pick", onForagePick);
+    window.addEventListener("pointermove", onPointer, { passive: true });
     document.addEventListener("visibilitychange", onVisibility);
     if (!reduceMotion) {
       schedule(spawnFish, 4200);
@@ -308,6 +378,9 @@ export function FooterWorld({ sky, season, marketOpen, marketHover }) {
         step: (ms = FRAME_MS) => { sync(); trackActors(performance.now()); stepFish(performance.now()); world.update(ms / 1000); world.draw(); },
         fish: (forceCollision = false) => spawnFish({ forceCollision }),
         birds: (kind, dir) => world.flock(kind, dir),
+        // la vida del valle (life/): pajaros que bajan, nieve, farolas...
+        life: world.life,
+        forageReset: () => { picked = new Set(); savePicked(forageDay, picked); refreshForage(); },
         // actores de prueba (eventos que solo se lanzan con sesion de admin)
         bus: { publishActor, dropActor }
       };
@@ -322,6 +395,9 @@ export function FooterWorld({ sky, season, marketOpen, marketHover }) {
       window.removeEventListener("daivr-shooting-star", onShootingStar);
       window.removeEventListener("daivr-buddy-event-state", onBuddyEventState);
       window.removeEventListener("daivr-campfire-relight", onRelight);
+      window.removeEventListener("daivr-lamp-switch", onLampSwitch);
+      window.removeEventListener("daivr-forage-pick", onForagePick);
+      window.removeEventListener("pointermove", onPointer);
       document.removeEventListener("visibilitychange", onVisibility);
       timers.forEach((timer) => window.clearTimeout(timer));
       timers.clear();
@@ -334,8 +410,10 @@ export function FooterWorld({ sky, season, marketOpen, marketHover }) {
   return (
     <div className="footer-world" aria-hidden="true" ref={rootRef}>
       <canvas className="footer-world-canvas" ref={canvasRef} />
-      {/* Ancla invisible: Buddy busca la hoguera por esta clase para sentarse a su lado. */}
+      {/* Anclas invisibles: Buddy busca la hoguera (para sentarse a su lado) y
+          su tienda (para dormir dentro) por estas clases. */}
       <span className="footer-campfire" />
+      <span className="footer-tent" />
     </div>
   );
 }

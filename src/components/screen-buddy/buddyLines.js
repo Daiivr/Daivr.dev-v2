@@ -80,6 +80,14 @@ export const LINES = {
   marshmallowGood: ["perfectly golden.", "10/10 toast.", "crispy outside, gooey inside."],
   marshmallowBurnt: ["it's on fire. it's ON FIRE.", "charcoal edition. still eating it.", "oops. extra crispy."],
   campfireLeave: ["that hit the spot.", "fire's still going. back to patrol.", "warm pixels. good night."],
+  // Farolero: al anochecer enciende las farolas una a una y al amanecer las apaga.
+  lampsOn: ["getting dark. lamp duty.", "lamplighter shift starting.", "let there be lamps.", "time to light the path."],
+  lampsOff: ["morning! lights out.", "sun's up. snuffing the lamps.", "dawn shift: lamps off."],
+  lampsDone: ["all lit. cozy path.", "lamps on. night mode engaged.", "there. nobody trips tonight."],
+  lampsMorning: ["lamps off. good morning, valley.", "all snuffed. hello, sun.", "day mode: on."],
+  // Forraje del dia en el borde del prado ({item} = lo que ha encontrado).
+  forage: ["picked a {item}! +1 coin.", "fresh {item}. into the pack. +1 coin.", "ooh, a {item}. +1 coin."],
+  forageSpot: ["something's growing over there.", "ooh, forage spotted.", "wild snack detected."],
   // La lluvia apaga la hoguera y Buddy la vuelve a encender cuando escampa.
   campfireOut: ["noo, the rain got the fire.", "fire.exe has stopped responding.", "hiss... there goes the campfire.", "rain 1, campfire 0."],
   campfireRelight: ["rain's gone. fire time again.", "let me get that fire back.", "one match should do it.", "relighting the campfire..."],

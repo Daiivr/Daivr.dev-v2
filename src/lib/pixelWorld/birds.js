@@ -12,7 +12,7 @@ import { Buf, N4, bayer, flipped, lazy, mix } from "./core.js";
 const SPECIES = {
   sparrow: {
     size: 0.58, out: "#4a2814", body: ["#7a4a28", "#a8683a", "#c8884a", "#e0a868"], belly: ["#d8b888", "#f2dcb0"],
-    wing: ["#5a3418", "#8a5430", "#c08850"], beak: "#e8a040", eye: "#1a1010", cap: "#6a3a1a"
+    wing: ["#5a3418", "#8a5430", "#c08850"], beak: "#e8a040", eye: "#1a1010", cap: "#6a3a1a", legs: "#7a4a2a"
   },
   bluebird: {
     size: 0.58, out: "#1a2a5a", body: ["#24489a", "#3a6ac8", "#5a8ae0", "#8ab4f0"], belly: ["#c8784a", "#e89a5a"],
@@ -32,9 +32,13 @@ const SPECIES = {
   }
 };
 
-const POSES = ["up", "mid", "down", "glide"];
-// Fila del centro del cuerpo dentro del dibujo (para que no salte al cambiar de pose).
+// Volando: up, mid, down, glide. Posados (los que bajan al sendero, a las
+// farolas o al tejado del puesto): sit y peck (cabeza abajo, picoteando).
+const POSES = ["up", "mid", "down", "glide", "sit", "peck"];
+// Fila del centro del cuerpo dentro del dibujo (para que no salte al cambiar
+// de pose) y, posado, la fila de las patas (la que pisa el suelo).
 export const BIRD_ANCHOR = {};
+export const PERCH_FEET = {};
 
 function paintBird(sp, pose) {
   const s = sp.size, W = Math.round(16 * s) + 2, H = Math.round(16 * s) + 2;
@@ -43,7 +47,8 @@ function paintBird(sp, pose) {
   const cx = 8.2 * s, cy = H / 2 + 0.5;
   BIRD_ANCHOR[sp.key] = Math.round(cy);
   // Cuerpo (elipse) y cabeza (circulo) delante, abajo la tripa clara.
-  const brx = 4.3 * s, bry = 3.2 * s, hx = cx - 4.1 * s, hy = cy - 1.2 * s, hr = 2.7 * s;
+  const peck = pose === "peck", perched = peck || pose === "sit";
+  const brx = 4.3 * s, bry = 3.2 * s, hx = cx - 4.1 * s - (peck ? 0.6 * s : 0), hy = cy - 1.2 * s + (peck ? 2 * s : 0), hr = 2.7 * s;
   const inBody = (x, y) => ((x + 0.5 - cx) / brx) ** 2 + ((y + 0.5 - cy) / bry) ** 2 <= 1;
   const inHead = (x, y) => (x + 0.5 - hx) ** 2 + (y + 0.5 - hy) ** 2 <= hr * hr;
   const shape = [];
@@ -73,13 +78,23 @@ function paintBird(sp, pose) {
   put(bx, by, sp.beak); put(bx - 1, by, sp.beak); if (s > 0.9) put(bx - 2, by, sp.beak);
   put(bx - (s > 0.9 ? 3 : 2), by, sp.out); put(bx - 1, by + 1, sp.out); put(bx - 1, by - 1, sp.out);
 
-  // El ala: una elipse grande pegada al lomo; arriba, al costado o abajo.
+  // Posado: dos patitas bajo la tripa.
+  if (perched) {
+    const ly = Math.round(cy + bry) + 1;
+    PERCH_FEET[sp.key] = ly;
+    for (const lx of [Math.round(cx - 0.9 * s), Math.round(cx + 0.9 * s)]) { put(lx, ly, sp.legs || "#5a3a22"); put(lx, ly - 1, sp.legs || "#5a3a22"); }
+  }
+
+  // El ala: una elipse grande pegada al lomo; arriba, al costado o abajo
+  // (posado, pequeña y plegada sobre el costado).
   const long = sp.long ? 1.35 : 1;
   const wings = {
     up: { x: cx + 0.6 * s, y: cy - 4.4 * s, rx: 2.3 * s, ry: 3.6 * s * long, rot: 0.35 },
     mid: { x: cx + 1.9 * s, y: cy - 1.5 * s, rx: 3.3 * s * long, ry: 1.5 * s, rot: -0.22 },
     down: { x: cx + 0.8 * s, y: cy + 3.6 * s, rx: 2.2 * s, ry: 3.4 * s * long, rot: -0.4 },
-    glide: { x: cx + 2.2 * s, y: cy - 2 * s, rx: 4.3 * s * long, ry: 1.3 * s, rot: -0.34 }
+    glide: { x: cx + 2.2 * s, y: cy - 2 * s, rx: 4.3 * s * long, ry: 1.3 * s, rot: -0.34 },
+    sit: { x: cx + 1.1 * s, y: cy - 0.4 * s, rx: 2.8 * s, ry: 1.6 * s, rot: -0.18 },
+    peck: { x: cx + 1.1 * s, y: cy - 0.6 * s, rx: 2.8 * s, ry: 1.6 * s, rot: -0.3 }
   }[pose];
   const wpts = [], c = Math.cos(wings.rot), sn = Math.sin(wings.rot);
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {

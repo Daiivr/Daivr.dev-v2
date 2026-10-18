@@ -79,6 +79,7 @@ function createInitialState() {
     bugsDefeated: 0,
     campfireMeals: 0,
     starWishes: 0,
+    forageFound: 0,
     completed: [],
     market: { opened: 0, rewards: [], purchases: {} },
     inventory: []
@@ -118,10 +119,12 @@ function normalizeState(value) {
     bugsDefeated: Math.max(0, Math.floor(Number(source.bugsDefeated) || 0)),
     campfireMeals: Math.max(0, Math.floor(Number(source.campfireMeals) || 0)),
     starWishes: Math.max(0, Math.floor(Number(source.starWishes) || 0)),
+    forageFound: Math.max(0, Math.floor(Number(source.forageFound) || 0)),
     completed: normalizeList(source.completed),
     market: normalizeMarket(source.market, source.fishCollection, bonusCoins({
       campfireMeals: source.campfireMeals,
       starWishes: source.starWishes,
+      forageFound: source.forageFound,
       totalCatches: Math.max(Number(source.totalCatches) || 0, Number(source.voidCatches) || 0)
     })),
     inventory: normalizeList(source.inventory)
@@ -153,6 +156,7 @@ function mergeStates(leftValue, rightValue) {
     market: mergeMarket(left.market, right.market, mergeCounterMaps(left.fishCollection, right.fishCollection), bonusCoins({
       campfireMeals: Math.max(left.campfireMeals, right.campfireMeals),
       starWishes: Math.max(left.starWishes, right.starWishes),
+      forageFound: Math.max(left.forageFound, right.forageFound),
       totalCatches: Math.max(left.totalCatches, right.totalCatches)
     })),
     foundObjects: mergeCounterMaps(left.foundObjects, right.foundObjects),
@@ -162,6 +166,7 @@ function mergeStates(leftValue, rightValue) {
     bugsDefeated: Math.max(left.bugsDefeated, right.bugsDefeated),
     campfireMeals: Math.max(left.campfireMeals, right.campfireMeals),
     starWishes: Math.max(left.starWishes, right.starWishes),
+    forageFound: Math.max(left.forageFound, right.forageFound),
     completed: normalizeList([...left.completed, ...right.completed]),
     inventory: normalizeList([...left.inventory, ...right.inventory])
   };
@@ -402,6 +407,10 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
         if (detail.type === "star-wish") {
           return { ...current, starWishes: Math.min(9999, current.starWishes + 1) };
         }
+        // Forraje del borde del prado (FooterWorld): una moneda cada una.
+        if (detail.type === "forage") {
+          return { ...current, forageFound: Math.min(9999, current.forageFound + 1) };
+        }
 
         if (detail.type === "bug-defeated") {
           return { ...current, bugsDefeated: Math.min(9999, current.bugsDefeated + 1) };
@@ -484,6 +493,7 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
     krakenSightings: state.krakenSightings,
     bugsDefeated: state.bugsDefeated,
     campfireMeals: state.campfireMeals,
-    starWishes: state.starWishes
+    starWishes: state.starWishes,
+    forageFound: state.forageFound
   };
 }

@@ -7,6 +7,7 @@ import { PipSprite } from "./PipSprite";
 import { LINES } from "./screen-buddy/buddyLines";
 import { clamp, desktopQuery, reduceMotionQuery, SPRITE_WIDTH, useBuddyCore, WALK_MARGIN, FALL_SPEED_PX_S } from "./screen-buddy/useBuddyCore";
 import { useBuddyCampfire } from "./screen-buddy/useBuddyCampfire";
+import { useBuddyLife } from "./screen-buddy/useBuddyLife";
 import { useBuddyChat } from "./screen-buddy/useBuddyChat";
 import { useBuddySky } from "./screen-buddy/useBuddySky";
 import { useBuddyDrag } from "./screen-buddy/useBuddyDrag";
@@ -47,6 +48,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
   const encounters = useBuddyEncounters(core, { startRain: weather.api.startRain });
   const outage = useBuddyOutage(core);
   const campfire = useBuddyCampfire(core);
+  const life = useBuddyLife(core);
   const chat = useBuddyChat(core);
   const sky = useBuddySky(core);
   const drag = useBuddyDrag(core);
@@ -219,8 +221,11 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
 
     // En desktop camina hasta la esquina mas cercana del footer y duerme ahi;
     // en mobile (o con motion reducido) se duerme donde este.
+    // De noche se mete en su tienda (life); de dia se echa en la esquina.
     function goToSleep() {
+      const tentX = desktopQuery?.matches && !reduceMotion ? life.api.tentTarget() : null;
       function enterSleep() {
+        if (tentX != null && Math.abs(xRef.current - tentX) < 24) life.api.setTent(true);
         updateMood("sleep");
         window.dispatchEvent(new CustomEvent("daivr-buddy-sleep"));
       }
@@ -234,7 +239,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       const width = stageWidth();
       const leftCorner = CORNER_MARGIN;
       const rightCorner = Math.max(leftCorner, width - SPRITE_WIDTH - CORNER_MARGIN);
-      const target = xRef.current < width / 2 ? leftCorner : rightCorner;
+      const target = tentX ?? (xRef.current < width / 2 ? leftCorner : rightCorner);
       const distance = Math.abs(target - xRef.current);
 
       if (distance < 24) {
@@ -264,7 +269,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       if (activeEventRef.current) return;
 
       const currentMood = moodRef.current;
-      if (["off", "walk", "pet", "party", "dance", "held", "chute", "fishing", "rain", "find", "hunt", "outage", "shoo", "campfire"].includes(currentMood)) return;
+      if (["off", "walk", "pet", "party", "dance", "held", "chute", "fishing", "rain", "find", "hunt", "outage", "shoo", "campfire", "lamps", "forage"].includes(currentMood)) return;
 
       const idleFor = Date.now() - lastActivityRef.current;
 
@@ -312,6 +317,8 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         campfire.api.start();
       } else if (encounters.api.canCreature(now) && roll < 0.2) {
         encounters.api.showCreature();
+      } else if (life.api.canForage(now) && roll < 0.25) {
+        life.api.startForage();
       } else if (roll < 0.3 && !reduceMotion) {
         startWalk();
       } else if (roll < 0.46) {
@@ -488,10 +495,14 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       find: fieldFind ? { id: fieldFind.id, side: fieldFind.side, picking: fieldFind.picking || "" } : null,
       outage: outagePhase || "", campfire: campfire.view.campfire?.phase || "", snack: campfire.view.campfire?.item || "", snackFish: campfire.view.campfire?.fish?.id || "",
       weather: weather.view.weather || "", rod: equippedRod, lure: equippedLure,
+      lamps: life.view.lamps?.phase || "", lampX: life.view.lamps?.x ?? null, lampOn: Boolean(life.view.lamps?.on),
+      forage: life.view.forage?.phase || "", forageX: life.view.forage?.x ?? null, tent: life.view.tent,
       portal: fishingView.portal ? { x: fishingView.portal.x, phase: fishingView.portal.phase } : null
     });
   });
   useEffect(() => () => dropActor("host"), []);
+  // Al despertar sale de la tienda.
+  useEffect(() => { if (mood !== "sleep") life.api.setTent(false); }, [mood, life.api]);
 
   return (
     <>

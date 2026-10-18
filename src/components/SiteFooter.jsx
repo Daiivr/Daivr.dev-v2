@@ -7,6 +7,7 @@ import { BuddyVisitors } from "./BuddyVisitors";
 import { FooterSky } from "./FooterSky";
 import { FooterSoundscape } from "./FooterSoundscape";
 import { FooterWorld } from "./FooterWorld";
+import { FooterMailbox, useMailbox } from "./FooterMailbox";
 
 const VISIT_COUNTED_KEY = "daivr.visitCounted.v1";
 
@@ -27,6 +28,9 @@ export function SiteFooter({ buddy, season, onBuddyPet, onPowerOutage, onOpenMar
   const [marketHover, setMarketHover] = useState(false);
   // Peces ya pescados: los que Buddy puede asar en la hoguera.
   const fishJournal = buddy.adventure.fishJournal;
+  // El buzon junto a la hoguera: carta del dia y posdata con la version nueva.
+  const mail = useMailbox();
+  const openQuest = buddy.adventure.quests?.find((quest) => !quest.complete) || null;
   const caughtFish = useMemo(
     () => fishJournal.filter((item) => item.discovered && item.kind === "fish").map(({ id, name }) => ({ id, name })),
     [fishJournal]
@@ -102,8 +106,9 @@ export function SiteFooter({ buddy, season, onBuddyPet, onPowerOutage, onOpenMar
   return (
     <div className={`app-footer-zone sky-${sky.phase} sky-cover-${sky.cover} ${windClass} ${spotify ? "is-spotify-live" : ""}`} style={{ "--wind-strength": sky.wind }}>
       <FooterSky onPhase={onSkyPhase} />
-      <FooterWorld sky={sky} season={season} marketOpen={market.open} marketHover={marketHover} />
+      <FooterWorld sky={sky} season={season} marketOpen={market.open} marketHover={marketHover} mailFlag={mail.flag} />
       <BuddyMarketStand open={market.open} onClick={onOpenMarket} onHoverChange={setMarketHover} />
+      <FooterMailbox mail={mail} name={discordUser?.username || ""} quest={openQuest} />
       <ScreenBuddy
         onPet={onBuddyPet}
         onPowerOutage={onPowerOutage}

@@ -4,6 +4,8 @@ export const CHEST_MAX_COINS = 10;
 // cada deseo a una estrella fugaz.
 export const CAMPFIRE_MEAL_COINS = 2;
 export const STAR_WISH_COINS = 1;
+// Cada cosa de forraje que Pip recoge en el borde del prado (tres al dia).
+export const FORAGE_COINS = 1;
 export const MARKET_TIME_ZONE = "America/New_York";
 export const MARKET_SCHEDULE = "Wednesdays & Saturdays · New York time";
 export const MARKET_ITEMS = [
@@ -89,7 +91,7 @@ export function marketCarries(id, date = new Date()) {
 // pescados; los contadores solo suben, igual que los cofres.
 export function bonusCoins(adventure = {}) {
   const meals = Math.min(count(adventure.campfireMeals), count(adventure.totalCatches));
-  return meals * CAMPFIRE_MEAL_COINS + count(adventure.starWishes) * STAR_WISH_COINS;
+  return meals * CAMPFIRE_MEAL_COINS + count(adventure.starWishes) * STAR_WISH_COINS + count(adventure.forageFound) * FORAGE_COINS;
 }
 
 // Save a monotonic chest count and dated, unique purchases, never a mutable
