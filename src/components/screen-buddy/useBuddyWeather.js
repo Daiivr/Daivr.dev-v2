@@ -13,7 +13,10 @@ import { clamp, randomBetween, SPRITE_WIDTH, WALK_MARGIN, WALK_SPEED_PX_S } from
 */
 
 export const RAIN_DURATION_MS = 26000;
-const RAIN_COOLDOWN_MS = 120000;
+// Entre chubasco y chubasco (desde que escampa) pasa un rato al azar, y el
+// primero no llega nada mas abrir la pagina: si no, parece que siempre llueve.
+export const RAIN_GAP_MS = [8 * 60_000, 16 * 60_000];
+export const FIRST_RAIN_MS = [3 * 60_000, 6 * 60_000];
 // Paseo bajo la lluvia: tramos cortos con pausas para mirar.
 const RAIN_STROLL_PX = [50, 150];
 const RAIN_PAUSE_MS = [1400, 3200];
@@ -26,7 +29,7 @@ export function useBuddyWeather(core) {
   useEffect(() => {
     let disposed = false;
     let weatherTimer = 0;
-    api.cooldownRef.current = Date.now() - RAIN_COOLDOWN_MS + 20000;
+    api.nextRainRef.current = Date.now() + randomBetween(...FIRST_RAIN_MS);
 
     async function loadWeather() {
       try {
@@ -63,11 +66,12 @@ function createWeather(core, { setWeather }) {
   const { moodRef, moodGenRef, xRef, activeEventRef, weatherRef, skyPhaseRef, reduceMotion } = core;
   const { beginBuddyEvent, endBuddyEvent, freezeAtCurrentPosition, updateMood, schedule, say, pickLine, chat } = core;
   const { moveTo, setWalkMs, faceTravelDirection, stageWidth } = core;
-  const cooldownRef = { current: 0 };
+  // Cuando puede volver a llover (lo pone el final de cada chubasco).
+  const nextRainRef = { current: 0 };
 
   function startRain() {
     if (!beginBuddyEvent("rain")) return;
-    cooldownRef.current = Date.now();
+    nextRainRef.current = Date.now() + RAIN_DURATION_MS + randomBetween(...RAIN_GAP_MS);
     freezeAtCurrentPosition();
     setWeather("rain");
     updateMood("rain");
@@ -116,7 +120,7 @@ function createWeather(core, { setWeather }) {
 
   // Sin motion la lluvia quedaria congelada en el aire: mejor ni llueve.
   function canRain(now = Date.now()) {
-    return !reduceMotion && now - cooldownRef.current > RAIN_COOLDOWN_MS;
+    return !reduceMotion && now >= nextRainRef.current;
   }
 
   // Gatillo manual de lluvia (consola/tests), mismas reglas.
@@ -143,5 +147,5 @@ function createWeather(core, { setWeather }) {
     chat(lines, "weather", 3200);
   }
 
-  return { cooldownRef, startRain, canRain, onRainSignal, onWeatherSignal };
+  return { nextRainRef, startRain, canRain, onRainSignal, onWeatherSignal };
 }
