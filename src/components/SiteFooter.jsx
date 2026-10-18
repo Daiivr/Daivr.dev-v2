@@ -12,7 +12,19 @@ import { gardenPlots } from "../../shared/buddy-market.mjs";
 
 const VISIT_COUNTED_KEY = "daivr.visitCounted.v1";
 
-export function SiteFooter({ buddy, season, onBuddyPet, onPowerOutage, onOpenMarket, onOpenGarden }) {
+// El contorno de lo que se puede pulsar en el prado (puesto, huerto,
+// pescador): con el raton encima o con el foco del teclado, pero no con el
+// foco que devuelve el modal al cerrarse; al pulsar se apaga.
+function hoverHandlers(set) {
+  return {
+    onPointerEnter: () => set(true),
+    onPointerLeave: () => set(false),
+    onFocus: (event) => set(event.currentTarget.matches(":focus-visible")),
+    onBlur: () => set(false)
+  };
+}
+
+export function SiteFooter({ buddy, season, onBuddyPet, onPowerOutage, onOpenMarket, onOpenGarden, onOpenFisherman, modalOpen = false }) {
   const [visitCount, setVisitCount] = useState(null);
   const [visitError, setVisitError] = useState(false);
   const [discordUser, setDiscordUser] = useState(null);
@@ -27,6 +39,19 @@ export function SiteFooter({ buddy, season, onBuddyPet, onPowerOutage, onOpenMar
   // puntero esta encima (se ilumina su contorno).
   const market = useMarketOpen();
   const [marketHover, setMarketHover] = useState(false);
+  const [gardenHover, setGardenHover] = useState(false);
+  // El pescador ambulante (lo mueve FooterWorld): su boton solo esta mientras
+  // esta plantado junto a su carretilla.
+  const [fisher, setFisher] = useState({ phase: "away", until: 0 });
+  const [fisherHover, setFisherHover] = useState(false);
+  useEffect(() => {
+    const onFisher = (event) => setFisher({ phase: event.detail?.phase || "away", until: event.detail?.until || 0 });
+    window.addEventListener("daivr-fisherman-state", onFisher);
+    return () => window.removeEventListener("daivr-fisherman-state", onFisher);
+  }, []);
+  useEffect(() => { if (fisher.phase !== "here") setFisherHover(false); }, [fisher.phase]);
+  // Al abrir o cerrar un modal del buddy no queda ningun contorno encendido.
+  useEffect(() => { setMarketHover(false); setGardenHover(false); setFisherHover(false); }, [modalOpen]);
   // Peces ya pescados: los que Buddy puede asar en la hoguera.
   const fishJournal = buddy.adventure.fishJournal;
   // El buzon junto a la hoguera: carta del dia y posdata con la version nueva.
@@ -40,7 +65,8 @@ export function SiteFooter({ buddy, season, onBuddyPet, onPowerOutage, onOpenMar
   const garden = useMemo(() => gardenPlots(wallet), [gardenKey]);
   const planted = garden.filter(Boolean).length;
   const caughtFish = useMemo(
-    () => fishJournal.filter((item) => item.discovered && item.kind === "fish").map(({ id, name }) => ({ id, name })),
+    // (todo lo ya pescado, para la caña; la hoguera se queda con los peces)
+    () => fishJournal.filter((item) => item.discovered).map(({ id, name, kind }) => ({ id, name, kind })),
     [fishJournal]
   );
   const windClass = sky.wind < 0.8 ? "wind-calm" : sky.wind >= 1.4 ? "wind-gusty" : "wind-breeze";
@@ -114,10 +140,17 @@ export function SiteFooter({ buddy, season, onBuddyPet, onPowerOutage, onOpenMar
   return (
     <div className={`app-footer-zone sky-${sky.phase} sky-cover-${sky.cover} ${windClass} ${spotify ? "is-spotify-live" : ""}`} style={{ "--wind-strength": sky.wind }}>
       <FooterSky onPhase={onSkyPhase} />
-      <FooterWorld sky={sky} season={season} marketOpen={market.open} marketHover={marketHover} mailFlag={mail.flag} garden={garden} />
-      <BuddyMarketStand open={market.open} onClick={onOpenMarket} onHoverChange={setMarketHover} />
+      <FooterWorld sky={sky} season={season} marketOpen={market.open} marketHover={marketHover} gardenHover={gardenHover} fisherHover={fisherHover} mailFlag={mail.flag} garden={garden} />
+      <BuddyMarketStand open={market.open} onClick={() => { setMarketHover(false); onOpenMarket?.(); }} onHoverChange={setMarketHover} />
       <FooterMailbox mail={mail} name={discordUser?.username || ""} quest={openQuest} />
-      <button type="button" className="footer-garden-button" onClick={onOpenGarden} aria-label={`Garden: ${planted ? `${planted} of ${garden.length} plots planted` : "empty"}. Open the seed shed.`} />
+      {/* El huerto: boton invisible encima de lo que dibuja el mundo; al pasar
+          por encima se ilumina su contorno y cuelga su cartel (como el puesto). */}
+      <button type="button" className="footer-garden-button" onClick={() => { setGardenHover(false); onOpenGarden?.(); }} {...hoverHandlers(setGardenHover)}
+        aria-label={`Garden: ${planted ? `${planted} of ${garden.length} plots planted` : "empty"}. Open the garden shed.`} />
+      {fisher.phase === "here" ? (
+        <button type="button" className="footer-fisherman-button" onClick={() => { setFisherHover(false); onOpenFisherman?.(); }} {...hoverHandlers(setFisherHover)}
+          aria-label="The traveling fisherman is here. Buy rods and lures, or sell your catch." />
+      ) : null}
       <ScreenBuddy
         onPet={onBuddyPet}
         onPowerOutage={onPowerOutage}

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { FISH_CATALOG } from "../data/buddyWorld";
 import { useScrollEdges } from "../hooks/useScrollEdges";
 import { bayer, line, px, rect } from "../lib/pixelWorld/core";
 import { catchSprite, isCatchArt } from "../lib/pixelWorld/catches";
@@ -56,14 +55,25 @@ function SpecimenTank({ id, found }) {
   return <canvas ref={ref} className="buddy-specimen-canvas" width={TANK_W} height={TANK_H} aria-hidden="true" />;
 }
 
-// Los dos catalogos se hojean igual, asi que comparten reja y ficha en vez de
-// vivir en dos secciones con maquetas distintas.
+// Los catalogos se hojean igual, asi que comparten reja y ficha en vez de
+// vivir en secciones con maquetas distintas.
 const ARCHIVE_SETS = {
   fish: {
     label: "Fish",
     kicker: "void archive",
     unknownName: "Unknown species",
     unknownNote: "Not scanned yet. Keep fishing the footer void and it will end up here.",
+    source: "Void fishing",
+    tag: (entry) => entry.rarity,
+    note: (entry) => entry.lore
+  },
+  // Los peces de Stardew: salen de la misma caña, pero pican mas en su
+  // estacion, a sus horas y con su tiempo (la ficha lo chiva mientras faltan).
+  valley: {
+    label: "Valley",
+    kicker: "valley journal",
+    unknownName: "Uncaught valley fish",
+    unknownNote: "Not caught yet. Valley fish bite more in their own season, hours and weather.",
     tag: (entry) => entry.rarity,
     note: (entry) => entry.lore
   },
@@ -72,6 +82,7 @@ const ARCHIVE_SETS = {
     kicker: "footer scanner",
     unknownName: "Unknown signal",
     unknownNote: "Buddy has not turned this one up yet. It shows up while patrolling the footer.",
+    source: "Footer patrol",
     tag: () => "recovered",
     note: (entry) => entry.line
   }
@@ -83,6 +94,19 @@ const STATE_FILTERS = [
   { id: "unknown", label: "Missing" }
 ];
 const RARITIES = ["common", "uncommon", "rare", "legendary", "mythic", "junk", "treasure"];
+
+// Cuando pica mejor cada pez del valle, en palabras (horas pasada la
+// medianoche como 26 = 2am).
+const SEASON_NAMES = { spring: "Spring", summer: "Summer", fall: "Fall", winter: "Winter" };
+const clock = (hour) => { const h = hour % 24; return `${h % 12 || 12}${h < 12 ? "am" : "pm"}`; };
+function valleyFacts(entry) {
+  return [
+    ["Where", entry.habitat],
+    ["Season", entry.seasons.length >= 4 ? "Any season" : entry.seasons.map((season) => SEASON_NAMES[season]).join(", ")],
+    ["Time", entry.hours ? `${clock(entry.hours[0])} – ${clock(entry.hours[1])}` : "Any time"],
+    ["Weather", entry.weather === "rain" ? "Rain" : entry.weather === "sun" ? "Sunny" : "Any"]
+  ];
+}
 
 // La ficha grande: una sola copia del texto que antes se repetia en cada
 // casilla sin escanear, ahora con sitio para leerse.
@@ -103,7 +127,12 @@ function SpecimenFile({ entry, set }) {
         <span className={`buddy-specimen-tag rarity-${tag}`}>{tag}</span>
         <strong>{entry.discovered ? entry.name : set.unknownName}</strong>
         <p>{entry.discovered ? set.note(entry) : set.unknownNote}</p>
-        {entry.discovered ? <dl className="buddy-specimen-facts"><div><dt>Collected</dt><dd>{entry.count} {entry.count === 1 ? "time" : "times"}</dd></div><div><dt>Source</dt><dd>{set.label === "Fish" ? "Void fishing" : "Footer patrol"}</dd></div></dl> : null}
+        {entry.set === "valley" ? (
+          <dl className="buddy-specimen-facts is-valley">
+            {entry.discovered ? <div><dt>Collected</dt><dd>{entry.count} {entry.count === 1 ? "time" : "times"}</dd></div> : null}
+            {valleyFacts(entry).map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+          </dl>
+        ) : entry.discovered ? <dl className="buddy-specimen-facts"><div><dt>Collected</dt><dd>{entry.count} {entry.count === 1 ? "time" : "times"}</dd></div><div><dt>Source</dt><dd>{set.source}</dd></div></dl> : null}
       </div>
     </div>
   );
@@ -121,13 +150,17 @@ export function BuddyJournal({ buddy }) {
   const [sort, setSort] = useState("catalogue");
 
   const set = ARCHIVE_SETS[dataset];
-  const total = FISH_CATALOG.length;
+  const total = buddy.adventure.stationFishTotal;
   const discovered = buddy.adventure.discoveredFishCount;
+  const valleyTotal = buddy.adventure.valleyFishTotal;
+  const valleyFound = buddy.adventure.discoveredValleyCount;
+  const isValley = dataset === "valley";
   const finds = buddy.adventure.finds.length;
   const foundCount = buddy.adventure.discoveredFindCount;
   const pct = (value, max) => (max ? Math.round((value / max) * 100) : 0);
 
-  const entries = dataset === "fish" ? buddy.adventure.fishJournal : buddy.adventure.finds;
+  const entries = dataset === "finds" ? buddy.adventure.finds
+    : buddy.adventure.fishJournal.filter((entry) => entry.set === (isValley ? "valley" : "station"));
   const foundInSet = entries.filter((entry) => entry.discovered).length;
   const stateCounts = { all: entries.length, discovered: foundInSet, unknown: entries.length - foundInSet };
 
@@ -136,7 +169,7 @@ export function BuddyJournal({ buddy }) {
     const searchable = entry.discovered
       ? `${entry.name} ${set.tag(entry)} ${set.note(entry) || ""}`
       : `${set.unknownName} unscanned missing`;
-    return matchesFilter && (rarity === "all" || dataset !== "fish" || (entry.discovered && entry.rarity === rarity)) && searchable.toLowerCase().includes(query.trim().toLowerCase());
+    return matchesFilter && (rarity === "all" || dataset === "finds" || (entry.discovered && entry.rarity === rarity)) && searchable.toLowerCase().includes(query.trim().toLowerCase());
   }).sort((a, b) => sort === "count" ? b.count - a.count : sort === "name" ? (a.discovered ? a.name : "zzz").localeCompare(b.discovered ? b.name : "zzz") : 0);
 
   // El id elegido puede quedarse fuera al cambiar de catalogo o de filtro: la
@@ -149,12 +182,16 @@ export function BuddyJournal({ buddy }) {
     <div className="buddy-journal" ref={pageRef}>
       <div className="buddy-journal-stage" ref={stageRef}>
         <SpecimenFile entry={selected} set={set} />
-        <div className="buddy-journal-summary"><span>Total catches<strong>{buddy.adventure.totalCatches}</strong></span><span>Rare catches<strong>{buddy.adventure.rareCatches}</strong></span><span>Catalogue<strong>{pct(discovered, total)}%</strong></span></div>
+        <div className="buddy-journal-summary"><span>Total catches<strong>{buddy.adventure.totalCatches}</strong></span><span>Rare catches<strong>{buddy.adventure.rareCatches}</strong></span><span>{isValley ? "Valley" : "Catalogue"}<strong>{isValley ? pct(valleyFound, valleyTotal) : pct(discovered, total)}%</strong></span></div>
 
         <div className="buddy-journal-progress">
           <div className="buddy-section-heading"><h3>Archive progress</h3></div>
-          {buddy.adventure.completeJournalForTesting ? <button type="button" className="buddy-journal-test" disabled={buddy.adventure.journalComplete} onClick={buddy.adventure.completeJournalForTesting}>{buddy.adventure.journalComplete ? "Test journal complete" : "Complete journal for testing"}</button> : null}
-          <p className="buddy-journal-reward" role="status">{buddy.adventure.journalComplete ? "NZ:P unlocked — find your new cartridge in the secret game library." : "Complete every catch and patrol find to unlock NZ:P in the secret game library."}</p>
+          {isValley ? (buddy.adventure.completeValleyForTesting ? <button type="button" className="buddy-journal-test" disabled={buddy.adventure.valleyComplete} onClick={buddy.adventure.completeValleyForTesting}>{buddy.adventure.valleyComplete ? "Test valley complete" : "Complete valley for testing"}</button> : null)
+            : buddy.adventure.completeJournalForTesting ? <button type="button" className="buddy-journal-test" disabled={buddy.adventure.journalComplete} onClick={buddy.adventure.completeJournalForTesting}>{buddy.adventure.journalComplete ? "Test journal complete" : "Complete journal for testing"}</button> : null}
+          {/* (el diario de siempre abre NZ:P y lo de Miku; el del valle, el traje de pescador) */}
+          <p className="buddy-journal-reward" role="status">{isValley
+            ? (buddy.adventure.valleyComplete ? "Fisherman outfit unlocked — Buddy can wear it from the costume slot." : "Catch every valley fish to unlock the fisherman outfit.")
+            : (buddy.adventure.journalComplete ? "NZ:P unlocked — find your new cartridge in the secret game library." : "Complete every catch and patrol find to unlock NZ:P in the secret game library.")}</p>
           <div className="buddy-journal-meters">
             <div>
               <PixelIcon name="fish" />
@@ -167,6 +204,12 @@ export function BuddyJournal({ buddy }) {
               <span>patrol finds</span>
               <b>{foundCount}<small> / {finds}</small></b>
               <i className="buddy-journal-meter" aria-hidden="true"><b style={{ width: `${pct(foundCount, finds)}%` }} /></i>
+            </div>
+            <div>
+              <PixelIcon name="fish" />
+              <span>valley fish</span>
+              <b>{valleyFound}<small> / {valleyTotal}</small></b>
+              <i className="buddy-journal-meter" aria-hidden="true"><b style={{ width: `${pct(valleyFound, valleyTotal)}%` }} /></i>
             </div>
           </div>
           <div className="buddy-journal-tallies">
@@ -197,7 +240,7 @@ export function BuddyJournal({ buddy }) {
                 aria-pressed={dataset === id}
               >
                 {item.label}
-                <b>{id === "fish" ? total : finds}</b>
+                <b>{id === "fish" ? total : id === "valley" ? valleyTotal : finds}</b>
               </button>
             ))}
           </div>
@@ -226,7 +269,7 @@ export function BuddyJournal({ buddy }) {
             />
           </label>
         </div>
-        <div className="buddy-journal-sortbar"><span>{visible.length} entries in view</span>{dataset === "fish" ? <label>Rarity<select aria-label="Filter journal rarity" value={rarity} onChange={(event) => setRarity(event.target.value)}><option value="all">All rarities</option>{RARITIES.map((value) => <option key={value}>{value}</option>)}</select></label> : null}<label>Sort<select aria-label="Sort journal" value={sort} onChange={(event) => setSort(event.target.value)}><option value="catalogue">Catalogue</option><option value="count">Most caught</option><option value="name">Name</option></select></label></div>
+        <div className="buddy-journal-sortbar"><span>{visible.length} entries in view</span>{dataset !== "finds" ? <label>Rarity<select aria-label="Filter journal rarity" value={rarity} onChange={(event) => setRarity(event.target.value)}><option value="all">All rarities</option>{RARITIES.map((value) => <option key={value}>{value}</option>)}</select></label> : null}<label>Sort<select aria-label="Sort journal" value={sort} onChange={(event) => setSort(event.target.value)}><option value="catalogue">Catalogue</option><option value="count">Most caught</option><option value="name">Name</option></select></label></div>
 
         <div className="buddy-archive-scroll" ref={gridRef}>
           <div className="buddy-archive-grid">

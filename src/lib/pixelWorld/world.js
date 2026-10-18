@@ -609,6 +609,8 @@ export function createFooterWorld(canvas) {
     for (const { actor } of frames) for (const ev of EVENTS) if (ev.backdrop) ev.backdrop(g, actor, anim.get(actor.id), env);
 
     g.drawImage(lit ? lightRig.apply(ac, light.desat) : ac, 0, 0);
+    // (lo que brilla en la capa de Buddy: el farol del pescador)
+    life.after(g, lc);
     for (const entry of frames) if (aloft(entry)) drawActor(g, entry);
     // Ojos, LEDs y farol: lo que brilla de Pip va por encima de la luz. En el
     // mismo orden que los cuerpos (visitas detras, Buddy delante): antes de

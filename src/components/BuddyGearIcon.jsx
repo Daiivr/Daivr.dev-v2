@@ -1,9 +1,18 @@
-import { BuddyMarketArt } from "./BuddyMarketArt";
+import { MarketItemImage } from "./BuddyMarketArt";
+import { isGoodsArt } from "../lib/pixelWorld/marketGoods";
 export function BuddyGearArt({ id }) {
-  if (id.startsWith("market-")) return <BuddyMarketArt id={id} />;
+  // (lo del mercado, cañas y señuelos incluidos: sus sprites de pixel)
+  if (isGoodsArt(id)) return <MarketItemImage id={id} size={24} />;
   let artwork;
 
   switch (id) {
+    // El traje de pescador: sombrero de pesca con señuelo sobre el chaleco.
+    case "fisher-outfit":
+      artwork = <><path d="M5 12h14v10H5z" fill="#24240e" /><path d="M6 13h12v8H6z" fill="#6e6e38" /><path d="M11 13h2v8h-2z" fill="#4a4a22" />
+<path d="M7 16h3v2H7zm7 0h3v2h-3z" fill="#8a8a4a" /><path d="M7 15h3v1H7zm7 0h3v1h-3z" fill="#34340e" /><path d="M14 13h1v2h-1z" fill="#e84a3a" />
+<path d="M7 2h10v2h1v4h3v3H3V8h3V4h1z" fill="#24240e" /><path d="M8 3h8v5H8z" fill="#8a8a4a" /><path d="M9 4h3v1H9z" fill="#a8a868" />
+<path d="M8 7h8v1H8z" fill="#4a3a1a" /><path d="M4 9h16v1H4z" fill="#7a7a42" /><path d="M17 6h2v2h-2z" fill="#e84a3a" /><path d="M19 5h1v2h-1z" fill="#ffd166" /></>;
+      break;
     case "miku-costume":
       artwork = (
         <>

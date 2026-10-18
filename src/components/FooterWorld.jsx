@@ -50,15 +50,15 @@ function savePicked(day, picked) {
   }
 }
 
-export function FooterWorld({ sky, season, marketOpen, marketHover, mailFlag, garden }) {
+export function FooterWorld({ sky, season, marketOpen, marketHover, gardenHover, fisherHover, mailFlag, garden }) {
   const rootRef = useRef(null);
   const canvasRef = useRef(null);
   const propsRef = useRef(null);
   const repaintRef = useRef(() => {});
   const gardenDirtyRef = useRef(true);
-  propsRef.current = { sky, season: season || "", marketOpen, marketHover, mailFlag, garden: garden || [] };
+  propsRef.current = { sky, season: season || "", marketOpen, marketHover, gardenHover, fisherHover, mailFlag, garden: garden || [] };
 
-  useEffect(() => { repaintRef.current(); }, [sky, season, marketOpen, marketHover, mailFlag]);
+  useEffect(() => { repaintRef.current(); }, [sky, season, marketOpen, marketHover, gardenHover, fisherHover, mailFlag]);
   useEffect(() => { gardenDirtyRef.current = true; repaintRef.current(); }, [garden]);
 
   useEffect(() => {
@@ -159,6 +159,15 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, mailFlag, ga
       if (!entry || entry.growth < 1 || !world.pullPlot(entry.plot)) return;
       window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", { detail: { type: "harvest", seedId: entry.seedId } }));
     };
+    // El pescador ambulante: cuando llega, esta, se va o no esta (SiteFooter
+    // pone su boton mientras esta; Buddy le saluda al llegar).
+    let fisherPhase = "";
+    function announceFisher() {
+      const phase = world.life.fisher.phase;
+      if (phase === fisherPhase) return;
+      fisherPhase = phase;
+      window.dispatchEvent(new CustomEvent("daivr-fisherman-state", { detail: { phase, until: world.life.fisher.until } }));
+    }
     const onLampSwitch = (event) => { const { i, on } = event.detail || {}; if (Number.isInteger(i)) world.switchLamp(i, Boolean(on)); };
     // El cursor sobre el footer: los pajaritos posados se asustan.
     const onPointer = (event) => {
@@ -175,6 +184,8 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, mailFlag, ga
         wind: props.sky?.wind ?? 1
       };
       world.state.market = { open: props.marketOpen !== false, hover: Boolean(props.marketHover) };
+      world.state.gardenHover = Boolean(props.gardenHover);
+      world.state.fisherHover = Boolean(props.fisherHover);
       world.state.mail = { flag: Boolean(props.mailFlag) };
       world.state.reduceMotion = Boolean(reduceMotion);
       world.state.scene = skyScene();
@@ -347,6 +358,7 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, mailFlag, ga
       announceLamps();
       announceForage(now);
       announceGarden(now);
+      announceFisher();
       if (import.meta.env.DEV) {
         const spent = performance.now() - startedAt;
         cost.frames += 1; cost.total += spent; cost.max = Math.max(cost.max, spent);

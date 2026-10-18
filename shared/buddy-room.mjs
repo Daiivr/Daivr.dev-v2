@@ -1,5 +1,5 @@
 import { MARKET_ITEMS } from "./buddy-market.mjs";
-import { FISH_CATALOG } from "./buddy-catches.mjs";
+import { ALL_CATCHES } from "./buddy-catches.mjs";
 
 export const ROOM_PALETTES = ["aurora", "plum", "amber"];
 export const ROOM_BEDS = ["cot", "cushion", "bunk"];
@@ -9,7 +9,7 @@ export const AQUARIUM_SLOTS = ["aquarium", "aquariumBackLeft", "aquariumBackRigh
 export const DEFAULT_ROOM = Object.freeze({ palette: "aurora", bed: "cot", rug: "checker", prop: "plant", aquarium: "", aquariumBackLeft: "", aquariumBackRight: "", shelfLeft: "", shelfRight: "" });
 
 const choice = (value, choices, fallback) => choices.includes(value) ? value : fallback;
-const catchKinds = new Map(FISH_CATALOG.map((item) => [item.id, item.kind]));
+const catchKinds = new Map(ALL_CATCHES.map((item) => [item.id, item.kind]));
 
 // The fish: prefix means fishing-journal origin, not necessarily a living fish.
 export function isRoomDisplayAllowed(slot, key) {
@@ -19,7 +19,8 @@ export function isRoomDisplayAllowed(slot, key) {
   if (origin === "shop") return shelf && MARKET_ITEMS.some((item) => item.id === id && item.category === "decor");
   if (origin === "find") return shelf;
   const kind = catchKinds.get(id);
-  return AQUARIUM_SLOTS.includes(slot) ? kind === "fish" : shelf && (kind === "junk" || kind === "treasure");
+  // (lo de las nasas, el pulpo y compañia van en la estanteria, como los trastos)
+  return AQUARIUM_SLOTS.includes(slot) ? kind === "fish" : shelf && (kind === "junk" || kind === "treasure" || kind === "critter");
 }
 
 const displayId = (value, slot) => isRoomDisplayAllowed(slot, value) ? value : "";

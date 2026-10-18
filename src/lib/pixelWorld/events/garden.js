@@ -15,7 +15,7 @@ const SHOW_S = 1.6;
 const HANDLE = { rest: [5, 1], pour: [4, 5] };
 const SPOUT = [11, 8];
 // donde caen las gotas: la cara del caballon de tierra
-const SOIL_Y = SOIL_TOP + 3;
+const SOIL_Y = SOIL_TOP + 2;
 
 function gardenState(actor, a, t) {
   if (actor.mood !== "garden" || actor.ghost) { a.garden = null; return null; }

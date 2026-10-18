@@ -21,10 +21,15 @@
   /* El huerto (life/garden.js): ancla para no pescar delante y un boton
      invisible que abre el cobertizo de semillas del mercado. */
   .footer-world .footer-garden { position: absolute; bottom: 0; left: var(--world-garden-left, -80px); width: var(--world-garden-width, 0); height: 24px; pointer-events: none; }
-  .footer-garden-button { position: absolute; z-index: 4; left: var(--world-garden-left, -80px); bottom: calc(100% + 10px); width: var(--world-garden-width, 0); height: 30px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+  .footer-garden-button { position: absolute; z-index: 4; left: var(--world-garden-left, -80px); bottom: calc(100% + 6px); width: var(--world-garden-width, 0); height: 34px; padding: 0; border: 0; background: transparent; cursor: pointer; }
   .footer-garden-button:focus-visible { outline: 2px solid #ffd166; outline-offset: 2px; }
   /* (en el movil no hay huerto en el prado) */
   @media (max-width: 767px) { .footer-garden-button { display: none; } }
+  /* El pescador ambulante: su boton invisible sobre el y su carretilla (al
+     pasar por encima se ilumina su contorno y saluda). */
+  .footer-fisherman-button { position: absolute; z-index: 4; left: var(--world-fisher-left, -160px); bottom: calc(100% + 6px); width: var(--world-fisher-width, 0); height: 74px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+  .footer-fisherman-button:focus-visible { outline: 2px solid #ffd166; outline-offset: 2px; }
+  @media (max-width: 767px) { .footer-fisherman-button { display: none; } }
 
   /* Pip agarrado o en paracaidas por encima de lo que alcanza el lienzo:
      se pinta aqui, en el DOM, con la tela detras de el. */

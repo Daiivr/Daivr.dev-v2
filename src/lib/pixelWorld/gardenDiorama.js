@@ -1,5 +1,5 @@
 import { bayer, lazy, outlinedSprite, px, rect, rng } from "./core.js";
-import { GARDEN_SPRITES, PLANT_BASE, SOIL_TOP, cropStage, drawPlant } from "./life/garden.js";
+import { GARDEN_SPRITES, PLANT_BASE, SOIL_TOP, cropStage, drawBed } from "./life/garden.js";
 
 // El huerto en pequeño para el cobertizo de semillas del mercado: un trozo
 // del valle (cielo con nubes, colinas, la valla de madera, el cartel y la
@@ -111,7 +111,7 @@ export function createGardenDiorama(view) {
   // `view`: { x, w } de dioramaView (lo que se ve)
   function draw({ plots = [], ghost = null, wet = false, t = 0, view: shown = null }) {
     crop = shown;
-    const S = GARDEN_SPRITES(), soil = S.soil[13];
+    const S = GARDEN_SPRITES();
     g.setTransform(1, 0, 0, 1, 0, 0);
     g.clearRect(0, 0, DIORAMA.w, DIORAMA.h);
     g.drawImage(backdrop(), 0, 0);
@@ -128,12 +128,11 @@ export function createGardenDiorama(view) {
     g.setTransform(1, 0, 0, 1, 0, SOIL_Y - SOIL_TOP);
     const ghostAt = ghost ? plots.findIndex((p) => !p) : -1;
     DIORAMA_PLOTS.forEach((cx, i) => {
-      g.drawImage(wet ? soil.wet : soil.dry, cx - 7, SOIL_TOP);
       const entry = plots[i];
-      if (entry) drawPlant(g, S, entry, cx, t, 1, true);
-      else if (i === ghostAt) {
+      drawBed(g, S, cx, entry, { wet: wet ? 1 : 0, t, wind: 1 });
+      if (!entry && i === ghostAt) {
         g.globalAlpha = 0.55;
-        drawPlant(g, S, { crop: ghost, growth: 1 }, cx, t, 1, true);
+        drawBed(g, S, cx, { crop: ghost, growth: 1 }, { wet: wet ? 1 : 0, t, wind: 1 });
         g.globalAlpha = 1;
       }
     });

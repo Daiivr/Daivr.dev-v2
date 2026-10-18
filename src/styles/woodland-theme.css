@@ -1,6 +1,6 @@
 @layer components {
   /* Shared by the clearing, shop and reward portal. */
-  :where(.buddy-market-stand, .buddy-modal.is-market, .chest-reveal) {
+  :where(.buddy-market-stand, .footer-garden-button, .footer-fisherman-button, .buddy-modal.is-market, .chest-reveal) {
     --stand-canvas: #839780; --stand-canvas-edge: #758b74;
     --stand-awning: #355e50; --stand-awning-edge: #2d5045;
     --stand-wood: #4b5140; --stand-wood-light: #788367;
@@ -13,7 +13,7 @@
     --woodland-inset: inset 0 0 0 1px #91ac8033, inset 0 0 28px #03151266;
     --woodland-timber: url("../assets/market-sign-wood.svg") center / 328px 88px repeat var(--stand-wood);
   }
-  :where(.theme-glitch .buddy-market-stand, .theme-glitch .buddy-modal.is-market,
+  :where(.theme-glitch .buddy-market-stand, .theme-glitch .footer-garden-button, .theme-glitch .footer-fisherman-button, .theme-glitch .buddy-modal.is-market,
     body:has(.buddy-modal-backdrop.theme-glitch) .chest-reveal) {
     --stand-canvas: #918294; --stand-canvas-edge: #7e7085;
     --stand-awning: #59475f; --stand-awning-edge: #453a50;

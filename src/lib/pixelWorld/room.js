@@ -1,6 +1,7 @@
 import { Buf, bayer, discRows, ellipseRows, gridSprite, lazy, line, makeCanvas, mix, outlinedSprite, px, rect, rng } from "./core.js";
 import { catchSprite, sideFishFrames } from "./catches.js";
 import { findSprite } from "./finds.js";
+import { GOODS_GLOW, goodsFrame, goodsSprite } from "./marketGoods.js";
 import { FINDS } from "./events/creatures.js";
 import { RIG_FOOT_X, RIG_TALL, rigImg } from "./pip/rig.js";
 
@@ -44,18 +45,12 @@ const ATMOS = {
 const WOOD = { o: "#2a1608", d: "#5a3a1e", m: "#8a5a2e", b: "#a8743e", l: "#c88e52", h: "#e0ae70" };
 const dith = (x, y, k) => bayer(x, y) < k;
 
-// La decoracion del mercado, en pixel: el bosque en un tarro, la luna de
-// noche (brilla) y la recreativa de bolsillo (su pantalla brilla).
-const DECOR = lazy(() => ({
-  "market-terrarium": outlinedSprite(["...ccccc...", "...CCCCC...", "..gGGGGGg..", ".gwaaaaaag.", "gwaaaaaaaag", "gwaappaaaag", "gaapppppaag", "gaaaasaamag", "gamaasammag", "gmmmmmmmmmg", "gdddddddddg", ".gdddddddg.", "..ggggggg.."], { c: "#c8945a", C: "#8a5a2e", g: "#7ab8b0", G: "#a8d8d0", w: "#e8fff8", a: "#2a5a58", p: "#e05a5a", s: "#f4ead0", m: "#5aa83a", d: "#5a3a1e" }, "#163432"),
-  "market-moon": outlinedSprite(["....YYYY...", "..YYhyyY.s.", ".YhyyY..sss", ".YyyY....s.", "YhyY.......", "YyyY.......", "YyyY.......", ".YyyY......", ".YyyyY.....", "..YYyyyY...", "....YYYY...", "..bbbbbbb..", ".bBBBBBBBb."], { Y: "#e0a83a", y: "#ffdc92", h: "#fff0c9", s: "#fff0c9", b: "#8a5a2e", B: "#5a3a1e" }, "#5a3a10"),
-  "market-arcade": outlinedSprite([".MMMMMMMMM.", ".MmmmmmmmM.", ".KKKKKKKKK.", ".KsssssssK.", ".KsgsssgsK.", ".KssgggssK.", ".KsssssssK.", ".KKKKKKKKK.", "KPPPPPPPPPK", "KPrPPPyPPPK", "KKKKKKKKKKK", ".KkkkkkkkK.", ".KkkkkkkkK.", ".KKKKKKKKK."], { M: "#302e46", m: "#d991af", K: "#302e46", s: "#172e3d", g: "#9de0b4", P: "#766c94", r: "#ff5f68", y: "#ffd787", k: "#4a4668" }, "#141224")
-}));
-// Lo que hay en una balda (clave "fish:", "find:" o "shop:"), como sprite.
+// Lo que hay en una balda (clave "fish:", "find:" o "shop:"), como sprite. La
+// decoracion del mercado es su sprite de la tienda (pixelWorld/marketGoods.js).
 function displaySprite(key) {
   if (!key) return null;
   const [origin, id] = key.split(":");
-  if (origin === "shop") return DECOR()[id] || null;
+  if (origin === "shop") return goodsSprite(id);
   if (origin === "find") return findSprite(id) || FINDS()[id] || null;
   return catchSprite(id);
 }
@@ -368,8 +363,16 @@ function drawShelfGlow(g, t, shelves) {
     const k = shelves[key], img = displaySprite(k);
     if (!img) return;
     const ix = sx + 22 - Math.floor(img.width / 2), iy = SHELF_Y - img.height + 1;
-    if (k === "shop:market-moon") { g.globalCompositeOperation = "lighter"; g.drawImage(lightPool(9, [255, 210, 130], 0.22), ix - 3, iy - 3); g.globalCompositeOperation = "source-over"; g.drawImage(img, ix, iy); }
-    if (k === "shop:market-arcade") { const on = Math.floor(t * 2) % 2; rect(g, ix + 3, iy + 5, 2, 1, on ? "#9de0b4" : "#3fff97"); px(g, ix + 7, iy + 5, on ? "#3fff97" : "#9de0b4"); }
+    // (lo del mercado que brilla: su halo, la lampara de lava que se mueve y
+    // el bichito de la recreativa que parpadea)
+    const glow = k.startsWith("shop:") ? GOODS_GLOW[k.slice(5)] : null;
+    if (glow) {
+      const [gx, gy, r, col, s] = glow.pool;
+      g.globalCompositeOperation = "lighter"; g.drawImage(lightPool(r, col, s), ix + gx - r, iy + gy - r); g.globalCompositeOperation = "source-over";
+      if (glow.lit) g.drawImage(goodsFrame(k.slice(5), t), ix, iy);
+      const on = Math.floor(t * 2) % 2;
+      (glow.blink || []).forEach(([bx, by], n) => px(g, ix + bx, iy + by, (on + n) % 2 ? "#3fff97" : "#9de0b4"));
+    }
     if (k === "fish:token-chest" || k === "find:arcade-coin") {
       const p = (t * 0.7 + i * 0.5) % 1;
       if (p > 0.35) return;
@@ -618,8 +621,8 @@ function paintLight(g, A, view) {
   if (view.bed === "bunk") pool(32, 104, 30, [90, 230, 170], 0.5);
   pool(wx + ww - 12, wy + wh, 16, [160, 255, 120], 0.45);
   SHELVES.forEach(([key, sx]) => {
-    if (view.shelves[key] === "shop:market-moon") pool(sx + 22, SHELF_Y - 6, 30, [255, 200, 120], 0.45);
-    if (view.shelves[key] === "shop:market-arcade") pool(sx + 22, SHELF_Y - 8, 22, [120, 230, 180], 0.4);
+    const light = String(view.shelves[key] || "").startsWith("shop:") ? GOODS_GLOW[view.shelves[key].slice(5)]?.light : null;
+    if (light) pool(sx + 22, SHELF_Y - 8, ...light);
   });
   if (view.season === "halloween") pool(wx + 9, wy + wh, 14, [255, 150, 60], 0.5);
   g.globalCompositeOperation = "source-over";

@@ -1,4 +1,4 @@
-import { FISH_CATALOG } from "../../../../shared/buddy-catches.mjs";
+import { catchById } from "../../../../shared/buddy-catches.mjs";
 import { gridSprite, lazy, mix, outlinedSprite, px } from "../core.js";
 import { FEET } from "../layout.js";
 import { PACK } from "./stash.js";
@@ -36,7 +36,7 @@ function fishOnStick(id, cooked) {
   const key = id + (cooked ? "c" : "r");
   let img = fishes.get(key);
   if (img) return img;
-  const base = FISH_CATALOG.find((item) => item.id === id)?.color || "#9fc4dc";
+  const base = catchById(id)?.color || "#9fc4dc";
   const body = cooked ? mix(base, "#b8732e", 0.7) : base;
   const rows = cooked ? FISH_ROWS.map((r, y) => (y === 2 ? r.replace("BBBB", "BgBg") : y === 1 ? r.replace("bbbbbbb", "bbgbbgb") : r)) : FISH_ROWS;
   img = outlinedSprite(rows, { b: body, B: mix(body, "#ffffff", 0.3), w: mix(body, "#fff4dc", 0.6), t: mix(body, "#000000", 0.25), e: "#0a0e18", g: "#5a2e12" }, mix(body, "#05070c", 0.65));

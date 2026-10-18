@@ -35,6 +35,12 @@ export const HATS = {
   "star-cap": { rows: ["....CCCCC.......", "..CCcCCCCCC.....", ".CcCCCCSCCCC....", ".CCCCCSSSCCC....", "CCCCCCCSCCCCBBBB", "...........bbbbb"], pal: { C: "#278fa7", c: "#7de9ed", S: "#ffe397", B: "#45d8ff", b: "#17506e" }, out: "#0b2937", sink: 2, dx: 2 },
   "pixel-crown": { rows: ["Y....Y....Y", "YY..YYY..YY", "YlYYYYYYYlY", "YYpYYcYYpYY", "yyyyyyyyyyy"], pal: { Y: "#ffd166", l: "#fff0af", y: "#b58032", p: "#ff548b", c: "#45d8ff" }, out: "#573921", sink: 1, dx: 0 },
   "market-beanie": { rows: ["......oo.......", ".....oOOo......", "....GGGGGGG....", "..GGgGGgGGgGG..", ".GgGGgGGgGGgGG.", "GGGGGGGGGGGGGGG", "CcCcCcCcCcCcCcC"], pal: { o: "#f2ead2", O: "#ffffff", G: "#5f8f3a", g: "#8ab85a", C: "#3f6a2a", c: "#5a8a3a" }, out: "#1f3316", sink: 3, dx: 1 },
+  // el sombrero de pesca del traje de pescador: verde oliva, con su cinta y un
+  // señuelo rojo con pluma amarilla prendido delante
+  "fisher-hat": { rows: ["....hhhhhhh....", "...hHHHHHHHh...", "..hHHlHHHHHHh..", "..hHHHHHHHHhRY.", "..bbbbbbbbbbbR.", ".BBBBBBBBBBBBBB", "BBBBBBBBBBBBBB."], pal: { h: "#6a6a3a", H: "#8a8a4a", l: "#a8a868", b: "#4a3a1a", B: "#7a7a42", R: "#e84a3a", Y: "#ffd166" }, out: "#24240e", sink: 3, dx: 1 },
+  // el sombrero de paja del mercado: copa tejida, cinta roja con margarita y
+  // ala ancha que asoma por delante y por detras
+  "market-straw-hat": { rows: ["....hhhhhhh.....", "...hHHlHHHHh....", "..hHHHHHHHHHh...", "..rRRRRRRRRfrr..", "bbBBBBBBBBBBBBBb", ".bbbbbbbbbbbbbb."], pal: { h: "#c8a050", H: "#e8c878", l: "#fff0b0", r: "#a82a20", R: "#e84a3a", f: "#fffaf0", B: "#f0d088", b: "#b88a40" }, out: "#4a3410", sink: 3, dx: 1 },
   "witch-hat": { rows: ["......pp.", ".....pp..", "....ppp..", "...pPpp..", "...ppPp..", "..ppppp..", "..ooooo..", "ppppppppp"], pal: { p: "#4a2a6a", P: "#6a3a8a", o: "#ff9a3c" }, out: "#1a0a2a", sink: 0, dx: 0 }
 };
 // Lo que se lleva en la mano, a tamaño de mano para que se lea a 2x: la mano
@@ -193,8 +199,12 @@ function buildRig(o) {
   if (HAND_ITEMS[fit.hand] && (o.pose === "idle" || o.pose === "walk") && !o.handUp) p.fh = { dx: 3, dy: o.pose === "walk" && (o.frame | 0) % 3 ? 3 : 2 };
   const X = (x) => x + U.x, Y = (y) => y + U.y, HX = (x) => x + U.x + p.lead, HY = (y) => y + U.y;
   const boots = fit.feet === "rocket-boots";
-  const BP = boots ? { boot: "#9a3974", bootL: "#ff4c9f", bootHl: "#ff9ec5", bootD: "#6a2754" } : P;
+  // (las botas de agua del traje de pescador: amarillas)
+  const BP = boots ? { boot: "#9a3974", bootL: "#ff4c9f", bootHl: "#ff9ec5", bootD: "#6a2754" }
+    : fit.feet === "fisher-boots" ? { boot: "#b8860a", bootL: "#f0c020", bootHl: "#ffe680", bootD: "#7a5a08" } : P;
   const wave = o.pose === "walk" ? ((o.frame | 0) % 3) - 1 : 0;
+  // (con el peto vaquero, las piernas van de denim)
+  const LP = fit.body === "market-overalls" ? { limb: "#4466a8", limbL: "#6a8ad0", limbD: "#2e4a80" } : P;
   const c = {
     round(cx, cy, rx, ry, tone, opt = {}) { return paintRound(put, opt.head ? HX(cx) : X(cx), opt.head ? HY(cy) : Y(cy), rx, ry, tone, opt); },
     fill(cx, cy, rx, ry, col) {
@@ -245,7 +255,7 @@ function buildRig(o) {
   }
   function leg(hip, f, back) {
     const hx = hip[0] + U.x, hy = hip[1] + U.y, ax = hip[0] + f.dx + (p.sit ? (back ? 2 : 4) : 0), ay = 35 - f.lift, pts = [];
-    for (const [x, y] of linePts(hx, Math.min(hy, ay - 1), ax, ay - 1)) pts.push([x, y, back ? P.limbD : P.limbL], [x + 1, y, back ? P.limbD : P.limb]);
+    for (const [x, y] of linePts(hx, Math.min(hy, ay - 1), ax, ay - 1)) pts.push([x, y, back ? LP.limbD : LP.limbL], [x + 1, y, back ? LP.limbD : LP.limb]);
     const B = back ? { l: BP.boot, h: BP.bootL, t: BP.boot, b: BP.bootD } : { l: BP.bootL, h: BP.bootHl, t: BP.bootL, b: BP.boot };
     pts.push([ax - 1, ay, B.l], [ax, ay, B.h], [ax + 1, ay, B.l], [ax + 2, ay, B.t]);
     for (let x = ax - 1; x <= ax + 3; x++) pts.push([x, ay + 1, boots ? (x === ax + 3 ? "#ffd166" : "#388caa") : B.b]);
@@ -304,6 +314,17 @@ function buildRig(o) {
     for (let x = 14; x <= 18; x++) put(HX(x), HY(16), fr, true);
     put(HX(20), HY(16), gl, true); put(HX(21), HY(16), gl, true); put(HX(14), HY(17), "#ff659d", true);
   }
+  // Las gafas redondas: dos aros de alambre dorado alrededor de los ojos, el
+  // puente y la patilla hasta la oreja, con un brillo en cada cristal.
+  function specs() {
+    const R = "#c8a040", L = "#ffe08a", G = "#e8f8ff";
+    for (const [x0, x1] of [[19, 22], [22, 25]]) {
+      for (let x = x0 + 1; x < x1; x++) { put(HX(x), HY(15), x === x0 + 1 ? L : R, true); put(HX(x), HY(19), R, true); }
+      for (let y = 16; y < 19; y++) { put(HX(x0), HY(y), y === 16 ? L : R, true); put(HX(x1), HY(y), R, true); }
+      put(HX(x0 + 1), HY(16), G, true);
+    }
+    for (let x = 14; x < 19; x++) put(HX(x), HY(16), R, true);
+  }
   function greenVisor() {
     for (let y = 15; y <= 18; y++) for (let x = 18; x <= 25; x++) put(HX(x), HY(y), y === 15 ? "#9effc1" : y === 18 ? "#409781" : "#0e5b3a");
     for (let x = 12; x <= 17; x++) put(HX(x), HY(16), "#4ed5df");
@@ -328,6 +349,39 @@ function buildRig(o) {
     pts.push([X(s.x1 - 1), Y(s.y + 2), "#ed559a"], [X(s.x1), Y(s.y + 2), "#be3473"], [X(s.x1 - 1), Y(s.y + 3), "#be3473"], [X(s.x1 - 1), Y(s.y + 4), "#ffd166"]);
     pts.push([X(s.x0 - 1), Y(s.y + 1), "#ed559a"], [X(s.x0 - 2), Y(s.y + 1 + Math.max(0, wave)), "#ed559a"], [X(s.x0 - 3), Y(s.y + 2), "#be3473"], [X(s.x0 - 4), Y(s.y + 2 + Math.max(0, wave)), "#ffd166"]);
     blob(put, pts, "#472334");
+  }
+  // El chaleco de pesca: oliva, abierto por delante, con dos bolsillos de
+  // solapa y un señuelo prendido en el pecho.
+  function fisherVest() {
+    let maxX = -99, minY = 99;
+    for (const k of c.bodyMask.keys()) { const [x, y] = k.split(",").map(Number); maxX = Math.max(maxX, x); minY = Math.min(minY, y); }
+    for (const [k, v] of c.bodyMask) {
+      const [x, y] = k.split(",").map(Number);
+      if (v[2] || x > maxX - 2 || v[1] < -0.8) continue;
+      put(x, y, v[1] > 0.55 ? "#4a4a22" : v[0] < -0.5 ? "#9a9a5a" : "#6e6e38");
+    }
+    for (const [bx, by] of [[maxX - 6, minY + 4], [maxX - 6, minY + 7]]) {
+      put(bx, by, "#34340e"); put(bx + 1, by, "#34340e"); put(bx + 2, by, "#34340e");
+      put(bx, by + 1, "#8a8a4a"); put(bx + 1, by + 1, "#8a8a4a"); put(bx + 2, by + 1, "#7a7a42");
+    }
+    put(maxX - 3, minY + 2, "#e84a3a"); put(maxX - 3, minY + 3, "#ffd166"); put(maxX - 2, minY + 2, "#c8c8c8");
+  }
+  // El peto vaquero: denim en la mitad de abajo, el peto delante con su
+  // bolsillo, el tirante que cruza hacia la mochila y un boton de laton.
+  function overalls() {
+    let maxX = -99, minY = 99, maxY = -99;
+    for (const k of c.bodyMask.keys()) { const [x, y] = k.split(",").map(Number); maxX = Math.max(maxX, x); minY = Math.min(minY, y); maxY = Math.max(maxY, y); }
+    for (const [k, v] of c.bodyMask) {
+      const [x, y] = k.split(",").map(Number);
+      if (v[2]) continue;
+      const bib = x >= maxX - 5 && x <= maxX - 1 && y >= minY + 1;
+      if (y < minY + 4 && !bib) continue;
+      put(x, y, v[1] > 0.5 ? "#2e4a80" : v[0] < -0.45 || (bib && x === maxX - 5) ? "#6a8ad0" : "#4466a8");
+    }
+    for (const [x, y] of linePts(maxX - 5, minY + 1, maxX - 9, minY)) put(x, y, "#2e4a80");
+    put(maxX - 4, minY + 1, "#ffe07a"); put(maxX - 2, minY + 1, "#ffe07a");
+    put(maxX - 4, minY + 3, "#f0a040"); put(maxX - 3, minY + 3, "#f0a040"); put(maxX - 2, minY + 3, "#f0a040");
+    put(maxX - 3, Math.min(maxY - 1, minY + 6), "#22385e");
   }
   function vest() {
     let maxX = -99;
@@ -482,7 +536,7 @@ function buildRig(o) {
   a.handB = arm(D.shoulder.b, p.bh, true);
   a.feetB = leg(D.hip.b, p.bf, true);
   if (miku) { c.bodyMask = c.round(17, 28, 5.6, 4.1, tones(P), { n: 2.4 }); mikuTop(); }
-  else { body(); if (fit.body === "market-vest") vest(); }
+  else { body(); if (fit.body === "market-vest") vest(); else if (fit.body === "fisher-vest") fisherVest(); else if (fit.body === "market-overalls") overalls(); }
   a.feet = leg(D.hip.f, p.ff, false);
   if (miku) { mikuSkirt(); mikuHead(); }
   else {
@@ -490,6 +544,7 @@ function buildRig(o) {
     if (fit.face === "green-visor") greenVisor();
     face();
     if (fit.face === "sunglasses") sunglasses();
+    if (fit.face === "market-specs") specs();
     if (fit.ears === "headset") headset();
     if (wig) wigOnPip();
   }

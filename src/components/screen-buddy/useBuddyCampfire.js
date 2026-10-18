@@ -102,7 +102,8 @@ function createCampfire(core, { setCampfire }) {
   }
 
   function pickSnack() {
-    const fish = caughtFishRef.current || [];
+    // (en la lista va todo lo pescado; al palo, solo peces)
+    const fish = (caughtFishRef.current || []).filter((item) => item.kind === "fish");
     if (fish.length && mealsTonight() < MEALS_PER_NIGHT && Math.random() < 0.6) {
       return { item: "fish", fish: fish[Math.floor(Math.random() * fish.length)] };
     }

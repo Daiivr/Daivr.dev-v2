@@ -41,14 +41,38 @@ export function useBuddyEncounters(core, { startRain }) {
     window.addEventListener("daivr-buddy-find", api.onFindSignal);
     window.addEventListener("daivr-buddy-creature", api.onCreatureSignal);
     window.addEventListener("daivr-buddy-enemy", api.onEnemySignal);
-    // (el bicho numero 100: el secreto del pixel blaster)
+    // (el bicho numero 100: el secreto del pixel blaster; el ultimo pez del
+    // valle: el traje de pescador, despues de anunciar la captura)
+    let fisherTimer = 0;
     const onSecret = (event) => {
+      if (event.detail?.id === "fisher-outfit") {
+        window.clearTimeout(fisherTimer);
+        fisherTimer = window.setTimeout(() => {
+          core.spawnParticles("confetti", 14);
+          core.say("VALLEY JOURNAL COMPLETE! every fish in the valley. the fisherman outfit is mine!", 4600, { topic: "fishing" });
+        }, 5200);
+        return;
+      }
       if (event.detail?.id !== "pixel-blaster") return;
       core.spawnParticles("confetti", 14);
       core.say("SECRET UNLOCKED: the pixel blaster! 100 bugs deleted. pew pew.", 4200, { topic: "bugHunt" });
     };
     window.addEventListener("daivr-buddy-secret-unlock", onSecret);
+    // El pescador ambulante asoma por el prado: Buddy avisa (solo si le ve llegar).
+    let fisherTimer2 = 0;
+    const onFisher = (event) => {
+      if (event.detail?.phase !== "arriving") return;
+      window.clearTimeout(fisherTimer2);
+      fisherTimer2 = window.setTimeout(() => {
+        if (core.visibleRef?.current === false || core.activeEventRef?.current) return;
+        core.say("the traveling fisherman is here! he sells rods and lures, and buys fish.", 4200, { topic: "fishing" });
+      }, 6000);
+    };
+    window.addEventListener("daivr-fisherman-state", onFisher);
     return () => {
+      window.clearTimeout(fisherTimer2);
+      window.removeEventListener("daivr-fisherman-state", onFisher);
+      window.clearTimeout(fisherTimer);
       window.removeEventListener("daivr-buddy-secret-unlock", onSecret);
       window.removeEventListener("daivr-buddy-find", api.onFindSignal);
       window.removeEventListener("daivr-buddy-creature", api.onCreatureSignal);

@@ -1,8 +1,8 @@
 import { lazy, outlinedSprite, px, rect } from "../core.js";
 
-// El huerto junto al mercado (las semillas se compran en el puesto: ver
-// shared/buddy-market.mjs). Tres caballones de tierra labrada con su cartel y
-// la regadera de cobre apoyada al lado. Cada planta pasa por sus fases segun
+// El huerto del centro del prado (las semillas se compran en su cobertizo: ver
+// shared/buddy-market.mjs). Tres bancales de madera con la tierra labrada, una
+// valla de estacas detras, su cartel y la regadera apoyada al final. Cada planta pasa por sus fases segun
 // lo que lleva creciendo de verdad (semilla, brote, mata, casi lista y
 // madura, que destella). La tierra se oscurece mojada cuando llueve o cuando
 // Pip la riega (FooterWorld guarda que parcelas se han regado hoy), y Pip
@@ -11,12 +11,12 @@ const LEAF = { l: "#8ad85a", g: "#5ab04a", G: "#3a7a32" };
 const OUT = "#1a3410";
 const CROP_ART = {
   radish: {
-    pal: { ...LEAF, r: "#d8345a", R: "#ff6a8a", W: "#ffd0dc" },
+    pal: { ...LEAF, r: "#d8345a", R: "#ff6a8a", W: "#ffd0dc", D: "#a82040" },
     pair: true,
     stages: [
-      [".l.l.", "lglgl", "..g.."],
-      ["l...l", "gl.lg", ".glg.", "lgglg", "..g.."],
-      { rows: ["l...l", "gl.lg", ".glg.", "..g..", ".rRr.", "rRWRr", "rrrrr", ".rrr."], sink: 3 }
+      ["l...l", "ll.ll", ".lgl.", "..g.."],
+      ["l.l.l", "lglgl", "glGlg", ".gGg.", "..g.."],
+      { rows: ["l.l.l", "lglgl", "glGlg", ".gGg.", ".rRr.", "rRWRr", "rrrrr", ".rDr."], sink: 1 }
     ],
     item: [".l.l.", "lglgl", "..g..", ".rRr.", "rRWRr", "rrrrr", ".rrr.", "..r.."]
   },
@@ -24,9 +24,9 @@ const CROP_ART = {
     pal: { ...LEAF, o: "#e8822a", O: "#ffb04a" },
     pair: true,
     stages: [
-      ["l.l", ".g.", ".g."],
+      ["l.l.l", ".lgl.", "..g.."],
       ["l.l.l", "glglg", ".lgl.", "l.g.l", "..g.."],
-      { rows: ["l.l.l", "glglg", "lglgl", ".lgl.", "..g..", ".oOo.", ".oOo.", "..o.."], sink: 3 }
+      { rows: ["l.l.l", "glglg", "lglgl", ".lgl.", "..g..", ".oOo.", ".oOo.", "..o.."], sink: 1 }
     ],
     item: ["l.l.l", "glglg", ".lgl.", ".oOo.", ".oOo.", ".ooo.", "..o..", "..o.."]
   },
@@ -44,25 +44,47 @@ const CROP_ART = {
     stages: [
       ["l...l", "lg.gl", ".lgl.", "..g.."],
       ["ll.....ll", "lgl...lgl", ".glg.glg.", "..gyYg...", "...gg...."],
-      { rows: ["....s.ll..", "....sllgl.", ".oOoOoOo..", "oOWoOoOoo.", "oOoOoOoOo.", "oOoOoOoOo.", ".ooOoOoo..", "..oooooo.."], sink: 2 }
+      { rows: ["....s.ll..", "....sllgl.", ".oOoOoOo..", "oOWoOoOoo.", "oOoOoOoOo.", "oOoOoOoOo.", ".ooOoOoo..", "..oooooo.."], sink: 1 }
     ],
     item: ["...s...", ".oOoOo.", "oWoOoOo", "oOoOoOo", "oOoOoOo", ".ooooo."]
   }
 };
-const SPROUT = ["l.l", ".g."];
+const SPROUT = ["l.l", "lgl", ".g."];
+// Bancal de madera: tierra labrada arriba (con surcos) y tres tablas delante
+// con clavos en las esquinas; los postes de las esquinas asoman un poco.
+// Mojada, la tierra se oscurece; la madera no cambia.
+const WOOD = { P: "#d8a868", W: "#c8955a", w: "#a8743e", d: "#7a4a22", n: "#4a2e18" };
 const SOIL = {
-  dry: { t: "#b07a4a", b: "#8a5a34", f: "#6e4428", s: "#a06a3e", d: "#5e3a20" },
-  wet: { t: "#7a5236", b: "#5a3a24", f: "#46301c", s: "#6e4a30", d: "#3e2818" }
+  dry: { t: "#a8784a", s: "#8a5a34", f: "#6a4226", ...WOOD },
+  wet: { t: "#6e4a30", s: "#553823", f: "#3e2818", ...WOOD }
 };
-function soilRows(w) {
+function bedRows(w) {
   const row = (fn) => Array.from({ length: w }, (_, x) => fn(x)).join("");
   return [
-    row((x) => (x === 0 || x === w - 1 ? "." : "t")),
-    row((x) => (x === 0 || x === w - 1 ? "t" : x % 3 === 2 ? "f" : "b")),
-    row((x) => (x % 4 === 1 ? "s" : "b")),
+    row((x) => (x === 0 || x === w - 1 ? "P" : "t")),
+    row((x) => (x === 0 || x === w - 1 ? "P" : x % 3 === 1 ? "f" : "s")),
+    row(() => "W"),
+    row((x) => (x === 1 || x === w - 2 ? "n" : "w")),
     row(() => "d")
   ];
 }
+// La valla de detras: postes con la punta en pico cada FENCE_STEP y dos
+// travesaños, de madera clara con su sombra.
+const FENCE_H = 9, FENCE_STEP = 8;
+function fenceRows(w) {
+  const rows = [];
+  for (let y = 0; y < FENCE_H; y++) {
+    let r = "";
+    for (let x = 0; x < w; x++) {
+      const k = x % FENCE_STEP, post = k === 0 || k === 1;
+      if (post) r += y === 0 ? (k === 0 ? "P" : ".") : k === 0 ? "P" : "p";
+      else r += y === 2 ? "R" : y === 3 ? "r" : y === 5 ? "R" : y === 6 ? "r" : ".";
+    }
+    rows.push(r);
+  }
+  return rows;
+}
+const FENCE_PAL = { P: "#d8a868", p: "#a8743e", R: "#c8955a", r: "#8a5a2e" };
 const SIGN = { rows: ["wwwww", "wlglw", "wwgww", "..p..", "..p..", "..p.."], pal: { w: "#c8955a", l: "#8ad85a", g: "#3a7a32", p: "#8a5a2e" }, out: "#3a2414" };
 // La regadera de cinc: cuerpo redondo, asa en arco y el caño largo con la
 // alcachofa en la punta; al regar, inclinada hacia delante.
@@ -89,6 +111,19 @@ const CAN = {
   pal: { h: "#5a6a78", c: "#8aa0b0", C: "#c8d8e0", d: "#5a6a78", s: "#8aa0b0", R: "#c8d8e0" }
 };
 const pad = (rows) => { const w = Math.max(...rows.map((r) => r.length)); return rows.map((r) => r.padEnd(w, ".")); };
+// El contorno de un sprite (para resaltarlo al pasar el raton, como el puesto).
+function outlineSprite(img, col) {
+  const c = document.createElement("canvas");
+  c.width = img.width + 2; c.height = img.height + 2;
+  const g = c.getContext("2d"), d = img.getContext("2d").getImageData(0, 0, img.width, img.height).data;
+  const A = (x, y) => (x < 0 || y < 0 || x >= img.width || y >= img.height ? 0 : d[(y * img.width + x) * 4 + 3]);
+  g.fillStyle = col;
+  for (let y = -1; y <= img.height; y++) for (let x = -1; x <= img.width; x++) {
+    if (A(x, y)) continue;
+    if (A(x + 1, y) || A(x - 1, y) || A(x, y + 1) || A(x, y - 1)) g.fillRect(x + 1, y + 1, 1, 1);
+  }
+  return c;
+}
 export const GARDEN_SPRITES = lazy(() => {
   const crops = {};
   for (const [id, c] of Object.entries(CROP_ART)) {
@@ -99,13 +134,16 @@ export const GARDEN_SPRITES = lazy(() => {
     };
   }
   const soil = {};
-  for (const w of [8, 13]) soil[w] = { dry: outlinedSprite(soilRows(w), SOIL.dry, "#3a2414"), wet: outlinedSprite(soilRows(w), SOIL.wet, "#2a180c") };
+  for (const w of [8, 13]) soil[w] = { dry: outlinedSprite(bedRows(w), SOIL.dry, "#3a2414"), wet: outlinedSprite(bedRows(w), SOIL.wet, "#2a180c") };
+  const can = outlinedSprite(pad(CAN.rest), CAN.pal, "#3a2010");
   return {
     crops, soil, sprout: outlinedSprite(SPROUT, LEAF, OUT),
     sign: outlinedSprite(SIGN.rows, SIGN.pal, SIGN.out),
-    can: outlinedSprite(pad(CAN.rest), CAN.pal, "#3a2010"), canPour: outlinedSprite(pad(CAN.pour), CAN.pal, "#3a2010")
+    can, canPour: outlinedSprite(pad(CAN.pour), CAN.pal, "#3a2010"), canHover: outlineSprite(can, HOVER),
+    fence: (w) => outlinedSprite(fenceRows(w), FENCE_PAL, "#3a2414")
   };
 });
+const HOVER = "#fff3c4";
 // Lo cosechado, para llevarlo en alto (events/garden.js).
 export const cropItem = (crop) => GARDEN_SPRITES().crops[crop]?.item || null;
 
@@ -133,16 +171,47 @@ export function saveWatered(day, watered) {
 export const cropStage = (growth) => (growth >= 1 ? 4 : growth >= 0.65 ? 3 : growth >= 0.35 ? 2 : growth >= 0.12 ? 1 : 0);
 
 // En el borde del prado, pegado al sendero (el agua de la regadera de Pip
-// cae justo en la cara del caballon).
-export const SOIL_TOP = 68; // fila de arriba del caballon (con su contorno)
+// cae justo en la tierra del bancal). Filas del bancal desde SOIL_TOP: contorno,
+// tierra de arriba, tierra (donde arraigan), tres tablas y contorno.
+export const SOIL_TOP = 68; // fila de arriba del bancal (con su contorno)
 export const PLANT_BASE = 70; // donde arraigan las plantas
+const FENCE_TOP = SOIL_TOP - 9; // la valla asoma por detras de los bancales
+
+// Un bancal con lo que crece en el: la tierra (seca o mojada, fundidas), la
+// planta y, por delante, las tablas, que tapan lo que queda bajo tierra (el
+// rabano y la zanahoria asoman de la tierra).
+export function drawBed(g, S, cx, entry, { wet = 0, t = 0, wind = 0, wide = true, snow = null } = {}) {
+  const soil = S.soil[13], left = cx - 7;
+  g.drawImage(soil.dry, left, SOIL_TOP);
+  if (wet > 0.02) { g.globalAlpha = Math.min(1, wet); g.drawImage(soil.wet, left, SOIL_TOP); g.globalAlpha = 1; }
+  if (snow) g.drawImage(snow, left, SOIL_TOP);
+  if (!entry) return;
+  drawPlant(g, S, entry, cx, t, wind, wide);
+  // las tablas de delante, otra vez encima
+  g.drawImage(soil.dry, 0, 3, soil.dry.width, soil.dry.height - 3, left, SOIL_TOP + 3, soil.dry.width, soil.dry.height - 3);
+}
 
 export function createGarden() {
   let L = null, plots = [], watered = new Set(), pulled = new Map();
+  // el huerto quieto (valla y cartel), compuesto una vez, y su contorno
+  let frame = null, frameOutline = null;
   // humedad de cada parcela (0 seca .. 1 mojada), para fundir el color
   const wet = [0, 0, 0];
+  const frameX = () => L.x - 2;
+  function buildFrame() {
+    const S = GARDEN_SPRITES(), w = L.end - L.x + 4;
+    const c = document.createElement("canvas");
+    c.width = w; c.height = 72 - FENCE_TOP + 4;
+    const g = c.getContext("2d");
+    g.drawImage(S.fence(L.fenceEnd - L.x + 1), 1, 0);
+    // (los bancales tambien, para el contorno; luego se pintan encima con su planta)
+    for (const cx of L.plots) g.drawImage(S.soil[13].dry, cx - 7 - frameX(), SOIL_TOP - FENCE_TOP);
+    g.drawImage(S.sign, L.x - 1 - frameX(), 72 - S.sign.height + 1 - FENCE_TOP);
+    frame = c;
+    frameOutline = outlineSprite(c, HOVER);
+  }
   return {
-    setup(ctx) { L = ctx.L.garden; pulled = new Map(); },
+    setup(ctx) { L = ctx.L.garden; pulled = new Map(); frame = null; },
     // FooterWorld: lo plantado ([{ plot, seedId, crop, growth }]) y lo regado hoy.
     set(list, wateredToday) {
       plots = list.slice();
@@ -169,27 +238,24 @@ export function createGarden() {
     },
     ground(g, ctx) {
       if (!L) return;
-      const S = GARDEN_SPRITES(), soil = S.soil[L.w] || S.soil[13], wind = ctx.wind || 1;
-      // el cartel con su brote pintado y la regadera apoyada (si no la lleva Pip)
-      g.drawImage(S.sign, L.x - 1, 72 - S.sign.height + 1);
-      const signCap = ctx.snowCap?.(S.sign);
-      if (signCap) g.drawImage(signCap, L.x - 1, 72 - S.sign.height + 1);
+      if (!frame) buildFrame();
+      const S = GARDEN_SPRITES(), wind = ctx.wind || 1;
+      // la valla y el cartel (con su nieve si la hay)
+      g.drawImage(frame, frameX(), FENCE_TOP);
+      const cap = ctx.snowCap?.(frame);
+      if (cap) g.drawImage(cap, frameX(), FENCE_TOP);
+      // la regadera apoyada al final (si no la lleva Pip)
       const carried = ctx.actors.some((a) => !a.ghost && a.mood === "garden" && a.gardenTask === "water");
-      if (!carried) g.drawImage(S.can, L.x + 3, 73 - S.can.height + 1);
+      if (!carried) g.drawImage(S.can, L.can, 73 - S.can.height + 1);
       for (let i = 0; i < L.plots.length; i++) {
-        const cx = L.plots[i], left = cx - Math.floor(L.w / 2) - 1;
-        g.drawImage(soil.dry, left, SOIL_TOP);
-        if (wet[i] > 0.02) { g.globalAlpha = Math.min(1, wet[i]); g.drawImage(soil.wet, left, SOIL_TOP); g.globalAlpha = 1; }
+        const cx = L.plots[i], entry = plots.find((p) => p.plot === i);
+        drawBed(g, S, cx, entry && !pulled.has(entry.seedId) ? entry : null, { wet: wet[i], t: ctx.t, wind, wide: L.w >= 12, snow: entry ? null : ctx.snowCap?.(S.soil[13].dry) });
         // gotitas que brillan en la tierra recien regada
-        if (wet[i] > 0.6 && !ctx.rain) { px(g, left + 3, SOIL_TOP + 2, "#9ab8d0"); px(g, left + L.w - 2, SOIL_TOP + 3, "#9ab8d0"); }
-        const cap = ctx.snowCap?.(soil.dry);
-        const entry = plots.find((p) => p.plot === i);
-        if (!entry) { if (cap) g.drawImage(cap, left, SOIL_TOP); continue; }
-        if (pulled.has(entry.seedId)) continue;
-        drawPlant(g, S, entry, cx, ctx.t, wind, L.w >= 12);
+        if (wet[i] > 0.6 && !ctx.rain) { px(g, cx - 4, SOIL_TOP + 1, "#9ab8d0"); px(g, cx + 5, SOIL_TOP + 2, "#9ab8d0"); }
       }
     },
-    // lo maduro destella de vez en cuando (como el forraje)
+    // lo maduro destella de vez en cuando (como el forraje), y al pasar el
+    // raton por el huerto (FooterWorld: state.gardenHover) se ilumina el contorno
     glow(g, ctx) {
       if (!L) return;
       for (const entry of plots) {
@@ -199,6 +265,13 @@ export function createGarden() {
         const x = L.plots[entry.plot] + 2, y = PLANT_BASE - 8;
         px(g, x, y, "#ffffff");
         if (c > 0.03 && c < 0.09) { px(g, x - 1, y, "#fff6cf"); px(g, x + 1, y, "#fff6cf"); px(g, x, y - 1, "#fff6cf"); px(g, x, y + 1, "#fff6cf"); }
+      }
+      if (ctx.state?.gardenHover && frameOutline) {
+        const S = GARDEN_SPRITES();
+        g.globalAlpha = 0.85;
+        g.drawImage(frameOutline, frameX() - 1, FENCE_TOP - 1);
+        if (!ctx.actors.some((a) => !a.ghost && a.mood === "garden" && a.gardenTask === "water")) g.drawImage(S.canHover, L.can - 1, 73 - S.can.height);
+        g.globalAlpha = 1;
       }
     },
     // Pip riega: la parcela se moja poco a poco mientras cae el agua.
@@ -212,7 +285,7 @@ export function drawPlant(g, S, entry, cx, t, wind, wide) {
   const stage = cropStage(entry.growth);
   if (stage === 0) {
     // semillas recien enterradas: hoyitos con una semilla asomando
-    for (const dx of wide ? [-3, 0, 3] : [-2, 1]) { px(g, cx + dx, SOIL_TOP + 1, "#4a2e18"); px(g, cx + dx, SOIL_TOP, "#e8d8a0"); }
+    for (const dx of wide ? [-3, 0, 3] : [-2, 1]) { px(g, cx + dx, SOIL_TOP + 2, "#4a2e18"); px(g, cx + dx, SOIL_TOP + 1, "#e8d8a0"); }
     return;
   }
   const art = S.crops[entry.crop];
@@ -223,6 +296,8 @@ export function drawPlant(g, S, entry, cx, t, wind, wide) {
   const xs = art.pair && wide ? [cx - 3, cx + 3] : [cx];
   for (const x of xs) {
     const left = x - Math.floor(img.width / 2);
+    // su sombrita en la tierra
+    g.fillStyle = "rgba(40,22,10,.35)"; g.fillRect(left + 1, PLANT_BASE, Math.max(1, img.width - 2), 1);
     // las hojas de arriba se mecen con el viento; lo de abajo queda quieto
     const sway = Math.sin(t * 1.7 + x * 0.9) * wind > 0.75 ? 1 : 0, half = Math.ceil(img.height / 2);
     g.drawImage(img, 0, 0, img.width, half, left + sway, top, img.width, half);
@@ -230,16 +305,15 @@ export function drawPlant(g, S, entry, cx, t, wind, wide) {
   }
 }
 
-// Una parcela suelta (el cobertizo de semillas del mercado la pinta en su
-// lienzo): el caballon y lo que crece en el, `entry` como en set() o null.
-export const PLOT_PREVIEW = { w: 17, h: 24 };
+// Una parcela suelta (el cobertizo de semillas la pinta en su lienzo): el
+// bancal y lo que crece en el, `entry` como en set() o null.
+export const PLOT_PREVIEW = { w: 17, h: 25 };
 export function drawPlotPreview(canvas, entry, wet = false) {
-  const g = canvas.getContext("2d"), S = GARDEN_SPRITES(), soil = S.soil[13];
+  const g = canvas.getContext("2d"), S = GARDEN_SPRITES();
   canvas.width = PLOT_PREVIEW.w; canvas.height = PLOT_PREVIEW.h;
   g.imageSmoothingEnabled = false;
-  g.setTransform(1, 0, 0, 1, 0, PLOT_PREVIEW.h - 6 - SOIL_TOP);
-  g.drawImage(wet ? soil.wet : soil.dry, 1, SOIL_TOP);
-  if (entry) drawPlant(g, S, entry, 8, 0, 0, true);
+  g.setTransform(1, 0, 0, 1, 0, PLOT_PREVIEW.h - 7 - SOIL_TOP);
+  drawBed(g, S, 8, entry, { wet: wet ? 1 : 0 });
   g.setTransform(1, 0, 0, 1, 0, 0);
 }
 // La cosecha sola (el sobre de semillas la lleva dibujada).
