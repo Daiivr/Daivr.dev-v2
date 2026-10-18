@@ -36,7 +36,7 @@ import { publishSky } from "../lib/pixelWorld/skyBus";
     el chubasco de Buddy de dia.
   `onPhase` avisa a SiteFooter de la fase del dia y del cielo para el resto del
   footer (luz del mundo, sonidos, Buddy).
-  `daivr-sky-test` {minutes, cover, shower, fullMoon} fuerza hora y cielo
+  `daivr-sky-test` {minutes, cover, shower, fullMoon, wind} fuerza hora y cielo
   (comando `sky`).
 */
 
@@ -97,7 +97,9 @@ export function FooterSky({ onPhase }) {
         minutes: Number.isFinite(detail.minutes) ? detail.minutes : current?.minutes ?? null,
         cover: SKY_COVERS.includes(detail.cover) ? detail.cover : current?.cover ?? null,
         shower: detail.shower !== undefined ? detail.shower : current?.shower,
-        fullMoon: detail.fullMoon !== undefined ? Boolean(detail.fullMoon) : current?.fullMoon
+        fullMoon: detail.fullMoon !== undefined ? Boolean(detail.fullMoon) : current?.fullMoon,
+        // (viento forzado: cometas y hojas que vuelan)
+        wind: Number.isFinite(detail.wind) ? detail.wind : current?.wind
       }));
     }
     window.addEventListener("daivr-footer-rain", onRain);
@@ -152,7 +154,7 @@ export function FooterSky({ onPhase }) {
   // habia tormenta o nieve, se queda).
   const cover = squall?.state === "gather" && !["rain", "storm", "snow"].includes(outsideCover) ? "rain" : outsideCover;
   // Lo que sopla: mece el bosque y la hierba (FooterWorld, via SiteFooter).
-  const wind = windStrength(test?.cover ? null : outside, cover);
+  const wind = Number.isFinite(test?.wind) ? test.wind : windStrength(test?.cover ? null : outside, cover);
   // Los colores cambian poco de un minuto a otro: se recalculan por centesimas.
   const altitudeKey = Math.round(clock.altitude * 100);
   const dayKey = now.toDateString();

@@ -12,6 +12,7 @@ import { pipPose } from "./pip/poses.js";
 import { drawJet } from "./pip/jets.js";
 import { RIG_FOOT_X, RIG_OY, RIG_TALL, RIG_W, rigImg } from "./pip/rig.js";
 import { EVENTS } from "./events/index.js";
+import { createLife } from "./life/index.js";
 
 // El mundo del footer en un solo lienzo: el cielo (sky.js, con lo que manda
 // FooterSky), colinas, bosque, prado, sendero, farolas, hoguera y puesto del
@@ -36,7 +37,12 @@ export function createFooterWorld(canvas) {
     actors: [],
     fish: null,
     // Lo que publica FooterSky (skyBus): sol o luna, estrellas fugaces y el arcoiris.
-    scene: { stars: [], rainbow: null, body: null }
+    scene: { stars: [], rainbow: null, body: null },
+    // El cursor sobre el footer (px de arte; at = performance.now()), para que
+    // los pajaritos se asusten; el buzon (bandera arriba si hay carta nueva).
+    pointer: null,
+    mail: { flag: false },
+    reduceMotion: false
   };
   let W = 0, L = null, wc = null, wg = null, ac = null, ag = null, gc = null, gg = null, lightRig = null, base = null;
   const skyArt = createSky();
@@ -58,6 +64,10 @@ export function createFooterWorld(canvas) {
   // (relightFire, desde useBuddyCampfire); entonces prende y crece.
   const fire = { level: 1, out: false, outAt: -99, relightAt: -99 };
   const bubbleLifts = new Map();
+  // La vida del valle (life/): pajaros posados, hojas, buho, huellas, rocio,
+  // cometas, nieve, farolas una a una, la tienda, el buzon y el forraje.
+  const life = createLife();
+  const lc = { t: 0, dt: 0, W: 0, H, L: null, light, sky: state.sky, wind: 0.5, rain: false, wet: 0, season: "", actors: [], pointer: null, trees: [], tufts: [], flowers: [], spawn: (p) => spawn(p), lampTop: LAMP_TOP, standTop: STAND_TOP, standImg: null, holes: [], snowGround: 0, reduceMotion: false, owlLamp: null, state, snowCap: (img) => life.snow.cap(img) };
 
   function build(cssWidth) {
     W = Math.max(60, Math.ceil(cssWidth / ART));
@@ -86,6 +96,8 @@ export function createFooterWorld(canvas) {
     bflies = [0, 1, 2].map((i) => ({ hx: L.X(30 + i * 24), hy: 52 + i * 3, ax: 26 + i * 6, ay: 6, sx: 0.35 + i * 0.1, sy: 1.1 + i * 0.3, p: i * 2.1, c: i, x: 0, y: 0, f: 0, dir: 1 }));
     flies = Array.from({ length: 12 }, (_, i) => ({ ax: i % 3 === 0 ? L.lamps[i % L.lamps.length] : 20 + R() * (W - 40), ay: 46 + R() * 22, x: 0, y: 0, b: 0, p: R() * 6, rx: 6 + R() * 12, ry: 3 + R() * 5, sp: 0.3 + R() * 0.4 }));
     parts = []; drops = []; flakes = []; frogs = []; spots = [];
+    Object.assign(lc, { t, W, L, trees, tufts, flowers, standImg: sprites().stand, season: currentSeason(), sky: state.sky, light });
+    life.setup(lc);
     return L;
   }
 
@@ -146,6 +158,8 @@ export function createFooterWorld(canvas) {
     t += dt;
     const sky = state.sky, rain = raining();
     light = lightingFor(sky);
+    // (las farolas que tocan segun la hora, antes de suavizar: Pip las enciende)
+    const lampsWanted = light.lamps > 0.4;
     // (sin bucle, con movimiento reducido, salta directo)
     const k = !shownTint || dt === 0 ? 1 : Math.min(1, dt * 0.8);
     shownTint = (shownTint || light.tint).map((v, i) => v + (light.tint[i] - v) * k);
@@ -222,6 +236,13 @@ export function createFooterWorld(canvas) {
     // (el viento que ve el dibujo: quieto antes del leviatan, rafaga al rugir)
     if (eventWind !== 1) state.windNow = Math.max(0.02, Math.min(2.4, wind * eventWind));
     seasonUpdate(sea, dt, t);
+    const pointer = state.pointer && performance.now() - state.pointer.at < 300 ? state.pointer : null;
+    const holes = [];
+    for (const a of anim.values()) if (a.fishing?.hole && a.fishing.holeOpen > 0) holes.push(a.fishing.hole.x);
+    Object.assign(lc, { t, dt, light, sky, wind: sky.wind || 1, rain, wet, season: currentSeason(), actors: state.actors, pointer, holes, reduceMotion: state.reduceMotion, owlLamp: life.night.owlLamp });
+    lc.snowGround = lc.season === "winter" ? 1 : life.snow.depth;
+    life.lamps.update(lc, lampsWanted);
+    life.update(lc);
   }
 
   // Lo que el lienzo recuerda de cada actor entre fotogramas: lo andado (para
@@ -231,6 +252,8 @@ export function createFooterWorld(canvas) {
   const env = {
     t: 0, dt: 0, spawn: (p) => spawn(p), splash: (x, y, n, col) => splash(x, y, n, col), toWorld: (fr, pt) => toWorld(fr, pt),
     shake: (amt, dur) => { shakeAmt = amt; shakeUntil = t + dur; },
+    // (la cabeza de las farolas, para lo que pasa en ellas: chispas del apagon)
+    lampY: 72 - LAMP_H + 6,
     get layout() { return L; }
   };
   function animateActors(dt) {
@@ -251,7 +274,7 @@ export function createFooterWorld(canvas) {
       a.hoverH = Math.max(0, Math.min(4, a.hoverH + (flying ? 16 : -16) * dt));
       if (flying && a.hoverH > 2 && Math.random() < dt * 12) spawn({ k: "smoke", x: actor.x - actor.dir * 2, y: FEET + 1, vx: -actor.dir * 8, vy: 4, life: 0.9, max: 0.9 });
       for (const ev of EVENTS) if (ev.update) ev.update(actor, a, env);
-      if (actor.mood === "sleep" && t > a.nextZ) {
+      if (actor.mood === "sleep" && !actor.tent && t > a.nextZ) {
         a.nextZ = t + 1.3 + Math.random() * 0.4;
         spawn({ k: "z", x: actor.x - 4 * actor.dir, y: FEET - 30 + (actor.y || 0), vx: -2.5 * actor.dir, vy: -4, life: 2.6, max: 2.6, wob: Math.random() * 6 });
       }
@@ -377,7 +400,7 @@ export function createFooterWorld(canvas) {
     const fl = 1 + Math.sin(t * 13) * 0.05 + Math.sin(t * 7.3) * 0.05, lampY = 72 - LAMP_H + 6;
     if (fire.level > 0.02) lights.push({ x: L.fireX, y: 66, r: (24 + 10 * d) * fl * (0.4 + 0.6 * fire.level), c: [1, 0.66, 0.36], s: (0.45 + 0.6 * d) * fire.level });
     if (light.lamps > 0) {
-      for (const lx of L.lamps) lights.push({ x: lx, y: lampY, r: 13 + 9 * d, c: [1, 0.8, 0.5], s: (0.3 + 0.55 * d) * light.lamps });
+      L.lamps.forEach((lx, i) => { const k = life.lamps.level(i, t); if (k > 0.02) lights.push({ x: lx, y: lampY, r: 13 + 9 * d, c: [1, 0.8, 0.5], s: (0.3 + 0.55 * d) * light.lamps * k }); });
       if (state.market.open) lights.push({ x: L.standX + 54, y: STAND_TOP + 31, r: 10 + 2 * d, c: [1, 0.8, 0.5], s: (0.3 + 0.4 * d) * light.lamps });
     }
     // Pip es un robot: de noche su pantalla alumbra un poco a su alrededor y
@@ -391,6 +414,7 @@ export function createFooterWorld(canvas) {
     const n = Math.round(flies.length * light.fireflies);
     for (let i = 0; i < n; i++) { const f = flies[i]; if (f.b > 0.3) lights.push({ x: f.x, y: f.y, r: 4, c: [0.75, 1, 0.35], s: 0.35 * f.b }); }
     if (d > 0.15) seasonLights(lights, sea);
+    life.lights(lights, lc);
     lights.push(...eventLights);
     return lights;
   }
@@ -423,14 +447,19 @@ export function createFooterWorld(canvas) {
     flashStart = false;
     seasonSkyLayer(g, sea, t, light.dark > 0.6);
     if (eventSky && eventSky.a > 0.01) { g.globalAlpha = Math.min(1, eventSky.a); rect(g, 0, 0, W, H, eventSky.c); g.globalAlpha = 1; }
+    life.sky(g, lc);
 
     wg.clearRect(0, 0, W, H);
     wg.drawImage(base, 0, 0);
+    life.snow.groundCover(wg, lc);
     if (wet > 0.35) for (const [p, w] of PUDDLES) drawPuddle(wg, L.X(p), w, Math.min(1, (wet - 0.35) * 3));
     for (const d of ["far", "near"]) for (const tree of trees) {
       if (tree.d !== d) continue;
-      const a = tree.art, x = tree.x - Math.floor(a.w / 2), y = TREE_BASE[d] - a.h + 1;
-      drawSway(wg, a.c, x, y, a.ch, swayAt(t, tree.x, wind));
+      const a = tree.art, x = tree.x - Math.floor(a.w / 2), y = TREE_BASE[d] - a.h + 1, sw = swayAt(t, tree.x, wind);
+      drawSway(wg, a.c, x, y, a.ch, sw);
+      // la nieve acumulada en la copa se mece con ella
+      const cap = life.snow.cap(a.c);
+      if (cap) drawSway(wg, cap, x, y, a.ch, sw);
     }
     for (const f of flowers) {
       const sw = swayAt(t, f.x, wind) < 0 ? -1 : 0;
@@ -447,10 +476,14 @@ export function createFooterWorld(canvas) {
     // La hierba del borde va antes que farolas, puesto y hoguera: nunca los tapa.
     const tuftLean = (tuft) => (swayAt(t, tuft.x, wind) < 0 || Math.sin(t * 3 + tuft.p) > 0.9 ? -1 : 0);
     for (const tuft of tufts) if (!tuft.lane) drawTuft(wg, tuft, tuftLean(tuft), false);
-    for (const lx of L.lamps) wg.drawImage(S.lamp, lx - 5, LAMP_TOP);
-    wg.drawImage(state.market.open ? S.stand : S.standClosed, L.standX, STAND_TOP);
+    const lampCap = life.snow.cap(S.lamp), standImg = state.market.open ? S.stand : S.standClosed, standCap = life.snow.cap(standImg);
+    for (const lx of L.lamps) { wg.drawImage(S.lamp, lx - 5, LAMP_TOP); if (lampCap) wg.drawImage(lampCap, lx - 5, LAMP_TOP); }
+    wg.drawImage(standImg, L.standX, STAND_TOP);
+    if (standCap) wg.drawImage(standCap, L.standX, STAND_TOP);
     wg.drawImage(S.camp, L.fireX - 12, 76 - 7);
     seasonWorld(wg, sea, t);
+    lc.t = t;
+    life.ground(wg, lc);
     for (const p of parts) if (p.k === "smoke") {
       wg.globalAlpha = Math.min(1, p.life / p.max) * 0.55;
       const sz = p.life > p.max * 0.5 ? 2 : 3;
@@ -462,7 +495,7 @@ export function createFooterWorld(canvas) {
     for (const tuft of tufts) if (tuft.lane && underFoot(tuft)) drawTuft(wg, tuft, 0, true);
     // Buddy y las visitas: sombra en el suelo y el muñeco (las visitas, mas tenues).
     // (lo que esta tan alto que no cabe en el lienzo lo pinta el DOM de ScreenBuddy)
-    const frames = state.actors.filter((actor) => !actor.aloft).map((actor) => ({ actor, fr: actorFrame(actor, false) })).filter((entry) => entry.fr && entry.fr.alpha > 0);
+    const frames = state.actors.filter((actor) => !actor.aloft && !(actor.tent && actor.mood === "sleep")).map((actor) => ({ actor, fr: actorFrame(actor, false) })).filter((entry) => entry.fr && entry.fr.alpha > 0);
     for (const { actor, fr } of frames) {
       const w = actor.ghost ? 7 : Math.max(3, 9 - Math.round(fr.lift * 0.6) - Math.round(-(actor.y || 0) / 6));
       const x = Math.round(actor.x) + (fr.pose.pose === "sit" || fr.pose.pose === "stick" ? -2 * actor.dir : 0);
@@ -492,6 +525,7 @@ export function createFooterWorld(canvas) {
     };
     // Capa de delante: Buddy, las visitas, las ranas, la hierba que pisan y el pez.
     ag.clearRect(0, 0, W, H);
+    life.under(ag, lc);
     for (const entry of frames) if (entry.actor.ghost && !aloft(entry)) blit(ag, entry.fr.rig.c, entry.fr.left, entry.fr.top, entry.fr.flip, entry.fr.alpha);
     for (const entry of frames) if (!entry.actor.ghost && !aloft(entry)) drawActor(ag, entry);
     if (resident) {
@@ -501,6 +535,7 @@ export function createFooterWorld(canvas) {
     }
     for (const frog of frogs) blit(ag, frog.hopT >= 0 ? S.frogHop : S.frog, Math.round(frog.x) - 4, 73 - Math.round(frog.hop), frog.dir < 0, frog.alpha);
     for (const tuft of tufts) if (tuft.lane && !underFoot(tuft)) drawTuft(ag, tuft, tuftLean(tuft), false);
+    life.front(ag, lc);
     const fish = state.fish;
     if (fish && fish.alpha > 0) {
       // Por debajo de la superficie del agua no se ve: sale y entra del agujero.
@@ -521,8 +556,8 @@ export function createFooterWorld(canvas) {
     // Lo que brilla por si mismo, entre el fondo y Buddy: farolas, cristal del
     // puesto, llamas, chispas y halos.
     if (light.lamps > 0) {
+      L.lamps.forEach((lx, i) => { const k = light.lamps * life.lamps.level(i, t); if (k > 0.01) { g.globalAlpha = k; g.drawImage(S.lampLit, lx - 5, LAMP_TOP); } });
       g.globalAlpha = light.lamps;
-      for (const lx of L.lamps) g.drawImage(S.lampLit, lx - 5, LAMP_TOP);
       if (state.market.open) g.drawImage(S.standGlass, L.standX + 53, STAND_TOP + 30);
       g.globalAlpha = 1;
     }
@@ -537,9 +572,10 @@ export function createFooterWorld(canvas) {
     if (light.dark > 0.5) {
       const fl = 1 + Math.sin(t * 13) * 0.06, k = (light.dark - 0.5) * 2;
       if (fire.level > 0.05) { halo(g, L.fireX, 64, 16 * fl * (0.5 + 0.5 * fire.level), "255,170,90", 0.07 * k * fire.level); halo(g, L.fireX, 64, 8 * fl, "255,200,120", 0.08 * k * fire.level); }
-      for (const lx of L.lamps) { halo(g, lx, LAMP_TOP + 5, 9, "255,210,140", 0.06 * k * light.lamps); halo(g, lx, LAMP_TOP + 5, 4, "255,230,170", 0.08 * k * light.lamps); }
+      L.lamps.forEach((lx, i) => { const on = light.lamps * life.lamps.level(i, t); if (on > 0.01) { halo(g, lx, LAMP_TOP + 5, 9, "255,210,140", 0.06 * k * on); halo(g, lx, LAMP_TOP + 5, 4, "255,230,170", 0.08 * k * on); } });
     }
     if (state.market.hover) { g.globalAlpha = 0.85; g.drawImage(S.standHover, L.standX - 1, STAND_TOP - 1); g.globalAlpha = 1; }
+    life.glow(g, lc);
     // Lo que los eventos ponen entre el fondo y Buddy con su propia luz (el
     // leviatan y el kraken, que pueden salir por encima del cielo).
     env.light = light;
@@ -616,6 +652,18 @@ export function createFooterWorld(canvas) {
   return {
     state, build, setSeason, update, draw, splash, impact, wish, waterSpot, splashSpot, rainFrogs, bubbleLifts, relightFire, raining,
     flock: (kind, dir) => skyArt.flock(kind, dir),
+    life,
+    // (pruebas) el contexto que reciben los modulos de life/
+    get lifeCtx() { return lc; },
+    // El cursor sobre el lienzo, en px de arte (los pajaritos se asustan).
+    pointer(x, y) { state.pointer = x == null ? null : { x, y, at: performance.now() }; },
+    // Farolas: cuales faltan por cambiar ([{ i, x }]) y que Pip cambie una.
+    lampsPending: () => life.lamps.pending(),
+    get lampsWant() { return life.lamps.want; },
+    switchLamp: (i, on) => life.lamps.switch(lc, i, on),
+    // Forraje del dia: ponerlo y recogerlo.
+    setForage: (list) => life.forage.set(list),
+    pickForage: (slot) => life.forage.pick(slot, lc),
     get fireOut() { return fire.out; },
     get layout() { return L; },
     get width() { return W; }

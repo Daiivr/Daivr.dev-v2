@@ -42,21 +42,51 @@
   opacity: .45;
 }
 
+/* El cartel del apagon, en pixel como el footer: placa de tinta con el borde
+   de neon y las esquinas mordidas, un rayo de pixel que parpadea y, al
+   volver la luz, en verde con una barra de segmentos que se llena. */
 .power-outage-label {
+  --outage-rim: #ff5f68;
   position: absolute;
   top: 1rem;
   left: 50%;
-  border: 1px solid rgba(255,95,104,.42);
-  background: rgba(2,6,4,.9);
-  padding: .38rem .65rem;
-  color: #ff5f68;
-  font-family: var(--font-pixel);
-  font-size: .52rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 4px 10px;
+  border: 3px solid var(--outage-rim);
+  background: #07090c;
+  color: var(--outage-rim);
+  font: 400 22px/1 "Jersey 10", var(--font-pixel), monospace;
   letter-spacing: .14em;
+  text-shadow: 0 0 8px color-mix(in srgb, var(--outage-rim) 55%, transparent);
+  white-space: nowrap;
   transform: translateX(-50%);
+  clip-path: polygon(0 3px, 3px 3px, 3px 0, calc(100% - 3px) 0, calc(100% - 3px) 3px, 100% 3px, 100% calc(100% - 3px), calc(100% - 3px) calc(100% - 3px), calc(100% - 3px) 100%, 3px 100%, 3px calc(100% - 3px), 0 calc(100% - 3px));
 }
-
-.cabinet-power-outage.is-restore .power-outage-label { color: #3fff97; border-color: rgba(63,255,151,.5); }
+.power-outage-bolt {
+  flex: none;
+  width: 12px;
+  height: 18px;
+  margin-top: -2px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 9' shape-rendering='crispEdges'%3E%3Cpath d='M3 0h3v1H3zM2 1h3v1H2zM1 2h3v1H1zM0 3h6v1H0zM2 4h3v1H2zM1 5h3v1H1zM0 6h3v1H0zM0 7h2v1H0zM0 8h1v1H0z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 6 9' shape-rendering='crispEdges'%3E%3Cpath d='M3 0h3v1H3zM2 1h3v1H2zM1 2h3v1H1zM0 3h6v1H0zM2 4h3v1H2zM1 5h3v1H1zM0 6h3v1H0zM0 7h2v1H0zM0 8h1v1H0z'/%3E%3C/svg%3E") center / 100% 100% no-repeat;
+  animation: outage-bolt-blink .9s steps(2, end) infinite;
+}
+.power-outage-bar {
+  flex: none;
+  width: 64px;
+  height: 8px;
+  margin: 0 2px 2px 4px;
+  box-shadow: 0 0 0 2px #07090c, 0 0 0 4px var(--outage-rim);
+  background: repeating-linear-gradient(90deg, var(--outage-rim) 0 6px, transparent 6px 8px) 0 0 / 0 100% no-repeat;
+  animation: outage-bar-fill 1.6s steps(8, end) forwards;
+}
+.cabinet-power-outage.is-restore .power-outage-label { --outage-rim: #3fff97; }
+.cabinet-power-outage.is-restore .power-outage-bolt { animation: none; }
+@keyframes outage-bolt-blink { 0% { opacity: 1; } 100% { opacity: .25; } }
+@keyframes outage-bar-fill { to { background-size: 100% 100%; } }
 
 @keyframes cabinet-blackout-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes cabinet-power-flicker { 0%,18%,42%,68% { opacity: .12; } 9%,31%,55%,100% { opacity: .98; } }
@@ -64,6 +94,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .has-power-outage .cabinet-layout::after { animation: none; }
+  .power-outage-bolt { animation: none; }
+  .power-outage-bar { animation: none; background-size: 100% 100%; }
 }
 
 @theme {

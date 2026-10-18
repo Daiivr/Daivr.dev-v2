@@ -579,7 +579,11 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
       {powerOutage ? (
         <div className={`cabinet-power-outage is-${powerOutage}`} aria-live="polite">
           <span className="power-outage-noise" aria-hidden="true" />
-          <span className="power-outage-label">{powerOutage === "restore" ? "POWER RESTORING" : "CABINET POWER LOST"}</span>
+          <span className="power-outage-label">
+            <i className="power-outage-bolt" aria-hidden="true" />
+            <span>{powerOutage === "restore" ? "POWER RESTORING" : "CABINET POWER LOST"}</span>
+            {powerOutage === "restore" ? <i className="power-outage-bar" aria-hidden="true" /> : null}
+          </span>
         </div>
       ) : null}
       {buddyDrop ? (

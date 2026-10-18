@@ -14,6 +14,10 @@
 
   /* Ancla invisible de la hoguera (useBuddyCampfire la mide para sentar a Buddy). */
   .footer-world .footer-campfire { position: absolute; bottom: 0; left: var(--world-fire-left, 0); width: 48px; height: 16px; }
+  /* El buzon: boton invisible encima del que dibuja el mundo (life/mailbox.js). */
+  .footer-mailbox { position: absolute; z-index: 4; left: var(--world-mail-left, 200px); bottom: calc(100% + 10px); width: 30px; height: 34px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+  .footer-mailbox:focus-visible { outline: 2px solid #ffd166; outline-offset: 2px; }
+  .footer-world .footer-tent { position: absolute; bottom: 0; left: var(--world-tent-left, 0); width: 60px; height: 40px; pointer-events: none; }
 
   /* Pip agarrado o en paracaidas por encima de lo que alcanza el lienzo:
      se pinta aqui, en el DOM, con la tela detras de el. */
