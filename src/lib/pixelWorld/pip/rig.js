@@ -43,9 +43,13 @@ export const HATS = {
 export const HAND_ITEMS = {
   "market-lantern": { rows: ["..k..", ".kkk.", "kgGgk", "kGWGk", "kgGgk", ".kkk."], pal: { k: "#2a2622", g: "#ffb347", G: "#ffd873", W: "#fffbe0" }, em: new Set(["g", "G", "W"]), at: [-1, 2], out: null, front: true },
   coffee: { rows: [".wwwww", "hwcccw", "hwwwwW", ".wwwwW", ".wwwwW"], pal: { w: "#f4fff8", W: "#c9dcd4", c: "#6b3f24", h: "#45d8ff" }, at: [1, -2], out: "#1f3a3a", front: true, steam: [[[3, -2], [4, -3], [3, -4]], [[4, -2], [3, -3], [4, -4]]] },
-  // (id "wrench": es el pixel blaster, como su icono del inventario; la mano
-  // agarra la culata y el cañon apunta hacia delante, con la boca encendida)
-  wrench: { rows: ["bLLLLLL.", "bPPPPbbW", "bbbbbbbW", "..gG....", "..gG...."], pal: { b: "#388fa8", L: "#8eeaf1", P: "#ff5c9e", W: "#ecfff6", g: "#8eeaf1", G: "#275365" }, em: new Set(["W"]), at: [-1, -3], out: "#112b38", front: false },
+  // El pixel blaster (secreto): la mano agarra la culata y el cañon apunta
+  // hacia delante, con la boca encendida.
+  "pixel-blaster": { rows: ["bLLLLLL.", "bPPPPbbW", "bbbbbbbW", "..gG....", "..gG...."], pal: { b: "#388fa8", L: "#8eeaf1", P: "#ff5c9e", W: "#ecfff6", g: "#8eeaf1", G: "#275365" }, em: new Set(["W"]), at: [-1, -3], out: "#112b38", front: false },
+  // (id "wrench": la linterna, como su icono del inventario; la mano agarra el
+  // mango amarillo y la cabeza de goma apunta hacia delante. El cristal no
+  // brilla aqui: de noche lo enciende el mundo, con su haz (`lens`).)
+  wrench: { rows: [".....rrr.", "BBBBBhhhL", "bbpbbhhhL", "dddddhhhL", ".....rrr."], pal: { B: "#ffe07a", b: "#e8b830", d: "#b88a18", p: "#e84a3a", h: "#2a2e36", r: "#5a606a", L: "#d8e8f0" }, at: [-2, -2], out: "#1a1408", front: true, lens: [8, 2] },
   cartridge: { rows: ["GGGGGG", "GllllG", "GlddlG", "GllllG", "GGGGGG", "Y.YY.Y"], pal: { G: "#23764e", l: "#3fff97", d: "#102b21", Y: "#ffd166" }, em: new Set(["l"]), at: [1, -5], out: "#0f2a1c", front: true },
   "pumpkin-pail": { rows: ["k...k", ".k.k.", "ppppp", "pFpFp", "ppppp", ".ppp."], pal: { k: "#2a2622", p: "#e8822a", F: "#ffd36b" }, em: new Set(["F"]), at: [-1, 1], out: "#6a2a0e", front: true },
   sparkler: { rows: ["Y", "s", "s", "s", "s"], pal: { Y: "#fff6cf", s: "#9aa0a8" }, em: new Set(["Y"]), at: [1, -6], out: "#3a3a44", front: true }
@@ -109,7 +113,7 @@ function paintRound(put, cx, cy, rx, ry, tone, opt) {
 }
 
 // Donde van pies, manos, cuerpo y antena en cada pose.
-export const POSES = ["idle", "walk", "sit", "stick", "ready", "windup", "cast", "reel", "crouch", "jump", "land", "wave", "hang", "hover", "holdup"];
+export const POSES = ["idle", "walk", "sit", "stick", "ready", "windup", "cast", "reel", "crouch", "jump", "land", "wave", "hang", "hover", "holdup", "pour", "situp", "sitback"];
 export function rigPose(o) {
   const p = { bob: 0, lean: 0, lead: 0, ff: { dx: 1, lift: 0 }, bf: { dx: -1, lift: 0 }, fh: { dx: 0, dy: 4 }, bh: { dx: 0, dy: 4 }, sit: false, antDx: 0, antDy: 0 };
   const f = o.frame | 0;
@@ -127,6 +131,9 @@ export function rigPose(o) {
     case "idle": p.antDy = f % 2; break;
     case "sit": p.sit = true; p.bob = 3; p.fh = { dx: 3, dy: 3 }; p.bh = { dx: 2, dy: 3 }; break;
     case "stick": p.sit = true; p.bob = 3; p.fh = { dx: 4, dy: 0 }; p.bh = { dx: 2, dy: 3 }; break;
+    // (sentado: enseña algo en alto, o se lleva la mano a la mochila)
+    case "situp": p.sit = true; p.bob = 3; p.fh = { dx: 2, dy: -3 }; p.bh = { dx: -2, dy: -3 }; p.antDy = 1; break;
+    case "sitback": p.sit = true; p.bob = 3; p.fh = { dx: 1, dy: 3 }; p.bh = { dx: -4, dy: 1 }; p.lean = -1; break;
     case "ready": p.fh = { dx: 3, dy: 2 }; break;
     case "windup": p.lean = -1; p.fh = { dx: -1, dy: -1 }; p.ff = { dx: 2, lift: 0 }; p.bf = { dx: -2, lift: 0 }; p.antDx = 1; break;
     case "cast": p.lean = 1; p.lead = 1; p.fh = { dx: 5, dy: 1 }; p.ff = { dx: 3, lift: 0 }; p.bf = { dx: -2, lift: 0 }; p.antDx = -1; break;
@@ -138,6 +145,8 @@ export function rigPose(o) {
     case "hang": p.fh = { dx: 1, dy: -5 }; p.bh = { dx: -1, dy: -5 }; p.ff = { dx: f % 2 ? 1 : 0, lift: 1 }; p.bf = { dx: f % 2 ? -1 : 0, lift: 0 }; p.antDx = -1; break;
     case "hover": p.fh = { dx: 4, dy: 1 }; p.bh = { dx: -3, dy: 1 }; p.ff = { dx: 1, lift: 0 }; p.bf = { dx: -1, lift: 0 }; p.antDy = 1; break;
     case "holdup": p.bob = -1; p.fh = { dx: 2, dy: -3 }; p.bh = { dx: -2, dy: -3 }; p.antDy = 1; break;
+    // (regar: el brazo de delante estirado a la altura del hombro)
+    case "pour": p.lean = 1; p.fh = { dx: 4, dy: 0 }; p.antDx = -1; break;
     default: break;
   }
   if (o.moving) { p.lean = 1; p.fh = { dx: -2, dy: 3 }; p.bh = { dx: -3, dy: 2 }; p.antDx = -1; }
@@ -497,6 +506,8 @@ function buildRig(o) {
   a.hand = arm(D.shoulder.f, p.fh, false);
   if (miku && p.fh.dx <= 1) mikuNecktie();
   if (item && item.front) drawItem(item, hx, hy);
+  // (la linterna: donde esta el cristal, para que el mundo encienda el haz)
+  a.lens = item?.lens ? [hx + item.at[0] + item.lens[0], hy + item.at[1] + item.lens[1]] : null;
   a.head = [D.hat[0] + U.x + p.lead, D.top + U.y];
   a.skull = [17 + U.x + p.lead, D.skull + U.y];
   a.mouth = [D.eyes.m[0] + 2 + U.x + p.lead, D.eyes.m[1] + U.y];

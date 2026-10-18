@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { cropById } from "../../../shared/buddy-market.mjs";
 import { LINES } from "./buddyLines";
 import { SPRITE_WIDTH, WALK_SPEED_PX_S } from "./useBuddyCore";
 
@@ -10,8 +11,13 @@ import { SPRITE_WIDTH, WALK_SPEED_PX_S } from "./useBuddyCore";
     no llega, el mundo las cambia solas a los 90 s.
   - Forraje: de vez en cuando va a por una de las cosas de temporada del borde
     del prado, se agacha y la recoge (`daivr-forage-pick`): una moneda.
-  - La tienda: de noche se va a dormir dentro (ScreenBuddy pregunta tentTarget
-    al irse a dormir).
+  - La tienda: se va a dormir dentro (ScreenBuddy pregunta tentTarget al irse
+    a dormir, y antes del modo attract): entra ("enter"), se queda ("in") y
+    al despertar sale ("exit"), con su animacion en el mundo.
+  - El huerto (FooterWorld avisa con `daivr-garden-state`): lo maduro lo
+    cosecha (`daivr-garden-pick`: las monedas van a la cartera) y lo que tiene
+    sed lo riega una vez al dia con la regadera (`daivr-garden-water`), salvo
+    si llueve, que ya lo riega la lluvia.
 */
 const LAMP_GAP = 40;
 const REACH_MS = 1300;
@@ -20,24 +26,43 @@ const RETRY_MS = 6000;
 const FORAGE_COOLDOWN_MS = 45_000;
 const PICK_MS = 900;
 const LAMP_MOODS = ["idle", "talk", "walk", "sleepy"];
+const TENT_ENTER_MS = 1300;
+const TENT_EXIT_MS = 1700;
+const GARDEN_COOLDOWN_MS = 30_000;
+// (de pie a esta distancia del centro de la parcela: al regar, el caño queda
+// encima de la tierra; al cosechar, al alcance de la mano)
+const WATER_GAP = 28;
+const PULL_GAP = 16;
+const POUR_MS = 1700;
+const PULL_MS = 500;
+const HARVEST_MS = 2750;
 
 export function useBuddyLife(core) {
   const [lamps, setLamps] = useState(null);
   const [forage, setForage] = useState(null);
-  const [tent, setTent] = useState(false);
-  const [api] = useState(() => createLife(core, { setLamps, setForage, setTent }));
+  const [tent, setTent] = useState("");
+  const [garden, setGarden] = useState(null);
+  const [api] = useState(() => createLife(core, { setLamps, setForage, setTent, setGarden }));
 
   useEffect(() => {
     core.eventEndHandlers.set("lamps", () => setLamps(null));
     core.eventEndHandlers.set("forage", () => setForage(null));
+    core.eventEndHandlers.set("garden", () => setGarden(null));
+    window.addEventListener("daivr-garden-state", api.onGardenState);
     window.addEventListener("daivr-lamps-state", api.onLampsState);
     window.addEventListener("daivr-forage-state", api.onForageState);
     window.addEventListener("daivr-forage-picked", api.onForagePicked);
     // (consola/pruebas) que vaya ya a por el forraje
     const onForageSignal = () => { if (!core.activeEventRef.current) api.startForage(); };
     window.addEventListener("daivr-buddy-forage", onForageSignal);
+    // (consola/pruebas) que vaya ya al huerto, sin esperar
+    const onGardenSignal = () => { if (!core.activeEventRef.current) api.startGarden({ force: true }); };
+    window.addEventListener("daivr-buddy-garden", onGardenSignal);
     return () => {
       window.removeEventListener("daivr-buddy-forage", onForageSignal);
+      window.removeEventListener("daivr-buddy-garden", onGardenSignal);
+      window.removeEventListener("daivr-garden-state", api.onGardenState);
+      core.eventEndHandlers.delete("garden");
       core.eventEndHandlers.delete("lamps");
       core.eventEndHandlers.delete("forage");
       window.removeEventListener("daivr-lamps-state", api.onLampsState);
@@ -46,14 +71,15 @@ export function useBuddyLife(core) {
     };
   }, [api, core]);
 
-  return { api, view: { lamps, forage, tent } };
+  return { api, view: { lamps, forage, tent, garden } };
 }
 
-function createLife(core, { setLamps, setForage, setTent }) {
+function createLife(core, { setLamps, setForage, setTent, setGarden }) {
   const { rootRef, moodRef, moodGenRef, xRef, activeEventRef, skyPhaseRef, reduceMotion } = core;
   const { beginBuddyEvent, endBuddyEvent, freezeAtCurrentPosition, updateMood, updateFacing, updateTravelDirection, faceTravelDirection, moveTo, schedule, say, pickLine, stageWidth, setWalkMs, spawnParticles } = core;
   const lampState = { want: null, lamps: [], retry: 0 };
   const forageState = { items: [], last: Date.now() - FORAGE_COOLDOWN_MS + 20_000 };
+  const gardenState = { plots: [], raining: false, last: Date.now() - GARDEN_COOLDOWN_MS + 15_000, rainSaid: false };
 
   const maxX = () => Math.max(4, stageWidth() - SPRITE_WIDTH - 4);
   const walkMsTo = (target) => { const d = Math.abs(target - xRef.current); return d < 4 ? 0 : Math.min(9000, (d / WALK_SPEED_PX_S) * 1000); };
@@ -170,15 +196,125 @@ function createLife(core, { setLamps, setForage, setTent }) {
     return true;
   }
 
+  // --- El huerto ------------------------------------------------------------------
+  function onGardenState(event) {
+    const raining = Boolean(event.detail?.raining);
+    gardenState.plots = Array.isArray(event.detail?.plots) ? event.detail.plots : [];
+    // (empieza a llover con algo plantado: lo comenta una vez)
+    if (raining && !gardenState.raining && !gardenState.rainSaid && gardenState.plots.length && !activeEventRef.current && Math.random() < 0.5) {
+      gardenState.rainSaid = true;
+      say(pickLine(LINES.gardenRain), 2400, { topic: "garden", priority: "ambient", key: "ambient" });
+    }
+    gardenState.raining = raining;
+    // Con movimiento reducido no sale al huerto: lo maduro se recoge solo.
+    if (reduceMotion) for (const plot of gardenState.plots) if (plot.ripe) window.dispatchEvent(new CustomEvent("daivr-garden-pick", { detail: { plot: plot.plot } }));
+  }
+  function gardenChore(now = Date.now(), force = false) {
+    if (reduceMotion || !rootRef.current?.parentElement || (!force && now - gardenState.last < GARDEN_COOLDOWN_MS)) return null;
+    if (gardenState.plots.some((plot) => plot.ripe)) return "harvest";
+    if (!gardenState.raining && skyPhaseRef.current !== "night" && gardenState.plots.some((plot) => plot.thirsty)) return "water";
+    return null;
+  }
+  const canGarden = (now) => Boolean(gardenChore(now));
+  function startGarden({ force = false } = {}) {
+    const chore = gardenChore(Date.now(), force);
+    if (!chore || !beginBuddyEvent("garden")) return false;
+    gardenState.last = Date.now();
+    freezeAtCurrentPosition();
+    if (chore === "harvest") harvestPlot(); else waterPlots();
+    return true;
+  }
+  const nearest = (list) => {
+    const at = xRef.current + SPRITE_WIDTH / 2;
+    return list.slice().sort((a, b) => Math.abs(a.x - at) - Math.abs(b.x - at))[0];
+  };
+  // Hasta una parcela (a `gap` px de su centro, por el lado mas cercano) y
+  // mirandola; luego `onArrive(generation)`.
+  function walkToPlot(plot, gap, task, onArrive) {
+    // (por la derecha si cabe: por la izquierda taparia el cartel y el buzon)
+    let side = 1;
+    let target = plot.x + side * gap - SPRITE_WIDTH / 2;
+    if (target < 4 || target > maxX()) { side = -side; target = plot.x + side * gap - SPRITE_WIDTH / 2; }
+    target = Math.max(4, Math.min(maxX(), target));
+    const ms = walkMsTo(target);
+    setGarden({ task, phase: "walk", x: plot.x, crop: plot.crop });
+    if (ms) { faceTravelDirection(target > xRef.current ? 1 : -1); updateMood("garden"); setWalkMs(ms); moveTo(target); }
+    else updateMood("garden");
+    const generation = moodGenRef.current;
+    schedule(() => {
+      if (activeEventRef.current !== "garden" || moodGenRef.current !== generation) return;
+      setWalkMs(0);
+      // mirar a la parcela (facing 1 mira a la izquierda)
+      updateTravelDirection(side < 0 ? 1 : -1); updateFacing(side < 0 ? -1 : 1);
+      onArrive(generation);
+    }, ms + 80);
+  }
+  // Riega, una a una, las parcelas con sed (la mas cercana primero).
+  function waterPlots() {
+    say(pickLine(LINES.gardenWater), 2200, { topic: "garden" });
+    const visited = new Set();
+    const visit = () => {
+      if (activeEventRef.current !== "garden") return;
+      const plot = nearest(gardenState.plots.filter((entry) => entry.thirsty && !visited.has(entry.plot)));
+      if (!plot) { finishGarden(visited.size ? LINES.gardenWatered : null); return; }
+      visited.add(plot.plot);
+      walkToPlot(plot, WATER_GAP, "water", (generation) => {
+        setGarden({ task: "water", phase: "pour", x: plot.x, crop: plot.crop });
+        schedule(() => { if (activeEventRef.current === "garden") window.dispatchEvent(new CustomEvent("daivr-garden-water", { detail: { plot: plot.plot } })); }, 350);
+        schedule(() => { if (activeEventRef.current === "garden" && moodGenRef.current === generation) visit(); }, POUR_MS);
+      });
+    };
+    visit();
+  }
+  // Cosecha lo maduro mas cercano: se agacha, lo arranca y lo levanta.
+  function harvestPlot() {
+    const plot = nearest(gardenState.plots.filter((entry) => entry.ripe));
+    if (!plot) { finishGarden(null); return; }
+    if (Math.random() < 0.6) say(pickLine(LINES.gardenRipe), 1800, { topic: "garden" });
+    walkToPlot(plot, PULL_GAP, "harvest", (generation) => {
+      const stillHere = () => activeEventRef.current === "garden" && moodGenRef.current === generation;
+      setGarden({ task: "harvest", phase: "pull", x: plot.x, crop: plot.crop });
+      schedule(() => { if (stillHere()) window.dispatchEvent(new CustomEvent("daivr-garden-pick", { detail: { plot: plot.plot } })); }, PULL_MS);
+      schedule(() => {
+        const crop = cropById(plot.crop);
+        if (stillHere() && crop) say(pickLine(LINES.gardenHarvest).replace("{crop}", crop.label.toLowerCase()), 2600, { topic: "garden" });
+      }, PULL_MS + 350);
+      schedule(() => { if (stillHere()) finishGarden(null); }, HARVEST_MS);
+    });
+  }
+  function finishGarden(lines) {
+    setGarden(null);
+    updateMood("idle");
+    endBuddyEvent("garden");
+    spawnParticles("heart", 2);
+    if (lines) say(pickLine(lines), 2400, { topic: "garden" });
+  }
+
   // --- La tienda -----------------------------------------------------------------
-  // Donde dormir esta noche (x del escenario), o null si no toca tienda.
+  // Donde dormir (x del escenario), o null si la tienda no se ve.
   function tentTarget() {
-    if (skyPhaseRef.current !== "night") return null;
     const anchor = document.querySelector(".footer-tent"), stage = rootRef.current?.parentElement;
     const rect = anchor?.getBoundingClientRect();
     if (!stage || !rect?.width) return null;
     return Math.max(4, Math.min(maxX(), rect.left + rect.width / 2 - stage.getBoundingClientRect().left - SPRITE_WIDTH / 2));
   }
 
-  return { onLampsState, onForageState, onForagePicked, canForage, startForage, tentTarget, setTent };
+  // Entrar (con su animacion), meterlo directamente (sin verse: modo attract)
+  // o sacarlo (con animacion si se despierta tranquilo; si no, al instante).
+  const tentState = { phase: "" };
+  function tentTo(phase) { tentState.phase = phase; setTent(phase); }
+  function enterTent() {
+    tentTo("enter");
+    schedule(() => { if (tentState.phase === "enter") tentTo("in"); }, TENT_ENTER_MS);
+  }
+  function intoTent() { tentTo("in"); }
+  function leaveTent(animate = true) {
+    if (!tentState.phase || tentState.phase === "exit") return;
+    if (!animate) { tentTo(""); return; }
+    tentTo("exit");
+    schedule(() => { if (tentState.phase === "exit") tentTo(""); }, TENT_EXIT_MS);
+  }
+  const tentPhase = () => tentState.phase;
+
+  return { onLampsState, onForageState, onForagePicked, canForage, startForage, onGardenState, canGarden, startGarden, tentTarget, enterTent, intoTent, leaveTent, tentPhase };
 }

@@ -15,7 +15,7 @@ export const VISIT_GEAR_IDS = [
   "green-visor", "star-cap", "pixel-crown", "rocket-boots",
   "market-beanie", "market-vest", "market-lantern",
   "miku-wig", "miku-costume",
-  "headset", "coffee", "cartridge", "wrench"
+  "headset", "coffee", "cartridge", "wrench", "pixel-blaster"
 ];
 
 // El sprite enseña estas piezas por nivel de amistad, no por desbloqueo.

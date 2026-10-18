@@ -6,7 +6,7 @@
 export const FRIENDSHIP_GEAR = { "party-hat": 2, sunglasses: 3, scarf: 4, "gold-antenna": 5 };
 // Con varias cosas para el mismo hueco gana la primera.
 const HEAD_ORDER = ["pixel-crown", "star-cap", "market-beanie", "party-hat"];
-const FRONT_HAND_ORDER = ["wrench", "cartridge", "coffee", "market-lantern"];
+const FRONT_HAND_ORDER = ["pixel-blaster", "wrench", "cartridge", "coffee", "market-lantern"];
 const BACK_HAND_ORDER = ["market-lantern", "coffee"];
 
 // El evento de temporada viste los huecos que el jugador deja libres.

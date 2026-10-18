@@ -37,6 +37,29 @@ export const bayer = (x, y) => BAYER[((y & 3) << 2) | (x & 3)];
 
 export const N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
 
+// Un sprite a medio deshacer: solo quedan los pixeles cuya trama esta por
+// debajo de `k` (0..1, en cuartos). Para aparecer y desaparecer en pasos de
+// pixel, sin escalar ni volver transparente el dibujo. Se cachea por sprite.
+const dissolveCache = new WeakMap();
+export function dissolveSprite(img, k) {
+  const step = Math.round(Math.max(0, Math.min(1, k)) * 4) / 4;
+  if (step >= 1) return img;
+  let byStep = dissolveCache.get(img);
+  if (!byStep) { byStep = new Map(); dissolveCache.set(img, byStep); }
+  let out = byStep.get(step);
+  if (!out) {
+    out = document.createElement("canvas");
+    out.width = img.width; out.height = img.height;
+    const g = out.getContext("2d");
+    g.drawImage(img, 0, 0);
+    const data = g.getImageData(0, 0, out.width, out.height);
+    for (let y = 0; y < out.height; y++) for (let x = 0; x < out.width; x++) if (bayer(x, y) >= step) data.data[(y * out.width + x) * 4 + 3] = 0;
+    g.putImageData(data, 0, 0);
+    byStep.set(step, out);
+  }
+  return out;
+}
+
 export function makeCanvas(w, h) {
   const c = document.createElement("canvas");
   c.width = Math.max(1, w); c.height = Math.max(1, h);

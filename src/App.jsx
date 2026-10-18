@@ -644,7 +644,7 @@ function CabinetApp({ shellRef, gateOpen: entrySplashOpen = false, onShellClass,
             <ProgramSections theme={theme} interactive={!entrySplashOpen} />
             <CommentsSection />
           </main>
-          <SiteFooter onOpenMarket={() => setBuddyModal("market")} buddy={buddy} season={seasonalEvent} onBuddyPet={handleBuddyPet} onPowerOutage={setPowerOutage} />
+          <SiteFooter onOpenMarket={() => setBuddyModal("market")} onOpenGarden={() => setBuddyModal("garden")} buddy={buddy} season={seasonalEvent} onBuddyPet={handleBuddyPet} onPowerOutage={setPowerOutage} />
         </div>
       </div>
 

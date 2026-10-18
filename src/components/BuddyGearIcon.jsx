@@ -94,11 +94,27 @@ export function BuddyGearArt({ id }) {
         </>
       );
       break;
-    case "wrench":
+    // El pixel blaster (secreto: 100 bichos borrados).
+    case "pixel-blaster":
       artwork = <><path d="M1 5h16v2h5v7h-5v2h-3v7H8v-8H4v-3H1z" fill="#112b38" />
 <path d="M3 7h13v2h5v3h-6v3H9v-3H3z" fill="#388fa8" />
 <path d="M4 7h10v2H4m5 7h4v5H9" fill="#8eeaf1" /><path d="M6 10h7v2H6z" fill="#ff5c9e" />
 <path d="M17 8h4v4h-4z" fill="#ecfff6" /><rect x="10" y="17" width="2" height="3" fill="#275365" /></>;
+      break;
+    // Un secreto sin descubrir: una interrogacion de pixel.
+    case "secret":
+      artwork = <><path d="M7 3h10v2h2v6h-2v2h-3v3h-4v-5h3V7h-2v2H7z" fill="#112b38" />
+<path d="M8 4h8v2h2v4h-2v2h-3v3h-2v-4h3V6h-4v2H8z" fill="#c8a8ff" /><path d="M8 4h8v1H8z" fill="#efe2ff" />
+<path d="M10 17h4v4h-4z" fill="#112b38" /><path d="M11 18h2v2h-2z" fill="#c8a8ff" /></>;
+      break;
+    // (id "wrench": la linterna; antes era el pixel blaster)
+    case "wrench":
+      artwork = <><path d="M0 9h13V6h8v12h-8v-3H0z" fill="#1a1408" />
+<path d="M1 10h12v4H1z" fill="#e8b830" /><path d="M1 10h12v1H1z" fill="#ffe07a" /><path d="M1 13h12v1H1z" fill="#b88a18" />
+<path d="M5 11h2v1H5z" fill="#e84a3a" />
+<path d="M13 7h6v10h-6z" fill="#2a2e36" /><path d="M13 7h6v1h-6zm0 9h6v1h-6z" fill="#5a606a" />
+<path d="M19 8h1v8h-1z" fill="#fff3b0" /><path d="M20 9h1v6h-1z" fill="#ffe08a" />
+<path d="M22 8h2v1h-2zm0 7h2v1h-2zm0-4h2v2h-2z" fill="#ffd166" /></>;
       break;
     case "coffee":
       artwork = (

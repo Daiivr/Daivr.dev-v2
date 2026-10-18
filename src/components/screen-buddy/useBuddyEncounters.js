@@ -41,12 +41,20 @@ export function useBuddyEncounters(core, { startRain }) {
     window.addEventListener("daivr-buddy-find", api.onFindSignal);
     window.addEventListener("daivr-buddy-creature", api.onCreatureSignal);
     window.addEventListener("daivr-buddy-enemy", api.onEnemySignal);
+    // (el bicho numero 100: el secreto del pixel blaster)
+    const onSecret = (event) => {
+      if (event.detail?.id !== "pixel-blaster") return;
+      core.spawnParticles("confetti", 14);
+      core.say("SECRET UNLOCKED: the pixel blaster! 100 bugs deleted. pew pew.", 4200, { topic: "bugHunt" });
+    };
+    window.addEventListener("daivr-buddy-secret-unlock", onSecret);
     return () => {
+      window.removeEventListener("daivr-buddy-secret-unlock", onSecret);
       window.removeEventListener("daivr-buddy-find", api.onFindSignal);
       window.removeEventListener("daivr-buddy-creature", api.onCreatureSignal);
       window.removeEventListener("daivr-buddy-enemy", api.onEnemySignal);
     };
-  }, [api]);
+  }, [api, core]);
 
   return { api, view: { fieldFind, creature, enemy } };
 }

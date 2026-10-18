@@ -19,7 +19,8 @@ const FISHING_SWIFT_COOLDOWN_MS = 55000;
 const FISHING_CHARGE_MS = 1400;
 const FISHING_CAST_MS = 560;
 // Con la captura en alto, y despues guardandola en la mochila.
-const FISHING_SHOW_MS = 3300;
+// (la captura sigue en alto mientras lo anuncia, y luego va a la mochila)
+const FISHING_SHOW_MS = 4900;
 const FISHING_CHEST_MS = 2400;
 
 export function useBuddyFishing(core) {
@@ -81,12 +82,17 @@ function createFishing(core, set) {
   const leviathanInteractionRef = { current: null };
 
   // The opening belongs to the footer. Buddy notices it, approaches, then casts.
-  // El mercado y la hoguera (del borde hasta pasada la hoguera): ahi no se abre la poza.
+  // El mercado y la hoguera (del borde hasta pasada la hoguera) y el huerto
+  // del centro (FooterWorld lo marca con data-dry): ahi no se abre la poza.
   function marketZone() {
     const fire = document.querySelector(".footer-campfire"), stage = core.rootRef.current?.parentElement;
     const rect = fire?.getBoundingClientRect();
     if (!stage || !rect?.width) return [];
-    return [[-Infinity, rect.right - stage.getBoundingClientRect().left + 12]];
+    const left = stage.getBoundingClientRect().left;
+    const zones = [[-Infinity, rect.right - left + 12]];
+    const garden = document.querySelector(".footer-garden[data-dry]")?.getBoundingClientRect();
+    if (garden?.width) zones.push([garden.left - left - 12, garden.right - left + 12]);
+    return zones;
   }
 
   function startFishing({ forceCreature = "" } = {}) {
@@ -165,6 +171,8 @@ function createFishing(core, set) {
         const rareEncore = mikuCostumeRef.current && ["rare", "legendary", "mythic"].includes(tier)
           ? ` ${buddyLine("fishRare")}`
           : "";
+        // (sin esperar a que acabe la frase de la pelea: se anuncia al salir del agua)
+        clearDialogue();
         say(`${prefix}: ${catchItem.name}!${rareEncore}`, 3300);
 
         // Toda captura suma al total (desbloquea aparejos); las raras

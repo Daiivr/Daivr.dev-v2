@@ -8,6 +8,7 @@ import { LINES } from "./screen-buddy/buddyLines";
 import { clamp, desktopQuery, reduceMotionQuery, SPRITE_WIDTH, useBuddyCore, WALK_MARGIN, FALL_SPEED_PX_S } from "./screen-buddy/useBuddyCore";
 import { useBuddyCampfire } from "./screen-buddy/useBuddyCampfire";
 import { useBuddyLife } from "./screen-buddy/useBuddyLife";
+import { useBuddyJellies } from "./screen-buddy/useBuddyJellies";
 import { useBuddyChat } from "./screen-buddy/useBuddyChat";
 import { useBuddySky } from "./screen-buddy/useBuddySky";
 import { useBuddyDrag } from "./screen-buddy/useBuddyDrag";
@@ -41,7 +42,7 @@ const EYE_TRACK_RADIUS = 340;
   pesca, el tiempo, los encuentros, el apagon, la charla y el arrastre. Aqui
   quedan el cerebro (que hacer en cada momento), las caricias y el dibujo.
 */
-export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [], nowPlaying = null, skyPhase = "day", caughtFish = [], fullMoon = false, meteorShower = "" }) {
+export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [], nowPlaying = null, skyPhase = "day", skyCover = "fair", caughtFish = [], fullMoon = false, meteorShower = "" }) {
   const { core, view } = useBuddyCore();
   const fishing = useBuddyFishing(core);
   const weather = useBuddyWeather(core);
@@ -49,6 +50,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
   const outage = useBuddyOutage(core);
   const campfire = useBuddyCampfire(core);
   const life = useBuddyLife(core);
+  const jellies = useBuddyJellies(core);
   const chat = useBuddyChat(core);
   const sky = useBuddySky(core);
   const drag = useBuddyDrag(core);
@@ -103,10 +105,11 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
 
   useEffect(() => {
     core.skyPhaseRef.current = skyPhase;
+    core.skyCoverRef.current = skyCover;
     core.caughtFishRef.current = caughtFish;
     core.fullMoonRef.current = fullMoon;
     core.showerRef.current = meteorShower;
-  }, [core, skyPhase, caughtFish, fullMoon, meteorShower]);
+  }, [core, skyPhase, skyCover, caughtFish, fullMoon, meteorShower]);
 
   function handlePet() {
     if (drag.draggedRef.current) return;
@@ -221,11 +224,11 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
 
     // En desktop camina hasta la esquina mas cercana del footer y duerme ahi;
     // en mobile (o con motion reducido) se duerme donde este.
-    // De noche se mete en su tienda (life); de dia se echa en la esquina.
+    // Se mete en su tienda (life) si se ve; si no, se echa en la esquina.
     function goToSleep() {
       const tentX = desktopQuery?.matches && !reduceMotion ? life.api.tentTarget() : null;
       function enterSleep() {
-        if (tentX != null && Math.abs(xRef.current - tentX) < 24) life.api.setTent(true);
+        if (tentX != null && Math.abs(xRef.current - tentX) < 24) life.api.enterTent();
         updateMood("sleep");
         window.dispatchEvent(new CustomEvent("daivr-buddy-sleep"));
       }
@@ -269,7 +272,9 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       if (activeEventRef.current) return;
 
       const currentMood = moodRef.current;
-      if (["off", "walk", "pet", "party", "dance", "held", "chute", "fishing", "rain", "find", "hunt", "outage", "shoo", "campfire", "lamps", "forage"].includes(currentMood)) return;
+      // (saliendo de la tienda: que termine de desperezarse)
+      if (life.api.tentPhase() === "exit") return;
+      if (["off", "walk", "pet", "party", "dance", "held", "chute", "fishing", "rain", "find", "hunt", "outage", "shoo", "campfire", "lamps", "forage", "garden", "jellies"].includes(currentMood)) return;
 
       const idleFor = Date.now() - lastActivityRef.current;
 
@@ -305,6 +310,8 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       const roll = Math.random();
       if (outage.api.canStart(now) && roll < 0.0007) {
         outage.api.start();
+      } else if (jellies.api.canStart(now) && roll < 0.04) {
+        jellies.api.start();
       } else if (encounters.api.canHunt(now) && roll < 0.025) {
         encounters.api.startBugHunt();
       } else if (encounters.api.canFind(now) && roll < 0.06) {
@@ -317,7 +324,9 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         campfire.api.start();
       } else if (encounters.api.canCreature(now) && roll < 0.2) {
         encounters.api.showCreature();
-      } else if (life.api.canForage(now) && roll < 0.25) {
+      } else if (life.api.canGarden(now) && roll < 0.24) {
+        life.api.startGarden();
+      } else if (life.api.canForage(now) && roll < 0.27) {
         life.api.startForage();
       } else if (roll < 0.3 && !reduceMotion) {
         startWalk();
@@ -355,6 +364,14 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         clearDialogue();
         encounters.api.abortHunt();
         if (moodRef.current !== "sleep") updateMood("sleep");
+        // Si no le dio tiempo a llegar a la tienda, ya esta dentro: la
+        // pantalla del attract lo tapa todo. Al volver, sale de ella.
+        const tentX = desktopQuery?.matches ? life.api.tentTarget() : null;
+        if (tentX != null && life.api.tentPhase() !== "in") {
+          setWalkMs(0);
+          moveTo(tentX);
+          life.api.intoTent();
+        }
         return;
       }
 
@@ -497,12 +514,15 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       weather: weather.view.weather || "", rod: equippedRod, lure: equippedLure,
       lamps: life.view.lamps?.phase || "", lampX: life.view.lamps?.x ?? null, lampOn: Boolean(life.view.lamps?.on),
       forage: life.view.forage?.phase || "", forageX: life.view.forage?.x ?? null, tent: life.view.tent,
+      jellies: jellies.view.jellies?.phase || "", jellyX: jellies.view.jellies?.x ?? null, jellySide: jellies.view.jellies?.side || 0,
+      garden: life.view.garden?.phase || "", gardenTask: life.view.garden?.task || "", gardenX: life.view.garden?.x ?? null, gardenCrop: life.view.garden?.task === "harvest" ? life.view.garden.crop : "",
       portal: fishingView.portal ? { x: fishingView.portal.x, phase: fishingView.portal.phase } : null
     });
   });
   useEffect(() => () => dropActor("host"), []);
   // Al despertar sale de la tienda.
-  useEffect(() => { if (mood !== "sleep") life.api.setTent(false); }, [mood, life.api]);
+  // (despierto tranquilo, sale con su animacion; agarrado o en un evento, al instante)
+  useEffect(() => { if (mood !== "sleep") life.api.leaveTent(["idle", "talk", "pet", "walk"].includes(mood)); }, [mood, life.api]);
 
   return (
     <>

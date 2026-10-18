@@ -1,4 +1,4 @@
-import { bonusCoins, normalizeMarket, mergeMarket, marketWallet, openMarketChest, purchaseMarketItem, MARKET_GEAR } from "../../shared/buddy-market.mjs";
+import { bonusCoins, normalizeMarket, mergeMarket, marketWallet, openMarketChest, purchaseMarketItem, purchaseSeed, plantSeed, harvestCrop, sellCrops, MARKET_GEAR } from "../../shared/buddy-market.mjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { FIELD_FINDS, FISH_CATALOG, KRAKEN, LEVIATHAN } from "../data/buddyWorld";
 import { isBuddyJournalComplete } from "../../shared/buddy-journal.mjs";
@@ -10,7 +10,7 @@ const BUDDY_ENDPOINT = "/api/buddy";
 
 export const BUDDY_INVENTORY = [
   { id: "cartridge", label: "cartridge", source: "quest reward" },
-  { id: "wrench", label: "pixel blaster", source: "quest reward" },
+  { id: "wrench", label: "flashlight", source: "quest reward", perk: "lights the path ahead at night" },
   { id: "coffee", label: "coffee", source: "quest reward" },
   { id: "headset", label: "headset", source: "quest reward" },
   { id: "parachute-upgrade", label: "chute upgrade", source: "quest reward" },
@@ -81,7 +81,7 @@ function createInitialState() {
     starWishes: 0,
     forageFound: 0,
     completed: [],
-    market: { opened: 0, rewards: [], purchases: {} },
+    market: { opened: 0, rewards: [], purchases: {}, seeds: [] },
     inventory: []
   };
 }
@@ -411,6 +411,12 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
         if (detail.type === "forage") {
           return { ...current, forageFound: Math.min(9999, current.forageFound + 1) };
         }
+        // Pip cosecha una planta madura del huerto: sus monedas a la cartera.
+        if (detail.type === "harvest") {
+          const result = harvestCrop(current, String(detail.seedId || ""));
+          if (result.adventure !== current) window.dispatchEvent(new CustomEvent("daivr-garden-harvested", { detail: { seedId: detail.seedId, crop: result.crop?.id, value: result.value } }));
+          return result.adventure;
+        }
 
         if (detail.type === "bug-defeated") {
           return { ...current, bugsDefeated: Math.min(9999, current.bugsDefeated + 1) };
@@ -433,6 +439,17 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
     return () => window.removeEventListener("daivr-buddy-quest-progress", handleProgress);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Secreto: el bicho numero 100 desbloquea el pixel blaster. Solo se anuncia
+  // si cae aqui y ahora (de uno en uno), no al sincronizar desde otro equipo.
+  const bugsSeenRef = useRef(state.bugsDefeated);
+  useEffect(() => {
+    const before = bugsSeenRef.current;
+    bugsSeenRef.current = state.bugsDefeated;
+    if (before < 100 && state.bugsDefeated >= 100 && state.bugsDefeated - before === 1) {
+      window.dispatchEvent(new CustomEvent("daivr-buddy-secret-unlock", { detail: { id: "pixel-blaster" } }));
+    }
+  }, [state.bugsDefeated]);
 
   const quests = useMemo(() => QUESTS.map((quest) => ({
     ...quest,
@@ -482,6 +499,30 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
     market: marketWallet(state),
     openChest() { const result = openMarketChest(stateRef.current); if (result.adventure !== stateRef.current) apply(result.adventure); return { reward: result.reward || 0, message: result.message }; },
     buyItem(id) { const result = purchaseMarketItem(stateRef.current, id); if (result.adventure !== stateRef.current) apply(result.adventure); return result.message; },
+    // El huerto (cobertizo de semillas): comprar a la bolsa, plantar en una
+    // parcela libre y vender la cesta los viernes. Pip cosecha con el
+    // quest-progress "harvest".
+    buySeed(cropId) {
+      const result = purchaseSeed(stateRef.current, cropId);
+      if (result.adventure !== stateRef.current) apply(result.adventure);
+      return result.message;
+    },
+    plantSeed(cropId, plot = null) {
+      const result = plantSeed(stateRef.current, cropId, new Date(), plot);
+      if (result.adventure !== stateRef.current) { apply(result.adventure); window.dispatchEvent(new CustomEvent("daivr-garden-planted", { detail: { seed: result.seed } })); }
+      return result.message;
+    },
+    sellCrops(cropId = null) {
+      const result = sellCrops(stateRef.current, cropId);
+      if (result.adventure !== stateRef.current) { apply(result.adventure); window.dispatchEvent(new CustomEvent("daivr-garden-sold", { detail: { value: result.value } })); }
+      return result.message;
+    },
+    // (desde el cobertizo, si Buddy no esta para cosecharlo)
+    harvest(seedId) {
+      const result = harvestCrop(stateRef.current, seedId);
+      if (result.adventure !== stateRef.current) { apply(result.adventure); window.dispatchEvent(new CustomEvent("daivr-garden-harvested", { detail: { seedId, crop: result.crop?.id, value: result.value } })); }
+      return result.message;
+    },
     completedCount: state.completed.length,
     totalCatches: state.totalCatches,
     rareCatches: state.voidCatches,

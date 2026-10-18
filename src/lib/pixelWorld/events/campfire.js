@@ -1,12 +1,15 @@
 import { FISH_CATALOG } from "../../../../shared/buddy-catches.mjs";
 import { gridSprite, lazy, mix, outlinedSprite, px } from "../core.js";
 import { FEET } from "../layout.js";
+import { PACK } from "./stash.js";
 
 // La hoguera de Buddy (useBuddyCampfire) en pixel art: se sienta en un tronco
 // mirando al fuego y asa una nube o uno de sus peces en una rama. La nube se
 // dora poco a poco (o se quema y arde); el pez se dora con marcas de parrilla
-// y humea al terminar. Fases del hook: sit, toast, done (pez), golden o burnt
-// (nube), eaten. Y "light": la lluvia apago la hoguera y Buddy se agacha a su
+// y humea al terminar. Fases del hook: sit, prep (la saca de la mochila, la
+// enseña en alto sentado y la ensarta en la rama), toast, done (pez), golden o
+// burnt (nube), eat (se la acerca y se la come en tres bocados, con migas; del
+// pez queda la raspa) y eaten (tira la rama al fuego, que chisporrotea). Y "light": la lluvia apago la hoguera y Buddy se agacha a su
 // lado y la enciende con una cerilla (tres rascadas con chispas; a la tercera
 // prende y la acerca a los troncos).
 const SPRITES = lazy(() => ({
@@ -41,10 +44,45 @@ function fishOnStick(id, cooked) {
   return img;
 }
 
+// La raspa que queda en la rama cuando se come el pez.
+const BONES = lazy(() => outlinedSprite(["t..w.w.w...", "ttwwwwwwwSS", "t..w.w.w.SE"], { t: "#d8d0bc", w: "#f4f0e0", S: "#e8e0cc", E: "#3a3428" }, "#6a604c"));
+
 const sitting = (actor) => actor.mood === "campfire" && actor.campfire && actor.campfire !== "walk" && actor.campfire !== "light";
 const lighting = (actor) => actor.mood === "campfire" && actor.campfire === "light";
 const STRIKES = [0.5, 1.15, 1.8];
-const withStick = (phase) => ["toast", "done", "golden", "burnt"].includes(phase);
+const withStick = (phase) => ["toast", "done", "golden", "burnt", "eat"].includes(phase);
+// Preparar: busca en la mochila, la saca, la enseña y la ensarta. Comer: se
+// la acerca, tres bocados y fin. Tirar la rama al fuego.
+const PREP = { reach: 0.35, pull: 0.75, show: 1.25, skewer: 1.75 };
+const EAT = { lift: 0.5, bites: [0.75, 1.2, 1.65] };
+const TOSS_S = 0.5;
+const ease = (k) => k * k * (3 - 2 * k);
+const lerp = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k];
+const bitesAt = (e) => EAT.bites.filter((b) => e >= b).length;
+
+// La golosina mordida: le faltan columnas por el lado de Pip, con el borde
+// ondulado de los dientes. A los tres bocados no queda nada.
+const bittenCache = new Map();
+function bitten(img, n, fromLeft) {
+  if (!n) return img;
+  let byImg = bittenCache.get(img);
+  if (!byImg) { byImg = new Map(); bittenCache.set(img, byImg); }
+  const key = n + (fromLeft ? "l" : "r");
+  let out = byImg.get(key);
+  if (!out) {
+    out = document.createElement("canvas");
+    out.width = img.width; out.height = img.height;
+    const g = out.getContext("2d");
+    g.drawImage(img, 0, 0);
+    const depth = n >= 3 ? img.width : Math.round(n * img.width / 3.2);
+    for (let y = 0; y < img.height; y++) {
+      const cut = depth + [0, 1, 1, 0][y % 4];
+      if (fromLeft) g.clearRect(0, y, cut, 1); else g.clearRect(img.width - cut, y, cut, 1);
+    }
+    byImg.set(key, out);
+  }
+  return out;
+}
 
 export function campfireUpdate(actor, a, env) {
   if (lighting(actor)) {
@@ -60,7 +98,33 @@ export function campfireUpdate(actor, a, env) {
   a.lightFire = null;
   if (!sitting(actor)) { a.campfire = null; return; }
   const C = (a.campfire ??= { phase: "", since: 0 });
-  if (C.phase !== actor.campfire) { C.phase = actor.campfire; C.since = env.t; }
+  if (C.phase !== actor.campfire) { C.phase = actor.campfire; C.since = env.t; C.marks = 0; }
+  const e = env.t - C.since;
+  if (C.phase === "prep" && !C.marks && e > PREP.skewer && C.tip) {
+    C.marks = 1;
+    for (let i = 0; i < 3; i++) env.spawn({ k: "star", x: C.tip[0], y: C.tip[1] - 3, vx: (i - 1) * 14, vy: -10 - Math.random() * 6, g: 40, life: 0.4 });
+  }
+  if (C.phase === "eat" && C.mouth) {
+    // (la quemada: antes de morder, la sopla)
+    if (actor.snack !== "fish" && C.wasBurnt && C.marks === 0 && e > EAT.lift - 0.1) {
+      C.marks = 0.5;
+      for (let i = 0; i < 3; i++) env.spawn({ k: "smoke", x: C.mouth[0] + C.dir * (4 + i), y: C.mouth[1] - 2, vx: C.dir * (8 + i * 3), vy: -4, life: 0.8, max: 0.8 });
+    }
+    const n = bitesAt(e);
+    if (n > Math.floor(C.marks)) {
+      C.marks = n;
+      const crumbs = actor.snack === "fish" ? ["#c98a4a", "#8a5a2e"] : C.wasBurnt ? ["#3a2a24", "#5a4a40"] : ["#f2dcae", "#e6b86c"];
+      for (let i = 0; i < 5; i++) env.spawn({ k: "pix1", x: C.mouth[0] + C.dir * 3, y: C.mouth[1] + 1, vx: (Math.random() - 0.5) * 18, vy: -6 - Math.random() * 8, g: 60, life: 0.5 + Math.random() * 0.3, c: crumbs[i % 2] });
+    }
+  }
+  if (C.phase === "golden" || C.phase === "done") C.wasBurnt = false;
+  if (C.phase === "burnt") C.wasBurnt = true;
+  if (C.phase === "eaten" && !C.marks && e > TOSS_S) {
+    C.marks = 1;
+    const fx = env.layout.fireX;
+    for (let i = 0; i < 10; i++) env.spawn({ k: "spark", x: fx + (Math.random() - 0.5) * 6, y: 68, vx: (Math.random() - 0.5) * 26, vy: -12 - Math.random() * 16, life: 0.5 + Math.random() * 0.5 });
+    env.spawn({ k: "smoke", x: fx, y: 64, vx: 0, vy: -6, life: 1.6, max: 1.6 });
+  }
   if (C.phase === "done" && Math.random() < env.dt * 3) env.spawn({ k: "steam", x: C.tip?.[0] ?? actor.x, y: (C.tip?.[1] ?? FEET - 22) - 3, vx: (Math.random() - 0.5) * 3, vy: -6, life: 1.2, max: 1.2 });
   // La nube quemada suelta humo negro.
   if (C.phase === "burnt" && C.tip && Math.random() < env.dt * 4) env.spawn({ k: "smoke", x: C.tip[0], y: C.tip[1] - 5, vx: -1 - Math.random() * 2, vy: -6, life: 1.4, max: 1.4 });
@@ -77,7 +141,20 @@ export function campfirePose(actor, a, t) {
   }
   const C = a.campfire;
   if (!C) return null;
-  return { pose: withStick(C.phase) ? "stick" : "sit", handsBusy: true, expr: C.phase === "eaten" || C.phase === "golden" || C.phase === "done" ? "happy" : C.phase === "burnt" ? "surprised" : undefined };
+  const e = t - C.since;
+  if (C.phase === "prep") {
+    if (e < PREP.reach) return { pose: "sitback", lookX: -1, handsBusy: true };
+    if (e < PREP.pull) return { pose: "sitback", handsBusy: true, expr: "happy" };
+    if (e < PREP.show) return { pose: "situp", handsBusy: true, expr: "happy", hop: e < PREP.pull + 0.2 ? Math.sin((e - PREP.pull) / 0.2 * Math.PI) * 2 : 0 };
+    return { pose: "stick", handsBusy: true, expr: "focus" };
+  }
+  if (C.phase === "eat") {
+    // masca: la boca abierta justo despues de cada bocado
+    const chewing = EAT.bites.some((b) => e > b && e < b + 0.25) && Math.floor(t * 10) % 2;
+    return { pose: "stick", handsBusy: true, expr: chewing ? "talk" : e > EAT.bites[2] + 0.2 ? "happy" : C.wasBurnt && e < EAT.lift ? "surprised" : "focus" };
+  }
+  if (C.phase === "eaten") return e < TOSS_S ? { pose: "stick", handsBusy: true, expr: "happy" } : { pose: "sit", handsBusy: true, expr: "happy", hop: e < TOSS_S + 0.25 ? Math.sin((e - TOSS_S) / 0.25 * Math.PI) * 2 : 0 };
+  return { pose: withStick(C.phase) ? "stick" : "sit", handsBusy: true, expr: C.phase === "golden" || C.phase === "done" ? "happy" : C.phase === "burnt" ? "surprised" : undefined };
 }
 
 // El tronco, en el suelo y bajo Pip.
@@ -120,30 +197,78 @@ function drawMatch(g, actor, L, fr, env) {
 }
 
 // La rama sale de la mano hacia el fuego, con la nube o el pez en la punta.
+// La golosina (cruda, asada o mordida) con su centro en `at`.
+function snackImg(actor, C, e) {
+  if (actor.snack === "fish") return fishOnStick(actor.snackFish || "", !(C.phase === "prep" || (C.phase === "toast" && e < 2)));
+  const stage = C.phase === "prep" ? 0 : C.phase === "burnt" || (C.phase === "eat" && C.wasBurnt) ? 4 : C.phase === "golden" || C.phase === "eat" ? 3 : Math.min(3, Math.floor(e / 1.2));
+  return mallows()[stage];
+}
+function drawSnack(g, actor, img, at, dir) {
+  const x = Math.round(at[0]), y = Math.round(at[1]);
+  if (actor.snack === "fish") {
+    // La rama entra por la boca: el pez mira hacia Buddy.
+    if (dir > 0) { g.save(); g.translate(x + 5, 0); g.scale(-1, 1); g.drawImage(img, 0, y - 3); g.restore(); }
+    else g.drawImage(img, x - 7, y - 3);
+    return;
+  }
+  g.drawImage(img, x - 3, y - 4);
+}
+
 export function campfireDrawFront(g, actor, a, fr, env) {
   if (a.lightFire) { drawMatch(g, actor, a.lightFire, fr, env); return; }
   const C = a.campfire;
-  if (!C || !withStick(C.phase)) return;
+  if (!C) return;
   const fire = env.layout.fireX, hand = env.toWorld(fr, fr.rig.a.hand), bob = Math.round(Math.sin(env.t * 1.4));
-  const dir = hand[0] < fire ? 1 : -1, tip = [fire - dir, FEET - 24 + bob];
-  C.tip = tip;
-  drawStick(g, hand, tip, dir);
-  const e = env.t - C.since;
-  if (actor.snack === "fish") {
-    const img = fishOnStick(actor.snackFish || "", !(C.phase === "toast" && e < 2));
-    // La rama entra por la boca: el pez mira hacia Buddy.
-    g.save();
-    if (dir > 0) { g.translate(tip[0] + 5, 0); g.scale(-1, 1); g.drawImage(img, 0, tip[1] - 3); }
-    else g.drawImage(img, tip[0] - 7, tip[1] - 3);
-    g.restore();
+  const dir = hand[0] < fire ? 1 : -1, fireTip = [fire - dir, FEET - 24 + bob], e = env.t - C.since;
+  const mouth = env.toWorld(fr, fr.rig.a.mouth), atMouth = [mouth[0] + dir * 5, mouth[1] + 1];
+  C.dir = dir; C.mouth = mouth;
+
+  // Preparar: de la mochila a la mano, en alto, y a la punta de la rama.
+  if (C.phase === "prep") {
+    if (e < PREP.reach) return;
+    // (en alto: encima de la cabeza, entre las dos manos)
+    const img = snackImg(actor, C, e), pack = env.toWorld(fr, PACK), head = env.toWorld(fr, fr.rig.a.head), up = [head[0] + dir, head[1] - 4];
+    if (e < PREP.pull) {
+      const k = ease((e - PREP.reach) / (PREP.pull - PREP.reach)), p = lerp(pack, up, k);
+      drawSnack(g, actor, img, [p[0], p[1] - Math.sin(k * Math.PI) * 6], dir);
+      return;
+    }
+    if (e < PREP.show) { drawSnack(g, actor, img, [up[0], up[1] + (Math.sin(env.t * 8) > 0 ? -1 : 0)], dir); return; }
+    const k = ease(Math.min(1, (e - PREP.show) / (PREP.skewer - PREP.show)));
+    const tip = lerp(hand, fireTip, k);
+    C.tip = fireTip;
+    if (k > 0.15) drawStick(g, hand, tip, dir);
+    drawSnack(g, actor, img, lerp(up, tip, k), dir);
     return;
   }
-  // La nube: de blanca a dorada mientras se tuesta; quemada, negra con brasas.
-  const stage = C.phase === "burnt" ? 4 : C.phase === "golden" ? 3 : Math.min(3, Math.floor(e / 1.2));
-  const img = mallows()[stage];
-  g.drawImage(img, tip[0] - 3, tip[1] - 4);
+
+  // Tirar la rama al fuego: vuela en arco y desaparece entre las llamas.
+  if (C.phase === "eaten") {
+    if (e >= TOSS_S) return;
+    const k = e / TOSS_S, from = hand, to = [fire, FEET - 8];
+    const x = from[0] + (to[0] - from[0]) * k, y = from[1] + (to[1] - from[1]) * k - Math.sin(k * Math.PI) * 10;
+    const ang = k * Math.PI * 2;
+    for (let i = -3; i <= 3; i++) px(g, Math.round(x + Math.cos(ang) * i), Math.round(y + Math.sin(ang) * i), i > 1 ? "#c99a5e" : "#4a2c14");
+    return;
+  }
+
+  if (!withStick(C.phase)) return;
+  // Comer: la punta vuelve del fuego a la boca.
+  const tip = C.phase === "eat" ? lerp(fireTip, atMouth, ease(Math.min(1, e / EAT.lift))) : fireTip;
+  C.tip = tip;
+  drawStick(g, hand, tip, dir);
+  const img = snackImg(actor, C, e), n = C.phase === "eat" ? bitesAt(e) : 0;
+  if (actor.snack === "fish" && n >= 3) {
+    const bones = BONES();
+    const bx = Math.round(tip[0]), by = Math.round(tip[1]) - 2;
+    if (dir > 0) { g.save(); g.translate(bx + 5, 0); g.scale(-1, 1); g.drawImage(bones, 0, by); g.restore(); }
+    else g.drawImage(bones, bx - 8, by);
+    return;
+  }
+  // (los bocados, por el lado de Pip; el pez va dado la vuelta si dir > 0)
+  drawSnack(g, actor, bitten(img, n, actor.snack === "fish" ? false : dir > 0), tip, dir);
   // La punta de la rama asoma por el otro lado.
-  px(g, tip[0] + (dir > 0 ? 4 : -4), tip[1], "#c99a5e");
+  if (actor.snack !== "fish" && n < 3) px(g, Math.round(tip[0]) + (dir > 0 ? 4 : -4), Math.round(tip[1]), "#c99a5e");
 }
 
 // Lo que brilla: la nube que arde.

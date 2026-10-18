@@ -2,7 +2,7 @@
 // a una pose del rig de Pip. Sin DOM: los tests de Node comprueban que todos
 // los humores tienen pose.
 
-export const MOODS = ["off", "idle", "walk", "talk", "pet", "party", "dance", "sleep", "sleepy", "held", "chute", "rain", "fishing", "find", "hunt", "shoo", "outage", "campfire", "lamps", "forage"];
+export const MOODS = ["off", "idle", "walk", "talk", "pet", "party", "dance", "sleep", "sleepy", "held", "chute", "rain", "fishing", "find", "hunt", "shoo", "outage", "campfire", "lamps", "forage", "garden", "jellies"];
 
 const FISHING_POSES = {
   approach: "ready", cast: "cast", wait: "ready", bite: "jump", fight: "reel", catch: "holdup",
@@ -63,6 +63,12 @@ export function pipPose({
       return { ...base, handsBusy: true };
     case "forage":
       return { ...base, pose: "crouch", lookY: 1, handsBusy: true };
+    // (regar y cosechar: lo afina events/garden.js)
+    case "garden":
+      return { ...base, handsBusy: true };
+    // (en el embarcadero, mirando las medusas: lo afina events/jellies.js)
+    case "jellies":
+      return { ...base, expr: "happy" };
     case "campfire":
       if (campfire === "light") return { ...base, pose: "crouch", expr: "focus", handsBusy: true };
       return campfire && campfire !== "walk" ? { ...base, pose: "stick", handsBusy: true } : base;

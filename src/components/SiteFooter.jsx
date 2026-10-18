@@ -8,10 +8,11 @@ import { FooterSky } from "./FooterSky";
 import { FooterSoundscape } from "./FooterSoundscape";
 import { FooterWorld } from "./FooterWorld";
 import { FooterMailbox, useMailbox } from "./FooterMailbox";
+import { gardenPlots } from "../../shared/buddy-market.mjs";
 
 const VISIT_COUNTED_KEY = "daivr.visitCounted.v1";
 
-export function SiteFooter({ buddy, season, onBuddyPet, onPowerOutage, onOpenMarket }) {
+export function SiteFooter({ buddy, season, onBuddyPet, onPowerOutage, onOpenMarket, onOpenGarden }) {
   const [visitCount, setVisitCount] = useState(null);
   const [visitError, setVisitError] = useState(false);
   const [discordUser, setDiscordUser] = useState(null);
@@ -31,6 +32,13 @@ export function SiteFooter({ buddy, season, onBuddyPet, onPowerOutage, onOpenMar
   // El buzon junto a la hoguera: carta del dia y posdata con la version nueva.
   const mail = useMailbox();
   const openQuest = buddy.adventure.quests?.find((quest) => !quest.complete) || null;
+  // El huerto del centro del prado: lo plantado en cada parcela. Al pulsarlo
+  // se abre su cobertizo (un modal propio, como el mercado).
+  const wallet = buddy.adventure.market;
+  const gardenKey = wallet.garden.map((seed) => `${seed.id}@${seed.plot}`).join(",");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const garden = useMemo(() => gardenPlots(wallet), [gardenKey]);
+  const planted = garden.filter(Boolean).length;
   const caughtFish = useMemo(
     () => fishJournal.filter((item) => item.discovered && item.kind === "fish").map(({ id, name }) => ({ id, name })),
     [fishJournal]
@@ -106,9 +114,10 @@ export function SiteFooter({ buddy, season, onBuddyPet, onPowerOutage, onOpenMar
   return (
     <div className={`app-footer-zone sky-${sky.phase} sky-cover-${sky.cover} ${windClass} ${spotify ? "is-spotify-live" : ""}`} style={{ "--wind-strength": sky.wind }}>
       <FooterSky onPhase={onSkyPhase} />
-      <FooterWorld sky={sky} season={season} marketOpen={market.open} marketHover={marketHover} mailFlag={mail.flag} />
+      <FooterWorld sky={sky} season={season} marketOpen={market.open} marketHover={marketHover} mailFlag={mail.flag} garden={garden} />
       <BuddyMarketStand open={market.open} onClick={onOpenMarket} onHoverChange={setMarketHover} />
       <FooterMailbox mail={mail} name={discordUser?.username || ""} quest={openQuest} />
+      <button type="button" className="footer-garden-button" onClick={onOpenGarden} aria-label={`Garden: ${planted ? `${planted} of ${garden.length} plots planted` : "empty"}. Open the seed shed.`} />
       <ScreenBuddy
         onPet={onBuddyPet}
         onPowerOutage={onPowerOutage}
@@ -120,6 +129,7 @@ export function SiteFooter({ buddy, season, onBuddyPet, onPowerOutage, onOpenMar
         unlockedGear={buddy.unlockedGearIds}
         nowPlaying={spotify ? { song: spotify.song, artist: spotify.artist } : null}
         skyPhase={sky.phase}
+        skyCover={sky.cover}
         fullMoon={sky.fullMoon}
         meteorShower={sky.shower}
         caughtFish={caughtFish}

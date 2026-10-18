@@ -1,4 +1,4 @@
-import { ART, blit, ellipseRows, flipped, halo, makeCanvas, px, rect, rng, turned } from "./core.js";
+import { ART, blit, dissolveSprite, ellipseRows, flipped, halo, makeCanvas, px, rect, rng, turned } from "./core.js";
 import { catchSprite } from "./catches.js";
 import { FEET, H, PATH, STAND_TOP, WATER_Y, WORLD_TOP, layoutFor } from "./layout.js";
 import { createLightRig, lightingFor } from "./lighting.js";
@@ -12,6 +12,7 @@ import { pipPose } from "./pip/poses.js";
 import { drawJet } from "./pip/jets.js";
 import { RIG_FOOT_X, RIG_OY, RIG_TALL, RIG_W, rigImg } from "./pip/rig.js";
 import { EVENTS } from "./events/index.js";
+import { behindTent } from "./events/tent.js";
 import { createLife } from "./life/index.js";
 
 // El mundo del footer en un solo lienzo: el cielo (sky.js, con lo que manda
@@ -313,7 +314,10 @@ export function createFooterWorld(canvas) {
     const left = Math.round(actor.x) - (flip ? RIG_W - 1 - RIG_FOOT_X : RIG_FOOT_X);
     const top = FEET - RIG_TALL - lift + Math.round(actor.y || 0);
     const fade = a.fade === "in" ? Math.min(1, (t - a.fadeAt) / 0.65) : a.fade === "out" ? Math.max(0, 1 - (t - a.fadeAt) / 0.65) : 1;
-    return { rig: rigImg(opts), left, top, flip, alpha: (actor.ghost ? 0.62 : 1) * fade, hoverH: a.hoverH, pose, lift };
+    // (entrando o saliendo de la tienda: deshecho en trama)
+    let rig = rigImg(opts);
+    if (pose.dissolve != null && pose.dissolve < 1) rig = { ...rig, c: dissolveSprite(rig.c, pose.dissolve) };
+    return { rig, left, top, flip, alpha: (actor.ghost ? 0.62 : 1) * fade * (pose.dissolve === 0 ? 0 : 1), hoverH: a.hoverH, pose, lift };
   }
   const toWorld = (fr, pt) => [fr.left + (fr.flip ? RIG_W - 1 - pt[0] : pt[0]), fr.top + pt[1] + RIG_OY];
 
@@ -403,6 +407,13 @@ export function createFooterWorld(canvas) {
       L.lamps.forEach((lx, i) => { const k = life.lamps.level(i, t); if (k > 0.02) lights.push({ x: lx, y: lampY, r: 13 + 9 * d, c: [1, 0.8, 0.5], s: (0.3 + 0.55 * d) * light.lamps * k }); });
       if (state.market.open) lights.push({ x: L.standX + 54, y: STAND_TOP + 31, r: 10 + 2 * d, c: [1, 0.8, 0.5], s: (0.3 + 0.4 * d) * light.lamps });
     }
+    // La linterna de Pip: un charco a medio haz y otro, grande, donde da.
+    for (const w of state.actors) {
+      const T = anim.get(w.id)?.torch;
+      if (!T) continue;
+      lights.push({ x: (T.x0 + T.x1) / 2, y: (T.y0 + T.y1) / 2, r: 11, c: [1, 0.95, 0.78], s: 0.4 * T.k });
+      lights.push({ x: T.x1, y: T.y1 - 2, r: 20, c: [1, 0.93, 0.72], s: 0.75 * T.k });
+    }
     // Pip es un robot: de noche su pantalla alumbra un poco a su alrededor y
     // hacia donde mira (las visitas, un brillo azulado mas tenue).
     if (d > 0.25) for (const w of state.actors) {
@@ -417,6 +428,21 @@ export function createFooterWorld(canvas) {
     life.lights(lights, lc);
     lights.push(...eventLights);
     return lights;
+  }
+
+  // La linterna (objeto de la mano): al oscurecer se enciende y apunta al
+  // sendero, unos pasos por delante; andando, el haz se balancea con el paso.
+  // Solo Pip de casa (las visitas son hologramas) y con el cristal a la vista.
+  function aimTorches(frames) {
+    const on = Math.max(0, Math.min(1, (light.dark - 0.3) / 0.35));
+    for (const { actor, fr } of frames) {
+      const a = anim.get(actor.id);
+      if (!a) continue;
+      a.torchK = Math.max(0, Math.min(1, (a.torchK || 0) + (on > 0 && fr.rig.a.lens && !actor.ghost ? 1 : -1) * 0.12));
+      if (!fr.rig.a.lens || actor.ghost || a.torchK <= 0 || on <= 0 || (actor.y || 0) < -4) { a.torch = null; continue; }
+      const lens = toWorld(fr, fr.rig.a.lens), dir = fr.flip ? -1 : 1, sway = actor.moving ? Math.round(Math.sin(t * 7) * 1.5) : 0;
+      a.torch = { x0: lens[0] + dir, y0: lens[1], x1: lens[0] + dir * (actor.moving ? 34 : 26), y1: FEET - 1 + sway, k: a.torchK * on };
+    }
   }
 
   function fishSprite(species, rising, left) {
@@ -495,11 +521,12 @@ export function createFooterWorld(canvas) {
     for (const tuft of tufts) if (tuft.lane && underFoot(tuft)) drawTuft(wg, tuft, 0, true);
     // Buddy y las visitas: sombra en el suelo y el muñeco (las visitas, mas tenues).
     // (lo que esta tan alto que no cabe en el lienzo lo pinta el DOM de ScreenBuddy)
-    const frames = state.actors.filter((actor) => !actor.aloft && !(actor.tent && actor.mood === "sleep")).map((actor) => ({ actor, fr: actorFrame(actor, false) })).filter((entry) => entry.fr && entry.fr.alpha > 0);
+    const frames = state.actors.filter((actor) => !actor.aloft && actor.tent !== "in").map((actor) => ({ actor, fr: actorFrame(actor, false) })).filter((entry) => entry.fr && entry.fr.alpha > 0);
+    aimTorches(frames);
     for (const { actor, fr } of frames) {
       const w = actor.ghost ? 7 : Math.max(3, 9 - Math.round(fr.lift * 0.6) - Math.round(-(actor.y || 0) / 6));
       const x = Math.round(actor.x) + (fr.pose.pose === "sit" || fr.pose.pose === "stick" ? -2 * actor.dir : 0);
-      wg.globalAlpha = fr.alpha;
+      wg.globalAlpha = fr.alpha * (fr.pose.dissolve ?? 1);
       wg.fillStyle = actor.ghost ? "rgba(60,70,140,.18)" : "rgba(20,28,12,.28)";
       wg.fillRect(x - w, FEET + 1, w * 2 + 1, 1); wg.fillRect(x - w + 2, FEET + 2, w * 2 - 3, 1);
       wg.globalAlpha = 1;
@@ -592,6 +619,9 @@ export function createFooterWorld(canvas) {
     gg.setTransform(1, 0, 0, 1, sx, WORLD_TOP + sy);
     const ordered = [...frames.filter((entry) => entry.actor.ghost), ...frames.filter((entry) => !entry.actor.ghost)];
     for (const { actor, fr } of ordered) {
+      // (cruzando la puerta de la tienda, la lona le tapa tambien los ojos)
+      const ta = anim.get(actor.id);
+      if (ta?.tentPhase && behindTent(ta.tentPhase, t - ta.tentSince)) continue;
       const glow = actorFrame(actor, true);
       if (!glow) continue;
       gg.globalCompositeOperation = "destination-out";
@@ -664,6 +694,10 @@ export function createFooterWorld(canvas) {
     // Forraje del dia: ponerlo y recogerlo.
     setForage: (list) => life.forage.set(list),
     pickForage: (slot) => life.forage.pick(slot, lc),
+    // El huerto: lo plantado y lo regado hoy, Pip arranca una planta o riega.
+    setGarden: (plots, watered) => life.garden.set(plots, watered),
+    pullPlot: (plot) => life.garden.pull(plot, lc),
+    soakPlot: (plot, amount) => life.garden.soak(plot, amount),
     get fireOut() { return fire.out; },
     get layout() { return L; },
     get width() { return W; }

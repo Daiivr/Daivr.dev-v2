@@ -37,3 +37,9 @@ export function publishActor(id, next, time = clock()) {
 export function dropActor(id) { actors.delete(id); }
 export function getActor(id) { return actors.get(id) || null; }
 export function listActors() { return [...actors.values()]; }
+
+// Como esta repartido el mundo ahora (layout.js, px de arte), para lo que
+// Buddy tiene que esquivar sin medir el lienzo: las farolas, la tienda...
+let layout = null;
+export function publishLayout(next) { layout = next; }
+export const worldLayout = () => layout;
