@@ -1,5 +1,8 @@
 import { ALL_CATCHES, FISH_CATALOG, VALLEY_CATALOG, catchById } from "../../shared/buddy-catches.mjs";
+import { LURES } from "../../shared/buddy-market.mjs";
 export { ALL_CATCHES, FISH_CATALOG, VALLEY_CATALOG, catchById };
+// Lo bueno que es cada señuelo (basic, good, best); sin señuelo, "none".
+const LURE_TIER = Object.fromEntries(LURES.map((lure) => [lure.id, lure.tier]));
 export { KRAKEN } from "../../shared/buddy-encounters.mjs";
 
 export { FIELD_FINDS } from "../../shared/buddy-journal.mjs";
@@ -76,6 +79,15 @@ export function weightedCatch(lure = "", { fullMoon = false, season = "", hour =
   else rarity = "mythic";
 
   if (rarity === "junk" && lure === "lure-magnet") rarity = "uncommon";
+  // Sin señuelo, los raros pican mucho menos; con uno bueno algo mas, y con
+  // uno de los mejores bastante mas (y algun legendario).
+  const tier = LURE_TIER[lure] || "none";
+  if (tier === "none" && ["rare", "legendary", "mythic"].includes(rarity) && random() < 0.6) rarity = "uncommon";
+  else if (tier === "good" && (rarity === "common" || rarity === "uncommon") && random() < 0.07) rarity = "rare";
+  else if (tier === "best") {
+    if ((rarity === "common" || rarity === "uncommon") && random() < 0.14) rarity = "rare";
+    else if (rarity === "rare" && random() < 0.08) rarity = "legendary";
+  }
   if (rod === "rod-iridium") {
     if ((rarity === "common" || rarity === "uncommon") && random() < 0.2) rarity = "rare";
     else if (rarity === "rare" && random() < 0.18) rarity = "legendary";

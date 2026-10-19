@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { LINES } from "./buddyLines";
-import { nightKey, SPRITE_WIDTH, WALK_SPEED_PX_S } from "./useBuddyCore";
+import { nightKey, SPRITE_WIDTH, walkDuration } from "./useBuddyCore";
 
 /*
   Noches de hoguera: al anochecer Buddy va a la hoguera del mercado
@@ -127,7 +127,7 @@ function createCampfire(core, { setCampfire }) {
     }
     const snack = pickSnack();
     const distance = Math.abs(target - xRef.current);
-    const walkMs = distance < 4 ? 0 : Math.min(9000, (distance / WALK_SPEED_PX_S) * 1000);
+    const walkMs = distance < 4 ? 0 : walkDuration(distance);
 
     say(pickLine(LINES.campfire), 2400, { topic: "campfire" });
     announceAction("campfire", { targetX: target });
@@ -219,7 +219,7 @@ function createCampfire(core, { setCampfire }) {
       target = Math.min(maxX, Math.max(4, fireX + side * LIGHT_GAP - half));
     }
     const distance = Math.abs(target - xRef.current);
-    const walkMs = distance < 4 ? 0 : Math.min(9000, (distance / WALK_SPEED_PX_S) * 1000);
+    const walkMs = distance < 4 ? 0 : walkDuration(distance);
 
     // (misma clave: si aun no ha salido cuando prende, la de "ya esta" la quita de la cola)
     say(pickLine(LINES.campfireRelight), 2400, { topic: "campfire", key: "campfire-relight" });

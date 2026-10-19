@@ -1,4 +1,5 @@
 import { lazy, outlinedSprite, px, rng } from "../core.js";
+import { seasonGroundSpots } from "../layout.js";
 import { dayNumber, natureSeason } from "./util.js";
 
 // Forraje: cada dia salen tres cosas de temporada en el borde del prado
@@ -23,11 +24,16 @@ const BY_SEASON = { spring: ["spring-onion", "dandelion", "wild-leek"], summer: 
 const sprites = lazy(() => Object.fromEntries(Object.entries(FORAGE).map(([id, f]) => [id, outlinedSprite(f.rows, f.pal, f.out)])));
 
 // Las de hoy: tres sitios en el borde del prado, lejos del mercado, las
-// farolas, la tienda, el buzon y el huerto (el mismo dia, el mismo sitio).
+// farolas, la tienda, el buzon, el huerto, el barril de las cañas, el sitio
+// del pescador y lo que pone la fiesta en el suelo (el mismo dia, el mismo
+// sitio).
 export function forageFor(L, W, season, day = dayNumber()) {
   const kinds = BY_SEASON[natureSeason(season)] || BY_SEASON.spring, R = rng(day * 7919 + 13), out = [];
-  const lo = (L.noWater?.[1] ?? 0) + 12, hi = W - 10;
-  const blocked = (x) => L.lamps.some((lx) => Math.abs(lx - x) < 7) || Math.abs(x - L.tentX) < 22 || Math.abs(x - L.mailX) < 9 || (L.garden && x > L.garden.x - 6 && x < L.garden.end + 6) || out.some((o) => Math.abs(o.x - x) < 26);
+  const lo = (L.noWater?.[1] ?? 0) + 12, hi = W - 10, festive = seasonGroundSpots(season, L);
+  const inside = (x, a, b, pad) => x > a - pad && x < b + pad;
+  const blocked = (x) => L.lamps.some((lx) => Math.abs(lx - x) < 7) || Math.abs(x - L.tentX) < 22 || Math.abs(x - L.mailX) < 9 || (L.garden && inside(x, L.garden.x, L.garden.end, 6))
+    || (L.rack && inside(x, L.rack.x, L.rack.x + L.rack.w, 6)) || (L.fisher && inside(x, L.fisher.left, L.fisher.right, 4))
+    || festive.some((fx) => Math.abs(fx - x) < 10) || out.some((o) => Math.abs(o.x - x) < 26);
   for (let slot = 0, tries = 0; slot < 3 && tries < 60 && hi > lo; tries++) {
     const x = Math.round(lo + R() * (hi - lo));
     if (blocked(x)) continue;

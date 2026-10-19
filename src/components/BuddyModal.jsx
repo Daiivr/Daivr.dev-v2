@@ -6,13 +6,13 @@ import { BuddyFisherman } from "./BuddyFisherman";
 import { memo, useEffect, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
-import { BODY_GEAR_IDS, COSTUME_IDS, FACE_GEAR_IDS, HEADWEAR_IDS, LURE_IDS, MOBILITY_IDS, RAIN_GEAR_IDS, ROD_IDS } from "../hooks/useBuddyLoadout";
+import { ANTENNA_IDS, BODY_GEAR_IDS, COSTUME_IDS, FACE_GEAR_IDS, HEADWEAR_IDS, LURE_IDS, MOBILITY_IDS, RAIN_GEAR_IDS, ROD_IDS } from "../hooks/useBuddyLoadout";
 import { useScrollEdges } from "../hooks/useScrollEdges";
 import { BuddyRodIcon } from "./BuddySprite";
 import { PipChute } from "./PipChute";
 import { PipSprite } from "./PipSprite";
 import { BuddyGearIcon } from "./BuddyGearIcon";
-import { BuddyJournal } from "./BuddyJournal";
+import { BuddyFishing } from "./BuddyFishing";
 import { MenuFrameDecor, MenuSky, PixelIcon } from "./BuddyMenuDecor";
 import { menuSkinVars } from "../lib/pixelWorld/menuSkin";
 
@@ -30,14 +30,14 @@ const BUDDY_SLOTS = [
   { id: "costume", label: "costume", accepts: COSTUME_IDS },
   { id: "head", label: "head", accepts: HEADWEAR_IDS },
   { id: "face", label: "face", accepts: FACE_GEAR_IDS },
-  { id: "antenna", label: "antenna", accepts: ["gold-antenna"] },
+  { id: "antenna", label: "antenna", accepts: ANTENNA_IDS },
   { id: "body", label: "body", accepts: BODY_GEAR_IDS },
   { id: "utility", label: "utility", accepts: ["wrench", "pixel-blaster", "cartridge", "coffee", "headset", "market-lantern"] },
   { id: "mobility", label: "mobility", accepts: MOBILITY_IDS },
   { id: "rain", label: "rain gear", accepts: RAIN_GEAR_IDS },
-  { id: "rod", label: "rod", accepts: ROD_IDS },
-  { id: "lure", label: "lure", accepts: LURE_IDS }
 ];
+// (las cañas y los señuelos viven en el modal de pesca)
+const FISHING_SLOTS = new Set(["rod", "lure"]);
 
 // Orden estable del botin: agrupado por slot, en el orden de los slots.
 const SLOT_ORDER = Object.fromEntries(BUDDY_SLOTS.map((slot, index) => [slot.id, index]));
@@ -180,7 +180,7 @@ function BuddyInventoryView({ buddy }) {
   const [ownership, setOwnership] = useState("owned");
   const [feedback, setFeedback] = useState("");
   const [loadoutOpen, setLoadoutOpen] = useState(() => window.innerWidth > 700);
-  const catalog = buddy.catalogItems || buddy.gearItems.map((item) => ({ ...item, unlocked: true }));
+  const catalog = (buddy.catalogItems || buddy.gearItems.map((item) => ({ ...item, unlocked: true }))).filter((item) => !FISHING_SLOTS.has(item.slot));
   // Un solo "slot en foco" alimenta dos pistas: el resaltado al pasar por
   // encima de una pieza y el destino valido mientras se arrastra.
   const [activeSlot, setActiveSlot] = useState(null);
@@ -269,7 +269,7 @@ function BuddyInventoryView({ buddy }) {
           <div className="buddy-miku-lock-notice" role="status">
             <PixelIcon name="lock" />
             <span>costume lock</span>
-            Clothing and accessories stay locked while the Miku Costume is on. Rods and lures are still editable.
+            Clothing and accessories stay locked while the Miku Costume is on. Rods and lures (in the Fishing tab) are still editable.
           </div>
         ) : null}
 
@@ -385,7 +385,8 @@ const BUDDY_VIEWS = [
   { id: "room", label: "Room", icon: "room", title: "Buddy’s Room", description: "A home for your companion. A little space for everything you find." },
   { id: "inventory", label: "Inventory", icon: "inventory", title: "Buddy Inventory", description: "A little gear. A lot of personality. Make Buddy your own." },
   { id: "quests", label: "Quests", icon: "quests", title: "Buddy Quests", description: "Follow your curiosity. Explore the station. Find something new." },
-  { id: "journal", label: "Journal", icon: "journal", title: "Catch Journal", description: "Every catch has a story. Keep a record of the things you find." }
+  // Todo lo de pescar: cañas, señuelos y el diario ("journal" abre aqui, en el diario)
+  { id: "fishing", label: "Fishing", icon: "fish", title: "Fishing", description: "Rods, lures and your catch journal, all in one place." }
 ];
 
 const MARKET_VIEW = { id: "market", label: "Market", title: "The Woodland Stand", description: "Little treasures for a life beside the void." };
@@ -401,7 +402,8 @@ export function BuddyModal({ buddy, mode, onClose, onModeChange, theme, seasonal
   const [lastMode, setLastMode] = useState(mode);
   if (mode && mode !== lastMode) setLastMode(mode);
   const shownMode = mode || lastMode;
-  const view = SHOP_VIEWS[shownMode] || BUDDY_VIEWS.find((item) => item.id === shownMode) || BUDDY_VIEWS[0];
+  const viewId = shownMode === "journal" ? "fishing" : shownMode;
+  const view = SHOP_VIEWS[viewId] || BUDDY_VIEWS.find((item) => item.id === viewId) || BUDDY_VIEWS[0];
   const shop = Boolean(SHOP_VIEWS[view.id]);
 
   // El portal cuelga del body, fuera de `.app-shell`, que es donde vive la
@@ -434,7 +436,7 @@ export function BuddyModal({ buddy, mode, onClose, onModeChange, theme, seasonal
               </nav> : null}
             </header>
             <div className={`buddy-modal-page is-${view.id}`}>
-              {view.id === "market" ? <BuddyMarket buddy={buddy} onNavigate={onModeChange} /> : view.id === "garden" ? <BuddyGarden buddy={buddy} onNavigate={onModeChange} /> : view.id === "fisherman" ? <BuddyFisherman buddy={buddy} onNavigate={onModeChange} /> : view.id === "room" ? <BuddyRoomBoundary onClose={onClose}><BuddyRoom buddy={buddy} seasonalEvent={seasonalEvent} /></BuddyRoomBoundary> : view.id === "inventory" ? <BuddyInventoryView buddy={buddy} /> : view.id === "journal" ? <BuddyJournal buddy={buddy} /> : <BuddyQuestView buddy={buddy} />}
+              {view.id === "market" ? <BuddyMarket buddy={buddy} onNavigate={onModeChange} /> : view.id === "garden" ? <BuddyGarden buddy={buddy} onNavigate={onModeChange} /> : view.id === "fisherman" ? <BuddyFisherman buddy={buddy} onNavigate={onModeChange} /> : view.id === "room" ? <BuddyRoomBoundary onClose={onClose}><BuddyRoom buddy={buddy} seasonalEvent={seasonalEvent} /></BuddyRoomBoundary> : view.id === "inventory" ? <BuddyInventoryView buddy={buddy} /> : view.id === "fishing" ? <BuddyFishing buddy={buddy} initialTab={shownMode === "journal" ? "journal" : "tackle"} /> : <BuddyQuestView buddy={buddy} />}
             </div>
             <MenuFrameDecor />
           </Dialog.Content>

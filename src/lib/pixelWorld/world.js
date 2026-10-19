@@ -354,8 +354,13 @@ export function createFooterWorld(canvas) {
     return { x: Math.random() * (W + 30), y: anywhere ? Math.random() * H : -Math.random() * 12, gy: PATH + 1 + Math.floor(Math.random() * (H - PATH - 2)), v: 120 + Math.random() * 50 };
   }
   // La lluvia cae en todo el valle; la que da en un paraguas rebota en la copa.
+  // Empieza poco a poco cuando el cielo se cubre (primero las nubes, luego
+  // las gotas: al buho le da tiempo a irse antes).
+  let rainSince = -1;
   function updateRain(dt, rain, wind) {
-    const want = rain ? Math.round(W / (state.sky.cover === "storm" ? 3 : 5)) : 0;
+    if (!rain) rainSince = -1; else if (rainSince < 0) rainSince = t;
+    const build = rain ? Math.max(0, Math.min(1, (t - rainSince - 1.6) / 2.2)) : 0;
+    const want = rain ? Math.round(W / (state.sky.cover === "storm" ? 3 : 5) * build) : 0;
     while (drops.length < want) drops.push(newDrop(drops.length === 0));
     const ums = [];
     for (const a of anim.values()) if (a.rain?.um) ums.push(a.rain.um);
@@ -411,8 +416,8 @@ export function createFooterWorld(canvas) {
     for (const w of state.actors) {
       const T = anim.get(w.id)?.torch;
       if (!T) continue;
-      lights.push({ x: (T.x0 + T.x1) / 2, y: (T.y0 + T.y1) / 2, r: 11, c: [1, 0.95, 0.78], s: 0.4 * T.k });
-      lights.push({ x: T.x1, y: T.y1 - 2, r: 20, c: [1, 0.93, 0.72], s: 0.75 * T.k });
+      lights.push({ x: (T.x0 + T.x1) / 2, y: (T.y0 + T.y1) / 2, r: 11, c: w.ghost ? [0.65, 0.8, 1] : [1, 0.95, 0.78], s: 0.4 * T.k });
+      lights.push({ x: T.x1, y: T.y1 - 2, r: 20, c: w.ghost ? [0.7, 0.72, 1] : [1, 0.93, 0.72], s: 0.75 * T.k });
     }
     // Pip es un robot: de noche su pantalla alumbra un poco a su alrededor y
     // hacia donde mira (las visitas, un brillo azulado mas tenue).
@@ -432,16 +437,16 @@ export function createFooterWorld(canvas) {
 
   // La linterna (objeto de la mano): al oscurecer se enciende y apunta al
   // sendero, unos pasos por delante; andando, el haz se balancea con el paso.
-  // Solo Pip de casa (las visitas son hologramas) y con el cristal a la vista.
+  // Las visitas llevan un haz azul-lavanda, tenue como su cuerpo holografico.
   function aimTorches(frames) {
     const on = Math.max(0, Math.min(1, (light.dark - 0.3) / 0.35));
     for (const { actor, fr } of frames) {
       const a = anim.get(actor.id);
       if (!a) continue;
-      a.torchK = Math.max(0, Math.min(1, (a.torchK || 0) + (on > 0 && fr.rig.a.lens && !actor.ghost ? 1 : -1) * 0.12));
-      if (!fr.rig.a.lens || actor.ghost || a.torchK <= 0 || on <= 0 || (actor.y || 0) < -4) { a.torch = null; continue; }
+      a.torchK = Math.max(0, Math.min(1, (a.torchK || 0) + (on > 0 && fr.rig.a.lens ? 1 : -1) * 0.12));
+      if (!fr.rig.a.lens || a.torchK <= 0 || on <= 0 || (actor.y || 0) < -4) { a.torch = null; continue; }
       const lens = toWorld(fr, fr.rig.a.lens), dir = fr.flip ? -1 : 1, sway = actor.moving ? Math.round(Math.sin(t * 7) * 1.5) : 0;
-      a.torch = { x0: lens[0] + dir, y0: lens[1], x1: lens[0] + dir * (actor.moving ? 34 : 26), y1: FEET - 1 + sway, k: a.torchK * on };
+      a.torch = { x0: lens[0] + dir, y0: lens[1], x1: lens[0] + dir * (actor.moving ? 34 : 26), y1: FEET - 1 + sway, k: a.torchK * on * (actor.ghost ? fr.alpha : 1) };
     }
   }
 

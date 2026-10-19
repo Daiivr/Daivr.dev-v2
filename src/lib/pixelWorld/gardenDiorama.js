@@ -107,7 +107,7 @@ export function createGardenDiorama(view) {
   };
   const fly = { x: 20, y: 18, p: 0 };
   // `plots`: [{ plot, seedId, crop, growth } | null] x3; `ghost`: la planta
-  // que se veria en la siguiente parcela libre; `wet`: regado hoy.
+  // que se veria en la siguiente parcela libre; `wet`: parcelas humedas.
   // `view`: { x, w } de dioramaView (lo que se ve)
   function draw({ plots = [], ghost = null, wet = false, t = 0, view: shown = null }) {
     crop = shown;
@@ -129,10 +129,11 @@ export function createGardenDiorama(view) {
     const ghostAt = ghost ? plots.findIndex((p) => !p) : -1;
     DIORAMA_PLOTS.forEach((cx, i) => {
       const entry = plots[i];
-      drawBed(g, S, cx, entry, { wet: wet ? 1 : 0, t, wind: 1 });
+      const moisture = wet instanceof Set ? Number(wet.has(i)) : Number(Boolean(wet));
+      drawBed(g, S, cx, entry, { wet: moisture, t, wind: 1 });
       if (!entry && i === ghostAt) {
         g.globalAlpha = 0.55;
-        drawBed(g, S, cx, { crop: ghost, growth: 1 }, { wet: wet ? 1 : 0, t, wind: 1 });
+        drawBed(g, S, cx, { crop: ghost, growth: 1 }, { wet: 0, t, wind: 1 });
         g.globalAlpha = 1;
       }
     });

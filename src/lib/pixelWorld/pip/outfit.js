@@ -5,7 +5,7 @@
 // Premios de amistad: el nivel desde el que se ven.
 export const FRIENDSHIP_GEAR = { "party-hat": 2, sunglasses: 3, scarf: 4, "gold-antenna": 5 };
 // Con varias cosas para el mismo hueco gana la primera.
-const HEAD_ORDER = ["pixel-crown", "star-cap", "market-straw-hat", "market-beanie", "party-hat"];
+const HEAD_ORDER = ["pixel-crown", "star-cap", "market-straw-hat", "market-frog-hat", "market-bucket-hat", "market-beanie", "party-hat"];
 const FRONT_HAND_ORDER = ["pixel-blaster", "wrench", "cartridge", "coffee", "market-lantern"];
 const BACK_HAND_ORDER = ["market-lantern", "coffee"];
 
@@ -32,11 +32,14 @@ export function outfitFor({ friendshipLevel = 1, inventory = [], hiddenGear = []
   else if (hasGear("green-visor")) fit.face = "green-visor";
   else if (earned("sunglasses")) fit.face = "sunglasses";
   if (hasItem("headset")) fit.ears = "headset";
-  if (earned("gold-antenna")) fit.antenna = "gold-antenna";
+  if (hasGear("market-sprout")) fit.antenna = "market-sprout";
+  else if (earned("gold-antenna")) fit.antenna = "gold-antenna";
   if (earned("scarf")) fit.neck = "scarf";
   if (hasGear("miku-costume")) fit.body = "miku-costume";
   else if (hasItem("market-vest")) fit.body = "market-vest";
   else if (hasGear("market-overalls")) fit.body = "market-overalls";
+  else if (hasGear("market-hoodie")) fit.body = "market-hoodie";
+  else if (hasGear("market-raincoat")) fit.body = "market-raincoat";
   // (el paraguas de hoja solo sale cuando llueve: lo pinta events/rain.js)
   if (hasGear("market-leaf-umbrella")) fit.umbrella = "leaf";
   const hand = FRONT_HAND_ORDER.find(owns);

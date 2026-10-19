@@ -5,6 +5,7 @@ import { P, currentSeason } from "../palette.js";
 import { FEET } from "../layout.js";
 import { linePts } from "../pip/rig.js";
 import { PACK, drawStash, stashSparkles } from "./stash.js";
+import { lureSprite, rodLook } from "../tackle.js";
 
 // La pesca de Buddy (useBuddyFishing) en pixel art, como el minijuego del
 // boceto: el agujero se abre en el sendero, Buddy carga el lanzamiento (barra
@@ -16,7 +17,6 @@ import { PACK, drawStash, stashSparkles } from "./stash.js";
 const HOLE_RX = 15, HOLE_Y = 75;
 const OPEN_S = 0.85, CLOSE_S = 1;
 const ROD_ANGLE = { charge: 60, cast: 16, wait: 36, bite: 24, fight: 26, catch: 86, escape: 60, omen: 40, monster: 26, retreat: 50 };
-const RODS = { "rod-driftwood": ["#9a6338", "#45d8ff"], "rod-bamboo": ["#3fff97", "#45d8ff"], "rod-neon": ["#ff3d9d", "#ffd166"], "rod-golden": ["#ffd166", "#f4fff8"], "rod-fiberglass": ["#f0e2b0", "#ff5a4a"], "rod-iridium": ["#b88af0", "#ffe0ff"] };
 const FIGHT_BARS = { common: { zone: 12, speed: 0.7 }, uncommon: { zone: 10, speed: 0.9 }, rare: { zone: 8, speed: 1.2 }, legendary: { zone: 6, speed: 1.5 }, mythic: { zone: 5, speed: 1.8 } };
 // Carga: primero se prepara, luego la barra de fuerza se llena.
 const READY_S = 0.4, CHARGE_S = 0.9;
@@ -28,17 +28,7 @@ const catchInfo = (id) => catchById(id);
 // La vida de la poza: un pato que la cruza remando de vez en cuando.
 const DUCK = lazy(() => outlinedSprite(["...gg.", "..gGgo", "bbbwb.", "bBbbb.", ".bbb.."], { g: "#2a7a4a", G: "#4aa86a", o: "#f0a030", b: "#8a6a4a", B: "#b08a62", w: "#f4f0e0" }, "#2a1e14"));
 
-const bobbers = lazy(() => ({
-  "": outlinedSprite(["rr", "ww"], { r: "#e84a4a", w: "#ffffff" }, "#3a1a1a"),
-  lure: outlinedSprite(["yy", "ww"], { y: "#ffd166", w: "#f4fff8" }, "#4a3a10"),
-  "lure-swift": outlinedSprite([".cc", "cw.", "c.."], { c: "#45d8ff", w: "#f4fff8" }, "#123a4a"),
-  "lure-anchor": outlinedSprite([".c.", "ccc", ".c.", "g.g"], { c: "#45d8ff", g: "#3fff97" }, "#123a4a"),
-  "lure-magnet": outlinedSprite(["w.w", "p.p", "ppp"], { w: "#f4fff8", p: "#ff3d9d" }, "#4a1030"),
-  // (los del mercado: la bolita de cebo magico, el pececillo curioso y la nasa)
-  "lure-magic-bait": outlinedSprite([".w.", "pPp", "ppp"], { w: "#fff6ff", p: "#b04ad8", P: "#ff7ad8" }, "#2a1036"),
-  "lure-curiosity": outlinedSprite(["r.mm.", "rmmmk", "r.mm."], { r: "#ff5a4a", m: "#a8e0e8", k: "#0a1418" }, "#142630"),
-  "lure-crab-pot": outlinedSprite(["wwww", "weew", "wcew", "wwww"], { w: "#a8743e", e: "#d8c898", c: "#e8503a" }, "#24160a")
-}));
+// (las cañas y los señuelos, con los colores de su icono: pixelWorld/tackle.js)
 
 // Estado de la pesca de un actor: cuando empezo cada fase, el agujero, ondas,
 // el pez que ronda y la barra de captura.
@@ -251,12 +241,14 @@ export function fishingDrawFront(g, actor, a, fr, env) {
     const tx = bent ? bent[0] + (bt[0] - bent[0]) * 0.3 : rod.tx, ty = bent ? bent[1] + (bt[1] - bent[1]) * 0.25 + (Math.sin(t * 20) > 0 ? 1 : 0) : rod.ty;
     const pts = bent ? linePts(rod.hx, rod.hy, bent[0], bent[1]).concat(linePts(bent[0], bent[1], tx, ty)) : linePts(rod.hx, rod.hy, tx, ty);
     F.rodTip = [tx, ty];
-    const [rc, tc] = RODS[actor.rod] || ["#c9965a", "#45d8ff"];
-    pts.forEach(([x, y], i) => px(g, x, y, i < 4 ? "#5a3a1e" : rc));
-    px(g, Math.round(tx), Math.round(ty), tc);
-    rect(g, Math.round(rod.hx) - (rod.f > 0 ? 1 : 0), Math.round(rod.hy) + 1, 2, 2, "#ffd166");
-    if (fight) px(g, Math.round(rod.hx) - (rod.f > 0 ? 1 : 0) + Math.floor(t * 12) % 2, Math.round(rod.hy) + 1, "#fff3b0");
-    const B = bobbers(), lure = B[actor.lure] || B[""];
+    // (la caña con los colores de su icono: mango, vara con sus nudos, puntera y carrete)
+    const look = rodLook(actor.rod);
+    pts.forEach(([x, y], i) => px(g, x, y, i < 4 ? look.grip[i % 2] : (look.nodes && i % 3 === 1) || (look.knots && i % 5 === 3) ? look.blank[1] : look.blank[0]));
+    px(g, Math.round(tx), Math.round(ty), look.tip[0]);
+    const rx = Math.round(rod.hx) - (rod.f > 0 ? 1 : 0), ry = Math.round(rod.hy) + 1;
+    rect(g, rx, ry, 2, 2, look.reel[1]); px(g, rx, ry, look.reel[0]);
+    if (fight) px(g, rx + Math.floor(t * 12) % 2, ry, look.reel[0]);
+    const lure = lureSprite(actor.lure);
     if (F.phase === "charge" || (F.phase === "cast" && e < 0.1)) {
       const sway = Math.round(Math.sin(t * 5) * 1.5), bx = tx - 2 * rod.f + sway, by = ty + 6;
       drawLine(g, tx, ty, bx, by, 0); g.drawImage(lure, Math.round(bx) - 2, Math.round(by) - 1);
@@ -352,14 +344,14 @@ export function rodIconSprite(rodId = "", lureId = "") {
   const key = rodId + "|" + lureId;
   let icon = rodIcons.get(key);
   if (icon) return icon;
-  const W = 22, H = 30, [rc, tc] = RODS[rodId] || ["#c9965a", "#45d8ff"];
+  const W = 22, H = 30, look = rodLook(rodId);
   const [c, g] = makeCanvas(W, H);
-  linePts(17, 26, 4, 3).forEach(([x, y], i) => px(g, x, y, i < 5 ? "#5a3a1e" : rc));
-  px(g, 4, 3, tc); px(g, 5, 4, tc);
-  rect(g, 18, 22, 2, 2, "#ffd166"); px(g, 19, 23, "#fff3b0");
+  linePts(17, 26, 4, 3).forEach(([x, y], i) => px(g, x, y, i < 5 ? look.grip[i % 2] : (look.nodes && i % 3 === 1) || (look.knots && i % 5 === 3) ? look.blank[1] : look.blank[0]));
+  px(g, 4, 3, look.tip[0]); px(g, 5, 4, look.tip[0]);
+  rect(g, 18, 22, 2, 2, look.reel[1]); px(g, 18, 22, look.reel[0]);
   rect(g, 16, 27, 2, 1, "#3a2414");
   for (let y = 5; y < 20; y++) px(g, 3, y, "#b8f7ff");
-  const lure = bobbers()[lureId] || bobbers()[""];
+  const lure = lureSprite(lureId);
   g.drawImage(lure, 3 - Math.floor(lure.width / 2), 19);
   // Contorno: la silueta en oscuro, un pixel hacia cada lado, por detras.
   const [oc, og] = makeCanvas(W, H);

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { natureSeason } from "../../lib/pixelWorld/life/util";
 import { worldLayout } from "../../lib/pixelWorld/worldBus";
 import { LINES } from "./buddyLines";
-import { SPRITE_WIDTH, WALK_SPEED_PX_S, nightKey } from "./useBuddyCore";
+import { SPRITE_WIDTH, walkDuration, nightKey } from "./useBuddyCore";
 
 /*
   Medusas de luna: una noche de verano despejada, de vez en cuando (se tira el
@@ -98,7 +98,7 @@ function createJellies(core, setJellies) {
     updateMood("jellies");
     say(pickLine(LINES.jelliesSpot), 2400, { topic: "jellies" });
     const target = Math.max(4, Math.min(stageWidth() - SPRITE_WIDTH - 4, x + side * DOCK_TIP - SPRITE_WIDTH / 2));
-    const distance = Math.abs(target - xRef.current), ms = distance < 4 ? 0 : Math.min(9000, (distance / WALK_SPEED_PX_S) * 1000);
+    const distance = Math.abs(target - xRef.current), ms = distance < 4 ? 0 : walkDuration(distance);
     // (deja que la poza se abra antes de echar a andar)
     schedule(() => {
       if (activeEventRef.current !== "jellies") return;

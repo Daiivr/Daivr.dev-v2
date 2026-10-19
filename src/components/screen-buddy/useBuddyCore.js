@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { walkDuration } from "../../../shared/buddy-motion.mjs";
+export { WALK_SPEED_PX_S, walkDuration } from "../../../shared/buddy-motion.mjs";
 import { runAdminBuddyDiagnostic } from "../../../shared/buddy-diagnostics.mjs";
 import { contextLines } from "../../lib/buddyContext";
 import { getCabinetSignal } from "../../lib/cabinetSignals";
@@ -19,7 +21,6 @@ import { LINES, MIKU_LINES, lineTopic, rememberTopic, visitReturnLines } from ".
 
 export const SPRITE_WIDTH = 64;
 export const WALK_MARGIN = 72;
-export const WALK_SPEED_PX_S = 44;
 export const FALL_SPEED_PX_S = 58;
 const DIALOGUE_GAP_MS = 420;
 const MIN_DIALOGUE_MS = 1800;
@@ -35,6 +36,10 @@ export const desktopQuery =
   typeof window !== "undefined" && typeof window.matchMedia === "function"
     ? window.matchMedia("(min-width: 760px)")
     : null;
+
+// Pausas breves entre actividades; los paseos esperan menos.
+export const IDLE_LULL_MS = [5_000, 12_000];
+export const WALK_LULL_MS = [1_000, 3_000];
 
 export function randomBetween(min, max) {
   return min + Math.random() * (max - min);
@@ -87,6 +92,10 @@ function createBuddyCore({ setMood, setFx, setBubble, setX, setY, setFacing, set
     bubbleQueueRef: ref([]),
     activeBubbleRef: ref(null),
     activeEventRef: ref(""),
+    // Pausa breve entre actividades; cada evento conserva su propio cooldown.
+    // Los paseos tienen su propia pausa mas corta.
+    lullUntilRef: ref(0),
+    walkUntilRef: ref(0),
     fxTimerRef: ref(0),
     particleIdRef: ref(0),
     petTimesRef: ref([]),
@@ -156,6 +165,10 @@ function createBuddyCore({ setMood, setFx, setBubble, setX, setY, setFacing, set
   function endBuddyEvent(name) {
     if (activeEventRef.current !== name) return;
     activeEventRef.current = "";
+    // (despues de cada actividad, un rato tranquilo antes de la siguiente)
+    const now = Date.now();
+    core.lullUntilRef.current = Math.max(core.lullUntilRef.current, now + randomBetween(...IDLE_LULL_MS));
+    core.walkUntilRef.current = now + randomBetween(...WALK_LULL_MS);
     core.eventEndHandlers.get(name)?.();
     delete document.documentElement.dataset.buddyEvent;
     window.dispatchEvent(new CustomEvent("daivr-buddy-event-state", {
@@ -421,11 +434,12 @@ function createBuddyCore({ setMood, setFx, setBubble, setX, setY, setFacing, set
       const spot = WALK_MARGIN + Math.random() * (maxX - WALK_MARGIN);
       if (tries === 5 || guests.every((x) => Math.abs(x - spot) >= 72)) target = spot;
     }
-    const distance = Math.abs(target - xRef.current);
+    const origin = currentDomPosition().x;
+    const distance = Math.abs(target - origin);
     if (distance < 56) return false;
 
-    const ms = Math.min(8000, (distance / WALK_SPEED_PX_S) * 1000);
-    faceTravelDirection(target > xRef.current ? 1 : -1);
+    const ms = walkDuration(distance);
+    faceTravelDirection(target > origin ? 1 : -1);
     updateMood("walk");
     const generation = moodGenRef.current;
     setWalkMs(ms);
@@ -455,6 +469,7 @@ function createBuddyCore({ setMood, setFx, setBubble, setX, setY, setFacing, set
 
   function chat(lines, topic, ms = 2600, priority = "event") {
     if (!canChat()) return;
+    freezeAtCurrentPosition();
     updateMood("talk");
     say(rememberTopic(pickLine(lines), topic), ms, { priority, key: priority === "ambient" ? "ambient" : topic, topic });
     settleDown(ms + 100);

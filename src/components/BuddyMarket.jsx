@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ShoppingBag } from "lucide-react";
 import { BuddyCoinIcon } from "./BuddyCoinIcon";
-import { MARKET_SCHEDULE, MARKET_SPECIALS, MARKET_TIME_ZONE, STALL_SIZE, marketHostStock, marketIsOpen, marketStock, nextMarketOpening } from "../../shared/buddy-market.mjs";
+import { LURES, MARKET_SCHEDULE, MARKET_SPECIALS, MARKET_TIME_ZONE, STALL_SIZE, marketBaitStock, marketHostStock, marketIsOpen, marketStock, nextMarketOpening } from "../../shared/buddy-market.mjs";
 import { fishermanWhen, useFisherman } from "./BuddyFisherman";
 import { HOSTS } from "../lib/hostAvatar";
 import { BuddyMarketWallet } from "./BuddyChestOpening";
@@ -23,10 +23,40 @@ export function useMarketOpen(refreshMs = 15000) {
 }
 
 const openingFormat = new Intl.DateTimeFormat("en-US", { weekday: "long", month: "short", day: "numeric", timeZone: MARKET_TIME_ZONE });
+// La estanteria de cebos: los señuelos basicos (cada uno es un uso), que el
+// puesto repone cada dia de mercado. Los buenos los trae el pescador.
+function MarketBait({ wallet, open, onBuy }) {
+  const stock = marketBaitStock(wallet, new Date());
+  return <section className="market-tackle market-bait" aria-labelledby="market-bait-title">
+    <div className="market-tackle-head">
+      <span className="market-tackle-sign" id="market-bait-title">BAIT SHELF</span>
+      <p>Basic lures, restocked every market day. Each lure is one use, spent only when Buddy lands a catch. Without one he still fishes, but rare fish bite much less.</p>
+    </div>
+    <ul className="market-tackle-list">{LURES.filter((lure) => lure.seller === "market").map((lure) => {
+      const left = stock[lure.id] || 0, have = wallet.lureLeft?.[lure.id] || 0;
+      const label = !open ? "Closed" : !left ? "Sold out" : wallet.coins < lure.price ? `Need ${lure.price - wallet.coins}` : null;
+      return <li className="market-tackle-item is-pack" key={lure.id} data-item={lure.id}>
+        <div className="market-tackle-art"><MarketItemIcon id={lure.id} scale={3} /></div>
+        <div className="market-tackle-copy">
+          <small>BASIC LURE · {lure.perk}</small><h4>{lure.label}</h4><p>{lure.description}</p>
+          <span className="fisher-pack-meta"><b>{open ? `${left} of ${lure.stock} left today` : `${lure.stock} each market day`}</b>{have ? <i>You have {have}</i> : null}</span>
+        </div>
+        <div className="market-tackle-buy">
+          <span className="market-tackle-price" aria-label={`${lure.price} gold each`}><BuddyCoinIcon /><strong>{lure.price}</strong></span>
+          <div className="market-bait-buttons">
+            <button type="button" disabled={Boolean(label)} onClick={() => onBuy(lure.id, 1)} aria-label={`Buy one ${lure.label} for ${lure.price} coins`}><ShoppingBag size={13} aria-hidden="true" />{label || "Buy 1"}</button>
+            {!label && left > 1 ? <button type="button" onClick={() => onBuy(lure.id, 5)} aria-label={`Buy up to five ${lure.label}s`}>×{Math.min(5, left)}</button> : null}
+          </div>
+        </div>
+      </li>;
+    })}</ul>
+  </section>;
+}
+
 // Las cañas y los señuelos no los vende el puesto: los trae el pescador
 // ambulante cuando pasa por el footer. El cartel dice si esta o cuando vuelve.
-function MarketFisherNotice({ onNavigate }) {
-  const clock = useFisherman(15000), here = Boolean(clock.visit);
+function MarketFisherNotice({ wallet, onNavigate }) {
+  const clock = useFisherman(wallet, 15000), here = Boolean(clock.visit && !clock.gap);
   return <section className={`market-fisher-notice ${here ? "is-here" : ""}`} aria-labelledby="market-fisher-title">
     <MarketItemIcon id="rod-fiberglass" scale={2} />
     <div><small>RODS · LURES · FISH BOUGHT</small><h4 id="market-fisher-title">Traveling fisherman</h4><p>{here ? "Marlin's cart is in the meadow right now. He sells tackle for the valley fish and buys your catch." : "Marlin sells tackle for the valley fish and buys your catch. His cart comes by the footer a few days a week, for a few hours."} <b>{fishermanWhen(clock)}.</b></p></div>
@@ -109,7 +139,8 @@ export function BuddyMarket({ buddy, onNavigate }) {
     })}</div>
     <div className="market-stall-base" aria-hidden="true"><span>SMALL WONDERS · FAIR TRADES</span></div>
     </section>
-    <MarketFisherNotice onNavigate={onNavigate} />
+    <MarketBait wallet={wallet} open={open} onBuy={(id, qty) => setMessage(buddy.adventure.buyLure(id, qty))} />
+    <MarketFisherNotice wallet={wallet} onNavigate={onNavigate} />
     {[...MARKET_SPECIALS, ...hostStock].map((item) => <MarketSpecialOrder key={item.id} item={item} wallet={wallet} open={open} onBuy={(id) => setMessage(buddy.adventure.buyItem(id))} />)}
     <div className="market-footer"><span>Already found your favorite?</span><button type="button" onClick={() => onNavigate("inventory")}>Dress Buddy ↗</button><button type="button" onClick={() => onNavigate("room")}>Decorate the room ↗</button><button type="button" onClick={() => onNavigate("garden")}>Garden shed ↗</button></div>
   </div>;

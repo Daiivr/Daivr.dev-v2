@@ -1,4 +1,4 @@
-import { MARKET_GEAR, MARKET_TACKLE } from "../../shared/buddy-market.mjs";
+import { LURES, MARKET_GEAR, MARKET_TACKLE } from "../../shared/buddy-market.mjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BUDDY_INVENTORY } from "./useBuddyAdventure";
 
@@ -35,11 +35,8 @@ export const ROD_GEAR = [
   { id: "rod-golden", label: "golden rod", unlockRares: 4 }
 ];
 
-export const LURE_GEAR = [
-  { id: "lure-swift", label: "swift lure", unlockCatches: 10, perk: "bites come way faster" },
-  { id: "lure-anchor", label: "anchor lure", unlockCatches: 20, perk: "rares almost never escape" },
-  { id: "lure-magnet", label: "magnet lure", unlockRares: 6, perk: "junk upgrades to uncommon" }
-];
+// (los señuelos ya no se desbloquean para siempre: se gastan. Los que antes se
+// ganaban pescando traen usos gratis al ganarlos: LURE_GRANTS del mercado.)
 
 // Las recompensas Miku caen al llenar el diario. El peluco ocupa cabeza; el
 // traje vive en su propio slot y sustituye el sprite completo cuando se usa.
@@ -60,9 +57,11 @@ export const SECRET_GEAR = [
 ];
 export const SECRET_UNLOCK_EVENT = "daivr-buddy-secret-unlock";
 
-export const HEADWEAR_IDS = ["market-beanie", "market-straw-hat", "party-hat", "star-cap", "pixel-crown", "miku-wig"];
+export const HEADWEAR_IDS = ["market-beanie", "market-straw-hat", "market-frog-hat", "market-bucket-hat", "party-hat", "star-cap", "pixel-crown", "miku-wig"];
 export const FACE_GEAR_IDS = ["sunglasses", "green-visor", "market-specs"];
-export const BODY_GEAR_IDS = ["scarf", "market-vest", "market-overalls"];
+export const BODY_GEAR_IDS = ["scarf", "market-vest", "market-overalls", "market-hoodie", "market-raincoat"];
+// La antena: la de chispas (amistad) o el brote del mercado, una u otra.
+export const ANTENNA_IDS = ["gold-antenna", "market-sprout"];
 // Para la lluvia: el paraguas de hoja sustituye al de rayas.
 export const RAIN_GEAR_IDS = ["market-leaf-umbrella"];
 export const MOBILITY_IDS = ["rocket-boots", "parachute-upgrade"];
@@ -74,7 +73,8 @@ function isEditableWithMikuCostume(id) {
 // (las del mercado, detras: las que se ganan pescando siguen primero)
 export const ROD_IDS = [...ROD_GEAR.map((item) => item.id), ...MARKET_TACKLE.filter((item) => item.slot === "rod").map((item) => item.id)];
 // El lucky lure (recompensa de quest) comparte slot con los señuelos pescados.
-export const LURE_IDS = ["lure", ...LURE_GEAR.map((item) => item.id), ...MARKET_TACKLE.filter((item) => item.slot === "lure").map((item) => item.id)];
+// (los señuelos se gastan: los que tienen usos estan en el inventario)
+export const LURE_IDS = LURES.map((lure) => lure.id);
 const CARRY_ITEM_IDS = ["cartridge", "wrench", "pixel-blaster"];
 
 // Vestuario completo: todo lo equipable, sin importar como se gana. Lo usa el
@@ -86,9 +86,9 @@ const ALL_COSMETICS = [
   ...VALLEY_GEAR,
   ...SECRET_GEAR,
   ...ROD_GEAR,
-  ...LURE_GEAR,
   ...BUDDY_INVENTORY,
-  ...MARKET_GEAR
+  ...MARKET_GEAR,
+  ...LURES.map((lure) => ({ ...lure, source: lure.seller === "market" ? "Woodland market bait shelf" : "Sold by the traveling fisherman" }))
 ];
 
 function readHiddenGear(key = GEAR_STORAGE_KEY) {
@@ -132,7 +132,7 @@ export function slotForGear(id) {
   if (COSTUME_IDS.includes(id)) return "costume";
   if (HEADWEAR_IDS.includes(id)) return "head";
   if (FACE_GEAR_IDS.includes(id)) return "face";
-  if (id === "gold-antenna") return "antenna";
+  if (ANTENNA_IDS.includes(id)) return "antenna";
   if (BODY_GEAR_IDS.includes(id)) return "body";
   if (ROD_IDS.includes(id)) return "rod";
   if (LURE_IDS.includes(id)) return "lure";
@@ -220,7 +220,7 @@ export function useBuddyLoadout({ friendship, adventure }) {
     const unlockedPetGear = PET_GEAR.filter((item) => friendship.pets >= item.unlockPets);
     const totalCatches = adventure.totalCatches || 0;
     const rareCatches = adventure.rareCatches || 0;
-    const unlockedTackle = [...ROD_GEAR, ...LURE_GEAR].filter((item) =>
+    const unlockedTackle = ROD_GEAR.filter((item) =>
       item.unlockRares ? rareCatches >= item.unlockRares : totalCatches >= item.unlockCatches
     );
     // El peluco cae al completar el diario: todas las especies escaneadas.
@@ -254,6 +254,9 @@ export function useBuddyLoadout({ friendship, adventure }) {
   const equippedHeadwear = [...availableHeadwearIds].reverse().find((id) => !hiddenGear.includes(id)) || "";
   const availableFaceGearIds = unlockedGearIds.filter((id) => FACE_GEAR_IDS.includes(id));
   const equippedFaceGear = availableFaceGearIds.find((id) => !hiddenGear.includes(id)) || "";
+  // (el brote va primero: si se compra, se lo pone en vez de la de chispas)
+  const availableAntennaIds = unlockedGearIds.filter((id) => ANTENNA_IDS.includes(id)).sort((a, b) => ANTENNA_IDS.indexOf(b) - ANTENNA_IDS.indexOf(a));
+  const equippedAntenna = availableAntennaIds.find((id) => !hiddenGear.includes(id)) || "";
   const availableBodyGearIds = unlockedGearIds.filter((id) => BODY_GEAR_IDS.includes(id));
   const equippedBodyGear = [...availableBodyGearIds].reverse().find((id) => !hiddenGear.includes(id)) || "";
   const availableMobilityIds = unlockedGearIds.filter((id) => MOBILITY_IDS.includes(id));
@@ -273,13 +276,14 @@ export function useBuddyLoadout({ friendship, adventure }) {
     ...hiddenGear,
     ...availableHeadwearIds.filter((id) => id !== equippedHeadwear),
     ...availableFaceGearIds.filter((id) => id !== equippedFaceGear),
+    ...availableAntennaIds.filter((id) => id !== equippedAntenna),
     ...availableBodyGearIds.filter((id) => id !== equippedBodyGear),
     ...availableMobilityIds.filter((id) => id !== equippedMobility),
     ...availableCostumeIds.filter((id) => id !== equippedCostume),
     ...availableRodIds.filter((id) => id !== equippedRod),
     ...availableLureIds.filter((id) => id !== equippedLure),
     ...availableCarryItemIds.filter((id) => id !== equippedCarryItem)
-  ]), [availableBodyGearIds, availableCarryItemIds, availableCostumeIds, availableFaceGearIds, availableHeadwearIds, availableLureIds, availableMobilityIds, availableRodIds, equippedBodyGear, equippedCarryItem, equippedCostume, equippedFaceGear, equippedHeadwear, equippedLure, equippedMobility, equippedRod, hiddenGear]);
+  ]), [availableAntennaIds, availableBodyGearIds, availableCarryItemIds, availableCostumeIds, availableFaceGearIds, availableHeadwearIds, availableLureIds, availableMobilityIds, availableRodIds, equippedAntenna, equippedBodyGear, equippedCarryItem, equippedCostume, equippedFaceGear, equippedHeadwear, equippedLure, equippedMobility, equippedRod, hiddenGear]);
 
   const activeGearCount = gearItems.filter((item) => !effectiveHiddenGear.includes(item.id)).length;
 
@@ -309,6 +313,11 @@ export function useBuddyLoadout({ friendship, adventure }) {
       if (HEADWEAR_IDS.includes(id)) {
         const nonHeadwearHidden = current.filter((itemId) => !availableHeadwearIds.includes(itemId));
         return [...nonHeadwearHidden, ...availableHeadwearIds.filter((itemId) => itemId !== id)];
+      }
+
+      if (ANTENNA_IDS.includes(id)) {
+        const nonAntennaHidden = current.filter((itemId) => !availableAntennaIds.includes(itemId));
+        return [...nonAntennaHidden, ...availableAntennaIds.filter((itemId) => itemId !== id)];
       }
 
       if (FACE_GEAR_IDS.includes(id)) {

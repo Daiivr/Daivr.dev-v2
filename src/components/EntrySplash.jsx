@@ -13,6 +13,7 @@ import { GateHinges } from "./GateHinges";
 import { GateLock } from "./GateLock";
 import { SeasonalSplashNotice } from "./SeasonalSplashNotice";
 import { SeasonalScenery } from "./SeasonalScenery";
+import { chooseBuddyArrival } from "../../shared/buddy-arrival.mjs";
 
 // El anfitrion VRM arrastra three.js + @pixiv/three-vrm. Cargarlo aparte deja
 // que la puerta pinte sin esperar a ese chunk, y el splash movil (que nunca
@@ -191,6 +192,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   const [lineIndex, setLineIndex] = useState(0);
   const [typed, setTyped] = useState(0);
   const [opening, setOpening] = useState(false);
+  const [buddyLaunched, setBuddyLaunched] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
   const [lampOn, setLampOn] = useState(true);
   const [buddyLevel] = useState(() => getLocalBuddyLevel());
@@ -209,6 +211,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   const typeTimerRef = useRef(0);
   const openTimerRef = useRef(0);
   const enteringRef = useRef(false);
+  const portalDepartedRef = useRef(null);
 
   // Reset before painting so the new host starts her own greeting, and the
   // previous model's readiness cannot reveal speech during the replacement.
@@ -228,14 +231,14 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   );
 
   const { present: hostPresent, canProceed: hostCanProceed } = getHostAvailability({ compact, buddyAwake, cabinetReady, hostStage, hostOverdue });
-  const talking = hostPresent && pageVisible && authChecked && returnChecked && !opening;
+  const talking = hostPresent && pageVisible && authChecked && returnChecked && !opening && !buddyLaunched;
   const line = script[lineIndex] ?? "";
   const lineComplete = typed >= line.length;
   const lastLine = lineIndex >= script.length - 1;
   const scriptDone = talking && lastLine && lineComplete;
   // Keep the timeout/error escape route separate from the speech readiness.
   const gateReady = authChecked && hostCanProceed && cabinetReady;
-  const canEnter = gateReady && !opening && !unlocking;
+  const canEnter = gateReady && !opening && !unlocking && !buddyLaunched;
 
   useEffect(() => {
     if (returnReadRef.current) return;
@@ -317,6 +320,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
       body.classList.remove("entry-splash-lock");
       window.clearTimeout(openTimerRef.current);
       window.clearInterval(typeTimerRef.current);
+      portalDepartedRef.current = null;
     };
   }, []);
 
@@ -378,13 +382,25 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
     window.clearTimeout(openTimerRef.current);
 
     const openDoors = () => {
-      setUnlocking(false);
+      portalDepartedRef.current = null;
       window.dispatchEvent(new CustomEvent("daivr-splash-enter"));
+      setOpening(true);
+      openTimerRef.current = window.setTimeout(onEnter, reducedMotion ? 220 : GATE_OPEN_MS);
+    };
 
+    const launchBuddy = () => {
+      setUnlocking(false);
+      const mode = chooseBuddyArrival();
+      setBuddyLaunched(true);
+      // Keep the gate closed until the actual portal journey finishes its
+      // entrance. A separate timeout here could drift from the animation.
+      if (mode === "portal" && onBuddyLaunch) portalDepartedRef.current = openDoors;
       const perchRect = perchRef.current?.getBoundingClientRect();
       const hostRect = hostRef.current?.getBoundingClientRect();
       const perchedBuddyIsVisible = perchRect && perchRect.width > 0 && perchRect.height > 0;
       onBuddyLaunch?.({
+        mode,
+        onDeparted: () => portalDepartedRef.current?.(),
         x: perchedBuddyIsVisible
           ? perchRect.left
           : hostRect
@@ -397,16 +413,15 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
             : 20
       });
 
-      setOpening(true);
-      openTimerRef.current = window.setTimeout(onEnter, reducedMotion ? 220 : GATE_OPEN_MS);
+      if (mode !== "portal" || !onBuddyLaunch) openDoors();
     };
 
     // Let the bolt finish retracting before any of the splash clears away.
     // Compact layouts have no latch; reduced motion keeps the short fade.
-    if (compact || reducedMotion) openDoors();
+    if (compact || reducedMotion) launchBuddy();
     else {
       setUnlocking(true);
-      openTimerRef.current = window.setTimeout(openDoors, GATE_UNLOCK_MS);
+      openTimerRef.current = window.setTimeout(launchBuddy, GATE_UNLOCK_MS);
     }
   }, [canEnter, compact, onBuddyLaunch, onEnter, reducedMotion]);
 
@@ -437,7 +452,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
   const buttonLabel = gateReady ? "open the gate" : "warming up";
   const buttonHint = !gateReady
     ? (streaming ? "linking host" : cabinetReady ? "stand by" : "loading cabinet")
-    : unlocking ? "releasing latch" : opening ? "gate opening" : "press enter";
+    : unlocking ? "releasing latch" : opening ? "gate opening" : buddyLaunched ? "buddy taking a shortcut" : "press enter";
   const moreToSay = talking && (!lineComplete || !lastLine);
 
   return (
@@ -465,7 +480,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
       </div>
 
       <div className="entry-gate-room-light" aria-hidden="true" />
-      <GateLamp on={lampOn} onToggle={() => setLampOn((value) => !value)} disabled={opening || unlocking} reducedMotion={reducedMotion} />
+      <GateLamp on={lampOn} onToggle={() => setLampOn((value) => !value)} disabled={opening || unlocking || buddyLaunched} reducedMotion={reducedMotion} />
 
       {seasonalEvent ? (
         // Decorado estacional del splash: el evento se ve desde la puerta.
@@ -552,11 +567,11 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
               type="button"
               onClick={requestEnter}
               disabled={!canEnter}
-              aria-label={unlocking ? "Unlocking the gate" : opening ? "Opening the gate" : canEnter ? "Open the gate and enter the Dai.exe portfolio" : "The host is still arriving"}
+              aria-label={unlocking ? "Unlocking the gate" : opening ? "Opening the gate" : buddyLaunched ? "Waiting for Buddy to enter the portal" : canEnter ? "Open the gate and enter the Dai.exe portfolio" : "The host is still arriving"}
             >
               <span>
-                <strong>{unlocking ? "unlocking..." : opening ? "opening..." : buttonLabel}</strong>
-                <small>{gateReady && !opening ? <><kbd>Enter</kbd><span>to step inside</span></> : buttonHint}</small>
+                <strong>{unlocking ? "unlocking..." : opening ? "opening..." : buddyLaunched ? "buddy's shortcut..." : buttonLabel}</strong>
+                <small>{buddyLaunched && !opening ? "waiting for buddy" : gateReady && !opening ? <><kbd>Enter</kbd><span>to step inside</span></> : buttonHint}</small>
               </span>
               <ArrowRight aria-hidden="true" size={20} />
             </button>
@@ -565,7 +580,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
         </section>
         <div className={`entry-gate-host ${hostPresent ? "is-present" : ""}`} ref={hostRef}>
           {compact ? (
-            <div className={`entry-gate-buddy ${hostPresent ? "is-awake" : ""}`}>
+            <div className={`entry-gate-buddy ${hostPresent ? "is-awake" : ""} ${buddyLaunched ? "is-launched" : ""}`}>
               <PipSprite
                 className="entry-gate-buddy-sprite"
                 expression={hostPresent ? "happy" : "idle"}
@@ -647,7 +662,7 @@ export function EntrySplash({ onEnter, onBuddyLaunch, seasonalEvent, friendshipL
         </div>
 
         <span className="entry-gate-footer-note">A little code. A little chaos.</span>
-        <div className={`splash-buddy ${opening ? "is-launched" : ""}`} aria-hidden="true" ref={perchRef}>
+        <div className={`splash-buddy ${buddyLaunched ? "is-launched" : ""}`} aria-hidden="true" ref={perchRef}>
           {/* Sale en cuanto tiene su equipo, y no de golpe: asoma por detras
               del borde, mira, sube de un salto y aterriza levantando polvo
               (entry-gate.css). */}

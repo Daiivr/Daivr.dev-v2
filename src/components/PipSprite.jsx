@@ -3,6 +3,8 @@ import { getSeasonalEvent } from "../lib/seasons";
 import { outfitFor, wornSlots } from "../lib/pixelWorld/pip/outfit";
 import { drawJet } from "../lib/pixelWorld/pip/jets";
 import { RIG_H, RIG_OY, RIG_W, rigImg } from "../lib/pixelWorld/pip/rig";
+import { chuteDrawBehind, chutePose } from "../lib/pixelWorld/events/chute";
+import { WALK_SPEED_PX_S } from "../../shared/buddy-motion.mjs";
 
 // Pip fuera del footer (barra lateral, inventario, cuarto, puerta de entrada y
 // paracaidas de bienvenida): un lienzo pequeño con el mismo rig que dibuja el
@@ -18,18 +20,19 @@ const HOVER_BOB = [0, 0, -1, -1, 0, 0, 1, 1];
 
 export function PipSprite({
   className = "", expression = "idle", pose, facing = -1, friendshipLevel = 1,
-  inventory = [], hiddenGear = [], unlockedGear = [], width = 72, height = 80, animate = true
+  inventory = [], hiddenGear = [], unlockedGear = [], width = 72, height = 80, animate = true, parachute = false
 }) {
   const canvasRef = useRef(null);
   const outfitKey = JSON.stringify([friendshipLevel, inventory, hiddenGear, unlockedGear]);
   const outfit = useMemo(
-    () => wornSlots(outfitFor({ friendshipLevel, inventory, hiddenGear, unlockedGear, season: getSeasonalEvent() || "" })),
+    () => outfitFor({ friendshipLevel, inventory, hiddenGear, unlockedGear, season: getSeasonalEvent() || "" }),
     [outfitKey] // eslint-disable-line react-hooks/exhaustive-deps
   );
   const rigPose = pose || POSE_FOR_EXPRESSION[expression] || "idle";
   const hover = rigPose === "hover";
   const jets = hover && outfit.feet === "rocket-boots";
-  const rows = RIG_H + (jets ? JET_ROWS : 0);
+  const topRows = parachute ? 20 : 0;
+  const rows = RIG_H + topRows + (jets ? JET_ROWS : 0);
   const cssHeight = height * rows / RIG_H;
 
   useEffect(() => {
@@ -39,29 +42,40 @@ export function PipSprite({
     g.imageSmoothingEnabled = false;
     const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
     let tick = 0, timer = 0, blinkAt = 8 + Math.floor(Math.random() * 16);
+    const chute = { chute: { state: "fall", since: 0 } };
+    const actor = { x: RIG_W / 2, dir: 1, outfit };
+    const interval = parachute ? 1000 / 30 : hover ? 90 : 130;
     const draw = () => {
-      const blink = expression !== "sleep" && tick >= blinkAt && tick < blinkAt + 1;
-      if (tick >= blinkAt + 1) blinkAt = tick + 18 + Math.floor(Math.random() * 24);
+      const t = tick * interval / 1000;
+      const blinkTick = parachute ? Math.floor(t * 1000 / 130) : tick;
+      const blink = expression !== "sleep" && blinkTick >= blinkAt && blinkTick < blinkAt + 1;
+      if (blinkTick >= blinkAt + 1) blinkAt = blinkTick + 18 + Math.floor(Math.random() * 24);
       // (al saludar, la mano va mas deprisa; volando, patalea)
-      const frame = hover ? Math.floor(tick / 2) % 2 : Math.floor(tick / (rigPose === "wave" ? 2 : 6)) % 2;
+      const frame = parachute ? chutePose(actor, chute, t).frame
+        : rigPose === "walk" ? Math.floor(t * WALK_SPEED_PX_S / 2 / 2.2) % 6
+          : hover ? Math.floor(tick / 2) % 2 : Math.floor(tick / (rigPose === "wave" ? 2 : 6)) % 2;
       const lookY = hover && Math.floor(tick / 14) % 2 ? 1 : 0;
-      const rig = rigImg({ pose: rigPose, frame, expr: blink ? "blink" : expression, lookX: 0, lookY, ghost: false, glow: false, outfit, handUp: false, spark: outfit.antenna === "gold-antenna" ? tick % 6 : undefined });
+      const rig = rigImg({ pose: rigPose, frame, expr: blink ? "blink" : expression, lookX: 0, lookY, ghost: false, glow: false, outfit: wornSlots(outfit, { handsBusy: parachute }), handUp: false, spark: outfit.antenna === "gold-antenna" ? tick % 6 : undefined });
       const bob = hover ? HOVER_BOB[tick % HOVER_BOB.length] : 0;
       g.clearRect(0, 0, RIG_W, rows);
       g.save();
       if (facing > 0) { g.translate(RIG_W, 0); g.scale(-1, 1); }
+      g.translate(0, topRows);
+      if (parachute) chuteDrawBehind(g, actor, chute, { rig }, {
+        t, toWorld: (_fr, pt) => [pt[0], pt[1] + RIG_OY]
+      });
       g.drawImage(rig.c, 0, bob + (jets ? 1 : 0));
       if (jets) for (const ft of [rig.a.feet, rig.a.feetB]) drawJet(g, [ft[0], ft[1] + RIG_OY + bob + 1], tick % 2, false);
       g.restore();
     };
     draw();
     if (!animate || reduceMotion) return undefined;
-    const start = () => { if (!timer) timer = window.setInterval(() => { tick += 1; draw(); }, hover ? 90 : 130); };
+    const start = () => { if (!timer) timer = window.setInterval(() => { tick += 1; draw(); }, interval); };
     const stop = () => { window.clearInterval(timer); timer = 0; };
     const seen = new IntersectionObserver(([entry]) => (entry.isIntersecting ? start() : stop()));
     seen.observe(canvas);
     return () => { stop(); seen.disconnect(); };
-  }, [outfit, expression, rigPose, facing, animate, hover, jets, rows]);
+  }, [outfit, expression, rigPose, facing, animate, hover, jets, rows, topRows, parachute]);
 
   return (
     <canvas
@@ -69,7 +83,7 @@ export function PipSprite({
       className={`pip-sprite ${className}`.trim()}
       width={RIG_W}
       height={rows}
-      style={{ width, height: cssHeight, marginBottom: height - cssHeight }}
+      style={{ width, height: cssHeight, marginTop: -topRows * height / RIG_H, marginBottom: jets ? -JET_ROWS * height / RIG_H : 0 }}
       aria-hidden="true"
     />
   );

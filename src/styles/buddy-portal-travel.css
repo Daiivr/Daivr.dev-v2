@@ -1,0 +1,13 @@
+@layer components {
+  .buddy-portal-travel { position: absolute; z-index: 30; width: 0; height: 80px; pointer-events: none; }
+  .buddy-portal-travel.is-above-splash { z-index: 1301; }
+  .buddy-portal-bank { position: absolute; left: 0; top: -8px; width: 160px; height: 96px; overflow: hidden; transform: scaleX(var(--portal-side)); transform-origin: 0 50%; }
+  .buddy-portal-traveler { position: absolute; top: 8px; left: 0; transition: transform var(--portal-walk-ms) linear; }
+  .buddy-portal-traveler .pip-sprite { display: block; }
+  .buddy-travel-portal { position: absolute; left: -64px; bottom: -10px; width: 128px; height: 120px; image-rendering: pixelated; filter: drop-shadow(0 0 8px #8270ff80); animation: buddy-portal-open var(--portal-open-ms) ease-out both; }
+  .buddy-travel-portal.is-closing { animation: buddy-portal-close var(--portal-close-ms) ease-in both; }
+  @keyframes buddy-portal-open { from { opacity: 0; transform: scaleX(0.05); } to { opacity: 1; transform: scaleX(1); } }
+  @keyframes buddy-portal-close { from { opacity: 1; transform: scaleX(1); } to { opacity: 0; transform: scaleX(0.05); } }
+  .buddy-portal-travel.is-reduced-motion .buddy-travel-portal { animation-duration: 120ms; }
+  .buddy-portal-travel.is-reduced-motion .buddy-portal-traveler { transition: none; }
+}

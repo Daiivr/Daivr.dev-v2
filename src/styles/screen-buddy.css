@@ -308,7 +308,7 @@
 
   .buddy-drop-body {
     position: relative;
-    animation: buddy-chute-sway 1.15s ease-in-out infinite;
+    /* Canopy sway and hand-anchored ropes now use the footer canvas renderer. */
     transform-origin: 50% -38px;
     filter: drop-shadow(0 0 12px rgba(63, 255, 151, 0.22));
     pointer-events: auto;

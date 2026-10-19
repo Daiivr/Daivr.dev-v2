@@ -2,9 +2,10 @@ import { useCallback, useEffect, useState } from "react";
 import { fishingSpot } from "../../../shared/buddy-fishing-spot.mjs";
 import { rareFishingEncounter } from "../../../shared/buddy-encounters.mjs";
 import { KRAKEN, LEVIATHAN, weightedCatch } from "../../data/buddyWorld";
+import { LURES } from "../../../shared/buddy-market.mjs";
 import { natureSeason } from "../../lib/pixelWorld/life/util";
 import { PORTAL_OPEN_MS } from "../BuddyFishingPortal";
-import { clamp, SPRITE_WIDTH, WALK_SPEED_PX_S } from "./useBuddyCore";
+import { clamp, SPRITE_WIDTH, walkDuration } from "./useBuddyCore";
 
 /*
   Pesca de Buddy: el suelo del footer se abre, se acerca, carga el lanzamiento
@@ -15,8 +16,8 @@ import { clamp, SPRITE_WIDTH, WALK_SPEED_PX_S } from "./useBuddyCore";
   El señuelo puesto cambia las reglas: espera, escapes y cada cuanto vuelve.
 */
 
-const FISHING_COOLDOWN_MS = 100000;
-const FISHING_SWIFT_COOLDOWN_MS = 55000;
+const FISHING_COOLDOWN_MS = 85000;
+const FISHING_SWIFT_COOLDOWN_MS = 45000;
 const FISHING_CHARGE_MS = 1400;
 const FISHING_CAST_MS = 560;
 // Con la captura en alto, y despues guardandola en la mochila.
@@ -44,8 +45,8 @@ export function useBuddyFishing(core) {
       setFishingPhase("");
       setFishingPortal((current) => current ? { ...current, phase: "closing" } : null);
     });
-    // Primera pesca posible ~45s despues de montar; luego manda el cooldown.
-    api.cooldownRef.current = Date.now() - FISHING_COOLDOWN_MS + 45000;
+    // Primera pesca posible ~35s despues de montar; luego manda el cooldown.
+    api.cooldownRef.current = Date.now() - FISHING_COOLDOWN_MS + 35000;
     const onAdminLeviathan = (event) => void core.runAdmin(event, () => api.start({ forceCreature: "leviathan" }));
     const onAdminKraken = (event) => void core.runAdmin(event, () => api.start({ forceCreature: "kraken" }));
     window.addEventListener("daivr-buddy-fish", api.onFishSignal);
@@ -93,14 +94,16 @@ function createFishing(core, set) {
     const zones = [[-Infinity, rect.right - left + 12]];
     const garden = document.querySelector(".footer-garden[data-dry]")?.getBoundingClientRect();
     if (garden?.width) zones.push([garden.left - left - 12, garden.right - left + 12]);
-    // (y la carretilla del pescador, mientras esta)
-    const fisher = document.querySelector(".footer-fisherman-button")?.getBoundingClientRect();
-    if (fisher?.width) zones.push([fisher.left - left - 12, fisher.right - left + 12]);
+    // (y la carretilla del pescador, mientras esta, y el soporte de cañas)
+    for (const sel of [".footer-fisherman-button", ".footer-rack-button"]) {
+      const box = document.querySelector(sel)?.getBoundingClientRect();
+      if (box?.width) zones.push([box.left - left - 12, box.right - left + 12]);
+    }
     return zones;
   }
 
   function startFishing({ forceCreature = "" } = {}) {
-    const spot = fishingSpot(stageWidth(), { miku: mikuCostumeRef.current, avoid: marketZone() });
+    const spot = fishingSpot(stageWidth(), { miku: mikuCostumeRef.current, buddyX: core.currentDomPosition().x, avoid: marketZone() });
     if (!spot) return;
     if (!beginBuddyEvent("fishing")) return;
     cooldownRef.current = Date.now();
@@ -118,8 +121,7 @@ function createFishing(core, set) {
     say("the floor cracked... there's water underneath!", 2600, { topic: "fishCast" });
 
     function beginSession() {
-      // En el sprite base facing 1 apunta a la izquierda. Cerca de un borde
-      // lanza hacia dentro; en el centro puede elegir cualquiera de los lados.
+      // Face the water from the bank chosen for Buddy's approach.
       updateTravelDirection(castLeft ? -1 : 1);
       updateFacing(castLeft ? 1 : -1);
       updateMood("fishing");
@@ -179,6 +181,8 @@ function createFishing(core, set) {
         clearDialogue();
         say(`${prefix}: ${catchItem.name}!${rareEncore}`, 3300);
 
+        // El señuelo se gasta solo al sacar algo del agua (si se escapa, no).
+        if (LURES.some((item) => item.id === lure)) window.dispatchEvent(new CustomEvent("daivr-lure-used", { detail: { id: lure } }));
         // Toda captura suma al total (desbloquea aparejos); las raras
         // ademas avanzan la quest Void angler.
         window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", {
@@ -302,7 +306,7 @@ function createFishing(core, set) {
       faceTravelDirection(target > xRef.current ? 1 : -1);
       updateMood("walk");
       const generation = moodGenRef.current;
-      const ms = Math.max(120, distance / WALK_SPEED_PX_S * 1000);
+      const ms = Math.max(120, walkDuration(distance));
       setWalkMs(ms);
       moveTo(target);
       schedule(() => {

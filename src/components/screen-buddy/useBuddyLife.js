@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { cropById } from "../../../shared/buddy-market.mjs";
 import { LINES } from "./buddyLines";
-import { SPRITE_WIDTH, WALK_SPEED_PX_S } from "./useBuddyCore";
+import { SPRITE_WIDTH, walkDuration } from "./useBuddyCore";
 
 /*
   La vida del valle que hace Pip (lo demas lo dibuja el mundo, life/):
@@ -16,7 +16,7 @@ import { SPRITE_WIDTH, WALK_SPEED_PX_S } from "./useBuddyCore";
     al despertar sale ("exit"), con su animacion en el mundo.
   - El huerto (FooterWorld avisa con `daivr-garden-state`): lo maduro lo
     cosecha (`daivr-garden-pick`: las monedas van a la cartera) y lo que tiene
-    sed lo riega una vez al dia con la regadera (`daivr-garden-water`), salvo
+    sed lo vuelve a regar cuando se seca (`daivr-garden-water`), salvo
     si llueve, que ya lo riega la lluvia.
 */
 const LAMP_GAP = 40;
@@ -29,6 +29,7 @@ const LAMP_MOODS = ["idle", "talk", "walk", "sleepy"];
 const TENT_ENTER_MS = 1300;
 const TENT_EXIT_MS = 1700;
 const GARDEN_COOLDOWN_MS = 30_000;
+const WATER_COOLDOWN_MS = 25_000;
 // (de pie a esta distancia del centro de la parcela: al regar, el caño queda
 // encima de la tierra; al cosechar, al alcance de la mano)
 const WATER_GAP = 28;
@@ -75,14 +76,14 @@ export function useBuddyLife(core) {
 }
 
 function createLife(core, { setLamps, setForage, setTent, setGarden }) {
-  const { rootRef, moodRef, moodGenRef, xRef, activeEventRef, skyPhaseRef, reduceMotion } = core;
+  const { rootRef, moodRef, moodGenRef, xRef, activeEventRef, reduceMotion } = core;
   const { beginBuddyEvent, endBuddyEvent, freezeAtCurrentPosition, updateMood, updateFacing, updateTravelDirection, faceTravelDirection, moveTo, schedule, say, pickLine, stageWidth, setWalkMs, spawnParticles } = core;
   const lampState = { want: null, lamps: [], retry: 0 };
   const forageState = { items: [], last: Date.now() - FORAGE_COOLDOWN_MS + 20_000 };
   const gardenState = { plots: [], raining: false, last: Date.now() - GARDEN_COOLDOWN_MS + 15_000, rainSaid: false };
 
   const maxX = () => Math.max(4, stageWidth() - SPRITE_WIDTH - 4);
-  const walkMsTo = (target) => { const d = Math.abs(target - xRef.current); return d < 4 ? 0 : Math.min(9000, (d / WALK_SPEED_PX_S) * 1000); };
+  const walkMsTo = (target) => { const d = Math.abs(target - xRef.current); return d < 4 ? 0 : walkDuration(d); };
 
   // --- Farolas ---------------------------------------------------------------
   function onLampsState(event) {
@@ -210,9 +211,11 @@ function createLife(core, { setLamps, setForage, setTent, setGarden }) {
     if (reduceMotion) for (const plot of gardenState.plots) if (plot.ripe) window.dispatchEvent(new CustomEvent("daivr-garden-pick", { detail: { plot: plot.plot } }));
   }
   function gardenChore(now = Date.now(), force = false) {
-    if (reduceMotion || !rootRef.current?.parentElement || (!force && now - gardenState.last < GARDEN_COOLDOWN_MS)) return null;
-    if (gardenState.plots.some((plot) => plot.ripe)) return "harvest";
-    if (!gardenState.raining && skyPhaseRef.current !== "night" && gardenState.plots.some((plot) => plot.thirsty)) return "water";
+    if (reduceMotion || !rootRef.current?.parentElement) return null;
+    const elapsed = now - gardenState.last;
+    if (gardenState.plots.some((plot) => plot.ripe) && (force || elapsed >= GARDEN_COOLDOWN_MS)) return "harvest";
+    if (!gardenState.raining && gardenState.plots.some((plot) => plot.thirsty)
+      && (force || elapsed >= WATER_COOLDOWN_MS)) return "water";
     return null;
   }
   const canGarden = (now) => Boolean(gardenChore(now));
@@ -260,7 +263,7 @@ function createLife(core, { setLamps, setForage, setTent, setGarden }) {
       visited.add(plot.plot);
       walkToPlot(plot, WATER_GAP, "water", (generation) => {
         setGarden({ task: "water", phase: "pour", x: plot.x, crop: plot.crop });
-        schedule(() => { if (activeEventRef.current === "garden") window.dispatchEvent(new CustomEvent("daivr-garden-water", { detail: { plot: plot.plot } })); }, 350);
+        schedule(() => { if (activeEventRef.current === "garden") window.dispatchEvent(new CustomEvent("daivr-garden-water", { detail: { plot: plot.plot, seedId: plot.seedId } })); }, 350);
         schedule(() => { if (activeEventRef.current === "garden" && moodGenRef.current === generation) visit(); }, POUR_MS);
       });
     };

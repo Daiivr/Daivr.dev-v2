@@ -4,7 +4,7 @@ import { BuddyCoinIcon } from "./BuddyCoinIcon";
 import { CROPS, SEED_BAG_MAX, cropById, cropSaleDay, gardenPlots, growth, nextCropSale, ripeAt } from "../../shared/buddy-market.mjs";
 import { DIORAMA, createGardenDiorama, dioramaView } from "../lib/pixelWorld/gardenDiorama";
 import { drawCropItem, drawPlotPreview, readWatered } from "../lib/pixelWorld/life/garden";
-import { dayNumber } from "../lib/pixelWorld/life/util";
+import { wetGardenPlots } from "../../shared/buddy-garden-water.mjs";
 
 // El cobertizo del huerto: su propio modal (se abre pulsando el huerto del
 // prado). Arriba, el huerto en pequeño con lo que crece de verdad en cada
@@ -67,6 +67,7 @@ function StageCanvas({ crop, value }) {
 }
 
 function timeLeft(ms) {
+  if (ms < 3600000) return `${Math.max(1, Math.ceil(ms / 60000))} min`;
   const hours = Math.max(1, Math.ceil(ms / 3600000));
   if (hours < 24) return `${hours} h`;
   const days = Math.floor(hours / 24), rest = hours % 24;
@@ -88,7 +89,7 @@ export function BuddyGarden({ buddy, onNavigate }) {
   const [note, setNote] = useState("");
   const time = now.getTime();
   const entries = plots.map((seed, plot) => (seed ? { plot, seedId: seed.id, crop: seed.crop, growth: growth(seed, time) } : null));
-  const wet = readWatered(dayNumber()).size > 0;
+  const wet = wetGardenPlots(entries, readWatered(time), time);
   const saleDay = cropSaleDay(now);
   const basketCount = CROPS.reduce((sum, crop) => sum + wallet.basket[crop.id], 0);
   const basketValue = CROPS.reduce((sum, crop) => sum + wallet.basket[crop.id] * crop.value, 0);
@@ -105,7 +106,7 @@ export function BuddyGarden({ buddy, onNavigate }) {
           <div><dt>Sold for</dt><dd><BuddyCoinIcon />{wallet.soldCoins}</dd></div>
         </dl>
       </div>
-      <p className="seed-shed-intro">Seeds are on sale any day, up to {SEED_BAG_MAX} of each in your bag. Plant them and they grow in real time, rain or Buddy’s watering can keeps them happy, and Buddy picks what’s ripe into the basket. The basket sells at the Friday market for more than the seeds cost.</p>
+      <p className="seed-shed-intro">Seeds are on sale any day, up to {SEED_BAG_MAX} of each in your bag. Crops grow in 6–24 hours, even while you’re away. Growing plants dry out after 15 minutes, so Buddy can water them again unless it’s raining. Buddy picks what’s ripe into the basket, ready to sell at Friday’s market for more than the seeds cost.</p>
 
       <div className="seed-garden">
         <GardenDiorama plots={entries} ghost={nextFree >= 0 ? hover : null} wet={wet} />
@@ -160,12 +161,12 @@ export function BuddyGarden({ buddy, onNavigate }) {
               <small>SEEDS</small>
             </div>
             <div className="seed-packet-copy">
-              <ol className="seed-packet-stages" aria-label={`${crop.label}: sprout to ripe in ${crop.days} ${crop.days === 1 ? "day" : "days"}`}>
+              <ol className="seed-packet-stages" aria-label={`${crop.label}: sprout to ripe in ${crop.hours} hours`}>
                 {STAGE_GROWTHS.map((value) => <li key={value}><StageCanvas crop={crop.id} value={value} /></li>)}
               </ol>
               <p>{crop.description}</p>
               <dl>
-                <div><dt>Grows</dt><dd>{crop.days} {crop.days === 1 ? "day" : "days"}</dd></div>
+                <div><dt>Grows</dt><dd>{crop.hours} hours</dd></div>
                 <div><dt>Sells</dt><dd>{crop.value}</dd></div>
                 <div className="is-profit"><dt>Profit</dt><dd>+{crop.value - crop.price}</dd></div>
               </dl>

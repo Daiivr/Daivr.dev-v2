@@ -9,7 +9,7 @@ import { drawBeam } from "./beam.js";
 export function flashlightDrawOverlay(g, actor, a, fr, env) {
   const T = a.torch;
   if (!T) return;
-  drawBeam(g, [T.x0, T.y0, T.x1, T.y1], env.t, T.k, 12);
+  drawBeam(g, [T.x0, T.y0, T.x1, T.y1], env.t, T.k, 12, actor.ghost);
   // (un destello en el cristal de vez en cuando)
-  if (Math.sin(env.t * 2.3) > 0.97) { px(g, Math.round(T.x0), Math.round(T.y0) - 1, "#ffffff"); halo(g, T.x0, T.y0, 3, "255,250,220", 0.1 * T.k); }
+  if (Math.sin(env.t * 2.3) > 0.97) { px(g, Math.round(T.x0), Math.round(T.y0) - 1, actor.ghost ? "#e6eeff" : "#ffffff"); halo(g, T.x0, T.y0, 3, actor.ghost ? "215,230,255" : "255,250,220", 0.1 * T.k); }
 }

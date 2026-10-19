@@ -1,4 +1,6 @@
 import { lazy, outlinedSprite } from "./core.js";
+import { paintLeaf } from "./leaf.js";
+import { ROD_LOOK } from "./tackle.js";
 
 // Lo que vende el puesto del bosque, en pixel y a juego con el footer: cada
 // pieza con su contorno de su propio tono oscuro, cinco tonos por material y
@@ -189,9 +191,10 @@ function arcade() {
 
 // Una caña en diagonal: mango de corcho moteado, carrete, la vara con sus
 // anillas y la punta, y el sedal colgando con su corcho.
-function rod({ blank: [R, r], tip, grip, reel, bob }) {
+// (los colores son los de ROD_LOOK: la misma caña que Pip saca en el footer)
+function rod({ blank: [R, r], tip, grip, reel, bob, nodes, knots }) {
   const W = 20, H = 20, g = blank(W, H);
-  linePts(5, 14, 17, 2).forEach(([x, y], i) => { put(g, x, y, "R"); put(g, x + 1, y + 1, "r"); if (i % 4 === 2 && i < 11) put(g, x + 1, y + 2, "i"); });
+  linePts(5, 14, 17, 2).forEach(([x, y], i) => { put(g, x, y, (nodes && i % 3 === 1) || (knots && i % 5 === 3) ? "r" : "R"); put(g, x + 1, y + 1, "r"); if (i % 4 === 2 && i < 11) put(g, x + 1, y + 2, "i"); });
   put(g, 17, 2, "T"); put(g, 18, 1, "T"); put(g, 18, 2, "t");
   linePts(1, 18, 5, 14).forEach(([x, y], i) => { put(g, x, y, i % 2 ? "c" : "C"); put(g, x + 1, y, i % 3 ? "c" : "x"); put(g, x, y + 1, "x"); });
   for (const [x, y, c] of [[6, 15, "S"], [7, 15, "s"], [6, 16, "s"], [7, 16, "k"], [8, 16, "S"], [8, 17, "k"], [5, 16, "k"]]) put(g, x, y, c);
@@ -204,21 +207,133 @@ function rod({ blank: [R, r], tip, grip, reel, bob }) {
 // etiqueta de estrellas y chispas por encima.
 function magicBait() {
   const g = [
-    "......s.......",
-    ".....sWs...S..",
-    "......s...SWS.",
-    "...........S..",
-    "...pPPpPPp....",
-    "..pPWPpPpPPp..",
-    ".tTTTTTTTTTTt.",
-    ".tMmmmmmmmmnt.",
-    ".tMLLLLLLLLnt.",
-    ".tMLyLLLLyLnt.",
-    ".tMLLLyLLLLnt.",
-    ".tMmmmmmmmmnt.",
-    "..tttttttttt.."
+    "..s.......S...",
+    ".sWs.....SWS..",
+    "..s..pppp..S..",
+    "....pPPPPp....",
+    "...pPWPPPPp...",
+    "...pPWPPPPd...",
+    "...pPPPPPdd...",
+    "...ppPPPddd...",
+    "....pppddd....",
+    "......hh......",
+    ".....h..h.....",
+    "....h....h....",
+    "....hH..Hh...."
   ];
-  return [g, { s: "#fff6cf", S: "#ffd6ff", W: "#ffffff", p: "#b04ad8", P: "#ff7ad8", T: "#eef4f8", t: "#5a6470", M: "#d0d8e0", m: "#a8b4c0", n: "#7a8692", L: "#7a3ab8", y: "#ffd166" }, "#26202e"];
+  return [g, { s: "#fff6cf", S: "#ffd6ff", W: "#ffffff", p: "#b04ad8", P: "#ff7ad8", d: "#7a2a9a", h: "#c8d0d8", H: "#6a7480" }, "#2a1036"];
+}
+
+// El lucky lure: una cucharilla dorada en forma de gota con su gema azul, la
+// argolla arriba y el anzuelo triple abajo (como la de la punta del sedal).
+function luckyLure() {
+  const g = [
+    ".....hh.......",
+    "....h..h......",
+    ".....hh.......",
+    ".....yy.......",
+    "....yHYy......",
+    "...yHYYYy.....",
+    "...yYbbYYy....",
+    "..yYbBbYYy....",
+    "..yYYbbYYy....",
+    "..yYYYYYYd....",
+    "...yYYYYdd....",
+    "....yddd......",
+    ".....hh.......",
+    "....h.h.h.....",
+    "...h..h..h....",
+    "...hh.h.hh...."
+  ];
+  return [g, { y: "#b8862a", Y: "#ffd166", H: "#fff4c0", d: "#8a6418", b: "#1f6f93", B: "#45d8ff", h: "#c8d0d8" }, "#4a3a10"];
+}
+
+// El swift lure: una hoja de cuchara en rayo, cian con su brillo, el anzuelo
+// abajo y unas rayas de velocidad.
+function swiftLure() {
+  const g = [
+    "........cc....",
+    ".......cWc....",
+    "......cWc..s..",
+    ".....cWcC.....",
+    "....cWcC...s..",
+    "...cWWWWWcC...",
+    "....cCWWcC.s..",
+    "......cWC.....",
+    ".....cWC......",
+    "....cWC.......",
+    "...cWC........",
+    "...cC.........",
+    "..hh..........",
+    ".h.h..........",
+    ".hh..........."
+  ];
+  return [g, { c: "#45d8ff", C: "#1f8ab0", W: "#f4fff8", s: "#b8f0ff", h: "#c8d0d8" }, "#123a4a"];
+}
+
+// El anchor lure: un anclita cian con su argolla, el cepo, la caña y los
+// brazos curvos con las uñas verdes.
+function anchorLure() {
+  const g = [
+    "......oo......",
+    ".....o..o.....",
+    "......oo......",
+    "....cWccCC....",
+    "......cC......",
+    "......cC......",
+    "......cC......",
+    "......cC......",
+    "..G...cC...G..",
+    "..gc..cC..cg..",
+    "...cc.cC.cC...",
+    "....cccCCC....",
+    ".....cCC......"
+  ];
+  return [g, { c: "#45d8ff", C: "#1f8ab0", W: "#d6f8ff", g: "#3fff97", G: "#b8ffd8", o: "#c8d0d8" }, "#123a4a"];
+}
+
+// El magnet lure: un iman de herradura rosa con las puntas blancas y su
+// argolla.
+function magnetLure() {
+  const g = [
+    "..WW......Ww..",
+    "..WW......Ww..",
+    "..Lp......pP..",
+    "..Lp......pP..",
+    "..Lp......pP..",
+    "..Lp......pP..",
+    "..Lpp....pPP..",
+    "...Lppppppp...",
+    "....pppppP....",
+    "......hh......",
+    ".....h..h....."
+  ];
+  return [g, { p: "#ff3d9d", P: "#b01a60", L: "#ff8ac4", W: "#f4fff8", w: "#c8d0d8", h: "#c8d0d8" }, "#4a1030"];
+}
+
+// El traje de pescador: el sombrero de pesca con su señuelo sobre el chaleco
+// oliva abierto, con los bolsillos (los colores del rig).
+function fisherOutfit() {
+  const g = [
+    "......hhhhhh........",
+    ".....hHHlHHHh.......",
+    ".....hHHHHHHhRY.....",
+    ".....bbbbbbbbR......",
+    "...BBBBBBBBBBBBB....",
+    "..BBBBBBBBBBBBBBB...",
+    "....................",
+    ".....llll..mmmm.....",
+    "....lllll..mmmmd....",
+    "...llllll..mmmmmd...",
+    "..lllllll..mmmmmmd..",
+    "..lllllll..mmmmmmd..",
+    "..lkkklll..mkkkmmd..",
+    "..lmmmlll..mmmmmmd..",
+    "..lmymlll..mmymmmd..",
+    "..lllllll..mmmmmmd..",
+    "..ddddddd..ddddddd.."
+  ];
+  return [g, { h: "#6a6a3a", H: "#8a8a4a", l: "#a8a868", b: "#4a3a1a", B: "#7a7a42", R: "#e84a3a", Y: "#ffd166", m: "#6e6e38", d: "#4a4a22", k: "#34340e", y: "#ffd166" }, "#24240e"];
 }
 
 // El señuelo curioso: un pececillo de metal con su ojo grande, la aleta roja,
@@ -311,22 +426,17 @@ function specs() {
   return [rowsOf(g), { R: "#ffe08a", r: "#c8a040", q: "#8a6a20", l: "#b8dcf0", W: "#f4fcff" }, "#3a2a08"];
 }
 
-// Paraguas de hoja: una hoja enorme con su nervio y sus venas, el borde
-// lobulado, la punta caida y un tallo de mango con la curva abajo.
+// Paraguas de hoja: una hoja grande arqueada y asimetrica (la punta cae a la
+// derecha), con el nervio por arriba, venas en diagonal hacia la punta, el
+// envés oscuro y lobulado por debajo, y el tallo de mango con su curva.
 function leafUmbrella() {
-  const W = 19, H = 18, g = blank(W, H), leaf = ["d", "m", "l", "h"];
-  for (let y = 0; y < 10; y++) for (let x = 0; x < 18; x++) {
-    const u = (x + 0.5 - 9) / 8.8, v = (y + 0.5 - 10) / 9.6;
-    if (u * u + v * v > 1) continue;
-    if (y === 9 && x % 4 === 1) continue;
-    g[y][x] = tone(u * 0.8 + (v + 0.5) * 0.8, leaf);
-  }
-  for (let y = 1; y < 10; y++) put(g, 9, y, "v");
-  for (const s of [-1, 1]) for (let k = 0; k < 3; k++) linePts(9, 2 + k * 2, 9 + s * (4 + k), 5 + k * 2).forEach(([x, y], i) => i && g[y]?.[x] && g[y][x] !== "." && put(g, x, y, "v"));
-  put(g, 18, 9, "d"); put(g, 18, 10, "d"); put(g, 17, 10, "m");
-  for (let y = 10; y < 17; y++) put(g, 9, y, y % 3 ? "t" : "T");
-  put(g, 8, 17, "t"); put(g, 7, 17, "t"); put(g, 6, 16, "t");
-  return [rowsOf(g), { h: "#c0f08a", l: "#7ac85a", m: "#4a9a3a", d: "#2c6a26", v: "#d8f8b0", t: "#7a5a2e", T: "#a8804a" }, "#122e10"];
+  const W = 23, H = 19, g = blank(W, H);
+  const keys = { out: "o", h: "h", l: "l", m: "m", d: "d", under: "u", rib: "v", vein: "w", stem: "t" };
+  const leaf = paintLeaf((x, y, key) => put(g, x + 2, y, keys[key]), { len: 19, peakY: 5, rise: 3, droop: 2, H: 6 });
+  // el tallo: baja de debajo de la hoja y se curva al final
+  for (let y = leaf.bot(8) + 2; y <= 16; y++) put(g, 10, y, y % 3 ? "t" : "T");
+  put(g, 9, 17, "t"); put(g, 8, 17, "t"); put(g, 7, 16, "t");
+  return [rowsOf(g), { o: "#14320f", h: "#b8ec88", l: "#7ac85a", m: "#4f9e3c", d: "#2f6e2a", u: "#1e4a1a", v: "#d8f4a8", w: "#94d064", t: "#5a7a2e", T: "#7a9a40" }, "#14320f"];
 }
 
 // La lubina de trofeo: escudo de madera tallado con bisel, la placa de laton
@@ -434,6 +544,218 @@ function lavaLamp(phase = 0) {
   return [rowsOf(g), { M: "#a8c8d4", m: "#6a8a98", n: "#3a4a58", W: "#f0fcff", l: "#5a2280", L: "#8a3ab0", o: "#ff8a3a", O: "#ffc070", p: "#ff5a8a" }, "#141826"];
 }
 
+// --- Mas cosas del puesto ----------------------------------------------------
+
+// Gorro de rana para la lluvia: copa verde con los dos ojos saltones encima,
+// mofletes rosas, una sonrisa y el ala de lluvia.
+function frogHat() {
+  const W = 18, H = 14, g = blank(W, H), green = ["d", "m", "l", "h"];
+  for (let y = 3; y < 10; y++) for (let x = 2; x < 16; x++) {
+    const u = (x + 0.5 - 9) / 6.6, v = (y + 0.5 - 10) / 6.6;
+    if (u * u + v * v > 1) continue;
+    g[y][x] = tone(u * 0.8 + (v + 0.6) * 0.9, green);
+  }
+  for (const cx of [5.2, 12.8]) for (let y = 0; y < 5; y++) for (let x = 2; x < 16; x++) {
+    const d = Math.hypot(x + 0.5 - cx, y + 0.5 - 2.4);
+    if (d > 2.5) continue;
+    g[y][x] = d > 1.6 ? (x + 0.5 < cx ? "l" : "m") : y < 2 && x + 0.5 < cx ? "W" : "w";
+  }
+  put(g, 5, 2, "k"); put(g, 13, 2, "k"); put(g, 5, 3, "k"); put(g, 13, 3, "k");
+  put(g, 4, 8, "p"); put(g, 14, 8, "p");
+  for (const [x, y] of [[7, 8], [8, 9], [9, 9], [10, 9], [11, 8]]) put(g, x, y, "s");
+  for (let y = 9; y < 13; y++) for (let x = 0; x < W; x++) {
+    const u = (x + 0.5 - 9) / 9, v = (y + 0.5 - 10.8) / 2.2;
+    if (u * u + v * v > 1 || (y < 10 && Math.abs(x + 0.5 - 9) < 6)) continue;
+    g[y][x] = y === 9 || (y === 10 && Math.abs(x + 0.5 - 9) >= 6) ? (x < 9 ? "l" : "m") : y === 12 ? "D" : "d";
+  }
+  return [rowsOf(g), { h: "#b8ec7a", l: "#7ac84a", m: "#4f9e34", d: "#2f6e24", D: "#1e4a18", w: "#f4f8ec", W: "#ffffff", k: "#101810", p: "#ff9ab8", s: "#1e4a18" }, "#123010"];
+}
+
+// Sudadera calentita: mostaza, con la capucha detras del cuello, cordones,
+// bolsillo canguro, mangas y el puño y la cintura en canale.
+function hoodie() {
+  const g = [
+    "......hhhhhh......",
+    ".....hHHHHHHh.....",
+    "....hHooooooHh....",
+    "....hoooooooHh....",
+    "..LLhoooooooohmm..",
+    ".LLLLhwoooowhmmmm.",
+    "LLLLDLwLMMMwMDmmmm",
+    "LLLLDLLwMMMwMDmmmd",
+    "cLLLDLLWMMMWMDmmdc",
+    "cccDLLLMMMMMMMDccc",
+    "...DLLLMMMMMMMD...",
+    "...DLLppppppMMD...",
+    "...DLpLLMMMMpMD...",
+    "...DLpLMMMMMpMD...",
+    "...DLLLMMMMMMMD...",
+    "...DLLLMMMMMMMD...",
+    "...cCcCcCcCcCcC..."
+  ];
+  return [g, { h: "#e0a83a", H: "#ffe08a", o: "#4a2e0c", L: "#f4c860", M: "#e0a83a", m: "#c88e2c", d: "#a8741e", D: "#7a5014", c: "#b07a20", C: "#d89a30", w: "#f4f0e0", W: "#c8c0a8", p: "#8a5e18" }, "#3a2408"];
+}
+
+// El brote de la antena: la bola azul de Pip con un tallito y dos hojas.
+function sprout() {
+  const g = [
+    "......ll..",
+    "...l..lLl.",
+    "..lLl.lLLl",
+    "..lLLlsLl.",
+    "...lLs.l..",
+    ".....s....",
+    ".....s....",
+    "...bBBBb..",
+    "..bBhBBBb.",
+    "..bBBBBBb.",
+    "..bBBBBbb.",
+    "...bbbbb.."
+  ];
+  return [g, { l: "#7ac84a", L: "#b8ec7a", s: "#4f9e34", b: "#1f6f93", B: "#45d8ff", h: "#d6f8ff" }, "#14465a"];
+}
+
+// Lampara seta: sombrero rojo con motas que brilla, pie crema con su
+// ventanita encendida y un poco de musgo.
+function mushroomLamp() {
+  const W = 16, H = 18, g = blank(W, H), red = ["d", "m", "l", "h"];
+  for (let y = 0; y < 8; y++) for (let x = 0; x < W; x++) {
+    const u = (x + 0.5 - 8) / 7.8, v = (y + 0.5 - 8) / 7.6;
+    if (u * u + v * v > 1) continue;
+    g[y][x] = y === 7 ? "u" : tone(u * 0.7 + (v + 0.5) * 0.8, red);
+  }
+  for (const [x, y] of [[4, 3], [5, 3], [9, 2], [10, 2], [12, 5], [7, 5], [2, 6]]) put(g, x, y, "w");
+  for (let y = 8; y < 16; y++) for (let x = 5; x < 11; x++) g[y][x] = x === 5 ? "C" : x === 10 ? "e" : "c";
+  for (let y = 10; y < 13; y++) for (let x = 7; x < 9; x++) put(g, x, y, y === 10 ? "Y" : "y");
+  for (let x = 3; x < 13; x++) { put(g, x, 16, x % 3 ? "g" : "G"); put(g, x, 17, "G"); }
+  put(g, 4, 15, "g"); put(g, 11, 15, "g");
+  return [rowsOf(g), { h: "#ff9a80", l: "#f06a4a", m: "#d8402e", d: "#a02a20", u: "#f0d8b8", w: "#fff4e8", C: "#fff0d8", c: "#e8d4b0", e: "#b8a080", y: "#ffd166", Y: "#fff0a8", g: "#6aa83a", G: "#3a7a2a" }, "#3a1410"];
+}
+
+// Bola de nieve: cristal redondo con su brillo, una cabaña y un pino dentro,
+// nieve en el suelo y copos flotando, sobre una peana de madera.
+function snowGlobe() {
+  const W = 16, H = 18, g = blank(W, H);
+  for (let y = 0; y < 14; y++) for (let x = 0; x < W; x++) {
+    const d = Math.hypot(x + 0.5 - 8, y + 0.5 - 7);
+    if (d > 7.2) continue;
+    g[y][x] = d > 6.3 ? (x + y < 14 ? "w" : "v") : y > 9 ? "s" : y > 8 ? "S" : "a";
+  }
+  for (const [x, y] of [[10, 3], [9, 4], [10, 4], [11, 4], [9, 5], [10, 5], [11, 5], [8, 6], [9, 6], [10, 6], [11, 6], [12, 6], [8, 7], [9, 7], [10, 7], [11, 7], [12, 7], [10, 8]]) put(g, x, y, y === 8 ? "t" : (x + y) % 3 ? "p" : "P");
+  for (let y = 6; y < 9; y++) for (let x = 3; x < 7; x++) put(g, x, y, y === 6 ? "r" : x === 5 && y === 7 ? "y" : "c");
+  put(g, 3, 5, "r"); put(g, 4, 5, "r"); put(g, 5, 5, "r"); put(g, 6, 5, "r"); put(g, 4, 4, "r"); put(g, 5, 4, "r");
+  for (const [x, y] of [[3, 2], [7, 1], [12, 9], [2, 8], [6, 3], [13, 6]]) put(g, x, y, "f");
+  put(g, 3, 3, "W"); put(g, 4, 2, "W"); put(g, 3, 4, "W");
+  for (let x = 2; x < 14; x++) { put(g, x, 14, x < 4 ? "B" : "b"); put(g, x, 15, x < 4 ? "b" : "n"); }
+  for (let x = 1; x < 15; x++) { put(g, x, 16, x < 3 ? "B" : "b"); put(g, x, 17, "n"); }
+  return [rowsOf(g), { a: "#a8d8f0", w: "#e8f8ff", v: "#7ab0c8", W: "#ffffff", s: "#f4f8ff", S: "#d8e8f4", p: "#3a7a4a", P: "#2a5a38", t: "#6a4422", c: "#a8743e", r: "#c84a3a", y: "#ffd166", f: "#ffffff", B: "#c89058", b: "#8a5a2e", n: "#5a3a1e" }, "#1c3446"];
+}
+
+// Radio de casete: asa arriba, antena, dos altavoces redondos, la ventanita
+// de la cinta con sus bobinas y el dial que brilla.
+function radio() {
+  const W = 20, H = 15, g = blank(W, H);
+  for (let x = 6; x < 14; x++) put(g, x, 0, "k");
+  put(g, 6, 1, "k"); put(g, 13, 1, "k");
+  for (let y = 0; y < 3; y++) put(g, 17, y, "a");
+  for (let y = 2; y < 14; y++) for (let x = 0; x < W; x++) g[y][x] = y === 2 ? (x < 10 ? "H" : "R") : y === 13 ? "D" : x === 0 ? "H" : x === W - 1 ? "D" : "R";
+  for (const cx of [4, 15]) for (let y = 5; y < 13; y++) for (let x = cx - 4; x <= cx + 4; x++) {
+    const d = Math.hypot(x + 0.5 - (cx + 0.5), y + 0.5 - 9);
+    if (d > 3.4) continue;
+    g[y][x] = d > 2.6 ? "k" : d < 1 ? "c" : (x + y) % 2 ? "s" : "S";
+  }
+  for (let y = 4; y < 9; y++) for (let x = 8; x < 12; x++) g[y][x] = y === 4 || y === 8 ? "k" : "t";
+  put(g, 8, 6, "w"); put(g, 11, 6, "w"); put(g, 9, 6, "T"); put(g, 10, 6, "T");
+  for (let x = 8; x < 12; x++) put(g, x, 10, x === 9 ? "y" : "k");
+  for (let x = 8; x < 12; x++) put(g, x, 11, "b");
+  put(g, 2, 3, "y"); put(g, 3, 3, "Y");
+  return [rowsOf(g), { R: "#3a9aa0", H: "#7ad0c8", D: "#1e5a62", k: "#1a2a2e", s: "#4a5a5e", S: "#2e3a3e", c: "#8a9a9e", t: "#c8b090", T: "#3a2a1a", w: "#f4f0e0", y: "#ffd166", Y: "#ff8a4a", a: "#a8b4c0", b: "#e8e0c8" }, "#0e2024"];
+}
+
+// --- Lo de pescar del puesto --------------------------------------------------
+
+// Chubasquero amarillo: capucha, botones oscuros por delante, bolsillos con
+// solapa, mangas con su puño y brillos de hule.
+function raincoat() {
+  const g = [
+    "......hhhhhh......",
+    ".....hHHHHHHh.....",
+    "....hHooooooHh....",
+    "....hoooooooHh....",
+    "..LLhoooooooohmm..",
+    ".LWLLhLLMMMMhmmmm.",
+    "LLLLDLWLbMMMMDmmmm",
+    "LLLLDLLLMMMMMDmmmd",
+    "cLLLDLLLbMMMMDmmdc",
+    "cccDLWLLMMMMMMDccc",
+    "...DLLLLbMMMMMD...",
+    "...DLppLMMppMMD...",
+    "...DLLLLbMMMMMD...",
+    "...DLLLLMMMMMMD...",
+    "...DLLLLbMMMMMD...",
+    "...DLLLLMMMMMMD...",
+    "...cccccccccccc..."
+  ];
+  return [g, { h: "#e0b020", H: "#fff080", o: "#5a4208", L: "#ffe060", W: "#fffbe0", M: "#f0c020", m: "#d8a818", D: "#9a7208", c: "#b8860a", b: "#3a2a10", p: "#b8860a" }, "#4a3608"];
+}
+
+// Gorro de pescador de lona caqui, con una mosca prendida en la cinta.
+function bucketHat() {
+  const g = [
+    "....hhhhhhhhh.....",
+    "...hHHHlHHHHHh....",
+    "...hHlHHHHHHHh....",
+    "...bbbbbbbbbbbRY..",
+    "..hHHHHHHHHHHHHh..",
+    ".BBBBBBBBBBBBBBBB.",
+    "BBBBBBBBBBBBBBBBBB",
+    ".dddddddddddddddd."
+  ];
+  return [g, { h: "#a89868", H: "#c8b888", l: "#e8dcb0", b: "#6a5a3a", B: "#b8a878", d: "#8a7a52", R: "#e84a3a", Y: "#ffd166" }, "#3a3018"];
+}
+
+// Caja de aparejos roja con las bandejas abiertas: en cada hueco, un señuelo.
+function tackleBox() {
+  const g = [
+    ".......kkkk.......",
+    "......k....k......",
+    "..TTTTTTTTTTTTTT..",
+    ".ToyoboToroboToT..",
+    ".TTTTTTTTTTTTTTTT.",
+    "LLLLLLLLLLLLLLLLLd",
+    "LRRRRRRRRRRRRRRRRd",
+    "LRRRRRRRsRRRRRRRRd",
+    "LRRRRRRRRRRRRRRRRd",
+    "LRRRRRRRRRRRRRRRRd",
+    ".ddddddddddddddddd"
+  ];
+  return [g, { k: "#3a4048", T: "#c8d0d8", o: "#4a5460", y: "#ffd166", b: "#45d8ff", r: "#ff3d9d", L: "#f06a5a", R: "#c8382a", d: "#8a2018", s: "#ffd166" }, "#3a0e08"];
+}
+
+// Faro de bolsillo: torre a rayas blancas y rojas, la linterna que brilla, el
+// balcon, la puerta y las rocas de la base.
+function lighthouse() {
+  const g = [
+    ".....kk.....",
+    "....kkkk....",
+    "...gGWGg....",
+    "...gGGGg....",
+    "..kkkkkkkk..",
+    "...wWwwr....",
+    "...wWwwr....",
+    "...rRrrd....",
+    "...rRrrd....",
+    "..wWwwwrr...",
+    "..wWwwwrr...",
+    "..rRrrrdd...",
+    "..rRrrrdd...",
+    "..wWwkkrr...",
+    ".SsssssssSs.",
+    "sSssSsssSsss"
+  ];
+  return [g, { w: "#f4f0e8", W: "#ffffff", r: "#d84a3a", R: "#f06a5a", d: "#8a2018", k: "#2a2a3a", g: "#ffd166", G: "#fff4b0", s: "#7a8088", S: "#a8b0b8" }, "#1a1a26"];
+}
+
 const ART = {
   "market-beanie": beanie,
   "market-vest": vest,
@@ -441,8 +763,12 @@ const ART = {
   "market-terrarium": terrarium,
   "market-moon": moon,
   "market-arcade": arcade,
-  "rod-fiberglass": () => rod({ blank: ["#f0e2b0", "#b8a070"], tip: ["#ff5a4a", "#a82a20"], grip: ["#e8c890", "#c8a060", "#8a6a3a"], reel: ["#e8eef4", "#a8b4c0", "#4a5460"], bob: "#e84a3a" }),
-  "rod-iridium": () => rod({ blank: ["#b88af0", "#6a3ab0"], tip: ["#ffe0ff", "#c88af0"], grip: ["#4a3a5a", "#2e2238", "#1a1222"], reel: ["#ffe08a", "#d8a840", "#8a6420"], bob: "#c88af0" }),
+  ...Object.fromEntries(Object.keys(ROD_LOOK).filter(Boolean).map((id) => [id, () => rod(ROD_LOOK[id])])),
+  lure: luckyLure,
+  "lure-swift": swiftLure,
+  "lure-anchor": anchorLure,
+  "lure-magnet": magnetLure,
+  "fisher-outfit": fisherOutfit,
   "lure-magic-bait": magicBait,
   "lure-curiosity": curiosityLure,
   "lure-crab-pot": crabPot,
@@ -453,7 +779,17 @@ const ART = {
   "market-trophy-fish": trophyFish,
   "market-ship-bottle": shipBottle,
   "market-bonsai": bonsai,
-  "market-lava-lamp": lavaLamp
+  "market-lava-lamp": lavaLamp,
+  "market-frog-hat": frogHat,
+  "market-hoodie": hoodie,
+  "market-sprout": sprout,
+  "market-mushroom-lamp": mushroomLamp,
+  "market-snow-globe": snowGlobe,
+  "market-radio": radio,
+  "market-raincoat": raincoat,
+  "market-bucket-hat": bucketHat,
+  "market-tackle-box": tackleBox,
+  "market-lighthouse": lighthouse
 };
 
 export const isGoodsArt = (id) => Boolean(ART[id]);
@@ -485,6 +821,11 @@ export function goodsFrame(id, t) {
 export const GOODS_GLOW = {
   "market-moon": { pool: [8, 8, 9, [255, 210, 130], 0.22], light: [30, [255, 200, 120], 0.45], lit: true },
   "market-arcade": { pool: [8, 8, 7, [140, 230, 190], 0.16], light: [22, [120, 230, 180], 0.4], blink: [[6, 7], [9, 7]] },
-  "market-lava-lamp": { pool: [6, 10, 8, [255, 120, 170], 0.26], light: [26, [255, 120, 170], 0.45], lit: true }
+  "market-lava-lamp": { pool: [6, 10, 8, [255, 120, 170], 0.26], light: [26, [255, 120, 170], 0.45], lit: true },
+  "market-mushroom-lamp": { pool: [9, 5, 9, [255, 150, 100], 0.24], light: [26, [255, 160, 110], 0.45], lit: true },
+  "market-radio": { pool: [10, 10, 5, [255, 210, 110], 0.14], light: [14, [255, 200, 110], 0.3], blink: [[3, 4], [4, 4]] },
+  "market-snow-globe": { pool: [9, 8, 8, [190, 225, 255], 0.14], light: [16, [180, 220, 255], 0.3] },
+  // (el faro: la linterna brilla y su haz barre la balda)
+  "market-lighthouse": { pool: [6, 4, 7, [255, 230, 150], 0.26], light: [24, [255, 220, 140], 0.42], beam: [6, 4] }
 };
 export const MARKET_GOODS_ART = lazy(() => Object.fromEntries(Object.keys(ART).map((id) => [id, goodsSprite(id)])));

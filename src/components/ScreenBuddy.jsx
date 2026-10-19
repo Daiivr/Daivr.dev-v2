@@ -5,7 +5,7 @@ import { LeviathanEncounter } from "./LeviathanEncounter";
 import { PipChute } from "./PipChute";
 import { PipSprite } from "./PipSprite";
 import { LINES } from "./screen-buddy/buddyLines";
-import { clamp, desktopQuery, reduceMotionQuery, SPRITE_WIDTH, useBuddyCore, WALK_MARGIN, FALL_SPEED_PX_S } from "./screen-buddy/useBuddyCore";
+import { clamp, desktopQuery, IDLE_LULL_MS, WALK_LULL_MS, randomBetween, reduceMotionQuery, SPRITE_WIDTH, useBuddyCore, WALK_MARGIN, FALL_SPEED_PX_S, walkDuration } from "./screen-buddy/useBuddyCore";
 import { useBuddyCampfire } from "./screen-buddy/useBuddyCampfire";
 import { useBuddyLife } from "./screen-buddy/useBuddyLife";
 import { useBuddyJellies } from "./screen-buddy/useBuddyJellies";
@@ -255,7 +255,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       updateMood("sleepy");
       say(pickLine(LINES.sleepy), 2000);
       const generation = moodGenRef.current;
-      const ms = Math.min(11000, (distance / SLEEPY_SPEED_PX_S) * 1000);
+      const ms = walkDuration(distance, SLEEPY_SPEED_PX_S);
       setWalkMs(ms);
       moveTo(target);
 
@@ -274,7 +274,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       const currentMood = moodRef.current;
       // (saliendo de la tienda: que termine de desperezarse)
       if (life.api.tentPhase() === "exit") return;
-      if (["off", "walk", "pet", "party", "dance", "held", "chute", "fishing", "rain", "find", "hunt", "outage", "shoo", "campfire", "lamps", "forage", "garden", "jellies"].includes(currentMood)) return;
+      if (["off", "pet", "party", "dance", "held", "chute", "fishing", "rain", "find", "hunt", "outage", "shoo", "campfire", "lamps", "forage", "garden", "jellies"].includes(currentMood)) return;
 
       const idleFor = Date.now() - lastActivityRef.current;
 
@@ -302,47 +302,76 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       if (currentMood === "talk") return;
 
       // Hay version nueva, o lleva un buen rato aqui: lo cuenta ahora.
-      if (chat.api.announceUpdate()) return;
-      if (chat.api.announceMilestone()) return;
-      if (sky.api.announceNight()) return;
+      if (currentMood !== "walk") {
+        if (chat.api.announceUpdate()) return;
+        if (chat.api.announceMilestone()) return;
+        if (sky.api.announceNight()) return;
+      }
 
+      // Los paseos esperan menos; las demas actividades conservan su pausa.
       const now = Date.now();
+      const ambientReady = now >= core.lullUntilRef.current;
+      const walkReady = now >= core.walkUntilRef.current;
+      if (!ambientReady && !walkReady) return;
       const roll = Math.random();
-      if (outage.api.canStart(now) && roll < 0.0007) {
-        outage.api.start();
-      } else if (jellies.api.canStart(now) && roll < 0.04) {
-        jellies.api.start();
-      } else if (encounters.api.canHunt(now) && roll < 0.025) {
-        encounters.api.startBugHunt();
-      } else if (encounters.api.canFind(now) && roll < 0.06) {
-        encounters.api.startFind();
-      } else if (weather.api.canRain(now) && roll < 0.09) {
-        weather.api.startRain();
-      } else if (fishing.api.canStart(now) && roll < 0.14) {
-        fishing.api.start();
-      } else if (campfire.api.canStart(now) && roll < 0.17) {
-        campfire.api.start();
-      } else if (encounters.api.canCreature(now) && roll < 0.2) {
-        encounters.api.showCreature();
-      } else if (life.api.canGarden(now) && roll < 0.24) {
-        life.api.startGarden();
-      } else if (life.api.canForage(now) && roll < 0.27) {
-        life.api.startForage();
-      } else if (roll < 0.3 && !reduceMotion) {
-        startWalk();
-      } else if (roll < 0.46) {
-        chat.api.idleTalk();
-      } else if (roll < 0.51 && !reduceMotion) {
-        updateMood("dance");
-        if (Math.random() < 0.5) say(buddyLine("dance"), 2200, { priority: "ambient", key: "ambient" });
-        else announceAction("dance");
-        settleDown(2600);
-      } else if (roll < 0.58 && !reduceMotion) {
-        playFx("static", 700);
-        announceAction("glitch");
-      } else if (roll < 0.66 && !reduceMotion) {
-        playFx("scan", 1600);
-        announceAction("scan");
+      // Ordinary walks can yield to events; event travel is protected above
+      // by activeEventRef. Stop at the actual position before changing tasks.
+      const startActivity = (start) => {
+        if (currentMood === "walk") {
+          freezeAtCurrentPosition();
+          updateMood("idle");
+        }
+        start();
+      };
+      let busy = true;
+      // Check hunts before jellyfish: their smaller roll window must stay reachable.
+      if (ambientReady && outage.api.canStart(now) && roll < 0.0007) {
+        startActivity(() => outage.api.start());
+      } else if (ambientReady && encounters.api.canHunt(now) && roll < 0.025) {
+        startActivity(() => encounters.api.startBugHunt());
+      } else if (ambientReady && jellies.api.canStart(now) && roll < 0.04) {
+        startActivity(() => jellies.api.start());
+      } else if (ambientReady && encounters.api.canFind(now) && roll < 0.06) {
+        startActivity(() => encounters.api.startFind());
+      } else if (ambientReady && weather.api.canRain(now) && roll < 0.09) {
+        startActivity(() => weather.api.startRain());
+      } else if (ambientReady && fishing.api.canStart(now) && roll < 0.14) {
+        startActivity(() => fishing.api.start());
+      } else if (ambientReady && campfire.api.canStart(now) && roll < 0.17) {
+        startActivity(() => campfire.api.start());
+      } else if (ambientReady && encounters.api.canCreature(now) && roll < 0.2) {
+        startActivity(() => encounters.api.showCreature());
+      } else if (ambientReady && life.api.canGarden(now) && roll < 0.24) {
+        startActivity(() => life.api.startGarden());
+      } else if (ambientReady && life.api.canForage(now) && roll < 0.27) {
+        startActivity(() => life.api.startForage());
+      } else {
+        // A missed event roll lets the existing walk finish normally.
+        if (currentMood === "walk") return;
+        // Pasea a menudo entre eventos, con pausas breves.
+        const idle = Math.random();
+        if (idle < 0.4 && !reduceMotion) {
+          if (walkReady && startWalk()) core.walkUntilRef.current = now + randomBetween(...WALK_LULL_MS);
+          // Un paseo no reinicia el descanso de las otras actividades.
+          return;
+        } else if (!ambientReady) return;
+        else if (idle < (reduceMotion ? 0.2 : 0.5)) chat.api.idleTalk();
+        else if (idle < 0.53 && !reduceMotion) {
+          updateMood("dance");
+          if (Math.random() < 0.5) say(buddyLine("dance"), 2200, { priority: "ambient", key: "ambient" });
+          else announceAction("dance");
+          settleDown(2600);
+        } else if (idle < 0.56 && !reduceMotion) {
+          playFx("static", 700);
+          announceAction("glitch");
+        } else if (idle < 0.6 && !reduceMotion) {
+          playFx("scan", 1600);
+          announceAction("scan");
+        } else busy = false;
+      }
+      if (busy) {
+        core.lullUntilRef.current = now + randomBetween(...IDLE_LULL_MS);
+        core.walkUntilRef.current = now + randomBetween(...WALK_LULL_MS);
       }
     }
 
@@ -394,6 +423,11 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         return;
       }
 
+      if (detail.phase === "cancel") {
+        dropInFlightRef.current = false;
+        return;
+      }
+
       if (detail.phase === "land") {
         dropInFlightRef.current = false;
         if (bootedRef.current) return;
@@ -402,6 +436,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         const maxX = Math.max(4, stageWidth() - SPRITE_WIDTH - 4);
         setWalkMs(0);
         moveTo(clamp(Number(detail.x) || stageWidth() * 0.14, 4, maxX));
+        if (detail.facing === -1 || detail.facing === 1) updateFacing(detail.facing);
         liftTo(0);
         updateMood("idle");
         say(pickLine(greetingPool()), 2600);

@@ -1075,7 +1075,8 @@
   z-index: 6;
 }
 
-.entry-gate .splash-buddy.is-launched {
+.entry-gate .splash-buddy.is-launched,
+.entry-gate .entry-gate-buddy.is-launched {
   visibility: hidden;
 }
 

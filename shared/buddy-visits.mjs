@@ -15,6 +15,7 @@ export const VISIT_GEAR_IDS = [
   "green-visor", "star-cap", "pixel-crown", "rocket-boots",
   "market-beanie", "market-vest", "market-lantern",
   "market-straw-hat", "market-overalls", "market-specs", "market-leaf-umbrella",
+  "market-frog-hat", "market-hoodie", "market-sprout", "market-raincoat", "market-bucket-hat",
   "miku-wig", "miku-costume", "fisher-outfit",
   "headset", "coffee", "cartridge", "wrench", "pixel-blaster"
 ];

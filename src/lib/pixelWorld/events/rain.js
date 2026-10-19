@@ -1,4 +1,5 @@
 import { Buf, line, px } from "../core.js";
+import { paintLeaf } from "../leaf.js";
 
 // El chaparron de Buddy (useBuddyWeather): saca el paraguas mientras llueve en
 // todo el valle (FooterSky lo pasa como lluvia; las gotas las tira world.js)
@@ -6,37 +7,47 @@ import { Buf, line, px } from "../core.js";
 // andar y gira cuando esta quieto, y escurre por los bordes. Las gotas que
 // caen en la copa rebotan (world.js mira `a.rain.um`).
 const umbrellas = new Map();
-// El paraguas de hoja (del mercado): la misma copa pero verde, con el nervio,
-// las venas que giran como las rayas y el borde lobulado.
-const LEAF = { red: "#4a9a3a", redD: "#2c6a26", redL: "#7ac85a", cream: "#5aaa44", creamD: "#367a2c", creamL: "#a8e070", out: "#122e10", rib: "#d8f8b0" };
-
-// Copa a rayas: `tilt` baja el borde de delante, `twirl` gira las rayas.
-function umbrellaCanvas(tilt, twirl, leaf = false) {
-  const key = tilt + "," + (twirl % 8) + (leaf ? "L" : "");
+// El paraguas de hoja (del mercado): una hoja grande de verdad, arqueada y
+// asimetrica, con la punta caida hacia donde mira Pip, el nervio por arriba,
+// venas en diagonal hacia la punta, el envés oscuro curvado por debajo y el
+// borde lobulado. Del mismo tamaño que la copa a rayas (33x15).
+const LEAF = { out: "#14320f", h: "#b8ec88", l: "#7ac85a", m: "#4f9e3c", d: "#2f6e2a", under: "#1e4a1a", rib: "#d8f4a8", vein: "#94d064", stem: "#5a7a2e" };
+function leafCanvas(tilt, face) {
+  const key = "leaf" + tilt + "," + face;
   let cnv = umbrellas.get(key);
   if (cnv) return cnv;
   const w = 33, cx = 16, b = new Buf(w, 15);
-  const { red, redD, redL, cream, creamD, creamL, out } = leaf ? LEAF : { red: "#d9434a", redD: "#9e2a36", redL: "#f27a74", cream: "#f4e6c6", creamD: "#cdb991", creamL: "#fffaf0", out: "#4a1520" };
+  // (dibujada con la punta a la derecha; `face` -1 la voltea)
+  // (la hoja va de x = 2 a 30; el tilt baja el borde de delante, como la copa)
+  const set = (x, y, key) => { const cxl = x + 2; if (cxl < 0 || cxl >= w) return; const xc = face < 0 ? w - 1 - cxl : cxl; b.set(xc, y + Math.round(tilt * (xc - cx) / 16), LEAF[key]); };
+  paintLeaf(set, { len: 29, peakY: 6, rise: 3, droop: 3, H: 7 });
+  cnv = b.canvas(); umbrellas.set(key, cnv);
+  return cnv;
+}
+
+// Copa a rayas: `tilt` baja el borde de delante, `twirl` gira las rayas.
+function umbrellaCanvas(tilt, twirl) {
+  const key = tilt + "," + (twirl % 8);
+  let cnv = umbrellas.get(key);
+  if (cnv) return cnv;
+  const w = 33, cx = 16, b = new Buf(w, 15);
+  const red = "#d9434a", redD = "#9e2a36", redL = "#f27a74", cream = "#f4e6c6", creamD = "#cdb991", creamL = "#fffaf0", out = "#4a1520";
   for (let r = 0; r < 9; r++) {
     const hw = Math.round(16 * Math.pow(Math.sin((r + 0.5) / 9 * Math.PI / 2), 0.75));
     for (let x = cx - hw; x <= cx + hw; x++) {
       const dy = Math.round(tilt * (x - cx) / 16), panel = Math.floor((x - cx + 64 + (twirl % 8)) / 4) % 2;
       const lit = x < cx - 3 && r < 5, shade = x > cx + 6 || r >= 7;
       let c = panel ? (lit ? creamL : shade ? creamD : cream) : (lit ? redL : shade ? redD : red);
-      // (la hoja: el nervio en el centro y una vena en cada costura)
-      if (leaf && (x === cx || (x - cx + 64 + (twirl % 8)) % 4 === 0) && r > 1 && r < 8) c = LEAF.rib;
       if (x === cx - hw || x === cx + hw || r === 0) c = out;
       b.set(x, r + dy + 3, c);
     }
   }
   for (let x = 0; x < w; x++) {
     const dy = Math.round(tilt * (x - cx) / 16), m = (x - cx + 64 + (twirl % 8)) % 4;
-    if (leaf) { if (m !== 3) b.set(x, 12 + dy, m === 0 ? redD : out); if (m === 0 && x > 0 && x < w - 1) b.set(x, 13 + dy, out); continue; }
     if (m === 1 || m === 2) b.set(x, 12 + dy, out);
     if (m === 0 && x > 0 && x < w - 1) b.set(x, 12 + dy, "#2a0a10");
   }
-  if (leaf) { b.set(w - 1, 12 + tilt, LEAF.redD); b.set(w - 1, 13 + tilt, out); }
-  b.set(cx, 2, out); b.set(cx, 1, leaf ? "#7a5a2e" : "#5a3a1e"); b.set(cx, 0, leaf ? LEAF.redL : "#8a5a2e");
+  b.set(cx, 2, out); b.set(cx, 1, "#5a3a1e"); b.set(cx, 0, "#8a5a2e");
   cnv = b.canvas(); umbrellas.set(key, cnv);
   return cnv;
 }
@@ -73,11 +84,13 @@ export function rainTop(actor, a) {
 export function rainDrawBehind(g, actor, a, fr, env) {
   if (!raining(actor) || !a.rain) return;
   const um = a.rain.um = geom(actor, fr, env);
-  line(g, um.cx, um.top + 12, um.hx, um.hy, actor.outfit?.umbrella === "leaf" ? "#7a5a2e" : "#5a3a1e");
+  // (el de hoja cuelga de su tallo verde)
+  line(g, um.cx, um.top + 12, um.hx, um.hy, actor.outfit?.umbrella === "leaf" ? "#5a7a2e" : "#5a3a1e");
 }
 export function rainDrawFront(g, actor, a, fr, env) {
   if (!raining(actor) || !a.rain?.um) return;
-  const um = a.rain.um, f = actor.dir, hk = "#5a3a1e";
-  g.drawImage(umbrellaCanvas(um.tilt, um.twirl, actor.outfit?.umbrella === "leaf"), um.cx - 16, um.top);
+  const um = a.rain.um, f = actor.dir, hk = actor.outfit?.umbrella === "leaf" ? "#5a7a2e" : "#5a3a1e";
+  const leaf = actor.outfit?.umbrella === "leaf";
+  g.drawImage(leaf ? leafCanvas(um.tilt, f < 0 ? -1 : 1) : umbrellaCanvas(um.tilt, um.twirl), um.cx - 16, um.top);
   px(g, um.hx, um.hy + 2, hk); px(g, um.hx, um.hy + 3, hk); px(g, um.hx - f, um.hy + 4, hk); px(g, um.hx - 2 * f, um.hy + 3, hk);
 }

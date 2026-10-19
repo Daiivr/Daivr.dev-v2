@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AMBIENT_CREATURES, ENEMY_BUGS, FIELD_FINDS } from "../../data/buddyWorld";
 import { LINES } from "./buddyLines";
-import { clamp, randomBetween, SPRITE_WIDTH, WALK_MARGIN, WALK_SPEED_PX_S } from "./useBuddyCore";
+import { clamp, randomBetween, SPRITE_WIDTH, WALK_MARGIN, walkDuration } from "./useBuddyCore";
 
 /*
   Encuentros por el footer:
@@ -69,7 +69,16 @@ export function useBuddyEncounters(core, { startRain }) {
       }, 6000);
     };
     window.addEventListener("daivr-fisherman-state", onFisher);
+    // Se acabo un paquete de señuelos: lo dice despues de anunciar la captura.
+    let lureTimer = 0;
+    const onLureEmpty = (event) => {
+      window.clearTimeout(lureTimer);
+      lureTimer = window.setTimeout(() => core.say(`out of ${String(event.detail?.label || "lure").toLowerCase()}s. time to restock my tackle box.`, 3200, { topic: "fishing" }), 5400);
+    };
+    window.addEventListener("daivr-buddy-lure-empty", onLureEmpty);
     return () => {
+      window.clearTimeout(lureTimer);
+      window.removeEventListener("daivr-buddy-lure-empty", onLureEmpty);
       window.clearTimeout(fisherTimer2);
       window.removeEventListener("daivr-fisherman-state", onFisher);
       window.clearTimeout(fisherTimer);
@@ -115,7 +124,7 @@ function createEncounters(core, { setFieldFind, setCreature, setEnemy, startRain
     const maxX = Math.max(WALK_MARGIN, stageWidth() - SPRITE_WIDTH - WALK_MARGIN);
     const target = clamp(xRef.current + direction * randomBetween(70, 140), WALK_MARGIN, maxX);
     const distance = Math.abs(target - xRef.current);
-    const ms = Math.min(3600, (distance / WALK_SPEED_PX_S) * 1000);
+    const ms = walkDuration(distance);
     faceTravelDirection(target > xRef.current ? 1 : -1);
     updateMood("walk");
     const generation = moodGenRef.current;
@@ -157,7 +166,7 @@ function createEncounters(core, { setFieldFind, setCreature, setEnemy, startRain
     updateFieldFind({ ...find, picking: "walk" });
     const maxX = Math.max(WALK_MARGIN, stageWidth() - SPRITE_WIDTH - WALK_MARGIN);
     const target = clamp(xRef.current + side * (76 - FIND_REACH_PX), WALK_MARGIN, maxX);
-    const ms = Math.max(120, (Math.abs(target - xRef.current) / WALK_SPEED_PX_S) * 1000);
+    const ms = Math.max(120, walkDuration(target - xRef.current));
     faceTravelDirection(side);
     updateMood("walk");
     const generation = moodGenRef.current;

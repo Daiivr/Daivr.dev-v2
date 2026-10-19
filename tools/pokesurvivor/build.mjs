@@ -16,11 +16,12 @@
 //
 // Para cambiar el parche: extrae el commit en un repo git aparte, aplica
 // daivr.patch, edita, `git diff > tools/pokesurvivor/daivr.patch` (con
-// `git add -N` para los archivos nuevos) y vuelve a compilar. Los archivos del
-// original usan CRLF: el parche tambien.
+// `git add -N` para los archivos nuevos) y vuelve a compilar. Normaliza el
+// original a LF antes de editar: applyGamePatch hace lo mismo al compilar.
+// extensions/ contiene módulos nuevos con pruebas directas; se copia a js/systems/.
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -36,6 +37,7 @@ const ROOT = resolve(HERE, "../..");
 const OUT = join(ROOT, "public", "pokesurvivor");
 const CACHE = join(HERE, ".cache");
 const PATCH = join(HERE, "daivr.patch");
+const EXTENSIONS = join(HERE, "extensions");
 // Lo que necesita el juego (el resto del repositorio son paginas de SEO,
 // Firebase, Cloudflare, videos y herramientas).
 const SOURCES = ["dev.html", "js", "css", "assets/fonts", "assets/icons", "assets/pokemon", "favicon.ico", "LICENSE", "CREDITS.md"];
@@ -114,6 +116,26 @@ async function bundle(work) {
   return { html, code, files: files.length };
 }
 
+// The pinned archive uses CRLF, while Git may check out the patch with LF.
+// Normalize both sides so rebuilding works with either Windows Git setting.
+export function applyGamePatch(work) {
+  function normalize(path) {
+    for (const entry of readdirSync(path, { withFileTypes: true })) {
+      const file = join(path, entry.name);
+      if (entry.isDirectory()) normalize(file);
+      else if (/\.(?:js|css)$/.test(entry.name)) writeFileSync(file, readFileSync(file, "utf8").replace(/\r\n/g, "\n"));
+    }
+  }
+  normalize(join(work, "js"));
+  normalize(join(work, "css"));
+  const dev = join(work, "dev.html");
+  writeFileSync(dev, readFileSync(dev, "utf8").replace(/\r\n/g, "\n"));
+  execFileSync("git", ["apply", "--whitespace=nowarn", "-"], {
+    cwd: work, input: readFileSync(PATCH, "utf8").replace(/\r\n/g, "\n"), stdio: ["pipe", "inherit", "inherit"]
+  });
+  cpSync(EXTENSIONS, join(work, "js", "systems"), { recursive: true });
+}
+
 // Primer fotograma de Idle de cada Pokemon ({dex: [w, h]}; [w, h, 0] si no
 // tiene shiny; [w, h, ws, hs] si el shiny tiene otra medida). Con esto la web
 // pinta los equipos del ranking de grupo de la tele sin cargar el juego
@@ -135,7 +157,7 @@ export function idleFrames(source) {
 async function main() {
   const work = await upstreamTree();
   try {
-    execFileSync("git", ["apply", "--whitespace=nowarn", PATCH], { cwd: work, stdio: "inherit" });
+    applyGamePatch(work);
     const { html, code, files } = await bundle(work);
     rmSync(OUT, { recursive: true, force: true });
     mkdirSync(join(OUT, "js"), { recursive: true });
