@@ -430,12 +430,12 @@
 
   /* `scrollbar-color` se hereda, y `html` lo trae puesto desde index.css: hay
      que devolverlo a `auto` o Chrome sigue ignorando los pseudo-elementos. */
-  .buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory { scrollbar-gutter: stable; overscroll-behavior: contain; scrollbar-color: auto; }
+  .buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory, .fishing-tackle { scrollbar-gutter: stable; overscroll-behavior: contain; scrollbar-color: auto; }
 
   /* Las vistas llegan hasta el borde del modal, asi que su barra de scroll
      cruzaba el chaflan de abajo-derecha y lo dejaba con una esquina cuadrada.
      Recortarlas con la misma forma corta tambien la barra. */
-  .buddy-modal-inventory, .buddy-modal-quests, .buddy-journal {
+  .buddy-modal-inventory, .buddy-modal-quests, .buddy-journal, .fishing-tackle {
     clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--buddy-cut)), calc(100% - var(--buddy-cut)) 100%, 0 100%);
   }
 
@@ -444,31 +444,31 @@
      pseudo-elemento (borde transparente + background-clip para meter el pulgar
      hacia dentro) y las propiedades estandar quedan solo para Firefox. */
   @supports not selector(::-webkit-scrollbar) {
-    .buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory {
+    .buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory, .fishing-tackle {
       scrollbar-width: thin;
       scrollbar-color: var(--buddy-scroll-thumb) transparent;
     }
   }
 
-  .buddy-modal :is(.buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory)::-webkit-scrollbar {
+  .buddy-modal :is(.buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory, .fishing-tackle)::-webkit-scrollbar {
     width: 12px;
     height: 12px;
   }
-  .buddy-modal :is(.buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory)::-webkit-scrollbar-track,
-  .buddy-modal :is(.buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory)::-webkit-scrollbar-corner {
+  .buddy-modal :is(.buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory, .fishing-tackle)::-webkit-scrollbar-track,
+  .buddy-modal :is(.buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory, .fishing-tackle)::-webkit-scrollbar-corner {
     background: transparent;
   }
-  .buddy-modal :is(.buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory)::-webkit-scrollbar-thumb {
+  .buddy-modal :is(.buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory, .fishing-tackle)::-webkit-scrollbar-thumb {
     border: 3px solid transparent;
     background: linear-gradient(180deg, color-mix(in srgb, var(--color-phosphor) 52%, transparent), color-mix(in srgb, var(--color-cyan-arcade) 44%, transparent));
     background-clip: padding-box;
   }
-  .buddy-modal :is(.buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory)::-webkit-scrollbar-thumb:hover {
+  .buddy-modal :is(.buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory, .fishing-tackle)::-webkit-scrollbar-thumb:hover {
     background: linear-gradient(180deg, var(--color-phosphor), color-mix(in srgb, var(--color-cyan-arcade) 82%, transparent));
     background-clip: padding-box;
     box-shadow: 0 0 12px color-mix(in srgb, var(--color-phosphor) 34%, transparent);
   }
-  .buddy-modal :is(.buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory)::-webkit-scrollbar-button {
+  .buddy-modal :is(.buddy-slot-scroll, .buddy-loot-scroll, .buddy-modal-quests, .buddy-journal, .buddy-journal-stage, .buddy-archive-scroll, .buddy-modal-inventory, .fishing-tackle)::-webkit-scrollbar-button {
     display: none;
   }
 

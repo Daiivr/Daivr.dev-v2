@@ -372,6 +372,13 @@ function drawShelfGlow(g, t, shelves) {
       if (glow.lit) g.drawImage(goodsFrame(k.slice(5), t), ix, iy);
       const on = Math.floor(t * 2) % 2;
       (glow.blink || []).forEach(([bx, by], n) => px(g, ix + bx, iy + by, (on + n) % 2 ? "#3fff97" : "#9de0b4"));
+      // el haz del faro: va y viene de un lado a otro
+      if (glow.beam) {
+        const [lx, ly] = glow.beam, sw = Math.sin(t * 1.6), dir = sw >= 0 ? 1 : -1, len = Math.round(2 + Math.abs(sw) * 7);
+        g.globalCompositeOperation = "lighter";
+        for (let i = 1; i <= len; i++) { g.globalAlpha = 0.5 * (1 - i / (len + 1)); px(g, ix + lx + dir * (i + 2), iy + ly, "#fff0b0"); if (i > 2) px(g, ix + lx + dir * (i + 2), iy + ly + (i % 2 ? 1 : -1), "#ffe08a"); }
+        g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
+      }
     }
     if (k === "fish:token-chest" || k === "find:arcade-coin") {
       const p = (t * 0.7 + i * 0.5) % 1;

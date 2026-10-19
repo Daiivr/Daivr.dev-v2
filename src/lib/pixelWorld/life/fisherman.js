@@ -42,19 +42,29 @@ function cartAt(x, dir) {
 
 export function createFisherman() {
   let L = null, at = null, now = 0, puff = 0;
-  // Donde esta y que hace en el instante `t` (ms del reloj).
-  function where(t) {
+  // Donde esta y que hace en el instante `t` (ms del reloj). `gaps`: los ratos
+  // en que se fue a reponer (le compraron todos los señuelos): se va andando
+  // y, si le da tiempo, vuelve con el carro lleno.
+  function where(t, gaps = []) {
     const spot = L?.fisher?.x;
     if (spot == null) return { phase: "away" };
     const exitX = L.W + 16, walkMs = (exitX - spot) / SPEED * 1000;
+    const walk = (from, e, out) => ({ phase: out ? "leaving" : "arriving", x: out ? spot + (exitX - spot) * e / walkMs : exitX - (exitX - spot) * e / walkMs, dir: out ? 1 : -1 });
     const visit = fishermanVisit(t);
     if (visit) {
       const e = t - visit.from;
-      if (e < walkMs) return { phase: "arriving", x: exitX - (exitX - spot) * e / walkMs, dir: -1 };
+      if (e < walkMs) return walk(visit.from, e, false);
+      for (const gap of gaps) {
+        if (t < gap.from || gap.from < visit.from - walkMs || gap.from >= visit.to) continue;
+        if (t < gap.from + walkMs) return walk(gap.from, t - gap.from, true);
+        if (t < gap.to || !gap.returns) return { phase: "away" };
+        if (t < gap.to + walkMs) return walk(gap.to, t - gap.to, false);
+      }
       return { phase: "here", x: spot, dir: -1, until: visit.to };
     }
     const past = fishermanVisit(t - walkMs);
-    if (past && t >= past.to) return { phase: "leaving", x: spot + (exitX - spot) * (t - past.to) / walkMs, dir: 1 };
+    // (si se fue a reponer y ya no volvio, no hay despedida al final)
+    if (past && t >= past.to && !gaps.some((gap) => gap.from >= past.from && gap.from < past.to && !gap.returns)) return walk(past.to, t - past.to, true);
     return { phase: "away" };
   }
   const manTop = (img) => GROUND - img.height + 1;
@@ -62,7 +72,7 @@ export function createFisherman() {
     setup(ctx) { L = ctx.L; },
     update(ctx) {
       now = Date.now();
-      at = where(now);
+      at = where(now, ctx.state?.fisherGaps || []);
       // humo de la pipa mientras esta plantado
       if (at.phase === "here" && !ctx.reduceMotion && (puff -= ctx.dt) <= 0) {
         puff = 0.5 + Math.random() * 0.7;

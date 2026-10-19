@@ -30,6 +30,11 @@
   .footer-fisherman-button { position: absolute; z-index: 4; left: var(--world-fisher-left, -160px); bottom: calc(100% + 6px); width: var(--world-fisher-width, 0); height: 74px; padding: 0; border: 0; background: transparent; cursor: pointer; }
   .footer-fisherman-button:focus-visible { outline: 2px solid #ffd166; outline-offset: 2px; }
   @media (max-width: 767px) { .footer-fisherman-button { display: none; } }
+  /* El barril de las cañas junto a la farola: abre el modal de pesca (y si a
+     este ancho no cabe, FooterWorld quita data-rack y el boton no esta). */
+  .footer-rack-button { position: absolute; z-index: 4; left: var(--world-rack-left, -160px); bottom: calc(100% + 8px); width: var(--world-rack-width, 0); height: 74px; padding: 0; border: 0; background: transparent; cursor: pointer; }
+  .footer-rack-button:focus-visible { outline: 2px solid #ffd166; outline-offset: 2px; }
+  .app-footer-zone:not([data-rack]) .footer-rack-button { display: none; }
 
   /* Pip agarrado o en paracaidas por encima de lo que alcanza el lienzo:
      se pinta aqui, en el DOM, con la tela detras de el. */

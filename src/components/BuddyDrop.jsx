@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { getLocalBuddyLevel } from "../hooks/useBuddyFriendship";
-import { PipChute } from "./PipChute";
 import { PipSprite } from "./PipSprite";
+import { BuddyPortalTravel } from "./BuddyPortalTravel";
 
 // Ritmo pensado para seguirlo con la rueda del mouse mientras baja la pagina.
 const DROP_SPEED_PX_S = 260;
@@ -47,7 +47,11 @@ function clamp(value, min, max) {
   (el ScreenBuddy del footer no aparece mientras tanto) y {phase:"land", x}
   al tocar el riel para que el ScreenBuddy tome el control justo ahi.
 */
-export function BuddyDrop({ start, aboveSplash = false, onDone, friendshipLevel, inventory = [], hiddenGear = [], unlockedGear = [] }) {
+export function BuddyDrop(props) {
+  return props.start.mode === "portal" ? <BuddyPortalTravel {...props} /> : <BuddyParachuteDrop {...props} />;
+}
+
+function BuddyParachuteDrop({ start, aboveSplash = false, onDone, friendshipLevel, inventory = [], hiddenGear = [], unlockedGear = [] }) {
   const [geometry, setGeometry] = useState(null);
   const [mode, setMode] = useState("boarding"); // boarding | fall | held
   const [anchorTop, setAnchorTop] = useState(0);
@@ -350,12 +354,12 @@ export function BuddyDrop({ start, aboveSplash = false, onDone, friendshipLevel,
         onPointerUp={handlePointerRelease}
         onPointerCancel={handlePointerRelease}
       >
-        {hasRocketBoots ? null : <PipChute className="buddy-drop-canopy" upgraded={inventory.includes("parachute-upgrade") && !hiddenGear.includes("parachute-upgrade")} />}
         {/* Mira a la izquierda, como en la puerta de la que salta. */}
         <PipSprite
           expression="happy"
           facing={1}
           pose={hasRocketBoots ? "hover" : "hang"}
+          parachute={!hasRocketBoots && mode !== "held"}
           friendshipLevel={buddyLevel}
           inventory={inventory}
           hiddenGear={hiddenGear}

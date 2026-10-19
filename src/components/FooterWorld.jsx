@@ -1,11 +1,12 @@
 import { useEffect, useRef } from "react";
 import { fishArc, fishContact, fishRebound, reboundPoint } from "../../shared/footer-fish-motion.mjs";
 import { growth } from "../../shared/buddy-market.mjs";
+import { isCropWatered, wetGardenPlots } from "../../shared/buddy-garden-water.mjs";
 import { ART } from "../lib/pixelWorld/core";
 import { H, WATER_Y, WORLD_TOP, layoutCssVars } from "../lib/pixelWorld/layout";
 import { skyScene } from "../lib/pixelWorld/skyBus";
 import { createFooterWorld } from "../lib/pixelWorld/world";
-import { actorPosition, dropActor, listActors, publishActor, publishLayout } from "../lib/pixelWorld/worldBus";
+import { actorDirection, actorPosition, dropActor, listActors, publishActor, publishLayout } from "../lib/pixelWorld/worldBus";
 import { forageFor } from "../lib/pixelWorld/life/forage";
 import { readWatered, saveWatered } from "../lib/pixelWorld/life/garden";
 import { dayNumber } from "../lib/pixelWorld/life/util";
@@ -50,15 +51,15 @@ function savePicked(day, picked) {
   }
 }
 
-export function FooterWorld({ sky, season, marketOpen, marketHover, gardenHover, fisherHover, mailFlag, garden }) {
+export function FooterWorld({ sky, season, marketOpen, marketHover, gardenHover, fisherHover, fisherGaps, rackHover, rods, mailFlag, garden }) {
   const rootRef = useRef(null);
   const canvasRef = useRef(null);
   const propsRef = useRef(null);
   const repaintRef = useRef(() => {});
   const gardenDirtyRef = useRef(true);
-  propsRef.current = { sky, season: season || "", marketOpen, marketHover, gardenHover, fisherHover, mailFlag, garden: garden || [] };
+  propsRef.current = { sky, season: season || "", marketOpen, marketHover, gardenHover, fisherHover, fisherGaps: fisherGaps || [], rackHover, rods: rods || [], mailFlag, garden: garden || [] };
 
-  useEffect(() => { repaintRef.current(); }, [sky, season, marketOpen, marketHover, gardenHover, fisherHover, mailFlag]);
+  useEffect(() => { repaintRef.current(); }, [sky, season, marketOpen, marketHover, gardenHover, fisherHover, rackHover, rods, mailFlag]);
   useEffect(() => { gardenDirtyRef.current = true; repaintRef.current(); }, [garden]);
 
   useEffect(() => {
@@ -86,6 +87,8 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, gardenHover,
       canvas.style.height = `${WORLD_PX}px`;
       Object.entries(layoutCssVars(layout)).forEach(([key, value]) => zone?.style.setProperty(key, value));
       root.querySelector(".footer-garden")?.toggleAttribute("data-dry", Boolean(layout.garden));
+      // (sin barril de cañas a este ancho, su boton se esconde: footer-world.css)
+      zone?.toggleAttribute("data-rack", Boolean(layout.rack));
       refreshForage();
       gardenDirtyRef.current = true;
     }
@@ -124,24 +127,31 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, gardenHover,
       lampsKey = key;
       window.dispatchEvent(new CustomEvent("daivr-lamps-state", { detail: { want: world.lampsWant, lamps: pending.map((lamp) => ({ i: lamp.i, x: lamp.x * ART })) } }));
     }
-    // El huerto: lo plantado (con lo que lleva crecido) y lo regado hoy, para
+    // El huerto: lo plantado (con lo que lleva crecido) y su humedad, para
     // el mundo y para Buddy (`daivr-garden-state`), que va a regar lo que tiene
     // sed y a cosechar lo maduro. La lluvia riega todas las parcelas.
-    let gardenDay = -1, watered = new Set(), gardenNext = 0, gardenKey = "", planted = [];
+    let watered = readWatered(), wetPlots = new Set(), gardenNext = 0, gardenKey = "", planted = [];
+    function recordWater(entries, now) {
+      const activeIds = new Set(planted.map((entry) => entry.seedId));
+      watered = new Map([...watered].filter(([id]) => activeIds.has(id) && isCropWatered(watered, id, now)));
+      entries.forEach((entry) => watered.set(entry.seedId, now));
+      saveWatered(watered);
+      wetPlots = wetGardenPlots(planted, watered, now);
+    }
     function refreshGarden(now = Date.now()) {
-      const day = dayNumber();
-      if (day !== gardenDay) { gardenDay = day; watered = readWatered(day); }
       planted = propsRef.current.garden.map((seed, plot) => (seed ? { plot, seedId: seed.id, crop: seed.crop, growth: growth(seed, now) } : null)).filter(Boolean);
-      if (world.raining() && planted.some((entry) => !watered.has(entry.plot))) {
-        planted.forEach((entry) => watered.add(entry.plot));
-        saveWatered(gardenDay, watered);
+      if (world.raining()) {
+        // Rain refreshes moisture, with at most one storage write per minute.
+        const thirsty = planted.filter((entry) => entry.growth < 1 && (!isCropWatered(watered, entry.seedId, now) || now - watered.get(entry.seedId) >= 60_000));
+        if (thirsty.length) recordWater(thirsty, now);
       }
-      world.setGarden(planted, [...watered]);
+      wetPlots = wetGardenPlots(planted, watered, now);
+      world.setGarden(planted, [...wetPlots]);
     }
     function announceGarden(now) {
       if (gardenDirtyRef.current || now > gardenNext) { gardenDirtyRef.current = false; gardenNext = now + 20_000; refreshGarden(); }
       const plots = world.layout?.garden?.plots;
-      const list = plots ? planted.map((entry) => ({ plot: entry.plot, seedId: entry.seedId, crop: entry.crop, x: plots[entry.plot] * ART, ripe: entry.growth >= 1, thirsty: entry.growth < 1 && !watered.has(entry.plot) })) : [];
+      const list = plots ? planted.map((entry) => ({ plot: entry.plot, seedId: entry.seedId, crop: entry.crop, x: plots[entry.plot] * ART, ripe: entry.growth >= 1, thirsty: entry.growth < 1 && !wetPlots.has(entry.plot) })) : [];
       const key = list.map((entry) => `${entry.plot}:${entry.seedId}:${entry.ripe}:${entry.thirsty}`).join(",") + "|" + world.raining();
       if (key === gardenKey) return;
       gardenKey = key;
@@ -149,10 +159,14 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, gardenHover,
     }
     const onGardenWater = (event) => {
       const plot = event.detail?.plot;
-      if (!Number.isInteger(plot) || watered.has(plot)) return;
-      watered.add(plot);
-      saveWatered(gardenDay, watered);
-      world.setGarden(planted, [...watered]);
+      if (!Number.isInteger(plot)) return;
+      const now = Date.now();
+      refreshGarden(now);
+      const entry = planted.find((item) => item.plot === plot && item.seedId === event.detail?.seedId);
+      if (!entry || entry.growth >= 1 || wetPlots.has(plot)) return;
+      recordWater([entry], now);
+      world.setGarden(planted, [...wetPlots]);
+      gardenDirtyRef.current = true;
     };
     const onGardenPick = (event) => {
       const entry = planted.find((item) => item.plot === event.detail?.plot);
@@ -186,6 +200,9 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, gardenHover,
       world.state.market = { open: props.marketOpen !== false, hover: Boolean(props.marketHover) };
       world.state.gardenHover = Boolean(props.gardenHover);
       world.state.fisherHover = Boolean(props.fisherHover);
+      world.state.fisherGaps = props.fisherGaps;
+      world.state.rackHover = Boolean(props.rackHover);
+      world.state.rods = props.rods;
       world.state.mail = { flag: Boolean(props.mailFlag) };
       world.state.reduceMotion = Boolean(reduceMotion);
       world.state.scene = skyScene();
@@ -206,8 +223,7 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, gardenHover,
             y: pos.y / ART,
             aloft,
             moving: pos.moving && actor.x !== actor.fromX,
-            // facing -1 en ScreenBuddy = mira a la derecha
-            dir: (actor.facing || 1) < 0 ? 1 : -1
+            dir: actorDirection(actor, pos)
           };
         });
     }
@@ -442,8 +458,8 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, gardenHover,
         // la vida del valle (life/): pajaros que bajan, nieve, farolas...
         life: world.life,
         forageReset: () => { picked = new Set(); savePicked(forageDay, picked); refreshForage(); },
-        // (pruebas) olvidar lo regado hoy
-        gardenDry: () => { watered = new Set(); saveWatered(gardenDay, watered); gardenDirtyRef.current = true; },
+        // (pruebas) secar las plantas
+        gardenDry: () => { watered = new Map(); saveWatered(watered); gardenDirtyRef.current = true; },
         // actores de prueba (eventos que solo se lanzan con sesion de admin)
         bus: { publishActor, dropActor }
       };

@@ -19,6 +19,15 @@ export function actorPosition(actor, time = clock()) {
   };
 }
 
+// Reactions can change facing mid-trip. While walking, face the actual
+// horizontal motion; once stopped, looking at a visitor/cursor is allowed.
+export function actorDirection(actor, position = actorPosition(actor)) {
+  if (position?.moving && actor.x !== actor.fromX && !["held", "chute"].includes(actor.mood)) {
+    return Math.sign(actor.x - actor.fromX);
+  }
+  return actor?.facing < 0 ? 1 : -1;
+}
+
 export function publishActor(id, next, time = clock()) {
   const prev = actors.get(id);
   const x = Number(next.x) || 0, y = Number(next.y) || 0;

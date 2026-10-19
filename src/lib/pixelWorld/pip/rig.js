@@ -41,6 +41,11 @@ export const HATS = {
   // el sombrero de paja del mercado: copa tejida, cinta roja con margarita y
   // ala ancha que asoma por delante y por detras
   "market-straw-hat": { rows: ["....hhhhhhh.....", "...hHHlHHHHh....", "..hHHHHHHHHHh...", "..rRRRRRRRRfrr..", "bbBBBBBBBBBBBBBb", ".bbbbbbbbbbbbbb."], pal: { h: "#c8a050", H: "#e8c878", l: "#fff0b0", r: "#a82a20", R: "#e84a3a", f: "#fffaf0", B: "#f0d088", b: "#b88a40" }, out: "#4a3410", sink: 3, dx: 1 },
+  // el gorro de rana: copa verde con dos ojos saltones (miran hacia delante),
+  // un moflete rosa y el ala de lluvia
+  "market-frog-hat": { rows: ["...wWW...wWW...", "...WWk...WWk...", "...gGg...gGg...", "..gGGGGGGGGGg..", ".gGlGGGGGGGGGgp", "bBBBBBBBBBBBBBB"], pal: { w: "#e8f0dc", W: "#ffffff", k: "#101810", g: "#4f9e34", G: "#7ac84a", l: "#b8ec7a", p: "#ff9ab8", b: "#2f6e24", B: "#4f9e34" }, out: "#123010", sink: 2, dx: 1 },
+  // el gorro de pescador caqui, con la mosca roja y amarilla en la cinta
+  "market-bucket-hat": { rows: ["....hhhhhhh....", "...hHHlHHHHh...", "..hHHHHHHHHHh..", "..bbbbbbbbbbbRY", ".BBBBBBBBBBBBBB.", "BBBBBBBBBBBBBBBB"], pal: { h: "#a89868", H: "#c8b888", l: "#e8dcb0", b: "#6a5a3a", B: "#b8a878", R: "#e84a3a", Y: "#ffd166" }, out: "#3a3018", sink: 3, dx: 1 },
   "witch-hat": { rows: ["......pp.", ".....pp..", "....ppp..", "...pPpp..", "...ppPp..", "..ppppp..", "..ooooo..", "ppppppppp"], pal: { p: "#4a2a6a", P: "#6a3a8a", o: "#ff9a3c" }, out: "#1a0a2a", sink: 0, dx: 0 }
 };
 // Lo que se lleva en la mano, a tamaño de mano para que se lea a 2x: la mano
@@ -203,8 +208,10 @@ function buildRig(o) {
   const BP = boots ? { boot: "#9a3974", bootL: "#ff4c9f", bootHl: "#ff9ec5", bootD: "#6a2754" }
     : fit.feet === "fisher-boots" ? { boot: "#b8860a", bootL: "#f0c020", bootHl: "#ffe680", bootD: "#7a5a08" } : P;
   const wave = o.pose === "walk" ? ((o.frame | 0) % 3) - 1 : 0;
-  // (con el peto vaquero, las piernas van de denim)
+  // (con el peto vaquero, las piernas van de denim; con la sudadera, los brazos de mostaza)
   const LP = fit.body === "market-overalls" ? { limb: "#4466a8", limbL: "#6a8ad0", limbD: "#2e4a80" } : P;
+  const SP = fit.body === "market-hoodie" ? { limb: "#e0a83a", limbL: "#f4c860", limbD: "#a8741e" }
+    : fit.body === "market-raincoat" ? { limb: "#f0c020", limbL: "#ffe060", limbD: "#b8860a" } : P;
   const c = {
     round(cx, cy, rx, ry, tone, opt = {}) { return paintRound(put, opt.head ? HX(cx) : X(cx), opt.head ? HY(cy) : Y(cy), rx, ry, tone, opt); },
     fill(cx, cy, rx, ry, col) {
@@ -243,7 +250,7 @@ function buildRig(o) {
     line.forEach(([x, y], i) => {
       // Con el traje de Miku, la manga acaba en un puño turquesa.
       const cuff = miku && i >= line.length - 3 && i < line.length - 1;
-      pts.push([x, y, cuff ? (back ? MIKU.tealD : MIKU.tealL) : back ? P.limbD : P.limbL], [x + 1, y, cuff ? (back ? MIKU.tealD : MIKU.teal) : back ? P.limbD : P.limb]);
+      pts.push([x, y, cuff ? (back ? MIKU.tealD : MIKU.tealL) : back ? SP.limbD : SP.limbL], [x + 1, y, cuff ? (back ? MIKU.tealD : MIKU.teal) : back ? SP.limbD : SP.limb]);
     });
     const skin = miku ? (back ? [SKIN.skinD, SKIN.skinD] : [SKIN.skinL, SKIN.skin]) : null;
     for (const [dx, dy] of [[0, -1], [1, -1], [-1, 0], [0, 0], [1, 0], [2, 0], [0, 1], [1, 1]]) {
@@ -292,6 +299,13 @@ function buildRig(o) {
     for (let y = -1; y <= 1; y++) for (let x = -1; x <= 1; x++) put(HX(tx + x), HY(ty + y), gold ? "#ffd166" : P.led, true);
     put(HX(tx - 1), HY(ty - 1), gold ? "#fff6cf" : P.ledHl, true);
     if (gold) sparks(tx, ty, o.spark ?? ((o.frame | 0) % 2) * 3);
+    // el brote del mercado: un tallito que sale de la bola con dos hojas
+    if (fit.antenna === "market-sprout") {
+      const sway = (o.frame | 0) % 2 && o.pose === "walk" ? 1 : 0, leaf = [];
+      for (const [x, y, c] of [[0, -3, "#4f9e34"], [0, -4, "#4f9e34"], [sway, -5, "#4f9e34"], [-1, -5, "#7ac84a"], [-2, -5, "#7ac84a"], [-2, -6, "#b8ec7a"], [-1, -6, "#7ac84a"], [1 + sway, -6, "#7ac84a"], [2 + sway, -6, "#7ac84a"], [2 + sway, -7, "#b8ec7a"], [1 + sway, -7, "#7ac84a"]]) leaf.push([HX(tx + x), HY(ty + y), c]);
+      blob(put, leaf, "#123010");
+      perch = [HX(tx), HY(ty - 9)];
+    }
   }
   function face() {
     const e = D.eyes, lx = Math.max(-1, Math.min(1, o.lookX | 0)), ly = o.lookY | 0;
@@ -316,14 +330,18 @@ function buildRig(o) {
   }
   // Las gafas redondas: dos aros de alambre dorado alrededor de los ojos, el
   // puente y la patilla hasta la oreja, con un brillo en cada cristal.
+  // De perfil: el cristal de delante es un aro redondo alrededor del ojo
+  // cercano (sin esquinas), el de atras solo asoma como un borde fino delante
+  // del ojo lejano, el puente por arriba y la patilla hasta el oido. El
+  // alambre no brilla de noche (solo el destello).
   function specs() {
-    const R = "#c8a040", L = "#ffe08a", G = "#e8f8ff";
-    for (const [x0, x1] of [[19, 22], [22, 25]]) {
-      for (let x = x0 + 1; x < x1; x++) { put(HX(x), HY(15), x === x0 + 1 ? L : R, true); put(HX(x), HY(19), R, true); }
-      for (let y = 16; y < 19; y++) { put(HX(x0), HY(y), y === 16 ? L : R, true); put(HX(x1), HY(y), R, true); }
-      put(HX(x0 + 1), HY(16), G, true);
-    }
-    for (let x = 14; x < 19; x++) put(HX(x), HY(16), R, true);
+    const R = "#c8a040", L = "#ffe08a", D = "#8a6a20", G = "#fff8e0";
+    const S = (x, y, c, em = false) => put(HX(x), HY(y), c, em);
+    S(20, 15, L); S(21, 15, R); S(19, 16, L); S(19, 17, R); S(19, 18, D); S(22, 16, R); S(22, 17, R); S(22, 18, D); S(20, 19, D); S(21, 19, D);
+    S(23, 15, R); S(24, 16, R); S(24, 17, R); S(24, 18, D); S(23, 19, D);
+    for (let x = 15; x < 19; x++) S(x, 16, x === 15 ? D : R);
+    S(15, 17, D);
+    S(20, 15, G, true);
   }
   function greenVisor() {
     for (let y = 15; y <= 18; y++) for (let x = 18; x <= 25; x++) put(HX(x), HY(y), y === 15 ? "#9effc1" : y === 18 ? "#409781" : "#0e5b3a");
@@ -382,6 +400,38 @@ function buildRig(o) {
     put(maxX - 4, minY + 1, "#ffe07a"); put(maxX - 2, minY + 1, "#ffe07a");
     put(maxX - 4, minY + 3, "#f0a040"); put(maxX - 3, minY + 3, "#f0a040"); put(maxX - 2, minY + 3, "#f0a040");
     put(maxX - 3, Math.min(maxY - 1, minY + 6), "#22385e");
+  }
+  // La sudadera: mostaza por todo el cuerpo, la capucha abultada en la nuca,
+  // los cordones delante y la costura del bolsillo canguro.
+  // El chubasquero: amarillo brillante, capucha atras, botones por delante y
+  // un brillo de hule.
+  function raincoat() {
+    let maxX = -99, minY = 99, maxY = -99;
+    for (const k of c.bodyMask.keys()) { const [x, y] = k.split(",").map(Number); maxX = Math.max(maxX, x); minY = Math.min(minY, y); maxY = Math.max(maxY, y); }
+    for (const [k, v] of c.bodyMask) {
+      const [x, y] = k.split(",").map(Number);
+      if (v[2]) continue;
+      put(x, y, y === maxY - 1 ? "#b8860a" : v[1] > 0.55 ? "#d8a818" : v[0] < -0.45 ? "#ffe060" : "#f0c020");
+    }
+    const hood = [];
+    for (const [dx, dy] of [[0, 0], [1, 0], [2, 0], [0, 1], [1, 1], [2, 1], [3, 1], [1, -1], [2, -1]]) hood.push([X(12 + dx), Y(23 + dy), dy < 0 || dx === 0 ? "#ffe060" : "#f0c020"]);
+    blob(put, hood, P.out);
+    for (let y = minY + 1; y < maxY - 1; y += 2) put(maxX - 2, y, "#3a2a10");
+    put(maxX - 6, minY + 2, "#fffbe0"); put(maxX - 7, minY + 3, "#fffbe0");
+  }
+  function hoodie() {
+    let maxX = -99, minY = 99, maxY = -99;
+    for (const k of c.bodyMask.keys()) { const [x, y] = k.split(",").map(Number); maxX = Math.max(maxX, x); minY = Math.min(minY, y); maxY = Math.max(maxY, y); }
+    for (const [k, v] of c.bodyMask) {
+      const [x, y] = k.split(",").map(Number);
+      if (v[2]) continue;
+      put(x, y, y === maxY - 1 ? "#a8741e" : v[1] > 0.55 ? "#b07a20" : v[0] < -0.45 ? "#f4c860" : "#e0a83a");
+    }
+    const hood = [];
+    for (const [dx, dy] of [[0, 0], [1, 0], [2, 0], [0, 1], [1, 1], [2, 1], [3, 1], [1, -1], [2, -1]]) hood.push([X(12 + dx), Y(23 + dy), dy < 0 || dx === 0 ? "#f4c860" : "#e0a83a"]);
+    blob(put, hood, P.out);
+    put(maxX - 3, minY + 1, "#f4f0e0"); put(maxX - 3, minY + 2, "#f4f0e0"); put(maxX - 1, minY + 1, "#f4f0e0"); put(maxX - 1, minY + 2, "#c8c0a8");
+    for (let x = maxX - 6; x <= maxX - 2; x++) put(x, minY + 5, "#8a5e18");
   }
   function vest() {
     let maxX = -99;
@@ -536,7 +586,7 @@ function buildRig(o) {
   a.handB = arm(D.shoulder.b, p.bh, true);
   a.feetB = leg(D.hip.b, p.bf, true);
   if (miku) { c.bodyMask = c.round(17, 28, 5.6, 4.1, tones(P), { n: 2.4 }); mikuTop(); }
-  else { body(); if (fit.body === "market-vest") vest(); else if (fit.body === "fisher-vest") fisherVest(); else if (fit.body === "market-overalls") overalls(); }
+  else { body(); if (fit.body === "market-vest") vest(); else if (fit.body === "fisher-vest") fisherVest(); else if (fit.body === "market-overalls") overalls(); else if (fit.body === "market-hoodie") hoodie(); else if (fit.body === "market-raincoat") raincoat(); }
   a.feet = leg(D.hip.f, p.ff, false);
   if (miku) { mikuSkirt(); mikuHead(); }
   else {

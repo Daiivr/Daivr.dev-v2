@@ -524,6 +524,16 @@
 </section>
 
 <!-- datos generados -->
-<script defer src="js/app.min.js?v=e4125d3861"></script>
+<aside id="spectator-controls" class="spectator-controls box hidden" aria-label="Modo espectador">
+  <div class="spectator-title"><span>ESPECTANDO</span> <strong id="spectate-name" translate="no"></strong></div>
+  <div class="row spectator-switch">
+    <button id="spectate-prev" class="btn small" type="button" aria-label="Compañero anterior">◀ Q</button>
+    <span>Q / E · Cambiar compañero</span>
+    <button id="spectate-next" class="btn small" type="button" aria-label="Siguiente compañero">E ▶</button>
+  </div>
+  <p>Esperando a que un compañero te reviva</p>
+  <progress id="spectate-revive" max="1" value="0" aria-label="Progreso de reanimación"></progress>
+</aside>
+<script defer src="js/app.min.js?v=6b3fa8045a"></script>
 </body>
 </html>

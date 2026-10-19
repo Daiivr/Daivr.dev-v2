@@ -1,11 +1,12 @@
 import { lazy, outlinedSprite, px, rect } from "../core.js";
+import { normalizeWatered } from "../../../../shared/buddy-garden-water.mjs";
 
 // El huerto del centro del prado (las semillas se compran en su cobertizo: ver
 // shared/buddy-market.mjs). Tres bancales de madera con la tierra labrada, una
 // valla de estacas detras, su cartel y la regadera apoyada al final. Cada planta pasa por sus fases segun
 // lo que lleva creciendo de verdad (semilla, brote, mata, casi lista y
 // madura, que destella). La tierra se oscurece mojada cuando llueve o cuando
-// Pip la riega (FooterWorld guarda que parcelas se han regado hoy), y Pip
+// Pip la riega (FooterWorld guarda la humedad de cada planta), y Pip
 // cosecha lo maduro (events/garden.js lo lleva en alto).
 const LEAF = { l: "#8ad85a", g: "#5ab04a", G: "#3a7a32" };
 const OUT = "#1a3410";
@@ -147,20 +148,20 @@ const HOVER = "#fff3c4";
 // Lo cosechado, para llevarlo en alto (events/garden.js).
 export const cropItem = (crop) => GARDEN_SPRITES().crops[crop]?.item || null;
 
-// Las parcelas que ya se han regado hoy (Pip, o la lluvia): FooterWorld las
+// Las plantas con humedad reciente (Pip, o la lluvia): FooterWorld las
 // guarda y el cobertizo de semillas pinta la tierra mojada.
-const GARDEN_KEY = "daivr.garden.v1";
-export function readWatered(day) {
+const GARDEN_KEY = "daivr.garden.v2";
+export function readWatered(now = Date.now()) {
   try {
     const saved = JSON.parse(window.localStorage.getItem(GARDEN_KEY) || "null");
-    return new Set(saved?.day === day && Array.isArray(saved.watered) ? saved.watered.filter(Number.isInteger) : []);
+    return normalizeWatered(saved, now);
   } catch {
-    return new Set();
+    return new Map();
   }
 }
-export function saveWatered(day, watered) {
+export function saveWatered(watered) {
   try {
-    window.localStorage.setItem(GARDEN_KEY, JSON.stringify({ day, watered: [...watered] }));
+    window.localStorage.setItem(GARDEN_KEY, JSON.stringify({ version: 2, watered: [...watered] }));
   } catch {
     // Sin almacenamiento: lo regado vale para esta visita.
   }
@@ -212,10 +213,10 @@ export function createGarden() {
   }
   return {
     setup(ctx) { L = ctx.L.garden; pulled = new Map(); frame = null; },
-    // FooterWorld: lo plantado ([{ plot, seedId, crop, growth }]) y lo regado hoy.
-    set(list, wateredToday) {
+    // FooterWorld: lo plantado y las parcelas que siguen humedas.
+    set(list, wetPlots) {
       plots = list.slice();
-      watered = new Set(wateredToday || []);
+      watered = new Set(wetPlots || []);
       for (const id of [...pulled.keys()]) if (!plots.some((p) => p.seedId === id)) pulled.delete(id);
     },
     // Pip arranca la planta: desaparece entre tierra que salta.

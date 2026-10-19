@@ -1,6 +1,6 @@
 import { bayer, blit, halo, line, N4, px, rect, rng } from "./core.js";
 import { FONT, FEST, LAMP_H, balloonSprite, seasonSprites, sprites } from "./props.js";
-import { H, STAND_TOP } from "./layout.js";
+import { H, STAND_TOP, seasonGroundSpots } from "./layout.js";
 import { snowCaps, TREE_BASE } from "./scenery.js";
 
 // Decorado de los eventos de temporada de la pagina (los mismos dias y la
@@ -19,9 +19,10 @@ export function seasonSetup(season, W, L, trees) {
   if (!season) return null;
   const R = rng(77 + W), sea = { season, W, L, parts: [] };
   const lampA = L.lamps[L.lamps.length - 2], lampB = L.lamps[L.lamps.length - 1];
+  const spots = seasonGroundSpots(season, L);
   if (season === "winter") {
     sea.flakes = Array.from({ length: Math.round(W / 5) }, () => ({ x: R() * W, y: R() * H, v: 5 + R() * 9, s: R() < 0.18 ? 2 : 1, p: R() * 6 }));
-    sea.snowman = L.X(84);
+    sea.snowman = spots[0];
     const pine = trees.find((tree) => tree.k === "pine" && tree.d === "near");
     sea.bulbs = [];
     if (pine) {
@@ -37,7 +38,7 @@ export function seasonSetup(season, W, L, trees) {
     for (let x = L.standX + 2; x < L.standX + 64; x += 4) sea.awning.push({ x, y: STAND_TOP + 26, c: FEST[(x / 4 | 0) % 4], p: x * 0.7 });
   }
   if (season === "halloween") {
-    sea.pumpkins = [L.X(29), L.X(51), L.X(90)].map((x) => ({ x, y: 71 })).concat([{ x: L.standX + 33, y: STAND_TOP + 42 }]);
+    sea.pumpkins = spots.map((x) => ({ x, y: 71 })).concat([{ x: L.standX + 33, y: STAND_TOP + 42 }]);
     sea.bats = [0, 1, 2].map(() => ({ x: R() * W, y: 10 + R() * 22, v: 14 + R() * 10, p: R() * 6 }));
     sea.wisps = [{ x: L.X(46), y: 46, p: 0 }, { x: L.X(73), y: 50, p: 2.1 }];
   }
@@ -47,7 +48,7 @@ export function seasonSetup(season, W, L, trees) {
     for (const [bx, by] of [[lampA, LAMP_TOP], [lampB, LAMP_TOP], [L.standX + 63, STAND_TOP + 12]]) {
       for (let i = 0; i < 3; i++) sea.balloons.push({ bx, by, dx: (i - 1) * 4, dy: -11 - (i % 2) * 4, c: FEST[(i + Math.round(bx)) % 5], p: R() * 6 });
     }
-    sea.gifts = [L.X(33), L.X(67)];
+    sea.gifts = spots;
     sea.cake = [L.standX + 43, STAND_TOP + 36];
     sea.confetti = Array.from({ length: Math.round(W / 8) }, () => ({ x: R() * W, y: R() * H, v: 8 + R() * 8, c: FEST[Math.floor(R() * 5)], p: R() * 6 }));
   }

@@ -65,17 +65,34 @@ export function layoutFor(W, { cssWidth = W * 2 } = {}) {
   // huerto y la farola siguiente. Como el huerto, solo fuera del movil.
   const fisherX = garden ? Math.round((garden.end + (lamps.find((lx) => lx > garden.end) ?? X(76))) / 2) - 18 : null;
   const fisher = fisherX == null ? null : { x: fisherX, left: fisherX - 12, right: fisherX + 48 };
+  // El barril de las cañas, pegado a la izquierda de la farola que hay antes
+  // del huerto (abre el modal de pesca). Como el huerto, solo fuera del movil,
+  // y solo si cabe sin pisar el buzon (por debajo de ~880 px no cabe; el modal
+  // sigue en la pestaña "Fishing").
+  const rackLamp = garden ? lamps.filter((lx) => lx < garden.x).pop() : null;
+  const rack = rackLamp != null && rackLamp - 35 >= mailX + 8 ? { x: rackLamp - 35, w: 33 } : null;
   return {
-    W, X, phone, standX, fireX, lamps, trees, bushes, mailX, tentX, garden, fisher,
+    W, X, phone, standX, fireX, lamps, trees, bushes, mailX, tentX, garden, fisher, rack,
     stones: [X(8), X(39), X(74)],
     // Donde no crece hierba ni flores: el puesto y la hoguera.
-    clear: [[standX - 6, standX + STAND_W + 4], [fireX - 16, fireX + 16], ...(garden ? [[garden.x - 2, garden.end + 2]] : []), ...(fisher ? [[fisher.left - 2, fisher.right + 2]] : [])],
+    clear: [[standX - 6, standX + STAND_W + 4], [fireX - 16, fireX + 16], ...(garden ? [[garden.x - 2, garden.end + 2]] : []), ...(fisher ? [[fisher.left - 2, fisher.right + 2]] : []), ...(rack ? [[rack.x - 2, rack.x + rack.w + 2]] : [])],
     // Donde no se abre agua (ni la poza de pescar ni los agujeros de los peces
     // saltarines): desde el borde, con la farola y el puesto, hasta la hoguera;
     // y delante del huerto.
     noWater: [0, fireX + 20],
     dryGarden: garden ? [garden.x - 6, garden.end + 6] : null
   };
+}
+
+// Donde van en el suelo las calabazas, los regalos y el muñeco de nieve de
+// cada fiesta (seasons.js); lo que caeria encima del barril de las cañas pasa
+// al otro lado de su farola. El forraje del dia (life/forage.js) los esquiva.
+export function seasonGroundSpots(season, L) {
+  const offRack = (x, half) => (L.rack && x + half >= L.rack.x - 2 && x - half <= L.rack.x + L.rack.w + 1 ? L.rack.x + L.rack.w + 9 + half : x);
+  if (season === "halloween") return [L.X(29), L.X(51), L.X(90)].map((x) => offRack(x, 4));
+  if (season === "birthday") return [L.X(33), L.X(67)].map((x) => offRack(x, 3));
+  if (season === "winter") return [L.X(84)];
+  return [];
 }
 
 // Variables CSS que ponen los botones (puesto, ancla de la hoguera) justo
@@ -91,6 +108,8 @@ export function layoutCssVars(L) {
     "--world-garden-left": `${(L.garden?.x ?? -40) * 2}px`,
     "--world-garden-width": `${L.garden ? (L.garden.end - L.garden.x) * 2 : 0}px`,
     "--world-fisher-left": `${(L.fisher?.left ?? -80) * 2}px`,
-    "--world-fisher-width": `${L.fisher ? (L.fisher.right - L.fisher.left) * 2 : 0}px`
+    "--world-fisher-width": `${L.fisher ? (L.fisher.right - L.fisher.left) * 2 : 0}px`,
+    "--world-rack-left": `${(L.rack?.x ?? -80) * 2}px`,
+    "--world-rack-width": `${L.rack ? L.rack.w * 2 : 0}px`
   };
 }

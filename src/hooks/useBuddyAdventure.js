@@ -1,4 +1,4 @@
-import { bonusCoins, normalizeMarket, mergeMarket, marketWallet, openMarketChest, purchaseMarketItem, purchaseSeed, plantSeed, harvestCrop, sellCatch, sellCrops, MARKET_GEAR } from "../../shared/buddy-market.mjs";
+import { bonusCoins, normalizeMarket, mergeMarket, marketWallet, openMarketChest, purchaseLure, purchaseMarketItem, purchaseSeed, plantSeed, harvestCrop, sellCatch, sellCrops, spendLure, LURES, MARKET_GEAR } from "../../shared/buddy-market.mjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ALL_CATCHES, FIELD_FINDS, FISH_CATALOG, KRAKEN, LEVIATHAN, VALLEY_CATALOG } from "../data/buddyWorld";
 import { isBuddyJournalComplete, isValleyJournalComplete } from "../../shared/buddy-journal.mjs";
@@ -457,10 +457,30 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
     complete: state.completed.includes(quest.id)
   })), [state]);
 
+  const wallet = useMemo(() => marketWallet(state), [state]);
+  // (los señuelos del pescador estan mientras les queden usos)
   const inventory = useMemo(
-    () => [...BUDDY_INVENTORY.filter((item) => state.inventory.includes(item.id)), ...MARKET_GEAR.filter((item) => Object.hasOwn(state.market.purchases, item.id))],
-    [state.inventory, state.market]
+    () => [
+      // (el lucky lure ya no es para siempre: va con los demas señuelos)
+      ...BUDDY_INVENTORY.filter((item) => state.inventory.includes(item.id) && !LURES.some((lure) => lure.id === item.id)),
+      ...MARKET_GEAR.filter((item) => Object.hasOwn(wallet.purchases, item.id)),
+      ...LURES.filter((lure) => wallet.lureLeft[lure.id] > 0).map((lure) => ({ ...lure, uses: wallet.lureLeft[lure.id], perk: `${wallet.lureLeft[lure.id]} ${wallet.lureLeft[lure.id] === 1 ? "use" : "uses"} left · ${lure.perk}` }))
+    ],
+    [state.inventory, wallet]
   );
+  // Cada pesca con un señuelo del pescador puesto gasta un uso (la pesca avisa
+  // con `daivr-lure-used`); al acabarse, Buddy lo dice.
+  useEffect(() => {
+    function onLureUsed(event) {
+      const id = event.detail?.id;
+      const result = spendLure(stateRef.current, id);
+      if (result.adventure === stateRef.current) return;
+      apply(result.adventure);
+      if (result.left === 0) window.dispatchEvent(new CustomEvent("daivr-buddy-lure-empty", { detail: { id, label: LURES.find((lure) => lure.id === id)?.label || "lure" } }));
+    }
+    window.addEventListener("daivr-lure-used", onLureUsed);
+    return () => window.removeEventListener("daivr-lure-used", onLureUsed);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Las dos colecciones juntas (cada entrada dice su juego: "station" o
   // "valley"); los contadores de siempre son solo del diario original.
@@ -520,9 +540,11 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
     valleyComplete: isValleyJournalComplete(state),
     inventory,
     inventoryIds: inventory.map((item) => item.id),
-    market: marketWallet(state),
+    market: wallet,
     openChest() { const result = openMarketChest(stateRef.current); if (result.adventure !== stateRef.current) apply(result.adventure); return { reward: result.reward || 0, message: result.message }; },
     buyItem(id) { const result = purchaseMarketItem(stateRef.current, id); if (result.adventure !== stateRef.current) apply(result.adventure); return result.message; },
+    // Un paquete de señuelos del pescador (se gastan).
+    buyLure(id, qty = 1) { const result = purchaseLure(stateRef.current, id, new Date(), qty); if (result.adventure !== stateRef.current) apply(result.adventure); return result.message; },
     // El huerto (cobertizo de semillas): comprar a la bolsa, plantar en una
     // parcela libre y vender la cesta los viernes. Pip cosecha con el
     // quest-progress "harvest".
