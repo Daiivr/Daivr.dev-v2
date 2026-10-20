@@ -288,7 +288,7 @@ export function TerminalDialog({ open, onOpenChange, onCommand, log, theme }) {
                 <span><FolderCode size={13} aria-hidden="true" /> ~/daivr</span>
                 <div><i aria-hidden="true" /><b>{pad(lineCount)} lines</b><button className="terminal-clear arcade-focus" type="button" onClick={() => execute("clear")} aria-label="Clear terminal output" title="Clear output (Ctrl+L)"><Trash2 size={13} aria-hidden="true" /> clear</button></div>
               </header>
-              <div className="terminal-screen">
+              <div className="terminal-tube">
                 <div className="terminal-output" data-command-log ref={outputRef} role="log" aria-live="polite" aria-label="Terminal output">
                   {blocks.map((block, blockIndex) => (
                     <article className={`terminal-entry tone-${blockTone(block)} ${blockIndex === blocks.length - 1 ? "is-latest" : ""}`} key={`${blockIndex}-${block.command ?? "boot"}`}>

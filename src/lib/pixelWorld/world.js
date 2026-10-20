@@ -1,3 +1,4 @@
+import { cutAtPlane } from "./portal.js";
 import { ART, blit, dissolveSprite, ellipseRows, flipped, halo, makeCanvas, px, rect, rng, turned } from "./core.js";
 import { catchSprite } from "./catches.js";
 import { FEET, H, PATH, STAND_TOP, WATER_Y, WORLD_TOP, layoutFor } from "./layout.js";
@@ -222,7 +223,9 @@ export function createFooterWorld(canvas) {
     eventLights = []; eventSky = null; eventWind = 1;
     for (const actor of state.actors) for (const ev of EVENTS) {
       const out = ev.light ? ev.light(actor, anim.get(actor.id) || {}, env) : null;
-      if (!out || out.dim <= 0) continue;
+      if (!out) continue;
+      // (dim 0: solo suma sus luces, sin oscurecer el valle: el portal de Pip)
+      if (!(out.dim > 0)) { if (out.lights) eventLights.push(...out.lights); continue; }
       const k = Math.min(1, out.dim);
       light = {
         ...light, tint: light.tint.map((v, i) => v + (out.dark[i] - v) * k),
@@ -317,6 +320,8 @@ export function createFooterWorld(canvas) {
     // (entrando o saliendo de la tienda: deshecho en trama)
     let rig = rigImg(opts);
     if (pose.dissolve != null && pose.dissolve < 1) rig = { ...rig, c: dissolveSprite(rig.c, pose.dissolve) };
+    // (cruzando el portal: lo que ha pasado del plano no se ve)
+    if (pose.cut) rig = { ...rig, c: cutAtPlane(rig.c, left, flip, Math.round(pose.cut.x), pose.cut.keep) };
     return { rig, left, top, flip, alpha: (actor.ghost ? 0.62 : 1) * fade * (pose.dissolve === 0 ? 0 : 1), hoverH: a.hoverH, pose, lift };
   }
   const toWorld = (fr, pt) => [fr.left + (fr.flip ? RIG_W - 1 - pt[0] : pt[0]), fr.top + pt[1] + RIG_OY];
@@ -444,7 +449,7 @@ export function createFooterWorld(canvas) {
       const a = anim.get(actor.id);
       if (!a) continue;
       a.torchK = Math.max(0, Math.min(1, (a.torchK || 0) + (on > 0 && fr.rig.a.lens ? 1 : -1) * 0.12));
-      if (!fr.rig.a.lens || a.torchK <= 0 || on <= 0 || (actor.y || 0) < -4) { a.torch = null; continue; }
+      if (!fr.rig.a.lens || fr.pose.hidden || a.torchK <= 0 || on <= 0 || (actor.y || 0) < -4) { a.torch = null; continue; }
       const lens = toWorld(fr, fr.rig.a.lens), dir = fr.flip ? -1 : 1, sway = actor.moving ? Math.round(Math.sin(t * 7) * 1.5) : 0;
       a.torch = { x0: lens[0] + dir, y0: lens[1], x1: lens[0] + dir * (actor.moving ? 34 : 26), y1: FEET - 1 + sway, k: a.torchK * on * (actor.ghost ? fr.alpha : 1) };
     }
@@ -531,7 +536,7 @@ export function createFooterWorld(canvas) {
     for (const { actor, fr } of frames) {
       const w = actor.ghost ? 7 : Math.max(3, 9 - Math.round(fr.lift * 0.6) - Math.round(-(actor.y || 0) / 6));
       const x = Math.round(actor.x) + (fr.pose.pose === "sit" || fr.pose.pose === "stick" ? -2 * actor.dir : 0);
-      wg.globalAlpha = fr.alpha * (fr.pose.dissolve ?? 1);
+      wg.globalAlpha = fr.alpha * (fr.pose.shadow ?? fr.pose.dissolve ?? 1);
       wg.fillStyle = actor.ghost ? "rgba(60,70,140,.18)" : "rgba(20,28,12,.28)";
       wg.fillRect(x - w, FEET + 1, w * 2 + 1, 1); wg.fillRect(x - w + 2, FEET + 2, w * 2 - 3, 1);
       wg.globalAlpha = 1;
