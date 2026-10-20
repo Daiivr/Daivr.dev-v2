@@ -42,8 +42,34 @@ const SPRITES = lazy(() => ({
   inside: outlinedSprite(tentRows().map((r) => r.replace(/[^k]/g, ".")), { k: "#ffcf7a" }, null)
 }));
 
+// La veleta en lo alto de la tienda: palo de hierro, la cruz de los puntos
+// cardinales (la de norte a sur, en escorzo) y la flecha con su cola de
+// pluma, que apunta de donde viene el viento (0 = norte, hacia el fondo; el
+// este, a la derecha). `angle` en radianes.
+const IRON = "#2e2a34", IRON_L = "#8a8692", GOLD = "#e8b84a", GOLD_D = "#a87a22";
+function drawVane(g, x, ty, vane) {
+  rect(g, x, ty - 13, 1, 14, IRON);
+  px(g, x, ty - 14, GOLD); px(g, x, ty - 15, GOLD_D);
+  // la cruz: este-oeste de lado, norte-sur en escorzo
+  rect(g, x - 4, ty - 5, 9, 1, IRON); px(g, x - 4, ty - 5, IRON_L); px(g, x + 4, ty - 5, IRON_L);
+  px(g, x + 1, ty - 6, IRON); px(g, x + 2, ty - 7, IRON_L); px(g, x - 1, ty - 4, IRON); px(g, x - 2, ty - 3, IRON_L);
+  // la flecha: de la cola a la punta
+  const a = vane.angle, len = 6.2, dx = Math.sin(a) * len, dy = -Math.cos(a) * len * 0.35, cy = ty - 10;
+  const hx = x + dx, hy = cy + dy, tx = x - dx, tyy = cy - dy;
+  const n = Math.max(1, Math.round(Math.max(Math.abs(hx - tx), Math.abs(hy - tyy))));
+  for (let i = 0; i <= n; i++) px(g, Math.round(tx + (hx - tx) * i / n), Math.round(tyy + (hy - tyy) * i / n), IRON);
+  // la punta (dorada) y la cola de pluma (de lado se ve entera, de frente apenas)
+  const side = Math.abs(Math.sin(a));
+  px(g, Math.round(hx), Math.round(hy), GOLD); px(g, Math.round(hx - Math.sign(dx || 1)), Math.round(hy), GOLD);
+  if (side > 0.4) { px(g, Math.round(hx - Math.sign(dx)), Math.round(hy) - 1, GOLD_D); px(g, Math.round(hx - Math.sign(dx)), Math.round(hy) + 1, GOLD_D); px(g, Math.round(hx - 2 * Math.sign(dx)), Math.round(hy) - 2, GOLD_D); px(g, Math.round(hx - 2 * Math.sign(dx)), Math.round(hy) + 2, GOLD_D); }
+  else { px(g, Math.round(hx), Math.round(hy) - 1, GOLD_D); px(g, Math.round(hx) - 1, Math.round(hy), GOLD_D); px(g, Math.round(hx) + 1, Math.round(hy), GOLD_D); }
+  px(g, Math.round(tx), Math.round(tyy) - 1, IRON); px(g, Math.round(tx), Math.round(tyy) + 1, IRON);
+  if (side > 0.4) { px(g, Math.round(tx - Math.sign(dx)), Math.round(tyy) - 1, IRON_L); px(g, Math.round(tx - Math.sign(dx)), Math.round(tyy) + 1, IRON_L); }
+}
+
 export function createTent() {
   let x = 0, base = 71, occupied = false, k = 0, nextZ = 0;
+  const vane = { base: Math.PI * 1.5, angle: Math.PI * 1.5 };
   // la puerta: "enter"/"exit" de quien entra o sale, y desde cuando
   const door = { phase: "", since: 0 };
   const left = () => x - (TW + 2) / 2;
@@ -65,6 +91,12 @@ export function createTent() {
       g.drawImage(SPRITES().front[doorState(ctx.t)], Math.round(left()), top());
     },
     update(ctx) {
+      // la veleta gira hacia donde sopla el viento (el camino corto), y se
+      // mece mas cuanto mas sopla
+      const want = ((ctx.sky?.windDir ?? 6) % 8) * Math.PI / 4, wind = ctx.wind || 1;
+      const turn = Math.atan2(Math.sin(want - vane.base), Math.cos(want - vane.base));
+      vane.base += turn * Math.min(1, ctx.dt * 1.2);
+      vane.angle = ctx.reduceMotion ? vane.base : vane.base + Math.sin(ctx.t * (1.3 + wind)) * 0.12 * wind + Math.sin(ctx.t * 4.7) * 0.05 * Math.max(0, wind - 1);
       occupied = ctx.actors.some((a) => !a.ghost && a.tent === "in" && a.mood === "sleep");
       const moving = ctx.actors.find((a) => !a.ghost && (a.tent === "enter" || a.tent === "exit"))?.tent || "";
       if (moving !== door.phase) { door.phase = moving; door.since = ctx.t; }
@@ -82,11 +114,7 @@ export function createTent() {
       g.drawImage(S[doorState(ctx.t)], lx, ty);
       const cap = ctx.snowCap?.(S.tent);
       if (cap) g.drawImage(cap, lx, ty);
-      // palo con banderin
-      const px0 = Math.round(x), flag = Math.floor(ctx.t * (2 + ctx.wind * 2)) % 2;
-      rect(g, px0, ty - 3, 1, 4, "#5c3a1e");
-      g.fillStyle = "#e84a5a"; g.fillRect(px0 + 1, ty - 3, 3, 1); g.fillRect(px0 + 1, ty - 2, flag ? 2 : 3, 1);
-      if (!flag) px(g, px0 + 4, ty - 2, "#e84a5a");
+      drawVane(g, Math.round(x), ty, vane);
     },
     // la entrada encendida y las botas de Pip asomando
     glow(g, ctx) {

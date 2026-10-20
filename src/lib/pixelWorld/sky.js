@@ -402,6 +402,28 @@ export function createSky() {
     bolt = pts;
   }
 
+  // Una bola de fuego (lluvias de estrellas): cabeza de 3x3 con halo, estela
+  // larga que pasa de verde a ambar y chispas que se quedan atras.
+  function drawFireball(g, hx, hy, ux, uy, a, p, now) {
+    for (let i = 26; i >= 1; i--) {
+      g.globalAlpha = a * (1 - i / 27) * 0.95;
+      const col = i < 3 ? "#f4fff0" : i < 8 ? "#a8ffd2" : i < 16 ? "#7ae0b8" : "#ffc878";
+      px(g, Math.round(hx - ux * i), Math.round(hy - uy * i), col);
+      if (i < 10) px(g, Math.round(hx - ux * i - uy), Math.round(hy - uy * i + ux), i < 5 ? "#c8ffe4" : "#5ac8a0");
+    }
+    for (let k = 0; k < 4; k++) {
+      const back = 8 + ((now / 70 + k * 5) % 16), jit = Math.sin(now / 90 + k * 2.1) * 1.5;
+      g.globalAlpha = a * 0.7 * (1 - back / 26);
+      px(g, Math.round(hx - ux * back - uy * jit), Math.round(hy - uy * back + ux * jit), k % 2 ? "#ffe9a8" : "#ffffff");
+    }
+    const x = Math.round(hx), y = Math.round(hy);
+    g.globalAlpha = a * 0.35;
+    rect(g, x - 2, y - 2, 5, 5, "#c8ffe4");
+    g.globalAlpha = a;
+    rect(g, x - 1, y - 1, 3, 3, "#d8ffe8"); px(g, x, y, "#ffffff");
+    g.globalAlpha = 1;
+  }
+
   // Todo lo del cielo, en filas del mundo (0 = arriba del cielo).
   function draw(g, t, sky, scene, { flash = false, flashStart = false, cssWidth = W * 2 } = {}) {
     if (!skyImg) return;
@@ -436,6 +458,7 @@ export function createSky() {
       if (p < 0 || p > 1) continue;
       const a = p < 0.08 ? p / 0.08 : p > 0.8 ? (1 - p) / 0.2 : 1;
       const hx = (s.left / 100 * cssWidth + s.dx * p) / 2, hy = (s.top + s.dy * p) / 2, len = Math.hypot(s.dx, s.dy), ux = s.dx / len, uy = s.dy / len;
+      if (s.fireball) { drawFireball(g, hx, hy, ux, uy, a, p, now); continue; }
       for (let i = 12; i >= 1; i--) {
         g.globalAlpha = a * (1 - i / 13);
         px(g, Math.round(hx - ux * i), Math.round(hy - uy * i), i < 4 ? "#fff6cf" : "#cfe0ff");

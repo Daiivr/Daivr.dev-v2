@@ -1,4 +1,7 @@
-import { bonusCoins, normalizeMarket, mergeMarket, marketWallet, openMarketChest, purchaseLure, purchaseMarketItem, purchaseSeed, plantSeed, harvestCrop, sellCatch, sellCrops, spendLure, LURES, MARKET_GEAR } from "../../shared/buddy-market.mjs";
+import {
+  bonusCoins, normalizeMarket, mergeMarket, marketWallet, openMarketChest, purchaseLure, purchaseMarketItem, purchaseSeed, plantSeed, harvestCrop, sellCatch, sellCrops, spendLure, LURES, MARKET_GEAR,
+  collectHoney, deliverOrder, eatSmoked, pickFruit, purchaseYard, sellSmoked, smokeFish, openGiantChest, GIANT_CHEST_ID
+} from "../../shared/buddy-market.mjs";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ALL_CATCHES, FIELD_FINDS, FISH_CATALOG, KRAKEN, LEVIATHAN, VALLEY_CATALOG } from "../data/buddyWorld";
 import { isBuddyJournalComplete, isValleyJournalComplete } from "../../shared/buddy-journal.mjs";
@@ -79,6 +82,7 @@ function createInitialState() {
     bugsDefeated: 0,
     campfireMeals: 0,
     starWishes: 0,
+    showerWishes: 0,
     forageFound: 0,
     completed: [],
     market: { opened: 0, rewards: [], purchases: {}, seeds: [] },
@@ -119,11 +123,13 @@ function normalizeState(value) {
     bugsDefeated: Math.max(0, Math.floor(Number(source.bugsDefeated) || 0)),
     campfireMeals: Math.max(0, Math.floor(Number(source.campfireMeals) || 0)),
     starWishes: Math.max(0, Math.floor(Number(source.starWishes) || 0)),
+    showerWishes: Math.max(0, Math.floor(Number(source.showerWishes) || 0)),
     forageFound: Math.max(0, Math.floor(Number(source.forageFound) || 0)),
     completed: normalizeList(source.completed),
     market: normalizeMarket(source.market, source.fishCollection, bonusCoins({
       campfireMeals: source.campfireMeals,
       starWishes: source.starWishes,
+      showerWishes: source.showerWishes,
       forageFound: source.forageFound,
       totalCatches: Math.max(Number(source.totalCatches) || 0, Number(source.voidCatches) || 0)
     })),
@@ -156,6 +162,7 @@ function mergeStates(leftValue, rightValue) {
     market: mergeMarket(left.market, right.market, mergeCounterMaps(left.fishCollection, right.fishCollection), bonusCoins({
       campfireMeals: Math.max(left.campfireMeals, right.campfireMeals),
       starWishes: Math.max(left.starWishes, right.starWishes),
+      showerWishes: Math.max(left.showerWishes, right.showerWishes),
       forageFound: Math.max(left.forageFound, right.forageFound),
       totalCatches: Math.max(left.totalCatches, right.totalCatches)
     })),
@@ -166,6 +173,7 @@ function mergeStates(leftValue, rightValue) {
     bugsDefeated: Math.max(left.bugsDefeated, right.bugsDefeated),
     campfireMeals: Math.max(left.campfireMeals, right.campfireMeals),
     starWishes: Math.max(left.starWishes, right.starWishes),
+    showerWishes: Math.max(left.showerWishes, right.showerWishes),
     forageFound: Math.max(left.forageFound, right.forageFound),
     completed: normalizeList([...left.completed, ...right.completed]),
     inventory: normalizeList([...left.inventory, ...right.inventory])
@@ -404,8 +412,10 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
         if (detail.type === "campfire-meal") {
           return { ...current, campfireMeals: Math.min(9999, current.campfireMeals + 1) };
         }
+        // (en una lluvia de estrellas, `bonus` monedas de mas: hasta 4)
         if (detail.type === "star-wish") {
-          return { ...current, starWishes: Math.min(9999, current.starWishes + 1) };
+          const bonus = Math.max(0, Math.min(4, Math.floor(Number(detail.bonus) || 0)));
+          return { ...current, starWishes: Math.min(9999, current.starWishes + 1), showerWishes: Math.min(39996, current.showerWishes + bonus) };
         }
         // Forraje del borde del prado (FooterWorld): una moneda cada una.
         if (detail.type === "forage") {
@@ -414,8 +424,34 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
         // Pip cosecha una planta madura del huerto: sus monedas a la cartera.
         if (detail.type === "harvest") {
           const result = harvestCrop(current, String(detail.seedId || ""));
-          if (result.adventure !== current) window.dispatchEvent(new CustomEvent("daivr-garden-harvested", { detail: { seedId: detail.seedId, crop: result.crop?.id, value: result.value } }));
+          if (result.adventure !== current) window.dispatchEvent(new CustomEvent("daivr-garden-harvested", { detail: { seedId: detail.seedId, crop: result.crop?.id, value: result.value, giant: Boolean(result.giant) } }));
           return result.adventure;
+        }
+        // El Leviatan o el Kraken, al saludarles, a veces dejan un cofre gigante.
+        if (detail.type === "giant-chest") {
+          return { ...current, fishCollection: { ...current.fishCollection, [GIANT_CHEST_ID]: Math.min(99, (current.fishCollection[GIANT_CHEST_ID] || 0) + 1) } };
+        }
+        // Lo que desentierra el husky: chatarra o un cofre de fichas (cuenta
+        // en la coleccion, no como pescado).
+        if (detail.type === "dog-find") {
+          const findId = String(detail.id || "").trim();
+          const item = ALL_CATCHES.find((entry) => entry.id === findId);
+          if (!item || !(item.kind === "junk" || findId === "token-chest")) return current;
+          return { ...current, fishCollection: { ...current.fishCollection, [findId]: Math.min(999, (current.fishCollection[findId] || 0) + 1) } };
+        }
+        // Pip recoge el tarro de la casita de abejas o la fruta del arbol.
+        if (detail.type === "honey" || detail.type === "fruit") {
+          const result = detail.type === "honey" ? collectHoney(current) : pickFruit(current);
+          if (result.adventure !== current) window.dispatchEvent(new CustomEvent("daivr-yard-collected", { detail: { kind: detail.type, n: result.picked || 1, fruit: result.fruit?.id || "" } }));
+          return result.adventure;
+        }
+        // Una noche de hoguera Pip se come un pescado ahumado: cuenta como
+        // comida de hoguera (sus monedas).
+        if (detail.type === "smoked-meal") {
+          const result = eatSmoked(current);
+          if (!result.id) return current;
+          window.dispatchEvent(new CustomEvent("daivr-smoked-eaten", { detail: { id: result.id } }));
+          return { ...result.adventure, campfireMeals: Math.min(9999, current.campfireMeals + 1) };
         }
 
         if (detail.type === "bug-defeated") {
@@ -542,6 +578,7 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
     inventoryIds: inventory.map((item) => item.id),
     market: wallet,
     openChest() { const result = openMarketChest(stateRef.current); if (result.adventure !== stateRef.current) apply(result.adventure); return { reward: result.reward || 0, message: result.message }; },
+    openGiantChest() { const result = openGiantChest(stateRef.current); if (result.adventure !== stateRef.current) apply(result.adventure); return { reward: result.reward || 0, giant: true, message: result.message }; },
     buyItem(id) { const result = purchaseMarketItem(stateRef.current, id); if (result.adventure !== stateRef.current) apply(result.adventure); return result.message; },
     // Un paquete de señuelos del pescador (se gastan).
     buyLure(id, qty = 1) { const result = purchaseLure(stateRef.current, id, new Date(), qty); if (result.adventure !== stateRef.current) apply(result.adventure); return result.message; },
@@ -569,6 +606,39 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
       if (result.adventure !== stateRef.current) { apply(result.adventure); window.dispatchEvent(new CustomEvent("daivr-garden-sold", { detail: { value: result.value } })); }
       return result.message;
     },
+    // La granja: el patio (en el cobertizo), el ahumadero de la hoguera, los
+    // ahumados al pescador y el encargo del tablon.
+    buyYard(id) {
+      const result = purchaseYard(stateRef.current, id);
+      if (result.adventure !== stateRef.current) { apply(result.adventure); window.dispatchEvent(new CustomEvent("daivr-yard-bought", { detail: { id } })); }
+      return result.message;
+    },
+    smokeFish(id) {
+      const result = smokeFish(stateRef.current, id);
+      if (result.adventure !== stateRef.current) { apply(result.adventure); window.dispatchEvent(new CustomEvent("daivr-smoker-hung", { detail: { id } })); }
+      return result.message;
+    },
+    sellSmoked(id, amount = 1) {
+      const result = sellSmoked(stateRef.current, id, amount);
+      if (result.adventure !== stateRef.current) apply(result.adventure);
+      return result.message;
+    },
+    deliverOrder() {
+      const result = deliverOrder(stateRef.current);
+      if (result.adventure !== stateRef.current) { apply(result.adventure); window.dispatchEvent(new CustomEvent("daivr-order-delivered", { detail: { reward: result.reward } })); }
+      return result.message;
+    },
+    // (desde el cobertizo, si Buddy no esta para recogerlo)
+    collectHoney() {
+      const result = collectHoney(stateRef.current);
+      if (result.adventure !== stateRef.current) apply(result.adventure);
+      return result.message;
+    },
+    pickFruit() {
+      const result = pickFruit(stateRef.current);
+      if (result.adventure !== stateRef.current) apply(result.adventure);
+      return result.message;
+    },
     // (desde el cobertizo, si Buddy no esta para cosecharlo)
     harvest(seedId) {
       const result = harvestCrop(stateRef.current, seedId);
@@ -590,6 +660,7 @@ export function useBuddyAdventure({ onQuestComplete } = {}) {
     bugsDefeated: state.bugsDefeated,
     campfireMeals: state.campfireMeals,
     starWishes: state.starWishes,
+    showerWishes: state.showerWishes,
     forageFound: state.forageFound
   };
 }

@@ -32,20 +32,30 @@ function setup() {
   const local = player(), a = mate("Ash"), b = mate("Misty", { x: -1000 });
   const G = {
     Game: { player: local }, Coop: { active: true, mates: [a, b] },
-    Camera: { follow(x, y) { this.x = x; this.y = y; } },
+    Camera: { x: 0, y: 0, follow(x, y) { this.x = x; this.y = y; } },
     Moves: { poolFor: () => [], evoInfo: m => m.evo || null, nextUpText: () => null },
-    U: { pickN: (list, count) => list.slice(0, count) }
+    U: { pickN: (list, count) => list.slice(0, count), dist: (x, y, x2, y2) => Math.hypot(x - x2, y - y2) },
+    Audio: { sfx() {} },
+    // The shipped modules translate move names (upstream 803125d): Spanish stays as is here.
+    T: s => s
   };
-  const context = vm.createContext({ G, Math: math });
+  const context = vm.createContext({ G, Math: math, performance: { now: () => 0 } });
   vm.runInContext(recoverySource, context);
   return { G, local, a, b, context, random(value) { random = value; }, get draws() { return draws; } };
 }
+// Longer than CoopRecovery.WATCH_DELAY: your own faint has played out.
+const FAINTED = 1.2;
 
-test("spectating switches living teammates without moving the downed body", () => {
+test("spectating waits for your faint, then switches living teammates without moving the body", () => {
   const { G, local, a, b } = setup();
   assert.equal(G.CoopRecovery.target(), a);
-  G.CoopRecovery.follow(local, 0.016);
-  assert.equal(G.Camera.x, a.pl.x);
+  G.CoopRecovery.follow(local, 0.5);
+  assert.equal(G.CoopRecovery.watching(), null, "your Pokémon faints on screen first");
+  assert.equal(G.Camera.x, local.x);
+  G.CoopRecovery.follow(local, FAINTED - 0.5);
+  assert.equal(G.CoopRecovery.watching(), a);
+  assert.equal(G.Camera.x, a.pl.x, "a far teammate is a cut");
+  assert.ok(G.CoopRecovery.shutter() > 0, "the cut plays the shutter");
   G.CoopRecovery.cycle(1);
   assert.equal(G.CoopRecovery.target(), b);
   G.CoopRecovery.follow(local, 0.016);
@@ -59,9 +69,23 @@ test("spectating switches living teammates without moving the downed body", () =
   assert.equal(local.dead, true);
 });
 
+test("a nearby teammate is reached with a short pan instead of a cut", () => {
+  const { G, local, a } = setup();
+  a.pl.x = 300;
+  G.CoopRecovery.follow(local, 1);
+  G.CoopRecovery.follow(local, 0.12);
+  assert.ok(G.Camera.x > 0 && G.Camera.x < 300, `mid-pan, got ${G.Camera.x}`);
+  assert.equal(G.CoopRecovery.shutter(), 0);
+  G.CoopRecovery.follow(local, 0.3);
+  assert.equal(G.Camera.x, 300);
+  G.CoopRecovery.cycle(1);
+  G.CoopRecovery.follow(local, 0.016);
+  assert.equal(G.Camera.x, -1000, "Misty is 1300 away: cut");
+});
+
 test("death and disconnect choose a survivor; revival returns the camera to you", () => {
   const { G, local, a, b } = setup();
-  G.CoopRecovery.follow(local, 0.016);
+  G.CoopRecovery.follow(local, FAINTED);
   a.pl.dead = true;
   assert.equal(G.CoopRecovery.target(), b);
   b.connected = false;
@@ -77,51 +101,81 @@ test("death and disconnect choose a survivor; revival returns the camera to you"
   assert.equal(G.CoopRecovery.target(), null, "solo does not spectate");
 });
 
-test("self-revive is a one-percent roll, only for downed co-op players", () => {
+test("the revive card starts at 20% and each level you stay down adds 15%, up to 65%", () => {
   const s = setup(), { G, local } = s;
-  let wins = 0;
-  for (let i = 0; i < 10000; i++) {
-    s.random((i + 0.5) / 10000);
-    if (G.CoopRecovery.reviveCard(local, i)) wins++;
+  s.random(0.99);
+  const seen = [];
+  for (let level = 1; level <= 6; level++) {
+    seen.push(Math.round(G.CoopRecovery.nextChance() * 100));
+    assert.equal(G.CoopRecovery.reviveCard(local, level), null);
   }
-  assert.equal(wins, 100);
+  assert.deepEqual(seen, [20, 35, 50, 65, 65, 65]);
+  local.revive(0.5);
+  G.CoopRecovery.follow(local, 0.016);
+  local.dead = true;
+  assert.equal(Math.round(G.CoopRecovery.nextChance() * 100), 20, "every downing starts over");
+  s.random(0.3);
+  assert.equal(G.CoopRecovery.reviveCard(local, 7), null, "0.3 misses 20%");
+  assert.equal(G.CoopRecovery.reviveCard(local, 8).type, "revive", "0.3 wins 35%");
   s.random(0);
   local.dead = false;
-  assert.equal(G.CoopRecovery.reviveCard(local, 10001), null);
+  assert.equal(G.CoopRecovery.reviveCard(local, 20), null);
+  assert.equal(G.CoopRecovery.nextChance(), 0);
   local.dead = true; G.Coop.active = false;
-  assert.equal(G.CoopRecovery.reviveCard(local, 10002), null);
+  assert.equal(G.CoopRecovery.reviveCard(local, 21), null);
   G.Coop.active = true; s.a.pl.dead = s.b.pl.dead = true;
-  assert.equal(G.CoopRecovery.reviveCard(local, 10003), null, "no escape from a full team wipe");
+  assert.equal(G.CoopRecovery.reviveCard(local, 22), null, "no escape from a full team wipe");
 });
 
-test("spectator controls switch friends, show revive progress, and hide outside spectating", () => {
-  const { G, local, b, context } = setup();
-  const elements = new Map();
-  for (const id of ["spectator-controls", "spectate-name", "spectate-prev", "spectate-next", "spectate-revive"]) {
-    const classes = new Set();
-    elements.set(id, { classList: { toggle(name, enabled) { enabled ? classes.add(name) : classes.delete(name); } }, classes });
+test("about one downing in five sees the card on its first level, most within three", () => {
+  const s = setup(), { G, local } = s;
+  let first = 0, byThird = 0, seed = 12345;
+  // Seeded rolls (mulberry32), so the test is repeatable.
+  const roll = () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const N = 3000;
+  for (let i = 0; i < N; i++) {
+    // Up to three levels per downing.
+    let won = 0;
+    for (let k = 0; k < 3 && !won; k++) {
+      s.random(roll());
+      if (G.CoopRecovery.reviveCard(local, i * 3 + k)) won = k + 1;
+    }
+    if (won === 1) first++;
+    if (won) byThird++;
+    local.revive(0.5); G.CoopRecovery.follow(local, 0.016); local.dead = true;
   }
-  context.document = { getElementById: id => elements.get(id) };
-  G.Player = { REVIVE_TIME: 4 };
-  G.CoopRecovery.init();
-  local.reviveT = 2;
-  G.CoopRecovery.syncUI(true);
-  assert.equal(elements.get("spectate-name").textContent, "Ash");
-  assert.equal(elements.get("spectate-revive").value, 0.5);
-  elements.get("spectate-next").onclick();
-  G.CoopRecovery.syncUI(true);
-  assert.equal(elements.get("spectate-name").textContent, "Misty");
+  assert.ok(Math.abs(first / N - 0.2) < 0.03, `first level ${first / N}`);
+  assert.ok(Math.abs(byThird / N - (1 - 0.8 * 0.65 * 0.5)) < 0.04, `within three ${byThird / N}`);
+});
+
+test("the spectator panel shows who you watch, how many you can pick, and the next revive chance", () => {
+  const { G, local, b } = setup();
+  assert.equal(G.CoopRecovery.view(), null, "nothing while your Pokémon faints");
+  G.CoopRecovery.follow(local, FAINTED);
+  let v = G.CoopRecovery.view();
+  assert.equal(v.mate.name, "Ash");
+  assert.equal(v.index, 0);
+  assert.equal(v.count, 2);
+  assert.equal(Math.round(v.chance * 100), 20);
+  G.CoopRecovery.cycle(1);
+  v = G.CoopRecovery.view();
+  assert.equal(v.mate.name, "Misty");
+  assert.equal(v.index, 1);
+  assert.equal(v.cycledDir, 1);
   b.connected = false;
-  G.CoopRecovery.syncUI(true);
-  assert.equal(elements.get("spectate-name").textContent, "Ash");
-  assert.equal(elements.get("spectate-next").disabled, true);
-  G.CoopRecovery.syncUI(false);
-  assert.equal(elements.get("spectator-controls").classes.has("hidden"), true);
-  G.CoopRecovery.syncUI(true);
-  assert.equal(elements.get("spectator-controls").classes.has("hidden"), false);
+  v = G.CoopRecovery.view();
+  assert.equal(v.mate.name, "Ash");
+  assert.equal(v.count, 1);
+  G.CoopRecovery.cycle(1);
+  assert.equal(G.CoopRecovery.view().mate.name, "Ash", "one teammate: nothing to switch to");
   local.revive(0.5);
-  G.CoopRecovery.syncUI(true);
-  assert.equal(elements.get("spectator-controls").classes.has("hidden"), true);
+  G.CoopRecovery.follow(local, 0.016);
+  assert.equal(G.CoopRecovery.view(), null);
 });
 
 test("rerolls and duplicate level messages cannot farm or consume extra revive rolls", () => {
@@ -173,7 +227,7 @@ function network(uid) {
     Net: { uid, on(fn) { received.frame = fn; }, onPeer() {}, slow: () => false, viaTurn: () => false,
       send(to, frame) { sent.push({ to, frame }); }, toHost(frame) { sent.push({ to: "host", frame }); } },
     Social: { on() {}, me: { name: uid } }, Sprites: { preload() {} },
-    DEX_BY: { 25: { dex: 25 } }, startMoveOf: () => "tackle",
+    DEX_BY: { 25: { dex: 25 } }, startMoveOf: () => "tackle", baseStartOf: () => "tackle", T: s => s,
     U: { clamp: (x, min, max) => Math.max(min, Math.min(max, x)), dist2: (x, y, a, b) => (x-a)**2 + (y-b)**2 },
     Judgment: { netState: () => null }, EnemyMgr: { all: () => [] },
     Projectiles: { clearOrbs() {} }, Spawner: { say() {} }

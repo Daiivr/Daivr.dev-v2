@@ -240,7 +240,7 @@ export function createFooterWorld(canvas) {
     const pointer = state.pointer && performance.now() - state.pointer.at < 300 ? state.pointer : null;
     const holes = [];
     for (const a of anim.values()) if (a.fishing?.hole && a.fishing.holeOpen > 0) holes.push(a.fishing.hole.x);
-    Object.assign(lc, { t, dt, light, sky, wind: sky.wind || 1, rain, wet, season: currentSeason(), actors: state.actors, pointer, holes, reduceMotion: state.reduceMotion, owlLamp: life.night.owlLamp });
+    Object.assign(lc, { t, dt, light, sky, wind: sky.wind || 1, rain, wet, season: currentSeason(), actors: state.actors, pointer, holes, reduceMotion: state.reduceMotion, owlLamp: life.night.owlLamp, butterflies: bflies });
     lc.snowGround = lc.season === "winter" ? 1 : life.snow.depth;
     life.lamps.update(lc, lampsWanted);
     life.update(lc);
@@ -702,7 +702,7 @@ export function createFooterWorld(canvas) {
     setForage: (list) => life.forage.set(list),
     pickForage: (slot) => life.forage.pick(slot, lc),
     // El huerto: lo plantado y lo regado hoy, Pip arranca una planta o riega.
-    setGarden: (plots, watered) => life.garden.set(plots, watered),
+    setGarden: (plots, watered, giant) => life.garden.set(plots, watered, giant),
     pullPlot: (plot) => life.garden.pull(plot, lc),
     soakPlot: (plot, amount) => life.garden.soak(plot, amount),
     get fireOut() { return fire.out; },

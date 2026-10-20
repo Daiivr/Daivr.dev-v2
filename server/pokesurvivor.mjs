@@ -66,10 +66,43 @@ const PERIODS = ["d", "w", "m", "a"];
 
 const isObject = (value) => Boolean(value) && typeof value === "object" && !Array.isArray(value);
 
+/*
+ * Libreta de monedas y tickets (port de db.js; del original, 14-10-2026): cada
+ * aparato apunta en save.led[aparato] lo que ha ganado y gastado de cada cosa
+ * ([ganado, gastado], solo crecen) y el saldo es la suma de todos. Al fusionar
+ * se toma el mayor de cada apunte: jugar en dos ordenadores no pierde nada.
+ * Lo que no cuadre con el saldo va a "old" (partidas sin libreta o de antes).
+ */
+const CUR = {
+  c: [(s) => s.coins, (s, v) => { s.coins = v; }],
+  t1: [(s) => s.tickets?.t1, (s, v) => { s.tickets.t1 = v; }],
+  t10: [(s) => s.tickets?.t10, (s, v) => { s.tickets.t10 = v; }]
+};
+const num = (v) => (Number.isFinite(+v) && +v > 0 ? Math.floor(+v) : 0);
+function ledgerSum(led, k) {
+  let total = 0;
+  for (const dev in led) { const e = led[dev]?.[k]; if (Array.isArray(e)) total += num(e[0]) - num(e[1]); }
+  return total;
+}
+function ledgerOf(save) {
+  const balance = Object.fromEntries(Object.keys(CUR).map((k) => [k, num(CUR[k][0](save))]));
+  if (!isObject(save.led)) return { base: Object.fromEntries(Object.keys(CUR).map((k) => [k, [balance[k], 0]])) };
+  const led = JSON.parse(JSON.stringify(save.led));
+  // Un saldo en negativo (lo mismo gastado en dos aparatos sin conexion) se ve como 0.
+  for (const k in CUR) {
+    const d = balance[k] - Math.max(0, ledgerSum(led, k));
+    if (!d) continue;
+    const p = ((led.old ||= {})[k] ||= [0, 0]);
+    if (d > 0) p[0] = num(p[0]) + d; else p[1] = num(p[1]) - d;
+  }
+  return led;
+}
+
 /**
  * Port de merge() de js/core/db.js. Nunca se pierde nada conseguido:
- * colecciones unidas, mejoras y estadisticas al maximo, y monedas, compañero
- * y pity de la version mas reciente. Idempotente.
+ * colecciones unidas, mejoras y estadisticas al maximo, monedas y tickets por
+ * la libreta de cada aparato, y compañero y pity de la version mas reciente.
+ * Idempotente.
  */
 export function mergeSaves(a, b) {
   if (!a) return b;
@@ -77,6 +110,20 @@ export function mergeSaves(a, b) {
   const newer = (a.updated || 0) >= (b.updated || 0) ? a : b;
   const older = newer === a ? b : a;
   const r = JSON.parse(JSON.stringify(newer));
+  const led = {};
+  for (const src of [ledgerOf(a), ledgerOf(b)]) {
+    for (const dev in src) {
+      if (!isObject(src[dev])) continue;
+      for (const k in src[dev]) {
+        if (!CUR[k] || !Array.isArray(src[dev][k])) continue;
+        const p = ((led[dev] ||= {})[k] ||= [0, 0]), q = src[dev][k];
+        p[0] = Math.max(p[0], num(q[0])); p[1] = Math.max(p[1], num(q[1]));
+      }
+    }
+  }
+  r.led = led;
+  r.tickets = isObject(r.tickets) ? r.tickets : { t1: 0, t10: 0 };
+  for (const k in CUR) CUR[k][1](r, Math.max(0, ledgerSum(led, k)));
   for (const coll of ["owned", "shiny"]) {
     r[coll] = r[coll] || {};
     for (const k in older[coll] || {}) {
@@ -91,6 +138,21 @@ export function mergeSaves(a, b) {
     for (const k in older.pupg[d]) mine[k] = Math.max(mine[k] || 0, older.pupg[d][k]);
   }
   r.pupgDone = r.pupgDone || older.pupgDone;
+  // Favoritos: gana lo ultimo que se hizo con cada uno (poner o quitar). Partidas
+  // con cada Pokemon: el mayor. Movimiento inicial: el de la version mas reciente.
+  r.dfav = isObject(r.dfav) ? r.dfav : {};
+  for (const d in older.dfav || {}) if (Math.abs(+older.dfav[d] || 0) > Math.abs(+r.dfav[d] || 0)) r.dfav[d] = older.dfav[d];
+  r.pused = isObject(r.pused) ? r.pused : {};
+  for (const d in older.pused || {}) r.pused[d] = Math.max(+r.pused[d] || 0, +older.pused[d] || 0);
+  r.pstart = isObject(r.pstart) ? r.pstart : {};
+  for (const d in older.pstart || {}) if (!(d in r.pstart)) r.pstart[d] = older.pstart[d];
+  // Récords con cada Pokémon (daivr.dev: tiempo, nivel, derrotados, daño/s, daño): el mayor.
+  r.precs = isObject(r.precs) ? r.precs : {};
+  for (const d in isObject(older.precs) ? older.precs : {}) {
+    if (!isObject(older.precs[d])) continue;
+    const mine = r.precs[d] = isObject(r.precs[d]) ? r.precs[d] : {};
+    for (const k in older.precs[d]) mine[k] = Math.max(num(mine[k]), num(older.precs[d][k]));
+  }
   for (const coll of ["legends", "arenas", "itemsFound", "evoMoves", "ach"]) {
     r[coll] = r[coll] || {};
     for (const k in older[coll] || {}) if (!r[coll][k]) r[coll][k] = older[coll][k];
@@ -148,26 +210,28 @@ function isoWeek(y, m, d) {
   return { year: t.getUTCFullYear(), week: Math.ceil(((t - y0) / 86400000 + 1) / 7) };
 }
 
-// El historico es "all2" desde la Sentencia de Arceus (13-10-2026), como en el
-// original: las partidas acaban hacia el minuto 30 y las marcas del "tiempo
-// extra" ya no se podrian alcanzar. Las tablas viejas (s_all, g_all, *_all_pN)
-// se quedan guardadas sin usarse (salvo para las medallas del pasaporte).
-const ALL = "all2";
+// El historico es "all3" desde el 18-10-2026, como en el original: arreglaron la
+// Sentencia de Arceus (ya no se aguanta para siempre huyendo con veneno) y
+// TODAS las tablas empezaron de cero. Antes fue "all2" (13-10-2026, al llegar la
+// Sentencia) y "all". Las tablas viejas se quedan guardadas sin usarse (salvo
+// para las medallas del pasaporte).
+const ALL = "all3";
 
-// Semana y mes llevan una "j" desde el 14-10-2026, como en el original:
-// empezaron de cero porque tenian marcas de antes de la Sentencia. Las tablas
-// viejas de esta semana y este mes se borran solas con la siguiente marca
-// (submitRun quita las de periodos que no son los de ahora).
+// Dia, semana y mes llevan una "r" desde el 18-10-2026, como en el original
+// (antes semana y mes llevaban una "j", del 14-10). Las tablas viejas de estos
+// periodos se borran solas con la siguiente marca (submitRun quita las de
+// periodos que no son los de ahora).
+const GEN = "r";
 export function periodIds(date = new Date()) {
   const { y, m, d } = madridDate(date);
   const w = isoWeek(y, m, d);
   const p2 = (n) => String(n).padStart(2, "0");
-  return { d: `d${y}${p2(m)}${p2(d)}`, w: `w${w.year}-${p2(w.week)}j`, m: `m${y}${p2(m)}j`, a: ALL };
+  return { d: `d${y}${p2(m)}${p2(d)}${GEN}`, w: `w${w.year}-${p2(w.week)}${GEN}`, m: `m${y}${p2(m)}${GEN}`, a: ALL };
 }
 
 const boardOf = (mode, period, dex, ids) => `${mode}_${ids[period]}${dex && period === "a" ? `_p${dex}` : ""}`;
 // Todo lo que no es el historico general guarda solo las mejores marcas.
-const capped = (board) => !/^[sg]_all2?$/.test(board);
+const capped = (board) => !/^[sg]_all[23]?$/.test(board);
 
 // ---------------- validacion ----------------
 
@@ -191,9 +255,11 @@ function profileFields(body) {
  * positivos), asi que aqui solo se comprueba que los numeros tengan sentido.
  * La duracion la vigila la ficha de partida (run-tokens: ninguna marca dura mas
  * que el tiempo real) y, desde la Sentencia de Arceus (minuto 30, 13-10-2026),
- * un tope de 35 min como el del original: nadie legal pasa de unos 32.
+ * un tope. Era de 35 min; el 18-10-2026 el original endurecio la Sentencia
+ * (Arceus acelera desde los 5 min y hacia el minuto 40 te deja KO de un golpe)
+ * y su tope paso a 45 min, como este.
  */
-export const MAX_RUN_S = 35 * 60;
+export const MAX_RUN_S = 45 * 60;
 export function validateRun(body) {
   const t = body?.t, lv = body?.lv, kills = body?.kills;
   if (!["s", "g"].includes(body?.mode)) return null;
@@ -788,11 +854,11 @@ export function createPokesurvivorService({ now = () => Date.now() } = {}) {
     const id = String(uid);
     const save = USER_ID.test(id) ? readSave(id) : null;
     const count = (collection) => Object.keys(collection || {}).filter((key) => dexOk(Number(key))).length;
-    // Los dos historicos de grupo (el de antes de la Sentencia y el de ahora):
-    // las medallas que ya tenias no se pierden.
+    // Todos los historicos de grupo (antes de la Sentencia, antes del arreglo de
+    // la Sentencia y el de ahora): las medallas que ya tenias no se pierden.
     const boards = loadRanking().boards;
     const squads = new Map();
-    for (const board of [boards.g_all, boards[`g_${ALL}`]]) {
+    for (const board of [boards.g_all, boards.g_all2, boards[`g_${ALL}`]]) {
       for (const [team, row] of Object.entries(board || {})) {
         if (row.uids.includes(id)) squads.set(team, Math.max(squads.get(team) || 0, row.t));
       }

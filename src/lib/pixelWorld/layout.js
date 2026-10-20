@@ -109,6 +109,8 @@ export function layoutCssVars(L) {
     "--world-garden-width": `${L.garden ? (L.garden.end - L.garden.x) * 2 : 0}px`,
     "--world-fisher-left": `${(L.fisher?.left ?? -80) * 2}px`,
     "--world-fisher-width": `${L.fisher ? (L.fisher.right - L.fisher.left) * 2 : 0}px`,
+    "--world-board-left": `${(L.standX + 3) * 2}px`,
+    "--world-smoker-left": `${(L.fireX - 11) * 2}px`,
     "--world-rack-left": `${(L.rack?.x ?? -80) * 2}px`,
     "--world-rack-width": `${L.rack ? L.rack.w * 2 : 0}px`
   };

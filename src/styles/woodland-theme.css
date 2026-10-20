@@ -1,6 +1,6 @@
 @layer components {
   /* Shared by the clearing, shop and reward portal. */
-  :where(.buddy-market-stand, .footer-garden-button, .footer-fisherman-button, .footer-rack-button, .buddy-modal.is-market, .chest-reveal) {
+  :where(.buddy-market-stand, .footer-garden-button, .footer-fisherman-button, .footer-rack-button, .footer-board-button, .footer-smoker-button, .buddy-modal.is-market, .chest-reveal) {
     --stand-canvas: #839780; --stand-canvas-edge: #758b74;
     --stand-awning: #355e50; --stand-awning-edge: #2d5045;
     --stand-wood: #4b5140; --stand-wood-light: #788367;

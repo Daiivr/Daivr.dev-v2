@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { cropById } from "../../../shared/buddy-market.mjs";
+import { cropById, fruitById } from "../../../shared/buddy-market.mjs";
 import { LINES } from "./buddyLines";
 import { SPRITE_WIDTH, walkDuration } from "./useBuddyCore";
 
@@ -17,7 +17,12 @@ import { SPRITE_WIDTH, walkDuration } from "./useBuddyCore";
   - El huerto (FooterWorld avisa con `daivr-garden-state`): lo maduro lo
     cosecha (`daivr-garden-pick`: las monedas van a la cartera) y lo que tiene
     sed lo vuelve a regar cuando se seca (`daivr-garden-water`), salvo
-    si llueve, que ya lo riega la lluvia.
+    si llueve, que ya lo riega la lluvia. La calabaza gigante sale a tirones.
+  - La granja: espanta a los cuervos del huerto (`daivr-crows-state`), clava
+    la nota del dia en el tablon del puesto (`daivr-board-state` →
+    `daivr-board-pin`; si no llega en 90 s se clava sola), recoge la miel y la
+    fruta (`daivr-yard-state` → quest-progress "honey"/"fruit") y saluda a la
+    cartera (`daivr-courier-state`).
 */
 const LAMP_GAP = 40;
 const REACH_MS = 1300;
@@ -37,6 +42,10 @@ const PULL_GAP = 16;
 const POUR_MS = 1700;
 const PULL_MS = 500;
 const HARVEST_MS = 2750;
+const FARM_COOLDOWN_MS = 25_000;
+const PIN_FALLBACK_MS = 90_000;
+const TUG_MS = 2700;
+const SHOO_MS = 1500;
 
 export function useBuddyLife(core) {
   const [lamps, setLamps] = useState(null);
@@ -59,7 +68,25 @@ export function useBuddyLife(core) {
     // (consola/pruebas) que vaya ya al huerto, sin esperar
     const onGardenSignal = () => { if (!core.activeEventRef.current) api.startGarden({ force: true }); };
     window.addEventListener("daivr-buddy-garden", onGardenSignal);
+    // (consola/pruebas) que haga ya lo de la granja
+    const onFarmSignal = () => { if (!core.activeEventRef.current) api.startFarm({ force: true }); };
+    window.addEventListener("daivr-buddy-farm", onFarmSignal);
+    window.addEventListener("daivr-crows-state", api.onCrowsState);
+    window.addEventListener("daivr-board-state", api.onBoardState);
+    window.addEventListener("daivr-yard-state", api.onYardState);
+    window.addEventListener("daivr-courier-state", api.onCourierState);
+    window.addEventListener("daivr-husky-bark", api.onHuskyBark);
+    window.addEventListener("daivr-husky-dig", api.onHuskyDig);
+    window.addEventListener("daivr-husky-found", api.onHuskyFound);
     return () => {
+      window.removeEventListener("daivr-husky-bark", api.onHuskyBark);
+      window.removeEventListener("daivr-husky-dig", api.onHuskyDig);
+      window.removeEventListener("daivr-husky-found", api.onHuskyFound);
+      window.removeEventListener("daivr-buddy-farm", onFarmSignal);
+      window.removeEventListener("daivr-crows-state", api.onCrowsState);
+      window.removeEventListener("daivr-board-state", api.onBoardState);
+      window.removeEventListener("daivr-yard-state", api.onYardState);
+      window.removeEventListener("daivr-courier-state", api.onCourierState);
       window.removeEventListener("daivr-buddy-forage", onForageSignal);
       window.removeEventListener("daivr-buddy-garden", onGardenSignal);
       window.removeEventListener("daivr-garden-state", api.onGardenState);
@@ -77,7 +104,7 @@ export function useBuddyLife(core) {
 
 function createLife(core, { setLamps, setForage, setTent, setGarden }) {
   const { rootRef, moodRef, moodGenRef, xRef, activeEventRef, reduceMotion } = core;
-  const { beginBuddyEvent, endBuddyEvent, freezeAtCurrentPosition, updateMood, updateFacing, updateTravelDirection, faceTravelDirection, moveTo, schedule, say, pickLine, stageWidth, setWalkMs, spawnParticles } = core;
+  const { beginBuddyEvent, endBuddyEvent, freezeAtCurrentPosition, updateMood, updateFacing, updateTravelDirection, faceTravelDirection, moveTo, schedule, say, pickLine, stageWidth, setWalkMs, spawnParticles, canChat, facingForDirection } = core;
   const lampState = { want: null, lamps: [], retry: 0 };
   const forageState = { items: [], last: Date.now() - FORAGE_COOLDOWN_MS + 20_000 };
   const gardenState = { plots: [], raining: false, last: Date.now() - GARDEN_COOLDOWN_MS + 15_000, rainSaid: false };
@@ -273,6 +300,7 @@ function createLife(core, { setLamps, setForage, setTent, setGarden }) {
   function harvestPlot() {
     const plot = nearest(gardenState.plots.filter((entry) => entry.ripe));
     if (!plot) { finishGarden(null); return; }
+    if (plot.giant) { tugGiant(plot); return; }
     if (Math.random() < 0.6) say(pickLine(LINES.gardenRipe), 1800, { topic: "garden" });
     walkToPlot(plot, PULL_GAP, "harvest", (generation) => {
       const stillHere = () => activeEventRef.current === "garden" && moodGenRef.current === generation;
@@ -285,12 +313,131 @@ function createLife(core, { setLamps, setForage, setTent, setGarden }) {
       schedule(() => { if (stillHere()) finishGarden(null); }, HARVEST_MS);
     });
   }
+  // La gigante: se agacha, tira tres veces (la calabaza tiembla) y al final
+  // sale entera y la levanta como puede.
+  function tugGiant(plot) {
+    say(pickLine(LINES.giantSpot), 2200, { topic: "garden" });
+    walkToPlot(plot, PULL_GAP + 6, "giant", (generation) => {
+      const stillHere = () => activeEventRef.current === "garden" && moodGenRef.current === generation;
+      setGarden({ task: "giant", phase: "tug", x: plot.x, crop: "pumpkin" });
+      schedule(() => { if (stillHere()) say(pickLine(LINES.giantTug), 1400, { topic: "garden" }); }, 500);
+      schedule(() => {
+        if (!stillHere()) return;
+        window.dispatchEvent(new CustomEvent("daivr-garden-pick", { detail: { plot: plot.plot } }));
+        setGarden({ task: "giant", phase: "pull", x: plot.x, crop: "giant" });
+        spawnParticles("confetti", 10);
+      }, TUG_MS);
+      schedule(() => { if (stillHere()) say(pickLine(LINES.giantDone), 2600, { topic: "garden" }); }, TUG_MS + 600);
+      schedule(() => { if (stillHere()) finishGarden(null); }, TUG_MS + HARVEST_MS + 400);
+    });
+  }
   function finishGarden(lines) {
     setGarden(null);
     updateMood("idle");
     endBuddyEvent("garden");
     spawnParticles("heart", 2);
     if (lines) say(pickLine(lines), 2400, { topic: "garden" });
+  }
+
+  // --- La granja ------------------------------------------------------------------
+  const farmState = { crows: null, board: null, yard: null, last: Date.now() - FARM_COOLDOWN_MS + 12_000, pinTimer: 0 };
+  function onCrowsState(event) { farmState.crows = event.detail?.active && Number.isFinite(event.detail.x) ? { x: event.detail.x } : null; }
+  const pinNow = () => window.dispatchEvent(new CustomEvent("daivr-board-pin"));
+  function onBoardState(event) {
+    const detail = event.detail || {};
+    farmState.board = detail.pin && Number.isFinite(detail.x) ? { x: detail.x, order: detail.order || "" } : null;
+    if (!farmState.board) return;
+    if (reduceMotion) { pinNow(); return; }
+    // (si Pip no llega, la nota aparece sola)
+    if (!farmState.pinTimer) farmState.pinTimer = schedule(() => { farmState.pinTimer = 0; if (farmState.board && activeEventRef.current !== "garden") pinNow(); }, PIN_FALLBACK_MS);
+  }
+  function onYardState(event) {
+    farmState.yard = event.detail || null;
+    // con movimiento reducido no sale: la miel y la fruta se recogen solas
+    if (reduceMotion && farmState.yard?.honey) window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", { detail: { type: "honey" } }));
+    if (reduceMotion && farmState.yard?.fruit) window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", { detail: { type: "fruit" } }));
+  }
+  // La cartera llega: la saluda (si esta libre).
+  function onCourierState(event) {
+    const { phase, x } = event.detail || {};
+    if (phase !== "in" || activeEventRef.current || !canChat?.() || !["idle", "walk"].includes(moodRef.current)) return;
+    if (Number.isFinite(x)) updateFacing(facingForDirection(x > xRef.current ? 1 : -1));
+    say(pickLine(LINES.courierHi), 2200, { priority: "ambient", key: "ambient", topic: "mail" });
+  }
+  // El husky: a veces Pip le dice algo cuando ladra o escarba, y siempre
+  // celebra lo que desentierra.
+  const huskyLine = (lines, chance, ambient = true) => {
+    if (activeEventRef.current || !canChat?.() || Math.random() > chance) return;
+    say(pickLine(lines), 2600, ambient ? { priority: "ambient", key: "ambient", topic: "husky" } : { topic: "husky" });
+  };
+  function onHuskyBark() { huskyLine(LINES.huskyBark, 0.35); }
+  function onHuskyDig() { huskyLine(LINES.huskyDig, 0.4); }
+  function onHuskyFound(event) {
+    const { id, name } = event.detail || {};
+    if (activeEventRef.current || !canChat?.()) return;
+    const article = /^[aeiou]/i.test(name || "") ? "an" : "a";
+    say(id === "token-chest" ? pickLine(LINES.huskyChest) : pickLine(LINES.huskyFound).replace("{item}", `${article} ${String(name || "something").toLowerCase()}`), 3000, { topic: "husky" });
+    spawnParticles(id === "token-chest" ? "confetti" : "heart", id === "token-chest" ? 10 : 2);
+  }
+  function farmChore(now = Date.now(), force = false) {
+    if (reduceMotion || !rootRef.current?.parentElement) return null;
+    if (farmState.crows) return "crows";
+    if (!force && now - farmState.last < FARM_COOLDOWN_MS) return null;
+    if (farmState.board) return "board";
+    if (farmState.yard?.honey && Number.isFinite(farmState.yard.beeX)) return "honey";
+    if (farmState.yard?.fruit > 0 && Number.isFinite(farmState.yard.treeX)) return "fruit";
+    return null;
+  }
+  const canFarm = (now) => Boolean(farmChore(now));
+  const crowsUrgent = () => Boolean(farmState.crows) && !activeEventRef.current && !reduceMotion;
+  function startFarm({ force = false } = {}) {
+    const chore = farmChore(Date.now(), force);
+    if (!chore || !beginBuddyEvent("garden")) return false;
+    farmState.last = Date.now();
+    freezeAtCurrentPosition();
+    if (chore === "crows") shooCrows();
+    else if (chore === "board") pinNote();
+    else collectYard(chore);
+    return true;
+  }
+  // Corre hacia los cuervos (al acercarse salen volando) y les hace aspavientos.
+  function shooCrows() {
+    const raid = farmState.crows, crop = cropById(gardenState.plots[0]?.crop)?.label.toLowerCase() || "plants";
+    say(pickLine(LINES.crowsSpot).replace("{crop}", crop), 2000, { topic: "garden" });
+    setWalkMs(0);
+    walkToPlot({ x: raid.x, crop: "" }, 10, "shoo", (generation) => {
+      setGarden({ task: "shoo", phase: "shoo", x: raid.x });
+      schedule(() => { if (activeEventRef.current === "garden" && moodGenRef.current === generation) finishGarden(LINES.crowsGone); }, SHOO_MS);
+    });
+  }
+  // Va al puesto y clava la nota del dia en el tablon.
+  function pinNote() {
+    const board = farmState.board;
+    say(pickLine(LINES.boardPin), 2000, { topic: "board" });
+    walkToPlot({ x: board.x, crop: "" }, 16, "pin", (generation) => {
+      const stillHere = () => activeEventRef.current === "garden" && moodGenRef.current === generation;
+      setGarden({ task: "pin", phase: "pin", x: board.x });
+      schedule(() => { if (stillHere()) pinNow(); }, 600);
+      schedule(() => {
+        if (!stillHere()) return;
+        finishGarden(null);
+        const lines = board.order ? LINES.boardPinned.map((line) => line.replace("{order}", board.order)) : LINES.boardPin;
+        say(pickLine(lines), 2800, { topic: "board" });
+      }, 1300);
+    });
+  }
+  // La miel de la casita o la fruta del arbol: va, la coge y la levanta.
+  function collectYard(kind) {
+    const yard = farmState.yard, honey = kind === "honey";
+    const fruit = fruitById(yard.crop), label = fruit?.label.toLowerCase() || "fruit";
+    say(pickLine(honey ? LINES.honeyReady : LINES.fruitReady).replace("{fruit}", label), 2000, { topic: "garden" });
+    walkToPlot({ x: honey ? yard.beeX : yard.treeX, crop: "" }, honey ? 14 : 12, honey ? "honey" : "fruit", (generation) => {
+      const stillHere = () => activeEventRef.current === "garden" && moodGenRef.current === generation;
+      setGarden({ task: kind, phase: honey ? "reach" : "pick", x: honey ? yard.beeX : yard.treeX, crop: honey ? "honey" : yard.crop });
+      schedule(() => { if (stillHere()) window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", { detail: { type: kind } })); }, PULL_MS);
+      schedule(() => { if (stillHere()) say(pickLine(honey ? LINES.honeyGot : LINES.fruitGot).replace("{fruit}", label), 2400, { topic: "garden" }); }, PULL_MS + 350);
+      schedule(() => { if (stillHere()) finishGarden(null); }, HARVEST_MS);
+    });
   }
 
   // --- La tienda -----------------------------------------------------------------
@@ -319,5 +466,8 @@ function createLife(core, { setLamps, setForage, setTent, setGarden }) {
   }
   const tentPhase = () => tentState.phase;
 
-  return { onLampsState, onForageState, onForagePicked, canForage, startForage, onGardenState, canGarden, startGarden, tentTarget, enterTent, intoTent, leaveTent, tentPhase };
+  return {
+    onLampsState, onForageState, onForagePicked, canForage, startForage, onGardenState, canGarden, startGarden, tentTarget, enterTent, intoTent, leaveTent, tentPhase,
+    onCrowsState, onBoardState, onYardState, onCourierState, canFarm, crowsUrgent, startFarm, onHuskyBark, onHuskyDig, onHuskyFound
+  };
 }

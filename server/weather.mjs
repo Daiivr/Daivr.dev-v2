@@ -45,6 +45,9 @@ export function readCurrentWeather(payload) {
     isDay: Number(current.is_day) === 1,
     wind: Math.round(Number(current.wind_speed_10m) || 0)
   };
+  // De donde sopla (grados, 0 = norte): la veleta de la tienda de Pip.
+  const windDir = Number(current.wind_direction_10m);
+  if (Number.isFinite(windDir)) weather.windDir = Math.round(((windDir % 360) + 360) % 360);
   // Salida y puesta del sol de hoy, para el cielo del footer (FooterSky). Solo
   // la hora, en minutos: nada que diga donde esta nadie.
   const sunrise = localMinutes(payload?.daily?.sunrise?.[0]);
@@ -57,7 +60,7 @@ export async function currentWeather(location, fetcher = fetch, now = Date.now()
   const key = `${location.latitude},${location.longitude}`;
   const hit = cache.get(key);
   if (hit && now - hit.at < CACHE_MS) return hit.weather;
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,weather_code,is_day,wind_speed_10m&daily=sunrise,sunset&forecast_days=1&timezone=auto`;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${location.latitude}&longitude=${location.longitude}&current=temperature_2m,weather_code,is_day,wind_speed_10m,wind_direction_10m&daily=sunrise,sunset&forecast_days=1&timezone=auto`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
   try {

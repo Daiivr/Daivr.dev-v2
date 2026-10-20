@@ -1,15 +1,37 @@
 import { ALL_CATCHES } from "./buddy-catches.mjs";
 import { catchPrice, fishermanVisit } from "./buddy-fisherman.mjs";
+import {
+  CLOCK_GRACE_MS, CROPS, FRUITS, GARDEN_PLOTS, HONEY, MARKET_TIME_ZONE, SEED_BAG_MAX, SMOKER_HOOKS,
+  cleanFruit, cleanHoney, cleanOrders, cleanSmoked, cleanYard, cropById, farmDay, fruitById, fruitReady, giantGroups, giantIdsOf,
+  helpWanted, honeyReadyAt, isTime, nextFruitAt, ownedOn, ripeAt, seedValue, settleFarm, smokable, smokedPrice, smokedReadyAt,
+  treeStage, yardById, yardTree
+} from "./buddy-farm.mjs";
+// (el huerto y la granja viven en buddy-farm.mjs; se exportan tambien desde aqui)
+export {
+  CROPS, FRUITS, FRUIT_MAX, GARDEN_PLOTS, GIANT_CHANCE, HONEY, MARKET_TIME_ZONE, SEED_BAG_MAX, SMOKE_HOURS, SMOKER_HOOKS, TREE_GROW_DAYS, YARD_ITEMS,
+  cropById, farmDay, fruitById, giantGroups, growth, helpWanted, plantedAt, ripeAt, smokable, smokedPrice, smokedReadyAt, treeStage, yardById, yardTree
+} from "./buddy-farm.mjs";
 
 export const CHEST_MIN_COINS = 1;
 export const CHEST_MAX_COINS = 10;
+// El cofre gigante: si Buddy saluda al Leviatan o al Kraken, a veces
+// (GIANT_CHEST_CHANCE) le dejan uno. Va en fishCollection como cualquier
+// hallazgo y se abre en el mercado por mas oro.
+export const GIANT_CHEST_ID = "giant-token-chest";
+export const GIANT_CHEST_MIN_COINS = 20;
+export const GIANT_CHEST_MAX_COINS = 50;
+export const GIANT_CHEST_CHANCE = 0.15;
+const giantRewardsOf = (value, fishCollection) => (Array.isArray(value) ? value : []).slice(0, Math.min(99, count(fishCollection?.[GIANT_CHEST_ID]))).map((reward) => Math.max(GIANT_CHEST_MIN_COINS, Math.min(GIANT_CHEST_MAX_COINS, count(reward))));
+const sumOf = (list) => list.reduce((total, reward) => total + reward, 0);
 // Monedas que se ganan fuera de los cofres: cada pez asado en la hoguera y
 // cada deseo a una estrella fugaz.
 export const CAMPFIRE_MEAL_COINS = 2;
 export const STAR_WISH_COINS = 1;
 // Cada cosa de forraje que Pip recoge en el borde del prado (tres al dia).
 export const FORAGE_COINS = 1;
-export const MARKET_TIME_ZONE = "America/New_York";
+// En una noche de lluvia de estrellas cada deseo da monedas de mas (contador
+// `showerWishes` del adventure: cada unidad, una moneda).
+export const SHOWER_WISH_COINS = 1;
 export const MARKET_SCHEDULE = "Wednesdays & Saturdays · New York time";
 export const MARKET_ITEMS = [
   { id: "market-beanie", label: "Moss knit beanie", category: "wear", price: 50, description: "A ribbed wool hat for chilly fishing nights." },
@@ -101,45 +123,25 @@ const marketDayKey = (at) => marketCalendarDay(new Date(at)).toISOString().slice
 // El dia de una venta (UTC, como las visitas del pescador).
 export const saleDay = (date = new Date()) => new Date(date).toISOString().slice(0, 10);
 const CATCHES = new Map(ALL_CATCHES.map((item) => [item.id, item]));
+const FRUITS_IDS = FRUITS.map((fruit) => fruit.id);
 export const STALL_ROTATION = ["market-beanie", "market-terrarium", "market-straw-hat", "market-trophy-fish", "market-lantern", "market-moon", "market-overalls", "market-ship-bottle", "market-specs", "market-arcade", "market-vest", "market-bonsai", "market-leaf-umbrella", "market-lava-lamp", "market-frog-hat", "market-mushroom-lamp", "market-hoodie", "market-snow-globe", "market-sprout", "market-radio", "market-bucket-hat", "market-tackle-box", "market-raincoat", "market-lighthouse"];
 // Antes cada dia tenia sus tres de siempre: los recibos de entonces valen.
 const LEGACY_STALL = { 3: ["market-beanie", "market-lantern", "market-terrarium"], 6: ["market-vest", "market-moon", "market-arcade"] };
-// El huerto del prado. Las semillas se compran cuando sea y van a la bolsa
-// (como mucho SEED_BAG_MAX de cada una a la vez); se plantan en una de las
-// GARDEN_PLOTS parcelas libres, crecen en 6–24 horas desde que se plantan
-// y Pip cosecha lo maduro en la cesta.
-// La cesta solo se vende los viernes (hora de Nueva York, como el mercado), y
-// se vende por mas de lo que costaron las semillas.
-export const GARDEN_PLOTS = 3;
-export const SEED_BAG_MAX = 5;
-export const CROPS = [
-  { id: "radish", label: "Radish", price: 4, value: 8, hours: 6, description: "Quick and peppery. Ready in six hours." },
-  { id: "carrot", label: "Carrot", price: 6, value: 12, hours: 12, description: "Sweet, crunchy and very orange." },
-  { id: "strawberry", label: "Strawberry", price: 8, value: 17, hours: 18, description: "A little bush of red berries." },
-  { id: "pumpkin", label: "Pumpkin", price: 12, value: 28, hours: 24, description: "A day of patience for a plump pumpkin." }
-];
-const CROP_BY_ID = Object.fromEntries(CROPS.map((crop) => [crop.id, crop]));
-export const cropById = (id) => CROP_BY_ID[id] || null;
+// El huerto del prado (CROPS, parcelas, crecimiento: buddy-farm.mjs). La cesta
+// solo se vende los viernes (hora de Nueva York, como el mercado), y se vende
+// por mas de lo que costaron las semillas.
 // Unas cuantas semillas a la semana como mucho: esto da para años.
 const MAX_SEEDS = 1200;
-// Margen para relojes un poco adelantados o atrasados entre equipo y servidor.
-const CLOCK_GRACE_MS = 10 * 60000;
-const growMs = (crop) => (cropById(crop)?.hours || 1) * 3600000;
-const isTime = (value) => typeof value === "string" && value.length <= 32 && Number.isFinite(Date.parse(value));
-// Cuando se planto, cuando estara lista y cuanto le falta (0..1).
-export const plantedAt = (seed) => Date.parse(seed.planted ?? seed.at);
-export const ripeAt = (seed) => plantedAt(seed) + growMs(seed.crop);
-export const growth = (seed, now = Date.now()) => Math.max(0, Math.min(1, (now - plantedAt(seed)) / growMs(seed.crop)));
-// En que punto va una semilla: 0 en la bolsa, 1 plantada, 2 en la cesta, 3 vendida.
-const seedStage = (seed) => (seed.sold ? 3 : seed.harvested ? 2 : seed.planted ? 1 : 0);
+// En que punto va una semilla: 0 en la bolsa, 1 plantada, 2 en la cesta, 3 vendida o entregada.
+const seedStage = (seed) => (seed.sold || seed.given ? 3 : seed.harvested ? 2 : seed.planted ? 1 : 0);
 
 // Cada semilla es un recibo con su vida: comprada (at), plantada (plot y
-// planted), cosechada (harvested) y vendida (sold), siempre en ese orden. Lo
-// que no cuadra se cae (y con ello lo que venia despues): plantar antes de
-// comprar, cosechar antes de madurar, vender fuera de un viernes o en el
-// futuro. Luego dos reglas que se comprueban en orden de tiempo: en la bolsa
-// caben SEED_BAG_MAX de cada una, y en cada parcela una planta hasta que se
-// cosecha (la que choca vuelve a la bolsa).
+// planted), cosechada (harvested) y vendida (sold) o entregada en el tablon
+// (given), siempre en ese orden. Lo que no cuadra se cae (y con ello lo que
+// venia despues): plantar antes de comprar, cosechar antes de madurar, vender
+// fuera de un viernes o en el futuro. Luego dos reglas que se comprueban en
+// orden de tiempo: en la bolsa caben SEED_BAG_MAX de cada una, y en cada
+// parcela una planta hasta que se cosecha (la que choca vuelve a la bolsa).
 function cleanSeeds(value, now) {
   const seen = new Set(), out = [];
   for (const raw of Array.isArray(value) ? value : []) {
@@ -153,6 +155,7 @@ function cleanSeeds(value, now) {
       if (isTime(raw.harvested) && Date.parse(raw.harvested) + CLOCK_GRACE_MS >= ripeAt(seed) && Date.parse(raw.harvested) <= now + CLOCK_GRACE_MS) {
         seed.harvested = raw.harvested;
         if (isTime(raw.sold) && Date.parse(raw.sold) >= Date.parse(raw.harvested) && Date.parse(raw.sold) <= now + CLOCK_GRACE_MS && cropSaleDay(new Date(raw.sold))) seed.sold = raw.sold;
+        else if (isTime(raw.given) && Date.parse(raw.given) >= Date.parse(raw.harvested) && Date.parse(raw.given) <= now + CLOCK_GRACE_MS) seed.given = raw.given;
       }
     }
     out.push(seed);
@@ -166,7 +169,7 @@ function cleanSeeds(value, now) {
   }
   const busyUntil = Array(GARDEN_PLOTS).fill(-Infinity);
   for (const seed of kept.filter((entry) => entry.planted).sort((x, y) => Date.parse(x.planted) - Date.parse(y.planted))) {
-    if (busyUntil[seed.plot] > Date.parse(seed.planted)) { delete seed.plot; delete seed.planted; delete seed.harvested; delete seed.sold; continue; }
+    if (busyUntil[seed.plot] > Date.parse(seed.planted)) { delete seed.plot; delete seed.planted; delete seed.harvested; delete seed.sold; delete seed.given; continue; }
     busyUntil[seed.plot] = seed.harvested ? Date.parse(seed.harvested) : Infinity;
   }
   return kept;
@@ -248,7 +251,9 @@ export function marketCarries(id, date = new Date()) {
 // pescados; los contadores solo suben, igual que los cofres.
 export function bonusCoins(adventure = {}) {
   const meals = Math.min(count(adventure.campfireMeals), count(adventure.totalCatches));
-  return meals * CAMPFIRE_MEAL_COINS + count(adventure.starWishes) * STAR_WISH_COINS + count(adventure.forageFound) * FORAGE_COINS;
+  // (lo de mas de las lluvias de estrellas nunca pasa de cuatro por deseo)
+  const shower = Math.min(count(adventure.showerWishes), count(adventure.starWishes) * 4);
+  return meals * CAMPFIRE_MEAL_COINS + count(adventure.starWishes) * STAR_WISH_COINS + shower * SHOWER_WISH_COINS + count(adventure.forageFound) * FORAGE_COINS;
 }
 
 // Save a monotonic chest count and dated, unique purchases, never a mutable
@@ -369,6 +374,21 @@ function receiptValid(id, timestamp) {
   return marketIsOpen(date) && receiptWasInStock(id, date);
 }
 
+// Lo que entra con la granja: lo vendido de la cesta (cosechas, la gigante al
+// doble, miel y fruta), los ahumados vendidos al pescador y los encargos del
+// tablon (su premio sale del encargo de ese dia).
+function orderReward(order, yard) {
+  return helpWanted(order.day, ownedOn(order.day, yard)).reward;
+}
+function farmIncome({ seeds, giantIds, honey, fruit, smoked, orders, yard }) {
+  return seeds.filter((seed) => seed.sold).reduce((sum, seed) => sum + seedValue(seed, giantIds), 0)
+    + honey.filter((jar) => jar.sold).length * HONEY.value
+    + fruit.filter((entry) => entry.sold).reduce((sum, entry) => sum + (fruitById(entry.fruit)?.value || 0), 0)
+    + smoked.filter((entry) => entry.sold).reduce((sum, entry) => sum + smokedPrice(CATCHES.get(entry.id)), 0)
+    + orders.reduce((sum, order) => sum + orderReward(order, yard), 0);
+}
+const yardSpend = (yard) => Object.keys(yard).reduce((sum, id) => sum + (yardById(id)?.price || 0), 0);
+
 export function normalizeMarket(value, fishCollection = {}, bonus = 0, now = Date.now()) {
   const rewards = (Array.isArray(value?.rewards) ? value.rewards : []).slice(0, Math.min(999, count(fishCollection["token-chest"]))).map((reward) => Math.max(CHEST_MIN_COINS, Math.min(CHEST_MAX_COINS, count(reward))));
   const opened = rewards.length;
@@ -377,11 +397,22 @@ export function normalizeMarket(value, fishCollection = {}, bonus = 0, now = Dat
   const sold = cleanSold(value?.sold, fishCollection);
   const lureCandidates = cleanLureBuys(value?.lures, now);
   const soldDays = cleanSoldDays(value?.soldDays, now);
-  let paidSeeds = candidates, result = null;
-  for (let pass = 0; pass < 6; pass++) {
-    const harvest = paidSeeds.filter((seed) => seed.sold).reduce((sum, seed) => sum + cropById(seed.crop).value, 0);
+  const yardCandidates = cleanYard(value?.yard, now);
+  const smokedCandidates = cleanSmoked(value?.smoked, now);
+  const orderCandidates = cleanOrders(value?.orders, now);
+  const giantRewards = giantRewardsOf(value?.giantRewards, fishCollection);
+  let paidSeeds = candidates, paidYard = yardCandidates, result = null;
+  for (let pass = 0; pass < 8; pass++) {
+    // Con lo que se supone pagado (semillas y patio): la miel de la casita, la
+    // fruta del arbol, la calabaza gigante, los ahumados y los encargos.
+    const assumed = Object.fromEntries(paidYard.map((entry) => [entry.id, entry.at]));
+    const bee = assumed["yard-bee-house"] ? Date.parse(assumed["yard-bee-house"]) : NaN;
+    const honey = cleanHoney(value?.honey, bee, now);
+    const fruit = cleanFruit(value?.fruit, yardTree(assumed), now);
+    const giantIds = giantIdsOf(giantGroups(paidSeeds));
+    const farm = settleFarm({ fishCollection, sold, smoked: smokedCandidates, orders: orderCandidates, seeds: paidSeeds, honey, fruit, yard: assumed });
     const purchases = {};
-    let budget = rewards.reduce((sum, reward) => sum + reward, 0) + count(bonus) + harvest + saleCoins(sold);
+    let budget = rewards.reduce((sum, reward) => sum + reward, 0) + sumOf(giantRewards) + count(bonus) + saleCoins(sold) + farmIncome({ seeds: paidSeeds, giantIds, honey, fruit, smoked: farm.smoked, orders: farm.orders, yard: assumed });
     for (const item of MARKET_ITEMS) {
       const timestamp = receipts[item.id];
       if (!receiptValid(item.id, timestamp) || budget < item.price) continue;
@@ -395,23 +426,59 @@ export function normalizeMarket(value, fishCollection = {}, bonus = 0, now = Dat
       seeds.push(seed);
       budget -= price;
     }
-    // (los señuelos, despues de todo lo demas)
+    // (los señuelos, despues de todo lo de antes)
     const paid = payLures(lureCandidates, budget);
+    budget = paid.budget;
+    // (y lo del patio, lo ultimo)
+    const yard = [];
+    for (const entry of yardCandidates) {
+      const price = yardById(entry.id).price;
+      if (budget < price) continue;
+      yard.push(entry);
+      budget -= price;
+    }
     // (los usos gastados nunca pasan de los comprados mas los regalados)
     const bought = {};
     for (const buy of paid.lures) bought[buy.id] = (bought[buy.id] || 0) + 1;
     const rawUses = value?.lureUses && typeof value.lureUses === "object" ? value.lureUses : {};
     const lureUses = Object.fromEntries(LURES.map((lure) => [lure.id, Math.min((bought[lure.id] || 0) + MAX_GRANT, count(rawUses[lure.id]))]).filter(([, n]) => n));
-    result = { opened, rewards, purchases, seeds, sold, lures: paid.lures, lureUses, soldDays };
-    if (seeds.length === paidSeeds.length && seeds.every((seed, index) => seed === paidSeeds[index])) break;
+    result = {
+      opened, rewards, giantRewards, purchases, seeds, sold, lures: paid.lures, lureUses, soldDays,
+      yard: Object.fromEntries(yard.map((entry) => [entry.id, entry.at])), honey, fruit, smoked: farm.smoked, orders: farm.orders
+    };
+    const sameSeeds = seeds.length === paidSeeds.length && seeds.every((seed, index) => seed === paidSeeds[index]);
+    const sameYard = yard.length === paidYard.length && yard.every((entry, index) => entry === paidYard[index]);
+    if (sameSeeds && sameYard) break;
     paidSeeds = seeds;
+    paidYard = yard;
   }
   return result;
+}
+// Monedas de un mercado ya normalizado.
+function marketCoins(market, bonus) {
+  const giantIds = giantIdsOf(giantGroups(market.seeds));
+  const income = market.rewards.reduce((sum, reward) => sum + reward, 0) + sumOf(market.giantRewards || []) + count(bonus) + saleCoins(market.sold)
+    + farmIncome({ seeds: market.seeds, giantIds, honey: market.honey, fruit: market.fruit, smoked: market.smoked, orders: market.orders, yard: market.yard });
+  const spend = market.seeds.reduce((sum, seed) => sum + cropById(seed.crop).price, 0) + lureSpend(market.lures) + yardSpend(market.yard)
+    + MARKET_ITEMS.filter((item) => Object.hasOwn(market.purchases, item.id)).reduce((sum, item) => sum + item.price, 0);
+  return income - spend;
+}
+// De dos listas, una entrada por clave: la que ya esta vendida, comida o
+// entregada gana a la que no.
+function unionBy(left, right, key) {
+  const done = (entry) => Boolean(entry.sold || entry.given || entry.eaten);
+  const byKey = new Map();
+  for (const entry of [...left, ...right]) {
+    const other = byKey.get(key(entry));
+    if (!other || (done(entry) && !done(other))) byKey.set(key(entry), entry);
+  }
+  return [...byKey.values()];
 }
 export function mergeMarket(left, right, fishCollection, bonus = 0) {
   const a = normalizeMarket(left, fishCollection, bonus);
   const b = normalizeMarket(right, fishCollection, bonus);
   const rewards = [...a.rewards, ...b.rewards.slice(a.rewards.length)];
+  const giantRewards = [...a.giantRewards, ...b.giantRewards.slice(a.giantRewards.length)];
   // Semillas de los dos lados: de cada una, la que va mas avanzada.
   const byId = new Map();
   for (const seed of [...a.seeds, ...b.seeds]) {
@@ -428,11 +495,18 @@ export function mergeMarket(left, right, fishCollection, bonus = 0) {
   for (const [id, n] of Object.entries(b.lureUses)) lureUses[id] = Math.max(lureUses[id] || 0, n);
   const soldDays = { ...a.soldDays };
   for (const [day, n] of Object.entries(b.soldDays)) soldDays[day] = Math.max(soldDays[day] || 0, n);
+  // La granja de los dos lados (el patio de `a` manda).
+  const yard = { ...b.yard, ...a.yard };
+  const honey = unionBy(a.honey, b.honey, (jar) => jar.at);
+  const fruit = unionBy(a.fruit, b.fruit, (entry) => entry.at + "#" + entry.i);
+  const smoked = unionBy(a.smoked, b.smoked, (entry) => entry.id + "@" + entry.at);
+  const orders = unionBy(a.orders, b.orders, (order) => order.day);
   const purchases = { ...a.purchases };
   // Lo de `a` tambien cuenta: una compra del otro equipo no puede dejar sin
   // pagar (y hacer desaparecer) una semilla de este.
-  const garden = a.seeds.reduce((sum, seed) => sum + (seed.sold ? cropById(seed.crop).value : 0) - cropById(seed.crop).price, 0);
-  let balance = rewards.reduce((sum, reward) => sum + reward, 0) + count(bonus) + garden + saleCoins(a.sold) - lureSpend(a.lures) - MARKET_ITEMS.filter((item) => Object.hasOwn(purchases, item.id)).reduce((sum, item) => sum + item.price, 0);
+  // (con los cofres abiertos de los dos lados)
+  const sum = (list) => list.reduce((total, reward) => total + reward, 0);
+  let balance = marketCoins(a, bonus) + sum(rewards) - sum(a.rewards) + sum(giantRewards) - sum(a.giantRewards);
   // Preserve confirmed purchases when two devices spend the same balance.
   // Accept only affordable additions; never replace an already-owned piece.
   for (const item of MARKET_ITEMS) {
@@ -440,34 +514,73 @@ export function mergeMarket(left, right, fishCollection, bonus = 0) {
     purchases[item.id] = b.purchases[item.id];
     balance -= item.price;
   }
-  return normalizeMarket({ rewards, purchases, seeds, sold, lures, lureUses, soldDays }, fishCollection, bonus);
+  return normalizeMarket({ rewards, giantRewards, purchases, seeds, sold, lures, lureUses, soldDays, yard, honey, fruit, smoked, orders }, fishCollection, bonus);
 }
-export function marketWallet(adventure) {
+export function marketWallet(adventure, now = Date.now()) {
   const bonus = bonusCoins(adventure);
-  const market = normalizeMarket(adventure.market, adventure.fishCollection, bonus);
+  const market = normalizeMarket(adventure.market, adventure.fishCollection, bonus, now);
   const owned = Object.keys(market.purchases);
-  const soldCoins = market.seeds.filter((seed) => seed.sold).reduce((sum, seed) => sum + cropById(seed.crop).value, 0);
-  const seedSpend = market.seeds.reduce((sum, seed) => sum + cropById(seed.crop).price, 0);
+  const giants = giantGroups(market.seeds), giantIds = giantIdsOf(giants);
+  const soldCoins = market.seeds.filter((seed) => seed.sold).reduce((sum, seed) => sum + seedValue(seed, giantIds), 0);
   // Lo plantado ahora (sin cosechar), por parcela; la bolsa (sin plantar) y la
-  // cesta (cosechado, sin vender), por cultivo.
+  // cesta (cosechado, sin vender ni entregar), por cultivo.
   const garden = market.seeds.filter((seed) => seed.planted && !seed.harvested);
   const tally = (pick) => Object.fromEntries(CROPS.map((crop) => [crop.id, market.seeds.filter((seed) => seed.crop === crop.id && pick(seed)).length]));
-  const bag = tally((seed) => !seed.planted), basket = tally((seed) => seed.harvested && !seed.sold);
+  const bag = tally((seed) => !seed.planted), basket = tally((seed) => seed.harvested && !seed.sold && !seed.given);
   const harvestedCount = market.seeds.filter((seed) => seed.harvested).length;
   const fishCoins = saleCoins(market.sold);
   // Usos que quedan de cada señuelo comprado.
   const lureLeft = { ...lureGrants(adventure) };
   for (const buy of market.lures) lureLeft[buy.id] = (lureLeft[buy.id] || 0) + 1;
   for (const id of Object.keys(lureLeft)) lureLeft[id] = Math.max(0, lureLeft[id] - (market.lureUses[id] || 0));
-  const soldToday = market.soldDays[saleDay()] || 0;
-  return { ...market, owned, bonus, soldCoins, fishCoins, lureLeft, soldToday, garden, bag, basket, harvestedCount, coins: market.rewards.reduce((sum, reward) => sum + reward, 0) + bonus + soldCoins + fishCoins - seedSpend - lureSpend(market.lures) - MARKET_ITEMS.filter((item) => owned.includes(item.id)).reduce((sum, item) => sum + item.price, 0), unopened: Math.min(999, count(adventure.fishCollection?.["token-chest"])) - market.opened };
+  const soldToday = market.soldDays[saleDay(now)] || 0;
+  // La granja: la casita de abejas, el arbol, la miel y la fruta de la cesta,
+  // el ahumadero y los peces que quedan sin vender, ahumar ni entregar.
+  const keep = (entry) => !entry.sold && !entry.given;
+  const lastAt = (list) => (list.length ? Date.parse(list[list.length - 1].at) : null);
+  const beeAt = market.yard["yard-bee-house"] ? Date.parse(market.yard["yard-bee-house"]) : null;
+  const bees = beeAt == null ? null : { at: beeAt, readyAt: honeyReadyAt(beeAt, lastAt(market.honey)) };
+  if (bees) bees.ready = bees.readyAt <= now;
+  const treeBase = yardTree(market.yard), lastPick = lastAt(market.fruit);
+  const tree = treeBase ? { ...treeBase, stage: treeStage(treeBase, now), ready: fruitReady(treeBase, lastPick, now), nextAt: nextFruitAt(treeBase, lastPick, now) } : null;
+  const basketHoney = market.honey.filter(keep).length;
+  const basketFruit = Object.fromEntries(FRUITS_IDS.map((id) => [id, market.fruit.filter((entry) => entry.fruit === id && keep(entry)).length]));
+  const farm = settleFarm({ fishCollection: adventure.fishCollection || {}, sold: market.sold, smoked: market.smoked, orders: market.orders, seeds: market.seeds, honey: market.honey, fruit: market.fruit, yard: market.yard });
+  const hanging = market.smoked.filter((entry) => smokedReadyAt(entry) > now).map((entry) => ({ ...entry, readyAt: smokedReadyAt(entry) }));
+  const smokedReady = {};
+  for (const entry of market.smoked) if (smokedReadyAt(entry) <= now && !entry.sold && !entry.eaten && !entry.given) smokedReady[entry.id] = (smokedReady[entry.id] || 0) + 1;
+  // El encargo de hoy en el tablon: lo que pide, si ya esta hecho y cuanto hay.
+  const day = farmDay(now), request = helpWanted(day, ownedOn(day, market.yard));
+  const have = request.kind === "fish" ? farm.fishLeft[request.id] || 0
+    : request.kind === "crop" ? basket[request.id] || 0
+      : request.kind === "honey" ? basketHoney
+        : request.kind === "fruit" ? basketFruit[request.id] || 0
+          : Object.values(smokedReady).reduce((sum, n) => sum + n, 0);
+  const order = { ...request, done: market.orders.some((entry) => entry.day === day), have };
+  return {
+    ...market, owned, bonus, soldCoins, fishCoins, lureLeft, soldToday, garden, bag, basket, harvestedCount,
+    giants, bees, tree, scarecrow: Boolean(market.yard["yard-scarecrow"]), basketHoney, basketFruit,
+    smoker: { hanging, ready: smokedReady, free: Math.max(0, SMOKER_HOOKS - hanging.length) }, fishLeft: farm.fishLeft, order,
+    coins: marketCoins(market, bonus), unopened: Math.min(999, count(adventure.fishCollection?.["token-chest"])) - market.opened,
+    giantUnopened: Math.min(99, count(adventure.fishCollection?.[GIANT_CHEST_ID])) - market.giantRewards.length
+  };
 }
-const marketRecord = (wallet, changes = {}) => ({ opened: wallet.opened, rewards: wallet.rewards, purchases: wallet.purchases, seeds: wallet.seeds, sold: wallet.sold, lures: wallet.lures, lureUses: wallet.lureUses, soldDays: wallet.soldDays, ...changes });
+const marketRecord = (wallet, changes = {}) => ({
+  opened: wallet.opened, rewards: wallet.rewards, giantRewards: wallet.giantRewards, purchases: wallet.purchases, seeds: wallet.seeds, sold: wallet.sold, lures: wallet.lures, lureUses: wallet.lureUses, soldDays: wallet.soldDays,
+  yard: wallet.yard, honey: wallet.honey, fruit: wallet.fruit, smoked: wallet.smoked, orders: wallet.orders.map(({ day, at }) => ({ day, at })), ...changes
+});
 export function openMarketChest(adventure, random = Math.random) {
   const wallet = marketWallet(adventure);
   if (!wallet.unopened) return { adventure, message: "No unopened chests. Let Buddy fish for more." };
   const reward = Math.min(CHEST_MAX_COINS, Math.max(CHEST_MIN_COINS, Math.floor(random() * CHEST_MAX_COINS) + CHEST_MIN_COINS));
   return { reward, adventure: { ...adventure, market: marketRecord(wallet, { opened: wallet.opened + 1, rewards: [...wallet.rewards, reward] }) }, message: `Chest opened! +${reward} ${reward === 1 ? "coin" : "coins"}.` };
+}
+// El cofre gigante: de GIANT_CHEST_MIN_COINS a GIANT_CHEST_MAX_COINS de oro.
+export function openGiantChest(adventure, random = Math.random) {
+  const wallet = marketWallet(adventure);
+  if (!wallet.giantUnopened) return { adventure, message: "No giant chests. Say hello to the Leviathan or the Kraken..." };
+  const reward = Math.min(GIANT_CHEST_MAX_COINS, GIANT_CHEST_MIN_COINS + Math.floor(random() * (GIANT_CHEST_MAX_COINS - GIANT_CHEST_MIN_COINS + 1)));
+  return { reward, giant: true, adventure: { ...adventure, market: marketRecord(wallet, { giantRewards: [...wallet.giantRewards, reward] }) }, message: `Giant chest opened! +${reward} coins from the deep.` };
 }
 export function purchaseMarketItem(adventure, id, date = new Date()) {
   const item = MARKET_ITEMS.find((entry) => entry.id === id);
@@ -489,10 +602,10 @@ export function purchaseMarketItem(adventure, id, date = new Date()) {
 // Lo que Buddy le puede vender al pescador: cada captura con lo pescado, lo
 // ya vendido, lo que queda y lo que paga por cada una.
 export function sellableCatches(adventure) {
-  const sold = marketWallet(adventure).sold;
+  const wallet = marketWallet(adventure);
   return ALL_CATCHES.filter((item) => catchPrice(item) && count(adventure.fishCollection?.[item.id]) > 0).map((item) => {
-    const caught = count(adventure.fishCollection[item.id]), gone = sold[item.id] || 0;
-    return { item, caught, sold: gone, left: Math.max(0, caught - gone), price: catchPrice(item) };
+    const caught = count(adventure.fishCollection[item.id]), gone = wallet.sold[item.id] || 0;
+    return { item, caught, sold: gone, left: Math.max(0, wallet.fishLeft[item.id] || 0), price: catchPrice(item) };
   });
 }
 // Vender `amount` de una captura (o "all") mientras esta el pescador, sin
@@ -500,12 +613,12 @@ export function sellableCatches(adventure) {
 export function sellCatch(adventure, id, amount = 1, date = new Date()) {
   const item = CATCHES.get(id), price = catchPrice(item);
   if (!price) return { adventure, value: 0, message: "The fisherman doesn't buy that." };
-  const wallet = marketWallet(adventure);
+  const wallet = marketWallet(adventure, date.getTime());
   if (!fishermanTrip(wallet, date).here) return { adventure, value: 0, message: "The fisherman isn't here right now. Sell your catch when his cart is back." };
   const day = saleDay(date), today = wallet.soldDays[day] || 0, room = FISH_SELL_DAILY - today;
   if (room <= 0) return { adventure, value: 0, message: "Marlin has bought all the fish he can carry today. Try again tomorrow." };
-  const caught = count(adventure.fishCollection?.[id]), gone = wallet.sold[id] || 0;
-  const n = Math.min(amount === "all" ? Infinity : Math.max(1, count(amount)), caught - gone, room);
+  const gone = wallet.sold[id] || 0;
+  const n = Math.min(amount === "all" ? Infinity : Math.max(1, count(amount)), wallet.fishLeft[id] || 0, room);
   if (n <= 0) return { adventure, value: 0, message: `No ${item.name} left to sell.` };
   const value = n * price;
   return { adventure: { ...adventure, market: marketRecord(wallet, { sold: { ...wallet.sold, [id]: gone + n }, soldDays: { ...wallet.soldDays, [day]: today + n } }) }, value, message: `Sold ${n} ${item.name} for ${value} ${value === 1 ? "coin" : "coins"}.` };
@@ -592,9 +705,17 @@ export function plantSeed(adventure, cropId, date = new Date(), plot = null) {
 
 // Cosechar una planta madura: a la cesta (se vende el viernes).
 export function harvestCrop(adventure, seedId, date = new Date()) {
-  const wallet = marketWallet(adventure);
+  const wallet = marketWallet(adventure, date.getTime());
   const seed = wallet.garden.find((entry) => entry.id === seedId);
   if (!seed) return { adventure, message: "Nothing to harvest there." };
+  // (la gigante sale entera, cuando ha madurado la ultima de las tres)
+  const group = wallet.giants.find((entry) => entry.ids.includes(seedId));
+  if (group) {
+    if (group.ripeAt > date.getTime()) return { adventure, message: "Something big is growing in there. Give it a little longer." };
+    const at = date.toISOString(), ids = new Set(group.ids), crop = cropById(seed.crop);
+    const value = group.ids.length * crop.value * 2;
+    return { value, crop, giant: true, adventure: { ...adventure, market: marketRecord(wallet, { seeds: wallet.seeds.map((entry) => (ids.has(entry.id) ? { ...entry, harvested: at } : entry)) }) }, message: `A GIANT pumpkin! It's in the basket, worth ${value} gold on Friday.` };
+  }
   if (ripeAt(seed) > date.getTime()) return { adventure, message: "Not ripe yet." };
   const crop = cropById(seed.crop);
   return { value: crop.value, crop, adventure: { ...adventure, market: marketRecord(wallet, { seeds: wallet.seeds.map((entry) => (entry.id === seed.id ? { ...entry, harvested: date.toISOString() } : entry)) }) }, message: `Harvested a ${crop.label.toLowerCase()}! It's in the basket for Friday's market.` };
@@ -602,11 +723,107 @@ export function harvestCrop(adventure, seedId, date = new Date()) {
 
 // Vender la cesta (toda, o solo un cultivo): solo los viernes.
 export function sellCrops(adventure, cropId = null, date = new Date()) {
-  const wallet = marketWallet(adventure);
+  const wallet = marketWallet(adventure, date.getTime());
   if (!cropSaleDay(date)) return { adventure, message: "Crops sell at the Friday market. Keep them in the basket until then." };
-  const selling = wallet.seeds.filter((seed) => seed.harvested && !seed.sold && (!cropId || seed.crop === cropId));
-  if (!selling.length) return { adventure, message: "Nothing in the basket to sell." };
-  const at = date.toISOString(), ids = new Set(selling.map((seed) => seed.id));
-  const total = selling.reduce((sum, seed) => sum + cropById(seed.crop).value, 0);
-  return { value: total, adventure: { ...adventure, market: marketRecord(wallet, { seeds: wallet.seeds.map((entry) => (ids.has(entry.id) ? { ...entry, sold: at } : entry)) }) }, message: `Sold ${selling.length} ${selling.length === 1 ? "crop" : "crops"} for ${total} gold!` };
+  const open = (entry) => !entry.sold && !entry.given;
+  const selling = wallet.seeds.filter((seed) => seed.harvested && open(seed) && (!cropId || seed.crop === cropId));
+  const jars = !cropId || cropId === HONEY.id ? wallet.honey.filter(open) : [];
+  const fruits = wallet.fruit.filter((entry) => open(entry) && (!cropId || entry.fruit === cropId));
+  const n = selling.length + jars.length + fruits.length;
+  if (!n) return { adventure, message: "Nothing in the basket to sell." };
+  const at = date.toISOString(), ids = new Set(selling.map((seed) => seed.id)), giantIds = giantIdsOf(wallet.giants);
+  const total = selling.reduce((sum, seed) => sum + seedValue(seed, giantIds), 0) + jars.length * HONEY.value + fruits.reduce((sum, entry) => sum + fruitById(entry.fruit).value, 0);
+  const jarKeys = new Set(jars.map((jar) => jar.at)), fruitKeys = new Set(fruits.map((entry) => entry.at + "#" + entry.i));
+  return {
+    value: total,
+    adventure: { ...adventure, market: marketRecord(wallet, {
+      seeds: wallet.seeds.map((entry) => (ids.has(entry.id) ? { ...entry, sold: at } : entry)),
+      honey: wallet.honey.map((jar) => (jarKeys.has(jar.at) ? { ...jar, sold: at } : jar)),
+      fruit: wallet.fruit.map((entry) => (fruitKeys.has(entry.at + "#" + entry.i) ? { ...entry, sold: at } : entry))
+    }) },
+    message: `Sold ${n} from the basket for ${total} gold!`
+  };
+}
+
+// --- La granja: patio, miel, fruta, ahumadero y el tablon --------------------
+// Comprar algo del patio (cualquier dia, en el cobertizo del huerto).
+export function purchaseYard(adventure, id, date = new Date()) {
+  const item = yardById(id);
+  const wallet = marketWallet(adventure, date.getTime());
+  if (!item) return { adventure, message: "The shed doesn't sell that." };
+  if (wallet.yard[id]) return { adventure, message: `You already have the ${item.label.toLowerCase()}.` };
+  if (item.kind === "tree" && wallet.tree) return { adventure, message: "There's only room for one fruit tree by the garden." };
+  if (wallet.coins < item.price) return { adventure, message: `You need ${item.price - wallet.coins} more coins for the ${item.label.toLowerCase()}.` };
+  const after = { ...adventure, market: marketRecord(wallet, { yard: { ...wallet.yard, [id]: date.toISOString() } }) };
+  const where = item.kind === "tree" ? "It's planted behind the garden." : item.kind === "bees" ? "The bees are moving in by the garden." : "He's standing guard in the garden.";
+  return { adventure: after, message: `${item.label} bought! ${where}` };
+}
+// Pip recoge el tarro de miel (si esta lleno).
+export function collectHoney(adventure, date = new Date()) {
+  const wallet = marketWallet(adventure, date.getTime());
+  if (!wallet.bees) return { adventure, message: "No bee house yet." };
+  if (!wallet.bees.ready) return { adventure, message: "The bees are still busy." };
+  return { adventure: { ...adventure, market: marketRecord(wallet, { honey: [...wallet.honey, { at: date.toISOString() }] }) }, message: "A jar of wildflower honey for the basket!" };
+}
+// Pip recoge la fruta que cuelga del arbol.
+export function pickFruit(adventure, date = new Date()) {
+  const wallet = marketWallet(adventure, date.getTime());
+  if (!wallet.tree?.ready) return { adventure, picked: 0, message: "No fruit on the tree yet." };
+  const at = date.toISOString(), n = wallet.tree.ready, fruit = fruitById(wallet.tree.fruit);
+  const picked = Array.from({ length: n }, (_, i) => ({ at, i, fruit: fruit.id }));
+  return { picked: n, fruit, adventure: { ...adventure, market: marketRecord(wallet, { fruit: [...wallet.fruit, ...picked] }) }, message: `Picked ${n} ${fruit.label.toLowerCase()} for the basket!` };
+}
+// Colgar un pez en el ahumadero.
+export function smokeFish(adventure, id, date = new Date()) {
+  const item = CATCHES.get(id);
+  if (!smokable(item)) return { adventure, message: "Only fish go in the smoker." };
+  const wallet = marketWallet(adventure, date.getTime());
+  if (!(wallet.fishLeft[id] > 0)) return { adventure, message: `No ${item.name} left to smoke.` };
+  if (!wallet.smoker.free) return { adventure, message: `The smoker holds ${SMOKER_HOOKS} fish at a time. Wait for one to finish.` };
+  return { adventure: { ...adventure, market: marketRecord(wallet, { smoked: [...wallet.smoked, { id, at: date.toISOString() }] }) }, message: `${item.name} is hanging over the coals. Smoked in about an hour.` };
+}
+// Vender pescado ahumado al pescador (cuenta para su tope del dia).
+export function sellSmoked(adventure, id, amount = 1, date = new Date()) {
+  const item = CATCHES.get(id), price = smokedPrice(item);
+  const wallet = marketWallet(adventure, date.getTime());
+  if (!price || !wallet.smoker.ready[id]) return { adventure, value: 0, message: "No smoked fish like that ready." };
+  if (!fishermanTrip(wallet, date).here) return { adventure, value: 0, message: "The fisherman isn't here right now. Sell your smoked fish when his cart is back." };
+  const day = saleDay(date), today = wallet.soldDays[day] || 0, room = FISH_SELL_DAILY - today;
+  if (room <= 0) return { adventure, value: 0, message: "Marlin has bought all the fish he can carry today. Try again tomorrow." };
+  const n = Math.min(amount === "all" ? Infinity : Math.max(1, count(amount)), wallet.smoker.ready[id], room);
+  const at = date.toISOString(), now = date.getTime();
+  let left = n;
+  const smoked = wallet.smoked.map((entry) => {
+    if (!left || entry.id !== id || entry.sold || entry.eaten || entry.given || smokedReadyAt(entry) > now) return entry;
+    left -= 1;
+    return { ...entry, sold: at };
+  });
+  const value = n * price;
+  return { adventure: { ...adventure, market: marketRecord(wallet, { smoked, soldDays: { ...wallet.soldDays, [day]: today + n } }) }, value, message: `Sold ${n} smoked ${item.name} for ${value} ${value === 1 ? "coin" : "coins"}.` };
+}
+// Pip se come un ahumado en la hoguera (el que menos vale de los listos).
+export function eatSmoked(adventure, date = new Date()) {
+  const wallet = marketWallet(adventure, date.getTime()), now = date.getTime();
+  const ready = wallet.smoked.filter((entry) => !entry.sold && !entry.eaten && !entry.given && smokedReadyAt(entry) <= now)
+    .sort((a, b) => smokedPrice(CATCHES.get(a.id)) - smokedPrice(CATCHES.get(b.id)));
+  if (!ready.length) return { adventure, id: null };
+  const pick = ready[0], at = date.toISOString();
+  return { id: pick.id, adventure: { ...adventure, market: marketRecord(wallet, { smoked: wallet.smoked.map((entry) => (entry === pick ? { ...entry, eaten: at } : entry)) }) } };
+}
+// Entregar el encargo de hoy del tablon.
+export function deliverOrder(adventure, date = new Date()) {
+  const wallet = marketWallet(adventure, date.getTime()), order = wallet.order, now = date.getTime();
+  if (order.done) return { adventure, reward: 0, message: "Today's request is done. A new one goes up tomorrow." };
+  if (order.have < order.n) return { adventure, reward: 0, message: `You need ${order.n - order.have} more ${order.label.toLowerCase()} for this one.` };
+  const at = date.toISOString(), changes = { orders: [...wallet.orders.map(({ day, at: when }) => ({ day, at: when })), { day: order.day, at }] };
+  const giveFirst = (list, test) => {
+    let left = order.n;
+    return list.map((entry) => { if (!left || !test(entry)) return entry; left -= 1; return { ...entry, given: at }; });
+  };
+  const open = (entry) => !entry.sold && !entry.given;
+  if (order.kind === "crop") changes.seeds = giveFirst(wallet.seeds, (seed) => seed.crop === order.id && seed.harvested && open(seed));
+  if (order.kind === "honey") changes.honey = giveFirst(wallet.honey, open);
+  if (order.kind === "fruit") changes.fruit = giveFirst(wallet.fruit, (entry) => entry.fruit === order.id && open(entry));
+  if (order.kind === "smoked") changes.smoked = giveFirst(wallet.smoked, (entry) => open(entry) && !entry.eaten && smokedReadyAt(entry) <= now);
+  return { reward: order.reward, adventure: { ...adventure, market: marketRecord(wallet, changes) }, message: `Delivered! +${order.reward} gold. A new request goes up tomorrow.` };
 }

@@ -93,6 +93,8 @@
   .market-catalog-heading .buddy-modal-kicker { font-size: 8px; letter-spacing: 1.8px; }
   .market-catalog-heading h3 { margin-top: 6px; font-size: 17px; color: var(--woodland-text); }
   .market-stock-count { font-size: 9px; color: #99ac94; padding-bottom: 3px; }
+  /* (el boton del cofre gigante, dorado) */
+  .market-wallet .market-wallet-giant { margin-top: 6px; }
   .market-feedback { min-height: 28px; margin: 10px 0; font-size: 10px; line-height: 1.5; color: #bdc8a8; }
   .buddy-gold-coin { display: inline-block; flex: 0 0 auto; image-rendering: pixelated; vertical-align: middle; }
   .market-wallet-total > .buddy-gold-coin { width: 36px; height: 39px; filter: drop-shadow(0 3px 0 #06160d) drop-shadow(0 0 12px #e9b34a22); }

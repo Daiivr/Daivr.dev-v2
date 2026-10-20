@@ -1,6 +1,9 @@
 // PokéSurvivor (cartucho 06): compila public/pokesurvivor desde el juego
-// original, https://github.com/JPTER78/pokesurvivor (codigo MIT; sprites de
-// SpriteCollab, CC BY-NC 4.0: LICENSE y CREDITS.md viajan con el juego).
+// original, https://github.com/JPTER78/pokesurvivor (codigo PolyForm
+// Noncommercial 1.0.0 desde el 14-10-2026, MIT hasta b297089; sprites de
+// SpriteCollab, CC BY-NC 4.0). LICENSE, LICENSE-NONCOMMERCIAL.md (con su
+// "Required Notice") y CREDITS.md viajan con el juego: el juego no puede
+// venderse, cobrarse ni llevar anuncios.
 //
 //   corepack pnpm build:pokesurvivor            descarga el commit fijado
 //   corepack pnpm build:pokesurvivor --src DIR  usa una copia local de ese commit
@@ -28,9 +31,11 @@ import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
 
 export const UPSTREAM_REPO = "JPTER78/pokesurvivor";
-// b297089 es la última versión MIT del original: desde 4de8495 el código es PolyForm
-// Noncommercial y la nube sólo funciona en su dominio, así que no se pasa de aquí.
-export const UPSTREAM_COMMIT = "b29708900da26b34e70d2dc07ad1659a719f4a78";
+// 803125d (19-10-2026). Desde 4de8495 el código es PolyForm Noncommercial (uso
+// sin fines comerciales, con su licencia y su "Required Notice" junto al juego).
+// Su nube sólo funciona en su dominio, pero aquí no se usa: el parche la cambia
+// por la API de la web (ver daivr.patch).
+export const UPSTREAM_COMMIT = "803125dfdf3066fe6cf65f490f1e7b577871a295";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "../..");
@@ -40,8 +45,11 @@ const PATCH = join(HERE, "daivr.patch");
 const EXTENSIONS = join(HERE, "extensions");
 // Lo que necesita el juego (el resto del repositorio son paginas de SEO,
 // Firebase, Cloudflare, videos y herramientas).
-const SOURCES = ["dev.html", "js", "css", "assets/fonts", "assets/icons", "assets/pokemon", "favicon.ico", "LICENSE", "CREDITS.md"];
-const OUTPUTS = ["css", "assets/fonts", "assets/icons", "assets/pokemon", "favicon.ico", "LICENSE", "CREDITS.md"];
+const SOURCES = ["dev.html", "js", "css", "assets/fonts", "assets/icons", "assets/pokemon", "favicon.ico", "LICENSE", "LICENSE-NONCOMMERCIAL.md", "CREDITS.md"];
+// Además de js/app.min.js: lo que se carga aparte (el idioma antes que el juego,
+// la pantalla de carga) y los diccionarios de francés, italiano, portugués y chino.
+const OUTPUTS = ["css", "assets/fonts", "assets/icons", "assets/pokemon", "favicon.ico", "LICENSE", "LICENSE-NONCOMMERCIAL.md", "CREDITS.md",
+  "js/core/locales.js", "js/boot.js", "js/lang"];
 
 // Lector minimo de tar (ustar + cabeceras pax de GitHub), para no depender del
 // tar del sistema: en Windows el de Git toma "C:" por un servidor remoto.
@@ -111,6 +119,19 @@ async function bundle(work) {
   const { code } = await transformWithEsbuild(joined, "app.js", { loader: "js", minify: true, target: "es2020", legalComments: "none", charset: "utf8" });
   const hash = createHash("sha1").update(code).digest("hex").slice(0, 10);
   let html = dev.slice(0, i) + `<script defer src="js/app.min.js?v=${hash}"></script>` + dev.slice(j + END.length);
+  // Huellas ?v= como su build.js, para que al actualizar no se mezcle con lo viejo
+  // de la caché: locales.js pasa la suya al diccionario de su idioma (js/lang/).
+  const sha = (...parts) => { const h = createHash("sha1"); for (const p of parts) h.update(p); return h.digest("hex").slice(0, 10); };
+  const langs = readdirSync(join(work, "js", "lang")).sort().map((name) => readFileSync(join(work, "js", "lang", name)));
+  const fingerprints = [
+    ['<script src="js/core/locales.js"></script>', `<script src="js/core/locales.js?v=${sha(readFileSync(join(work, "js", "core", "locales.js")), ...langs)}"></script>`],
+    ['<script src="js/boot.js"></script>', `<script src="js/boot.js?v=${sha(readFileSync(join(work, "js", "boot.js")))}"></script>`],
+    ['<link rel="stylesheet" href="css/style.css">', `<link rel="stylesheet" href="css/style.css?v=${sha(readFileSync(join(work, "css", "style.css")))}">`]
+  ];
+  for (const [tag, versioned] of fingerprints) {
+    if (!html.includes(tag)) throw new Error(`dev.html has no ${tag}`);
+    html = html.replace(tag, versioned);
+  }
   html = html.replace(/<!-- seo:begin -->[\s\S]*?<!-- seo:end -->\r?\n?/g, "");
   html = html.replace(/<!-- dev\.html:[^>]*-->/, "<!-- GENERADO por tools/pokesurvivor/build.mjs (daivr.dev). No editar a mano. -->");
   return { html, code, files: files.length };
@@ -165,7 +186,10 @@ async function main() {
     writeFileSync(join(OUT, "js", "app.min.js"), code);
     cpSync(join(HERE, "discord-done.html"), join(OUT, "discord-done.html"));
     writeFileSync(join(OUT, "idle-frames.json"), JSON.stringify(idleFrames(readFileSync(join(work, "js", "data", "sprites-meta.js"), "utf8"))));
-    for (const path of OUTPUTS) cpSync(join(work, path), join(OUT, path), { recursive: true });
+    for (const path of OUTPUTS) {
+      mkdirSync(dirname(join(OUT, path)), { recursive: true });
+      cpSync(join(work, path), join(OUT, path), { recursive: true });
+    }
     cpSync(join(HERE, "assets"), join(OUT, "assets"), { recursive: true });
     console.log(`[pokesurvivor] ${files} scripts -> js/app.min.js (${Math.round(code.length / 1024)} KB), public/pokesurvivor ready`);
   } finally {

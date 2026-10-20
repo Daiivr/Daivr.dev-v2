@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { fishArc, fishContact, fishRebound, reboundPoint } from "../../shared/footer-fish-motion.mjs";
 import { growth } from "../../shared/buddy-market.mjs";
+import { catchById } from "../../shared/buddy-catches.mjs";
 import { isCropWatered, wetGardenPlots } from "../../shared/buddy-garden-water.mjs";
 import { ART } from "../lib/pixelWorld/core";
 import { H, WATER_Y, WORLD_TOP, layoutCssVars } from "../lib/pixelWorld/layout";
@@ -51,16 +52,19 @@ function savePicked(day, picked) {
   }
 }
 
-export function FooterWorld({ sky, season, marketOpen, marketHover, gardenHover, fisherHover, fisherGaps, rackHover, rods, mailFlag, garden }) {
+export function FooterWorld({ sky, season, marketOpen, marketHover, gardenHover, fisherHover, fisherGaps, rackHover, rods, mailFlag, garden, giant, yard, board, boardOrder, boardHover, smoker, smokerHover, courier }) {
   const rootRef = useRef(null);
   const canvasRef = useRef(null);
   const propsRef = useRef(null);
   const repaintRef = useRef(() => {});
   const gardenDirtyRef = useRef(true);
-  propsRef.current = { sky, season: season || "", marketOpen, marketHover, gardenHover, fisherHover, fisherGaps: fisherGaps || [], rackHover, rods: rods || [], mailFlag, garden: garden || [] };
+  propsRef.current = {
+    sky, season: season || "", marketOpen, marketHover, gardenHover, fisherHover, fisherGaps: fisherGaps || [], rackHover, rods: rods || [], mailFlag, garden: garden || [],
+    giant: giant || null, yard: yard || {}, board: board || "empty", boardOrder: boardOrder || "", boardHover, smoker: smoker || [], smokerHover, courier: courier || ""
+  };
 
-  useEffect(() => { repaintRef.current(); }, [sky, season, marketOpen, marketHover, gardenHover, fisherHover, rackHover, rods, mailFlag]);
-  useEffect(() => { gardenDirtyRef.current = true; repaintRef.current(); }, [garden]);
+  useEffect(() => { repaintRef.current(); }, [sky, season, marketOpen, marketHover, gardenHover, fisherHover, rackHover, rods, mailFlag, yard, board, boardHover, smoker, smokerHover, courier]);
+  useEffect(() => { gardenDirtyRef.current = true; repaintRef.current(); }, [garden, giant]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -146,12 +150,21 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, gardenHover,
         if (thirsty.length) recordWater(thirsty, now);
       }
       wetPlots = wetGardenPlots(planted, watered, now);
-      world.setGarden(planted, [...wetPlots]);
+      world.setGarden(planted, [...wetPlots], giantNow(now));
+    }
+    // La calabaza gigante: sus parcelas y si ya se ha juntado (madura la ultima).
+    function giantNow(now = Date.now()) {
+      const big = propsRef.current.giant;
+      return big ? { plots: big.plots, ripe: now >= big.ripeAt } : null;
     }
     function announceGarden(now) {
       if (gardenDirtyRef.current || now > gardenNext) { gardenDirtyRef.current = false; gardenNext = now + 20_000; refreshGarden(); }
       const plots = world.layout?.garden?.plots;
-      const list = plots ? planted.map((entry) => ({ plot: entry.plot, seedId: entry.seedId, crop: entry.crop, x: plots[entry.plot] * ART, ripe: entry.growth >= 1, thirsty: entry.growth < 1 && !wetPlots.has(entry.plot) })) : [];
+      // (la gigante: Pip va a por ella al bancal del medio cuando se ha juntado;
+      // hasta entonces ninguna de las tres esta "madura")
+      const big = giantNow();
+      const ripeOf = (entry) => (big?.plots.includes(entry.plot) ? big.ripe && entry.plot === 1 : entry.growth >= 1);
+      const list = plots ? planted.map((entry) => ({ plot: entry.plot, seedId: entry.seedId, crop: entry.crop, x: plots[entry.plot] * ART, ripe: ripeOf(entry), giant: Boolean(big?.plots.includes(entry.plot)), thirsty: entry.growth < 1 && !wetPlots.has(entry.plot) })) : [];
       const key = list.map((entry) => `${entry.plot}:${entry.seedId}:${entry.ripe}:${entry.thirsty}`).join(",") + "|" + world.raining();
       if (key === gardenKey) return;
       gardenKey = key;
@@ -182,6 +195,38 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, gardenHover,
       fisherPhase = phase;
       window.dispatchEvent(new CustomEvent("daivr-fisherman-state", { detail: { phase, until: world.life.fisher.until } }));
     }
+    // La granja para Buddy: cuervos en el huerto, la nota del tablon por
+    // clavar, la miel y la fruta por recoger, y la cartera (y la carta que
+    // acaba de dejar en el buzon).
+    let crowsKey = "", boardKey = "", yardKey = "", courierPhase = "";
+    // Lo que desentierra el husky: unas pocas cosas al dia (localStorage).
+    const DOG_KEY = "daivr.dogFinds.v1", DOG_FINDS_PER_DAY = 3;
+    const dogFinds = () => { try { const saved = JSON.parse(window.localStorage.getItem(DOG_KEY) || "null"); return saved?.day === dayNumber() ? Number(saved.n) || 0 : 0; } catch { return DOG_FINDS_PER_DAY; } };
+    const countDogFind = () => { try { window.localStorage.setItem(DOG_KEY, JSON.stringify({ day: dayNumber(), n: dogFinds() + 1 })); } catch { /* sin almacenamiento */ } };
+    function announceFarm() {
+      for (const event of world.life.husky.takeEvents()) {
+        if (event.type === "found") {
+          countDogFind();
+          const item = catchById(event.id);
+          window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", { detail: { type: "dog-find", id: event.id } }));
+          window.dispatchEvent(new CustomEvent("daivr-husky-found", { detail: { id: event.id, name: item?.name || "something" } }));
+        } else window.dispatchEvent(new CustomEvent(`daivr-husky-${event.type}`));
+      }
+      const raid = world.life.crows.raid;
+      const nextCrows = raid ? `${raid.n}` : "";
+      if (nextCrows !== crowsKey) { crowsKey = nextCrows; window.dispatchEvent(new CustomEvent("daivr-crows-state", { detail: raid ? { active: true, x: raid.x * ART } : { active: false } })); }
+      const props = propsRef.current, bx = world.life.board.x;
+      const nextBoard = `${props.board}|${bx}`;
+      if (nextBoard !== boardKey) { boardKey = nextBoard; window.dispatchEvent(new CustomEvent("daivr-board-state", { detail: { pin: props.board === "empty" && bx != null, x: bx == null ? null : bx * ART, order: props.boardOrder } })); }
+      const Y = props.yard || {}, beeX = world.life.yard.spot("bees"), treeX = world.life.yard.spot("tree");
+      const honey = Boolean(Y.bees?.ready) && beeX != null, fruit = Y.tree?.stage === 3 ? Y.tree.ready || 0 : 0;
+      const nextYard = `${honey}|${fruit}|${beeX}|${treeX}`;
+      if (nextYard !== yardKey) { yardKey = nextYard; window.dispatchEvent(new CustomEvent("daivr-yard-state", { detail: { honey, beeX: beeX == null ? null : beeX * ART, fruit: treeX == null ? 0 : fruit, treeX: treeX == null ? null : treeX * ART, crop: Y.tree?.fruit || "" } })); }
+      const delivered = world.life.courier.takeDelivered();
+      if (delivered) window.dispatchEvent(new CustomEvent("daivr-courier-delivered", { detail: { key: delivered } }));
+      const phase = world.life.courier.phase;
+      if (phase !== courierPhase) { courierPhase = phase; window.dispatchEvent(new CustomEvent("daivr-courier-state", { detail: { phase, x: world.life.courier.x * ART } })); }
+    }
     const onLampSwitch = (event) => { const { i, on } = event.detail || {}; if (Number.isInteger(i)) world.switchLamp(i, Boolean(on)); };
     // El cursor sobre el footer: los pajaritos posados se asustan.
     const onPointer = (event) => {
@@ -195,7 +240,8 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, gardenHover,
         altitude: Number.isFinite(props.sky?.altitude) ? props.sky.altitude : (props.sky?.phase === "day" ? 1 : -1),
         phase: props.sky?.phase || "night",
         cover: props.sky?.cover || "fair",
-        wind: props.sky?.wind ?? 1
+        wind: props.sky?.wind ?? 1,
+        windDir: props.sky?.windDir ?? 6
       };
       world.state.market = { open: props.marketOpen !== false, hover: Boolean(props.marketHover) };
       world.state.gardenHover = Boolean(props.gardenHover);
@@ -204,6 +250,13 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, gardenHover,
       world.state.rackHover = Boolean(props.rackHover);
       world.state.rods = props.rods;
       world.state.mail = { flag: Boolean(props.mailFlag) };
+      world.state.yard = props.yard;
+      world.state.board = props.board;
+      world.state.boardHover = Boolean(props.boardHover);
+      world.state.smoker = props.smoker;
+      world.state.smokerHover = Boolean(props.smokerHover);
+      world.state.courier = props.courier;
+      world.state.dogFinds = Math.max(0, DOG_FINDS_PER_DAY - dogFinds());
       world.state.reduceMotion = Boolean(reduceMotion);
       world.state.scene = skyScene();
       if (world.setSeason(props.season) || !world.layout) rebuild();
@@ -375,6 +428,7 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, gardenHover,
       announceForage(now);
       announceGarden(now);
       announceFisher();
+      announceFarm();
       if (import.meta.env.DEV) {
         const spent = performance.now() - startedAt;
         cost.frames += 1; cost.total += spent; cost.max = Math.max(cost.max, spent);
@@ -398,6 +452,7 @@ export function FooterWorld({ sky, season, marketOpen, marketHover, gardenHover,
       trackActors(performance.now());
       world.update(0);
       world.draw();
+      announceFarm();
     };
 
     const resize = new ResizeObserver(([entry]) => {
