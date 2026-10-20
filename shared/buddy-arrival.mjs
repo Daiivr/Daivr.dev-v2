@@ -1,9 +1,21 @@
 import { walkDuration } from "./buddy-motion.mjs";
 
 export const PORTAL_CHANCE = 0.05;
-export const PORTAL_OPEN_MS = 650;
-export const PORTAL_WALK_MS = walkDuration(84);
-export const PORTAL_CLOSE_MS = 650;
+// La grieta se abre (chispa, raja de luz, ovalo con rebote).
+export const PORTAL_OPEN_MS = 950;
+// En la puerta: un salto de ganas, camina hasta que el portal se lo traga
+// entero y un "trago" del remolino.
+export const PORTAL_HOP_MS = 500;
+export const PORTAL_DIVE_PX = 60;
+export const PORTAL_GULP_MS = 300;
+export const PORTAL_WALK_MS = PORTAL_HOP_MS + walkDuration(PORTAL_DIVE_PX) + PORTAL_GULP_MS;
+// En el footer: sale del remolino y da unos pasos por el sendero.
+export const PORTAL_EMERGE_PX = 64;
+export const PORTAL_EMERGE_MS = walkDuration(PORTAL_EMERGE_PX);
+// El ovalo se cierra en una raja y la raja en una estrella.
+export const PORTAL_CLOSE_MS = 800;
+// Ya fuera, se gira a despedirse del portal y vuelve a mirar al frente.
+export const PORTAL_SETTLE_MS = 400;
 
 // Roll once when the splash launches, never during a render or a retry.
 export function chooseBuddyArrival(random = Math.random) {
@@ -21,9 +33,9 @@ export function startPortalJourney({ onPhase, onDeparted, onDone, reducedMotion 
     change("arrive-open");
     after(PORTAL_OPEN_MS, () => {
       change("arrive-walk");
-      after(PORTAL_WALK_MS, () => {
+      after(PORTAL_EMERGE_MS, () => {
         change("arrive-close");
-        after(PORTAL_CLOSE_MS, onDone);
+        after(PORTAL_CLOSE_MS + PORTAL_SETTLE_MS, onDone);
       });
     });
   };

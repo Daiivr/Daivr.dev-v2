@@ -5,6 +5,19 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.84.0",
+    codename: "WRONG TURN",
+    date: "2026-10-20",
+    summary: "The 404 and 403 pages get proper hardware and a Buddy cameo, the rare portal entrance is redrawn in pixel art from the gate to the footer, and the workstation's build output stops breaking after you open the console.",
+    entries: [
+      ["new", "404: the cabinet receiver hunts for a signal. TV static, a tuner sweeping the dial that now and then thinks it found something (test card, then NO CARRIER), and a cable that shows exactly where the connection breaks. Buddy stands on top with a flashlight looking for the page; click him for another line."],
+      ["new", "403: the private sector is a vault door. Hazard tape across the number, a spinning beacon, a laser sweeping the door, a combination dial someone keeps trying, and a security camera that follows your cursor. Buddy is on guard duty with a coffee."],
+      ["buff", "Both error pages: chunky arcade digits with depth, a log that types out what happened (route trace / clearance check), a moving grid floor, and the ways back colour-coded by section."],
+      ["buff", "The rare portal entrance (about 1 visit in 20) is redrawn in pixel art: a spark tears open a seam of light that widens into a swirling portal. At the gate Buddy hops with excitement and walks in, fading into the swirl. In the footer the portal opens on the path (and lights up the valley at night), Buddy steps out, turns to wave while it closes into a star, and carries on from there."],
+      ["fix", "The workstation's RUNTIME // BUILD OUTPUT box no longer turns into a rounded dark blob after the console has been opened: the console's screen styles were leaking onto it."]
+    ]
+  },
+  {
     version: "v2.83.0",
     codename: "NO END IN SIGHT",
     date: "2026-10-20",

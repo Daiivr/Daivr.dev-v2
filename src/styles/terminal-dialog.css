@@ -296,7 +296,7 @@
 
   /* La pantalla: un tubo con el cristal curvado, bloom de fosforo, vineta y una
      banda de refresco que baja despacio, metido en su bisel. */
-  .terminal-screen {
+  .terminal-tube {
     position: relative;
     display: grid;
     min-height: 0;
@@ -312,7 +312,7 @@
       0 0 26px -10px var(--color-phosphor);
   }
 
-  .terminal-screen::before {
+  .terminal-tube::before {
     position: absolute;
     inset: 0;
     z-index: 2;
@@ -325,7 +325,7 @@
       radial-gradient(ellipse at center, transparent 58%, #0008);
   }
 
-  .terminal-screen::after {
+  .terminal-tube::after {
     position: absolute;
     top: -30%;
     right: 0;
@@ -771,7 +771,7 @@
 
     .terminal-workspace { height: auto; grid-template-columns: 1fr; grid-template-rows: auto auto; }
     .terminal-buffer { padding: 0 10px 10px; }
-    .terminal-screen { height: min(40dvh, 330px); }
+    .terminal-tube { height: min(40dvh, 330px); }
     .terminal-entry::before { left: 34px; }
     .terminal-entry-command,
     .terminal-output-line { grid-template-columns: 34px minmax(0, 1fr); }
@@ -809,7 +809,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .terminal-marquee,
-    .terminal-screen::after,
+    .terminal-tube::after,
     .terminal-meter i,
     .terminal-window-meta > .is-live i { animation: none; }
     .terminal-command-chip,
