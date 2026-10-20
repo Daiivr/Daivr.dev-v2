@@ -7,8 +7,6 @@
   .host-switch.is-komoe, .host-switch-pips .is-komoe, .host-switch-panel-body.is-komoe, .host-stage.is-komoe, .host-row.is-komoe { --host-c: var(--color-cabinet); }
   .host-switch.is-nh02, .host-switch-pips .is-nh02, .host-switch-panel-body.is-nh02, .host-stage.is-nh02, .host-row.is-nh02 { --host-c: #c4a5ed; }
   .host-switch.is-kiyosa, .host-switch-pips .is-kiyosa, .host-switch-panel-body.is-kiyosa, .host-stage.is-kiyosa, .host-row.is-kiyosa { --host-c: #c8df87; }
-  .host-switch.is-nh02 .host-switch-face img { transform: none; }
-  .host-switch.is-kiyosa .host-switch-face img { transform: none; }
   .host-switch-pips .is-original, .host-switch-panel-body.is-original, .host-stage.is-original, .host-row.is-original { --host-c: var(--color-phosphor); }
 
   .host-switch-trigger {
@@ -119,8 +117,6 @@
     clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
   }
   .host-stage-screen img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; animation: host-tune-in 420ms steps(5, end) both; }
-  /* (Kiyosa esta encuadrada mas abajo: se sube para que el nombre no le tape la cara) */
-  .host-stage.is-kiyosa .host-stage-screen img { transform: translateY(-16%) scale(1.12); transform-origin: 50% 100%; }
   /* Esquinas de visor en su color y, encima, lineas de barrido y viñeta. */
   .host-stage-screen::before {
     content: "";
@@ -286,10 +282,6 @@
   }
   .host-row-thumb img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 0; transform: scale(1.7); transform-origin: 50% 28%; transition: transform 220ms; }
   .host-row:hover .host-row-thumb img, .host-row.is-previewed .host-row-thumb img { transform: scale(1.82); }
-  /* Cada retrato tiene la cara a otra altura: el encuadre de la miniatura la busca. */
-  .host-row.is-nh02 .host-row-thumb img { transform: scale(1.3); transform-origin: 50% 20%; }
-  .host-row.is-kiyosa .host-row-thumb img { object-position: 50% 100%; transform: scale(1.6); transform-origin: 50% 50%; }
-  .host-row.is-kiyosa:hover .host-row-thumb img, .host-row.is-kiyosa.is-previewed .host-row-thumb img { transform: scale(1.7); }
   .host-row-thumb::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent 0 2px, #0006 2px 3px); }
   .host-row.is-locked .host-row-thumb img { filter: grayscale(1) brightness(0.3) contrast(1.3); }
   .host-row-text { display: grid; gap: 2px; min-width: 0; }
