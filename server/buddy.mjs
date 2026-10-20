@@ -27,6 +27,7 @@ const EMPTY_ADVENTURE = Object.freeze({
   bugsDefeated: 0,
   campfireMeals: 0,
   starWishes: 0,
+  showerWishes: 0,
   forageFound: 0,
   completed: [],
   market: { opened: 0, rewards: [], purchases: {}, seeds: [] },
@@ -97,11 +98,13 @@ function normalizeAdventure(value) {
     bugsDefeated: boundedCount(source.bugsDefeated),
     campfireMeals: boundedCount(source.campfireMeals),
     starWishes: boundedCount(source.starWishes),
+    showerWishes: boundedCount(source.showerWishes),
     forageFound: boundedCount(source.forageFound),
     completed: normalizeIdList(source.completed),
     market: normalizeMarket(source.market, source.fishCollection, bonusCoins({
       campfireMeals: source.campfireMeals,
       starWishes: source.starWishes,
+      showerWishes: source.showerWishes,
       forageFound: source.forageFound,
       totalCatches: Math.max(boundedCount(source.totalCatches), boundedCount(source.voidCatches))
     })),
@@ -134,6 +137,7 @@ function mergeAdventure(storedValue, incomingValue) {
     market: mergeMarket(stored.market, incoming.market, mergeCounterMaps(stored.fishCollection, incoming.fishCollection), bonusCoins({
       campfireMeals: Math.max(stored.campfireMeals, incoming.campfireMeals),
       starWishes: Math.max(stored.starWishes, incoming.starWishes),
+      showerWishes: Math.max(stored.showerWishes, incoming.showerWishes),
       forageFound: Math.max(stored.forageFound, incoming.forageFound),
       totalCatches: Math.max(stored.totalCatches, incoming.totalCatches)
     })),
@@ -144,6 +148,7 @@ function mergeAdventure(storedValue, incomingValue) {
     bugsDefeated: Math.max(stored.bugsDefeated, incoming.bugsDefeated),
     campfireMeals: Math.max(stored.campfireMeals, incoming.campfireMeals),
     starWishes: Math.max(stored.starWishes, incoming.starWishes),
+    showerWishes: Math.max(stored.showerWishes, incoming.showerWishes),
     forageFound: Math.max(stored.forageFound, incoming.forageFound),
     completed: normalizeIdList([...stored.completed, ...incoming.completed]),
     inventory: normalizeIdList([...stored.inventory, ...incoming.inventory])

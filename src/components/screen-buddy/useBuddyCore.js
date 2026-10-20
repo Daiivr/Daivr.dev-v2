@@ -95,6 +95,8 @@ function createBuddyCore({ setMood, setFx, setBubble, setX, setY, setFacing, set
     // Pausa breve entre actividades; cada evento conserva su propio cooldown.
     // Los paseos tienen su propia pausa mas corta.
     lullUntilRef: ref(0),
+    // Pescados ahumados listos (ids): en la hoguera puede comerse uno.
+    smokedRef: ref([]),
     walkUntilRef: ref(0),
     fxTimerRef: ref(0),
     particleIdRef: ref(0),

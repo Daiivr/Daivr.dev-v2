@@ -185,7 +185,8 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
         const score = event.data.score && Number.isFinite(Number(event.data.score.rank)) ? event.data.score : null;
         if (score) setMyScore(score);
         if (event.data.mode === "g") setCoopRefresh((value) => value + 1);
-        setStatus(score ? ranking.saved(seconds, score.rank) : event.data.mode === "g" ? `GROUP RUN // ${clock(seconds)} SURVIVED` : event.data.signedIn ? `${clock(seconds)} SURVIVED` : "DISCORD LINK REQUIRED TO RANK");
+        // Endless runs (mode "e") never go on the leaderboard.
+        setStatus(score ? ranking.saved(seconds, score.rank) : event.data.mode === "e" ? `∞ ENDLESS // ${clock(seconds)} SURVIVED` : event.data.mode === "g" ? `GROUP RUN // ${clock(seconds)} SURVIVED` : event.data.signedIn ? `${clock(seconds)} SURVIVED` : "DISCORD LINK REQUIRED TO RANK");
         loadLeaderboard(true);
         window.dispatchEvent(new Event("daivr-player-progress"));
         return;
@@ -233,7 +234,7 @@ export function ArcadeEmbedModal({ game, open, onBack, onClose }) {
           <div className="arcade-embed-title"><button type="button" onClick={onBack} aria-label="Back to game library"><ArrowLeft size={17} /></button><span><small>{config.subtitle}</small><strong><Gamepad2 size={19} /> {config.title}</strong></span></div>
           <div>{hasRanking ? <button className={rankingOpen ? "is-active" : ""} type="button" onClick={() => setRankingOpen((value) => !value)} aria-label={`Toggle ${config.title} leaderboard`}><Trophy size={16} /></button> : null}<button type="button" onClick={() => { setGameOver(null); setInstance((value) => value + 1); }} aria-label={`Restart ${config.title}`}><RotateCcw size={16} /></button><button type="button" onClick={onClose} aria-label={`Close ${config.title}`}><X size={18} /></button></div>
         </header>
-        <div className="arcade-embed-screen">{powered ? <iframe key={instance} ref={frameRef} src={config.src} title={config.title} allow="autoplay; fullscreen" onLoad={(event) => { if ((game === "cross-road" || game === "pokesurvivor") && !rankingOpen) event.currentTarget.contentWindow?.focus(); }} /> : null}
+        <div className="arcade-embed-screen">{powered ? <iframe key={instance} ref={frameRef} src={config.src} title={config.title} allow="autoplay; fullscreen; clipboard-write" onLoad={(event) => { if ((game === "cross-road" || game === "pokesurvivor") && !rankingOpen) event.currentTarget.contentWindow?.focus(); }} /> : null}
           <ArcadeTvPower powered={powered} off={switchingOff} />
           <DailyChallengeNotice notice={daily.notice} onDismiss={daily.dismiss} onRetry={daily.retry} onClose={onClose} />
           {shownGameOver ? (

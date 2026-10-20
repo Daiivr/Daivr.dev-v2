@@ -42,7 +42,7 @@ const EYE_TRACK_RADIUS = 340;
   pesca, el tiempo, los encuentros, el apagon, la charla y el arrastre. Aqui
   quedan el cerebro (que hacer en cada momento), las caricias y el dibujo.
 */
-export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [], nowPlaying = null, skyPhase = "day", skyCover = "fair", caughtFish = [], fullMoon = false, meteorShower = "" }) {
+export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, friendshipLevel = 1, inventory = [], hiddenGear = [], unlockedGear = [], nowPlaying = null, skyPhase = "day", skyCover = "fair", caughtFish = [], fullMoon = false, meteorShower = "", smokedFish = [] }) {
   const { core, view } = useBuddyCore();
   const fishing = useBuddyFishing(core);
   const weather = useBuddyWeather(core);
@@ -109,7 +109,8 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
     core.caughtFishRef.current = caughtFish;
     core.fullMoonRef.current = fullMoon;
     core.showerRef.current = meteorShower;
-  }, [core, skyPhase, skyCover, caughtFish, fullMoon, meteorShower]);
+    core.smokedRef.current = smokedFish;
+  }, [core, skyPhase, skyCover, caughtFish, fullMoon, meteorShower, smokedFish]);
 
   function handlePet() {
     if (drag.draggedRef.current) return;
@@ -324,8 +325,11 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         start();
       };
       let busy = true;
+      // Cuervos en el huerto: va enseguida (si no, se los come... o se van).
+      if (life.api.crowsUrgent() && ["idle", "walk"].includes(currentMood) && roll < 0.6) {
+        startActivity(() => life.api.startFarm());
       // Check hunts before jellyfish: their smaller roll window must stay reachable.
-      if (ambientReady && outage.api.canStart(now) && roll < 0.0007) {
+      } else if (ambientReady && outage.api.canStart(now) && roll < 0.0007) {
         startActivity(() => outage.api.start());
       } else if (ambientReady && encounters.api.canHunt(now) && roll < 0.025) {
         startActivity(() => encounters.api.startBugHunt());
@@ -345,6 +349,8 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
         startActivity(() => life.api.startGarden());
       } else if (ambientReady && life.api.canForage(now) && roll < 0.27) {
         startActivity(() => life.api.startForage());
+      } else if (ambientReady && life.api.canFarm(now) && roll < 0.33) {
+        startActivity(() => life.api.startFarm());
       } else {
         // A missed event roll lets the existing walk finish normally.
         if (currentMood === "walk") return;
@@ -550,7 +556,7 @@ export function ScreenBuddy({ onPet, onPowerOutage, user = null, visitCount, fri
       lamps: life.view.lamps?.phase || "", lampX: life.view.lamps?.x ?? null, lampOn: Boolean(life.view.lamps?.on),
       forage: life.view.forage?.phase || "", forageX: life.view.forage?.x ?? null, tent: life.view.tent,
       jellies: jellies.view.jellies?.phase || "", jellyX: jellies.view.jellies?.x ?? null, jellySide: jellies.view.jellies?.side || 0,
-      garden: life.view.garden?.phase || "", gardenTask: life.view.garden?.task || "", gardenX: life.view.garden?.x ?? null, gardenCrop: life.view.garden?.task === "harvest" ? life.view.garden.crop : "",
+      garden: life.view.garden?.phase || "", gardenTask: life.view.garden?.task || "", gardenX: life.view.garden?.x ?? null, gardenCrop: ["harvest", "giant", "honey", "fruit"].includes(life.view.garden?.task) ? life.view.garden.crop || "" : "",
       portal: fishingView.portal ? { x: fishingView.portal.x, phase: fishingView.portal.phase } : null
     });
   });

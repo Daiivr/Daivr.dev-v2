@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Coins, ShoppingBag } from "lucide-react";
-import { FISH_SELL_DAILY, LURES, MARKET_RODS, RESTOCK_MS, fishermanTrip } from "../../shared/buddy-market.mjs";
+import { FISH_SELL_DAILY, LURES, MARKET_RODS, RESTOCK_MS, fishermanTrip, smokedPrice } from "../../shared/buddy-market.mjs";
+import { catchById } from "../../shared/buddy-catches.mjs";
 import { catchPrice, nextFishermanVisit } from "../../shared/buddy-fisherman.mjs";
 import { BuddyCoinIcon } from "./BuddyCoinIcon";
 import { BuddyMarketWallet } from "./BuddyChestOpening";
@@ -107,11 +108,15 @@ export function BuddyFisherman({ buddy, onNavigate }) {
   const [filter, setFilter] = useState("all");
   const sold = wallet.sold || {};
   const room = Math.max(0, FISH_SELL_DAILY - (wallet.soldToday || 0));
-  // Lo que se le puede vender: lo pescado que aun no se ha vendido.
+  // Lo que se le puede vender: lo pescado que aun no se ha vendido, ahumado ni
+  // entregado en el tablon.
+  const fishLeft = wallet.fishLeft;
   const catches = useMemo(() => buddy.adventure.fishJournal
     .filter((item) => item.count > 0 && catchPrice(item) > 0)
-    .map((item) => ({ item, price: catchPrice(item), left: Math.max(0, item.count - (sold[item.id] || 0)) }))
-    .filter((entry) => entry.left > 0), [buddy.adventure.fishJournal, sold]);
+    .map((item) => ({ item, price: catchPrice(item), left: Math.max(0, fishLeft?.[item.id] ?? item.count - (sold[item.id] || 0)) }))
+    .filter((entry) => entry.left > 0), [buddy.adventure.fishJournal, sold, fishLeft]);
+  // Y los ahumados del ahumadero de la hoguera (a mas del doble).
+  const smoked = Object.entries(wallet.smoker?.ready || {}).filter(([, n]) => n > 0).map(([id, n]) => ({ item: catchById(id), n, price: smokedPrice(catchById(id)) }));
   const shown = catches.filter((entry) => filter === "all" || (filter === "fish" ? entry.item.kind === "fish" : entry.item.kind !== "fish"));
   // (lo que paga por lo de la lista, sin pasar del tope de hoy)
   let budget = room, worth = 0;
@@ -157,6 +162,17 @@ export function BuddyFisherman({ buddy, onNavigate }) {
         </div>
         <button type="button" className="fisher-sell-all" disabled={!here || !shown.length || !room} onClick={sellShown}><Coins size={13} aria-hidden="true" />{room ? `Sell all shown · ${worth}` : "Enough for today"}</button>
       </div>
+      {smoked.length ? <ul className="fisher-catches fisher-smoked" aria-label="Smoked fish">{smoked.map(({ item, n, price }) => {
+        const k = Math.min(n, room);
+        return <li key={item.id} className="fisher-catch is-smoked" data-item={item.id}>
+          <BuddyCollectibleIcon id={item.id} color={item.color} />
+          <div><strong>Smoked {item.name}</strong><small>×{n} · {price} coins each</small></div>
+          <div className="fisher-catch-buttons">
+            <button type="button" disabled={!here || !room} onClick={() => setMessage(buddy.adventure.sellSmoked(item.id, 1))} aria-label={`Sell one smoked ${item.name} for ${price} coins`}>Sell 1</button>
+            {n > 1 ? <button type="button" disabled={!here || !room} onClick={() => setMessage(buddy.adventure.sellSmoked(item.id, k))}>{k < n ? k : "All"} · {k * price}</button> : null}
+          </div>
+        </li>;
+      })}</ul> : null}
       {shown.length ? <ul className="fisher-catches">{shown.map(({ item, price, left }) => (
         <li key={item.id} className="fisher-catch" data-item={item.id}>
           <BuddyCollectibleIcon id={item.id} color={item.color} />
@@ -168,6 +184,6 @@ export function BuddyFisherman({ buddy, onNavigate }) {
         </li>
       ))}</ul> : <p className="fisher-empty">{catches.length ? "Nothing in this pile." : "Nothing to sell yet. Let Buddy fish for a while."}</p>}
     </section>
-    <div className="market-footer"><span>Equip new tackle in the Fishing tab.</span><button type="button" onClick={() => onNavigate("fishing")}>Fishing gear ↗</button><button type="button" onClick={() => onNavigate("journal")}>Catch journal ↗</button><button type="button" onClick={() => onNavigate("market")}>Woodland market ↗</button></div>
+    <div className="market-footer"><span>Equip new tackle in the Fishing tab.</span><button type="button" onClick={() => onNavigate("smoker")}>Smoker ↗</button><button type="button" onClick={() => onNavigate("fishing")}>Fishing gear ↗</button><button type="button" onClick={() => onNavigate("journal")}>Catch journal ↗</button><button type="button" onClick={() => onNavigate("market")}>Woodland market ↗</button></div>
   </div>;
 }

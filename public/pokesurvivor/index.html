@@ -3,6 +3,10 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
+<!-- Seguridad (18-10-2026): sólo se ejecutan los scripts del juego. Nada metido en
+     la página (onerror=, etiquetas script en un texto...) llega a ejecutarse aunque se
+     colara. Ver js/boot.js. daivr.dev: sin Firebase ni Google, sólo los scripts propios. -->
+<meta http-equiv="Content-Security-Policy" content="script-src 'self'; object-src 'none'; base-uri 'self'">
 <meta name="robots" content="noindex">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>PokéSurvivor – Juego Pokémon gratis online estilo Survivor.io</title>
@@ -19,7 +23,8 @@
 <meta name="apple-mobile-web-app-title" content="PokéSurvivor">
 <link rel="preload" href="assets/fonts/PixelifyPS-400.ttf" as="font" type="font/ttf" crossorigin>
 <link rel="preload" href="assets/fonts/PixelifyPS-700.ttf" as="font" type="font/ttf" crossorigin>
-<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/style.css?v=54dc054704">
+<script src="js/core/locales.js?v=b8a3ce7ae9"></script>
 </head>
 <body>
 
@@ -123,12 +128,14 @@
     <div class="box menu-box">
       <div class="menu-list">
         <button class="menu-item play" data-go="play">Jugar<small>Entra en la mazmorra</small></button>
+        <button class="menu-item endless" data-go="endless">∞ Sin fin<small id="menu-endless-sub">Sin Sentencia a las 30:00</small></button>
         <button class="menu-item" data-go="dex">Pokémon<small id="menu-dex-count">Tu colección</small></button>
         <button class="menu-item" data-go="upgrades">Mejoras<small>Haz más fuerte cada run</small></button>
         <button class="menu-item" data-go="gacha">Gacha<small>9 regiones · Pokémon y shinies</small></button>
         <button class="menu-item" data-go="goals">Misiones<small id="menu-goals-sub">Misiones, logros y perfil</small></button>
         <button class="menu-item" data-go="friends">Cooperativo<small id="menu-friends-sub">Partidas abiertas y amigos</small></button>
         <button class="menu-item" data-go="rank">Ranking<small>Quién aguanta más</small></button>
+        <button class="menu-item" data-go="stats">Estadísticas<small>Tus partidas, récords y tarjetas</small></button>
         <button class="menu-item" data-go="settings">Ajustes<small>Sonido, gráficos, controles y cuenta</small></button>
       </div>
     </div>
@@ -142,6 +149,7 @@
   <div class="pill"><span class="coin"></span><span id="coins">0</span></div>
   <div class="pill" id="tickets-pill" title="Tickets del gacha"></div>
   <div class="pill" id="user-pill"></div>
+  <button id="btn-save" class="btn small gold save-btn hidden" title="Guardar la partida en la nube"></button>
   <button id="btn-news" class="btn small ghost news-btn" title="Novedades"></button>
   <button id="btn-support" class="btn small gold hidden" title="Apoyar el proyecto"></button>
   <button id="btn-sound" class="btn small ghost" title="Sonido"></button>
@@ -173,6 +181,15 @@
   </div>
 </section>
 
+<!-- ====== Avisos de una actualización (una vez por navegador, ver LoginUI.updateNotices) ====== -->
+<section id="scr-savenote" class="scr dim hidden">
+  <div class="box" style="width:min(460px,100%)" translate="no">
+    <h2 id="savenote-title"></h2>
+    <div id="savenote-body"></div>
+    <button class="btn gold" id="savenote-ok" type="button" style="width:100%;margin-top:10px"></button>
+  </div>
+</section>
+
 <!-- ====== Apoyar el proyecto (donaciones) ====== -->
 <section id="scr-support" class="scr dim hidden">
   <div class="box support">
@@ -189,6 +206,7 @@
       <button class="gen-tab" data-t="sound">Sonido</button>
       <button class="gen-tab" data-t="gfx">Gráficos</button>
       <button class="gen-tab" data-t="ctl">Controles</button>
+      <button class="gen-tab" data-t="a11y">Accesibilidad</button>
       <button class="gen-tab" data-t="acc">Cuenta</button>
       <button class="gen-tab" data-t="about">Acerca de</button>
     </div>
@@ -242,19 +260,7 @@
     <p class="boot-ld">Cargando…</p>
   </div>
 </div>
-<script>
-  (function () {
-    var s = null; try { s = localStorage.getItem('ps.lang'); } catch (e) {}
-    var n = ((navigator.languages && navigator.languages[0]) || navigator.language || 'es').toLowerCase();
-    var l = s === 'es' || s === 'en' ? s : (/\/en(\/|$)/.test(location.pathname) ? 'en' : (n.indexOf('es') === 0 ? 'es' : 'en'));
-    document.documentElement.lang = l;
-    if (l === 'en') {
-      var p = document.querySelectorAll('#boot p');
-      p[0].textContent = 'A Pokémon survival game, free in your browser and on mobile.';
-      p[1].textContent = 'Loading…';
-    }
-  })();
-</script>
+<script src="js/boot.js?v=29a1289c1d"></script>
 <div id="tap-start" class="tapstart hidden">
   <div class="boot-in">
     <h1>PokéSurvivor</h1>
@@ -327,6 +333,18 @@
       <div class="row"><button id="lobby-menu" class="btn small ghost">Menú</button><button id="lobby-leave" class="btn small ghost">Salir de la sala</button></div></div>
     <p class="sub" id="lobby-sub"></p>
     <div id="lobby-members" class="lobby-members"></div>
+    <div class="lobby-mode" id="lobby-mode">
+      <span class="lm-label">Modo</span>
+      <div class="seg" id="lobby-mode-seg"><button type="button" data-v="0">Normal</button><button type="button" data-v="1">∞ Sin fin</button></div>
+      <small id="lobby-mode-note" class="sub"></small>
+    </div>
+    <div class="lobby-chat" id="lobby-chat">
+      <div id="lobby-chat-log" class="lc-log" aria-live="polite"></div>
+      <form id="lobby-chat-form" class="lc-form" autocomplete="off">
+        <input id="lobby-chat-input" maxlength="120" placeholder="Escribe al grupo…" translate="no">
+        <button class="btn small" type="submit">Enviar</button>
+      </form>
+    </div>
     <h3 id="lobby-inv-title" style="margin:14px 0 6px">Invitar amigos</h3>
     <div id="lobby-invite" class="fr-list"></div>
     <div class="row" style="margin-top:14px">
@@ -402,10 +420,40 @@
     <div class="gen-tabs" id="dex-gens"></div>
     <div class="split" style="margin-top:8px">
       <div>
+        <div class="dex-tools">
+          <input id="dex-q" type="search" placeholder="Buscar por nombre o número" autocomplete="off" spellcheck="false">
+          <select id="dex-type" title="Tipo"></select>
+          <span id="dex-count" class="sub"></span>
+          <button class="btn small ghost hidden" id="dex-clear" type="button">Limpiar</button>
+        </div>
         <div class="filters" id="dex-filters"></div>
+        <div class="filters dex-sort" id="dex-sort"></div>
         <div class="grid" id="dex-grid"></div>
       </div>
       <div class="panel" id="dex-detail"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ====== Estadísticas (daivr.dev) ====== -->
+<section id="scr-stats" class="scr dim hidden">
+  <div class="box wide stats-box">
+    <div class="row between"><h2>Estadísticas</h2><button class="btn small ghost" data-back>Volver</button></div>
+    <div id="st-totals" class="st-totals"></div>
+    <div class="split st-split">
+      <div class="st-list"><h3>Últimas partidas</h3><div id="st-runs" class="st-runs"></div>
+        <p class="sub st-note">Se guardan las últimas 30 en este navegador.</p></div>
+      <div class="panel" id="st-run"></div>
+    </div>
+  </div>
+  <div id="st-card" class="st-card hidden">
+    <div class="box st-card-box">
+      <div id="st-card-img" class="st-card-img"></div>
+      <div class="row" style="justify-content:center;margin-top:10px">
+        <button id="st-card-copy" class="btn gold" type="button">Copiar imagen</button>
+        <button id="st-card-save" class="btn" type="button">Guardar PNG</button>
+        <button id="st-card-close" class="btn ghost" type="button">Cerrar</button>
+      </div>
     </div>
   </div>
 </section>
@@ -501,17 +549,22 @@
 </section>
 
 <section id="scr-pause" class="scr dim hidden">
-  <div class="box center" style="width:min(460px,100%)">
+  <div class="box center pause-box">
     <h2>Pausa</h2>
+    <p id="pause-endless" class="pause-endless hidden"><span class="endless-badge">∞ Sin fin</span><small>Arceus no llega solo: invócalo cuando quieras acabar.</small></p>
     <p class="sub kbd-hint"><kbd>WASD</kbd> moverse · <kbd>1</kbd>–<kbd>4</kbd> movimiento · <kbd>Q</kbd>/<kbd>E</kbd> ciclar · <kbd>Esc</kbd> pausa</p>
     <p class="sub touch-hint">Arrastra el dedo para moverte · toca un ataque para cambiarlo</p>
     <p id="pause-coop" class="note hidden">Partida en grupo: el juego sigue mientras estás aquí.</p>
-    <div id="pause-sound" class="sound-inline"></div>
     <div class="row" style="justify-content:center">
       <button id="btn-resume" class="btn gold">Continuar</button>
       <button id="btn-pause-settings" class="btn">Ajustes</button>
       <button id="btn-quit" class="btn">Abandonar run</button>
     </div>
+    <div class="row summon-row hidden" id="summon-row" style="justify-content:center">
+      <button id="btn-summon" class="btn summon-btn">Invocar a Arceus</button>
+    </div>
+    <div id="pause-sum" class="pause-sum"></div>
+    <div id="pause-sound" class="sound-inline"></div>
   </div>
 </section>
 
@@ -519,21 +572,14 @@
   <div class="box center" style="width:min(480px,100%)">
     <h2 id="over-title">Has caído…</h2>
     <div id="over-stats" class="stats"></div>
-    <button id="btn-again" class="btn gold">Volver al menú</button>
+    <div class="row" style="justify-content:center">
+      <button id="btn-again" class="btn gold">Volver al menú</button>
+      <button id="btn-over-stats" class="btn">Estadísticas</button>
+    </div>
   </div>
 </section>
 
 <!-- datos generados -->
-<aside id="spectator-controls" class="spectator-controls box hidden" aria-label="Modo espectador">
-  <div class="spectator-title"><span>ESPECTANDO</span> <strong id="spectate-name" translate="no"></strong></div>
-  <div class="row spectator-switch">
-    <button id="spectate-prev" class="btn small" type="button" aria-label="Compañero anterior">◀ Q</button>
-    <span>Q / E · Cambiar compañero</span>
-    <button id="spectate-next" class="btn small" type="button" aria-label="Siguiente compañero">E ▶</button>
-  </div>
-  <p>Esperando a que un compañero te reviva</p>
-  <progress id="spectate-revive" max="1" value="0" aria-label="Progreso de reanimación"></progress>
-</aside>
-<script defer src="js/app.min.js?v=6b3fa8045a"></script>
+<script defer src="js/app.min.js?v=dbeb4b8748"></script>
 </body>
 </html>

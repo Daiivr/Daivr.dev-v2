@@ -9,6 +9,9 @@ import {
   minutesOfDay,
   moonPhase,
   shootingStarDelay,
+  showerStarPath,
+  fallbackWindDir,
+  windOctant,
   shootingStarPath,
   SKY_COVERS,
   skyClock,
@@ -99,7 +102,9 @@ export function FooterSky({ onPhase }) {
         shower: detail.shower !== undefined ? detail.shower : current?.shower,
         fullMoon: detail.fullMoon !== undefined ? Boolean(detail.fullMoon) : current?.fullMoon,
         // (viento forzado: cometas y hojas que vuelan)
-        wind: Number.isFinite(detail.wind) ? detail.wind : current?.wind
+        wind: Number.isFinite(detail.wind) ? detail.wind : current?.wind,
+        // (la veleta: de donde sopla, en grados)
+        windDir: Number.isFinite(detail.windDir) ? detail.windDir : current?.windDir
       }));
     }
     window.addEventListener("daivr-footer-rain", onRain);
@@ -155,6 +160,8 @@ export function FooterSky({ onPhase }) {
   const cover = squall?.state === "gather" && !["rain", "storm", "snow"].includes(outsideCover) ? "rain" : outsideCover;
   // Lo que sopla: mece el bosque y la hierba (FooterWorld, via SiteFooter).
   const wind = Number.isFinite(test?.wind) ? test.wind : windStrength(test?.cover ? null : outside, cover);
+  // Y de donde sopla (la veleta de la tienda de Pip), en octavos.
+  const windDir = windOctant(Number.isFinite(test?.windDir) ? test.windDir : outside?.available && Number.isFinite(outside.windDir) ? outside.windDir : fallbackWindDir(now));
   // Los colores cambian poco de un minuto a otro: se recalculan por centesimas.
   const altitudeKey = Math.round(clock.altitude * 100);
   const dayKey = now.toDateString();
@@ -179,8 +186,8 @@ export function FooterSky({ onPhase }) {
   const nightShower = phase === "night" ? shower : null;
   // La altura del sol (en centesimas) le dice al mundo del footer cuanta luz hay.
   useEffect(() => {
-    onPhase?.({ phase, cover, wind, altitude: altitudeKey / 100, fullMoon: fullMoon && phase === "night", shower: nightShower?.name || "" });
-  }, [onPhase, phase, cover, wind, altitudeKey, fullMoon, nightShower]);
+    onPhase?.({ phase, cover, wind, windDir, altitude: altitudeKey / 100, fullMoon: fullMoon && phase === "night", shower: nightShower?.name || "" });
+  }, [onPhase, phase, cover, wind, windDir, altitudeKey, fullMoon, nightShower]);
 
   // Estrellas fugaces: de noche y con el cielo despejado, mas a menudo en una
   // lluvia de estrellas. Solo con el footer a la vista y la pestaña delante.
@@ -189,7 +196,7 @@ export function FooterSky({ onPhase }) {
     let timer = 0;
     function spawn() {
       if (document.visibilityState === "visible") {
-        const star = { id: `${Date.now()}-${Math.random()}`, ...shootingStarPath(), born: performance.now() };
+        const star = { id: `${Date.now()}-${Math.random()}`, ...(shower ? showerStarPath(shower) : shootingStarPath()), born: performance.now() };
         setStars((current) => [...current.slice(-6), star]);
         window.dispatchEvent(new CustomEvent("daivr-shooting-star", { detail: { phase: "seen", left: star.left, shower: shower?.name || "" } }));
         window.setTimeout(() => setStars((current) => current.filter((entry) => entry.id !== star.id)), star.ms + 300);
@@ -208,7 +215,7 @@ export function FooterSky({ onPhase }) {
     const x = layer ? rect.left + rect.width / 2 - layer.left : 0;
     const y = layer ? rect.top + rect.height / 2 - layer.top : 0;
     setStars((current) => current.filter((entry) => entry.id !== star.id));
-    window.dispatchEvent(new CustomEvent("daivr-shooting-star", { detail: { phase: "wish", x, y, shower: shower?.name || "" } }));
+    window.dispatchEvent(new CustomEvent("daivr-shooting-star", { detail: { phase: "wish", x, y, shower: shower?.name || "", fireball: Boolean(star.fireball) } }));
   }
 
   // Solo los botones: invisibles, siguen el mismo recorrido que la estrella
@@ -220,7 +227,7 @@ export function FooterSky({ onPhase }) {
           className="footer-shooting-star"
           key={star.id}
           type="button"
-          aria-label="Make a wish on the shooting star"
+          aria-label={star.fireball ? "Make a wish on the fireball" : "Make a wish on the shooting star"}
           onClick={(event) => wish(star, event)}
           style={{ left: `${star.left}%`, top: `${star.top}px`, "--dx": `${star.dx}px`, "--dy": `${star.dy}px`, "--ms": `${star.ms}ms` }}
         />

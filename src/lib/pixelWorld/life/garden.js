@@ -1,4 +1,5 @@
 import { lazy, outlinedSprite, px, rect } from "../core.js";
+import { FARM_SPRITES } from "../farmArt.js";
 import { normalizeWatered } from "../../../../shared/buddy-garden-water.mjs";
 
 // El huerto del centro del prado (las semillas se compran en su cobertizo: ver
@@ -145,8 +146,14 @@ export const GARDEN_SPRITES = lazy(() => {
   };
 });
 const HOVER = "#fff3c4";
-// Lo cosechado, para llevarlo en alto (events/garden.js).
-export const cropItem = (crop) => GARDEN_SPRITES().crops[crop]?.item || null;
+// Lo cosechado, para llevarlo en alto (events/garden.js): un cultivo, un
+// tarro de miel, una fruta o la calabaza gigante entera.
+export const cropItem = (crop) => {
+  const art = GARDEN_SPRITES().crops[crop]?.item;
+  if (art) return art;
+  const F = FARM_SPRITES();
+  return crop === "honey" ? F.honey : crop === "giant" ? F.giant : F.fruit[crop] || null;
+};
 
 // Las plantas con humedad reciente (Pip, o la lluvia): FooterWorld las
 // guarda y el cobertizo de semillas pinta la tierra mojada.
@@ -194,6 +201,8 @@ export function drawBed(g, S, cx, entry, { wet = 0, t = 0, wind = 0, wide = true
 
 export function createGarden() {
   let L = null, plots = [], watered = new Set(), pulled = new Map();
+  // la calabaza gigante: { plots, ripe } (de FooterWorld), o null
+  let giant = null;
   // el huerto quieto (valla y cartel), compuesto una vez, y su contorno
   let frame = null, frameOutline = null;
   // humedad de cada parcela (0 seca .. 1 mojada), para fundir el color
@@ -214,9 +223,10 @@ export function createGarden() {
   return {
     setup(ctx) { L = ctx.L.garden; pulled = new Map(); frame = null; },
     // FooterWorld: lo plantado y las parcelas que siguen humedas.
-    set(list, wetPlots) {
+    set(list, wetPlots, giantInfo = null) {
       plots = list.slice();
       watered = new Set(wetPlots || []);
+      giant = giantInfo && giantInfo.plots?.length ? giantInfo : null;
       for (const id of [...pulled.keys()]) if (!plots.some((p) => p.seedId === id)) pulled.delete(id);
     },
     // Pip arranca la planta: desaparece entre tierra que salta.
@@ -224,6 +234,13 @@ export function createGarden() {
       const entry = plots.find((p) => p.plot === plot);
       if (!L || !entry || pulled.has(entry.seedId)) return null;
       pulled.set(entry.seedId, ctx.t);
+      // (la gigante sale entera: las tres, con un buen estallido de tierra)
+      if (giant?.ripe && giant.plots.includes(plot)) {
+        for (const other of plots) if (giant.plots.includes(other.plot)) pulled.set(other.seedId, ctx.t);
+        const gx = L.plots[1];
+        for (let i = 0; i < 18; i++) ctx.spawn({ k: "pix1", x: gx + (Math.random() - 0.5) * 34, y: PLANT_BASE, vx: (Math.random() - 0.5) * 40, vy: -12 - Math.random() * 20, g: 70, life: 0.5 + Math.random() * 0.3, c: Math.random() < 0.5 ? "#8a5a34" : "#b07a4a" });
+        return entry;
+      }
       const x = L.plots[plot];
       for (let i = 0; i < 7; i++) ctx.spawn({ k: "pix1", x: x + (Math.random() - 0.5) * 6, y: PLANT_BASE, vx: (Math.random() - 0.5) * 26, vy: -10 - Math.random() * 14, g: 70, life: 0.45 + Math.random() * 0.2, c: Math.random() < 0.5 ? "#8a5a34" : "#b07a4a" });
       for (let i = 0; i < 3; i++) ctx.spawn({ k: "pix1", x: x + (Math.random() - 0.5) * 4, y: PLANT_BASE - 4, vx: (Math.random() - 0.5) * 16, vy: -12 - Math.random() * 8, g: 50, life: 0.5, c: "#8ad85a" });
@@ -248,11 +265,22 @@ export function createGarden() {
       // la regadera apoyada al final (si no la lleva Pip)
       const carried = ctx.actors.some((a) => !a.ghost && a.mood === "garden" && a.gardenTask === "water");
       if (!carried) g.drawImage(S.can, L.can, 73 - S.can.height + 1);
+      const big = giant?.ripe ? giant : null;
       for (let i = 0; i < L.plots.length; i++) {
         const cx = L.plots[i], entry = plots.find((p) => p.plot === i);
-        drawBed(g, S, cx, entry && !pulled.has(entry.seedId) ? entry : null, { wet: wet[i], t: ctx.t, wind, wide: L.w >= 12, snow: entry ? null : ctx.snowCap?.(S.soil[13].dry) });
+        const shown = entry && !pulled.has(entry.seedId) && !(big && big.plots.includes(i)) ? entry : null;
+        drawBed(g, S, cx, shown, { wet: wet[i], t: ctx.t, wind, wide: L.w >= 12, snow: entry ? null : ctx.snowCap?.(S.soil[13].dry) });
         // gotitas que brillan en la tierra recien regada
         if (wet[i] > 0.6 && !ctx.rain) { px(g, cx - 4, SOIL_TOP + 1, "#9ab8d0"); px(g, cx + 5, SOIL_TOP + 2, "#9ab8d0"); }
+      }
+      // la gigante, sentada sobre los tres bancales (tiembla mientras Pip tira)
+      if (big && !plots.some((p) => big.plots.includes(p.plot) && pulled.has(p.seedId))) {
+        const img = FARM_SPRITES().giant, tug = ctx.actors.some((a) => !a.ghost && a.mood === "garden" && a.gardenTask === "giant" && a.garden === "tug");
+        const shake = tug ? Math.round(Math.sin(ctx.t * 30)) : 0;
+        g.fillStyle = "rgba(40,22,10,.35)"; g.fillRect(L.plots[1] - 16, PLANT_BASE + 3, 32, 1);
+        g.drawImage(img, L.plots[1] - Math.floor(img.width / 2) + shake, PLANT_BASE + 3 - img.height + 1);
+        const cap = ctx.snowCap?.(img);
+        if (cap) g.drawImage(cap, L.plots[1] - Math.floor(img.width / 2) + shake, PLANT_BASE + 3 - img.height + 1);
       }
     },
     // lo maduro destella de vez en cuando (como el forraje), y al pasar el
@@ -261,6 +289,8 @@ export function createGarden() {
       if (!L) return;
       for (const entry of plots) {
         if (entry.growth < 1 || pulled.has(entry.seedId)) continue;
+        // (las de la gigante no destellan: hasta que se junten, esperan)
+        if (giant && giant.plots.includes(entry.plot) && !(giant.ripe && entry.plot === giant.plots[1])) continue;
         const c = ((ctx.t + entry.plot * 0.9) % 2.8) / 2.8;
         if (c > 0.12) continue;
         const x = L.plots[entry.plot] + 2, y = PLANT_BASE - 8;
@@ -278,6 +308,7 @@ export function createGarden() {
     // Pip riega: la parcela se moja poco a poco mientras cae el agua.
     soak(plot, amount) { if (wet[plot] != null) wet[plot] = Math.min(1, Math.max(wet[plot], amount)); },
     get plots() { return plots; },
+    get giant() { return giant; },
     get layout() { return L; }
   };
 }

@@ -46,21 +46,50 @@ function sink() {
   return { events, send: (event, data) => events.push({ event, data }), replaced() { events.push({ event: "replaced" }); }, last: (event) => [...events].reverse().find((e) => e.event === event)?.data };
 }
 
-test("saves merge like the game: collections are unioned, stats keep the maximum, the newer save wins coins", () => {
-  const laptop = save({ updated: 10, coins: 900, owned: { 1: { at: 5 }, 4: { at: 6 } }, stats: { runs: 3, bestTime: 200 } });
-  const phone = save({ updated: 20, coins: 120, owned: { 1: { at: 2 }, 7: { at: 9 } }, shiny: { 7: { at: 9 } }, stats: { runs: 5, bestTime: 90 } });
+test("saves merge like the game: collections are unioned, stats keep the maximum", () => {
+  const laptop = save({ updated: 10, owned: { 1: { at: 5 }, 4: { at: 6 } }, stats: { runs: 3, bestTime: 200 }, pused: { 4: 2 }, dfav: { 4: 50 } });
+  const phone = save({ updated: 20, owned: { 1: { at: 2 }, 7: { at: 9 } }, shiny: { 7: { at: 9 } }, stats: { runs: 5, bestTime: 90 }, pused: { 4: 1, 7: 3 }, dfav: { 4: -60 }, pstart: { 7: "bubble" } });
   const merged = mergeSaves(laptop, phone);
   assert.deepEqual(Object.keys(merged.owned).sort(), ["1", "4", "7"]);
   assert.equal(merged.owned[1].at, 2, "the earliest catch is kept");
-  assert.equal(merged.coins, 120, "coins come from the newer save");
   assert.deepEqual(merged.stats, { runs: 5, bestTime: 200 });
+  assert.deepEqual(merged.pused, { 4: 2, 7: 3 }, "runs per Pokémon keep the maximum");
+  assert.equal(merged.dfav[4], -60, "the latest favourite change wins, even an unfavourite");
+  assert.equal(merged.pstart[7], "bubble");
   assert.deepEqual(mergeSaves(merged, phone), merged, "merging again changes nothing");
+});
+
+test("personal records with each Pokémon and endless records keep the best of both devices", () => {
+  const laptop = save({ updated: 10, precs: { 6: { t: 900, lv: 30, k: 2000, dps: 120, dmg: 90000 } }, stats: { runs: 4, endlessTime: 2500, endlessRuns: 2 } });
+  const phone = save({ updated: 20, precs: { 6: { t: 1200, lv: 25, k: 2500, dps: 100, dmg: 120000 }, 25: { t: 60, lv: 4 } }, stats: { runs: 6, endlessTime: 3100, endlessRuns: 1 } });
+  const merged = mergeSaves(laptop, phone);
+  assert.deepEqual(merged.precs[6], { t: 1200, lv: 30, k: 2500, dps: 120, dmg: 120000 });
+  assert.deepEqual(merged.precs[25], { t: 60, lv: 4 });
+  assert.equal(merged.stats.endlessTime, 3100);
+  assert.equal(merged.stats.endlessRuns, 2);
+  assert.deepEqual(mergeSaves(merged, laptop), merged, "merging again changes nothing");
+  assert.deepEqual(mergeSaves(save({ updated: 3, precs: "bad" }), save({ updated: 1 })).precs, {}, "junk is dropped");
+});
+
+test("coins and tickets add up across devices through each device's ledger, like the original", () => {
+  // Both started from the same synced save: 500 coins and 2 tickets, then each played on its own.
+  const base = { c: [500, 0], t1: [2, 0], t10: [0, 0] };
+  const laptop = save({ updated: 10, coins: 800, tickets: { t1: 1, t10: 0 }, led: { base, dlaptop: { c: [300, 0], t1: [0, 1] } } });
+  const phone = save({ updated: 20, coins: 450, tickets: { t1: 4, t10: 1 }, led: { base, dphone: { c: [150, 200], t1: [2, 0], t10: [1, 0] } } });
+  const merged = mergeSaves(laptop, phone);
+  assert.equal(merged.coins, 500 + 300 + 150 - 200, "what each device earned and spent counts, not just the newer save");
+  assert.deepEqual(merged.tickets, { t1: 2 - 1 + 2, t10: 1 });
+  assert.deepEqual(mergeSaves(merged, laptop), merged, "merging again changes nothing");
+  // A save from before the ledger: its balance becomes the starting entry.
+  const legacy = mergeSaves(save({ updated: 5, coins: 900 }), save({ updated: 9, coins: 120 }));
+  assert.equal(legacy.coins, 900, "without a ledger the higher balance is kept, like the original");
 });
 
 test("runs are checked for nonsense, not for level or defeated caps", () => {
   assert.ok(validateRun({ mode: "s", t: 600, lv: 40, kills: 3000, dex: 25 }));
   // Like the original, level and defeated counts aren't capped; only nonsense is refused.
-  // Since Arceus's Judgment (minute 30) a run can't last past 35 minutes, also like the original.
+  // Since the Judgment fix (18-10-2026) Arceus one-shots you around minute 40: runs are capped at 45, like the original.
+  assert.ok(validateRun({ mode: "s", t: 39 * 60, lv: 120, kills: 8000, dex: 25 }), "a 39-minute run against Arceus");
   assert.ok(validateRun({ mode: "s", t: 1980, lv: 1500, kills: 90_000, dex: 25 }), "a 33-minute run that faced Arceus");
   assert.ok(validateRun({ mode: "s", t: MAX_RUN_S, lv: 90, kills: 5000, dex: 25 }), "right at the cap");
   assert.equal(validateRun({ mode: "s", t: MAX_RUN_S + 1, lv: 90, kills: 5000, dex: 25 }), null, "past the Judgment's cap");
@@ -70,10 +99,10 @@ test("runs are checked for nonsense, not for level or defeated caps", () => {
   assert.equal(validateRun({ mode: "s", t: 60, lv: 5, kills: 5, dex: 0 }), null, "unknown Pokémon");
   assert.equal(validateRun({ mode: "g", t: 60, lv: 5, kills: 5, members: [{ uid: "1", dex: 25 }] }), null, "a group needs two players");
   assert.equal(validateRun({ mode: "g", t: 60, lv: 5, kills: 5, members: [{ uid: "1", dex: 25 }, { uid: "1", dex: 4 }] }), null, "no duplicate players");
-  assert.equal(periodIds(new Date("2026-10-11T23:30:00Z")).d, "d20261012", "periods follow Madrid time, like the original");
-  assert.equal(periodIds().a, "all2", "the all-time board restarted with Arceus's Judgment, like the original");
-  assert.match(periodIds(new Date("2026-10-14T12:00:00Z")).w, /^w2026-42j$/, "week and month restarted too (14-10-2026)");
-  assert.match(periodIds(new Date("2026-10-14T12:00:00Z")).m, /^m202610j$/);
+  assert.equal(periodIds(new Date("2026-10-11T23:30:00Z")).d, "d20261012r", "periods follow Madrid time, like the original");
+  assert.equal(periodIds().a, "all3", "every board restarted after the Judgment fix (18-10-2026), like the original");
+  assert.match(periodIds(new Date("2026-10-14T12:00:00Z")).w, /^w2026-42r$/);
+  assert.match(periodIds(new Date("2026-10-14T12:00:00Z")).m, /^m202610r$/);
 });
 
 test("nicknames are unique, saves merge on the server, and deleting the account removes everything", (t) => {

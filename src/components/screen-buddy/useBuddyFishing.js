@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { fishingSpot } from "../../../shared/buddy-fishing-spot.mjs";
 import { rareFishingEncounter } from "../../../shared/buddy-encounters.mjs";
 import { KRAKEN, LEVIATHAN, weightedCatch } from "../../data/buddyWorld";
-import { LURES } from "../../../shared/buddy-market.mjs";
+import { GIANT_CHEST_CHANCE, LURES } from "../../../shared/buddy-market.mjs";
 import { natureSeason } from "../../lib/pixelWorld/life/util";
 import { PORTAL_OPEN_MS } from "../BuddyFishingPortal";
 import { clamp, SPRITE_WIDTH, walkDuration } from "./useBuddyCore";
@@ -228,6 +228,16 @@ function createFishing(core, set) {
               clearDialogue();
               say(action === "steady" ? "feet on the ground. we've got this, together." : encounter === "kraken" ? "eight arms... and one is waving at me!" : "hey, big friend... it blinked back!", 3600);
               spawnParticles(action === "steady" ? "splash" : "heart", 6);
+              // Al saludarle, a veces (GIANT_CHEST_CHANCE) deja un cofre gigante.
+              if (action === "signal" && Math.random() < GIANT_CHEST_CHANCE) {
+                schedule(() => {
+                  if (!stillFishing()) return;
+                  window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", { detail: { type: "giant-chest", from: encounter } }));
+                  clearDialogue();
+                  say(encounter === "kraken" ? "it slid something over to me... a GIANT token chest! thank you!" : "it nudged something out of the water... a GIANT token chest!", 4200);
+                  spawnParticles("confetti", 14);
+                }, 3800);
+              }
             };
             clearDialogue();
             say(encounter === "kraken" ? "that's a lot of arms. please don't take my rod!" : buddyLine("leviathan"), 5000);

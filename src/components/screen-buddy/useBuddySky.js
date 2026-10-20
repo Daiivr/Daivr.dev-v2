@@ -11,6 +11,9 @@ import { nightKey } from "./useBuddyCore";
 */
 
 const WISHES_PER_NIGHT = 5;
+// En una lluvia de estrellas caben mas deseos, y cada uno da una moneda de
+// mas (una bola de fuego, cuatro).
+const SHOWER_WISHES_PER_NIGHT = 10;
 const WISHES_KEY = "daivr.starWishes.v1";
 const SEEN_COMMENT_MS = 45_000;
 // Lo ya anunciado esta carga de pagina (por noche y tipo).
@@ -21,7 +24,7 @@ function wishesTonight() {
     const saved = JSON.parse(window.localStorage.getItem(WISHES_KEY) || "null");
     return saved?.night === nightKey() ? Number(saved.wishes) || 0 : 0;
   } catch {
-    return WISHES_PER_NIGHT;
+    return SHOWER_WISHES_PER_NIGHT;
   }
 }
 
@@ -50,10 +53,12 @@ function createSky(core) {
   function onShootingStar(event) {
     const detail = event.detail || {};
     if (detail.phase === "wish") {
-      const rewarded = wishesTonight() < WISHES_PER_NIGHT;
+      const shower = Boolean(detail.shower), fireball = shower && Boolean(detail.fireball);
+      const rewarded = wishesTonight() < (shower ? SHOWER_WISHES_PER_NIGHT : WISHES_PER_NIGHT);
+      const bonus = !rewarded || !shower ? 0 : fireball ? 4 : 1;
       if (rewarded) {
         rememberWish();
-        window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", { detail: { type: "star-wish" } }));
+        window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", { detail: { type: "star-wish", bonus } }));
       }
       if (canChat()) {
         freezeAtCurrentPosition();
@@ -62,7 +67,10 @@ function createSky(core) {
         spawnParticles("confetti", 8);
         settleDown(2800);
       }
-      const line = rewarded
+      const line = rewarded && fireball
+        ? pickLine(["a FIREBALL! that's a big wish. +5 coins.", "whoa, a fireball! +5 coins!", `fireball wish! the ${detail.shower} are generous. +5 coins.`])
+        : rewarded && shower ? pickLine([`a ${detail.shower} wish! +2 coins.`, "shower wishes count double! +2 coins.", "caught one from the shower! +2 coins."])
+        : rewarded
         ? pickLine(["wish granted! +1 coin.", "you caught a shooting star! +1 coin.", "a wish! i won't tell. +1 coin."])
         : pickLine(["another wish! the wish jar is full tonight, though.", "wishes are free. coins are capped. still counts!"]);
       say(rememberTopic(line, "shootingStar"), 2800, { key: "wish", topic: "shootingStar" });

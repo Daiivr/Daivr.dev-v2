@@ -107,14 +107,15 @@ export function isFullMoon(phase) {
 
 // Lluvias de estrellas de verdad: el dia del pico (hora local) y dos a cada
 // lado, cada vez mas flojas.
+// `radiant`: de donde salen sus estrellas en nuestro cielo (left en %, top en px).
 export const METEOR_SHOWERS = [
-  { id: "quadrantids", name: "Quadrantids", month: 1, day: 3 },
-  { id: "lyrids", name: "Lyrids", month: 4, day: 22 },
-  { id: "eta-aquariids", name: "Eta Aquariids", month: 5, day: 6 },
-  { id: "perseids", name: "Perseids", month: 8, day: 12 },
-  { id: "orionids", name: "Orionids", month: 10, day: 21 },
-  { id: "leonids", name: "Leonids", month: 11, day: 17 },
-  { id: "geminids", name: "Geminids", month: 12, day: 14 }
+  { id: "quadrantids", name: "Quadrantids", month: 1, day: 3, radiant: { left: 30, top: 2 } },
+  { id: "lyrids", name: "Lyrids", month: 4, day: 22, radiant: { left: 72, top: 4 } },
+  { id: "eta-aquariids", name: "Eta Aquariids", month: 5, day: 6, radiant: { left: 18, top: 10 } },
+  { id: "perseids", name: "Perseids", month: 8, day: 12, radiant: { left: 84, top: 2 } },
+  { id: "orionids", name: "Orionids", month: 10, day: 21, radiant: { left: 62, top: 6 } },
+  { id: "leonids", name: "Leonids", month: 11, day: 17, radiant: { left: 44, top: 3 } },
+  { id: "geminids", name: "Geminids", month: 12, day: 14, radiant: { left: 26, top: 5 } }
 ];
 const SHOWER_STRENGTH = [1, 0.6, 0.3];
 
@@ -123,7 +124,7 @@ export function meteorShower(date) {
   for (const shower of METEOR_SHOWERS) {
     for (const year of [date.getFullYear() - 1, date.getFullYear(), date.getFullYear() + 1]) {
       const away = Math.abs(Math.round((day - Date.UTC(year, shower.month - 1, shower.day)) / 86_400_000));
-      if (away < SHOWER_STRENGTH.length) return { id: shower.id, name: shower.name, strength: SHOWER_STRENGTH[away] };
+      if (away < SHOWER_STRENGTH.length) return { id: shower.id, name: shower.name, radiant: shower.radiant, strength: SHOWER_STRENGTH[away] };
     }
   }
   return null;
@@ -136,6 +137,35 @@ export function shootingStarDelay(shower, rng = Math.random) {
   if (!strength) return Math.round(between(rng, 25_000, 70_000));
   return Math.round(between(rng, 3_000 + (1 - strength) * 6_000, 8_000 + (1 - strength) * 14_000));
 }
+
+// En una lluvia de estrellas salen todas del radiante, en abanico hacia abajo
+// (cada una un poco apartada de el), y alguna es una bola de fuego: mas
+// grande, mas lenta y con estela de color, y su deseo vale mas.
+export function showerStarPath(shower, rng = Math.random) {
+  const radiant = shower?.radiant || { left: 60, top: 4 };
+  const side = radiant.left < 40 ? 1 : radiant.left > 60 ? -1 : rng() < 0.5 ? -1 : 1;
+  const angle = (side > 0 ? between(rng, 12, 60) : between(rng, 120, 168)) * Math.PI / 180;
+  const start = between(rng, 3, 14), len = between(rng, 170, 320);
+  const fireball = rng() < 0.08 + 0.07 * (shower?.strength || 0);
+  return {
+    left: Number(Math.max(4, Math.min(96, radiant.left + Math.cos(angle) * start)).toFixed(1)),
+    top: Math.round(radiant.top + Math.sin(angle) * start * 0.6),
+    dx: Math.round(Math.cos(angle) * len),
+    dy: Math.round(Math.max(18, Math.min(46, Math.sin(angle) * len * 0.22))),
+    ms: Math.round(fireball ? between(rng, 2600, 3300) : between(rng, 1500, 2300)),
+    ...(fireball ? { fireball: true } : {})
+  };
+}
+
+// De donde sopla el viento (0 = norte, en grados) cuando no hay tiempo de
+// verdad: cambia poco a poco a lo largo del dia, igual para todos.
+export function fallbackWindDir(date = new Date()) {
+  const day = Math.floor(date.getTime() / 86_400_000), hour = date.getUTCHours();
+  const base = ((day * 2654435761) >>> 0) % 360;
+  return Math.round((base + Math.sin(hour / 24 * Math.PI * 2) * 50 + 360) % 360);
+}
+// En octavos (0 = norte, 2 = este, 4 = sur, 6 = oeste).
+export const windOctant = (deg) => ((Math.round(deg / 45) % 8) + 8) % 8;
 
 // Recorrido de una estrella fugaz: entra por arriba, de derecha a izquierda y
 // bajando (como el viento del cielo). left en %, top y desplazamiento en px.

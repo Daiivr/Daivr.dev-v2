@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { LINES } from "./buddyLines";
+import { catchById } from "../../../shared/buddy-catches.mjs";
 import { nightKey, SPRITE_WIDTH, walkDuration } from "./useBuddyCore";
 
 /*
@@ -82,7 +83,7 @@ export function useBuddyCampfire(core) {
 }
 
 function createCampfire(core, { setCampfire }) {
-  const { rootRef, moodRef, moodGenRef, xRef, activeEventRef, skyPhaseRef, caughtFishRef, reduceMotion } = core;
+  const { rootRef, moodRef, moodGenRef, xRef, activeEventRef, skyPhaseRef, caughtFishRef, smokedRef, reduceMotion } = core;
   const {
     beginBuddyEvent, endBuddyEvent, freezeAtCurrentPosition, updateMood, updateFacing, updateTravelDirection, faceTravelDirection,
     moveTo, schedule, say, pickLine, spawnParticles, stageWidth, setWalkMs, announceAction
@@ -102,6 +103,12 @@ function createCampfire(core, { setCampfire }) {
   }
 
   function pickSnack() {
+    // Con dos o mas ahumados listos, a veces se calienta uno y se lo come.
+    const smoked = smokedRef?.current || [];
+    if (smoked.length >= 2 && mealsTonight() < MEALS_PER_NIGHT && Math.random() < 0.7) {
+      const item = catchById(smoked.slice().sort((a, b) => a.localeCompare(b))[0]);
+      if (item) return { item: "fish", fish: { id: item.id, name: `smoked ${item.name}`, kind: "fish" }, smoked: true };
+    }
     // (en la lista va todo lo pescado; al palo, solo peces)
     const fish = (caughtFishRef.current || []).filter((item) => item.kind === "fish");
     if (fish.length && mealsTonight() < MEALS_PER_NIGHT && Math.random() < 0.6) {
@@ -168,9 +175,9 @@ function createCampfire(core, { setCampfire }) {
         if (snack.item === "fish") {
           setCampfire({ phase: "done", ...snack });
           rememberMeal();
-          window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", { detail: { type: "campfire-meal", id: snack.fish.id } }));
+          window.dispatchEvent(new CustomEvent("daivr-buddy-quest-progress", { detail: { type: snack.smoked ? "smoked-meal" : "campfire-meal", id: snack.fish.id } }));
           spawnParticles("heart", 3);
-          say(`${snack.fish.name}: grilled to perfection! +2 coins.`, 2800, { topic: "campfireCook" });
+          say(snack.smoked ? `${snack.fish.name}, warmed over the coals. +2 coins.` : `${snack.fish.name}: grilled to perfection! +2 coins.`, 2800, { topic: "campfireCook" });
           return;
         }
         const burnt = Math.random() < BURNT_CHANCE;

@@ -10,6 +10,10 @@ export const CHEST_W = 176;
 export const CHEST_H = 104;
 
 const C = { o: "#2a1206", w: "#8a4f22", wm: "#a8622c", wl: "#c97a3a", wd: "#5c2e10", g: "#6a3a18", inner: "#2a1004", b: "#c89a3a", bl: "#f2d27a", bd: "#7a5418" };
+const BASE_C = C;
+// El cofre gigante (del Leviatan o del Kraken): madera del fondo del mar,
+// verde azulada, con flejes de oro y percebes.
+const GIANT_C = { o: "#081c22", w: "#1e5a64", wm: "#2a7a84", wl: "#3a9aa2", wd: "#123a44", g: "#2a5a3a", inner: "#061418", b: "#ffc83a", bl: "#fff0a0", bd: "#a87a14" };
 const GOLD = { y: "#ffd166", Y: "#c8902a", W: "#fff3b0", D: "#8a5a14" };
 // El cofre: 48 de ancho, caja de 20 de alto y tapa de 12; BY es su ultima fila.
 const CX = 88, BY = 76, CW = 48, X0 = CX - CW / 2, DECK = 73;
@@ -76,14 +80,16 @@ function paintBackdrop() {
   return cv;
 }
 
-export function createChestScene(canvas, { coins = 6 } = {}) {
+export function createChestScene(canvas, { coins = 6, giant = false } = {}) {
+  // (el gigante: otra madera, flejes de oro y mas monedas por el aire)
+  const C = giant ? GIANT_C : BASE_C;
   const g = canvas.getContext("2d");
   const backdrop = paintBackdrop();
   const R = rng(7 + coins);
   const stars = Array.from({ length: 26 }, () => ({ x: Math.floor(R() * CHEST_W), y: 2 + Math.floor(R() * 42), p: R() * 6, big: R() < 0.2 }));
   const flies = Array.from({ length: 3 }, (_, i) => ({ ax: 20 + i * 18 + R() * 8, ay: 46 + R() * 8, p: R() * 6 }));
   // (una moneda por cada una del premio)
-  const count = Math.max(1, Math.min(12, coins));
+  const count = Math.max(1, Math.min(giant ? 24 : 12, giant ? Math.ceil(coins / 2) : coins));
   let t = 0, nextCoin = BURST, launched = 0, lockOff = null, nextSparkle = 2.2;
   const parts = [], money = [];
 

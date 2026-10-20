@@ -3,6 +3,7 @@ import "../styles/buddy-workshop.css";
 import { BuddyMarket } from "./BuddyMarket";
 import { BuddyGarden } from "./BuddySeedShed";
 import { BuddyFisherman } from "./BuddyFisherman";
+import { BuddyBoard, BuddySmoker } from "./BuddyFarm";
 import { memo, useEffect, useRef, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
@@ -393,7 +394,9 @@ const MARKET_VIEW = { id: "market", label: "Market", title: "The Woodland Stand"
 // El huerto del prado: su propio modal, con la misma piel de madera que el mercado.
 const GARDEN_VIEW = { id: "garden", label: "Garden", title: "The Garden Shed", description: "Seeds for your plots, and a basket for the Friday market." };
 const FISHER_VIEW = { id: "fisherman", label: "Fisherman", title: "Bait & Tackle", description: "A traveling fisherman with rods, lures and a fair price for fish." };
-const SHOP_VIEWS = { market: MARKET_VIEW, garden: GARDEN_VIEW, fisherman: FISHER_VIEW };
+const BOARD_VIEW = { id: "board", label: "Help Wanted", title: "Help Wanted", description: "One request a day from the valley, pinned to the market stand." };
+const SMOKER_VIEW = { id: "smoker", label: "Smoker", title: "Campfire Smoker", description: "Hang a fish over the coals. Smoked fish sell for more." };
+const SHOP_VIEWS = { market: MARKET_VIEW, garden: GARDEN_VIEW, fisherman: FISHER_VIEW, board: BOARD_VIEW, smoker: SMOKER_VIEW };
 
 export function BuddyModal({ buddy, mode, onClose, onModeChange, theme, seasonalEvent }) {
   const opener = useRef(null);
@@ -413,7 +416,7 @@ export function BuddyModal({ buddy, mode, onClose, onModeChange, theme, seasonal
     <Dialog.Root open={Boolean(mode)} onOpenChange={(open) => { if (!open) onClose(); }}>
       <Dialog.Portal>
         <Dialog.Overlay className={`buddy-modal-backdrop motion-backdrop ${theme === "glitch" ? "theme-glitch" : ""}`}>
-          <Dialog.Content className={`buddy-modal motion-panel is-${view.id} ${view.id === "garden" || view.id === "fisherman" ? "is-market" : ""}`} style={menuSkinVars()}
+          <Dialog.Content className={`buddy-modal motion-panel is-${view.id} ${["garden", "fisherman", "board", "smoker"].includes(view.id) ? "is-market" : ""}`} style={menuSkinVars()}
             onOpenAutoFocus={() => { opener.current = document.activeElement; }}
             onCloseAutoFocus={(event) => { event.preventDefault(); opener.current?.focus(); }}>
             <header className="buddy-modal-header">
@@ -436,7 +439,7 @@ export function BuddyModal({ buddy, mode, onClose, onModeChange, theme, seasonal
               </nav> : null}
             </header>
             <div className={`buddy-modal-page is-${view.id}`}>
-              {view.id === "market" ? <BuddyMarket buddy={buddy} onNavigate={onModeChange} /> : view.id === "garden" ? <BuddyGarden buddy={buddy} onNavigate={onModeChange} /> : view.id === "fisherman" ? <BuddyFisherman buddy={buddy} onNavigate={onModeChange} /> : view.id === "room" ? <BuddyRoomBoundary onClose={onClose}><BuddyRoom buddy={buddy} seasonalEvent={seasonalEvent} /></BuddyRoomBoundary> : view.id === "inventory" ? <BuddyInventoryView buddy={buddy} /> : view.id === "fishing" ? <BuddyFishing buddy={buddy} initialTab={shownMode === "journal" ? "journal" : "tackle"} /> : <BuddyQuestView buddy={buddy} />}
+              {view.id === "market" ? <BuddyMarket buddy={buddy} onNavigate={onModeChange} /> : view.id === "garden" ? <BuddyGarden buddy={buddy} onNavigate={onModeChange} /> : view.id === "fisherman" ? <BuddyFisherman buddy={buddy} onNavigate={onModeChange} /> : view.id === "board" ? <BuddyBoard buddy={buddy} onNavigate={onModeChange} /> : view.id === "smoker" ? <BuddySmoker buddy={buddy} onNavigate={onModeChange} /> : view.id === "room" ? <BuddyRoomBoundary onClose={onClose}><BuddyRoom buddy={buddy} seasonalEvent={seasonalEvent} /></BuddyRoomBoundary> : view.id === "inventory" ? <BuddyInventoryView buddy={buddy} /> : view.id === "fishing" ? <BuddyFishing buddy={buddy} initialTab={shownMode === "journal" ? "journal" : "tackle"} /> : <BuddyQuestView buddy={buddy} />}
             </div>
             <MenuFrameDecor />
           </Dialog.Content>

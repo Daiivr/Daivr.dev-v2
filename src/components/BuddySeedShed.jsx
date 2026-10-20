@@ -5,6 +5,7 @@ import { CROPS, SEED_BAG_MAX, cropById, cropSaleDay, gardenPlots, growth, nextCr
 import { DIORAMA, createGardenDiorama, dioramaView } from "../lib/pixelWorld/gardenDiorama";
 import { drawCropItem, drawPlotPreview, readWatered } from "../lib/pixelWorld/life/garden";
 import { wetGardenPlots } from "../../shared/buddy-garden-water.mjs";
+import { YardShop, basketExtras } from "./BuddyFarm";
 
 // El cobertizo del huerto: su propio modal (se abre pulsando el huerto del
 // prado). Arriba, el huerto en pequeño con lo que crece de verdad en cada
@@ -12,7 +13,10 @@ import { wetGardenPlots } from "../../shared/buddy-garden-water.mjs";
 // el mercado de los viernes; y los sobres: las semillas se compran cuando sea
 // (a la bolsa, como mucho SEED_BAG_MAX de cada una) y se plantan en la
 // siguiente parcela libre (al pasar por un sobre, esa parcela lo enseña en
-// fantasma). Lo maduro lo cosecha Buddy; si no esta por ahi, desde aqui.
+// fantasma). Lo maduro lo cosecha Buddy; si no esta por ahi, desde aqui. Al
+// final, el patio: espantapajaros, casita de abejas y arbol frutal (la miel y
+// la fruta van a la misma cesta). Tres calabazas plantadas a la vez pueden
+// juntarse en una gigante, que vale el doble.
 const STAGE_GROWTHS = [0.2, 0.5, 0.8, 1];
 
 function GardenDiorama({ plots, ghost, wet }) {
@@ -91,8 +95,13 @@ export function BuddyGarden({ buddy, onNavigate }) {
   const entries = plots.map((seed, plot) => (seed ? { plot, seedId: seed.id, crop: seed.crop, growth: growth(seed, time) } : null));
   const wet = wetGardenPlots(entries, readWatered(time), time);
   const saleDay = cropSaleDay(now);
-  const basketCount = CROPS.reduce((sum, crop) => sum + wallet.basket[crop.id], 0);
-  const basketValue = CROPS.reduce((sum, crop) => sum + wallet.basket[crop.id] * crop.value, 0);
+  // (la cesta: cosechas, la gigante al doble, miel y fruta)
+  const giantIds = new Set((wallet.giants || []).flatMap((group) => group.ids));
+  const extras = basketExtras(wallet);
+  const basketCount = CROPS.reduce((sum, crop) => sum + wallet.basket[crop.id], 0) + extras.reduce((sum, entry) => sum + entry.n, 0);
+  const basketValue = wallet.seeds.filter((seed) => seed.harvested && !seed.sold && !seed.given).reduce((sum, seed) => sum + cropById(seed.crop).value * (giantIds.has(seed.id) ? 2 : 1), 0)
+    + extras.reduce((sum, entry) => sum + entry.n * entry.value, 0);
+  const giant = (wallet.giants || []).find((group) => group.ids.every((id) => wallet.garden.some((seed) => seed.id === id)));
   const bagCount = CROPS.reduce((sum, crop) => sum + wallet.bag[crop.id], 0);
   const status = note || (nextFree < 0 ? "Every plot is growing something. Buddy harvests what’s ripe into the basket."
     : bagCount ? `Plot ${nextFree + 1} is free: plant a seed from your bag.` : "Buy a packet of seeds, then plant it in a free plot.");
@@ -113,11 +122,15 @@ export function BuddyGarden({ buddy, onNavigate }) {
         <ol className="seed-garden-tags" aria-label="Garden plots">
           {entries.map((entry, index) => {
             const crop = entry ? cropById(entry.crop) : null;
-            const ripe = entry?.growth >= 1;
-            return <li key={index} className={`seed-tag ${ripe ? "is-ripe" : entry ? "is-growing" : "is-empty"}`}>
+            const big = giant && entry && giant.ids.includes(entry.seedId);
+            const ripe = big ? time >= giant.ripeAt : entry?.growth >= 1;
+            return <li key={index} className={`seed-tag ${ripe ? "is-ripe" : entry ? "is-growing" : "is-empty"} ${big ? "is-giant" : ""}`}>
               <small>PLOT {index + 1}</small>
-              <strong>{crop ? crop.label : "Empty"}</strong>
-              {ripe ? <>
+              <strong>{big ? (ripe ? "GIANT pumpkin!" : "Pumpkin…?") : crop ? crop.label : "Empty"}</strong>
+              {big && !ripe ? <>
+                <span>{entry.growth >= 1 ? "Something big is happening…" : `Ripe in ${timeLeft(ripeAt(plots[index]) - time)}`}</span>
+                <i className="seed-tag-meter" style={{ "--fill": Math.min(1, entry.growth) }} aria-hidden="true"><b /></i>
+              </> : ripe ? <>
                 <span>Ripe! Buddy will pick it soon.</span>
                 <button type="button" onClick={() => setNote(adventure.harvest(entry.seedId))}>Pick it</button>
               </> : crop ? <>
@@ -138,11 +151,16 @@ export function BuddyGarden({ buddy, onNavigate }) {
               <b>×{wallet.basket[crop.id]}</b>
               <small>{crop.value} each</small>
             </li>)}
+            {extras.map((entry) => <li key={entry.id} className={entry.n ? "" : "is-empty"}>
+              <CropCanvas crop={entry.id} scale={4} />
+              <b>×{entry.n}</b>
+              <small>{entry.value} each</small>
+            </li>)}
           </ul>
         </div>
         <div className="seed-basket-sell">
           <span className="seed-basket-sign">{saleDay ? "FRIDAY MARKET · OPEN" : "FRIDAY MARKET"}</span>
-          <strong>{basketCount ? `${basketCount} ${basketCount === 1 ? "crop" : "crops"} · ${basketValue} gold` : "The basket is empty"}</strong>
+          <strong>{basketCount ? `${basketCount} ${basketCount === 1 ? "item" : "items"} · ${basketValue} gold` : "The basket is empty"}</strong>
           <span>{saleDay ? "Sell today, before midnight." : `Opens in ${timeLeft(nextCropSale(now).getTime() - time)}.`}</span>
           <button type="button" disabled={!saleDay || !basketCount} onClick={() => setNote(adventure.sellCrops())}><ShoppingBag size={13} aria-hidden="true" />{saleDay ? (basketCount ? `Sell all · +${basketValue}` : "Nothing to sell") : "Sells on Friday"}</button>
         </div>
@@ -188,7 +206,8 @@ export function BuddyGarden({ buddy, onNavigate }) {
           </article>;
         })}
       </div>
+      <YardShop buddy={buddy} now={time} onMessage={setNote} />
     </section>
-    <div className="market-footer"><span>Need coins for seeds?</span><button type="button" onClick={() => onNavigate("market")}>Woodland market ↗</button></div>
+    <div className="market-footer"><span>Need coins for seeds?</span><button type="button" onClick={() => onNavigate("market")}>Woodland market ↗</button><button type="button" onClick={() => onNavigate("board")}>Help Wanted ↗</button></div>
   </div>;
 }

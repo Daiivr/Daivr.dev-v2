@@ -11,11 +11,11 @@ import "../styles/buddy-chest-opening.css";
 // La escena del cofre en pixel art (src/lib/pixelWorld/chest.js): cae al
 // muelle, tiembla, salta el candado, se abre y escupe las monedas. Al saltar la
 // animacion (o con movimiento reducido) va directa al cofre abierto.
-function ChestScene({ coins, revealed }) {
+function ChestScene({ coins, revealed, giant }) {
   const canvasRef = useRef(null);
   const sceneRef = useRef(null);
   useEffect(() => {
-    const scene = createChestScene(canvasRef.current, { coins });
+    const scene = createChestScene(canvasRef.current, { coins, giant });
     sceneRef.current = scene;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       scene.skipTo(3);
@@ -31,7 +31,7 @@ function ChestScene({ coins, revealed }) {
     };
     frame = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(frame);
-  }, [coins]);
+  }, [coins, giant]);
   useEffect(() => {
     if (!revealed) return;
     sceneRef.current?.skipTo(2.6);
@@ -41,6 +41,7 @@ function ChestScene({ coins, revealed }) {
 }
 
 export function ChestReveal({ receipt, open, wallet, onClose, onAnother, opener, walletRef }) {
+  const giant = Boolean(receipt.giant), left = giant ? wallet.giantUnopened : wallet.unopened;
   const [revealed, setRevealed] = useState(() => window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   useEffect(() => {
     if (revealed) return;
@@ -54,25 +55,25 @@ export function ChestReveal({ receipt, open, wallet, onClose, onAnother, opener,
   return <Dialog.Root open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
     <Dialog.Portal>
       <Dialog.Overlay className="chest-reveal-backdrop motion-backdrop" />
-      <Dialog.Content className={`chest-reveal motion-panel motion-from-center ${revealed ? "is-revealed" : "is-opening"}`} style={menuSkinVars()}
+      <Dialog.Content className={`chest-reveal motion-panel motion-from-center ${revealed ? "is-revealed" : "is-opening"} ${giant ? "is-giant" : ""}`} style={menuSkinVars()}
         onCloseAutoFocus={(event) => { event.preventDefault(); (opener.current?.disabled ? walletRef.current : opener.current)?.focus(); }}>
         <Dialog.Close className="chest-reveal-close" aria-label="Close chest reward"><X size={16} strokeWidth={3} /></Dialog.Close>
         <div className="chest-reveal-sign">
-          <span className="chest-reveal-kicker">SALVAGED FROM THE VOID</span>
-          <Dialog.Title className="chest-reveal-title">{revealed ? "A little buried fortune." : "Something’s rattling…"}</Dialog.Title>
+          <span className="chest-reveal-kicker">{giant ? "A GIFT FROM THE DEEP" : "SALVAGED FROM THE VOID"}</span>
+          <Dialog.Title className="chest-reveal-title">{revealed ? (giant ? "A giant fortune!" : "A little buried fortune.") : giant ? "Something huge is rattling…" : "Something’s rattling…"}</Dialog.Title>
         </div>
         <div className="chest-reveal-page">
-          <Dialog.Description className="chest-reveal-description">{revealed ? "Another little treasure for your next market day." : "Let’s see what the tide left inside."}</Dialog.Description>
+          <Dialog.Description className="chest-reveal-description">{revealed ? (giant ? "The big one left you a whole hoard." : "Another little treasure for your next market day.") : giant ? "Your friend from the deep left this for you." : "Let’s see what the tide left inside."}</Dialog.Description>
           <div className="chest-reveal-stage" aria-hidden="true">
-            <ChestScene coins={receipt.reward} revealed={revealed} />
+            <ChestScene coins={receipt.reward} revealed={revealed} giant={giant} />
             <div className="chest-reveal-prize"><PixelCoin /><strong>+{receipt.reward}</strong><span>GOLD {receipt.reward === 1 ? "COIN" : "COINS"}</span></div>
           </div>
-          <div className="chest-reveal-result" role="status" aria-live="polite">{revealed ? receipt.message : "Opening your token chest…"}</div>
+          <div className="chest-reveal-result" role="status" aria-live="polite">{revealed ? receipt.message : giant ? "Opening your giant chest…" : "Opening your token chest…"}</div>
           <div className="chest-reveal-balance"><PixelCoin /><span>{revealed ? <><b>{wallet.coins}</b> gold in your pouch</> : "Your reward is safely tucked away."}</span></div>
           <div className="chest-reveal-actions">
-            {revealed ? <><button type="button" className="chest-reveal-primary" onClick={onClose}>Nice! Keep it <span aria-hidden="true">✓</span></button>{wallet.unopened > 0 ? <button type="button" onClick={onAnother}>Open another <span>{wallet.unopened} left</span></button> : <p>All chests opened. Time to cast another line.</p>}</> : <button type="button" onClick={() => setRevealed(true)}>Skip to reward <span aria-hidden="true">↗</span></button>}
+            {revealed ? <><button type="button" className="chest-reveal-primary" onClick={onClose}>Nice! Keep it <span aria-hidden="true">✓</span></button>{left > 0 ? <button type="button" onClick={onAnother}>Open another <span>{left} left</span></button> : <p>All chests opened. Time to cast another line.</p>}</> : <button type="button" onClick={() => setRevealed(true)}>Skip to reward <span aria-hidden="true">↗</span></button>}
           </div>
-          <span className="chest-reveal-note">{revealed ? "Already added to your gold · yours to keep" : "1–10 coins in every chest"}</span>
+          <span className="chest-reveal-note">{revealed ? "Already added to your gold · yours to keep" : giant ? "20–50 coins in a giant chest" : "1–10 coins in every chest"}</span>
         </div>
       </Dialog.Content>
     </Dialog.Portal>
