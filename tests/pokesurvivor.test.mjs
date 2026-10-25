@@ -85,24 +85,42 @@ test("coins and tickets add up across devices through each device's ledger, like
   assert.equal(legacy.coins, 900, "without a ledger the higher balance is kept, like the original");
 });
 
+test("the Kecleon shop's bag and TMs use the ledger too, and learned TMs, natures and abilities merge like the game", () => {
+  const base = { c: [500, 0], t1: [0, 0], t10: [0, 0] };
+  // The laptop bought a Mint and a TM; the phone used a Mint it had from before.
+  const laptop = save({ updated: 10, coins: 300, bag: { mint: 2 }, tms: { "ice-beam": 1 }, ptm: { 25: ["thunderbolt"] }, pnat: { 25: ["timid", 100] },
+    led: { base: { ...base, "b:mint": [1, 0] }, dlaptop: { c: [0, 200], "b:mint": [1, 0], "m:ice-beam": [1, 0] } } });
+  const phone = save({ updated: 20, coins: 500, bag: {}, ptm: { 25: ["surf"] }, pnat: { 25: ["bold", 50] }, pabil: { 25: [2, 70] },
+    led: { base: { ...base, "b:mint": [1, 0] }, dphone: { "b:mint": [0, 1] } } });
+  const merged = mergeSaves(laptop, phone);
+  assert.equal(merged.coins, 300);
+  assert.deepEqual(merged.bag, { mint: 1 }, "one Mint bought here, one used there");
+  assert.deepEqual(merged.tms, { "ice-beam": 1 });
+  assert.deepEqual(merged.ptm[25].sort(), ["surf", "thunderbolt"], "learned TMs are never forgotten");
+  assert.deepEqual(merged.pnat[25], ["timid", 100], "the nature changed last wins");
+  assert.deepEqual(merged.pabil[25], [2, 70]);
+  assert.deepEqual(mergeSaves(merged, phone), merged, "merging again changes nothing");
+});
+
 test("runs are checked for nonsense, not for level or defeated caps", () => {
   assert.ok(validateRun({ mode: "s", t: 600, lv: 40, kills: 3000, dex: 25 }));
   // Like the original, level and defeated counts aren't capped; only nonsense is refused.
-  // Since the Judgment fix (18-10-2026) Arceus one-shots you around minute 40: runs are capped at 45, like the original.
-  assert.ok(validateRun({ mode: "s", t: 39 * 60, lv: 120, kills: 8000, dex: 25 }), "a 39-minute run against Arceus");
+  // Since 23-10-2026 the original has no 45-minute cap (Arceus can be hit and the fight ends on its own): only a one-day sanity cap.
+  assert.ok(validateRun({ mode: "s", t: 50 * 60, lv: 120, kills: 8000, dex: 25, dmg: 123456 }), "a 50-minute run that hurt Arceus");
+  assert.equal(validateRun({ mode: "s", t: 600, lv: 5, kills: 5, dex: 25, dmg: -1 }), null, "negative damage");
   assert.ok(validateRun({ mode: "s", t: 1980, lv: 1500, kills: 90_000, dex: 25 }), "a 33-minute run that faced Arceus");
   assert.ok(validateRun({ mode: "s", t: MAX_RUN_S, lv: 90, kills: 5000, dex: 25 }), "right at the cap");
-  assert.equal(validateRun({ mode: "s", t: MAX_RUN_S + 1, lv: 90, kills: 5000, dex: 25 }), null, "past the Judgment's cap");
+  assert.equal(validateRun({ mode: "s", t: MAX_RUN_S + 1, lv: 90, kills: 5000, dex: 25 }), null, "past the one-day cap");
   assert.equal(validateRun({ mode: "s", t: 600, lv: 0, kills: 10, dex: 25 }), null, "level 0");
   assert.equal(validateRun({ mode: "s", t: 60, lv: 5, kills: -1, dex: 25 }), null, "negative defeated");
   assert.equal(validateRun({ mode: "s", t: 90_000, lv: 5, kills: 5, dex: 25 }), null, "longer than a run token lives");
   assert.equal(validateRun({ mode: "s", t: 60, lv: 5, kills: 5, dex: 0 }), null, "unknown Pokémon");
   assert.equal(validateRun({ mode: "g", t: 60, lv: 5, kills: 5, members: [{ uid: "1", dex: 25 }] }), null, "a group needs two players");
   assert.equal(validateRun({ mode: "g", t: 60, lv: 5, kills: 5, members: [{ uid: "1", dex: 25 }, { uid: "1", dex: 4 }] }), null, "no duplicate players");
-  assert.equal(periodIds(new Date("2026-10-11T23:30:00Z")).d, "d20261012r", "periods follow Madrid time, like the original");
-  assert.equal(periodIds().a, "all3", "every board restarted after the Judgment fix (18-10-2026), like the original");
-  assert.match(periodIds(new Date("2026-10-14T12:00:00Z")).w, /^w2026-42r$/);
-  assert.match(periodIds(new Date("2026-10-14T12:00:00Z")).m, /^m202610r$/);
+  assert.equal(periodIds(new Date("2026-10-11T23:30:00Z")).d, "d20261012a", "periods follow Madrid time, like the original");
+  assert.equal(periodIds().a, "all4", "every board restarted with damage to Arceus (23-10-2026), like the original");
+  assert.match(periodIds(new Date("2026-10-14T12:00:00Z")).w, /^w2026-42a$/);
+  assert.match(periodIds(new Date("2026-10-14T12:00:00Z")).m, /^m202610a$/);
 });
 
 test("nicknames are unique, saves merge on the server, and deleting the account removes everything", (t) => {
@@ -252,6 +270,20 @@ test("rankings: solo boards per period, group runs only for the team that starte
   assert.equal(all.rows[1].names[0], "Trainer1", "the in-game board shows nicknames");
   assert.deepEqual(service.rankingView("1", new URLSearchParams("mode=s&period=a&dex=25")).rows.map((row) => row.uids[0]), ["1"], "per-Pokémon all-time board");
   assert.deepEqual(service.rankingView("1", new URLSearchParams("mode=s&period=a&friends=1")).rows.map((row) => row.uids[0]), ["1"], "friends only: just you until you add someone");
+
+  // Damage to Arceus (like the original since 23-10-2026): its own top 50, kept from its own best run.
+  const hit = service.submitRun(user("1", "Dai"), { mode: "s", t: 200, lv: 12, kills: 150, dex: 150, dmg: 5000, runToken: token });
+  assert.deepEqual(hit.better.sort(), ["a", "d", "m", "w"], "more damage counts even in a shorter run");
+  const dmg = service.rankingView("1", new URLSearchParams("mode=s&period=a&kind=dmg"));
+  assert.deepEqual(dmg.rows.map((row) => [row.uids[0], row.d]), [["1", 5000]]);
+  assert.deepEqual(dmg.me, { pos: 1, d: 5000 });
+  assert.deepEqual(service.rankingView("2", new URLSearchParams("mode=s&period=a&kind=dmg")).me, { out: true });
+  assert.deepEqual(service.rankingView("1", new URLSearchParams("mode=s&period=a&kind=dmg&dex=150")).rows, [], "no damage board per Pokémon");
+  const time = service.rankingView("1", new URLSearchParams("mode=s&period=a")).me;
+  assert.equal(time.t, 600, "the shorter run doesn't replace the best time");
+  assert.equal(time.row.d, 5000);
+  assert.deepEqual(service.rankingView("1", new URLSearchParams("mode=s&period=a&dex=4")).rows.map((row) => row.uids[0]), ["1"], "5-minute runs count per Pokémon");
+  assert.deepEqual(service.rankingView("1", new URLSearchParams("mode=s&period=a&dex=150")).rows, [], "shorter runs don't count per Pokémon (5 min)");
 
   // The site's board (TV trophy, passport, terminal) uses Discord names.
   const site = service.siteLeaderboard(10);
