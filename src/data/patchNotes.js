@@ -5,6 +5,23 @@
 // El primer elemento del array se muestra como LATEST.
 export const patchNotes = [
   {
+    version: "v2.85.0",
+    codename: "KECLEON",
+    date: "2026-10-25",
+    summary: "PokéSurvivor catches up with the original again: the Kecleon Shop, natures and abilities, TMs, Mystery Dungeon orbs, a hittable Arceus with its own damage leaderboard, and steadier co-op, all on top of the daivr.dev version.",
+    entries: [
+      ["new", "Kecleon Shop in the main menu: Mints, Ability Capsules and 8 new TMs every day, bought with coins. Every Pokémon now has a nature (±10% to two stats) and an ability that works during runs, and you use what you buy from the new Bag on each Pokémon's page in the collection."],
+      ["new", "Mystery Dungeon orbs: one-use items you find in chests, from bosses and sometimes from defeated Pokémon (Slumber, Slow, Blowback, Luminous and more). They sit in a pixel box next to your moves, on keys 5 to 8, with a tooltip when you hover them. The Luminous Orb widens the view and stacks with your field of view setting."],
+      ["new", "Arceus can be hit now. It carries a random Plate each run that gives it a type, breaks everyone's held item at minute 35, and each legendary that joins is a little stronger than the last. The leaderboard is split in two: damage dealt to Arceus on the left, time survived on the right."],
+      ["new", "Iris Charms for completing a region's Pokédex, a ×100 gacha pull with a Skip button, and a Second Starting Move upgrade."],
+      ["buff", "All PokéSurvivor leaderboards start from zero again, like in the original, now that Arceus can be hurt. There's no 45-minute limit any more, and the per-Pokémon boards count runs of 5 minutes or longer. Squad medals in your passport still count your old records."],
+      ["buff", "Co-op sends its game messages in a compact binary format between players, about a third less traffic, and if your direct connection hiccups the game now waits up to 45 seconds for it to come back instead of ending your run. The host can still see when friends are online."],
+      ["fix", "Co-op security: numbers coming over the network are checked, so a tampered game can no longer freeze the others with impossible values."],
+      ["fix", "Mints and TMs bought on one computer and used on another are kept in your save's ledger like coins and tickets, so none are lost or duplicated, and two tabs of the game in the same browser now share their changes."],
+      ["fix", "Arceus's arena can't be left by running very fast, and a teammate whose connection drops no longer keeps every enemy chasing a frozen Pokémon."]
+    ]
+  },
+  {
     version: "v2.84.0",
     codename: "WRONG TURN",
     date: "2026-10-20",

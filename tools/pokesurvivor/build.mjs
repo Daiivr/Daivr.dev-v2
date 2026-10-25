@@ -31,11 +31,13 @@ import { fileURLToPath } from "node:url";
 import { gunzipSync } from "node:zlib";
 
 export const UPSTREAM_REPO = "JPTER78/pokesurvivor";
-// 803125d (19-10-2026). Desde 4de8495 el código es PolyForm Noncommercial (uso
+// 8bf030b (25-10-2026). Desde 4de8495 el código es PolyForm Noncommercial (uso
 // sin fines comerciales, con su licencia y su "Required Notice" junto al juego).
 // Su nube sólo funciona en su dominio, pero aquí no se usa: el parche la cambia
-// por la API de la web (ver daivr.patch).
-export const UPSTREAM_COMMIT = "803125dfdf3066fe6cf65f490f1e7b577871a295";
+// por la API de la web (ver daivr.patch). Tampoco se cargan js/noframe.js (no
+// arrancaría dentro de la tele, que es un iframe) ni js/ui/live-ui.js (el botón
+// del canal de YouTube del autor).
+export const UPSTREAM_COMMIT = "8bf030b82b65039da86bc52a3eb10abfc5e59934";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "../..");

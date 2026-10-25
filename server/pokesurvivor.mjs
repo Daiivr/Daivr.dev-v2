@@ -54,6 +54,8 @@ const TOP = 50;
 // Dia, semana, mes y por Pokemon sólo guardan las mejores marcas, como el
 // original (alli 50); el historico general guarda a todos.
 const BOARD_CAP = 200;
+// El historico de cada Pokemon sólo cuenta partidas de 5 min o mas (el original, 20-10-2026).
+const MIN_T_MON = 300;
 const MAX_SAVE_BYTES = 1_000_000;
 const MAX_RELAY_BYTES = 256 * 1024;
 const MAX_DEX = 1025;
@@ -78,6 +80,28 @@ const CUR = {
   t1: [(s) => s.tickets?.t1, (s, v) => { s.tickets.t1 = v; }],
   t10: [(s) => s.tickets?.t10, (s, v) => { s.tickets.t10 = v; }]
 };
+// Desde el 20-10-2026 (Tienda Kecleon) tambien la Mochila y las MT, con la misma
+// libreta: "b:<objeto>" (save.bag) y "m:<movimiento>" (save.tms).
+const isCurKey = (k) => Boolean(CUR[k]) || /^b:[a-z0-9]{1,12}$/.test(k) || /^m:[a-z0-9-]{1,40}$/.test(k);
+const SUB = { b: "bag", m: "tms" };
+function curGet(s, k) {
+  if (CUR[k]) return CUR[k][0](s);
+  const o = s[SUB[k[0]]];
+  return isObject(o) ? o[k.slice(2)] : 0;
+}
+function curSet(s, k, v) {
+  if (CUR[k]) { CUR[k][1](s, v); return; }
+  const name = SUB[k[0]], o = s[name] = isObject(s[name]) ? s[name] : {};
+  if (v > 0) o[k.slice(2)] = Math.min(999, v); else delete o[k.slice(2)];
+}
+/** Todas las cosas con saldo de una partida (y de su libreta). */
+function curKeys(s, led) {
+  const ks = new Set(Object.keys(CUR));
+  for (const id of Object.keys(isObject(s.bag) ? s.bag : {})) if (isCurKey("b:" + id)) ks.add("b:" + id);
+  for (const id of Object.keys(isObject(s.tms) ? s.tms : {})) if (isCurKey("m:" + id)) ks.add("m:" + id);
+  for (const dev in led || {}) if (isObject(led[dev])) for (const k in led[dev]) if (isCurKey(k)) ks.add(k);
+  return [...ks];
+}
 const num = (v) => (Number.isFinite(+v) && +v > 0 ? Math.floor(+v) : 0);
 function ledgerSum(led, k) {
   let total = 0;
@@ -85,12 +109,11 @@ function ledgerSum(led, k) {
   return total;
 }
 function ledgerOf(save) {
-  const balance = Object.fromEntries(Object.keys(CUR).map((k) => [k, num(CUR[k][0](save))]));
-  if (!isObject(save.led)) return { base: Object.fromEntries(Object.keys(CUR).map((k) => [k, [balance[k], 0]])) };
+  if (!isObject(save.led)) return { base: Object.fromEntries(curKeys(save).map((k) => [k, [num(curGet(save, k)), 0]])) };
   const led = JSON.parse(JSON.stringify(save.led));
   // Un saldo en negativo (lo mismo gastado en dos aparatos sin conexion) se ve como 0.
-  for (const k in CUR) {
-    const d = balance[k] - Math.max(0, ledgerSum(led, k));
+  for (const k of curKeys(save, led)) {
+    const d = num(curGet(save, k)) - Math.max(0, ledgerSum(led, k));
     if (!d) continue;
     const p = ((led.old ||= {})[k] ||= [0, 0]);
     if (d > 0) p[0] = num(p[0]) + d; else p[1] = num(p[1]) - d;
@@ -115,7 +138,7 @@ export function mergeSaves(a, b) {
     for (const dev in src) {
       if (!isObject(src[dev])) continue;
       for (const k in src[dev]) {
-        if (!CUR[k] || !Array.isArray(src[dev][k])) continue;
+        if (!isCurKey(k) || !Array.isArray(src[dev][k])) continue;
         const p = ((led[dev] ||= {})[k] ||= [0, 0]), q = src[dev][k];
         p[0] = Math.max(p[0], num(q[0])); p[1] = Math.max(p[1], num(q[1]));
       }
@@ -123,7 +146,21 @@ export function mergeSaves(a, b) {
   }
   r.led = led;
   r.tickets = isObject(r.tickets) ? r.tickets : { t1: 0, t10: 0 };
-  for (const k in CUR) CUR[k][1](r, Math.max(0, ledgerSum(led, k)));
+  r.bag = {}; r.tms = {};
+  for (const k of curKeys({ bag: {}, tms: {} }, led)) curSet(r, k, Math.max(0, ledgerSum(led, k)));
+  // MT aprendidas: nunca se olvidan (union). Naturaleza y habilidad: la elegida mas tarde.
+  r.ptm = isObject(r.ptm) ? r.ptm : {};
+  for (const d in isObject(older.ptm) ? older.ptm : {}) {
+    if (!Array.isArray(older.ptm[d])) continue;
+    r.ptm[d] = [...new Set((Array.isArray(r.ptm[d]) ? r.ptm[d] : []).concat(older.ptm[d]))];
+  }
+  for (const k of ["pnat", "pabil"]) {
+    r[k] = isObject(r[k]) ? r[k] : {};
+    for (const d in isObject(older[k]) ? older[k] : {}) {
+      if (!Array.isArray(older[k][d])) continue;
+      if (!Array.isArray(r[k][d]) || (+older[k][d][1] || 0) > (+r[k][d][1] || 0)) r[k][d] = older[k][d];
+    }
+  }
   for (const coll of ["owned", "shiny"]) {
     r[coll] = r[coll] || {};
     for (const k in older[coll] || {}) {
@@ -144,8 +181,10 @@ export function mergeSaves(a, b) {
   for (const d in older.dfav || {}) if (Math.abs(+older.dfav[d] || 0) > Math.abs(+r.dfav[d] || 0)) r.dfav[d] = older.dfav[d];
   r.pused = isObject(r.pused) ? r.pused : {};
   for (const d in older.pused || {}) r.pused[d] = Math.max(+r.pused[d] || 0, +older.pused[d] || 0);
-  r.pstart = isObject(r.pstart) ? r.pstart : {};
-  for (const d in older.pstart || {}) if (!(d in r.pstart)) r.pstart[d] = older.pstart[d];
+  for (const k of ["pstart", "pstart2"]) {
+    r[k] = isObject(r[k]) ? r[k] : {};
+    for (const d in isObject(older[k]) ? older[k] : {}) if (!(d in r[k])) r[k][d] = older[k][d];
+  }
   // Récords con cada Pokémon (daivr.dev: tiempo, nivel, derrotados, daño/s, daño): el mayor.
   r.precs = isObject(r.precs) ? r.precs : {};
   for (const d in isObject(older.precs) ? older.precs : {}) {
@@ -210,18 +249,18 @@ function isoWeek(y, m, d) {
   return { year: t.getUTCFullYear(), week: Math.ceil(((t - y0) / 86400000 + 1) / 7) };
 }
 
-// El historico es "all3" desde el 18-10-2026, como en el original: arreglaron la
-// Sentencia de Arceus (ya no se aguanta para siempre huyendo con veneno) y
-// TODAS las tablas empezaron de cero. Antes fue "all2" (13-10-2026, al llegar la
-// Sentencia) y "all". Las tablas viejas se quedan guardadas sin usarse (salvo
-// para las medallas del pasaporte).
-const ALL = "all3";
+// El historico es "all4" desde el 23-10-2026, como en el original: a Arceus ya se
+// le puede pegar (ranking de dano), sin tope de 45 min, y TODAS las tablas
+// empezaron de cero otra vez. Antes fue "all3" (18-10-2026, arreglo de la
+// Sentencia), "all2" (13-10-2026, al llegar la Sentencia) y "all". Las tablas
+// viejas se quedan guardadas sin usarse (salvo para las medallas del pasaporte).
+const ALL = "all4";
 
-// Dia, semana y mes llevan una "r" desde el 18-10-2026, como en el original
-// (antes semana y mes llevaban una "j", del 14-10). Las tablas viejas de estos
+// Dia, semana y mes llevan una "a" desde el 23-10-2026, como en el original
+// (del 18-10 una "r"; antes semana y mes llevaban una "j", del 14-10). Las tablas viejas de estos
 // periodos se borran solas con la siguiente marca (submitRun quita las de
 // periodos que no son los de ahora).
-const GEN = "r";
+const GEN = "a";
 export function periodIds(date = new Date()) {
   const { y, m, d } = madridDate(date);
   const w = isoWeek(y, m, d);
@@ -231,7 +270,7 @@ export function periodIds(date = new Date()) {
 
 const boardOf = (mode, period, dex, ids) => `${mode}_${ids[period]}${dex && period === "a" ? `_p${dex}` : ""}`;
 // Todo lo que no es el historico general guarda solo las mejores marcas.
-const capped = (board) => !/^[sg]_all[23]?$/.test(board);
+const capped = (board) => !/^[sg]_all[234]?$/.test(board);
 
 // ---------------- validacion ----------------
 
@@ -254,22 +293,24 @@ function profileFields(body) {
  * El original quito sus cotas de nivel y derrotados (12-10-2026: daban falsos
  * positivos), asi que aqui solo se comprueba que los numeros tengan sentido.
  * La duracion la vigila la ficha de partida (run-tokens: ninguna marca dura mas
- * que el tiempo real) y, desde la Sentencia de Arceus (minuto 30, 13-10-2026),
- * un tope. Era de 35 min; el 18-10-2026 el original endurecio la Sentencia
- * (Arceus acelera desde los 5 min y hacia el minuto 40 te deja KO de un golpe)
- * y su tope paso a 45 min, como este.
+ * que el tiempo real). Con la Sentencia de Arceus hubo un tope de 35 min y luego
+ * de 45; el 23-10-2026 el original lo quito (a Arceus ya se le puede pegar y la
+ * pelea acaba sola), asi que solo queda uno de cordura: un dia, como su fit().
  */
-export const MAX_RUN_S = 45 * 60;
+export const MAX_RUN_S = 24 * 3600;
 export function validateRun(body) {
   const t = body?.t, lv = body?.lv, kills = body?.kills;
   if (!["s", "g"].includes(body?.mode)) return null;
   if (!int(t, 5, MAX_RUN_S) || !int(lv, 1, 9_999) || !int(kills, 0, 10_000_000)) return null;
-  if (body.mode === "s") return dexOk(body.dex) ? { mode: "s", t, lv, kills, dex: body.dex, shiny: Boolean(body.shiny) } : null;
+  // Dano a Arceus (desde el 23-10-2026; las versiones de antes no lo mandan).
+  const dmg = body.dmg ?? 0;
+  if (!int(dmg, 0, 1e15)) return null;
+  if (body.mode === "s") return dexOk(body.dex) ? { mode: "s", t, lv, kills, dmg, dex: body.dex, shiny: Boolean(body.shiny) } : null;
   const members = body.members;
   if (!Array.isArray(members) || members.length < 2 || members.length > POKESURVIVOR_MAX_PLAYERS) return null;
   if (!members.every((m) => isObject(m) && typeof m.uid === "string" && USER_ID.test(m.uid) && dexOk(m.dex))) return null;
   if (new Set(members.map((m) => m.uid)).size !== members.length) return null;
-  return { mode: "g", t, lv, kills, members: members.map((m) => ({ uid: m.uid, dex: m.dex, shiny: Boolean(m.shiny) })) };
+  return { mode: "g", t, lv, kills, dmg, members: members.map((m) => ({ uid: m.uid, dex: m.dex, shiny: Boolean(m.shiny) })) };
 }
 
 // ---------------- servicio ----------------
@@ -614,6 +655,17 @@ export function createPokesurvivorService({ now = () => Date.now() } = {}) {
   }
 
   /** El anfitrion le pasa la sala a otro jugador (solo en la sala de espera). */
+  /**
+   * El anfitrion saca de la sala a un invitado que no ha vuelto (el juego le
+   * espera 45 s en pausa si se corta la conexion directa, como el original).
+   */
+  function kickMember(uid, who) {
+    const room = hostedRoom(uid);
+    who = String(who || "");
+    if (who === uid || !room.members.has(who)) return;
+    leaveRoom(who);
+  }
+
   function transferHost(uid, to) {
     const room = hostedRoom(uid);
     to = String(to || "");
@@ -701,7 +753,7 @@ export function createPokesurvivorService({ now = () => Date.now() } = {}) {
     if (!check.ok) fail(check.status, check.status === 422 ? "run-too-long" : "run-token");
     let entry, id;
     if (run.mode === "s") {
-      entry = { t: run.t, uids: [uid], names: [nick], dex: [run.dex], shiny: [run.shiny], lv: run.lv, kills: run.kills };
+      entry = { t: run.t, uids: [uid], names: [nick], dex: [run.dex], shiny: [run.shiny], lv: run.lv, kills: run.kills, dmg: run.dmg };
       id = uid;
     } else {
       // Solo el anfitrion sube la marca del grupo, y solo con el equipo con el
@@ -710,20 +762,24 @@ export function createPokesurvivorService({ now = () => Date.now() } = {}) {
       const uids = run.members.map((m) => m.uid).sort();
       if (!start || start.host !== uid || now() - start.at > GROUP_RUN_MAX_MS || start.uids.join("_") !== uids.join("_")) fail(403, "bad-team");
       const team = [...run.members].sort((a, b) => (a.uid < b.uid ? -1 : 1));
-      entry = { t: run.t, uids, names: team.map((m) => nickOf(m.uid) || "???"), dex: team.map((m) => m.dex), shiny: team.map((m) => m.shiny), lv: run.lv, kills: run.kills };
+      entry = { t: run.t, uids, names: team.map((m) => nickOf(m.uid) || "???"), dex: team.map((m) => m.dex), shiny: team.map((m) => m.shiny), lv: run.lv, kills: run.kills, dmg: run.dmg };
       id = uids.join("_");
     }
     const ids = periodIds(new Date(now()));
     const targets = PERIODS.map((period) => [boardOf(run.mode, period, null, ids), period]);
-    for (const dex of new Set(entry.dex)) targets.push([`${run.mode}_${ids.a}_p${dex}`, "p"]);
+    if (run.t >= MIN_T_MON) for (const dex of new Set(entry.dex)) targets.push([`${run.mode}_${ids.a}_p${dex}`, "p"]);
     const data = loadRanking();
     const at = new Date(now()).toISOString();
     const better = [];
     let changed = false;
     for (const [board, period] of targets) {
       const rows = data.boards[board] ||= {};
-      if (rows[id] && rows[id].t >= entry.t) continue;
-      rows[id] = { ...entry, at };
+      // Cada cosa, de su mejor partida (como el original): el tiempo, con su nivel y
+      // derrotados, y el dano a Arceus (que no va en las tablas de cada Pokemon).
+      const old = rows[id], dmg = period === "p" ? 0 : entry.dmg;
+      const upT = !old || entry.t > old.t, upD = dmg > (old?.dmg || 0);
+      if (!upT && !upD) continue;
+      rows[id] = upT ? { ...entry, dmg: Math.max(dmg, old?.dmg || 0), at } : { ...old, dmg, atD: at };
       changed = true;
       if (period !== "p") better.push(period);
       if (capped(board)) trimBoard(rows);
@@ -811,12 +867,21 @@ export function createPokesurvivorService({ now = () => Date.now() } = {}) {
   function trimBoard(rows) {
     const ids = Object.keys(rows);
     if (ids.length <= BOARD_CAP) return;
-    ids.sort((a, b) => rows[b].t - rows[a].t).slice(BOARD_CAP).forEach((id) => delete rows[id]);
+    // Se quedan las mejores de tiempo y las mejores de dano a Arceus.
+    const keep = new Set([...ids].sort((a, b) => rows[b].t - rows[a].t).slice(0, BOARD_CAP));
+    for (const id of ids.filter((i) => rows[i].dmg > 0).sort((a, b) => rows[b].dmg - rows[a].dmg).slice(0, BOARD_CAP)) keep.add(id);
+    for (const id of ids) if (!keep.has(id)) delete rows[id];
   }
 
-  function sortedRows(board) {
-    return Object.entries(loadRanking().boards[board] || {})
-      .map(([id, v]) => ({ id, t: v.t, uids: v.uids, names: v.names, dex: v.dex, shiny: v.shiny, lv: v.lv, kills: v.kills, at: v.at }))
+  function sortedRows(board, kind = "t") {
+    const all = Object.entries(loadRanking().boards[board] || {});
+    if (kind === "dmg") {
+      return all.filter(([, v]) => v.dmg > 0)
+        .map(([id, v]) => ({ id, d: v.dmg, uids: v.uids, names: v.names, dex: v.dex, shiny: v.shiny, at: v.atD || v.at }))
+        .sort((a, b) => b.d - a.d || String(a.at).localeCompare(String(b.at)));
+    }
+    return all
+      .map(([id, v]) => ({ id, t: v.t, d: v.dmg || 0, uids: v.uids, names: v.names, dex: v.dex, shiny: v.shiny, lv: v.lv, kills: v.kills, at: v.at }))
       .sort((a, b) => b.t - a.t || String(a.at).localeCompare(String(b.at)));
   }
 
@@ -826,7 +891,10 @@ export function createPokesurvivorService({ now = () => Date.now() } = {}) {
     const dex = Number(query.get("dex")) || null;
     if (dex && !dexOk(dex)) fail(400, "bad-dex");
     const board = boardOf(mode, period, dex, periodIds(new Date(now())));
-    const rows = sortedRows(board);
+    // Dano a Arceus (kind=dmg, desde el 23-10-2026): el top 50; no hay por Pokemon.
+    const kind = query.get("kind") === "dmg" ? "dmg" : "t";
+    if (kind === "dmg" && dex) return { board, rows: [], me: null };
+    const rows = sortedRows(board, kind);
     const pub = ({ at, ...row }) => row;
     let list = rows;
     if (query.get("friends") === "1" && uid) {
@@ -836,7 +904,8 @@ export function createPokesurvivorService({ now = () => Date.now() } = {}) {
     let me = null;
     if (uid) {
       const index = rows.findIndex((row) => row.uids.includes(uid));
-      if (index >= 0) me = { pos: index + 1, t: rows[index].t, row: pub(rows[index]) };
+      if (kind === "dmg") me = index >= 0 && index < TOP ? { pos: index + 1, d: rows[index].d } : { out: true };
+      else if (index >= 0) me = { pos: index + 1, t: rows[index].t, row: pub(rows[index]) };
       else if (capped(board) && rows.length >= BOARD_CAP) me = { out: true };
     }
     return { board, rows: list.slice(0, TOP).map(pub), me };
@@ -858,7 +927,7 @@ export function createPokesurvivorService({ now = () => Date.now() } = {}) {
     // la Sentencia y el de ahora): las medallas que ya tenias no se pierden.
     const boards = loadRanking().boards;
     const squads = new Map();
-    for (const board of [boards.g_all, boards.g_all2, boards[`g_${ALL}`]]) {
+    for (const board of [boards.g_all, boards.g_all2, boards.g_all3, boards[`g_${ALL}`]]) {
       for (const [team, row] of Object.entries(board || {})) {
         if (row.uids.includes(id)) squads.set(team, Math.max(squads.get(team) || 0, row.t));
       }
@@ -897,7 +966,7 @@ export function createPokesurvivorService({ now = () => Date.now() } = {}) {
 
   return {
     readSave, storeSave, claimNick, publishProfile, profileOf, requestFriend, acceptFriend, removeFriend, setPlaying,
-    attachStream, snapshot, sessionsList, createRoom, joinRoom, leaveRoom, setRoomOpen, transferHost, updateMember, invite, declineInvite, relay,
+    attachStream, snapshot, sessionsList, createRoom, joinRoom, leaveRoom, setRoomOpen, transferHost, kickMember, updateMember, invite, declineInvite, relay,
     submitRun, checkChallenge, rankingView, siteLeaderboard, siteScore, passportStats, deleteAccount, nickOf, isOnline
   };
 }
@@ -989,6 +1058,7 @@ export async function handlePokesurvivorRequest(request, response, svc = getServ
       case "room/leave": svc.leaveRoom(uid); return sendJson(response, 200, { ok: true });
       case "room/open": svc.setRoomOpen(uid, body.open); return sendJson(response, 200, { ok: true });
       case "room/host": return sendJson(response, 200, { room: svc.transferHost(uid, body.to) });
+      case "room/kick": svc.kickMember(uid, body.uid); return sendJson(response, 200, { ok: true });
       case "room/member": svc.updateMember(uid, body); return sendJson(response, 200, { ok: true });
       case "invite": svc.invite(uid, body.to); return sendJson(response, 200, { ok: true });
       case "invite/decline": svc.declineInvite(uid, body.from); return sendJson(response, 200, { ok: true });
